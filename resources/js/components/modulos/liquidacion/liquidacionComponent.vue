@@ -19,7 +19,7 @@
                         <h4 class="card-title">Filtros de liquidaci&oacute;n</h4>
                         <h6 class="card-subtitle">
                             Seleccione la sede y el rango de fechas a liquidar. Ambas fechas son
-                            obligatorias.
+                            obligatorias. Contrato y médico son opcionales para acotar.
                         </h6>
                         <div class="row m-t-20">
                             <div class="col-md-4">
@@ -30,6 +30,7 @@
                                         v-model="filtros.sede_id"
                                         class="form-control custom-select"
                                         :disabled="loadingSedes"
+                                        @change="alCambiarSede"
                                     >
                                         <option value="">...::: Seleccione una sede :::...</option>
                                         <option
@@ -42,7 +43,41 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="liq-contrato">Contrato (opcional)</label>
+                                    <select
+                                        id="liq-contrato"
+                                        v-model="filtros.contrato_id"
+                                        class="form-control custom-select"
+                                        :disabled="!filtros.sede_id || loadingContratos"
+                                    >
+                                        <option value="">...::: Todos :::...</option>
+                                        <option v-for="c in contratos" :key="c.id" :value="c.id">
+                                            {{ etiquetaContrato(c) }}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="liq-medico">Médico (opcional)</label>
+                                    <select
+                                        id="liq-medico"
+                                        v-model="filtros.medico_id"
+                                        class="form-control custom-select"
+                                        :disabled="loadingMedicos"
+                                    >
+                                        <option value="">...::: Todos :::...</option>
+                                        <option v-for="m in medicos" :key="m.id" :value="m.id">
+                                            {{ etiquetaMedico(m) }}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row m-t-10">
+                            <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="liq-inicio">Fecha inicio</label>
                                     <input
@@ -53,7 +88,7 @@
                                     />
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="liq-fin">Fecha fin</label>
                                     <input
@@ -64,7 +99,7 @@
                                     />
                                 </div>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-4">
                                 <div class="form-group">
                                     <label>&nbsp;</label>
                                     <div>
@@ -274,15 +309,17 @@ function primerDiaMesActual() {
 }
 
 /**
- * Filtros de la liquidación (sede y rango de fechas cerrado).
+ * Filtros de la liquidación (sede y rango de fechas cerrado, más contrato y médico opcionales).
  * Por defecto se sugiere el mes actual; ambas fechas son obligatorias.
  *
- * @type {import('vue').Ref<{sede_id: string|number, fecha_inicio: string, fecha_fin: string}>}
+ * @type {import('vue').Ref<{sede_id: string|number, fecha_inicio: string, fecha_fin: string, contrato_id: string|number, medico_id: string|number}>}
  */
 const filtros = ref({
     sede_id: "",
     fecha_inicio: primerDiaMesActual(),
     fecha_fin: fechaHoy(),
+    contrato_id: "",
+    medico_id: "",
 });
 
 /**
@@ -291,6 +328,20 @@ const filtros = ref({
  * @type {import('vue').Ref<Array>}
  */
 const sedes = ref([]);
+
+/**
+ * Contratos de la sede seleccionada para el filtro opcional.
+ *
+ * @type {import('vue').Ref<Array>}
+ */
+const contratos = ref([]);
+
+/**
+ * Médicos (usuarios con reg_med) para el filtro opcional.
+ *
+ * @type {import('vue').Ref<Array>}
+ */
+const medicos = ref([]);
 
 /**
  * Resultado del cálculo: { lineas, exclusiones, totales } o null si aún no se calcula.
@@ -312,6 +363,20 @@ const loading = ref(false);
  * @type {import('vue').Ref<boolean>}
  */
 const loadingSedes = ref(false);
+
+/**
+ * Flag de carga del listado de contratos de la sede.
+ *
+ * @type {import('vue').Ref<boolean>}
+ */
+const loadingContratos = ref(false);
+
+/**
+ * Flag de carga del listado de médicos.
+ *
+ * @type {import('vue').Ref<boolean>}
+ */
+const loadingMedicos = ref(false);
 
 /**
  * Líneas liquidables del resultado actual.
@@ -431,6 +496,107 @@ async function cargarSedes() {
 }
 
 /**
+ * Etiqueta legible de un contrato para el select: #id · inicio al fin (+ inactivo).
+ *
+ * @param {Object} c - Contrato con id, fecha_inicio, fecha_fin y estado
+ * @returns {string} Etiqueta del contrato
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-09-30
+ */
+function etiquetaContrato(c) {
+    const inicio = String(c.fecha_inicio || "").slice(0, 10);
+    const fin = String(c.fecha_fin || "").slice(0, 10);
+    const inactivo = Number(c.estado) === 0 ? " (inactivo)" : "";
+    return `#${c.id} · ${inicio} al ${fin}${inactivo}`;
+}
+
+/**
+ * Etiqueta legible de un médico para el select: reg_med - name si hay registro.
+ * Mismo criterio que medicoOptions en contratoComponent (reg_med real).
+ *
+ * @param {Object} m - Usuario médico con id, name y reg_med opcional
+ * @returns {string} Etiqueta del médico
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-09-30
+ */
+function etiquetaMedico(m) {
+    return m.reg_med ? `${m.reg_med} - ${m.name}` : m.name;
+}
+
+/**
+ * Carga los contratos de la sede seleccionada para el filtro opcional.
+ * Se invoca al cambiar de sede y limpia el contrato elegido anterior.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-09-30
+ */
+async function cargarContratos() {
+    contratos.value = [];
+    if (!filtros.value.sede_id || loadingContratos.value) return;
+    loadingContratos.value = true;
+    try {
+        const res = await axios.get("/api/contratos", {
+            params: { sede_id: filtros.value.sede_id },
+        });
+        contratos.value = res.data?.data?.data || res.data?.data || [];
+    } catch (e) {
+        console.error(e);
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar los contratos",
+            icon: "error",
+        });
+    } finally {
+        loadingContratos.value = false;
+    }
+}
+
+/**
+ * Al cambiar de sede: limpia el contrato elegido y recarga la lista.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-09-30
+ */
+async function alCambiarSede() {
+    filtros.value.contrato_id = "";
+    await cargarContratos();
+}
+
+/**
+ * Carga el catálogo de médicos (usuarios con reg_med) una sola vez.
+ * Mismo endpoint que contratoComponent (ST-modulo del módulo actual).
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-09-30
+ */
+async function cargarMedicos() {
+    if (loadingMedicos.value || medicos.value.length) return;
+    loadingMedicos.value = true;
+    try {
+        const moduloId = sessionStorage.getItem("ST-modulo") || "1";
+        const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
+        medicos.value = res.data.data || [];
+    } catch (e) {
+        console.error(e);
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar los médicos",
+            icon: "error",
+        });
+    } finally {
+        loadingMedicos.value = false;
+    }
+}
+
+/**
  * Valida que los filtros estén completos: sede y ambas fechas, con fin >= inicio.
  * El rango cerrado es obligatorio porque el backend carga todo el periodo en memoria.
  *
@@ -466,6 +632,7 @@ function filtrosValidos() {
 /**
  * Calcula la liquidación con los filtros seleccionados.
  * Consume GET /api/liquidacion y asigna res.data.data (lineas, exclusiones, totales).
+ * Contrato y médico viajan solo cuando se eligen (opcionales).
  *
  * @returns {Promise<void>}
  *
@@ -477,13 +644,14 @@ async function calcular() {
     if (!filtrosValidos()) return;
     loading.value = true;
     try {
-        const res = await axios.get("/api/liquidacion", {
-            params: {
-                sede_id: filtros.value.sede_id,
-                fecha_inicio: filtros.value.fecha_inicio,
-                fecha_fin: filtros.value.fecha_fin,
-            },
-        });
+        const params = {
+            sede_id: filtros.value.sede_id,
+            fecha_inicio: filtros.value.fecha_inicio,
+            fecha_fin: filtros.value.fecha_fin,
+        };
+        if (filtros.value.contrato_id) params.contrato_id = filtros.value.contrato_id;
+        if (filtros.value.medico_id) params.medico_id = filtros.value.medico_id;
+        const res = await axios.get("/api/liquidacion", { params });
         resultado.value = res.data.data;
         if (!resultado.value?.lineas?.length) {
             toastMessage({
@@ -518,16 +686,19 @@ function exportar() {
         fecha_inicio: filtros.value.fecha_inicio,
         fecha_fin: filtros.value.fecha_fin,
     });
+    if (filtros.value.contrato_id) params.append("contrato_id", String(filtros.value.contrato_id));
+    if (filtros.value.medico_id) params.append("medico_id", String(filtros.value.medico_id));
     window.open(`/api/liquidacion/exportar?${params.toString()}`, "_blank");
 }
 
 /**
- * Lifecycle onMounted: carga las sedes activas para el select de filtros.
+ * Lifecycle onMounted: carga sedes y médicos para los selects de filtros.
  *
  * @author Jhon Javer Lozano Arce
  * @date 2026-09-30
  */
 onMounted(() => {
     cargarSedes();
+    cargarMedicos();
 });
 </script>

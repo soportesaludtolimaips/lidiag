@@ -72,7 +72,9 @@ class LiquidacionController extends Controller
         $result = $this->liquidacionService->calcular(
             (int) $validated["sede_id"],
             $validated["fecha_inicio"],
-            $validated["fecha_fin"]
+            $validated["fecha_fin"],
+            isset($validated["contrato_id"]) ? (int) $validated["contrato_id"] : null,
+            isset($validated["medico_id"]) ? (int) $validated["medico_id"] : null
         );
 
         return response()->json($result, $result["status"]);
@@ -99,7 +101,13 @@ class LiquidacionController extends Controller
         $validated = $this->validarFiltros($request);
 
         return Excel::download(
-            new LiquidacionExport((int) $validated["sede_id"], $validated["fecha_inicio"], $validated["fecha_fin"]),
+            new LiquidacionExport(
+                (int) $validated["sede_id"],
+                $validated["fecha_inicio"],
+                $validated["fecha_fin"],
+                isset($validated["contrato_id"]) ? (int) $validated["contrato_id"] : null,
+                isset($validated["medico_id"]) ? (int) $validated["medico_id"] : null
+            ),
             "liquidacion.xlsx"
         );
     }
@@ -110,8 +118,9 @@ class LiquidacionController extends Controller
      * Flujo del proceso:
      * 1. Exige sede_id existente en config_sedes.
      * 2. Exige fecha_inicio y fecha_fin con fin posterior o igual al inicio.
+     * 3. Acepta contrato_id y medico_id opcionales (deben existir si vienen).
      *
-     * @param  Request  $request  Petición con sede_id, fecha_inicio y fecha_fin.
+     * @param  Request  $request  Petición con sede_id, fecha_inicio, fecha_fin y opcionales.
      *
      * @returns array{sede_id: int, fecha_inicio: string, fecha_fin: string} Filtros validados.
      *
@@ -125,6 +134,8 @@ class LiquidacionController extends Controller
             "sede_id" => "required|integer|exists:config_sedes,id",
             "fecha_inicio" => "required|date",
             "fecha_fin" => "required|date|after_or_equal:fecha_inicio",
+            "contrato_id" => "sometimes|integer|exists:contratos,id",
+            "medico_id" => "sometimes|integer|exists:users,id",
         ]);
     }
 }

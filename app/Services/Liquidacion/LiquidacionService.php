@@ -40,6 +40,10 @@ class LiquidacionService extends BaseService
      * @param  int  $sedeId  Sede a liquidar.
      * @param  string  $fechaInicio  Inicio del periodo en Y-m-d.
      * @param  string  $fechaFin  Fin del periodo en Y-m-d.
+     * @param  int|null  $contratoId  Si se indica, vista acotada a ese contrato
+     *                                (debe ser de la sede; lecturas fuera de su
+     *                                rango caen en sin_contrato).
+     * @param  int|null  $medicoId  Si se indica, solo lecturas de ese médico.
      *
      * @returns array Líneas, exclusiones con conteo y totales por médico.
      *
@@ -47,7 +51,7 @@ class LiquidacionService extends BaseService
      *
      * @date 2026-09-30
      */
-    public function calcular(int $sedeId, string $fechaInicio, string $fechaFin): array
+    public function calcular(int $sedeId, string $fechaInicio, string $fechaFin, ?int $contratoId = null, ?int $medicoId = null): array
     {
         $urgentes = ConfigPrioridad::where("nom_priori", "Alta")->pluck("id")->toArray();
 
@@ -56,19 +60,34 @@ class LiquidacionService extends BaseService
             ->where("e.sede_id", $sedeId)
             ->whereDate("estudios_productos.fechor_lectura", ">=", $fechaInicio)
             ->whereDate("estudios_productos.fechor_lectura", "<=", $fechaFin)
+            ->when($medicoId !== null, fn ($q) => $q->where("e.medico_id", $medicoId))
             ->select("estudios_productos.*", "e.medico_id as lector_id", "e.prioridad_id")
             ->with(["producto:id,cod_cups,nom_produc"])
             ->get();
 
-        $contratos = Contrato::where("sede_id", $sedeId)
-            ->where("fecha_inicio", "<=", $fechaFin)
-            ->where("fecha_fin", ">=", $fechaInicio)
-            ->with([
+        if ($contratoId !== null) {
+            $fijo = Contrato::find($contratoId);
+
+            if (! $fijo || (int) $fijo->sede_id !== (int) $sedeId) {
+                return $this->error("El contrato no pertenece a la sede indicada.", 422);
+            }
+
+            $contratos = collect([$fijo->load([
                 "productos:id,contrato_id,producto_id",
                 "medicos" => fn ($q) => $q->where("contratos_medicos.estado", 1),
                 "medicos.medico:id,name",
-            ])
-            ->get();
+            ])]);
+        } else {
+            $contratos = Contrato::where("sede_id", $sedeId)
+                ->where("fecha_inicio", "<=", $fechaFin)
+                ->where("fecha_fin", ">=", $fechaInicio)
+                ->with([
+                    "productos:id,contrato_id,producto_id",
+                    "medicos" => fn ($q) => $q->where("contratos_medicos.estado", 1),
+                    "medicos.medico:id,name",
+                ])
+                ->get();
+        }
 
         $lineas = [];
         $excluidos = ["sin_asignado" => [], "sin_contrato" => [], "producto_sin_tarifa" => [], "medico_fuera_detalle" => [], "anulada" => []];

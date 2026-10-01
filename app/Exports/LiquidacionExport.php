@@ -34,12 +34,14 @@ class LiquidacionExport implements FromCollection, WithColumnWidths, WithHeading
      * @param  int  $sedeId  Sede liquidada.
      * @param  string  $fechaInicio  Inicio en Y-m-d.
      * @param  string  $fechaFin  Fin en Y-m-d.
+     * @param  int|null  $contratoId  Contrato opcional para acotar la vista.
+     * @param  int|null  $medicoId  Médico opcional para acotar la vista.
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-09-30
      */
-    public function __construct(protected int $sedeId, protected string $fechaInicio, protected string $fechaFin) {}
+    public function __construct(protected int $sedeId, protected string $fechaInicio, protected string $fechaFin, protected ?int $contratoId = null, protected ?int $medicoId = null) {}
 
     /**
      * Entrega las líneas de la liquidación como colección.
@@ -57,7 +59,7 @@ class LiquidacionExport implements FromCollection, WithColumnWidths, WithHeading
      */
     public function collection()
     {
-        $result = app(LiquidacionService::class)->calcular($this->sedeId, $this->fechaInicio, $this->fechaFin);
+        $result = app(LiquidacionService::class)->calcular($this->sedeId, $this->fechaInicio, $this->fechaFin, $this->contratoId, $this->medicoId);
 
         return collect($result["data"]["lineas"] ?? []);
     }
