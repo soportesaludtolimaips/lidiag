@@ -250,6 +250,11 @@ class ContratoController extends Controller
     /**
      * Aplica el diff del detalle de médicos del contrato.
      *
+     * Flujo del proceso:
+     * 1. Valida el payload con las reglas compartidas.
+     * 2. Delega al servicio, que calcula y aplica el diff sin borrar.
+     * 3. Devuelve el contrato actualizado o el error de validación.
+     *
      * @param  Request  $request  Payload con medicos y retirar_faltantes opcional.
      * @param  int  $contratoId  Identificador del contrato.
      *
@@ -270,6 +275,11 @@ class ContratoController extends Controller
 
     /**
      * Reglas de validación del detalle de médicos-producto.
+     *
+     * Flujo del proceso:
+     * 1. Exige la lista medicos con valores por ítem.
+     * 2. Acepta retirar_faltantes opcional (sin él, el servicio usa false).
+     * 3. Devuelve solo los campos con regla (medicos + retirar_faltantes si vino).
      *
      * @param  Request  $request  Petición con la lista medicos.
      * @return array<string, mixed> Datos ya validados.
@@ -403,6 +413,10 @@ class ContratoController extends Controller
     /**
      * Informa qué productos del catálogo exigibles no tienen tarifa cargada.
      *
+     * Flujo del proceso:
+     * 1. Delega al servicio el cálculo de cobertura del contrato.
+     * 2. Devuelve totales y lista de faltantes con su código.
+     *
      * @param  int  $id  Identificador del contrato.
      *
      * @returns \Illuminate\Http\JsonResponse Totales de cobertura y lista de faltantes.
@@ -420,6 +434,11 @@ class ContratoController extends Controller
 
     /**
      * Previsualiza el cambio del detalle de médicos sin aplicarlo.
+     *
+     * Flujo del proceso:
+     * 1. Valida el payload con las reglas compartidas.
+     * 2. Pasa solo los items al servicio, que calcula el diff sin escribir.
+     * 3. Devuelve el contrato más el diff para confirmación del usuario.
      *
      * @param  Request  $request  Payload con la lista medicos.
      * @param  int  $contratoId  Identificador del contrato.

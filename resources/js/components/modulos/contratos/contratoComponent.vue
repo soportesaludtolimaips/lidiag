@@ -342,7 +342,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="item in detallesLocales" :key="item.id">
+                                <tr v-for="(item, index) in detallesLocales" :key="item.id">
                                     <td>{{ item.medico_name }}</td>
                                     <td>{{ item.cod_cups }}</td>
                                     <td>{{ item.nom_produc }}</td>

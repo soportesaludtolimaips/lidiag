@@ -529,7 +529,7 @@ class ContratoService extends BaseService
      * Indica qué productos del catálogo exigibles no tienen tarifa en el contrato.
      *
      * Flujo del proceso:
-     * 1. Obtiene los contratos_productos del contrato con su producto.
+     * 1. Obtiene el mapa producto_id → contratos_productos.id del contrato.
      * 2. Compara contra el catálogo de productos que requieren lectura y están activos.
      * 3. Devuelve el total, cuántos están tarifados y el detalle de los que faltan.
      *
