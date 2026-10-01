@@ -9,9 +9,11 @@ use App\Models\Estudio\EstudioDiagnostico;
 use App\Models\Estudio\EstudioProducto;
 use App\Models\Estudio\EstudioSoportesHC;
 use App\Models\General\Paciente;
+use App\Models\Liquidacion\LiquidacionLinea;
 use App\Models\User;
 use App\Services\BaseService;
 use App\Services\Contracts\FileServiceInterface;
+use App\Services\Liquidacion\LiquidacionService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -244,6 +246,12 @@ class EstudioService extends BaseService
                 $item->lectura = $lectura;
                 $item->fechor_lectura = Carbon::now();
                 $item->save();
+
+                try {
+                    app(LiquidacionService::class)->registrarLectura($item);
+                } catch (\Throwable $e) {
+                    Log::error('Error al registrar línea de liquidación: '.$e->getMessage());
+                }
 
                 return $this->updated(null, 'La lectura se realizo correctamente.');
             });
@@ -600,6 +608,8 @@ class EstudioService extends BaseService
 
                 $producto->activo = 0;
                 $producto->save();
+
+                LiquidacionLinea::where('estudio_producto_id', $producto->id)->update(['estado' => 0]);
 
                 return $this->updated(null, 'El producto se anuló correctamente.');
             });

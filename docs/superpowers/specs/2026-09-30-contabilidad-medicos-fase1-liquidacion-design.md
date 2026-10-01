@@ -98,7 +98,9 @@ Toda lectura con fecha que no liquida cae en una categoría con conteo:
 - **D3 (Q1)**: no puede existir lectura sin médico asignado (invariante; viejos = anomalía).
 - **D4 (Q2)**: `leerEstudio()` rechaza a quien no sea el asignado (cambio de conducta incluido).
 - **D5 (Q4)**: transcribir NO se paga; el pago es solo a los médicos lectores.
-- **D6 (Q5)**: recálculo vivo; NO se congelan tarifas (cambiar una tarifa reescribe el pasado).
+- **D6 (Q5, REVERSADA 2026-10-01)**: cada lectura congela su tarifa en `liquidacion_lineas`
+  al leer (valor inmutable para el corte de mes); el cálculo a demanda sigue para vistas
+  ad-hoc pero el reporte de productividad lee lo congelado.
 - **Q3 (default, pendiente de veto)**: se acepta la deriva Tele (§7).
 - **Q6 (default, pendiente de veto)**: cálculo a demanda por rango, sin estado de periodo.
 
@@ -108,7 +110,8 @@ Toda lectura con fecha que no liquida cae en una categoría con conteo:
    con valor, más exclusiones con conteo (incluida anomalía sin-asignado).
 2. Exportar la liquidación a Excel.
 3. Guard en `leerEstudio()`: solo el asignado puede leer (D4; 403 en otro caso).
-4. Sin congelamiento (D6) y sin pago por transcripción (D5).
+4. Sin pago por transcripción (D5). Congelamiento por lectura registrado en
+   `liquidacion_lineas` (D6 reversada); `productividad()` agrega por médico y periodo.
 
 ## 10. Verificación propuesta
 

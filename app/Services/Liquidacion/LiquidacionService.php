@@ -5,6 +5,7 @@ namespace App\Services\Liquidacion;
 use App\Models\Configuracion\ConfigPrioridad;
 use App\Models\Contratacion\Contrato;
 use App\Models\Estudio\EstudioProducto;
+use App\Models\Liquidacion\LiquidacionLinea;
 use App\Services\BaseService;
 use DateTimeInterface;
 
@@ -175,6 +176,156 @@ class LiquidacionService extends BaseService
             "lineas" => $lineas,
             "exclusiones" => $exclusiones,
             "totales" => ["por_medico" => array_values($porMedico), "gran_total" => array_sum(array_column($porMedico, "total"))],
+        ]);
+    }
+
+    /**
+     * Registra la línea de liquidación congelada de una lectura.
+     *
+     * Se invoca al guardar una lectura: valora con la tarifa vigente en ese
+     * momento y la congela (cambios posteriores del contrato no la afectan).
+     * Las lecturas no liquidables también se guardan, con valor null y su
+     * categoría de exclusión, para el reporte de productividad. Es idempotente:
+     * si la lectura ya tiene línea, no duplica.
+     *
+     * Flujo del proceso:
+     * 1. Si ya existe línea para el producto, no hace nada.
+     * 2. Resuelve sede, lector, contrato vigente, producto y médico del detalle.
+     * 3. Clasifica la tarifa por prioridad y congela el valor (o la exclusión).
+     * 4. Crea la línea con periodo YYYY-MM de la fecha de lectura.
+     *
+     * @param  EstudioProducto  $lectura  Producto leído con fechor_lectura fijada.
+     *
+     * @returns void
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-01
+     */
+    public function registrarLectura(EstudioProducto $lectura): void
+    {
+        if (LiquidacionLinea::where("estudio_producto_id", $lectura->id)->exists()) {
+            return;
+        }
+
+        $estudio = $lectura->estudio;
+        $fecha = $this->fecha($lectura->fechor_lectura);
+        $fila = [
+            "estudio_producto_id" => $lectura->id,
+            "estudio_id" => $lectura->estudio_id,
+            "sede_id" => $estudio->sede_id,
+            "contrato_id" => null,
+            "medico_id" => $estudio->medico_id,
+            "producto_id" => $lectura->producto_id,
+            "clase" => null,
+            "valor" => null,
+            "exclusion" => null,
+            "fecha_lectura" => $fecha,
+            "periodo" => substr($fecha, 0, 7),
+            "estado" => 1,
+        ];
+
+        if (! $lectura->activo) {
+            $fila["exclusion"] = "anulada";
+        } elseif ($estudio->medico_id === null) {
+            $fila["exclusion"] = "sin_asignado";
+        } else {
+            $contrato = Contrato::where("sede_id", $estudio->sede_id)
+                ->where("fecha_inicio", "<=", $fecha)
+                ->where("fecha_fin", ">=", $fecha)
+                ->first();
+
+            if (! $contrato) {
+                $fila["exclusion"] = "sin_contrato";
+            } else {
+                $fila["contrato_id"] = $contrato->id;
+                $cp = $contrato->productos->firstWhere("producto_id", $lectura->producto_id);
+
+                if (! $cp) {
+                    $fila["exclusion"] = "producto_sin_tarifa";
+                } else {
+                    $cm = $contrato->medicos()
+                        ->where("contratos_medicos.estado", 1)
+                        ->where("medico_id", $estudio->medico_id)
+                        ->where("contratos_productos_id", $cp->id)
+                        ->with("medico:id,name")
+                        ->first();
+
+                    if (! $cm) {
+                        $fila["exclusion"] = "medico_fuera_detalle";
+                    } else {
+                        $esUrgencia = ConfigPrioridad::where("nom_priori", "Alta")->pluck("id")->contains((int) $estudio->prioridad_id);
+                        $fila["clase"] = $esUrgencia ? "urgencias" : "consulta";
+                        $fila["valor"] = $esUrgencia ? $cm->valor_urgencias : $cm->valor_consulta;
+                    }
+                }
+            }
+        }
+
+        LiquidacionLinea::create($fila);
+    }
+
+    /**
+     * Reporte de productividad por médico para el corte de mes.
+     *
+     * Lee las líneas congeladas del periodo (no recalcula): cada médico con el
+     * detalle de su producción (líneas con valor) y sus lecturas excluidas.
+     *
+     * Flujo del proceso:
+     * 1. Trae las líneas activas de la sede y el periodo con médico y producto.
+     * 2. Agrega por médico: líneas liquidables con detalle y totales por clase.
+     * 3. Aparte lista las excluidas del periodo con su categoría.
+     *
+     * @param  int  $sedeId  Sede del corte.
+     * @param  string  $periodo  Periodo en YYYY-MM.
+     *
+     * @returns array Productividad por médico con detalle, totales y excluidas.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-01
+     */
+    public function productividad(int $sedeId, string $periodo): array
+    {
+        $lineas = LiquidacionLinea::where("sede_id", $sedeId)
+            ->where("periodo", $periodo)
+            ->where("estado", 1)
+            ->with(["medico:id,name", "producto:id,cod_cups,nom_produc"])
+            ->orderBy("medico_id")
+            ->orderBy("fecha_lectura")
+            ->get();
+
+        $medicos = [];
+
+        foreach ($lineas as $l) {
+            $id = (int) $l->medico_id;
+
+            if (! isset($medicos[$id])) {
+                $medicos[$id] = [
+                    "medico_id" => $id,
+                    "medico_name" => $l->medico->name ?? "",
+                    "lineas" => [],
+                    "total_consulta" => 0,
+                    "total_urgencias" => 0,
+                    "total" => 0,
+                    "excluidas" => 0,
+                ];
+            }
+
+            if ($l->valor === null) {
+                $medicos[$id]["excluidas"]++;
+            } else {
+                $medicos[$id]["lineas"][] = $l;
+                $clave = $l->clase === "urgencias" ? "total_urgencias" : "total_consulta";
+                $medicos[$id][$clave] += (float) $l->valor;
+                $medicos[$id]["total"] += (float) $l->valor;
+            }
+        }
+
+        return $this->success([
+            "periodo" => $periodo,
+            "medicos" => array_values($medicos),
+            "gran_total" => array_sum(array_column($medicos, "total")),
         ]);
     }
 
