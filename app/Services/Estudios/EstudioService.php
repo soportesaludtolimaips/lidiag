@@ -227,6 +227,16 @@ class EstudioService extends BaseService
             return DB::transaction(function () use ($estudioProductoId, $lectura) {
                 $item = EstudioProducto::lockForUpdate()->findOrFail($estudioProductoId);
 
+                $estudio = $item->estudio;
+
+                if ($estudio === null || $estudio->medico_id === null) {
+                    return $this->error('Este estudio no tiene médico asignado. Asigne un médico antes de leerlo.', 422);
+                }
+
+                if ((int) $estudio->medico_id !== (int) Auth::id()) {
+                    return $this->error('Solo el médico asignado puede registrar la lectura de este estudio.', 403);
+                }
+
                 if ($item->fechor_lectura !== null) {
                     return $this->error('Este estudio ya fue leido por otro medico. Actualice la pagina para ver los cambios.', 409);
                 }
