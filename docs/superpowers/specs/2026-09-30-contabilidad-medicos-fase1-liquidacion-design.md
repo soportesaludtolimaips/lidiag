@@ -62,8 +62,8 @@ Por cada hecho liquidable, en orden:
    unicidad; si no hay, ver §6).
 3. `contratos_productos` del contrato con `producto_id` = lectura (si no hay, ver §6:
    es exactamente lo que el panel de cobertura previene).
-4. `contratos_medicos` con ese médico + producto y `estado = 1`; `fecha_ingreso` null =
-   aplica desde el inicio del contrato (Task 4).
+4. `contratos_medicos` con ese médico + producto y `estado = 1` (la `fecha_ingreso`
+   del detalle NO se tiene en cuenta para liquidar: decisión del dueño).
 5. Valor = `valor_urgencias` si D1 es Alta, si no `valor_consulta`.
 
 ## 6. Exclusiones (visibles, nunca silenciosas)

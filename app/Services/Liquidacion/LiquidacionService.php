@@ -123,8 +123,7 @@ class LiquidacionService extends BaseService
                 continue;
             }
 
-            $cm = $contrato->medicos->first(fn ($m) => $m->medico_id == $l->lector_id && $m->contratos_productos_id == $cp->id
-                && ($m->fecha_ingreso === null || $this->fecha($m->fecha_ingreso) <= $fecha));
+            $cm = $contrato->medicos->first(fn ($m) => $m->medico_id == $l->lector_id && $m->contratos_productos_id == $cp->id);
 
             if (! $cm) {
                 $excluidos["medico_fuera_detalle"][] = $l->id;
