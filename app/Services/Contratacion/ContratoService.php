@@ -309,7 +309,8 @@ class ContratoService extends BaseService
      *
      * Flujo del proceso:
      * 1. Traduce cada producto_id a su contratos_productos_id dentro del contrato.
-     * 2. Clasifica cada item recibido como alta, cambio o error.
+     * 2. Clasifica cada item recibido como alta, cambio o error. Re-incluir un
+     *    registro retirado cuenta como cambio y lo reactiva al aplicar.
      * 3. Detecta los registros existentes que no vienen en el payload: quedan
      *    en "ausentes" y solo se retiran si se piden explícitamente.
      * 4. No escribe nada en la base de datos.
@@ -380,10 +381,12 @@ class ContratoService extends BaseService
 
             $cambio = $registro->valor_consulta != $valores['valor_consulta']
                 || $registro->valor_urgencias != $valores['valor_urgencias']
-                || $fechaExistente != $fechaNueva;
+                || $fechaExistente != $fechaNueva
+                || (int) $registro->estado === 0;
 
             if ($cambio) {
                 $valores['contratos_medicos_id'] = $registro->id;
+                $valores['reactiva'] = (int) $registro->estado === 0;
                 $cambios[] = $valores;
             }
         }
@@ -454,8 +457,9 @@ class ContratoService extends BaseService
      * 2. Si hay errores de validación, devuelve 422 y no escribe nada.
      * 3. Inserta las altas con fecha_ingreso en null (aplica desde el inicio
      *    del contrato) salvo que el item traiga una fecha.
-     * 4. Actualiza solo los registros que cambiaron de valor.
-     * 5. Marca como retirados los ausentes cuando retirer_faltantes es true.
+     * 4. Actualiza solo los registros que cambiaron de valor; re-incluir un
+     *    retirado lo reactiva (estado = 1, fecha_retiro en null).
+     * 5. Marca como retirados los ausentes cuando retirar_faltantes es true.
      *
      * @param  int  $contratoId  Contrato a sincronizar.
      * @param  array  $data  Payload con medicos y retirar_faltantes opcional.
@@ -500,11 +504,18 @@ class ContratoService extends BaseService
             }
 
             foreach ($diff['cambios'] as $cambio) {
-                ContratoMedico::where('id', $cambio['contratos_medicos_id'])->update([
+                $datos = [
                     'valor_consulta' => $cambio['valor_consulta'],
                     'valor_urgencias' => $cambio['valor_urgencias'],
                     'fecha_ingreso' => $cambio['fecha_ingreso'],
-                ]);
+                ];
+
+                if (! empty($cambio['reactiva'])) {
+                    $datos['estado'] = 1;
+                    $datos['fecha_retiro'] = null;
+                }
+
+                ContratoMedico::where('id', $cambio['contratos_medicos_id'])->update($datos);
             }
 
             foreach ($diff['retiros'] as $retiro) {
