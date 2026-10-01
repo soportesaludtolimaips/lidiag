@@ -46,7 +46,7 @@ Esto genera una URL como `https://xxx.trycloudflare.com`. Úsala en la configura
 
 ## Stack Tecnológico (resumen)
 
--   **Backend**: Laravel 10 (PHP >= 8.0.2), MySQL
+-   **Backend**: Laravel 13 (PHP ^8.3), MySQL
 -   **Frontend**: Vue 3 + Vite (Laravel Vite Plugin), Bootstrap 5
 -   **Seguridad**: `spatie/laravel-permission` (roles/permisos)
 -   **Integraciones**: HIS/SAHI (SQL Server), PACS Dcm4chee, Twilio (WhatsApp), generación de PDF/Excel (DomPDF / Maatwebsite Excel)
@@ -143,6 +143,26 @@ La aplicación está compuesta por los siguientes módulos especializados:
 -   Gestión de usuarios, roles y permisos (basado en `spatie/laravel-permission`).
 -   Control de acceso y auditoría.
 
+### 11. Contratación
+
+**Propósito:** Tarifas por sede como fuente para la liquidación de pagos a médicos.
+
+-   Contratos por sede con vigencia sin solapamientos y detalle médico-producto (`valor_consulta`, `valor_urgencias`, vigencia por médico).
+-   El detalle se sincroniza por diff no destructivo con preview y confirmación (nunca `DELETE`; retiros con `estado` + `fecha_retiro`, con reactivación al re-incluir).
+-   Cobertura: informa qué productos exigibles no tienen tarifa en el contrato.
+-   Plantilla e importación por Excel (productos y médicos-producto).
+-   API: `/api/contratos`, `/cobertura`, `/medicos/preview`, `/medicos` (sync), imports. UI: `/contratos`.
+
+### 12. Liquidación
+
+**Propósito:** Calcular y reportar cuánto se le debe a cada médico por periodo.
+
+-   Cálculo a demanda por sede + rango de fechas, con filtros opcionales de contrato y médico. Prioridad Alta → `valor_urgencias`, resto → `valor_consulta`.
+-   Cada lectura congela su línea en `liquidacion_lineas` (valor inmutable para el corte); lo no liquidable queda con su categoría de exclusión visible.
+-   Productividad por médico para el corte de mes, con detalle de producción y export a Excel. UI: `/liquidacion`, `/productividad`.
+-   Solo el médico asignado puede registrar la lectura (`leerEstudio`: 422 sin asignado, 403 otro médico).
+-   API: `/api/liquidacion`, `/api/liquidacion/productividad`, `/api/liquidacion/exportar` (permisos `liquidacion.index`, `liquidacion.exportar`).
+
 ---
 
 ## Comandos Personalizados (Console Commands)
@@ -203,7 +223,7 @@ php artisan sync:dicom-ecografias
 
 ### Rate limiting (API / Login)
 
-Por defecto (ver `app/Providers/RouteServiceProvider.php`):
+Por defecto (ver `app/Providers/AppServiceProvider.php`):
 
 -   **API**: 60 requests/minuto por usuario autenticado (o por IP si no hay usuario).
 -   **Login**: 10 intentos/minuto por combinación email+IP (`throttle:login` en `POST /login`).
@@ -358,7 +378,10 @@ A continuación, una guía rápida de las ubicaciones clave en el código fuente
 -   **Rutas**:
     -   `routes/web.php`: pantallas Blade (MPA) con `auth` + `permission:...` (Spatie).
     -   `routes/api_*.php`: endpoints API por módulo (generalmente bajo `auth:sanctum`).
-    -   Registro centralizado: `app/Providers/RouteServiceProvider.php` (incluye `api_configuracion`, `api_estudios`, `api_ecografias`, `api_seguridad`, `api_interfaces`, `api_agendamiento_dashboard`, `api_helpdesk`).
+    -   Registro centralizado: `bootstrap/app.php` (incluye `api_configuracion`,
+        `api_estudios`, `api_ecografias`, `api_seguridad`, `api_interfaces`,
+        `api_agendamiento_dashboard`, `api_helpdesk`, `api_contratacion`,
+        `api_liquidacion`).
 
 -   **Modelos de Datos**:
 
@@ -490,7 +513,7 @@ Siga estos pasos para desplegar la aplicación en un entorno local o de producci
 
 ### Requisitos Previos
 
--   **PHP**: >= 8.0.2
+-   **PHP**: ^8.3 (ver `composer.json`)
 -   **Composer**
 -   **Servidor Web**: Apache o Nginx
 -   **Base de Datos**: MySQL (Principal) y SQL Server (Integraciones opcionales)
