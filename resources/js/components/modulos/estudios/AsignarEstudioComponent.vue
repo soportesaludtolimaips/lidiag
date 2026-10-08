@@ -959,7 +959,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { confirmAction, toastMessage } from "@/helpers/alerts";
+import { confirmAction, toastMessage, getUserSafeError } from "@/helpers/alerts";
 import { normalizarFecha } from "@/helpers/dateUtils.js";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
 import QuemadorCdComponent from "@/components/modulos/estudios/QuemadorCdComponent.vue";
@@ -1052,6 +1052,8 @@ const idRow = ref(null);
 const loadingBuscar = ref(false);
 const loadingGuardar = ref(false);
 const loadingAbrirRegistroIndex = ref(null);
+const lockAsignParams = ref(null);
+let lockHeartbeatTimer = null;
 const progresoUpload = ref(null);
 const primerInput = ref(null);
 const selMedico = ref(null);
@@ -1382,9 +1384,113 @@ function obtenerArchivo(e, index) {
  * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa la carga del registro.
  * @author: Jhon Javer Lozano Arce
  */
+/**
+ * Toma la reserva (lock) del estudio DICOM antes de abrir el formulario.
+ * Si otro usuario lo tiene reservado, muestra el aviso y devuelve false.
+ * @param {Object} data - Datos del estudio DICOM seleccionado.
+ * @returns {Promise<boolean>} true si la reserva fue adquirida.
+ * @author: Jhon Javer Lozano Arce
+ */
+async function tomarLockAsignacion(data) {
+    const params = {
+        tipo: "asignacion",
+        study_iuid: data.study_iuid || "",
+        study_pk: data.study_pk || null,
+        sede_id: sedeActual.value,
+    };
+
+    try {
+        await axios.post("/api/estudio-lock/tomar", params);
+        liberarLockAsignacion();
+        lockAsignParams.value = params;
+        iniciarHeartbeatLockAsignacion();
+        return true;
+    } catch (error) {
+        if (error.response?.status === 409) {
+            toastMessage({
+                heading: "Estudio en uso",
+                text: error.response.data.message,
+                icon: "warning",
+                hideAfter: 5500,
+            });
+        } else {
+            toastMessage({
+                heading: "Error",
+                text: getUserSafeError(error, "No fue posible reservar el estudio."),
+                icon: "error",
+            });
+        }
+        return false;
+    }
+}
+
+/**
+ * Renueva la reserva cada 45 segundos mientras el formulario esté abierto.
+ * Si la reserva la tomó otro usuario, cierra el formulario.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
+function iniciarHeartbeatLockAsignacion() {
+    detenerHeartbeatLockAsignacion();
+    lockHeartbeatTimer = setInterval(async () => {
+        if (!lockAsignParams.value) return;
+        try {
+            await axios.post("/api/estudio-lock/tomar", lockAsignParams.value);
+        } catch (error) {
+            if (error.response?.status === 409) {
+                detenerHeartbeatLockAsignacion();
+                lockAsignParams.value = null;
+                toastMessage({
+                    heading: "Reserva perdida",
+                    text: "Otro usuario tomó la reserva de este estudio. El formulario se cerrará.",
+                    icon: "warning",
+                    hideAfter: 5500,
+                });
+                cerrarModal();
+            }
+        }
+    }, 45000);
+}
+
+/**
+ * Detiene el timer de renovación de la reserva.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
+function detenerHeartbeatLockAsignacion() {
+    if (lockHeartbeatTimer) {
+        clearInterval(lockHeartbeatTimer);
+        lockHeartbeatTimer = null;
+    }
+}
+
+/**
+ * Libera la reserva activa del formulario (idempotente, best-effort).
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
+async function liberarLockAsignacion() {
+    if (!lockAsignParams.value) return;
+    const params = lockAsignParams.value;
+    lockAsignParams.value = null;
+    detenerHeartbeatLockAsignacion();
+    try {
+        await axios.post("/api/estudio-lock/liberar", params);
+    } catch {
+        /* la reserva expira sola si falla la liberación */
+    }
+}
+
 async function mostrarRegistro(data = {}, index) {
     if (loadingAbrirRegistroIndex.value !== null) return;
     loadingAbrirRegistroIndex.value = index;
+
+    const reservado = await tomarLockAsignacion(data);
+    if (!reservado) {
+        loadingAbrirRegistroIndex.value = null;
+        return;
+    }
+
     limpiarFormulario();
     if (!registro.value.medico_id) {
         establecerMedico();
@@ -1582,6 +1688,7 @@ function cerrarModal() {
     sidebarVisible.value = false;
     limpiarFormulario();
     errores.value = {};
+    liberarLockAsignacion();
 }
 
 /**
@@ -2084,6 +2191,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
     emitter.off("sedeSeleccionada", onSedeSeleccionada);
     emitter.off("medicoSeleccionado", onMedicoSeleccionado);
+    liberarLockAsignacion();
     destroyDataTable();
     registros.value = [];
     registro.value = { productosEstudio: [], diagnosticosEstudio: [] };

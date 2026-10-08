@@ -1331,6 +1331,8 @@ const autoRefreshInterval = ref(30000);
 const autoRefreshTimer = ref(null);
 const loadingGuardar = ref(false);
 const loadingAbrirId = ref(null);
+const lockLecturaParams = ref(null);
+let lockHeartbeatTimer = null;
 const loadingVistoId = ref(null);
 const sidebarVisible = ref(false);
 const modalAyudaVisible = ref(false);
@@ -1683,6 +1685,98 @@ async function listar_historial_estudios(num_docu) {
 }
 
 /**
+ * Toma la reserva (lock) del producto de estudio antes de abrir el panel de lectura.
+ * Si otro usuario lo tiene reservado, muestra el aviso y devuelve false.
+ * @param {number} estudioProductoId - ID del producto de estudio a reservar.
+ * @returns {Promise<boolean>} true si la reserva fue adquirida.
+ * @author: Jhon Javer Lozano Arce
+ */
+async function tomarLockLectura(estudioProductoId) {
+    const params = { tipo: "lectura", estudio_producto_id: estudioProductoId };
+
+    try {
+        await axios.post("/api/estudio-lock/tomar", params);
+        liberarLockLectura();
+        lockLecturaParams.value = params;
+        iniciarHeartbeatLockLectura();
+        return true;
+    } catch (error) {
+        if (error.response?.status === 409) {
+            toastMessage({
+                heading: "Estudio en uso",
+                text: error.response.data.message,
+                icon: "warning",
+                hideAfter: 5500,
+            });
+        } else {
+            toastMessage({
+                heading: "Error",
+                text: getUserSafeError(error, "No fue posible reservar el estudio."),
+                icon: "error",
+            });
+        }
+        return false;
+    }
+}
+
+/**
+ * Renueva la reserva cada 45 segundos mientras el panel de lectura esté abierto.
+ * Si la reserva la tomó otro usuario, cierra el panel.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
+function iniciarHeartbeatLockLectura() {
+    detenerHeartbeatLockLectura();
+    lockHeartbeatTimer = setInterval(async () => {
+        if (!lockLecturaParams.value) return;
+        try {
+            await axios.post("/api/estudio-lock/tomar", lockLecturaParams.value);
+        } catch (error) {
+            if (error.response?.status === 409) {
+                detenerHeartbeatLockLectura();
+                lockLecturaParams.value = null;
+                toastMessage({
+                    heading: "Reserva perdida",
+                    text: "Otro usuario tomó la reserva de este estudio. El panel se cerrará.",
+                    icon: "warning",
+                    hideAfter: 5500,
+                });
+                cerrarSidebar();
+            }
+        }
+    }, 45000);
+}
+
+/**
+ * Detiene el timer de renovación de la reserva.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
+function detenerHeartbeatLockLectura() {
+    if (lockHeartbeatTimer) {
+        clearInterval(lockHeartbeatTimer);
+        lockHeartbeatTimer = null;
+    }
+}
+
+/**
+ * Libera la reserva activa del panel de lectura (idempotente, best-effort).
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
+async function liberarLockLectura() {
+    if (!lockLecturaParams.value) return;
+    const params = lockLecturaParams.value;
+    lockLecturaParams.value = null;
+    detenerHeartbeatLockLectura();
+    try {
+        await axios.post("/api/estudio-lock/liberar", params);
+    } catch {
+        /* la reserva expira sola si falla la liberación */
+    }
+}
+
+/**
  * Muestra el registro del estudio seleccionado en el panel lateral, deteniendo cualquier dictado en curso y cargando los datos relevantes del estudio.
  * @param {Object} data - Los datos del estudio a mostrar.
  * @returns {Promise<void>}
@@ -1691,6 +1785,12 @@ async function listar_historial_estudios(num_docu) {
 async function mostrarRegistro(data = {}) {
     if (loadingAbrirId.value !== null) return;
     loadingAbrirId.value = data.estudio_producto_id;
+
+    const reservado = await tomarLockLectura(data.estudio_producto_id);
+    if (!reservado) {
+        loadingAbrirId.value = null;
+        return;
+    }
 
     await stopAll();
     audiosDeEstudio.value = [];
@@ -1791,6 +1891,7 @@ async function abrirSidebar() {
 async function cerrarSidebar() {
     await stopAll();
     sidebarVisible.value = false;
+    await liberarLockLectura();
 }
 
 /**
@@ -1858,6 +1959,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     stopAll();
+    liberarLockLectura();
     cleanupKeyboardShortcut?.();
     emitter.off("sedeSeleccionada", onSedeSeleccionada);
     if (autoRefreshTimer.value) {

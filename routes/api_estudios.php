@@ -4,6 +4,7 @@ use App\Http\Controllers\Dcm4chee\StudyController;
 use App\Http\Controllers\Estudios\EstudioAudioController;
 use App\Http\Controllers\Estudios\EstudioController;
 use App\Http\Controllers\Estudios\EstudioDiagnosticoController;
+use App\Http\Controllers\Estudios\EstudioLockController;
 use App\Http\Controllers\Estudios\EstudioNotificacionController;
 use App\Http\Controllers\Estudios\EstudioProductoController;
 use App\Http\Controllers\Estudios\EstudioSoporteHCController;
@@ -106,4 +107,14 @@ Route::middleware(['auth', 'permission:estudio.index|estudio.asignar|estudio.lee
 
     Route::get('/estudio-buscar-por-numdocu/{numDocu}', [EstudioController::class, 'buscarEstudioPorNumDocu'])
         ->name('api.estudio.buscarEstudioPorNumDocu');
+
+    /*
+     * Reserva (lock) de lectura y asignación: evita que dos usuarios abran
+     * el mismo registro a la vez (expira sola a los 2 min o lock_min de la sede).
+     */
+    Route::post('/estudio-lock/tomar', [EstudioLockController::class, 'tomar'])
+        ->name('api.estudio.lock.tomar');
+
+    Route::post('/estudio-lock/liberar', [EstudioLockController::class, 'liberar'])
+        ->name('api.estudio.lock.liberar');
 });

@@ -30,6 +30,7 @@ class EstudioService extends BaseService
      * @param  FileServiceInterface  $fileService  Servicio de gestión de archivos
      * @param  PlantillaEstudioService  $plantillaEstudioService  Servicio de plantillas Word/PDF
      * @param  EstudioNotificacionService  $estudioNotificacionService  Servicio de notificaciones
+     * @param  EstudioLockService  $lockService  Servicio de reservas de lectura/asignación
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -39,6 +40,7 @@ class EstudioService extends BaseService
         private readonly FileServiceInterface $fileService,
         private readonly PlantillaEstudioService $plantillaEstudioService,
         private readonly EstudioNotificacionService $estudioNotificacionService,
+        private readonly EstudioLockService $lockService,
     ) {}
 
     private const DESTINO_TELE_RADIOLOGIA = 'Tele Radiologia';
@@ -90,8 +92,17 @@ class EstudioService extends BaseService
 
         $nombrePaciente = $this->sanitizePatientName($registro['nombres']);
 
+        // Validación de reserva: otro usuario con el mismo estudio DICOM abierto bloquea el registro.
+        $claveAsignacion = $this->lockService->resolverClave('asignacion', $registro);
+        if ($claveAsignacion !== null) {
+            $conflicto = $this->lockService->verificar('asignacion', $claveAsignacion);
+            if ($conflicto !== null) {
+                return $conflicto;
+            }
+        }
+
         try {
-            return DB::transaction(function () use ($registro, $nombrePaciente, $productosMarcados, $archivo1, $archivo2, $archivo3) {
+            return DB::transaction(function () use ($registro, $nombrePaciente, $productosMarcados, $archivo1, $archivo2, $archivo3, $claveAsignacion) {
                 $paciente = $this->createOrUpdatePatient($registro, $nombrePaciente);
 
                 $sede = ConfigSede::findOrFail($registro['sede_id']);
@@ -126,6 +137,11 @@ class EstudioService extends BaseService
                 $this->syncStudyProducts($estudio->id, $productosMarcados);
                 $this->syncStudyDiagnostics($estudio->id, $registro['diagnosticosEstudio'] ?? []);
                 $this->processSoportes($estudio->id, $archivo1, $archivo2, $archivo3);
+
+                // Asignación registrada: se libera la reserva (si la transacción revierte, vuelve a existir).
+                if ($claveAsignacion !== null) {
+                    $this->lockService->liberarPorClave('asignacion', $claveAsignacion);
+                }
 
                 return $this->created($estudio, 'La asignación de la lectura se realizó correctamente.');
             });
@@ -225,6 +241,12 @@ class EstudioService extends BaseService
      */
     public function leerEstudio(int $estudioProductoId, string $lectura): array
     {
+        // Validación de reserva: otro usuario con el estudio abierto bloquea el guardado.
+        $conflicto = $this->lockService->verificar('lectura', $this->lockService->claveLectura($estudioProductoId));
+        if ($conflicto !== null) {
+            return $conflicto;
+        }
+
         try {
             return DB::transaction(function () use ($estudioProductoId, $lectura) {
                 $item = EstudioProducto::lockForUpdate()->findOrFail($estudioProductoId);
@@ -246,6 +268,9 @@ class EstudioService extends BaseService
                 $item->lectura = $lectura;
                 $item->fechor_lectura = Carbon::now();
                 $item->save();
+
+                // Guardado exitoso: se libera la reserva del médico.
+                $this->lockService->liberarPorClave('lectura', $this->lockService->claveLectura($estudioProductoId));
 
                 try {
                     app(LiquidacionService::class)->registrarLectura($item);
@@ -368,7 +393,6 @@ class EstudioService extends BaseService
             ->join('config_prioridades AS priori', 'estudios.prioridad_id', '=', 'priori.id')
             ->join('config_productos', 'estudios_productos.producto_id', '=', 'config_productos.id');
         $query = $this->applyTranscripcionFilters($query, $filters);
-        Log::debug($query->toSql());
         $results = $query->orderBy('priori.nivel')->get();
 
         return $this->success($results);
