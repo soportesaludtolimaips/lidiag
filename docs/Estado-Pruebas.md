@@ -377,10 +377,10 @@
 
 | ID | Descripción | Módulo | Riesgo | Sugerencia |
 |---|---|---|---|---|
-| DEF-01 | Dual-source Vue/DataTables en asignados+transcribir: `safeRemoveDataTableRow` + `splice` simultáneos desincronizan cache DT | Estudios | Medio | Elegir dueño del DOM; reinicializar DT tras cada mutación o migrar a data source AJAX |
-| DEF-02 | Over-posting: `estudio-leerEstudio` y `estudio-guardarTranscripcion` envían objeto `registro` completo | Estudios | Medio | Definir payload explícito + FormRequest backend |
+| DEF-01 | Dual-source Vue/DataTables en asignados+transcribir: mutaciones manuales pueden desincronizar la cache DT | Estudios | Medio | ✅ Cerrado 2026-10-08: se descartó la migración a server-side DataTables; se mantiene el patrón cliente estándar de los otros módulos (`registros` + `safeInitDataTable`/`safeDestroyDataTable` con reinicialización tras cada mutación). Verificado en navegador: asignados 804 registros / transcribir 73, paginación+botones+buscador, 0 errores consola |
+| DEF-02 | Over-posting: `estudio-leerEstudio` y `estudio-guardarTranscripcion` envían objeto `registro` completo | Estudios | Medio | ✅ Cerrado 2026-10-08: `LeerEstudioRequest` + `GuardarTranscripcionRequest` con `validated()` (payloads frontend ya eran explícitos) |
 | DEF-03 | Sin canal WhatsApp/SMS en notificaciones (solo email + portal) | Estudios | Bajo | Definir alcance con negocio |
-| DEF-04 | Sin lock/concurrencia al leer: dos médicos pueden abrir el mismo estudio | Estudios | Medio | Token de reserva (`updated_at` o columna `leyendo`) |
+| DEF-04 | Sin lock/concurrencia al leer: dos médicos pueden abrir el mismo estudio | Estudios | Medio | ✅ Cerrado 2026-10-08: reservas `estudio_locks` (2 min o `config_sedes.lock_min`) con heartbeat en lectura y asignación |
 | DEF-05 | Docblocks faltantes en funciones auxiliares menores | Global | Bajo | Pasada de documentación dedicada |
 | DEF-06 | 50 warnings ESLint preexistentes (vars sin uso, catches vacíos) | Estudios | Bajo | Limpieza incremental |
 | DEF-07 | `descargarPlantillaGeneral?contrato_id` conserva parámetro sin uso en UI | Contratación | Info | ✅ Cerrado 2026-10-06: la plantilla general fue retirada del módulo |
@@ -391,6 +391,7 @@
 | ID | Hallazgo | Tipo | Acción |
 |---|---|---|---|
 | ENV-PACS | Túnel PACS intermitente (`10.35.47.3/pacsdb` + WADO `:8080`); estable al final → DZ-01/DZ-02 ejecutados con éxito | Entorno | Monitorear estabilidad |
+| ENV-BROWSER | QA con browser-automation: Chromium patchright se instaló por CLI (`NODE_TLS_REJECT_UNAUTHORIZED=0` por proxy TLS corporativo); `page.evaluate` corre en mundo aislado → globals (`$`, `jQuery`) leen `undefined` aunque existan en la página | Herramienta | Verificar estado vía DOM o inyectar probes con `addScriptTag` (mundo principal) |
 | RUNNER-01 | En headless: (a) clicks locator requieren `el.click()` programático; (b) íconos FA miden 0×0; (c) descargas blob no emiten evento `download` | Runner | Artefactos del runner, no reproducibles en Chrome real |
 | DATA-01 | Doc 1108828235: estudios 2021 purgados → WADO 404 (panel de error correcto) | Dato | Sin acción; funciona como esperado |
 
