@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Models\Configuracion\ConfigProducto;
 use App\Models\Contratacion\Contrato;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -23,7 +24,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
  * - Fila 1: Título
  * - Fila 2: Sede: {nom_sede} | Inicio: {fecha} | Contrato ID: {id}  (celda C2 con el ID)
  * - Fila 3: Encabezados (Código CUPS | Producto | Valor Consulta | Valor Urgencias | Fecha Ingreso)
- * - Filas 4+: Productos configurados en el contrato, valores vacíos para diligenciar
+ * - Filas 4+: Productos del catálogo que requieren lectura, valores vacíos para diligenciar
  *
  * El médico destino se selecciona en el modal al momento de importar.
  *
@@ -46,9 +47,15 @@ class ContratoDetallePlantillaExport implements FromCollection, WithColumnWidths
     public function __construct(protected int $contratoId) {}
 
     /**
-     * Consulta los productos configurados en el contrato con su nombre y código CUPS.
+     * Consulta el catálogo de productos que requieren lectura.
      *
-     * @returns \Illuminate\Support\Collection<int, mixed> Productos del contrato ordenados por código CUPS.
+     * La plantilla de detalle es la única vía de carga del módulo, por lo
+     * que lista el catálogo completo (y no solo los productos del contrato)
+     * para que un contrato recién creado también descargue filas. Las
+     * columnas de valor se dejan vacías y las filas sin diligenciar se
+     * ignoran al importar.
+     *
+     * @returns \Illuminate\Support\Collection<int, mixed> Productos exigibles ordenados por código CUPS.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -56,12 +63,10 @@ class ContratoDetallePlantillaExport implements FromCollection, WithColumnWidths
      */
     public function collection()
     {
-        return Contrato::findOrFail($this->contratoId)
-            ->productos()
-            ->with('producto:id,cod_cups,nom_produc')
-            ->get()
-            ->sortBy(fn ($cp) => $cp->producto->cod_cups ?? '')
-            ->values();
+        return ConfigProducto::where('requi_lectura', 1)
+            ->where('estado', 1)
+            ->orderBy('cod_cups')
+            ->get(['id', 'cod_cups', 'nom_produc']);
     }
 
     /**
@@ -85,22 +90,23 @@ class ContratoDetallePlantillaExport implements FromCollection, WithColumnWidths
     }
 
     /**
-     * Mapea cada producto del contrato a una fila del Excel.
+     * Mapea cada producto del catálogo a una fila del Excel.
      * Las columnas de valores quedan vacías para que el usuario las diligencie
-     * para el médico seleccionado.
+     * para el médico seleccionado; las filas sin diligenciar se ignoran al
+     * importar.
      *
-     * @param  object  $contratoProducto  Registro de contratos_productos con relación producto.
+     * @param  object  $producto  Registro de config_productos.
      * @return array<int, mixed> Fila con [codigo_cups, nombre, '', '', ''].
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-08-24
      */
-    public function map($contratoProducto): array
+    public function map($producto): array
     {
         return [
-            $contratoProducto->producto->cod_cups ?? '',
-            $contratoProducto->producto->nom_produc ?? '',
+            $producto->cod_cups ?? '',
+            $producto->nom_produc ?? '',
             '',
             '',
             '',

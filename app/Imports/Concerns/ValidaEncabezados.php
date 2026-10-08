@@ -26,7 +26,7 @@ trait ValidaEncabezados
      * @var array<string, string>
      */
     protected array $pistasPlantillaEquivocada = [
-        'tarifa_actividad' => 'El archivo parece ser la PLANTILLA GENERAL DE PRODUCTOS (CODIGO | ACTIVIDAD | Tarifa Actividad).',
+        'tarifa_actividad' => 'El archivo corresponde a la antigua plantilla de 3 columnas (CODIGO | ACTIVIDAD | Tarifa Actividad), retirada del módulo; use la plantilla de detalle del contrato.',
         'valor_urgencias' => 'El archivo parece ser la plantilla de DETALLE DE MÉDICO (CODIGO | ACTIVIDAD | Valor Contrato | Valor Consulta | Valor Urgencias).',
     ];
 

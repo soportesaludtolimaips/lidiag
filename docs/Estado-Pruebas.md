@@ -205,7 +205,7 @@
 | Campo | Valor |
 |---|---|
 | **Componentes** | `contratoComponent.vue` (único componente completo) |
-| **Funcionalidades** | CRUD contratos, importar productos Excel, plantilla general/detalle, médicos asignados |
+| **Funcionalidades** | CRUD contratos, plantilla de detalle e importar médicos-producto, cobertura, médicos asignados |
 
 ### Automatizadas
 
@@ -218,7 +218,7 @@
 | # | Funcionalidad | Estado | Resultado | Fecha | Responsable | Evidencia | Notas |
 |---|---|---|---|---|---|---|---|
 | 1 | Crear/editar contrato por sede | ✅ Terminado | ✅ PASS | 2026-08-24 | Jhon Javer | E2E real: fechas + médicos | CON-E2E-01 |
-| 2 | Plantilla general → exportar/importar | ✅ Terminado | ✅ PASS | 2026-08-24 | Jhon Javer | 102 productos importados | CON-E2E-01; `ContratoPlantillaExport.php` |
+| 2 | Plantilla general → exportar/importar | ⛔ Retirada | — | 2026-10-06 | Jhon Javer | Módulo unificado a la plantilla de detalle | Eliminada junto a `ContratoPlantillaExport.php` y `ContratoProductoImport.php` |
 | 3 | Plantilla detalle + importar médicos (61 reg) | ✅ Terminado | ✅ PASS | 2026-08-24 | Jhon Javer | 61 registros reales | CON-E2E-01; headingRow=3, 4 cols |
 | 4 | Total Médicos en listado | ✅ Terminado | ✅ PASS | 2026-08-24 | Jhon Javer | Columna visible | CON-E2E-01 |
 
@@ -383,7 +383,7 @@
 | DEF-04 | Sin lock/concurrencia al leer: dos médicos pueden abrir el mismo estudio | Estudios | Medio | Token de reserva (`updated_at` o columna `leyendo`) |
 | DEF-05 | Docblocks faltantes en funciones auxiliares menores | Global | Bajo | Pasada de documentación dedicada |
 | DEF-06 | 50 warnings ESLint preexistentes (vars sin uso, catches vacíos) | Estudios | Bajo | Limpieza incremental |
-| DEF-07 | `descargarPlantillaGeneral?contrato_id` conserva parámetro sin uso en UI | Contratación | Info | Mantener o remover en próxima iteración |
+| DEF-07 | `descargarPlantillaGeneral?contrato_id` conserva parámetro sin uso en UI | Contratación | Info | ✅ Cerrado 2026-10-06: la plantilla general fue retirada del módulo |
 | DEF-08 | Avatar header usa `http://localhost:5179` → Mixed Content en HTTPS | Global | Cosmético | Migrar a ruta relativa o HTTPS |
 
 ### B. Hallazgos de entorno

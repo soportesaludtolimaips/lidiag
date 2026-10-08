@@ -5,11 +5,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function () {
 
-    // Plantilla general de productos (config_productos activos)
-    Route::get('/contratos/plantilla-general', [ContratoController::class, 'exportPlantillaGeneral'])
-        ->name('api.contratos.plantilla.general')
-        ->middleware(['permission:contratos.index']);
-
     Route::resource('/contratos', ContratoController::class)
         ->names('api.contratos')
         ->except(['create', 'edit'])
@@ -34,12 +29,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('api.contratos.medicos.sync')
         ->middleware(['permission:contratos.detalle.edit']);
 
-    // Importar productos al contrato desde Excel (crea contratos_productos)
-    Route::post('/contratos/{contratoId}/importar-productos', [ContratoController::class, 'importarProductos'])
-        ->name('api.contratos.productos.importar')
-        ->middleware(['permission:contratos.detalle.create']);
-
-    // Plantilla de detalle del contrato (productos configurados, valores por médico)
+    // Plantilla de detalle del contrato (productos del catálogo, valores por médico)
     Route::get('/contratos/{contratoId}/plantilla-detalle', [ContratoController::class, 'exportPlantillaDetalle'])
         ->name('api.contratos.plantilla.detalle')
         ->middleware(['permission:contratos.index']);

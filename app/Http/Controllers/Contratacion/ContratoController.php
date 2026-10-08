@@ -4,11 +4,9 @@ namespace App\Http\Controllers\Contratacion;
 
 use App\Exceptions\CupsFaltantesException;
 use App\Exports\ContratoDetallePlantillaExport;
-use App\Exports\ContratoPlantillaExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Contratacion\ContratoRequest;
 use App\Imports\ContratoMedicoImport;
-use App\Imports\ContratoProductoImport;
 use App\Models\Contratacion\Contrato;
 use App\Services\Contratacion\ContratoService;
 use Illuminate\Http\JsonResponse;
@@ -20,9 +18,9 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 /**
  * Controller ContratoController: API REST del módulo de contratación.
  *
- * Gestiona el CRUD de contratos, la descarga de la plantilla general,
- * la sincronización de médicos-producto y las importaciones Excel
- * (productos al contrato y médicos-producto).
+ * Gestiona el CRUD de contratos, la descarga de la plantilla de detalle,
+ * la sincronización de médicos-producto y la importación Excel
+ * de médicos-producto.
  *
  *
  * @author Jhon Javer Lozano Arce
@@ -162,89 +160,6 @@ class ContratoController extends Controller
         $result = $this->contratoService->toggleEstado($id);
 
         return response()->json($result, $result['status']);
-    }
-
-    /**
-     * Descarga la plantilla general de productos desde config_productos.
-     * Formato: CODIGO | ACTIVIDAD | Tarifa Actividad (todos los productos activos).
-     * Si se envía ?contrato_id=, precarga el valor contratado existente en contratos_productos.
-     *
-     * @param  Request  $request  Petición HTTP con el parámetro opcional contrato_id.
-     *
-     * @returns BinaryFileResponse Respuesta con el archivo Excel para descargar.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-08-20
-     */
-    public function exportPlantillaGeneral(Request $request): BinaryFileResponse
-    {
-        $contratoId = $request->query('contrato_id') !== null
-            ? (int) $request->query('contrato_id')
-            : null;
-
-        $nombreArchivo = $contratoId
-            ? "Plantilla_Contrato_{$contratoId}.xlsx"
-            : 'Plantilla_General_Productos.xlsx';
-
-        return Excel::download(
-            new ContratoPlantillaExport($contratoId),
-            $nombreArchivo
-        );
-    }
-
-    /**
-     * Importa productos a un contrato desde un archivo Excel.
-     * Cada fila contiene CODIGO | ACTIVIDAD | Tarifa Actividad; se hace upsert
-     * en contratos_productos por (contrato_id, producto_id).
-     *
-     * Flujo de confirmación: si el Excel trae CUPS inexistentes en config_productos
-     * y no se envió crear_faltantes=1, responde 200 con requiere_confirmacion=true
-     * y la lista de faltantes (sin importar nada). El frontend pregunta al usuario;
-     * si acepta, reenvía el archivo con crear_faltantes=1.
-     *
-     * @param  Request  $request  Petición con el archivo Excel y el flag opcional crear_faltantes.
-     * @param  int  $contratoId  Identificador del contrato destino.
-     *
-     * @returns \Illuminate\Http\JsonResponse Respuesta JSON de éxito, confirmación requerida o error detallado.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-08-20
-     */
-    public function importarProductos(Request $request, int $contratoId): JsonResponse
-    {
-        $validated = $request->validate([
-            'archivo' => 'required|file|mimes:xlsx,xls|max:10240',
-            'crear_faltantes' => 'nullable|boolean',
-        ]);
-
-        try {
-            $import = new ContratoProductoImport(
-                $contratoId,
-                $request->boolean('crear_faltantes')
-            );
-            Excel::import($import, $request->file('archivo'));
-
-            return response()->json([
-                'success' => true,
-                'message' => "Productos importados correctamente ({$import->importados} creados/actualizados).",
-                'data' => ['importados' => $import->importados],
-            ], 200);
-        } catch (CupsFaltantesException $e) {
-            // Pre-validación: devolver faltantes sin importar nada (status 200 para no disparar toasts del interceptor)
-            return response()->json([
-                'success' => false,
-                'requiere_confirmacion' => true,
-                'message' => $e->getMessage(),
-                'data' => ['faltantes' => $e->faltantes],
-            ], 200);
-        } catch (\Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 422);
-        }
     }
 
     /**

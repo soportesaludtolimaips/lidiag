@@ -12,22 +12,6 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-success btn-sm m-r-5"
-                    @click="descargarPlantillaGeneral()"
-                    title="Descargar plantilla general de productos activos"
-                >
-                    <i class="fa fa-file-excel-o m-r-5"></i> Plantilla General
-                </button>
-                <button
-                    type="button"
-                    class="btn btn-warning btn-sm m-r-5"
-                    @click="abrirModalImportarProductos()"
-                    title="Importar productos al contrato desde Excel"
-                >
-                    <i class="fa fa-upload m-r-5"></i> Importar productos
-                </button>
-                <button
-                    type="button"
                     class="btn btn-info btnDesplegarRigthSidebar"
                     @click="
                         actualizar = false;
@@ -500,83 +484,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- MODAL: IMPORTAR PRODUCTOS AL CONTRATO DESDE EXCEL -->
-        <div
-            class="modal fade"
-            id="modalImportarProductos"
-            tabindex="-1"
-            role="dialog"
-            aria-labelledby="modalImportarProductosLabel"
-            aria-hidden="true"
-        >
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title" id="modalImportarProductosLabel">
-                            <i class="fa fa-upload"></i> Importar Productos al Contrato
-                        </h4>
-                        <button
-                            type="button"
-                            class="close"
-                            @click="cerrarModalImportarProductos()"
-                            aria-label="Cerrar"
-                            aria-hidden="true"
-                        >
-                            &times;
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label class="control-label">
-                                Contrato <span class="text-danger">*</span>
-                            </label>
-                            <Select2
-                                :value="importarProductosForm.contrato_id"
-                                :options="contratoOptions"
-                                :label-fields="['label']"
-                                width="100%"
-                                :allow-clear="true"
-                                dropdown-parent-selector="#modalImportarProductos .modal-body"
-                                @input="onContratoSelectImportProductos"
-                            />
-                        </div>
-                        <div class="form-group">
-                            <label class="control-label">
-                                Archivo Excel <span class="text-danger">*</span>
-                            </label>
-                            <input
-                                type="file"
-                                ref="archivoProductosRef"
-                                accept=".xlsx,.xls"
-                                class="form-control"
-                            />
-                            <small class="text-muted">
-                                Formato: CODIGO | ACTIVIDAD | Tarifa Actividad
-                            </small>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button
-                            type="button"
-                            class="btn btn-default waves-effect"
-                            @click="cerrarModalImportarProductos()"
-                        >
-                            Cancelar
-                        </button>
-                        <button
-                            type="button"
-                            class="btn btn-primary waves-effect waves-light"
-                            @click="procesarImportacionProductos()"
-                            :disabled="loadingImportarProductos"
-                        >
-                            <i v-if="loadingImportarProductos" class="fa fa-spinner fa-spin"></i>
-                            Importar
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 </template>
 
@@ -758,22 +665,6 @@ const medicoOptions = computed(() =>
     medicos.value.map((m) => ({
         id: String(m.id),
         name: m.reg_med ? `${m.reg_med} - ${m.name}` : m.name,
-    }))
-);
-
-/**
- * Opciones formateadas para Select2 de contratos (modal importar productos).
- * Convierte IDs a String para compatibilidad con Select2.
- *
- * @returns {Array<{id: string, label: string}>}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
- */
-const contratoOptions = computed(() =>
-    registros.value.map((r) => ({
-        id: String(r.id),
-        label: `#${r.id} - ${r.sede?.nom_sede || "N/A"} (${formatDate(r.fecha_inicio)} - ${formatDate(r.fecha_fin)})`,
     }))
 );
 
@@ -1245,18 +1136,6 @@ function descargarPlantilla(item) {
 }
 
 /**
- * Descarga la plantilla general de productos activos (sin contrato específico).
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
- */
-function descargarPlantillaGeneral() {
-    window.open("/api/contratos/plantilla-general", "_blank");
-}
-
-/**
  * Abre el modal de importación de médicos-producto para un contrato específico.
  * Puebla el formulario con la información del contrato.
  *
@@ -1413,163 +1292,6 @@ async function procesarImportacion() {
         toastMessage({ heading: "Error", text: msg, icon: "error" });
     } finally {
         loadingImportar.value = false;
-    }
-}
-
-// ─── IMPORTAR PRODUCTOS AL CONTRATO ──────────────────────────────────────────
-
-/**
- * Referencia al input de archivo del modal de importación de productos
- * @type {import('vue').Ref<HTMLInputElement|null>}
- */
-const archivoProductosRef = ref(null);
-
-/**
- * Formulario del modal de importación de productos al contrato
- * @type {import('vue').Ref<Object>}
- */
-const importarProductosForm = ref({
-    contrato_id: null,
-});
-
-/**
- * Flag de carga al procesar importación de productos
- * @type {import('vue').Ref<boolean>}
- */
-const loadingImportarProductos = ref(false);
-
-/**
- * Abre el modal de importación de productos al contrato.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
- */
-function abrirModalImportarProductos() {
-    importarProductosForm.value = { contrato_id: null };
-    if (archivoProductosRef.value) {
-        archivoProductosRef.value.value = "";
-    }
-    $("#modalImportarProductos").modal("show");
-}
-
-/**
- * Cierra el modal de importación de productos al contrato.
- * Usa el API jQuery de Bootstrap para garantizar el cierre sin depender de data-dismiss.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
- */
-function cerrarModalImportarProductos() {
-    $("#modalImportarProductos").modal("hide");
-}
-
-/**
- * Handler: se ejecuta cuando el usuario selecciona un contrato en el
- * Select2 del modal de importación de productos.
- *
- * @param {string|null} id - ID del contrato seleccionado (String por Select2)
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
- */
-function onContratoSelectImportProductos(id) {
-    importarProductosForm.value.contrato_id = id;
-}
-
-/**
- * Procesa la importación de productos al contrato seleccionado.
- * Envía el archivo Excel (CODIGO | ACTIVIDAD | Tarifa Actividad) al backend,
- * que hace upsert de los registros en contratos_productos. Si el backend detecta
- * CUPS inexistentes en el catálogo, pregunta al usuario si desea crearlos y
- * reintenta con crear_faltantes=1.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
- */
-async function procesarImportacionProductos() {
-    if (loadingImportarProductos.value) return;
-
-    if (!importarProductosForm.value.contrato_id) {
-        toastMessage({ heading: "Atención", text: "Seleccione un contrato", icon: "warning" });
-        return;
-    }
-
-    const file = archivoProductosRef.value?.files?.[0];
-    if (!file) {
-        toastMessage({ heading: "Atención", text: "Seleccione un archivo Excel", icon: "warning" });
-        return;
-    }
-
-    loadingImportarProductos.value = true;
-    try {
-        let crearFaltantes = false;
-        let intentos = 0;
-        const MAX_INTENTOS = 2;
-
-        while (intentos < MAX_INTENTOS) {
-            intentos++;
-            const formData = new FormData();
-            formData.append("archivo", file);
-            if (crearFaltantes) {
-                formData.append("crear_faltantes", "1");
-            }
-
-            const res = await axios.post(
-                `/api/contratos/${importarProductosForm.value.contrato_id}/importar-productos`,
-                formData,
-                { headers: { "Content-Type": "multipart/form-data" } }
-            );
-
-            // Pre-validación: preguntar al usuario sobre los CUPS faltantes
-            if (res.data?.requiere_confirmacion) {
-                const ok = await confirmAction({
-                    title: "Productos no encontrados",
-                    text: construirTextoFaltantes(res.data.data?.faltantes || []),
-                    icon: "warning",
-                });
-                if (!ok) {
-                    toastMessage({
-                        heading: "Información",
-                        text: "Importación cancelada. Ningún dato fue modificado.",
-                        icon: "info",
-                    });
-                    return;
-                }
-                crearFaltantes = true;
-                continue;
-            }
-
-            toastMessage({
-                heading: "Ok",
-                text: res.data?.message || "Productos importados correctamente",
-                icon: "success",
-            });
-            $("#modalImportarProductos").modal("hide");
-
-            // Refrescar sidebar de detalle si está abierto para este contrato
-            if (
-                contratoSeleccionado.value?.id === Number(importarProductosForm.value.contrato_id)
-            ) {
-                const detalle = await axios.get(
-                    `/api/contratos/${importarProductosForm.value.contrato_id}`
-                );
-                contratoSeleccionado.value = detalle.data.data;
-            }
-            await listar();
-            break;
-        }
-    } catch (e) {
-        const msg = e.response?.data?.message || "Error al importar el archivo";
-        toastMessage({ heading: "Error", text: msg, icon: "error" });
-    } finally {
-        loadingImportarProductos.value = false;
     }
 }
 
