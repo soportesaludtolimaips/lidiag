@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Estudios;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Estudios\GuardarTranscripcionRequest;
+use App\Http\Requests\Estudios\LeerEstudioRequest;
 use App\Http\Requests\Estudios\StoreEstudioRequest;
 use App\Services\Estudios\EstudioService;
 use Illuminate\Http\JsonResponse;
@@ -86,7 +88,7 @@ class EstudioController extends Controller
     /**
      * Marca un estudio como leído por un médico específico.
      *
-     * @param  Request  $request  - La solicitud HTTP que contiene los parámetros necesarios para marcar el estudio como leído.
+     * @param  LeerEstudioRequest  $request  - La solicitud HTTP que contiene los parámetros necesarios para marcar el estudio como leído.
      * @return JsonResponse - Una respuesta JSON que contiene el resultado de la operación, incluyendo el estado y cualquier mensaje relevante.
      *
      * @throws ValidationException - Si los datos proporcionados en la solicitud no cumplen con las reglas de validación definidas.
@@ -95,16 +97,13 @@ class EstudioController extends Controller
      *
      * @date 2024-06-10
      */
-    public function leerEstudio(Request $request): JsonResponse
+    public function leerEstudio(LeerEstudioRequest $request): JsonResponse
     {
-        $request->validate([
-            'estudio_producto_id' => 'required|integer|exists:estudios_productos,id',
-            'lectura' => 'required|string|min:3',
-        ], ['lectura.required' => 'Debe ingresar la lectura.']);
+        $data = $request->validated();
 
         $result = $this->estudioService->leerEstudio(
-            $request->integer('estudio_producto_id'),
-            $request->input('lectura'),
+            (int) $data['estudio_producto_id'],
+            $data['lectura'],
         );
 
         return response()->json($result, $result['status']);
@@ -225,7 +224,7 @@ class EstudioController extends Controller
     /**
      * Guarda la transcripción de un estudio, actualiza paciente y genera reporte PDF
      *
-     * @param  Request  $request  Solicitud con datos completos: estudio_producto_id, lectura, datos paciente, sede, producto
+     * @param  GuardarTranscripcionRequest  $request  Solicitud con datos completos: estudio_producto_id, lectura, datos paciente, sede, producto
      *
      * @returns JsonResponse Respuesta de confirmación de guardado
      *
@@ -233,31 +232,9 @@ class EstudioController extends Controller
      *
      * @date 2024-04-04
      */
-    public function guardarTranscripcion(Request $request): JsonResponse
+    public function guardarTranscripcion(GuardarTranscripcionRequest $request): JsonResponse
     {
-        $data = $request->validate([
-            'estudio_producto_id' => 'required|integer|exists:estudios_productos,id',
-            'id_estudio' => 'nullable|integer',
-            'lectura' => 'required|string|min:3',
-            'num_docu' => 'required|string|max:50',
-            'nom_pacien' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'tel' => 'nullable|string|max:50',
-            'sexo' => 'nullable|string|max:10',
-            'direccion' => 'nullable|string|max:500',
-            'fec_naci' => 'nullable|string|max:50',
-            'sede_id' => 'required|integer|exists:config_sedes,id',
-            'cod_cups' => 'required|string|max:50',
-            'nom_produc' => 'required|string|max:255',
-            'medico_id' => 'nullable|integer',
-            'nom_sede' => 'nullable|string|max:255',
-            'email_reportar' => 'nullable|email|max:255',
-            'url_oviyam' => 'nullable|string|max:500',
-            'study_iuid' => 'nullable|string|max:500',
-            'tap_oviyam' => 'nullable|string|max:500',
-            'destino_estudio' => 'nullable|string|max:255',
-            'fechor_lectura' => 'nullable|date',
-        ], ['lectura.required' => 'Debe ingresar la lectura.']);
+        $data = $request->validated();
 
         $data['fechor_lectura'] = $request->input('fechor_lectura', $request->input('fec_lectura'));
         $data['fechor_trascrito'] = $request->input('fechor_trascrito', Carbon::now()->format('Y-m-d H:i:s'));
