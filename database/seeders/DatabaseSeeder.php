@@ -7,6 +7,7 @@ namespace Database\Seeders;
 use Database\Seeders\configuracion\ConfigAdminSaludSeeder;
 use Database\Seeders\configuracion\ConfigDiagnosticoSeeder;
 use Database\Seeders\configuracion\ConfigPrioridadeSeeder;
+use Database\Seeders\Configuracion\ConfigProductosDedupeSeeder;
 use Database\Seeders\configuracion\ConfigProductosEcografias1Seeder;
 use Database\Seeders\configuracion\ConfigProductosEcografias2Seeder;
 use Database\Seeders\configuracion\ConfigProductosEcografias3Seeder;
@@ -90,5 +91,8 @@ class DatabaseSeeder extends Seeder
 
         $this->call(ConfigWhatsappEcografiasRequerimientos::class);
         $this->call(ConfigWhatsappEcografiasRecomendaciones::class);
+
+        // Dedupe de CUPS repetidos (debe ir después de todos los seeders de productos)
+        $this->call(ConfigProductosDedupeSeeder::class);
     }
 }
