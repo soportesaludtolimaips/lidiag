@@ -47,7 +47,7 @@
                             />
                             <img
                                 v-else
-                                src="@/admin-wrap/assets/images/users/avatar_default.png"
+                                :src="'/admin-wrap/assets/images/users/avatar_default.png'"
                                 :alt="registro.name"
                                 class="img-circle"
                                 width="150"
