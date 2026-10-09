@@ -381,10 +381,10 @@
 | DEF-02 | Over-posting: `estudio-leerEstudio` y `estudio-guardarTranscripcion` envían objeto `registro` completo | Estudios | Medio | ✅ Cerrado 2026-10-08: `LeerEstudioRequest` + `GuardarTranscripcionRequest` con `validated()` (payloads frontend ya eran explícitos) |
 | DEF-03 | Sin canal WhatsApp/SMS en notificaciones (solo email + portal) | Estudios | Bajo | Definir alcance con negocio |
 | DEF-04 | Sin lock/concurrencia al leer: dos médicos pueden abrir el mismo estudio | Estudios | Medio | ✅ Cerrado 2026-10-08: reservas `estudio_locks` (2 min o `config_sedes.lock_min`) con heartbeat en lectura y asignación |
-| DEF-05 | Docblocks faltantes en funciones auxiliares menores | Global | Bajo | Pasada de documentación dedicada |
-| DEF-06 | 50 warnings ESLint preexistentes (vars sin uso, catches vacíos) | Estudios | Bajo | Limpieza incremental |
+| DEF-05 | Docblocks faltantes en funciones auxiliares menores | Global | Bajo | Parcialmente cerrado 2026-10-08: módulo Estudios documentado por completo (10 helpers de `EstudioService`, relaciones/accessors de 4 modelos, `authorize`/`rules`/`messages` de 8 FormRequests, 2 constructores de controlador). Resto del repo pendiente como limpieza incremental |
+| DEF-06 | 50 warnings ESLint preexistentes (vars sin uso, catches vacíos) | Estudios | Bajo | Parcialmente cerrado 2026-10-08: módulo Estudios limpio (0 warnings/0 errors). Quedan ~267 warnings en helpers/voice y otros módulos → limpieza incremental futura |
 | DEF-07 | `descargarPlantillaGeneral?contrato_id` conserva parámetro sin uso en UI | Contratación | Info | ✅ Cerrado 2026-10-06: la plantilla general fue retirada del módulo |
-| DEF-08 | Avatar header usa `http://localhost:5179` → Mixed Content en HTTPS | Global | Cosmético | Migrar a ruta relativa o HTTPS |
+| DEF-08 | Avatar header usa `http://localhost:5179` → Mixed Content en HTTPS | Global | Cosmético | ✅ Cerrado 2026-10-08: el asset se referenciaba con `src="@/admin-wrap/..."` (alias Vite que en dev resuelve al dev server `localhost:5179`); migrado a ruta pública relativa `/admin-wrap/assets/images/users/avatar_default.png` con binding en runtime (`:src`) en `usuarioComponent.vue` y `usuarioPerfil.vue` para que Vite no lo trate como import. Build ✓ |
 
 ### B. Hallazgos de entorno
 
