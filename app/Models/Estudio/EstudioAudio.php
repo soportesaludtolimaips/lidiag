@@ -34,16 +34,41 @@ class EstudioAudio extends Model
 
     protected $appends = ['url'];
 
+    /**
+     * Producto del estudio al que pertenece el audio.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     public function estudioProducto()
     {
         return $this->belongsTo(EstudioProducto::class, 'estudio_producto_id');
     }
 
+    /**
+     * Estudio al que pertenece el audio.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     public function estudio()
     {
         return $this->belongsTo(Estudio::class, 'estudio_id');
     }
 
+    /**
+     * URL pública de descarga del audio (normaliza el prefijo "audios/").
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     public function getUrlAttribute()
     {
         $path = $this->audio;
@@ -54,6 +79,13 @@ class EstudioAudio extends Model
         return Storage::disk('audios')->url($path);
     }
 
+    /**
+     * Ruta absoluta del archivo de audio en el disco local.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     public function getFullPathAttribute()
     {
         return Storage::disk('audios')->path($this->audio);

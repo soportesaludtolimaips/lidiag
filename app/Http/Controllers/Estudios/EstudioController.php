@@ -14,6 +14,13 @@ use Illuminate\Validation\ValidationException;
 
 class EstudioController extends Controller
 {
+    /**
+     * Inyecta el servicio de estudios.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     public function __construct(
         private readonly EstudioService $estudioService,
     ) {}

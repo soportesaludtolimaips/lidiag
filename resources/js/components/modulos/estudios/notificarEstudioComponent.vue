@@ -363,7 +363,10 @@ import { getUserSafeError, toastMessage } from "@/helpers/alerts.js";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
 import axios from "axios";
 
-const props = defineProps({ usuarioactual: Object, permisos: Array });
+defineProps({
+    usuarioactual: { type: Object, default: () => ({}) },
+    permisos: { type: Array, default: () => [] },
+});
 
 const { loadingImprimir, imprimirReporte } = useEstudioHelpers();
 

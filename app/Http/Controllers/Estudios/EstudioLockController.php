@@ -16,6 +16,13 @@ use Illuminate\Http\Request;
  */
 class EstudioLockController extends Controller
 {
+    /**
+     * Inyecta el servicio de reservas de lectura/asignación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     public function __construct(
         private readonly EstudioLockService $lockService,
     ) {}

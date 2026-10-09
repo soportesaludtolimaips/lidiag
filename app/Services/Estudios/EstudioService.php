@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Services\BaseService;
 use App\Services\Contracts\FileServiceInterface;
 use App\Services\Liquidacion\LiquidacionService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -730,6 +731,17 @@ class EstudioService extends BaseService
         return $result;
     }
 
+    /**
+     * Valida los datos mínimos de una asignación antes de crear el estudio.
+     *
+     * El médico es obligatorio salvo cuando el destino es tele-radiología.
+     *
+     * @param  array  $registro  Datos del formulario de asignación
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     private function validateCreateData(array $registro): ?array
     {
         $destino = $registro['destino_estudio'] ?? '';
@@ -764,11 +776,31 @@ class EstudioService extends BaseService
         return null;
     }
 
+    /**
+     * Filtra la lista de productos marcados (checked = true).
+     *
+     * @param  array  $productos  Productos enviados desde el formulario
+     *
+     * @returns array Productos marcados sin claves numéricas huecas
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     private function getCheckedProducts(array $productos): array
     {
         return array_values(array_filter($productos, fn ($p) => isset($p['checked']) && $p['checked'] == true));
     }
 
+    /**
+     * Normaliza el nombre del paciente separado por el delimitador "^" del PACS.
+     *
+     * @param  string  $name  Nombre crudo proveniente del DICOM
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     private function sanitizePatientName(string $name): string
     {
         $name = str_replace('^^^', '', $name);
@@ -777,6 +809,16 @@ class EstudioService extends BaseService
         return str_replace('^', ' ', $name);
     }
 
+    /**
+     * Crea o actualiza el paciente por número de documento, conservando campos vacíos del existente.
+     *
+     * @param  array  $registro  Datos del formulario de asignación
+     * @param  string  $nombrePaciente  Nombre ya saneado
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     private function createOrUpdatePatient(array $registro, string $nombrePaciente): Paciente
     {
         $existing = Paciente::where('num_docu', $registro['num_docu'])->first();
@@ -795,6 +837,16 @@ class EstudioService extends BaseService
         );
     }
 
+    /**
+     * Resuelve los datos de interfaz (eps, contrato, plan, servicio) según el software de la sede.
+     *
+     * @param  ConfigSede  $sede  Sede del estudio
+     * @param  array  $registro  Datos del formulario de asignación
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     private function resolveInterfaceData(ConfigSede $sede, array $registro): array
     {
         $default = ['eps' => '', 'contrato' => '', 'plan' => '', 'servicio' => ''];
@@ -806,6 +858,16 @@ class EstudioService extends BaseService
         return $default;
     }
 
+    /**
+     * Reemplaza los productos del estudio por los marcados que requieren lectura (requi_lectura = 1).
+     *
+     * @param  int  $estudioId  Identificador del estudio
+     * @param  array  $productosMarcados  Productos marcados en el formulario
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     private function syncStudyProducts(int $estudioId, array $productosMarcados): void
     {
         EstudioProducto::where('estudio_id', $estudioId)->delete();
@@ -826,6 +888,16 @@ class EstudioService extends BaseService
         }
     }
 
+    /**
+     * Reemplaza los diagnósticos del estudio por los válidos (con código y nombre).
+     *
+     * @param  int  $estudioId  Identificador del estudio
+     * @param  array  $diagnosticos  Diagnósticos enviados desde el formulario
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     private function syncStudyDiagnostics(int $estudioId, array $diagnosticos): void
     {
         EstudioDiagnostico::where('estudio_id', $estudioId)->delete();
@@ -843,6 +915,18 @@ class EstudioService extends BaseService
         }
     }
 
+    /**
+     * Guarda los soportes de historia clínica encriptados y registra su metadata.
+     *
+     * @param  int  $estudioId  Identificador del estudio
+     * @param  UploadedFile|null  $archivo1  Primer soporte opcional
+     * @param  UploadedFile|null  $archivo2  Segundo soporte opcional
+     * @param  UploadedFile|null  $archivo3  Tercer soporte opcional
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     private function processSoportes(int $estudioId, ?UploadedFile $archivo1 = null, ?UploadedFile $archivo2 = null, ?UploadedFile $archivo3 = null): void
     {
         foreach ([$archivo1, $archivo2, $archivo3] as $archivo) {
@@ -861,6 +945,18 @@ class EstudioService extends BaseService
         }
     }
 
+    /**
+     * Aplica los filtros del listado de pendientes por transcribir.
+     *
+     * @param  Builder  $query  Consulta base con los joins ya aplicados
+     * @param  array  $filters  Filtros: sede_id, destino, fechas, nombre/doc, quién asignó, médico
+     *
+     * @returns \Illuminate\Database\Eloquent\Builder Consulta con los filtros aplicados
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     private function applyTranscripcionFilters($query, array $filters)
     {
         $sedeId = $filters['sede_id'] ?? null;
@@ -913,6 +1009,18 @@ class EstudioService extends BaseService
         return $query;
     }
 
+    /**
+     * Aplica los filtros del listado de estudios asignados.
+     *
+     * @param  Builder  $query  Consulta base con los joins ya aplicados
+     * @param  array  $filters  Filtros: sede_id, fechas, nombre/doc, quién asignó, médico
+     *
+     * @returns \Illuminate\Database\Eloquent\Builder Consulta con los filtros aplicados
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     private function applyAsignadosFilters($query, array $filters)
     {
         $sedeId = $filters['sede_id'] ?? null;

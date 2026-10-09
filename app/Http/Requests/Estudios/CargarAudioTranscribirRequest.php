@@ -6,11 +6,25 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class CargarAudioTranscribirRequest extends FormRequest
 {
+    /**
+     * Autoriza la petición (sin restricciones adicionales).
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     public function authorize(): bool
     {
         return true;
     }
 
+    /**
+     * Reglas de validación para la carga de audio de transcripción.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     public function rules(): array
     {
         return [
@@ -20,6 +34,13 @@ class CargarAudioTranscribirRequest extends FormRequest
         ];
     }
 
+    /**
+     * Mensajes en español para las reglas de validación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     public function messages(): array
     {
         return [

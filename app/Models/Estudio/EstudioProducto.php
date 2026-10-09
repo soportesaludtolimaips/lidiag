@@ -24,21 +24,57 @@ class EstudioProducto extends Model
         'updated_at' => 'datetime',
     ];
 
+    /**
+     * Estudio al que pertenece el producto.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     public function estudio()
     {
         return $this->belongsTo(Estudio::class, 'estudio_id');
     }
 
+    /**
+     * Usuario que transcribió el producto.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     public function transcriptor()
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Adendums de lectura del producto.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\HasMany
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     public function adendums()
     {
         return $this->hasMany(EstudioProductoAdendum::class);
     }
 
+    /**
+     * Configuración del producto (catálogo CUPS).
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     public function producto()
     {
         return $this->belongsTo(ConfigProducto::class, 'producto_id');

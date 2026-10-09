@@ -13,6 +13,15 @@ class EstudioProductoAdendum extends Model
 
     protected $fillable = ['estudio_producto_id', 'transcriptor_id', 'fechor_lectura', 'lectura', 'fechor_trascrito', 'activo'];
 
+    /**
+     * Producto del estudio al que pertenece el adendum.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     public function estudioProducto()
     {
         return $this->belongsTo(EstudioProducto::class, 'estudio_producto_id');

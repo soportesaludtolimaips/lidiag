@@ -727,7 +727,7 @@ import axios from "axios";
 const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
 
-const props = defineProps({ usuarioactual: Object });
+defineProps({ usuarioactual: { type: Object, default: () => ({}) } });
 
 const {
     loadingDescarga,
@@ -823,7 +823,7 @@ function applyDashboardPrefill() {
             destroyDataTable();
             listarPendientesTrascribir();
         }
-    } catch (e) {
+    } catch {
         toastMessage({
             heading: "Error",
             text: "No fue posible cargar el prellenado del dashboard.",
@@ -1035,7 +1035,7 @@ async function anularAsignacion(idProductoEstudio, paciente, producto) {
                 icon: "error",
             });
         }
-    } catch (err) {
+    } catch {
         toastMessage({
             heading: "Error",
             text: "No fue posible anular el producto.",
@@ -1062,21 +1062,6 @@ function previewTranscripcion(texto, maxLen) {
     if (!texto) return "";
     if (texto.length <= maxLen) return texto;
     return texto.substring(0, maxLen);
-}
-
-/**
- * Establece la sede de trabajo en el objeto de búsqueda a partir de sessionStorage (ST-sede)
- * y limpia la lista de registros.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-07-14
- */
-function establecerSede() {
-    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
-    registros.value = [];
 }
 
 /**

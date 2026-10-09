@@ -748,7 +748,7 @@ import { confirmAction, getUserSafeError, toastMessage } from "@/helpers/alerts"
 import axios from "axios";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
 
-const props = defineProps({ usuarioactual: Object });
+defineProps({ usuarioactual: { type: Object, default: () => ({}) } });
 
 const {
     loadingDescarga,
