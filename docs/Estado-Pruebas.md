@@ -38,7 +38,8 @@
 | Ecografías | 8 | 8 | 0 | 0 | 0 | — |
 | Reportes | 3 | 0 | 0 | 0 | 3 | — |
 | Tele-radiología | 2 | 2 | 0 | 0 | 0 | — |
-| **TOTAL** | **86** | **10** | **0** | **1** | **76** | **37/37** |
+| Liquidación | 7 | 7 | 0 | 0 | 0 | — |
+| **TOTAL** | **93** | **17** | **0** | **0** | **76** | **37/37** |
 
 ---
 
@@ -371,6 +372,47 @@
 
 ---
 
+## 8️⃣ LIQUIDACIÓN
+
+| Campo | Valor |
+|---|---|
+| **Componentes** | `liquidacionComponent.vue` (cálculo/exportación), `productividadComponent.vue` (corte de mes por médico) |
+| **Backend** | `LiquidacionService` (calcular/registrarLectura/productividad), `LiquidacionController`, `LiquidacionExport`, modelo `LiquidacionLinea` |
+| **Commits de construcción** | `67171ef6f` (cálculo) + `14cf686e6` (endpoint/rutas/permisos) + `b70c342af` (vista) + `6f144c82a` (ruta web/menú) + `67e54bfd5` + `8875a2267` (export) + `7213adb1f` (filtros contrato/médico) + `4e96c5463` (ignora fecha_ingreso) + `2e7bacdc1` (registro persistente por lectura) + `1ec4ee339` (productividad) — Fase 1 contabilidad médicos, 2026-09-30/10-01 |
+
+### Automatizadas
+
+| Suite | Resultado | Fecha | Notas |
+|---|---|---|---|
+| Verificación de implementación Fase 1: scripts PHP con rollback contra BD real (cálculo, API, guard D4, export), `pint`, `eslint`, `build` | ✅ PASS | 2026-09-30 / 2026-10-01 | Patrón Fase 0 (scripts en temp, no en repo); ejecutados al construir cada task |
+| QA formal del módulo (manuales/automatizadas en este tracker) | ⬜ Sin iniciar | — | Pendiente de programar |
+
+### Sub-Módulo: Cálculo de liquidación
+
+| # | Funcionalidad | Estado | Resultado | Fecha | Responsable | Evidencia | Notas |
+|---|---|---|---|---|---|---|---|
+| 1 | Calcular líneas, exclusiones y totales por sede+rango | ⬜ Sin iniciar | — | — | — | — | Implementado 2026-09-30 (`67171ef6f`); QA formal pendiente |
+| 2 | Filtros opcionales por contrato y médico | ⬜ Sin iniciar | — | — | — | — | Implementado 2026-10-01 (`7213adb1f`) |
+| 3 | Exclusiones visibles con conteo (sin contrato, sin tarifa, fuera de detalle, anulada, sin asignado) | ⬜ Sin iniciar | — | — | — | — | Nunca silenciosas (spec Fase 1 §6) |
+| 4 | Guard D4: solo el médico asignado puede registrar lectura (403); lectura sin asignado → 422 | ⬜ Sin iniciar | — | — | — | — | `EstudioService::leerEstudio()`; implementado 2026-09-30 |
+
+### Sub-Módulo: Corte de mes (productividad)
+
+| # | Funcionalidad | Estado | Resultado | Fecha | Responsable | Evidencia | Notas |
+|---|---|---|---|---|---|---|---|
+| 1 | Registro persistente por lectura en `liquidacion_lineas` (tarifa congelada) | ⬜ Sin iniciar | — | — | — | — | D6; implementado 2026-10-01 (`2e7bacdc1`); índices (sede_id, periodo) |
+| 2 | Vista de productividad por médico y periodo | ⬜ Sin iniciar | — | — | — | — | `productividadComponent.vue`; implementado 2026-10-01 (`1ec4ee339`) |
+
+### Sub-Módulo: Exportación
+
+| # | Funcionalidad | Estado | Resultado | Fecha | Responsable | Evidencia | Notas |
+|---|---|---|---|---|---|---|---|
+| 1 | Exportar la liquidación a Excel (reutiliza `calcular()`) | ⬜ Sin iniciar | — | — | — | — | Implementado 2026-10-01 (`67e54bfd5` + fix cast `8875a2267`) |
+
+> **Nota:** el módulo fue implementado completo (Fase 1 contabilidad médicos) y verificado con scripts contra BD real durante su construcción. Las filas anteriores registran el QA formal estilo tracker (como Estudios/Contratación), aún no ejecutado. El cierre de periodo con hash SHA256 (Fase 3 del plan de mejoras) fue **descartado por el dueño** (2026-10-13); diseño mínimo en memoria `obs-468` si se revive.
+
+---
+
 ## 📎 ANEXOS
 
 ### A. Issues diferidos (no bloqueantes)
@@ -381,8 +423,8 @@
 | DEF-02 | Over-posting: `estudio-leerEstudio` y `estudio-guardarTranscripcion` envían objeto `registro` completo | Estudios | Medio | ✅ Cerrado 2026-10-08: `LeerEstudioRequest` + `GuardarTranscripcionRequest` con `validated()` (payloads frontend ya eran explícitos) |
 | DEF-03 | Sin canal WhatsApp/SMS en notificaciones (solo email + portal) | Estudios | Bajo | Definir alcance con negocio |
 | DEF-04 | Sin lock/concurrencia al leer: dos médicos pueden abrir el mismo estudio | Estudios | Medio | ✅ Cerrado 2026-10-08: reservas `estudio_locks` (2 min o `config_sedes.lock_min`) con heartbeat en lectura y asignación |
-| DEF-05 | Docblocks faltantes en funciones auxiliares menores | Global | Bajo | Parcialmente cerrado 2026-10-08: módulo Estudios documentado por completo (10 helpers de `EstudioService`, relaciones/accessors de 4 modelos, `authorize`/`rules`/`messages` de 8 FormRequests, 2 constructores de controlador). Resto del repo pendiente como limpieza incremental |
-| DEF-06 | 50 warnings ESLint preexistentes (vars sin uso, catches vacíos) | Estudios | Bajo | Parcialmente cerrado 2026-10-08: módulo Estudios limpio (0 warnings/0 errors). Quedan ~267 warnings en helpers/voice y otros módulos → limpieza incremental futura |
+| DEF-05 | Docblocks faltantes en funciones auxiliares menores | Global | Bajo | ✅ Cerrado 2026-10-13: módulo Estudios documentado (2026-10-08) y resto de `app/` completado (2026-10-13, commit `c15b9369c`): 664 funciones en 207 archivos (Services, Controllers, Commands, Exports, Requests, Models, Resources, Helpers, Providers, Middleware, Traits, Rules, Notifications). Verificado con escáner token_get_all (0 pendientes) y `pint --test app` |
+| DEF-06 | 50 warnings ESLint preexistentes (vars sin uso, catches vacíos) | Estudios | Bajo | ✅ Cerrado 2026-10-13: limpieza global `resources/js` 267→0 warnings (commit `b57ad1901`), incluyendo fix de bugs reales no-undef (refs sin declarar en `ecografiaFirmaConsentimientoComponent` y `FormattedTextEditor`, props sin prefijo en agenda, listener `onVisibilityChange` sin remover). `npx eslint resources/js` = 0 problems + `npm run build` ✓ |
 | DEF-07 | `descargarPlantillaGeneral?contrato_id` conserva parámetro sin uso en UI | Contratación | Info | ✅ Cerrado 2026-10-06: la plantilla general fue retirada del módulo |
 | DEF-08 | Avatar header usa `http://localhost:5179` → Mixed Content en HTTPS | Global | Cosmético | ✅ Cerrado 2026-10-08: el asset se referenciaba con `src="@/admin-wrap/..."` (alias Vite que en dev resuelve al dev server `localhost:5179`); migrado a ruta pública relativa `/admin-wrap/assets/images/users/avatar_default.png` con binding en runtime (`:src`) en `usuarioComponent.vue` y `usuarioPerfil.vue` para que Vite no lo trate como import. Build ✓ |
 
@@ -410,6 +452,8 @@
 
 | Fecha | Suite | Resultado | Commit |
 |---|---|---|---|
+| 2026-10-13 | ESLint global resources/js (267→0) + build | ✅ PASS | `b57ad1901` |
+| 2026-10-13 | Docblocks repo-wide app/ (664 funciones, escáner 0 + pint) | ✅ PASS | `c15b9369c` |
 | 2026-09-22 | Estudios Quemador + SAHI + Asignar (MAN-\*) | ✅ 9/9 PASS | `e98ed8a2d`, `ad1ebf799`, `c5c2e1fe1`, `a834b1463`, `caa41a779`, `08d3f3934` |
 | 2026-09-22 | Tele-radiología SAHI fixes | ✅ 2/2 PASS | `caa41a779`, `08d3f3934` |
 | 2026-08-24 | Contratación E2E (usuario) | ✅ 1/1 | varios |
