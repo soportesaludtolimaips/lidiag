@@ -29,6 +29,13 @@ class AuditPermissions extends Command
      */
     protected $description = 'Audita permisos usados en código vs permisos existentes (Spatie) en BD.';
 
+    /**
+     * Ejecuta la auditoría de permisos: compara los permisos usados en código con los existentes en BD.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function handle(): int
     {
         $guard = (string) ($this->option('guard') ?: 'web');
@@ -312,6 +319,16 @@ class AuditPermissions extends Command
         return $out;
     }
 
+    /**
+     * Sugiere hasta 3 permisos existentes similares al indicado mediante distancia de Levenshtein.
+     *
+     * @param  string  $needle  Permiso faltante a buscar.
+     * @param  Collection  $haystack  Permisos existentes en BD.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function suggestSimilar(string $needle, Collection $haystack): Collection
     {
         $needle = (string) $needle;

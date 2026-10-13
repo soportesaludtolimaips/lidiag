@@ -63,6 +63,13 @@ class SyncDicomEcografias extends Command
         }
     }
 
+    /**
+     * Sincroniza los usuarios desde la tabla de origen de la conexión de importación DICOM.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function syncUsers()
     {
         $this->info('Sincronizando Usuarios...');
@@ -117,6 +124,13 @@ class SyncDicomEcografias extends Command
         $this->info('Usuarios sincronizados.');
     }
 
+    /**
+     * Sincroniza las EPS del origen como administradoras de salud.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function syncEps()
     {
         $this->info('Sincronizando EPS...');
@@ -153,6 +167,13 @@ class SyncDicomEcografias extends Command
         $this->info('EPS sincronizadas.');
     }
 
+    /**
+     * Sincroniza los productos diagnósticos del origen al catálogo de configuración.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function syncProducts()
     {
         $this->info('Sincronizando Productos...');
@@ -189,6 +210,13 @@ class SyncDicomEcografias extends Command
         $this->info('Productos sincronizados.');
     }
 
+    /**
+     * Sincroniza las lecturas (ecografías) del origen al sistema.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function syncEcografias()
     {
         $this->info('Sincronizando Ecografías...');
@@ -223,6 +251,15 @@ class SyncDicomEcografias extends Command
         $this->info("Sincronización completada: {$synced} exitosas, {$errors} errores.");
     }
 
+    /**
+     * Crea una ecografía a partir de una lectura del origen y sincroniza sus productos.
+     *
+     * @param  mixed  $lectura  Registro de lectura de la conexión de importación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function syncSingleLectura($lectura): void
     {
         $medico = $this->resolveMedico($lectura);
@@ -246,6 +283,15 @@ class SyncDicomEcografias extends Command
         $this->syncProductos($ecografia, $lectura);
     }
 
+    /**
+     * Resuelve o crea el usuario del médico a partir de la lectura del origen.
+     *
+     * @param  mixed  $lectura  Registro de lectura de la conexión de importación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function resolveMedico($lectura): ?User
     {
         if (! $lectura->medico || ! $lectura->medico->num_docu) {
@@ -269,6 +315,16 @@ class SyncDicomEcografias extends Command
         return $user;
     }
 
+    /**
+     * Resuelve el ID del usuario registrador de la lectura, con el médico como respaldo.
+     *
+     * @param  mixed  $lectura  Registro de lectura de la conexión de importación.
+     * @param  User  $fallback  Usuario de respaldo si no se puede resolver el registrador.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function resolveRegistrador($lectura, User $fallback): int
     {
         if ($lectura->usuarioRegistrador && $lectura->usuarioRegistrador->personal) {
@@ -281,6 +337,15 @@ class SyncDicomEcografias extends Command
         return $fallback->id;
     }
 
+    /**
+     * Resuelve o crea el paciente a partir de la lectura del origen.
+     *
+     * @param  mixed  $lectura  Registro de lectura de la conexión de importación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function resolvePaciente($lectura): ?int
     {
         if (! $lectura->paciente || ! $lectura->paciente->num_docu) {
@@ -313,6 +378,15 @@ class SyncDicomEcografias extends Command
         return $paciente->id;
     }
 
+    /**
+     * Mapea el código de tipo de documento del origen al ID del tipo de documento del sistema.
+     *
+     * @param  string|null  $sourceType  Código de tipo de documento del origen (NI, CC, CE, etc.).
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function mapTipoDocumento(?string $sourceType): ?int
     {
         return match ($sourceType) {
@@ -331,6 +405,15 @@ class SyncDicomEcografias extends Command
         };
     }
 
+    /**
+     * Resuelve el ID de la administradora de salud a partir de la EPS de la lectura.
+     *
+     * @param  mixed  $lectura  Registro de lectura de la conexión de importación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function resolveAdminSalud($lectura): ?int
     {
         if (! $lectura->eps || ! $lectura->eps->cod_eps) {
@@ -342,6 +425,16 @@ class SyncDicomEcografias extends Command
         return $adminSalud?->id;
     }
 
+    /**
+     * Sincroniza los productos de la lectura hacia ecografias_productos de la ecografía creada.
+     *
+     * @param  Ecografia  $ecografia  Ecografía creada en el sistema.
+     * @param  mixed  $lectura  Registro de lectura de la conexión de importación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function syncProductos(Ecografia $ecografia, $lectura): void
     {
         EcografiaProducto::where('ecografia_id', $ecografia->id)->delete();

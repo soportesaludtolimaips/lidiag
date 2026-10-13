@@ -9,15 +9,38 @@ use Illuminate\Http\Request;
 
 class PasswordChangeController extends Controller
 {
+    /**
+     * Inyecta el servicio de autenticación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function __construct(
         private readonly AuthService $authService,
     ) {}
 
+    /**
+     * Muestra la vista del formulario de cambio de contraseña.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function showForm()
     {
         return view('auth.passwords.cambiar');
     }
 
+    /**
+     * Procesa el cambio de la contraseña del usuario autenticado.
+     *
+     * @param  Request  $request  Solicitud con la contraseña actual y la nueva contraseña.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function update(Request $request)
     {
         $request->validate([

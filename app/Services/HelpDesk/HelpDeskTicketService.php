@@ -453,6 +453,18 @@ class HelpDeskTicketService extends BaseService
         return $this->success(['ok' => true]);
     }
 
+    /**
+     * Notifica al solicitante y al técnico asignado del ticket sobre un evento.
+     *
+     * @param  HelpDeskTickets  $ticket  Ticket relacionado con el evento
+     * @param  string  $evento  Identificador del tipo de evento
+     * @param  string  $mensaje  Mensaje descriptivo de la notificación
+     * @param  int|null  $exceptUserId  Identificador del usuario a excluir de la notificación
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function notifyPartes(HelpDeskTickets $ticket, string $evento, string $mensaje, ?int $exceptUserId): void
     {
         $titulo = (string) $ticket->titulo;
@@ -472,6 +484,16 @@ class HelpDeskTicketService extends BaseService
         }
     }
 
+    /**
+     * Valida si la transición de estado del ticket es permitida según el flujo configurado.
+     *
+     * @param  string  $actual  Estado actual del ticket
+     * @param  string  $nuevo  Estado al que se desea transicionar
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function isValidTransition(string $actual, string $nuevo): bool
     {
         $actual = mb_strtolower($actual);
@@ -487,6 +509,15 @@ class HelpDeskTicketService extends BaseService
         return in_array($nuevo, $map[$actual] ?? [], true);
     }
 
+    /**
+     * Determina si el ticket aplica para ser marcado como pendiente según su estado.
+     *
+     * @param  HelpDeskTickets  $ticket  Ticket a evaluar
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function isPendienteAplica(HelpDeskTickets $ticket): bool
     {
         $estado = HelpDeskEstado::query()->find($ticket->estado_id);

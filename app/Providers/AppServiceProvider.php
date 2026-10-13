@@ -19,11 +19,32 @@ class AppServiceProvider extends ServiceProvider
         'password', 'remember_token', 'firma', 'token_hash',
     ];
 
+    /**
+     * Registra los bindings del contenedor de servicios.
+     *
+     * @returns void
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function register()
     {
         //
     }
 
+    /**
+     * Ejecuta la configuración de arranque de la aplicación.
+     *
+     * Define el permiso global del Super Admin, la política de User,
+     * el rate limiting y el log global de actividad.
+     *
+     * @returns void
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function boot()
     {
         //         \URL::forceScheme('https');
@@ -37,6 +58,13 @@ class AppServiceProvider extends ServiceProvider
         $this->registerGlobalActivityLog();
     }
 
+    /**
+     * Configura los límites de velocidad (rate limiting) de la aplicación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function configureRateLimiting(): void
     {
         RateLimiter::for('api', function (Request $request) {
@@ -56,6 +84,15 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 
+    /**
+     * Registra en activity_log las altas, bajas y cambios de los modelos.
+     *
+     * Excluye los campos sensibles y no registra la propia activity_log.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function registerGlobalActivityLog(): void
     {
         $events = ['created', 'updated', 'deleted'];

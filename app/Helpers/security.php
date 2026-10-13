@@ -1,6 +1,16 @@
 <?php
 
 if (! function_exists('maskData')) {
+    /**
+     * Enmascara datos sensibles según el tipo indicado.
+     *
+     * @param  string  $value  Valor original a enmascarar.
+     * @param  string  $type  Tipo de dato (document, phone, address, email, dob).
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     function maskData(string $value, string $type): string
     {
         return match ($type) {

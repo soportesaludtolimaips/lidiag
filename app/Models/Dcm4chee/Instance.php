@@ -17,6 +17,15 @@ class Instance extends Model
 
     public $timestamps = false;
 
+    /**
+     * Serie a la que pertenece la instancia.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function series()
     {
         return $this->belongsTo(Series::class, 'series_fk', 'pk');

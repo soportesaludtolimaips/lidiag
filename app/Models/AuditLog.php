@@ -19,6 +19,15 @@ class AuditLog extends Model
         'datos_nuevos' => 'array',
     ];
 
+    /**
+     * Usuario que generó el registro.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function user()
     {
         return $this->belongsTo(User::class);

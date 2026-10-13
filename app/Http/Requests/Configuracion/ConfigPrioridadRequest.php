@@ -8,11 +8,25 @@ use Illuminate\Validation\Rule;
 
 class ConfigPrioridadRequest extends FormRequest
 {
+    /**
+     * Autoriza la petición únicamente a usuarios autenticados.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function authorize(): bool
     {
         return Auth::check();
     }
 
+    /**
+     * Reglas de validación de prioridades (nombre).
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function rules(): array
     {
         $prioridadId = $this->route('config.prioridad')?->id ?? $this->route('id');
@@ -27,6 +41,13 @@ class ConfigPrioridadRequest extends FormRequest
         ];
     }
 
+    /**
+     * Mensajes en español para las reglas de validación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function messages(): array
     {
         return [

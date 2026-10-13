@@ -16,6 +16,19 @@ use App\Services\BaseService;
 
 class SAHITranscibirService extends BaseService
 {
+    /**
+     * Envía la transcripción de un estudio a SAHI creando esquemas, memo, médico y producto.
+     *
+     * @param  int|null  $idAtencion  Identificador de la atención en SAHI
+     * @param  int|null  $idMedico  Identificador del médico en Lidiag
+     * @param  string|null  $reporteEstudio  Texto del reporte del estudio a transcribir
+     * @param  string|null  $codCups  Código CUPS del producto del estudio
+     * @param  string|null  $fecHorLectura  Fecha y hora de lectura del estudio
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function enviarEstudio(
         ?int $idAtencion,
         ?int $idMedico,
@@ -74,6 +87,13 @@ class SAHITranscibirService extends BaseService
         ], 'La transcripción se realizó con éxito.');
     }
 
+    /**
+     * Genera y persiste el siguiente consecutivo de esquema encabezado en SAHI.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function generarConsecutivoEsquemaEncavezado(): int
     {
         $esquema = sisTabla::where('NomTabla', 'hceEsquemaEncabeza')
@@ -85,6 +105,13 @@ class SAHITranscibirService extends BaseService
         return $esquema->Consecutivo;
     }
 
+    /**
+     * Genera y persiste el siguiente consecutivo de esquema encabezado padre en SAHI.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function generarConsecutivoEsquemaEncavezadoPadre(): int
     {
         $encavezadoPadre = HceEsquema::where('IdEsquema', 149)
@@ -95,6 +122,20 @@ class SAHITranscibirService extends BaseService
         return (int) $encavezadoPadre->IdConsecutivoEsq;
     }
 
+    /**
+     * Crea un registro de esquema encabezado en SAHI para la transcripción del estudio.
+     *
+     * @param  int  $conseEsquemaEncavezado1  Consecutivo del encabezado padre
+     * @param  int  $conseEsquemaEncavezado2  Consecutivo del encabezado actual
+     * @param  int  $ubucacionActual  Identificador de la ubicación actual de la atención
+     * @param  int  $idAtencion  Identificador de la atención en SAHI
+     * @param  int  $idUsuario  Identificador del usuario en SAHI
+     * @param  string  $fecHorLectura  Fecha y hora de lectura del estudio
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function storeEsquemaEncabeza(int $conseEsquemaEncavezado1, int $conseEsquemaEncavezado2, int $ubucacionActual, int $idAtencion, int $idUsuario, string $fecHorLectura): hceEsquemaEncabeza
     {
         $esquemaEncavezado = new hceEsquemaEncabeza;
@@ -119,6 +160,20 @@ class SAHITranscibirService extends BaseService
         return $esquemaEncavezado;
     }
 
+    /**
+     * Crea el registro de esquema de atención en SAHI que asocia el esquema con la atención.
+     *
+     * @param  int  $conseEsquemaEncavezado  Consecutivo del encabezado del esquema
+     * @param  int  $ubucacionActual  Identificador de la ubicación actual de la atención
+     * @param  int  $idAtencion  Identificador de la atención en SAHI
+     * @param  int  $idPersonal  Identificador del personal médico en SAHI
+     * @param  int  $idUsuario  Identificador del usuario en SAHI
+     * @param  string  $fecHorLectura  Fecha y hora de lectura del estudio
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function storeEsquemaAtencion(int $conseEsquemaEncavezado, int $ubucacionActual, int $idAtencion, int $idPersonal, int $idUsuario, string $fecHorLectura): hceEsquemasdeAte
     {
         $esquemAtenicon = new hceEsquemasdeAte;
@@ -138,6 +193,16 @@ class SAHITranscibirService extends BaseService
         return $esquemAtenicon;
     }
 
+    /**
+     * Almacena el memo con el texto del reporte del estudio en el esquema de SAHI.
+     *
+     * @param  int  $conseEsquemaEncavezado  Consecutivo del encabezado del esquema
+     * @param  string  $reporteEstudio  Texto del reporte del estudio
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function storeEsquemaMemo(int $conseEsquemaEncavezado, string $reporteEstudio): hceEsquemaDetMemo
     {
         $esquemaMemo = new hceEsquemaDetMemo;
@@ -149,6 +214,18 @@ class SAHITranscibirService extends BaseService
         return $esquemaMemo;
     }
 
+    /**
+     * Registra el detalle del médico que realizó la transcripción en el esquema de SAHI.
+     *
+     * @param  int  $conseEsquemaEncavezado  Consecutivo del encabezado del esquema
+     * @param  string  $fecHorLectura  Fecha y hora de lectura del estudio
+     * @param  string  $nomMedico  Nombre completo del médico transcriptor
+     * @param  int  $idUsuario  Identificador del usuario en SAHI
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function storeMedico(int $conseEsquemaEncavezado, string $fecHorLectura, string $nomMedico, int $idUsuario): hceEsquemaDetProc
     {
         $medico = new hceEsquemaDetProc;
@@ -182,6 +259,18 @@ class SAHITranscibirService extends BaseService
         return $medico;
     }
 
+    /**
+     * Registra el detalle del producto CUPS del estudio en el esquema de SAHI.
+     *
+     * @param  int  $conseEsquemaEncavezado  Consecutivo del encabezado del esquema
+     * @param  string  $codCups  Código CUPS del producto a registrar
+     * @param  int  $idUsuario  Identificador del usuario en SAHI
+     * @param  string  $fecHorLectura  Fecha y hora de lectura del estudio
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function storaProducto(int $conseEsquemaEncavezado, string $codCups, int $idUsuario, string $fecHorLectura): hceEsquemaDetProc
     {
         $productoSAHI = ProProducto::where('CodProducto', $codCups)
@@ -218,6 +307,15 @@ class SAHITranscibirService extends BaseService
         return $producto;
     }
 
+    /**
+     * Obtiene los datos del médico en SAHI a partir del identificador de Lidiag.
+     *
+     * @param  int  $idMedico  Identificador del médico en Lidiag
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function getUsuario(int $idMedico): array|false
     {
         $medicoLidiag = User::find($idMedico);
@@ -247,6 +345,15 @@ class SAHITranscibirService extends BaseService
         return $usuarioSAHI->toArray();
     }
 
+    /**
+     * Obtiene la ubicación actual de la atención en SAHI para registrar el esquema.
+     *
+     * @param  int|null  $idAtencion  Identificador de la atención en SAHI
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function getUbicacionActual(?int $idAtencion): ?int
     {
         if (! $idAtencion) {

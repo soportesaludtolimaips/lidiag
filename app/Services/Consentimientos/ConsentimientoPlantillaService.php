@@ -9,6 +9,15 @@ use Illuminate\Support\Facades\DB;
 
 class ConsentimientoPlantillaService extends BaseService
 {
+    /**
+     * Lista las plantillas de consentimiento con filtros por módulo, vigencia y búsqueda.
+     *
+     * @param  array  $filters  Filtros: config_modulo_id, q, vigentes
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function list(array $filters): array
     {
         $moduloId = (int) ($filters['config_modulo_id'] ?? 0);
@@ -33,6 +42,15 @@ class ConsentimientoPlantillaService extends BaseService
         return $this->success($query->orderByDesc('id')->get());
     }
 
+    /**
+     * Obtiene una plantilla de consentimiento por su identificador con sus relaciones cargadas.
+     *
+     * @param  int  $id  Identificador de la plantilla
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function find(int $id): array
     {
         $plantilla = ConsentimientoPlantilla::query()
@@ -42,6 +60,16 @@ class ConsentimientoPlantillaService extends BaseService
         return $this->success($plantilla);
     }
 
+    /**
+     * Crea una nueva versión vigente de la plantilla desactivando la versión anterior.
+     *
+     * @param  array  $data  Datos de la plantilla: config_modulo_id, producto_id, nombre, html
+     * @param  int  $userId  Identificador del usuario que crea la plantilla
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function create(array $data, int $userId): array
     {
         $moduloId = (int) $data['config_modulo_id'];
@@ -78,6 +106,17 @@ class ConsentimientoPlantillaService extends BaseService
         return $this->created($plantilla->load(['producto', 'usuarioCrea']));
     }
 
+    /**
+     * Genera una nueva versión de la plantilla a partir de una existente, marcándola como vigente.
+     *
+     * @param  int  $id  Identificador de la plantilla base
+     * @param  array  $data  Nuevos datos de la plantilla: nombre, html
+     * @param  int  $userId  Identificador del usuario que crea la nueva versión
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function update(int $id, array $data, int $userId): array
     {
         $current = ConsentimientoPlantilla::query()->findOrFail($id);
@@ -112,6 +151,16 @@ class ConsentimientoPlantillaService extends BaseService
         return $this->updated($new->load(['producto', 'usuarioCrea']));
     }
 
+    /**
+     * Lista todas las versiones de la plantilla para un producto y módulo específicos.
+     *
+     * @param  int  $productoId  Identificador del producto
+     * @param  int  $moduloId  Identificador del módulo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function versions(int $productoId, int $moduloId): array
     {
         $items = ConsentimientoPlantilla::query()
@@ -124,6 +173,15 @@ class ConsentimientoPlantillaService extends BaseService
         return $this->success($items);
     }
 
+    /**
+     * Marca una plantilla como vigente, desactivando las demás versiones del mismo producto.
+     *
+     * @param  int  $id  Identificador de la plantilla a marcar como vigente
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function setVigente(int $id): array
     {
         $p = ConsentimientoPlantilla::query()->findOrFail($id);
@@ -145,6 +203,15 @@ class ConsentimientoPlantillaService extends BaseService
         return $this->updated(['ok' => true]);
     }
 
+    /**
+     * Desactiva una plantilla de consentimiento marcándola como no vigente.
+     *
+     * @param  int  $id  Identificador de la plantilla a desactivar
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function delete(int $id): array
     {
         $p = ConsentimientoPlantilla::query()->findOrFail($id);
@@ -154,6 +221,15 @@ class ConsentimientoPlantillaService extends BaseService
         return $this->deleted();
     }
 
+    /**
+     * Genera y envía al navegador una vista previa en PDF de la plantilla de consentimiento.
+     *
+     * @param  int  $id  Identificador de la plantilla a previsualizar
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function previewPdf(int $id): mixed
     {
         $p = ConsentimientoPlantilla::query()->findOrFail($id);

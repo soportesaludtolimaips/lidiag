@@ -9,6 +9,13 @@ use Illuminate\Http\JsonResponse;
 
 class ConfigAdminSaludController extends Controller
 {
+    /**
+     * Inyecta el servicio de administradores de salud y configura los middlewares.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function __construct(
         private readonly ConfigAdminSaludService $configAdminSaludService,
     ) {

@@ -19,31 +19,77 @@ class ConfigWhatsapp extends Model
         'activo' => 'boolean',
     ];
 
+    /**
+     * Sede a la que pertenece la configuración.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function sede()
     {
         return $this->belongsTo(ConfigSede::class, 'sede_id');
     }
 
+    /**
+     * Servicio al que pertenece la configuración.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function servicio()
     {
         return $this->belongsTo(ConfigServicio::class, 'servicio_id');
     }
 
+    /**
+     * Limita la consulta a las configuraciones activas.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function scopeActivos($query)
     {
         return $query->where('activo', true);
     }
 
+    /**
+     * Limita la consulta a las configuraciones de una sede.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function scopeDeSede($query, $sedeId)
     {
         return $query->where('sede_id', $sedeId);
     }
 
+    /**
+     * Limita la consulta a las configuraciones de un servicio.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function scopeDeServicio($query, $servicioId)
     {
         return $query->where('servicio_id', $servicioId);
     }
 
+    /**
+     * Limita la consulta a las configuraciones activas de una sede y servicio.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function scopeParaSedeYservicio($query, $sedeId, $servicioId)
     {
         return $query->where('activo', true)

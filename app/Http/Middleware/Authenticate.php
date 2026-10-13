@@ -31,6 +31,21 @@ class Authenticate extends Middleware
     // Add new method
     // protected function unauthenticated($request, array $guards) {}
 
+    /**
+     * Maneja la respuesta cuando el usuario no está autenticado.
+     *
+     * En peticiones API/JSON registra el motivo (incluida la sesión expirada
+     * si existe) y responde 401 en JSON; en el resto delega en Laravel.
+     *
+     * @param  Request  $request  Petición HTTP actual.
+     * @param  array  $guards  Guardias de autenticación evaluadas.
+     *
+     * @returns void
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function unauthenticated($request, array $guards)
     {
         if ($request->is('api/*') || $request->expectsJson()) {

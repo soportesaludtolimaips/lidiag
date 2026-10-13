@@ -46,6 +46,13 @@ class SyncUsuarios extends Command
         $this->info('Sincronización completada.');
     }
 
+    /**
+     * Sincroniza los usuarios y las plantillas de ecografías desde el origen de importación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function syncUsers()
     {
         $this->info('Sincronizando usuarios...');
@@ -81,6 +88,13 @@ class SyncUsuarios extends Command
         }
     }
 
+    /**
+     * Sincroniza los tipos de plantilla y sus detalles desde el origen de importación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function syncPlantillaEcografias()
     {
         $this->info('Sincronizando plantilla de ecografias...');

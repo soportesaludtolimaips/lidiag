@@ -21,6 +21,15 @@ class ConfigProducto extends Model
         'acti',
     ];
 
+    /**
+     * Lecturas asociadas al producto.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function lecturas()
     {
         return $this->belongsToMany(

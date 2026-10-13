@@ -25,11 +25,27 @@ class HelpDeskTicketsDetalladoExport implements FromCollection, WithColumnWidths
         $this->collection = $collection;
     }
 
+    /**
+     * Devuelve la colección de tickets detallados a exportar.
+     *
+     * @returns Collection Registros del reporte.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function collection()
     {
         return $this->collection;
     }
 
+    /**
+     * Define los encabezados de columnas del reporte de tickets detallados.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function headings(): array
     {
         return [
@@ -51,6 +67,15 @@ class HelpDeskTicketsDetalladoExport implements FromCollection, WithColumnWidths
         ];
     }
 
+    /**
+     * Convierte un ticket en una fila de datos para la hoja de cálculo.
+     *
+     * @param  mixed  $row  Registro del ticket detallado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function map($row): array
     {
         $horas = null;
@@ -77,6 +102,17 @@ class HelpDeskTicketsDetalladoExport implements FromCollection, WithColumnWidths
         ];
     }
 
+    /**
+     * Aplica los estilos del título, encabezado y bordes a la hoja del reporte.
+     *
+     * @param  Worksheet  $sheet  Hoja de cálculo a dar formato.
+     *
+     * @returns array Estilos por fila para la hoja.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function styles(Worksheet $sheet)
     {
         $sheet->setCellValue('A1', 'Helpdesk - Tickets (Detallado)');
@@ -114,6 +150,13 @@ class HelpDeskTicketsDetalladoExport implements FromCollection, WithColumnWidths
         ];
     }
 
+    /**
+     * Define el ancho de cada columna del reporte.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function columnWidths(): array
     {
         return [
@@ -135,6 +178,13 @@ class HelpDeskTicketsDetalladoExport implements FromCollection, WithColumnWidths
         ];
     }
 
+    /**
+     * Indica la celda desde la que comienzan los datos del reporte.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function startCell(): string
     {
         return 'A3';

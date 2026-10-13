@@ -16,6 +16,18 @@ class AuthService extends BaseService
 
     private const LOCKOUT_DECAY_MINUTES = 15;
 
+    /**
+     * Autentica al usuario con bloqueo temporal por intentos fallidos consecutivos.
+     *
+     * @param  string  $email  Correo electrónico del usuario
+     * @param  string  $password  Contraseña en texto plano a verificar
+     * @param  bool  $wantsJson  Indica si la respuesta debe ser JSON o de redirección web
+     * @param  string|null  $ip  Dirección IP del cliente para el bloqueo por intentos
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function login(string $email, string $password, bool $wantsJson, ?string $ip = null): array
     {
         $key = 'login-lockout:'.md5(mb_strtolower($email).'|'.($ip ?? 'unknown'));
@@ -83,6 +95,15 @@ class AuthService extends BaseService
         ]);
     }
 
+    /**
+     * Cierra la sesión del usuario, invalida la sesión y revoca los tokens de API.
+     *
+     * @param  mixed  $request  Petición HTTP con la sesión a invalidar
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function logout($request): array
     {
         Log::info('SESION_LOGOUT', [
@@ -138,6 +159,13 @@ class AuthService extends BaseService
         return $this->success(null, 'Contraseña actualizada correctamente');
     }
 
+    /**
+     * Detecta y registra si existen sesiones anteriores abruptas del usuario autenticado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function detectPreviousSession(): void
     {
         try {

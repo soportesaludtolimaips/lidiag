@@ -6,11 +6,25 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreConfigSedeWhatsappNumberRequest extends FormRequest
 {
+    /**
+     * Autoriza la petición (sin restricciones adicionales).
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function authorize(): bool
     {
         return true;
     }
 
+    /**
+     * Reglas de validación para registrar números de WhatsApp de sede.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function rules(): array
     {
         return [

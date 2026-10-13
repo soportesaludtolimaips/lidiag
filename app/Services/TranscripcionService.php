@@ -18,6 +18,9 @@ class TranscripcionService
      */
     protected int $timeout;
 
+    /**
+     * Inicializa el servicio de transcripción con la URL y el timeout configurados.
+     */
     public function __construct()
     {
         $this->serviceUrl = config('services.transcriptor.url', env('TRANSCRIPTOR_SERVICE_URL', 'http://localhost:8001'));

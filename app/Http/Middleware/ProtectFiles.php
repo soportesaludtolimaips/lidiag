@@ -24,6 +24,19 @@ class ProtectFiles
     /** Discos accesibles para cualquier usuario autenticado (la ruta ya aplica middleware auth). */
     private array $authOnlyDisks = ['avatars'];
 
+    /**
+     * Valida el acceso al disco solicitado antes de continuar con la petición.
+     *
+     * Responde 404 si el disco no existe y 403 si el usuario no tiene el
+     * permiso configurado para el disco ni pertenece a los discos permitidos.
+     *
+     * @param  Request  $request  Petición HTTP actual.
+     * @param  Closure  $next  Siguiente middleware de la cadena.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function handle(Request $request, Closure $next): Response
     {
         $disk = $request->route('disk');

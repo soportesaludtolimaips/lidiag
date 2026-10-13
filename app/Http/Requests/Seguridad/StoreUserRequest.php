@@ -6,11 +6,25 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreUserRequest extends FormRequest
 {
+    /**
+     * Autoriza la petición (sin restricciones adicionales).
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function authorize(): bool
     {
         return true;
     }
 
+    /**
+     * Reglas de validación para registrar un usuario.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function rules(): array
     {
         return [
@@ -20,6 +34,13 @@ class StoreUserRequest extends FormRequest
         ];
     }
 
+    /**
+     * Mensajes en español para las reglas de validación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function messages(): array
     {
         return [
@@ -32,6 +53,13 @@ class StoreUserRequest extends FormRequest
         ];
     }
 
+    /**
+     * Decodifica el campo registro (JSON) a arreglo asociativo.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function decoded(): array
     {
         return json_decode($this->input('registro'), true) ?? [];

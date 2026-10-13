@@ -14,6 +14,15 @@ use Illuminate\Support\Facades\DB;
 
 class SAHIService extends BaseService
 {
+    /**
+     * Lista las atenciones de un paciente en SAHI por su número de documento.
+     *
+     * @param  string|null  $numDocu  Número de documento del paciente
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function listarAtenciones(?string $numDocu): array
     {
         if (empty($numDocu)) {
@@ -30,6 +39,15 @@ class SAHIService extends BaseService
         return $this->success($atenciones);
     }
 
+    /**
+     * Lista los productos, diagnósticos y consultas de una atención específica en SAHI.
+     *
+     * @param  int|null  $idAtencion  Identificador de la atención en SAHI
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function listarProductosDiagnosticos(?int $idAtencion): array
     {
         if (! $idAtencion) {
@@ -71,6 +89,15 @@ class SAHIService extends BaseService
         return $this->success(['productos' => $productos, 'diagnosticos' => $diagnosticos, 'consultas' => $consultas]);
     }
 
+    /**
+     * Busca la EPS, plan y contrato asociados a una atención en SAHI.
+     *
+     * @param  int|null  $idAtencion  Identificador de la atención en SAHI
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function buscarEpsPlanContrato(?int $idAtencion): array
     {
         if (! $idAtencion) {
@@ -100,6 +127,15 @@ class SAHIService extends BaseService
         return $this->success($datos);
     }
 
+    /**
+     * Lista los productos facturados y movidos de una atención en SAHI, enriquecidos con el estado de ecografía.
+     *
+     * @param  mixed  $atencionId  Identificador de la atención en SAHI
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function listarProductosAtencion($atencionId): array
     {
         $atencionId = (int) $atencionId;
@@ -149,6 +185,15 @@ class SAHIService extends BaseService
         return $this->success($combinarAtenciones);
     }
 
+    /**
+     * Construye la lista de columnas SELECT comunes para las consultas de atención en SAHI.
+     *
+     * @param  string  $valProducField  Campo que aporta el valor del producto (ValTotal o ValVenta)
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function buildAtencionSelect(string $valProducField): array
     {
         return [
@@ -182,6 +227,15 @@ class SAHIService extends BaseService
         ];
     }
 
+    /**
+     * Obtiene el estado de las ecografías de Lidiag asociadas a una atención de SAHI.
+     *
+     * @param  int  $atencionId  Identificador de la atención en SAHI
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function obtenerDatosLidiag(int $atencionId)
     {
         return Ecografia::select('estado')

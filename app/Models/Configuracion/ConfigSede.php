@@ -49,11 +49,29 @@ class ConfigSede extends Model
         'interface_password',
     ];
 
+    /**
+     * Servicios de la sede.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\HasMany
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function servicios()
     {
         return $this->hasMany(ConfigServicio::class, 'sede_id');
     }
 
+    /**
+     * Números de WhatsApp de la sede.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\HasMany
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function whatsappNumbers()
     {
         return $this->hasMany(ConfigSedeWhatsappNumber::class, 'sede_id');

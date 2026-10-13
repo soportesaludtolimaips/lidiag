@@ -7,11 +7,25 @@ use Illuminate\Support\Facades\Auth;
 
 class UpdateConsentimientoInformadoRequest extends FormRequest
 {
+    /**
+     * Autoriza la petición a usuarios autenticados con el permiso configuracion.consentimientos.edit.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function authorize(): bool
     {
         return Auth::check() && Auth::user()->can('configuracion.consentimientos.edit');
     }
 
+    /**
+     * Reglas de validación para actualizar consentimientos informados.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function rules(): array
     {
         return [
@@ -23,6 +37,13 @@ class UpdateConsentimientoInformadoRequest extends FormRequest
         ];
     }
 
+    /**
+     * Mensajes en español para las reglas de validación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function messages(): array
     {
         return [

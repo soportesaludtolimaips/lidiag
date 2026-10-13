@@ -2,15 +2,34 @@
 
 namespace App\Http\Requests\HelpDesk;
 
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 
 class HelpDeskReporteRequest extends FormRequest
 {
+    /**
+     * Autoriza la petición (sin restricciones adicionales).
+     *
+     * @return bool
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function authorize()
     {
         return true;
     }
 
+    /**
+     * Reglas de validación para el reporte de tickets.
+     *
+     * @return array
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function rules()
     {
         return [
@@ -27,6 +46,15 @@ class HelpDeskReporteRequest extends FormRequest
         ];
     }
 
+    /**
+     * Mensajes en español para las reglas de validación.
+     *
+     * @return array
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function messages()
     {
         return [
@@ -34,6 +62,16 @@ class HelpDeskReporteRequest extends FormRequest
         ];
     }
 
+    /**
+     * Valida que las fechas de inicio y fin se proporcionen de forma conjunta.
+     *
+     * @param  Validator  $validator  Instancia del validador.
+     * @return void
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {

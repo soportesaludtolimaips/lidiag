@@ -9,6 +9,13 @@ use Illuminate\Http\JsonResponse;
 
 class ConfigProductoController extends Controller
 {
+    /**
+     * Inyecta el servicio de productos y configura los middlewares de permisos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function __construct(
         private readonly ConfigProductoService $configProductoService,
     ) {

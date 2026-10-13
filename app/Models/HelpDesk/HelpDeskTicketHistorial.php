@@ -27,16 +27,43 @@ class HelpDeskTicketHistorial extends Model
         'comentario',
     ];
 
+    /**
+     * Ticket al que pertenece el historial.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function ticket()
     {
         return $this->belongsTo(HelpDeskTickets::class, 'ticket_id');
     }
 
+    /**
+     * Usuario que generó la entrada del historial.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    /**
+     * Adjuntos del historial.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\HasMany
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function adjuntos()
     {
         return $this->hasMany(HelpDeskAdjunto::class, 'historial_id')->orderByDesc('id');

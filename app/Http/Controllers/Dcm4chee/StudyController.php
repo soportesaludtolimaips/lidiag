@@ -9,10 +9,26 @@ use Illuminate\Http\JsonResponse;
 
 class StudyController extends Controller
 {
+    /**
+     * Inyecta el servicio de estudios DICOM de Dcm4chee.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function __construct(
         private readonly StudyService $service,
     ) {}
 
+    /**
+     * Lista los estudios DICOM almacenados en Dcm4chee según los filtros recibidos.
+     *
+     * @param  StudyListRequest  $request  Solicitud validada con los criterios de búsqueda.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function listarEstudios(StudyListRequest $request): JsonResponse
     {
         $result = $this->service->listarEstudios($request->validated());

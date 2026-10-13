@@ -13,6 +13,16 @@ use Illuminate\Support\Facades\Http;
 
 class OhifVisorService extends BaseService
 {
+    /**
+     * Obtiene los metadatos DICOM de las instancias de un estudio para el visor OHIF.
+     *
+     * @param  string  $studyUID  UID del estudio DICOM
+     * @param  string|null  $seriesUID  UID de la serie DICOM para filtrar
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function getOhifMetadataOhif(string $studyUID, ?string $seriesUID = null): array
     {
         try {
@@ -58,6 +68,16 @@ class OhifVisorService extends BaseService
         }
     }
 
+    /**
+     * Obtiene los metadatos DICOM de un estudio consultando la base de la sede dcm4chee.
+     *
+     * @param  int  $sedeId  Identificador de la sede con la conexión al PACS
+     * @param  string  $study_iuid  UID del estudio DICOM
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function getOhifMetadata(int $sedeId, string $study_iuid): array
     {
         $sedeActual = ConfigSede::find($sedeId);
@@ -115,6 +135,15 @@ class OhifVisorService extends BaseService
         }
     }
 
+    /**
+     * Lista los estudios recientes de la sede en formato de metadatos QIDO para el visor.
+     *
+     * @param  int  $sedeId  Identificador de la sede con la conexión al PACS
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function listStudies(int $sedeId): array
     {
         $originalDefault = Config::get('database.default');
@@ -159,6 +188,15 @@ class OhifVisorService extends BaseService
         }
     }
 
+    /**
+     * Descarga un archivo DICOM del PACS de la sede mediante la petición WADO.
+     *
+     * @param  array  $params  Parámetros: sedeId, study, series, object
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function downloadDicom(array $params): array
     {
         $sede = ConfigSede::find($params['sedeId'] ?? null);
@@ -185,6 +223,13 @@ class OhifVisorService extends BaseService
         return $this->error('Error al obtener DICOM', 500);
     }
 
+    /**
+     * Obtiene la lista de estudios recientes en formato QIDO-RS desde la base dcm4chee local.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function qidoStudies(): array
     {
         $estudios = Study::with(['patient:pk,pat_id,pat_name', 'series'])
@@ -238,6 +283,15 @@ class OhifVisorService extends BaseService
         return $this->success($response);
     }
 
+    /**
+     * Obtiene las series de un estudio en formato QIDO-RS desde la base dcm4chee local.
+     *
+     * @param  string  $studyUID  UID del estudio DICOM
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function qidoSeries(string $studyUID): array
     {
         try {
@@ -264,6 +318,16 @@ class OhifVisorService extends BaseService
         }
     }
 
+    /**
+     * Obtiene las instancias de una serie en formato QIDO-RS desde la base dcm4chee local.
+     *
+     * @param  string  $studyUID  UID del estudio DICOM
+     * @param  string  $seriesUID  UID de la serie DICOM
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function qidoInstances(string $studyUID, string $seriesUID): array
     {
         try {
@@ -288,11 +352,31 @@ class OhifVisorService extends BaseService
         }
     }
 
+    /**
+     * Recupera una imagen JPEG de una instancia DICOM mediante WADO-RS desde el PACS.
+     *
+     * @param  string  $studyUID  UID del estudio DICOM
+     * @param  string  $seriesUID  UID de la serie DICOM
+     * @param  string  $objectUID  UID de la instancia DICOM
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function wadoRetrieve(string $studyUID, string $seriesUID, string $objectUID): array
     {
         return $this->wadoProxy($studyUID, $seriesUID, $objectUID);
     }
 
+    /**
+     * Sirve una imagen DICOM vía WADO-URI redirigiendo la petición al PACS de la sede activa.
+     *
+     * @param  array  $params  Parámetros: studyUID, seriesUID, objectUID
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function wadoUri(array $params): array
     {
         return $this->wadoProxy(
@@ -302,6 +386,15 @@ class OhifVisorService extends BaseService
         );
     }
 
+    /**
+     * Configura y activa la conexión a la base de datos dcm4chee de la sede indicada.
+     *
+     * @param  int  $sedeId  Identificador de la sede con la conexión al PACS
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function conectarSede(int $sedeId): void
     {
         $sedeActual = ConfigSede::findOrFail($sedeId);
@@ -323,6 +416,17 @@ class OhifVisorService extends BaseService
         Config::set('database.default', 'mysql_sucursal');
     }
 
+    /**
+     * Realiza la petición WADO al PACS de la sede activa y devuelve la imagen JPEG resultante.
+     *
+     * @param  string  $studyUID  UID del estudio DICOM
+     * @param  string  $seriesUID  UID de la serie DICOM
+     * @param  string  $objectUID  UID de la instancia DICOM
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function wadoProxy(string $studyUID, string $seriesUID, string $objectUID): array
     {
         $sede = ConfigSede::where('estado', true)->first();

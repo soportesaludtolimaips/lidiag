@@ -23,6 +23,13 @@ class CheckUserPermission extends Command
 
     protected $description = 'Diagnóstico: verifica roles/permisos de un usuario (Spatie).';
 
+    /**
+     * Diagnostica roles y permisos de un usuario, con búsqueda opcional y validación de permisos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function handle(): int
     {
         $registrar = app(PermissionRegistrar::class);

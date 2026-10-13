@@ -8,11 +8,25 @@ use Illuminate\Validation\Rule;
 
 class StoreConfigTipoDocumentoRequest extends FormRequest
 {
+    /**
+     * Autoriza la petición a usuarios autenticados con el permiso configuracion.tipos-documento.create.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function authorize(): bool
     {
         return Auth::check() && Auth::user()->can('configuracion.tipos-documento.create');
     }
 
+    /**
+     * Reglas de validación para registrar tipos de documento.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function rules(): array
     {
         return [
@@ -22,6 +36,13 @@ class StoreConfigTipoDocumentoRequest extends FormRequest
         ];
     }
 
+    /**
+     * Mensajes en español para las reglas de validación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function messages(): array
     {
         return [

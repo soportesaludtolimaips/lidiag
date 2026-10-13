@@ -10,6 +10,13 @@ use Illuminate\Http\Request;
 
 class RolController extends Controller
 {
+    /**
+     * Inyecta el servicio de roles y configura los middlewares de permisos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function __construct(
         private readonly RolService $rolService,
     ) {

@@ -10,6 +10,13 @@ use Illuminate\Http\JsonResponse;
 
 class ConfigTipoDocumentoController extends Controller
 {
+    /**
+     * Inyecta el servicio de tipos de documento y configura los middlewares de permisos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function __construct(
         private readonly ConfigTipoDocumentoService $configTipoDocumentoService,
     ) {

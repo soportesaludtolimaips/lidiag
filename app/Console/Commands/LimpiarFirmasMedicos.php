@@ -16,6 +16,15 @@ class LimpiarFirmasMedicos extends Command
 
     protected $description = 'Limpia archivos de firma huérfanos en storage/app/firmas_medicos';
 
+    /**
+     * Elimina los archivos de firma huérfanos no referenciados en la base de datos.
+     *
+     * @returns int Código de salida del comando.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function handle()
     {
         $dryRun = (bool) $this->option('dry-run');
@@ -96,6 +105,15 @@ class LimpiarFirmasMedicos extends Command
         return 0;
     }
 
+    /**
+     * Formatea una cantidad de bytes a una representación legible (B, KB, MB o GB).
+     *
+     * @param  int  $bytes  Cantidad de bytes a formatear.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function formatBytes(int $bytes): string
     {
         if ($bytes >= 1073741824) {

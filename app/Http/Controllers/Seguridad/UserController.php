@@ -14,6 +14,13 @@ use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
+    /**
+     * Inyecta el servicio de usuarios y configura los middlewares de permisos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function __construct(
         private readonly UserService $userService,
     ) {
@@ -26,6 +33,13 @@ class UserController extends Controller
         $this->middleware('permission:seguridad.usuarios.destroy')->only(['destroy']);
     }
 
+    /**
+     * Lista todos los usuarios registrados en el sistema.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function index(): JsonResponse
     {
         $result = $this->userService->all();
@@ -33,6 +47,15 @@ class UserController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Muestra los detalles de un usuario específico.
+     *
+     * @param  int  $id  Identificador del usuario.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function show(int $id): JsonResponse
     {
         $result = $this->userService->find($id);
@@ -40,6 +63,15 @@ class UserController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Crea un nuevo usuario con su firma y avatar opcionales.
+     *
+     * @param  StoreUserRequest  $request  Solicitud validada con los datos del usuario y archivos adjuntos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function store(StoreUserRequest $request): JsonResponse
     {
         $data = $request->decoded();
@@ -55,6 +87,15 @@ class UserController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Actualiza los datos de un usuario existente.
+     *
+     * @param  UpdateUserRequest  $request  Solicitud validada con los datos a actualizar y archivos adjuntos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function update(UpdateUserRequest $request): JsonResponse
     {
         $data = $request->decoded();
@@ -98,6 +139,15 @@ class UserController extends Controller
         ])->validate();
     }
 
+    /**
+     * Elimina un usuario del sistema.
+     *
+     * @param  int  $id  Identificador del usuario a eliminar.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function destroy(int $id): JsonResponse
     {
         $result = $this->userService->delete($id);
@@ -105,6 +155,15 @@ class UserController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Cambia el estado (activo/inactivo) de un usuario.
+     *
+     * @param  Request  $request  Solicitud HTTP con los campos id y estado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function estadoUsuario(Request $request): JsonResponse
     {
         $result = $this->userService->toggleStatus(
@@ -115,6 +174,16 @@ class UserController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Actualiza el perfil del usuario autenticado (datos personales, contraseña e imagen).
+     *
+     * @param  Request  $request  Solicitud validada con los datos del perfil y archivos adjuntos.
+     * @param  int  $id  Identificador del usuario; debe coincidir con el usuario autenticado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function actualizarPerfil(Request $request, int $id): JsonResponse
     {
         $id = (int) $id;
@@ -147,6 +216,15 @@ class UserController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Lista los permisos asignados a un usuario específico.
+     *
+     * @param  int  $id  Identificador del usuario.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function listarPermisosUsuario(int $id): JsonResponse
     {
         $result = $this->userService->listPermissions($id);

@@ -9,6 +9,15 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class HelpDeskReporteService extends BaseService
 {
+    /**
+     * Normaliza un valor crudo convirtiendo vacíos y cadenas nulas en null.
+     *
+     * @param  mixed  $value  Valor crudo a normalizar
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function normalizeNullable($value)
     {
         if ($value === null) {
@@ -47,6 +56,15 @@ class HelpDeskReporteService extends BaseService
         ];
     }
 
+    /**
+     * Construye la consulta base de tickets con los joins y filtros aplicados.
+     *
+     * @param  array  $filters  Filtros normalizados de la consulta
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function baseQuery(array $filters)
     {
         return DB::table('help_desk_tickets as t')

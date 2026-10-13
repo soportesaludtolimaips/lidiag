@@ -277,6 +277,16 @@ class ConfigSedeService extends BaseService
         return $this->deleted();
     }
 
+    /**
+     * Rellena los campos configurables de una sede a partir de los datos enviados.
+     *
+     * @param  ConfigSede  $item  Instancia de la sede a completar
+     * @param  array  $data  Datos enviados con los campos a actualizar
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function fillSedeData(ConfigSede $item, array $data): void
     {
         $fields = [

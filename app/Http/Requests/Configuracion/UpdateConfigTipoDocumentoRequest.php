@@ -8,11 +8,25 @@ use Illuminate\Validation\Rule;
 
 class UpdateConfigTipoDocumentoRequest extends FormRequest
 {
+    /**
+     * Autoriza la petición a usuarios autenticados con el permiso configuracion.tipos-documento.edit.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function authorize(): bool
     {
         return Auth::check() && Auth::user()->can('configuracion.tipos-documento.edit');
     }
 
+    /**
+     * Reglas de validación para actualizar tipos de documento.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function rules(): array
     {
         $tipoDocumentoId = $this->route('config.tipo.documento')?->id ?? $this->route('id');
@@ -24,6 +38,13 @@ class UpdateConfigTipoDocumentoRequest extends FormRequest
         ];
     }
 
+    /**
+     * Mensajes en español para las reglas de validación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function messages(): array
     {
         return [

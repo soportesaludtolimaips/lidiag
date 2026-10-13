@@ -36,6 +36,15 @@ class CitaPivot extends Model
         'estado' => 'boolean',
     ];
 
+    /**
+     * Sede a la que pertenece el registro pivote.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function sede()
     {
         return $this->belongsTo(ConfigSede::class, 'sede_id');

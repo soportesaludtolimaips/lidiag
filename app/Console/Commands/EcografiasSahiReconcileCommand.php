@@ -22,6 +22,13 @@ class EcografiasSahiReconcileCommand extends Command
      */
     protected $description = 'Reconciliar envíos SAHI atascados (ENVIANDO) verificando si ya existen en SAHI y marcando ENVIADO/ERROR.';
 
+    /**
+     * Ejecuta la reconciliación de envíos SAHI atascados en estado ENVIANDO.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function handle(): int
     {
         $minutes = max(1, (int) $this->option('minutes'));
@@ -150,6 +157,16 @@ class EcografiasSahiReconcileCommand extends Command
         ];
     }
 
+    /**
+     * Marca un producto de ecografía como ERROR de envío a SAHI con el mensaje indicado.
+     *
+     * @param  int  $ecografiaProductoId  Identificador del producto de ecografía.
+     * @param  string  $message  Mensaje de error a registrar.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function markError(int $ecografiaProductoId, string $message): void
     {
         try {

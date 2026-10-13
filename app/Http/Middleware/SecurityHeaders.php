@@ -59,6 +59,20 @@ class SecurityHeaders
         return $response;
     }
 
+    /**
+     * Aplica la cabecera Content-Security-Policy a la respuesta.
+     *
+     * En producción se envía aplicada (enforce); en local/desarrollo solo
+     * en modo reporte para no romper el frontend legacy.
+     *
+     * @param  Response  $response  Respuesta a la que se añaden las cabeceras.
+     *
+     * @returns void
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function applyCsp(Response $response)
     {
         /**

@@ -9,10 +9,26 @@ use Illuminate\Http\JsonResponse;
 
 class SAHIEcografiasEnviarController extends Controller
 {
+    /**
+     * Inyecta el servicio de envío de ecografías a SAHI.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function __construct(
         private readonly SAHIEcografiasEnviarService $sahiEcografiasEnviarService,
     ) {}
 
+    /**
+     * Consulta el estado de envío a SAHI de un producto de ecografía.
+     *
+     * @param  int  $ecografia_producto_id  Identificador del producto de ecografía.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function estadoPorEcografiaProducto(int $ecografia_producto_id): JsonResponse
     {
         $result = $this->sahiEcografiasEnviarService->estadoPorEcografiaProducto($ecografia_producto_id);
@@ -20,6 +36,15 @@ class SAHIEcografiasEnviarController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Envía a SAHI el estudio de un producto de ecografía indicado.
+     *
+     * @param  EnviarEcografiaRequest  $request  Solicitud validada con el ID del producto de ecografía.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function enviarPorEcografiaProducto(EnviarEcografiaRequest $request): JsonResponse
     {
         $result = $this->sahiEcografiasEnviarService->enviarPorEcografiaProducto($request->validated('ecografia_producto_id'));

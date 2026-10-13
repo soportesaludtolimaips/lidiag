@@ -11,6 +11,13 @@ use Illuminate\Http\Request;
 
 class ConsentimientoPlantillasController extends Controller
 {
+    /**
+     * Inyecta el servicio de plantillas de consentimiento y configura los middlewares.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function __construct(
         private readonly ConsentimientoPlantillaService $service,
     ) {
@@ -23,6 +30,15 @@ class ConsentimientoPlantillasController extends Controller
         $this->middleware('permission:ecografias.consentimientos.plantillas.preview_pdf,web')->only(['previewPdf']);
     }
 
+    /**
+     * Lista las plantillas de consentimiento según módulo, búsqueda y vigencia.
+     *
+     * @param  ConsentimientoPlantillaIndexRequest  $request  Solicitud validada con los filtros de listado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function index(ConsentimientoPlantillaIndexRequest $request): JsonResponse
     {
         $result = $this->service->list([
@@ -34,6 +50,15 @@ class ConsentimientoPlantillasController extends Controller
         return response()->json($result, $result["status"]);
     }
 
+    /**
+     * Muestra los detalles de una plantilla de consentimiento.
+     *
+     * @param  int  $id  Identificador de la plantilla.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function show(int $id): JsonResponse
     {
         $result = $this->service->find($id);
@@ -41,6 +66,15 @@ class ConsentimientoPlantillasController extends Controller
         return response()->json($result, $result["status"]);
     }
 
+    /**
+     * Crea una nueva plantilla de consentimiento.
+     *
+     * @param  ConsentimientoPlantillaRequest  $request  Solicitud validada con los datos de la plantilla.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function store(ConsentimientoPlantillaRequest $request): JsonResponse
     {
         $result = $this->service->create($request->validated(), $request->user()->id);
@@ -48,6 +82,16 @@ class ConsentimientoPlantillasController extends Controller
         return response()->json($result, $result["status"]);
     }
 
+    /**
+     * Actualiza una plantilla de consentimiento existente.
+     *
+     * @param  ConsentimientoPlantillaRequest  $request  Solicitud validada con los datos a actualizar.
+     * @param  int  $id  Identificador de la plantilla.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function update(ConsentimientoPlantillaRequest $request, int $id): JsonResponse
     {
         $result = $this->service->update($id, $request->validated(), $request->user()->id);
@@ -55,6 +99,16 @@ class ConsentimientoPlantillasController extends Controller
         return response()->json($result, $result["status"]);
     }
 
+    /**
+     * Lista las versiones de plantilla de consentimiento de un producto en un módulo.
+     *
+     * @param  int  $productoId  Identificador del producto.
+     * @param  Request  $request  Solicitud HTTP con el parámetro obligatorio config_modulo_id.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function versions(int $productoId, Request $request): JsonResponse
     {
         $moduloId = (int) $request->query('config_modulo_id', 0);
@@ -66,6 +120,15 @@ class ConsentimientoPlantillasController extends Controller
         return response()->json($result, $result["status"]);
     }
 
+    /**
+     * Marca una plantilla de consentimiento como vigente.
+     *
+     * @param  int  $id  Identificador de la plantilla.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function setVigente(int $id): JsonResponse
     {
         $result = $this->service->setVigente($id);
@@ -73,6 +136,15 @@ class ConsentimientoPlantillasController extends Controller
         return response()->json($result, $result["status"]);
     }
 
+    /**
+     * Elimina una plantilla de consentimiento.
+     *
+     * @param  int  $id  Identificador de la plantilla.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function destroy(int $id): JsonResponse
     {
         $result = $this->service->delete($id);
@@ -80,6 +152,15 @@ class ConsentimientoPlantillasController extends Controller
         return response()->json(['ok' => true], $result['status']);
     }
 
+    /**
+     * Genera la vista previa en PDF de una plantilla de consentimiento.
+     *
+     * @param  int  $id  Identificador de la plantilla.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function previewPdf(int $id)
     {
         return $this->service->previewPdf($id);

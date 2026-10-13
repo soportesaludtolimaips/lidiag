@@ -20,6 +20,15 @@ class ConfigSedeWhatsappNumber extends Model
         'activo' => 'boolean',
     ];
 
+    /**
+     * Sede a la que pertenece el número de WhatsApp.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function sede()
     {
         return $this->belongsTo(ConfigSede::class, 'sede_id');

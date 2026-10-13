@@ -7,11 +7,25 @@ use Illuminate\Support\Facades\Auth;
 
 class StoreConfigPlantillaRequest extends FormRequest
 {
+    /**
+     * Autoriza la petición a usuarios autenticados con el permiso config.plantillas.create.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function authorize(): bool
     {
         return Auth::check() && Auth::user()->can('config.plantillas.create');
     }
 
+    /**
+     * Reglas de validación para registrar plantillas de reporte.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function rules(): array
     {
         return [
@@ -24,6 +38,13 @@ class StoreConfigPlantillaRequest extends FormRequest
         ];
     }
 
+    /**
+     * Mensajes en español para las reglas de validación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function messages(): array
     {
         return [

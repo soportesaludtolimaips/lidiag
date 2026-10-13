@@ -6,6 +6,13 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class ServicioProductoResource extends JsonResource
 {
+    /**
+     * Datos de la relación servicio-producto en formato array.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function toArray($request): array
     {
         return [

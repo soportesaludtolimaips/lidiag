@@ -9,10 +9,26 @@ use Illuminate\Http\JsonResponse;
 
 class SAHITranscibirController extends Controller
 {
+    /**
+     * Inyecta el servicio de transcripción de estudios a SAHI.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function __construct(
         private readonly SAHITranscibirService $sahiTranscibirService,
     ) {}
 
+    /**
+     * Envía la transcripción de un estudio (reporte, cups y lectura) a SAHI.
+     *
+     * @param  EnviarEstudioTranscripcionRequest  $request  Solicitud validada con los datos de la transcripción.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function enviarEstudio(EnviarEstudioTranscripcionRequest $request): JsonResponse
     {
         $validated = $request->validated();

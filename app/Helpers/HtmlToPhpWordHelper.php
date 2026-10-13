@@ -214,6 +214,15 @@ class HtmlToPhpWordHelper
         return $html;
     }
 
+    /**
+     * Elimina todas las etiquetas HTML del texto proporcionado.
+     *
+     * @param  string  $text  Texto de entrada que puede contener HTML.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private static function stripAllTags(string $text): string
     {
         return strip_tags($text);

@@ -6,11 +6,25 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class ConsentimientoPlantillaRequest extends FormRequest
 {
+    /**
+     * Autoriza la petición (sin restricciones adicionales).
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function authorize(): bool
     {
         return true;
     }
 
+    /**
+     * Reglas de validación de plantillas de consentimientos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function rules(): array
     {
         $rules = [
@@ -27,6 +41,13 @@ class ConsentimientoPlantillaRequest extends FormRequest
         return $rules;
     }
 
+    /**
+     * Mensajes en español para las reglas de validación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function messages(): array
     {
         return [

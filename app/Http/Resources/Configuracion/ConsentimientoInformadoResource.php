@@ -8,6 +8,13 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class ConsentimientoInformadoResource extends JsonResource
 {
+    /**
+     * Datos del consentimiento informado en formato array.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function toArray($request): array
     {
         return [

@@ -12,6 +12,20 @@ class ForcePasswordChange
         'password/cambiar',
     ];
 
+    /**
+     * Fuerza al usuario a cambiar su contraseña si aún no la ha realizado.
+     *
+     * Omite la validación para las rutas excluidas; si el usuario no tiene
+     * registrada la fecha de cambio devuelve 403 en JSON (API) o redirige
+     * al formulario de cambio de contraseña.
+     *
+     * @param  Request  $request  Petición HTTP actual.
+     * @param  Closure  $next  Siguiente middleware de la cadena.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function handle(Request $request, Closure $next): Response
     {
         if ($request->route() && in_array($request->route()->uri(), $this->except, true)) {

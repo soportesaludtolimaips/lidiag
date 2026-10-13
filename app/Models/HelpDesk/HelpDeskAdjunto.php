@@ -30,16 +30,43 @@ class HelpDeskAdjunto extends Model
         'deleted_at' => 'datetime',
     ];
 
+    /**
+     * Ticket al que pertenece el adjunto.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function ticket()
     {
         return $this->belongsTo(HelpDeskTickets::class, 'ticket_id');
     }
 
+    /**
+     * Historial al que pertenece el adjunto.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function historial()
     {
         return $this->belongsTo(HelpDeskTicketHistorial::class, 'historial_id');
     }
 
+    /**
+     * Usuario que subió el adjunto.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');

@@ -27,6 +27,13 @@ class ProduccionDetalladaExport implements FromCollection, WithColumnWidths, Wit
 
     protected $medicoId;
 
+    /**
+     * Recibe los filtros del reporte de producción de estudios.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function __construct($fechaInicio, $fechaFin, $sedeId, $quienAsignoId, $medicoId)
     {
         $this->fechaInicio = $fechaInicio;
@@ -36,6 +43,15 @@ class ProduccionDetalladaExport implements FromCollection, WithColumnWidths, Wit
         $this->medicoId = $medicoId;
     }
 
+    /**
+     * Consulta y devuelve los estudios del reporte de producción según los filtros aplicados.
+     *
+     * @returns mixed Registros de estudios productivos con sus diagnósticos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function collection()
     {
         $quien_asigno_id = $this->quienAsignoId;
@@ -92,6 +108,13 @@ class ProduccionDetalladaExport implements FromCollection, WithColumnWidths, Wit
         // return new Collection($estudios);
     }
 
+    /**
+     * Define los encabezados de columnas del reporte de producción de estudios.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function headings(): array
     {
         return [
@@ -117,6 +140,15 @@ class ProduccionDetalladaExport implements FromCollection, WithColumnWidths, Wit
         ];
     }
 
+    /**
+     * Convierte un estudio en una fila de datos para la hoja de cálculo.
+     *
+     * @param  mixed  $estudio  Registro del estudio productivo.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function map($estudio): array
     {
         return [
@@ -143,6 +175,17 @@ class ProduccionDetalladaExport implements FromCollection, WithColumnWidths, Wit
         ];
     }
 
+    /**
+     * Aplica los estilos del título, encabezado y bordes a la hoja del reporte.
+     *
+     * @param  Worksheet  $sheet  Hoja de cálculo a dar formato.
+     *
+     * @returns array Estilos por fila para la hoja.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function styles(Worksheet $sheet)
     {
         // Agrega el encabezado personalizado
@@ -194,6 +237,13 @@ class ProduccionDetalladaExport implements FromCollection, WithColumnWidths, Wit
         ];
     }
 
+    /**
+     * Define el ancho de cada columna del reporte.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function columnWidths(): array
     {
         return [
@@ -220,6 +270,13 @@ class ProduccionDetalladaExport implements FromCollection, WithColumnWidths, Wit
         ];
     }
 
+    /**
+     * Indica la celda desde la que comienzan los datos del reporte.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function startCell(): string
     {
         return 'A3'; // Los datos comenzarán desde la celda A4

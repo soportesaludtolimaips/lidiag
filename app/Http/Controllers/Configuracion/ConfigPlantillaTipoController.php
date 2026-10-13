@@ -10,6 +10,13 @@ use Illuminate\Http\JsonResponse;
 
 class ConfigPlantillaTipoController extends Controller
 {
+    /**
+     * Inyecta el servicio de tipos de plantilla y configura los middlewares de permisos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function __construct(
         private readonly ConfigPlantillaTipoService $configPlantillaTipoService,
     ) {

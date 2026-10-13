@@ -9,6 +9,15 @@ use Illuminate\Support\Facades\Storage;
 
 class DicomBurnerService
 {
+    /**
+     * Prepara la quema de estudios DICOM descargando las imágenes y registrando el proceso.
+     *
+     * @param  array  $data  Datos de la quema: study_instance_uids, patient_id, user_id, device_letter, sede_id
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function prepareBurn(array $data): array
     {
         if (! isset($data['study_instance_uids'])) {
@@ -82,6 +91,16 @@ class DicomBurnerService
         }
     }
 
+    /**
+     * Crea un archivo ZIP a partir del contenido de una carpeta especificada.
+     *
+     * @param  string  $sourceDir  Ruta de la carpeta origen a comprimir
+     * @param  string  $zipPath  Ruta destino del archivo ZIP a crear
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function createZipFromFolder(string $sourceDir, string $zipPath): void
     {
         $zip = new \ZipArchive;
@@ -105,6 +124,17 @@ class DicomBurnerService
         $zip->close();
     }
 
+    /**
+     * Actualiza el estado y el mensaje de error de un registro de quema en la base de datos.
+     *
+     * @param  int  $burnId  Identificador del registro de quema
+     * @param  string  $status  Nuevo estado a asignar
+     * @param  string|null  $errorMessage  Mensaje de error asociado, si existe
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function updateStatus(int $burnId, string $status, ?string $errorMessage = null): void
     {
         DB::table('cd_burn_logs')
@@ -116,6 +146,17 @@ class DicomBurnerService
             ]);
     }
 
+    /**
+     * Actualiza el porcentaje de progreso de un registro de quema en la base de datos.
+     *
+     * @param  int  $burnId  Identificador del registro de quema
+     * @param  int  $progress  Porcentaje de progreso a registrar
+     * @param  string|null  $status  Estado a asignar junto con el progreso, si se requiere
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function updateProgress(int $burnId, int $progress, ?string $status = null): void
     {
         $update = ['progress' => $progress, 'updated_at' => now()];
@@ -125,6 +166,16 @@ class DicomBurnerService
         DB::table('cd_burn_logs')->where('id', $burnId)->update($update);
     }
 
+    /**
+     * Registra un mensaje de error en un registro de quema de la base de datos.
+     *
+     * @param  int  $burnId  Identificador del registro de quema
+     * @param  string  $errorMessage  Mensaje de error a registrar
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function updateError(int $burnId, string $errorMessage): void
     {
         DB::table('cd_burn_logs')->where('id', $burnId)->update([
@@ -133,11 +184,29 @@ class DicomBurnerService
         ]);
     }
 
+    /**
+     * Obtiene el registro de quema correspondiente al identificador indicado.
+     *
+     * @param  int  $burnId  Identificador del registro de quema
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function getBurnStatus(int $burnId): ?object
     {
         return DB::table('cd_burn_logs')->find($burnId);
     }
 
+    /**
+     * Elimina los registros de quema antiguos y sus carpetas asociadas del almacenamiento.
+     *
+     * @param  int  $daysOld  Edad en días a partir de la cual se consideran antiguos los registros
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public static function cleanupOldBurns(int $daysOld = 7): int
     {
         $cutoff = now()->subDays($daysOld);
@@ -159,6 +228,15 @@ class DicomBurnerService
         return $deleted;
     }
 
+    /**
+     * Elimina de forma recursiva una carpeta y todo su contenido del sistema de archivos.
+     *
+     * @param  string  $dir  Ruta de la carpeta a eliminar
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private static function deleteDirectory(string $dir): void
     {
         if (! is_dir($dir)) {

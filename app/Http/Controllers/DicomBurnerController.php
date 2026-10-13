@@ -14,11 +14,29 @@ class DicomBurnerController extends Controller
 {
     protected $burnerService;
 
+    /**
+     * Inyecta el servicio de quemado de discos DICOM.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function __construct(DicomBurnerService $burnerService)
     {
         $this->burnerService = $burnerService;
     }
 
+    /**
+     * Prepara el paquete DICOM de uno o más estudios para su grabación en disco.
+     *
+     * @param  Request  $request  Solicitud con study_instance_uids, user_id, device_letter y sede_id.
+     *
+     * @returns JsonResponse Respuesta JSON con el burn_id y la URL de descarga del paquete.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function generateIso(Request $request)
     {
         Log::debug('DicomBurnerController.generateIso request data', $request->all());
@@ -54,6 +72,17 @@ class DicomBurnerController extends Controller
         }
     }
 
+    /**
+     * Consulta el estado y el progreso de una tarea de quemado de disco.
+     *
+     * @param  mixed  $id  Identificador de la tarea en cd_burn_logs.
+     *
+     * @returns JsonResponse Respuesta JSON con el estado, progreso y mensaje de error.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function status($id)
     {
         $burnLog = DB::table('cd_burn_logs')->find($id);
@@ -76,6 +105,15 @@ class DicomBurnerController extends Controller
         ]);
     }
 
+    /**
+     * Detecta las unidades de grabación de discos disponibles en el servidor.
+     *
+     * @returns JsonResponse Respuesta JSON con la lista de unidades, tipo de disco y estado del medio.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function listDrives()
     {
         $drives = Cache::remember('dicom.drives', 30, function () {
@@ -194,6 +232,15 @@ class DicomBurnerController extends Controller
         ]);
     }
 
+    /**
+     * Construye el script de PowerShell con IMAPI2 para detectar el tipo de medio de cada unidad.
+     *
+     * @param  array  $driveLetters  Letras de las unidades de disco a inspeccionar.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function buildDetectMediaScript(array $driveLetters): string
     {
         $drivesJson = json_encode($driveLetters);
@@ -258,6 +305,17 @@ try {
 }';
     }
 
+    /**
+     * Graba el paquete DICOM preparado en la unidad de disco indicada.
+     *
+     * @param  Request  $request  Solicitud con burn_id y device_letter.
+     *
+     * @returns JsonResponse Respuesta JSON con el resultado de la operación de quemado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function burn(Request $request)
     {
         $validated = $request->validate([
@@ -346,6 +404,16 @@ try {
         }
     }
 
+    /**
+     * Prepara la carpeta temporal del CD con el visor MicroDicom y los archivos DICOM.
+     *
+     * @param  int  $burnId  Identificador de la tarea de quemado.
+     * @param  string  $dicomFolder  Ruta de la carpeta con los archivos DICOM.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function prepareCdFolder(int $burnId, string $dicomFolder): string
     {
         // Visor portable en storage/app_lidiag (hogar de apps empaquetadas,
@@ -383,6 +451,16 @@ try {
         return $cdFolder;
     }
 
+    /**
+     * Copia de forma recursiva una carpeta y su contenido a un destino.
+     *
+     * @param  string  $source  Ruta de origen.
+     * @param  string  $dest  Ruta de destino.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function copyDirectory(string $source, string $dest): void
     {
         if (! is_dir($dest)) {
@@ -406,6 +484,15 @@ try {
         }
     }
 
+    /**
+     * Elimina de forma recursiva una carpeta y todo su contenido.
+     *
+     * @param  string  $dir  Ruta de la carpeta a eliminar.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function removeDirectory(string $dir): void
     {
         if (! is_dir($dir)) {
@@ -428,6 +515,15 @@ try {
         rmdir($dir);
     }
 
+    /**
+     * Calcula el tamaño total en bytes de una carpeta y su contenido.
+     *
+     * @param  string  $dir  Ruta de la carpeta.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function getDirectorySize(string $dir): int
     {
         $size = 0;
@@ -448,6 +544,17 @@ try {
         return $size;
     }
 
+    /**
+     * Ejecuta burner.exe para grabar la carpeta preparada en la unidad de disco indicada.
+     *
+     * @param  string  $dicomFolder  Ruta de la carpeta con el paquete a grabar.
+     * @param  string  $deviceLetter  Letra de la unidad de destino.
+     * @param  int  $burnId  Identificador de la tarea de quemado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function burnDicomFolder(string $dicomFolder, string $deviceLetter, int $burnId): void
     {
         $burnerExe = base_path('resources/burner/burner.exe');
@@ -518,6 +625,17 @@ try {
         }
     }
 
+    /**
+     * Genera un ZIP descargable con el visor MicroDicom y las imágenes DICOM de un estudio.
+     *
+     * @param  Request  $request  Solicitud con study_instance_uid, sede_id y patient_name.
+     *
+     * @returns JsonResponse Respuesta JSON con el nombre del archivo y el total de archivos incluidos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function generateZip(Request $request)
     {
         $validated = $request->validate([
@@ -627,6 +745,17 @@ try {
         }
     }
 
+    /**
+     * Consulta el progreso de la generación de un archivo ZIP.
+     *
+     * @param  mixed  $id  Identificador único de la tarea de compresión.
+     *
+     * @returns JsonResponse Respuesta JSON con el progreso y estado de la tarea.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function zipStatus($id)
     {
         $progressFile = storage_path("app/zips/{$id}_progress.json");
@@ -646,6 +775,15 @@ try {
         ]);
     }
 
+    /**
+     * Descarga un archivo ZIP generado y lo elimina después del envío.
+     *
+     * @param  mixed  $filename  Nombre del archivo ZIP a descargar.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function downloadZip($filename)
     {
         $safe = basename($filename);
@@ -668,6 +806,15 @@ try {
         ])->deleteFileAfterSend(true);
     }
 
+    /**
+     * Elimina los registros de quemado antiguos (mayores a 7 días).
+     *
+     * @returns JsonResponse Respuesta JSON con la cantidad de registros limpiados.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function cleanup()
     {
         $deleted = DicomBurnerService::cleanupOldBurns(7);
@@ -678,6 +825,17 @@ try {
         ]);
     }
 
+    /**
+     * Actualiza el progreso y el estado de una tarea de quemado en cd_burn_logs.
+     *
+     * @param  int  $burnId  Identificador de la tarea de quemado.
+     * @param  int  $progress  Porcentaje de avance (0-100).
+     * @param  string|null  $status  Mensaje de estado opcional.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function updateProgress(int $burnId, int $progress, ?string $status = null): void
     {
         $update = ['progress' => $progress, 'updated_at' => now()];

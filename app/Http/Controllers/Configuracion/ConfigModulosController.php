@@ -8,6 +8,13 @@ use Illuminate\Http\JsonResponse;
 
 class ConfigModulosController extends Controller
 {
+    /**
+     * Inyecta el servicio de módulos de configuración.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function __construct(
         private readonly ConfigModuloService $configModuloService,
     ) {}

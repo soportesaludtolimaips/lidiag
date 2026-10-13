@@ -6,11 +6,29 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class RecibirLecturaRequest extends FormRequest
 {
+    /**
+     * Autoriza la petición (sin restricciones adicionales).
+     *
+     * @return bool
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function authorize()
     {
         return true;
     }
 
+    /**
+     * Reglas de validación para recibir una lectura de estudio.
+     *
+     * @return array
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function rules()
     {
         return [
@@ -21,6 +39,15 @@ class RecibirLecturaRequest extends FormRequest
         ];
     }
 
+    /**
+     * Mensajes en español para las reglas de validación.
+     *
+     * @return array
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function messages()
     {
         return [

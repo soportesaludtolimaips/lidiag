@@ -26,6 +26,13 @@ class ProduccionDetalladaEcografiasExport implements FromCollection, WithColumnW
 
     protected $medicoId;
 
+    /**
+     * Recibe los filtros del reporte de producción de ecografías.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function __construct($fechaInicio, $fechaFin, $sedeId, $quienAsignoId, $medicoId)
     {
         $this->fechaInicio = $fechaInicio;
@@ -35,6 +42,15 @@ class ProduccionDetalladaEcografiasExport implements FromCollection, WithColumnW
         $this->medicoId = $medicoId;
     }
 
+    /**
+     * Consulta y devuelve las ecografías del reporte según los filtros aplicados.
+     *
+     * @returns mixed Registros de la vista de reporte de ecografías.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function collection()
     {
         $quien_asigno_id = $this->quienAsignoId;
@@ -52,6 +68,13 @@ class ProduccionDetalladaEcografiasExport implements FromCollection, WithColumnW
         return $ecografias;
     }
 
+    /**
+     * Define los encabezados de columnas del reporte de producción de ecografías.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function headings(): array
     {
         return [
@@ -75,6 +98,15 @@ class ProduccionDetalladaEcografiasExport implements FromCollection, WithColumnW
         ];
     }
 
+    /**
+     * Convierte una ecografía en una fila de datos, limpiando el HTML de lectura y opinión.
+     *
+     * @param  mixed  $ecografia  Registro de la vista de reporte.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function map($ecografia): array
     {
         return [
@@ -98,6 +130,17 @@ class ProduccionDetalladaEcografiasExport implements FromCollection, WithColumnW
         ];
     }
 
+    /**
+     * Aplica los estilos del título, encabezado y bordes a la hoja del reporte.
+     *
+     * @param  Worksheet  $sheet  Hoja de cálculo a dar formato.
+     *
+     * @returns array Estilos por fila para la hoja.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function styles(Worksheet $sheet)
     {
         // Agrega el encabezado personalizado
@@ -149,6 +192,13 @@ class ProduccionDetalladaEcografiasExport implements FromCollection, WithColumnW
         ];
     }
 
+    /**
+     * Define el ancho de cada columna del reporte.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function columnWidths(): array
     {
         return [
@@ -172,6 +222,13 @@ class ProduccionDetalladaEcografiasExport implements FromCollection, WithColumnW
         ];
     }
 
+    /**
+     * Indica la celda desde la que comienzan los datos del reporte.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function startCell(): string
     {
         return 'A3'; // Los datos comenzarán desde la celda A4

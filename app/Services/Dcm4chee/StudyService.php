@@ -10,6 +10,15 @@ use Illuminate\Support\Facades\Config;
 
 class StudyService extends BaseService
 {
+    /**
+     * Lista los estudios DICOM de la sede consultando la base dcm4chee remota con filtros.
+     *
+     * @param  array  $data  Filtros: sede_id, bus_nom_num_docu, bus_fech_ini, bus_fecha_fin
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function listarEstudios(array $data): array
     {
         $sedeId = (int) $data['sede_id'];

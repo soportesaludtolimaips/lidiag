@@ -40,6 +40,15 @@ class EcografiaProducto extends Model
         return $this->belongsTo(Ecografia::class, 'ecografia_id');
     }
 
+    /**
+     * Producto asociado a la ecografía.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function productos()
     {
         return $this->belongsTo(ConfigProducto::class, 'producto_id');

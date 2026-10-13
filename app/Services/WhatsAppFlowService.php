@@ -27,11 +27,32 @@ class WhatsAppFlowService
 
     protected const EXTENSIONES_PERMITIDAS = ['jpg', 'jpeg', 'png', 'pdf'];
 
+    /**
+     * Inicializa el flujo inyectando el servicio de WhatsApp encargado del envío de mensajes.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function __construct(WhatsAppService $whatsAppService)
     {
         $this->whatsAppService = $whatsAppService;
     }
 
+    /**
+     * Procesa un mensaje entrante de WhatsApp y dirige la conversación según el paso actual.
+     *
+     * @param  string  $telefono  Número de teléfono del remitente
+     * @param  string  $mensaje  Contenido del mensaje de texto recibido
+     * @param  string  $tipoMensaje  Tipo de mensaje recibido (text, image, document, etc.)
+     * @param  string|null  $mediaPath  Ruta local del archivo multimedia adjunto
+     * @param  array|null  $mediaInfo  Información adicional del medio adjunto
+     * @param  string|null  $phoneNumberId  Identificador del número de WhatsApp que recibió el mensaje
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function procesarMensaje(
         string $telefono,
         string $mensaje = '',
@@ -120,6 +141,19 @@ class WhatsAppFlowService
         }
     }
 
+    /**
+     * Registra en la base de datos un mensaje intercambiado en la conversación de WhatsApp.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación a la que pertenece el mensaje
+     * @param  string  $role  Rol del emisor (paciente o bot)
+     * @param  string  $tipo  Tipo de mensaje (text, image, document, etc.)
+     * @param  string|null  $contenido  Contenido del mensaje de texto
+     * @param  string|null  $mediaUrl  Ruta del archivo multimedia adjunto
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function logMensaje(WhatsAppConversation $conv, string $role, string $tipo, ?string $contenido = null, ?string $mediaUrl = null): void
     {
         try {
@@ -135,11 +169,29 @@ class WhatsAppFlowService
         }
     }
 
+    /**
+     * Construye una respuesta simple de tipo texto para el flujo de WhatsApp.
+     *
+     * @param  string  $mensaje  Contenido del mensaje a enviar
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function text(string $mensaje): array
     {
         return ['type' => 'text', 'text' => $mensaje];
     }
 
+    /**
+     * Obtiene el paso anterior correspondiente al paso actual de la conversación.
+     *
+     * @param  string  $paso  Paso actual de la conversación
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function pasoAnterior(string $paso): ?string
     {
         return match ($paso) {
@@ -153,6 +205,17 @@ class WhatsAppFlowService
         };
     }
 
+    /**
+     * Maneja los comandos de navegación globales (atrás, menú, inicio) del flujo.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación actual
+     * @param  string  $comando  Comando de navegación escrito por el usuario
+     * @param  string  $paso  Paso actual de la conversación
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function manejarNavegacion(WhatsAppConversation $conv, string $comando, string $paso): ?array
     {
         if (in_array($comando, ['atras', 'volver', 'atrás'], true)) {
@@ -183,6 +246,16 @@ class WhatsAppFlowService
         return null;
     }
 
+    /**
+     * Valida la extensión del archivo multimedia adjunto contra las permitidas.
+     *
+     * @param  string  $mediaPath  Ruta del archivo multimedia a validar
+     * @param  string  $mensajePaso  Mensaje del paso a reenviar si la validación falla
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function validarMedia(string $mediaPath, string $mensajePaso): ?array
     {
         $extension = strtolower(pathinfo($mediaPath, PATHINFO_EXTENSION));
@@ -198,6 +271,15 @@ class WhatsAppFlowService
         return null;
     }
 
+    /**
+     * Genera un mensaje recordatorio con las instrucciones del archivo solicitado en el paso.
+     *
+     * @param  string  $paso  Paso del flujo para el cual se genera el recordatorio
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function recordatorioArchivo(string $paso): array
     {
         $documento = match ($paso) {
@@ -229,6 +311,15 @@ class WhatsAppFlowService
         return $this->text($mensaje);
     }
 
+    /**
+     * Inicia o reinicia la conversación mostrando el mensaje de bienvenida y pidiendo el documento.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp a iniciar
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function iniciarConversacion(WhatsAppConversation $conv): array
     {
         $sedes = ConfigSede::where('estado', true)
@@ -252,6 +343,15 @@ class WhatsAppFlowService
         return $this->text($mensaje);
     }
 
+    /**
+     * Obtiene el mensaje de bienvenida configurado para la sede y servicio de la conversación.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function obtenerMensajeBienvenida(WhatsAppConversation $conv): string
     {
         $sedeId = $conv->sede_id;
@@ -272,6 +372,15 @@ class WhatsAppFlowService
                "Por favor, ingrese su *número de documento*:";
     }
 
+    /**
+     * Muestra la lista de sedes disponibles para que el paciente seleccione una.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function mostrarSedes(WhatsAppConversation $conv): array
     {
         $sedes = ConfigSede::where('estado', true)
@@ -311,6 +420,15 @@ class WhatsAppFlowService
         ];
     }
 
+    /**
+     * Extrae el nombre corto de la sede a partir del nombre completo separado por guiones.
+     *
+     * @param  ConfigSede  $sede  Sede de la cual se extrae el título
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function tituloSede(ConfigSede $sede): string
     {
         $partes = explode(' - ', $sede->nom_sede, 2);
@@ -318,6 +436,15 @@ class WhatsAppFlowService
         return trim($partes[0]);
     }
 
+    /**
+     * Construye la descripción de la sede con el hospital y el número de servicios activos.
+     *
+     * @param  ConfigSede  $sede  Sede de la cual se construye la descripción
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function descripcionSede(ConfigSede $sede): string
     {
         $partes = explode(' - ', $sede->nom_sede, 2);
@@ -334,6 +461,16 @@ class WhatsAppFlowService
         return mb_substr($desc, 0, 72);
     }
 
+    /**
+     * Procesa la selección de sede del paciente y muestra los servicios disponibles.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     * @param  string  $opcion  Opción numérica seleccionada por el paciente
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function procesarSeleccionSede(WhatsAppConversation $conv, string $opcion): array
     {
         $opcion = trim($opcion);
@@ -357,6 +494,15 @@ class WhatsAppFlowService
         return $this->mostrarServicios($conv->fresh());
     }
 
+    /**
+     * Muestra la lista de servicios disponibles en la sede seleccionada por el paciente.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function mostrarServicios(WhatsAppConversation $conv): array
     {
         $sedeId = $conv->sede_id;
@@ -403,6 +549,15 @@ class WhatsAppFlowService
         ];
     }
 
+    /**
+     * Construye la descripción del servicio con el número de estudios disponibles.
+     *
+     * @param  ConfigServicio  $serv  Servicio del cual se construye la descripción
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function descripcionServicio(ConfigServicio $serv): string
     {
         $count = $serv->productos()->count();
@@ -413,6 +568,16 @@ class WhatsAppFlowService
         return $count === 1 ? '1 estudio disponible' : "{$count} estudios disponibles";
     }
 
+    /**
+     * Procesa la selección de servicio del paciente y muestra el resumen de la solicitud.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     * @param  string  $opcion  Opción numérica seleccionada por el paciente
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function procesarSeleccionServicio(WhatsAppConversation $conv, string $opcion): array
     {
         $opcion = trim($opcion);
@@ -458,6 +623,16 @@ class WhatsAppFlowService
         return $this->text($mensaje);
     }
 
+    /**
+     * Procesa la confirmación del resumen de solicitud antes de pedir los documentos.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     * @param  string  $respuesta  Respuesta del paciente al resumen mostrado
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function procesarConfirmarResumen(WhatsAppConversation $conv, string $respuesta): array
     {
         $respuesta = trim(mb_strtolower($respuesta));
@@ -477,6 +652,16 @@ class WhatsAppFlowService
         return $this->text("Opción no válida. Responda *1* para continuar o *0* para cancelar.");
     }
 
+    /**
+     * Procesa el número de documento del paciente, buscándolo o creándolo si no existe.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     * @param  string  $documento  Número de documento ingresado por el paciente
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function procesarDocumento(WhatsAppConversation $conv, string $documento): array
     {
         $documento = trim($documento);
@@ -556,6 +741,16 @@ class WhatsAppFlowService
         return $this->text("📄 *Documento: {$documento}*\n\nNo encontramos sus datos registrados.\nPor favor, ingrese sus *nombres completos*:");
     }
 
+    /**
+     * Procesa y valida los nombres del paciente y avanza al paso del primer apellido.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     * @param  string  $nombres  Nombres completos ingresados por el paciente
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function procesarNombres(WhatsAppConversation $conv, string $nombres): array
     {
         $nombres = trim($nombres);
@@ -578,6 +773,16 @@ class WhatsAppFlowService
         return $this->text("Gracias. Ahora escriba su *primer apellido*:");
     }
 
+    /**
+     * Procesa y valida el primer apellido del paciente y avanza al segundo apellido.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     * @param  string  $apellido  Primer apellido ingresado por el paciente
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function procesarPrimerApellido(WhatsAppConversation $conv, string $apellido): array
     {
         $apellido = trim($apellido);
@@ -600,6 +805,16 @@ class WhatsAppFlowService
         return $this->text("Gracias. Ahora escriba su *segundo apellido* (o escriba *0* si no tiene):");
     }
 
+    /**
+     * Procesa el segundo apellido del paciente y muestra la confirmación de datos.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     * @param  string  $apellido  Segundo apellido ingresado, o 0 si no tiene
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function procesarSegundoApellido(WhatsAppConversation $conv, string $apellido): array
     {
         $apellido = trim($apellido);
@@ -634,6 +849,16 @@ class WhatsAppFlowService
         ];
     }
 
+    /**
+     * Procesa la confirmación de los nombres del paciente y avanza a la dirección.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     * @param  string  $respuesta  Respuesta del paciente a la confirmación de datos
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function procesarConfirmarDatos(WhatsAppConversation $conv, string $respuesta): array
     {
         $respuesta = trim(mb_strtolower($respuesta));
@@ -665,6 +890,16 @@ class WhatsAppFlowService
         return $this->text("Entendido. Vamos a empezar de nuevo.\n\nPor favor, escriba sus *nombres completos*:");
     }
 
+    /**
+     * Procesa la confirmación de los datos completos del paciente existente y muestra las sedes.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     * @param  string  $respuesta  Respuesta del paciente a la confirmación de datos
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function procesarConfirmarDatosCompletos(WhatsAppConversation $conv, string $respuesta): array
     {
         $respuesta = trim(mb_strtolower($respuesta));
@@ -695,6 +930,15 @@ class WhatsAppFlowService
         return $this->text("Entendido. Ingrese sus *nombres completos*:");
     }
 
+    /**
+     * Crea el paciente con los datos recopilados y continúa al flujo de sedes.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function crearPacienteYContinuar(WhatsAppConversation $conv): array
     {
         $datos = $conv->datos ?: [];
@@ -722,6 +966,15 @@ class WhatsAppFlowService
         return $this->mostrarSedes($conv->fresh());
     }
 
+    /**
+     * Muestra la confirmación de la dirección del paciente o pide ingresarla si está vacía.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function mostrarConfirmarDireccion(WhatsAppConversation $conv): array
     {
         $datos = $conv->datos ?: [];
@@ -745,6 +998,16 @@ class WhatsAppFlowService
         ];
     }
 
+    /**
+     * Procesa la confirmación de la dirección y avanza a la confirmación del teléfono 1.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     * @param  string  $respuesta  Respuesta del paciente a la confirmación de dirección
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function procesarConfirmarDireccion(WhatsAppConversation $conv, string $respuesta): array
     {
         $respuesta = trim(mb_strtolower($respuesta));
@@ -760,6 +1023,16 @@ class WhatsAppFlowService
         return $this->text("📍 *Escriba la nueva dirección:*");
     }
 
+    /**
+     * Valida y guarda la dirección editada por el paciente y avanza al teléfono 1.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     * @param  string  $direccion  Dirección ingresada por el paciente
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function procesarEditarDireccion(WhatsAppConversation $conv, string $direccion): array
     {
         $direccion = trim($direccion);
@@ -779,6 +1052,15 @@ class WhatsAppFlowService
         return $this->mostrarConfirmarTelefono1($conv);
     }
 
+    /**
+     * Muestra la confirmación del teléfono 1 del paciente o pide ingresarlo si está vacío.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function mostrarConfirmarTelefono1(WhatsAppConversation $conv): array
     {
         $datos = $conv->datos ?: [];
@@ -802,6 +1084,16 @@ class WhatsAppFlowService
         ];
     }
 
+    /**
+     * Procesa la confirmación del teléfono 1 y avanza a la confirmación del teléfono 2.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     * @param  string  $respuesta  Respuesta del paciente a la confirmación del teléfono
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function procesarConfirmarTelefono1(WhatsAppConversation $conv, string $respuesta): array
     {
         $respuesta = trim(mb_strtolower($respuesta));
@@ -817,6 +1109,16 @@ class WhatsAppFlowService
         return $this->text("📞 *Escriba el nuevo número de teléfono 1:*");
     }
 
+    /**
+     * Valida y guarda el teléfono 1 editado por el paciente y vuelve a su confirmación.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     * @param  string  $telefono  Número de teléfono 1 ingresado por el paciente
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function procesarEditarTelefono1(WhatsAppConversation $conv, string $telefono): array
     {
         $telefono = trim($telefono);
@@ -832,6 +1134,15 @@ class WhatsAppFlowService
         return $this->mostrarConfirmarTelefono1($conv->fresh());
     }
 
+    /**
+     * Muestra la confirmación del teléfono 2 del paciente o pide ingresarlo si está vacío.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function mostrarConfirmarTelefono2(WhatsAppConversation $conv): array
     {
         $datos = $conv->datos ?: [];
@@ -855,6 +1166,16 @@ class WhatsAppFlowService
         ];
     }
 
+    /**
+     * Procesa la confirmación del teléfono 2 y guarda el contacto o pide editarlo.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     * @param  string  $respuesta  Respuesta del paciente a la confirmación del teléfono
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function procesarConfirmarTelefono2(WhatsAppConversation $conv, string $respuesta): array
     {
         $respuesta = trim(mb_strtolower($respuesta));
@@ -868,6 +1189,16 @@ class WhatsAppFlowService
         return $this->text("📱 *Escriba el nuevo número de teléfono 2:*\n\n_(Si no tiene, escriba 0 para omitir)_");
     }
 
+    /**
+     * Guarda el teléfono 2 editado por el paciente y continúa al guardado del contacto.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     * @param  string  $telefono  Número de teléfono 2 ingresado, o 0 para omitir
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function procesarEditarTelefono2(WhatsAppConversation $conv, string $telefono): array
     {
         $telefono = trim($telefono);
@@ -879,6 +1210,15 @@ class WhatsAppFlowService
         return $this->guardarContactoYContinuar($conv);
     }
 
+    /**
+     * Guarda los datos de contacto del paciente en la base de datos y muestra las sedes.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function guardarContactoYContinuar(WhatsAppConversation $conv): array
     {
         $datos = $conv->datos ?: [];
@@ -902,6 +1242,16 @@ class WhatsAppFlowService
         return $this->mostrarSedes($conv->fresh());
     }
 
+    /**
+     * Valida y guarda la dirección de residencia del paciente y pide el teléfono 1.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     * @param  string  $direccion  Dirección ingresada por el paciente
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function procesarDireccion(WhatsAppConversation $conv, string $direccion): array
     {
         $direccion = trim($direccion);
@@ -921,6 +1271,16 @@ class WhatsAppFlowService
         return $this->text("✅ *Dirección registrada*\n\n📞 *Escriba su número de teléfono 1:*");
     }
 
+    /**
+     * Valida y guarda el teléfono 1 del paciente y pide el teléfono 2.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     * @param  string  $telefono  Número de teléfono 1 ingresado por el paciente
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function procesarTelefono1(WhatsAppConversation $conv, string $telefono): array
     {
         $telefono = trim($telefono);
@@ -940,6 +1300,16 @@ class WhatsAppFlowService
         return $this->text("✅ *Teléfono 1 registrado*\n\n📱 *Escriba su número de teléfono 2* (o *0* si no tiene):");
     }
 
+    /**
+     * Valida y guarda el teléfono 2 del paciente y continúa al guardado del contacto.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     * @param  string  $telefono  Número de teléfono 2 ingresado, o 0 para omitir
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function procesarTelefono2(WhatsAppConversation $conv, string $telefono): array
     {
         $telefono = trim($telefono);
@@ -955,6 +1325,18 @@ class WhatsAppFlowService
         return $this->guardarContactoYContinuar($conv);
     }
 
+    /**
+     * Procesa la foto del frente de la cédula adjuntada por el paciente.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     * @param  string  $mensaje  Contenido del mensaje recibido
+     * @param  string  $tipoMensaje  Tipo de mensaje recibido (text u otro)
+     * @param  string|null  $mediaPath  Ruta del archivo multimedia adjunto
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function procesarFotoCedulaFrente(
         WhatsAppConversation $conv,
         string $mensaje,
@@ -987,6 +1369,18 @@ class WhatsAppFlowService
         return $this->text($response);
     }
 
+    /**
+     * Procesa la foto del reverso de la cédula adjuntada por el paciente.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     * @param  string  $mensaje  Contenido del mensaje recibido
+     * @param  string  $tipoMensaje  Tipo de mensaje recibido (text u otro)
+     * @param  string|null  $mediaPath  Ruta del archivo multimedia adjunto
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function procesarFotoCedulaDorso(
         WhatsAppConversation $conv,
         string $mensaje,
@@ -1020,6 +1414,18 @@ class WhatsAppFlowService
         return $this->text($response);
     }
 
+    /**
+     * Procesa la orden médica adjuntada por el paciente y pide la autorización.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     * @param  string  $mensaje  Contenido del mensaje recibido
+     * @param  string  $tipoMensaje  Tipo de mensaje recibido (text u otro)
+     * @param  string|null  $mediaPath  Ruta del archivo multimedia adjunto
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function procesarOrden(
         WhatsAppConversation $conv,
         string $mensaje,
@@ -1054,6 +1460,18 @@ class WhatsAppFlowService
         return $this->text($response);
     }
 
+    /**
+     * Procesa la autorización médica adjuntada y muestra el resumen final de la solicitud.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     * @param  string  $mensaje  Contenido del mensaje recibido
+     * @param  string  $tipoMensaje  Tipo de mensaje recibido (text u otro)
+     * @param  string|null  $mediaPath  Ruta del archivo multimedia adjunto
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function procesarAutorizacion(
         WhatsAppConversation $conv,
         string $mensaje,
@@ -1125,6 +1543,16 @@ class WhatsAppFlowService
         return $this->text($mensajeR);
     }
 
+    /**
+     * Confirma y envía la solicitud de cita, creándola en la base de datos y notificando.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     * @param  string  $respuesta  Respuesta del paciente a la confirmación final
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function procesarConfirmarSolicitud(
         WhatsAppConversation $conv,
         string $respuesta
@@ -1243,6 +1671,16 @@ class WhatsAppFlowService
         return $this->text($mensajeR);
     }
 
+    /**
+     * Busca un paciente por número de documento en SAHI y local, sincronizándolo si existe.
+     *
+     * @param  string  $documento  Número de documento del paciente a buscar
+     * @param  string|null  $telefono  Teléfono del paciente para completar el registro
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function buscarPaciente(string $documento, ?string $telefono = null): ?Paciente
     {
         try {
@@ -1271,6 +1709,16 @@ class WhatsAppFlowService
         return Paciente::where('num_docu', $documento)->first();
     }
 
+    /**
+     * Obtiene o crea la conversación de WhatsApp del teléfono y asigna la sede si es posible.
+     *
+     * @param  string  $telefono  Número de teléfono del paciente
+     * @param  string|null  $phoneNumberId  Identificador del número de WhatsApp receptor
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function obtenerOCrearConversacion(string $telefono, ?string $phoneNumberId = null): WhatsAppConversation
     {
         $conv = WhatsAppConversation::firstOrCreate(
@@ -1291,6 +1739,15 @@ class WhatsAppFlowService
         return $conv->fresh();
     }
 
+    /**
+     * Resetea la conversación de WhatsApp al estado inicial y limpia los datos almacenados.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp a resetear
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function resetearConversacion(WhatsAppConversation $conv): void
     {
         AuditLogger::evento(
@@ -1307,6 +1764,15 @@ class WhatsAppFlowService
         ]);
     }
 
+    /**
+     * Normaliza un número de teléfono agregando el prefijo del país de Colombia si falta.
+     *
+     * @param  string  $telefono  Número de teléfono a formatear
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function formatearTelefono(string $telefono): string
     {
         $telefono = preg_replace('/[^0-9]/', '', $telefono);

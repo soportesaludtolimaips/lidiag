@@ -25,6 +25,13 @@ use Illuminate\Support\Facades\Config;
 
 class ImportarDicomService extends BaseService
 {
+    /**
+     * Importa todas las agendas DICOM al sistema, creando pacientes, médicos y estudios.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function importar(): array
     {
         $fechaHoraIniEjecucion = Carbon::now();
@@ -58,6 +65,16 @@ class ImportarDicomService extends BaseService
         ], 'La importación terminó con éxito. Total de estudios importados: '.$i);
     }
 
+    /**
+     * Importa una agenda individual, sincronizando paciente, médico, estudio, diagnósticos y productos.
+     *
+     * @param  object  $agenda  Registro de agenda de la base DICOM a importar
+     * @param  ConfigSede  $sedeActual  Sede activa a la que se asignan los estudios importados
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function importarAgenda(object $agenda, ConfigSede $sedeActual): void
     {
         Config::set('database.default', 'mysql_importar_dicom');

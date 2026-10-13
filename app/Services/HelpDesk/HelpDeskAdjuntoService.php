@@ -17,6 +17,17 @@ class HelpDeskAdjuntoService extends BaseService
 {
     use TicketAuthorization;
 
+    /**
+     * Sube uno o más archivos adjuntos a un ticket y registra la acción en el historial.
+     *
+     * @param  HelpDeskTickets  $ticket  Ticket al que se agregan los adjuntos
+     * @param  array  $data  Datos: files (archivos) y comentario opcional
+     * @param  User  $user  Usuario autenticado que sube los adjuntos
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function upload(HelpDeskTickets $ticket, array $data, User $user): array
     {
         $this->assertCanSeeTicket($ticket, $user);

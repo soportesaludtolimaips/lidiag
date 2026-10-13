@@ -6,11 +6,29 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class EnviarEstudioTranscripcionRequest extends FormRequest
 {
+    /**
+     * Autoriza la petición (sin restricciones adicionales).
+     *
+     * @return bool
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function authorize()
     {
         return true;
     }
 
+    /**
+     * Reglas de validación para enviar un estudio a transcripción.
+     *
+     * @return array
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function rules()
     {
         return [
@@ -22,6 +40,15 @@ class EnviarEstudioTranscripcionRequest extends FormRequest
         ];
     }
 
+    /**
+     * Mensajes en español para las reglas de validación.
+     *
+     * @return array
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function messages()
     {
         return [

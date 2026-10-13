@@ -8,11 +8,25 @@ use Illuminate\Validation\Rule;
 
 class ConfigProductoRequest extends FormRequest
 {
+    /**
+     * Autoriza la petición únicamente a usuarios autenticados.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function authorize(): bool
     {
         return Auth::check();
     }
 
+    /**
+     * Reglas de validación de productos (código CUPS, nombre, porcentaje, valor y estado).
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function rules(): array
     {
         $productoId = $this->route('config.producto')?->id ?? $this->route('id');
@@ -37,6 +51,13 @@ class ConfigProductoRequest extends FormRequest
         ];
     }
 
+    /**
+     * Mensajes en español para las reglas de validación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function messages(): array
     {
         return [

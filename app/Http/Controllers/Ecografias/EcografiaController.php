@@ -14,6 +14,13 @@ use Illuminate\Http\Request;
 
 class EcografiaController extends Controller
 {
+    /**
+     * Inyecta los servicios de ecografías y plantillas, y configura los middlewares.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function __construct(
         private readonly EcografiaService $ecografiaService,
         private readonly PlantillaEcografiaService $plantillaEcografiaService,

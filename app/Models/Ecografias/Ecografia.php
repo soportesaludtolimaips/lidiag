@@ -38,21 +38,57 @@ class Ecografia extends Model
         return $this->belongsTo(Paciente::class, 'paciente_id');
     }
 
+    /**
+     * Usuario que registró la ecografía.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function usuarioRegistrador()
     {
         return $this->belongsTo(User::class, 'usua_regis_id');
     }
 
+    /**
+     * Administradora de salud de la ecografía.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function adminSalud()
     {
         return $this->belongsTo(ConfigAdminSalud::class, 'admin_salud_id');
     }
 
+    /**
+     * Médico asignado para la lectura.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function medico()
     {
         return $this->belongsTo(User::class, 'medico_id');
     }
 
+    /**
+     * Productos de la ecografía.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\HasMany
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function productosEcografias()
     {
         return $this->hasMany(EcografiaProducto::class, 'ecografia_id');

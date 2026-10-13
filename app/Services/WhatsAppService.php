@@ -17,6 +17,9 @@ class WhatsAppService
 
     protected $apiVersion = 'v21.0';
 
+    /**
+     * Inicializa el servicio con las credenciales de la API de WhatsApp desde la configuración.
+     */
     public function __construct()
     {
         $this->token = config('services.whatsapp.token');
@@ -24,6 +27,16 @@ class WhatsAppService
         $this->businessAccountId = config('services.whatsapp.business_account_id');
     }
 
+    /**
+     * Envía un mensaje de texto simple a un número de teléfono vía WhatsApp.
+     *
+     * @param  string  $telefono  Número de teléfono del destinatario
+     * @param  string  $mensaje  Contenido del mensaje de texto
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function enviarMensaje(string $telefono, string $mensaje): array
     {
         $telefono = $this->formatearTelefono($telefono);
@@ -40,6 +53,17 @@ class WhatsAppService
         return $this->enviarRequest($payload);
     }
 
+    /**
+     * Envía una plantilla de mensaje de WhatsApp con parámetros opcionales al cuerpo.
+     *
+     * @param  string  $telefono  Número de teléfono del destinatario
+     * @param  string  $templateName  Nombre de la plantilla aprobada en WhatsApp
+     * @param  array  $params  Parámetros a sustituir en el cuerpo de la plantilla
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function enviarPlantilla(string $telefono, string $templateName, array $params = []): array
     {
         $telefono = $this->formatearTelefono($telefono);
@@ -78,6 +102,15 @@ class WhatsAppService
         return $this->enviarRequest($payload);
     }
 
+    /**
+     * Envía un mensaje de confirmación de cita con los datos y recomendaciones del paciente.
+     *
+     * @param  AgendaCita  $cita  Cita agendada cuyos datos se incluyen en el mensaje
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function enviarConfirmacion(AgendaCita $cita): array
     {
         $fecha = $cita->fecha_hora_inicio->format('d/m/Y');
@@ -110,6 +143,15 @@ class WhatsAppService
         return $this->enviarMensaje($cita->paciente?->cel ?? '', $mensaje);
     }
 
+    /**
+     * Envía un recordatorio de cita programada para el día siguiente.
+     *
+     * @param  AgendaCita  $cita  Cita agendada a recordar
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function enviarRecordatorio(AgendaCita $cita): array
     {
         $fecha = $cita->fecha_hora_inicio->format('d/m/Y');
@@ -126,6 +168,15 @@ class WhatsAppService
         return $this->enviarMensaje($cita->paciente?->cel ?? '', $mensaje);
     }
 
+    /**
+     * Envía un recordatorio de cita aproximadamente dos horas antes de su horario.
+     *
+     * @param  AgendaCita  $cita  Cita agendada a recordar
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function enviarRecordatorio2h(AgendaCita $cita): array
     {
         $fecha = $cita->fecha_hora_inicio->format('d/m/Y');
@@ -143,6 +194,16 @@ class WhatsAppService
         return $this->enviarMensaje($cita->paciente?->cel ?? '', $mensaje);
     }
 
+    /**
+     * Envía un aviso de cancelación de cita con el motivo, si se proporciona.
+     *
+     * @param  AgendaCita  $cita  Cita cancelada
+     * @param  string  $motivo  Motivo de la cancelación
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function enviarCancelacion(AgendaCita $cita, string $motivo = ''): array
     {
         $mensaje = "❌ *Cita Cancelada*\n\n";
@@ -157,6 +218,17 @@ class WhatsAppService
         return $this->enviarMensaje($cita->paciente?->cel ?? '', $mensaje);
     }
 
+    /**
+     * Envía un aviso de rechazo de solicitud de cita con motivo y observación.
+     *
+     * @param  AgendaCita  $cita  Solicitud de cita rechazada
+     * @param  string  $motivo  Motivo del rechazo
+     * @param  string  $observacion  Observación adicional sobre el rechazo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function enviarRechazo(AgendaCita $cita, string $motivo, string $observacion = ''): array
     {
         $mensaje = "❌ *Solicitud de Cita Rechazada*\n\n";
@@ -172,6 +244,15 @@ class WhatsAppService
         return $this->enviarMensaje($cita->paciente?->cel ?? '', $mensaje);
     }
 
+    /**
+     * Envía un mensaje confirmando la recepción de la solicitud de cita del paciente.
+     *
+     * @param  AgendaCita  $cita  Solicitud de cita registrada
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function enviarSolicitudRecibida(AgendaCita $cita): array
     {
         $servicio = $cita->servicio?->nombre ?? 'Estudio';
@@ -184,6 +265,17 @@ class WhatsAppService
         return $this->enviarMensaje($cita->paciente?->cel ?? '', $mensaje);
     }
 
+    /**
+     * Envía una imagen por WhatsApp desde una URL pública con un pie de foto opcional.
+     *
+     * @param  string  $telefono  Número de teléfono del destinatario
+     * @param  string  $mediaUrl  URL pública de la imagen a enviar
+     * @param  string|null  $caption  Pie de foto opcional
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function enviarImagen(string $telefono, string $mediaUrl, ?string $caption = null): array
     {
         $telefono = $this->formatearTelefono($telefono);
@@ -204,6 +296,18 @@ class WhatsAppService
         return $this->enviarRequest($payload);
     }
 
+    /**
+     * Envía un documento por WhatsApp desde una URL pública con nombre y pie opcionales.
+     *
+     * @param  string  $telefono  Número de teléfono del destinatario
+     * @param  string  $mediaUrl  URL pública del documento a enviar
+     * @param  string|null  $filename  Nombre del archivo mostrado al destinatario
+     * @param  string|null  $caption  Pie de documento opcional
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function enviarDocumento(string $telefono, string $mediaUrl, ?string $filename = null, ?string $caption = null): array
     {
         $telefono = $this->formatearTelefono($telefono);
@@ -228,6 +332,20 @@ class WhatsAppService
         return $this->enviarRequest($payload);
     }
 
+    /**
+     * Envía un mensaje interactivo de lista con secciones y botón de selección.
+     *
+     * @param  string  $telefono  Número de teléfono del destinatario
+     * @param  string  $body  Texto del cuerpo del mensaje interactivo
+     * @param  string  $buttonText  Texto del botón que despliega la lista
+     * @param  array  $sections  Secciones y opciones de la lista
+     * @param  string|null  $headerText  Encabezado opcional del mensaje
+     * @param  string|null  $footerText  Pie opcional del mensaje
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function enviarLista(string $telefono, string $body, string $buttonText, array $sections, ?string $headerText = null, ?string $footerText = null): array
     {
         $telefono = $this->formatearTelefono($telefono);
@@ -263,6 +381,19 @@ class WhatsAppService
         return $this->enviarRequest($payload);
     }
 
+    /**
+     * Envía un mensaje interactivo con botones de respuesta rápida.
+     *
+     * @param  string  $telefono  Número de teléfono del destinatario
+     * @param  string  $body  Texto del cuerpo del mensaje interactivo
+     * @param  array  $buttons  Botones de respuesta con id y título
+     * @param  string|null  $headerText  Encabezado opcional del mensaje
+     * @param  string|null  $footerText  Pie opcional del mensaje
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function enviarBotones(string $telefono, string $body, array $buttons, ?string $headerText = null, ?string $footerText = null): array
     {
         $telefono = $this->formatearTelefono($telefono);
@@ -307,6 +438,15 @@ class WhatsAppService
         return $this->enviarRequest($payload);
     }
 
+    /**
+     * Marca un mensaje de WhatsApp como leído mediante la API de Graph.
+     *
+     * @param  string  $messageId  Identificador del mensaje a marcar como leído
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function marcarComoLeido(string $messageId): array
     {
         $payload = [
@@ -318,6 +458,15 @@ class WhatsAppService
         return $this->enviarRequest($payload);
     }
 
+    /**
+     * Descarga un archivo multimedia de WhatsApp y lo almacena en el disco local.
+     *
+     * @param  string  $mediaId  Identificador del medio en WhatsApp
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function descargarMedia(string $mediaId): ?string
     {
         try {
@@ -366,6 +515,15 @@ class WhatsAppService
         }
     }
 
+    /**
+     * Convierte un tipo MIME en su extensión de archivo correspondiente.
+     *
+     * @param  string  $mime  Tipo MIME a convertir
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function mimeToExtension(string $mime): string
     {
         $map = [
@@ -384,6 +542,15 @@ class WhatsAppService
         return $map[$mime] ?? 'bin';
     }
 
+    /**
+     * Normaliza un número de teléfono agregando el prefijo del país de Colombia si falta.
+     *
+     * @param  string  $telefono  Número de teléfono a formatear
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function formatearTelefono(string $telefono): string
     {
         $telefono = preg_replace('/[^0-9]/', '', $telefono);
@@ -401,6 +568,15 @@ class WhatsAppService
         return $telefono;
     }
 
+    /**
+     * Envía una petición HTTP a la API de WhatsApp y procesa la respuesta.
+     *
+     * @param  array  $payload  Cuerpo de la petición a enviar a la API
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function enviarRequest(array $payload): array
     {
         $url = "https://graph.facebook.com/{$this->apiVersion}/{$this->phoneNumberId}/messages";
@@ -439,6 +615,16 @@ class WhatsAppService
         }
     }
 
+    /**
+     * Verifica la firma HMAC del payload recibido en el webhook de WhatsApp.
+     *
+     * @param  string  $payload  Cuerpo crudo de la petición del webhook
+     * @param  string  $signature  Firma enviada por WhatsApp en el encabezado
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function verificarWebhook(string $payload, string $signature): bool
     {
         $secret = config('services.whatsapp.app_secret');
@@ -447,6 +633,15 @@ class WhatsAppService
         return hash_equals($expected, $signature);
     }
 
+    /**
+     * Procesa la entrada del webhook de WhatsApp y extrae los datos del primer mensaje.
+     *
+     * @param  array  $entry  Entrada del webhook con los cambios y mensajes recibidos
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function processarWebhook(array $entry): ?array
     {
         if (empty($entry['changes'])) {

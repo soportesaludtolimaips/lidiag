@@ -6,11 +6,25 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateConfigSedeRequest extends FormRequest
 {
+    /**
+     * Autoriza la petición (sin restricciones adicionales).
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function authorize(): bool
     {
         return true;
     }
 
+    /**
+     * Reglas de validación para actualizar sedes.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function rules(): array
     {
         return [
@@ -21,6 +35,13 @@ class UpdateConfigSedeRequest extends FormRequest
         ];
     }
 
+    /**
+     * Decodifica el campo registro (JSON) y agrega el ID de la sede al arreglo.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function decoded(): array
     {
         $data = json_decode($this->input('registro'), true) ?? [];

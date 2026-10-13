@@ -8,11 +8,25 @@ use Illuminate\Validation\Rule;
 
 class ConfigDiagnosticoRequest extends FormRequest
 {
+    /**
+     * Autoriza la petición únicamente a usuarios autenticados.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function authorize(): bool
     {
         return Auth::check();
     }
 
+    /**
+     * Reglas de validación de diagnósticos (código, nombre y estado).
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function rules(): array
     {
         $diagnosticoId = $this->route('config.diagnostico')?->id ?? $this->route('id');
@@ -32,6 +46,13 @@ class ConfigDiagnosticoRequest extends FormRequest
         ];
     }
 
+    /**
+     * Mensajes en español para las reglas de validación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function messages(): array
     {
         return [

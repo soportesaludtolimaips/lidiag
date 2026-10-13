@@ -6,11 +6,29 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class HelpDeskAdjuntoUploadRequest extends FormRequest
 {
+    /**
+     * Autoriza la petición (sin restricciones adicionales).
+     *
+     * @return bool
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function authorize()
     {
         return true;
     }
 
+    /**
+     * Reglas de validación para adjuntar archivos a un ticket.
+     *
+     * @return array
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function rules()
     {
         return [
@@ -20,6 +38,15 @@ class HelpDeskAdjuntoUploadRequest extends FormRequest
         ];
     }
 
+    /**
+     * Mensajes en español para las reglas de validación.
+     *
+     * @return array
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function messages()
     {
         return [

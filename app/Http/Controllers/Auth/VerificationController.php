@@ -11,6 +11,13 @@ class VerificationController extends Controller
 
     protected $redirectTo = '/dashboard';
 
+    /**
+     * Configura los middlewares de verificación de correo electrónico.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function __construct(
         private readonly AuthService $authService,
     ) {

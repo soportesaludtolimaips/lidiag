@@ -16,6 +16,15 @@ class ConfigModulo extends Model
         'modulo',
     ];
 
+    /**
+     * Usuarios con el módulo asignado.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function usuarios()
     {
         return $this->belongsToMany(User::class, 'users_modulos', 'modulo_id', 'user_id');

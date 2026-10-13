@@ -9,6 +9,13 @@ use Illuminate\Http\Request;
 
 class AuditLogController extends Controller
 {
+    /**
+     * Inyecta el servicio de auditoría y configura los middlewares de acceso.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function __construct(
         private readonly AuditLogService $auditLogService,
     ) {
@@ -16,6 +23,15 @@ class AuditLogController extends Controller
         $this->middleware('permission:seguridad.auditoria.index,web');
     }
 
+    /**
+     * Lista los eventos de auditoría paginados según los filtros recibidos.
+     *
+     * @param  Request  $request  Solicitud HTTP con los filtros evento, user_id, search, desde, hasta y per_page.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function index(Request $request): JsonResponse
     {
         $filters = [
@@ -32,6 +48,13 @@ class AuditLogController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Devuelve el catálogo de tipos de evento de auditoría disponibles.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function eventos(): JsonResponse
     {
         $result = $this->auditLogService->eventos();

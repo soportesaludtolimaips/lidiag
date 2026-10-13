@@ -885,11 +885,29 @@ class AgendaCitaService extends BaseService
         return Storage::disk('local')->path($path);
     }
 
+    /**
+     * Escapa los caracteres especiales de comodín SQL utilizados en búsquedas LIKE.
+     *
+     * @param  string  $value  Valor a sanitizar para la cláusula LIKE
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function sanitizeLike(string $value): string
     {
         return str_replace(['%', '_'], ['\\%', '\\_'], $value);
     }
 
+    /**
+     * Busca un paciente por documento o lo crea sincronizando desde SAHI o con los datos enviados.
+     *
+     * @param  array  $data  Datos del paciente: num_docu, telefono, nombres, apellidos, email
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function buscarOCrearPaciente(array $data): ?Paciente
     {
         if (! empty($data['num_docu'])) {
