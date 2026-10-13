@@ -682,7 +682,7 @@ import { confirmAction, alertError, alertSuccess, toastMessage } from "@/helpers
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import axios from "axios";
 
-const props = defineProps({ usuarioactual: Object });
+defineProps({ usuarioactual: { type: Object, default: () => ({}) } });
 
 const dt = ref(null);
 
@@ -895,7 +895,7 @@ async function ListarModulos() {
             ...modulo,
             checked: false,
         }));
-    } catch (error) {
+    } catch {
         alertError("Error", "No fue posible cargar los módulos.", "error");
     }
 }
@@ -907,7 +907,7 @@ async function ListarSedes() {
             ...sede,
             checked: false,
         }));
-    } catch (error) {
+    } catch {
         alertError("Error", "No fue posible cargar las sedes.", "error");
     }
 }
@@ -918,7 +918,7 @@ async function ListarServiciosCitas() {
             ...sc,
             checked: false,
         }));
-    } catch (error) {
+    } catch {
         alertError("Error", "No fue posible cargar los servicios.", "error");
     }
 }

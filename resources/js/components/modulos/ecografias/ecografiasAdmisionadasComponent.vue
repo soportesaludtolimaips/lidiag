@@ -378,9 +378,12 @@ import { useSede } from "@/composables/useSede.js";
 import { useSahiInterface } from "@/composables/useSahiInterface.js";
 import axios from "axios";
 
-const props = defineProps({ usuarioactual: Object, permisos: Array });
+const props = defineProps({
+    usuarioactual: { type: Object, default: () => ({}) },
+    permisos: { type: Array, default: () => [] },
+});
 const { can } = usePermissions(props.permisos);
-const { sedeActual, sedeInterface, establecerSede: establecerSedeComposable } = useSede();
+const { sedeInterface, establecerSede: establecerSedeComposable } = useSede();
 const { consultarEstado, enviarEcografiaProducto } = useSahiInterface();
 
 const { proxy } = getCurrentInstance();
@@ -637,7 +640,7 @@ function anularEcografia() {
             const cerrarModal = document.getElementById("btnCerrarModalAunular");
             if (cerrarModal) cerrarModal.click();
             await listarAtenciones();
-        } catch (error) {
+        } catch {
             alertError("Error", "No fue posible anular la ecografía.", "error");
         } finally {
             isAnulandoAdmisionada.value = false;

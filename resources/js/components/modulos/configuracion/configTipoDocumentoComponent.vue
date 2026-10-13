@@ -255,14 +255,6 @@ function setErrors(newErrors) {
     errores.value = newErrors || {};
 }
 
-function hasError(field) {
-    return !!errores.value[field];
-}
-
-function getError(field) {
-    return errores.value[field]?.[0];
-}
-
 async function ListarDatos() {
     if (loadingListar.value) return;
     loadingListar.value = true;
@@ -277,7 +269,7 @@ async function ListarDatos() {
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
         });
-    } catch (error) {
+    } catch {
         registros.value = [];
     } finally {
         loadingListar.value = false;

@@ -226,7 +226,7 @@ onBeforeUnmount(() => {
  */
 watch(
     () => props.options,
-    (newOpts) => {
+    (_newOpts) => {
         if (!props.autoInit) return;
         nextTick(() => initSelect2());
     }

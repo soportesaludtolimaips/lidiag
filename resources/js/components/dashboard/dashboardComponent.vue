@@ -1279,7 +1279,7 @@ async function fetchDashboard() {
 
         reindexHeatmap();
         renderCharts();
-    } catch (e) {
+    } catch (error) {
         error.value = "No fue posible cargar las estadísticas del dashboard.";
     } finally {
         loading.value = false;
@@ -1492,7 +1492,7 @@ function goToLectura(row) {
         if (row && row.sede_id) sessionStorage.setItem("ST-sede", String(row.sede_id));
         if (row && row.accession_no)
             sessionStorage.setItem("ST-accession", String(row.accession_no));
-    } catch (e) {
+    } catch {
         /* noop */
     }
     window.location.href = "/estudios.leer.estudio.listar";
@@ -1502,7 +1502,7 @@ function goToTranscripcion(row) {
         if (row && row.sede_id) sessionStorage.setItem("ST-sede", String(row.sede_id));
         if (row && row.accession_no)
             sessionStorage.setItem("ST-accession", String(row.accession_no));
-    } catch (e) {
+    } catch {
         /* noop */
     }
     window.location.href = "/estudios.transcribir.listar";

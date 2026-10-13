@@ -9,7 +9,7 @@
  *
  * @date 2025-11-24
  */
-export async function establecerMedico(context) {
+export async function establecerMedico(_context) {
     console.log("Medico del storage: ", sessionStorage.getItem("ST-medico"));
     /* if (sessionStorage.getItem("ST-medico")) {
         context.registro.medico_id = sessionStorage.getItem("ST-medico");

@@ -306,7 +306,7 @@ async function ListarDatos() {
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
         });
-    } catch (error) {
+    } catch {
         registrosData.value = [];
     } finally {
         loadingListar.value = false;
@@ -366,7 +366,7 @@ async function eliminarRegistro(idEliminar, nom) {
         const response = await axios.delete("/api/config-plantillas/" + idEliminar);
         alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
         ListarDatos();
-    } catch (error) {
+    } catch {
         alertError("Error", "No fue posible eliminar el registro.", "error");
     } finally {
         loadingEliminarId.value = null;
@@ -380,7 +380,7 @@ async function listarMedicos() {
             sessionStorage.getItem("ST-modulo") || (pathname.includes("ecografia") ? "2" : "1");
         const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
         medicos.value = res.data.data;
-    } catch (error) {
+    } catch {
         toastMessage({
             heading: "Error",
             text: "No fue posible listar los médicos.",
@@ -393,7 +393,7 @@ async function listarTiposPlantillas() {
     try {
         const res = await axios.get("/api/config-tipos-plantillas/listar/activos");
         tiposPlantillas.value = res.data.data;
-    } catch (error) {
+    } catch {
         toastMessage({
             heading: "Error",
             text: "No fue posible listar los tipos de plantillas.",

@@ -248,7 +248,7 @@ function cargarServicios() {
                 seleccionarServicio(servicios.value[0]);
             }
         })
-        .catch(function (error) {
+        .catch(function (_error) {
             toastMessage({
                 heading: "Error",
                 text: "No se pudieron cargar los servicios.",
@@ -278,7 +278,7 @@ function cargarProductosVinculados() {
         .then(function (response) {
             productosVinculados.value = response.data;
         })
-        .catch(function (error) {
+        .catch(function (_error) {
             toastMessage({
                 heading: "Error",
                 text: "No se pudieron cargar los productos vinculados.",
@@ -303,7 +303,7 @@ function mostrarModalAgregar() {
             productosDisponibles.value = response.data;
             abrirModal();
         })
-        .catch(function (error) {
+        .catch(function (_error) {
             toastMessage({
                 heading: "Error",
                 text: "No se pudieron cargar los productos disponibles.",
@@ -351,7 +351,7 @@ function agregarProducto() {
             servicio_id: servicioSeleccionado.value,
             producto_id: productoSeleccionado.value,
         })
-        .then(function (response) {
+        .then(function (_response) {
             if (recomendacion.value && recomendacion.value.trim()) {
                 return axios.post("/api/config-recomendacion-productos", {
                     producto_id: productoSeleccionado.value,

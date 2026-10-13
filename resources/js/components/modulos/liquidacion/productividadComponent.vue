@@ -272,8 +272,8 @@ async function cargarSedes() {
     try {
         const res = await axios.get("/api/config-sedes/listar/sedes/activas");
         sedes.value = res.data.data || [];
-    } catch (e) {
-        console.error(e);
+    } catch (error) {
+        console.error(error);
         toastMessage({ heading: "Error", text: "No fue posible cargar las sedes", icon: "error" });
     } finally {
         loadingSedes.value = false;
@@ -312,9 +312,9 @@ async function cargar() {
                 icon: "info",
             });
         }
-    } catch (e) {
-        console.error(e);
-        const msg = e.response?.data?.message || "Error al generar el reporte";
+    } catch (error) {
+        console.error(error);
+        const msg = error.response?.data?.message || "Error al generar el reporte";
         toastMessage({ heading: "Error", text: msg, icon: "error" });
     } finally {
         loading.value = false;

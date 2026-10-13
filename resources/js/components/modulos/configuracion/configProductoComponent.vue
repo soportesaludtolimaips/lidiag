@@ -380,7 +380,7 @@ async function ListarDatos() {
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
         });
-    } catch (error) {
+    } catch {
         registros.value = [];
     } finally {
         loadingListar.value = false;

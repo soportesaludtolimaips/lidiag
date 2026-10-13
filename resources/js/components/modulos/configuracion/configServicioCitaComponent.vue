@@ -221,7 +221,7 @@ const dt = ref(null);
 const sidebarRef = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
+import { alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
 import axios from "axios";
 
 const registros = ref([]);
@@ -242,7 +242,7 @@ async function cargarSedes() {
     try {
         const res = await axios.get("/api/config-sedes");
         sedes.value = res.data.data;
-    } catch (e) {
+    } catch {
         toastMessage({
             heading: "Error",
             text: "Error al cargar las sedes.",
@@ -268,7 +268,7 @@ async function ListarDatos() {
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
         });
-    } catch (error) {
+    } catch {
         registros.value = [];
     } finally {
         loadingListar.value = false;
@@ -301,10 +301,10 @@ async function guardarRegistro() {
     loadingGuardar.value = true;
     try {
         if (editando.value) {
-            const res = await axios.put("/api/config-servicio-citas/" + form.value.id, form.value);
+            await axios.put("/api/config-servicio-citas/" + form.value.id, form.value);
             alertSuccess("Ok!", "Servicio actualizado correctamente.");
         } else {
-            const res = await axios.post("/api/config-servicio-citas", form.value);
+            await axios.post("/api/config-servicio-citas", form.value);
             alertSuccess("Ok!", "Servicio creado correctamente.");
         }
         ListarDatos();

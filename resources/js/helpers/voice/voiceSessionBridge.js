@@ -118,7 +118,7 @@ export function useVoiceSessionBridge() {
 
     onMounted(() => {
         bridge = createVoiceSessionBridge({
-            onTranscript: (text, isFinal) => {
+            onTranscript: (text, _isFinal) => {
                 remoteTranscript.value = text;
             },
             onStateChange: ({ active }) => {

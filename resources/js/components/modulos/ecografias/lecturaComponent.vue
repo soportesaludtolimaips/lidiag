@@ -632,7 +632,10 @@ import { useSahiInterface } from "@/composables/useSahiInterface.js";
 import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import axios from "axios";
 
-const props = defineProps({ usuarioactual: Object, permisos: Array });
+const props = defineProps({
+    usuarioactual: { type: Object, default: () => ({}) },
+    permisos: { type: Array, default: () => [] },
+});
 const { can } = usePermissions(props.permisos);
 const { sedeInterface, sedeNombre, establecerSede: establecerSedeComposable } = useSede();
 const { consultarEstado, enviarEcografiaProducto, startPolling, stopPolling } = useSahiInterface();
@@ -672,10 +675,7 @@ const registro = ref({
     sahi_esquema_150: null,
 });
 const errores = ref({});
-const erroresBusqueda = ref({});
-const medicos = ref([]);
 const accion = ref(null);
-const productosAgenda = ref([]);
 const tiposPlantillas = ref([]);
 const plantillas = ref([]);
 const url = ref("");
@@ -751,7 +751,7 @@ function getMedicalReplacementsCompiled() {
                 new RegExp(String(regexString), String(flags || "")),
                 String(replacement),
             ]);
-        } catch (e) {
+        } catch {
             // ignore regla inválida
         }
     });
@@ -788,7 +788,7 @@ function stripDiacritics(text) {
         return String(text)
             .normalize("NFD")
             .replace(/[\u0300-\u036f]/g, "");
-    } catch (e) {
+    } catch {
         return String(text);
     }
 }
@@ -980,7 +980,7 @@ function applyCommandMap(text, commandMap, { onEachMatch } = {}) {
             if (typeof onEachMatch === "function") {
                 try {
                     onEachMatch(command);
-                } catch (e) {
+                } catch {
                     /* noop */
                 }
             }
@@ -1288,12 +1288,12 @@ async function toggleSpeechRecognition() {
             voiceState.value = "active";
             microfono.value = "admin-wrap/assets/images/mic-animate.gif";
         }
-    } catch (e) {
+    } catch (error) {
         voiceState.value = "inactive";
         microfono.value = "admin-wrap/assets/images/mic.gif";
         toastMessage({
             heading: "Error",
-            text: e && e.message ? e.message : "No fue posible iniciar el dictado.",
+            text: error && error.message ? error.message : "No fue posible iniciar el dictado.",
             icon: "error",
             hideAfter: 5000,
         });
@@ -1312,7 +1312,7 @@ function stopVoice() {
     if (voiceSession.value) {
         try {
             voiceSession.value.destroy();
-        } catch (e) {
+        } catch {
             /* noop */
         }
         voiceSession.value = null;
@@ -1480,7 +1480,7 @@ async function listarPendiestePorLectura() {
 
             evaluarPendientesConsentimientosDiaAnterior();
         }
-    } catch (error) {
+    } catch {
         registros.value = [];
     } finally {
         isBuscandoPendientes.value = false;
@@ -1791,7 +1791,7 @@ async function listarTiposPlantillas() {
     try {
         const res = await axios.get("/api/config-tipos-plantillas/listar/activos");
         tiposPlantillas.value = res.data.data;
-    } catch (error) {
+    } catch {
         tiposPlantillas.value = [];
     }
 }
@@ -1828,7 +1828,7 @@ async function onTipoPlantillaSelect(value) {
             return String(t.id) === String(selectedId);
         });
         registro.value.tipo_estudio = (tipo && tipo.nom_tipo) || "";
-    } catch (error) {
+    } catch {
         plantillas.value = [];
         toastMessage({
             heading: "Plantillas",
@@ -2033,7 +2033,7 @@ onBeforeUnmount(() => {
     stopSahiPolling();
     try {
         stopVoice();
-    } catch (e) {
+    } catch {
         /* noop */
     }
 });

@@ -104,11 +104,11 @@ export function createVoiceSession({
         if (a) {
             try {
                 await a.start();
-            } catch (e) {
+            } catch {
                 // Worker interno falló → reintenta con main thread
                 try {
                     a.cleanup();
-                } catch (e2) {}
+                } catch {}
                 const fallback = await createAudioRecorderSession({
                     constraints,
                     mimeType,
@@ -125,19 +125,19 @@ export function createVoiceSession({
     const pause = () => {
         try {
             if (audioSession) audioSession.pause();
-        } catch (e) {}
+        } catch {}
         try {
             if (dictation) dictation.pause();
-        } catch (e) {}
+        } catch {}
     };
 
     const resume = () => {
         try {
             if (audioSession) audioSession.resume();
-        } catch (e) {}
+        } catch {}
         try {
             if (dictation) dictation.resume();
-        } catch (e) {}
+        } catch {}
     };
 
     const stopAudio = async () => {
@@ -148,13 +148,13 @@ export function createVoiceSession({
     const stopDictation = () => {
         try {
             if (dictation) dictation.stop();
-        } catch (e) {}
+        } catch {}
     };
 
     const cleanup = () => {
         try {
             if (audioSession) audioSession.cleanup();
-        } catch (e) {}
+        } catch {}
     };
 
     const destroy = () => {

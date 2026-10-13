@@ -348,7 +348,7 @@ import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts";
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import axios from "axios";
 
-const props = defineProps({ usuarioactual: Object });
+const props = defineProps({ usuarioactual: { type: Object, default: () => ({}) } });
 
 const dt = ref(null);
 
@@ -393,7 +393,7 @@ async function buscarStudy() {
                 });
             }
         });
-    } catch (error) {
+    } catch {
         registros.value = [];
     } finally {
         loadingBuscar.value = false;
@@ -453,7 +453,7 @@ async function editarRegistro(item) {
     editandoId.value = item.id;
     registro.value = {
         sede_id: item.sede_id,
-        quien_registro_id: usuarioactual.id,
+        quien_registro_id: props.usuarioactual.id,
         servicio_id: item.servicio_id || "",
         total_citas: item.total_citas,
         dura_cita: item.dura_cita,
@@ -476,7 +476,7 @@ async function elimnarRegistro(id) {
         const res = await axios.delete("/api/agenda-disponibilidad/" + id);
         alertSuccess("Éxito", res?.data?.message || "Registro eliminado.");
         await buscarStudy();
-    } catch (error) {
+    } catch {
         alertError("Error", "No se pudo eliminar la disponibilidad");
     } finally {
         loadingEliminarId.value = null;
@@ -488,7 +488,7 @@ async function listarServiciosCitas() {
             params: { sede_id: sedeActual.value },
         });
         serviciosCitas.value = res.data.data;
-    } catch (error) {
+    } catch {
         alertError("Error", "No se pudieron cargar los servicios");
     }
 }
@@ -509,7 +509,7 @@ function mostrarRegistro() {
     tituloModal.value = "Guardar disponibilidad de citas";
     registro.value = {
         sede_id: sedeActual.value,
-        quien_registro_id: usuarioactual.id,
+        quien_registro_id: props.usuarioactual.id,
         servicio_id: "",
         total_citas: 1,
         dura_cita: 15,

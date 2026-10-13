@@ -313,7 +313,10 @@ import axios from "axios";
 
 const MAX_DATE_RANGE_DAYS = 365;
 
-const props = defineProps({ usuarioactual: Object, permisos: Array });
+const props = defineProps({
+    usuarioactual: { type: Object, default: () => ({}) },
+    permisos: { type: Array, default: () => [] },
+});
 
 const { can } = usePermissions(props.permisos);
 

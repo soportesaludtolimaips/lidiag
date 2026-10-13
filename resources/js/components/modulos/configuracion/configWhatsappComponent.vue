@@ -117,7 +117,7 @@ async function listarSedes() {
     try {
         const res = await axios.get("/api/config-sedes/listar/sedes/activas");
         sedes.value = res.data.data;
-    } catch (error) {
+    } catch {
         toastMessage({
             heading: "Error",
             text: "No fue posible cargar las sedes.",

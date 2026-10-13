@@ -143,8 +143,8 @@ export function safeInitDataTable(target = "#example23", options = {}) {
             return $t.DataTable();
         }
         return $t.DataTable(options);
-    } catch (e) {
-        console.error("DataTables init error:", e);
+    } catch (error) {
+        console.error("DataTables init error:", error);
         return null;
     }
 }

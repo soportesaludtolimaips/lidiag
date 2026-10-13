@@ -82,7 +82,7 @@ export function createSpeechDictation({
                 recognition.grammars = list;
             }
         }
-    } catch (e) {
+    } catch {
         // ignore
     }
 
@@ -106,7 +106,7 @@ export function createSpeechDictation({
         if (restartTimer) {
             try {
                 clearTimeout(restartTimer);
-            } catch (e) {}
+            } catch {}
             restartTimer = null;
         }
     };
@@ -126,7 +126,7 @@ export function createSpeechDictation({
         try {
             recognition.start();
             return true;
-        } catch (e) {
+        } catch {
             return false;
         }
     };
@@ -193,7 +193,7 @@ export function createSpeechDictation({
             clearRestart();
             try {
                 recognition.stop();
-            } catch (e) {}
+            } catch {}
             onPermissionDenied(err);
             return;
         }
@@ -209,7 +209,7 @@ export function createSpeechDictation({
                 clearRestart();
                 try {
                     recognition.stop();
-                } catch (e) {}
+                } catch {}
                 onError({ error: err, message: "Silencio repetido" });
                 return;
             }
@@ -219,7 +219,7 @@ export function createSpeechDictation({
             // detener: el reinicio queda en onend
             try {
                 recognition.stop();
-            } catch (e) {}
+            } catch {}
         } else {
             onError({ error: err });
         }
@@ -237,7 +237,7 @@ export function createSpeechDictation({
         clearRestart();
         try {
             recognition.stop();
-        } catch (e) {}
+        } catch {}
         onState({ recognizing, active, lastError });
     };
 
@@ -255,10 +255,10 @@ export function createSpeechDictation({
         try {
             recognition.onend = null;
             recognition.onerror = null;
-        } catch (e) {}
+        } catch {}
         try {
             recognition.stop();
-        } catch (e) {}
+        } catch {}
         onState({ recognizing, active, lastError });
     };
 

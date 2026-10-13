@@ -16,7 +16,6 @@ let stream = null;
 let chunks = [];
 let isRecording = false;
 let isPaused = false;
-let intervalId = null;
 let chunkCounter = 0;
 let sessionId = null;
 let resumeTimeoutId = null;
@@ -80,7 +79,7 @@ async function iniciarGrabacion() {
                 mimeType: mimeType,
                 audioBitsPerSecond: 64000,
             });
-        } catch (e) {
+        } catch {
             mediaRecorder = new MediaRecorder(stream);
         }
 
@@ -261,7 +260,7 @@ function obtenerEstado() {
  * @date 2026-05-06
  */
 ctx.onmessage = async (event) => {
-    const { action, data } = event.data;
+    const { action } = event.data;
 
     let result;
 

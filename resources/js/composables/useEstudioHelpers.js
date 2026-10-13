@@ -44,7 +44,7 @@ export function useEstudioHelpers() {
                 link.click();
                 setTimeout(() => window.URL.revokeObjectURL(blobUrl), 2000);
             })
-            .catch((error) => {})
+            .catch(() => {})
             .finally(() => {
                 loadingDescarga.value = null;
             });
@@ -60,7 +60,7 @@ export function useEstudioHelpers() {
         try {
             const res = await axios.get("/api/listar-audios-estudio/" + estudioProductoId);
             audiosDeEstudio.value = res.data.data || [];
-        } catch (e) {
+        } catch {
             audiosDeEstudio.value = [];
         } finally {
             loadingAudios.value = false;
@@ -90,7 +90,7 @@ export function useEstudioHelpers() {
                 "_blank",
                 "noopener,noreferrer"
             );
-        } catch (error) {
+        } catch {
         } finally {
             loadingImprimir.value = null;
         }
@@ -121,7 +121,7 @@ export function useEstudioHelpers() {
                     onExito(estudio);
                 }
             }
-        } catch (error) {
+        } catch {
         } finally {
             loadingAnular.value = null;
         }

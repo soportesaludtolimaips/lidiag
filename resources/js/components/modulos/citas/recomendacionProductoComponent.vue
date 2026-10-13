@@ -353,7 +353,7 @@ async function cargarSedes() {
     try {
         const res = await axios.get("/api/config-sedes/listar/sedes/activas");
         sedes.value = res.data?.data || [];
-    } catch (error) {
+    } catch {
         alertError("Error", "No se pudieron cargar las sedes");
     }
 }
@@ -363,7 +363,7 @@ async function cargarServicios() {
         const res = await axios.get("/api/citas/servicios");
         servicios.value = res.data?.data || [];
         filtrarServicios();
-    } catch (error) {
+    } catch {
         alertError("Error", "No se pudieron cargar los servicios");
     }
 }
@@ -391,7 +391,7 @@ async function cargarProductos() {
 
         const res = await axios.get(url);
         productos.value = res.data?.data || [];
-    } catch (error) {
+    } catch {
         productos.value = [];
     }
 }
@@ -420,7 +420,7 @@ async function buscar() {
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
         });
-    } catch (error) {
+    } catch {
         registros.value = [];
     } finally {
         loadingBuscar.value = false;
@@ -472,7 +472,7 @@ async function eliminarRegistro(id) {
         const res = await axios.delete("/api/config-recomendacion-productos/" + id);
         alertSuccess("Éxito", res?.data?.message || "Recomendación eliminada.");
         await buscar();
-    } catch (error) {
+    } catch {
         alertError("Error", "No se pudo eliminar la recomendación");
     } finally {
         loadingEliminarId.value = null;

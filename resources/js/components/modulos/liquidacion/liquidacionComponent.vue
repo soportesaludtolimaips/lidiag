@@ -487,8 +487,8 @@ async function cargarSedes() {
     try {
         const res = await axios.get("/api/config-sedes/listar/sedes/activas");
         sedes.value = res.data.data || [];
-    } catch (e) {
-        console.error(e);
+    } catch (error) {
+        console.error(error);
         toastMessage({ heading: "Error", text: "No fue posible cargar las sedes", icon: "error" });
     } finally {
         loadingSedes.value = false;
@@ -543,8 +543,8 @@ async function cargarContratos() {
             params: { sede_id: filtros.value.sede_id },
         });
         contratos.value = res.data?.data?.data || res.data?.data || [];
-    } catch (e) {
-        console.error(e);
+    } catch (error) {
+        console.error(error);
         toastMessage({
             heading: "Error",
             text: "No fue posible cargar los contratos",
@@ -584,8 +584,8 @@ async function cargarMedicos() {
         const moduloId = sessionStorage.getItem("ST-modulo") || "1";
         const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
         medicos.value = res.data.data || [];
-    } catch (e) {
-        console.error(e);
+    } catch (error) {
+        console.error(error);
         toastMessage({
             heading: "Error",
             text: "No fue posible cargar los médicos",
@@ -660,9 +660,9 @@ async function calcular() {
                 icon: "info",
             });
         }
-    } catch (e) {
-        console.error(e);
-        const msg = e.response?.data?.message || "Error al calcular la liquidación";
+    } catch (error) {
+        console.error(error);
+        const msg = error.response?.data?.message || "Error al calcular la liquidación";
         toastMessage({ heading: "Error", text: msg, icon: "error" });
     } finally {
         loading.value = false;

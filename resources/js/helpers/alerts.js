@@ -211,7 +211,7 @@ export function getUserSafeError(error, fallback = "Ocurrió un error.") {
  * (Obsoleto) Registra una advertencia de deprecacion para errores de Axios; el interceptor de bootstrap.js ya maneja el toast automaticamente.
  *
  * @param object $error Objeto de error de Axios.
- * @param string $fallbackMessage Mensaje de respaldo (no utilizado).
+ * @param string _fallbackMessage Mensaje de respaldo (no utilizado).
  *
  * @returns {void}
  *
@@ -219,7 +219,7 @@ export function getUserSafeError(error, fallback = "Ocurrió un error.") {
  *
  * @date 2026-02-03
  */
-export function handleAxiosErrorToast(error, fallbackMessage = "Ocurrió un error.") {
+export function handleAxiosErrorToast(error, _fallbackMessage = "Ocurrió un error.") {
     // Deprecated — the Axios interceptor in bootstrap.js now handles toast automatically.
     // Kept for compatibility with existing callers.
     console.warn(

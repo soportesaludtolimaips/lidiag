@@ -227,14 +227,6 @@ function setErrors(newErrors) {
     errores.value = newErrors || {};
 }
 
-function hasError(field) {
-    return !!errores.value[field];
-}
-
-function getError(field) {
-    return errores.value[field]?.[0];
-}
-
 async function listar() {
     if (loadingListar.value) return;
     loadingListar.value = true;
@@ -249,7 +241,7 @@ async function listar() {
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
         });
-    } catch (error) {
+    } catch {
         toastMessage({
             heading: "Error",
             text: "No fue posible listar las prioridades.",
@@ -279,13 +271,6 @@ function prepararNuevo() {
     registro.value = { id: 0, nombre: "", orden: 0, activo: true };
     clearErrors();
     abrirSidebar();
-}
-
-function limpiar() {
-    actualizar.value = false;
-    tituloModal.value = "Nuevo registro";
-    registro.value = { id: 0, nombre: "", orden: 0, activo: true };
-    clearErrors();
 }
 
 function abrirSidebar() {
@@ -351,7 +336,7 @@ async function desactivarRegistro(item) {
         await axios.delete(`/api/helpdesk-prioridades/${item.id}`);
         toastMessage({ heading: "Ok", text: "Prioridad desactivada.", icon: "success" });
         await listar();
-    } catch (error) {
+    } catch {
         toastMessage({
             heading: "Error",
             text: "No fue posible desactivar la prioridad.",

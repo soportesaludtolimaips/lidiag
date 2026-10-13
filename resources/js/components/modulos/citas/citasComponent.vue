@@ -695,8 +695,8 @@ function asignarCita() {
             duracion_minutos: thisVue.citaSeleccionada.duracion_minutos,
             observaciones: thisVue.citaSeleccionada.observaciones,
         })
-        .then(function (response) {
-            thisVue.mostrarExito("Cita asignada correctamente");
+        .then(function (_response) {
+            mostrarExito("Cita asignada correctamente");
             showModalAsignar.value = false;
             thisVue.listarRegistros();
         })
@@ -724,8 +724,8 @@ function confirmarCita(cita) {
             if (result.isConfirmed) {
                 axios
                     .post("/api/citas/" + cita.id + "/confirmar")
-                    .then(function (response) {
-                        thisVue.mostrarExito("Cita confirmada");
+                    .then(function (_response) {
+                        mostrarExito("Cita confirmada");
                         thisVue.listarRegistros();
                     })
                     .catch(function (error) {
@@ -755,8 +755,8 @@ function cancelarCita(cita) {
                     .post("/api/citas/" + cita.id + "/cancelar", {
                         motivo: motivo,
                     })
-                    .then(function (response) {
-                        thisVue.mostrarExito("Cita cancelada");
+                    .then(function (_response) {
+                        mostrarExito("Cita cancelada");
                         thisVue.listarRegistros();
                     })
                     .catch(function (error) {
@@ -782,8 +782,8 @@ function cumplirCita(cita) {
             if (result.isConfirmed) {
                 axios
                     .post("/api/citas/" + cita.id + "/cumplir")
-                    .then(function (response) {
-                        thisVue.mostrarExito("Cita marcada como cumplida");
+                    .then(function (_response) {
+                        mostrarExito("Cita marcada como cumplida");
                         thisVue.listarRegistros();
                     })
                     .catch(function (error) {
@@ -809,8 +809,8 @@ function noAsistioCita(cita) {
             if (result.isConfirmed) {
                 axios
                     .post("/api/citas/" + cita.id + "/no-asistio")
-                    .then(function (response) {
-                        thisVue.mostrarExito("Inasistencia registrada");
+                    .then(function (_response) {
+                        mostrarExito("Inasistencia registrada");
                         thisVue.listarRegistros();
                     })
                     .catch(function (error) {

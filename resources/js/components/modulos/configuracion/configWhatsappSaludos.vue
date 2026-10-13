@@ -483,7 +483,7 @@ async function cargarServicios() {
             params: { sede_id: sedeActual.value },
         });
         servicios.value = res.data.data;
-    } catch (error) {
+    } catch {
         servicios.value = [];
     }
 }

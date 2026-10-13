@@ -80,7 +80,7 @@ async function listar() {
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
         });
-    } catch (error) {
+    } catch {
         toastMessage({
             heading: "Error",
             text: "No fue posible listar los estados.",

@@ -250,7 +250,7 @@ import { onBeforeUnmount, onMounted, ref } from "vue";
 import axios from "axios";
 import { toastMessage } from "@/helpers/alerts";
 
-const props = defineProps({ usuarioactual: Object });
+const props = defineProps({ usuarioactual: { type: Object, default: () => ({}) } });
 
 const id = ref(props.usuarioactual.id);
 const registro = ref({

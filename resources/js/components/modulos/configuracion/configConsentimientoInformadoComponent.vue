@@ -288,14 +288,6 @@ function setErrors(newErrors) {
     errores.value = newErrors || {};
 }
 
-function hasError(field) {
-    return !!errores.value[field];
-}
-
-function getError(field) {
-    return errores.value[field]?.[0];
-}
-
 const productoOptions = computed(() => {
     return (productos.value || []).map((p) => ({
         id: String(p.id),
@@ -318,7 +310,7 @@ async function ListarDatos() {
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
         });
-    } catch (error) {
+    } catch {
         registros.value = [];
     } finally {
         loadingListar.value = false;
@@ -407,7 +399,7 @@ async function listarProductos() {
     try {
         const res = await axios.get("/api/config-productos");
         productos.value = res.data.data;
-    } catch (error) {
+    } catch {
         toastMessage({
             heading: "Error",
             text: "No se pudieron cargar los productos.",

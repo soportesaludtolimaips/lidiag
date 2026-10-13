@@ -129,7 +129,7 @@ export function useAudioUploadFlow({ showToast } = {}) {
             if (audio._blobUrl) {
                 try {
                     URL.revokeObjectURL(audio._blobUrl);
-                } catch (e) {}
+                } catch {}
             }
         }
         audiosCargadosPendientes.value = [];
@@ -300,7 +300,7 @@ export function useAudioUploadFlow({ showToast } = {}) {
                         estudioProductoId,
                         onTranscriptionReady
                     );
-                } catch (e) {}
+                } catch {}
             }
         };
         await Promise.all(Array.from({ length: 3 }, () => worker()));

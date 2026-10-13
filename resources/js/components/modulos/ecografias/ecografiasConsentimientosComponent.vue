@@ -171,10 +171,13 @@
 import { computed, onMounted, ref } from "vue";
 
 import usePermissions from "@/helpers/permissions.js";
-import { alertSuccess, alertError, toastMessage } from "@/helpers/alerts";
+import { toastMessage } from "@/helpers/alerts";
 import axios from "axios";
 
-const props = defineProps({ usuarioactual: Object, permisos: Array });
+const props = defineProps({
+    usuarioactual: { type: Object, default: () => ({}) },
+    permisos: { type: Array, default: () => [] },
+});
 const { can } = usePermissions(props.permisos);
 
 const filtros = ref({
@@ -313,7 +316,7 @@ async function buscar() {
             params: filtros.value,
         });
         registros.value = Array.isArray(res.data?.data) ? res.data.data : [];
-    } catch (error) {
+    } catch {
         registros.value = [];
     } finally {
         loading.value = false;

@@ -68,9 +68,9 @@ import userProfileAndSearchComponent from "./comunes/userProfileAndSearchCompone
 import sidebarComponent from "./comunes/sidebarComponent.vue";
 import footerComponent from "./comunes/footerComponent.vue";
 
-const props = defineProps({
-    ruta: {},
-    usuario: {},
-    sucursualActual: {},
+defineProps({
+    ruta: { default: "" },
+    usuario: { default: () => ({}) },
+    sucursualActual: { default: () => ({}) },
 });
 </script>

@@ -506,18 +506,18 @@ async function notificar() {
 
         btnCerralModalForm();
         limpiar();
-    } catch (e) {
-        const status = e?.response?.status;
+    } catch (error) {
+        const status = error?.response?.status;
         if (status == 402) {
             toastMessage({
                 heading: "Error",
-                text: getUserSafeError(e, "Saldo insuficiente."),
+                text: getUserSafeError(error, "Saldo insuficiente."),
                 icon: "error",
             });
         } else {
             toastMessage({
                 heading: "Upss!!!",
-                text: getUserSafeError(e, "No fue posible notificar."),
+                text: getUserSafeError(error, "No fue posible notificar."),
                 icon: "error",
             });
         }
@@ -566,17 +566,17 @@ async function enviarPortalPacientes() {
 
             limpiar();
         }
-    } catch (e) {
-        if (e.response && e.response.status == 402) {
+    } catch (error) {
+        if (error.response && error.response.status == 402) {
             toastMessage({
                 heading: "Error",
-                text: getUserSafeError(e, "Saldo insuficiente."),
+                text: getUserSafeError(error, "Saldo insuficiente."),
                 icon: "error",
             });
         } else {
             toastMessage({
                 heading: "Error",
-                text: getUserSafeError(e, "No fue posible enviar al portal de pacientes."),
+                text: getUserSafeError(error, "No fue posible enviar al portal de pacientes."),
                 icon: "error",
             });
         }

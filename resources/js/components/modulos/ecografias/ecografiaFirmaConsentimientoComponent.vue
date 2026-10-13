@@ -19,6 +19,7 @@
                     </div>
 
                     <div class="border p-2 mb-3" style="max-height: 45vh; overflow: auto">
+                        <!-- eslint-disable-next-line vue/no-v-html -- html sanitizado con DOMPurify al cargar -->
                         <div v-html="html"></div>
                     </div>
 
@@ -79,6 +80,7 @@ const html = ref("");
 const info = ref(null);
 const canvasW = ref(900);
 const canvasH = ref(220);
+const canvas = ref(null);
 const drawing = ref(false);
 const last = ref(null);
 const hasInk = ref(false);
@@ -136,11 +138,11 @@ async function fetchInfo() {
     loading.value = true;
     error.value = null;
     try {
-        const res = await axios.get(`/firma/consentimiento-ecografia/${token}/info`);
+        const res = await axios.get(`/firma/consentimiento-ecografia/${props.token}/info`);
         info.value = res.data.data;
         html.value = DOMPurify.sanitize(res.data?.data?.html || "");
-    } catch (e) {
-        error.value = e?.response?.data?.message || "No fue posible cargar el consentimiento.";
+    } catch (error) {
+        error.value = error?.response?.data?.message || "No fue posible cargar el consentimiento.";
     } finally {
         loading.value = false;
     }
@@ -304,12 +306,12 @@ async function submit() {
     try {
         const c = canvas.value;
         const dataUrl = c.toDataURL("image/png");
-        const res = await axios.post(`/firma/consentimiento-ecografia/${token}/firmar`, {
+        const res = await axios.post(`/firma/consentimiento-ecografia/${props.token}/firmar`, {
             firma_png: dataUrl,
         });
         okMsg.value = res?.data?.message || "Firma registrada correctamente.";
-    } catch (e) {
-        error.value = e?.response?.data?.message || "No fue posible registrar la firma.";
+    } catch (error) {
+        error.value = error?.response?.data?.message || "No fue posible registrar la firma.";
     } finally {
         saving.value = false;
     }

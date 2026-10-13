@@ -605,7 +605,7 @@ function cargarListas() {
         .then((r) => {
             self.servicios = r.data;
         })
-        .catch((e) => {
+        .catch((_e) => {
             alertError("Error", "No se pudieron cargar los servicios");
         });
 
@@ -614,7 +614,7 @@ function cargarListas() {
         .then((r) => {
             self.sedes = r.data;
         })
-        .catch((e) => {
+        .catch((_e) => {
             alertError("Error", "No se pudieron cargar las sedes");
         });
 
@@ -623,7 +623,7 @@ function cargarListas() {
         .then((r) => {
             self.motivosRechazo = r.data;
         })
-        .catch((e) => {
+        .catch((_e) => {
             alertError("Error", "No se pudieron cargar los motivos de rechazo");
         });
 
@@ -632,7 +632,7 @@ function cargarListas() {
         .then((r) => {
             self.recomendaciones = r.data || [];
         })
-        .catch((e) => {
+        .catch((_e) => {
             alertError("Error", "No se pudieron cargar las recomendaciones");
         });
 }
@@ -662,7 +662,7 @@ async function listarRegistros() {
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
         });
-    } catch (error) {
+    } catch {
         alertError("Error", "No se pudieron cargar las solicitudes");
     } finally {
         loadingBuscar.value = false;
@@ -732,7 +732,7 @@ async function cargarDetallesDisponibles() {
             },
         });
         detallesDisponibles.value = res.data?.data?.detalles || [];
-    } catch (error) {
+    } catch {
         detallesDisponibles.value = [];
     } finally {
         loadingDetalles.value = false;

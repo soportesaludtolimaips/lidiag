@@ -47,7 +47,7 @@
     </div>
 </template>
 <script setup>
-import { nextTick } from "vue";
+import { nextTick, ref } from "vue";
 
 import EmojiPicker from "@/components/shared/EmojiPicker.vue";
 
@@ -57,6 +57,7 @@ const props = defineProps({
     rows: { type: [Number, String], default: 8 },
 });
 const emit = defineEmits(["update:modelValue"]);
+const textarea = ref(null);
 
 /**
  * Maneja el evento input del textarea y emite el valor actualizado al padre.

@@ -5,7 +5,6 @@ import {
     createAudioRecorderSession,
     getVoiceAudioConstraints,
 } from "@/helpers/voice/audioRecorder";
-import { isSpeechRecognitionSupported } from "@/helpers/voice/speechDictation";
 
 /**
  * Gestiona el flujo de dictado por voz: grabacion de audio, reconocimiento de voz, comandos de formato y puntuacion, y envio del audio al servidor.
@@ -267,7 +266,7 @@ export function useDictationFlow() {
             return String(text)
                 .normalize("NFD")
                 .replace(/[\u0300-\u036f]/g, "");
-        } catch (e) {
+        } catch {
             return String(text);
         }
     }
@@ -424,7 +423,7 @@ export function useDictationFlow() {
         if (recognitionRestartTimer.value) {
             try {
                 clearTimeout(recognitionRestartTimer.value);
-            } catch (e) {}
+            } catch {}
             recognitionRestartTimer.value = null;
         }
     }
@@ -434,7 +433,7 @@ export function useDictationFlow() {
         try {
             recognition.value.start();
             return true;
-        } catch (e) {
+        } catch {
             return false;
         }
     }
@@ -516,11 +515,11 @@ export function useDictationFlow() {
         if (dictation.value) {
             try {
                 dictation.value.pause();
-            } catch (e) {}
+            } catch {}
         } else if (recognition.value) {
             try {
                 recognition.value.stop();
-            } catch (e) {}
+            } catch {}
         }
         recognizing.value = false;
     }
@@ -530,7 +529,7 @@ export function useDictationFlow() {
             try {
                 dictation.value.resume();
                 recognizing.value = true;
-            } catch (e) {
+            } catch {
                 recognizing.value = false;
             }
             return;
@@ -539,7 +538,7 @@ export function useDictationFlow() {
             try {
                 recognizing.value = true;
                 safeStartRecognition();
-            } catch (e) {
+            } catch {
                 recognizing.value = false;
             }
         }
@@ -551,7 +550,7 @@ export function useDictationFlow() {
             if (mediaStream.value && mediaStream.value.getTracks) {
                 try {
                     mediaStream.value.getTracks().forEach((t) => t.stop());
-                } catch (e) {}
+                } catch {}
                 mediaStream.value = null;
             }
             createAudioRecorderSession({
@@ -567,7 +566,7 @@ export function useDictationFlow() {
                     if (_audioRevoke) {
                         try {
                             _audioRevoke();
-                        } catch (e) {}
+                        } catch {}
                         _audioRevoke = null;
                     }
                     audioBlob.value = null;
@@ -599,19 +598,19 @@ export function useDictationFlow() {
             if (voiceSession.value) {
                 try {
                     voiceSession.value.stopDictation();
-                } catch (e) {}
+                } catch {}
             }
             if (dictation.value) {
                 try {
                     dictation.value.stop();
-                } catch (e) {}
+                } catch {}
                 dictation.value = null;
             }
             if (recognition.value) {
                 try {
                     recognition.value.onend = null;
                     recognition.value.onerror = null;
-                } catch (e) {}
+                } catch {}
                 if (mediaRecorder.value && mediaRecorder.value.state === "recording") {
                     try {
                         mediaRecorder.value.pause();
@@ -625,65 +624,50 @@ export function useDictationFlow() {
                 }
                 try {
                     recognition.value.stop();
-                } catch (e) {}
+                } catch {}
             }
             recognizing.value = false;
             recognitionActive.value = false;
             microfono.value = "admin-wrap/assets/images/mic.gif";
             speechInterim.value = "";
-        } catch (e) {
-            console.error("Error al detener reconocimiento:", e);
+        } catch (error) {
+            console.error("Error al detener reconocimiento:", error);
         }
     }
 
     async function stopRecording() {
-        return new Promise(async (resolve) => {
-            let resolved = false;
-            const doResolve = () => {
-                if (!resolved) {
-                    resolved = true;
-                    resolve();
-                }
-            };
-            let usingMediaRecorder = false;
-            try {
-                if (audioSession.value && typeof audioSession.value.stop === "function") {
-                    const timeoutPromise = new Promise((r) =>
-                        setTimeout(
-                            () => r({ blob: null, url: null, chunks: [], revoke: () => {} }),
-                            3000
-                        )
-                    );
-                    const { blob, url, revoke } = await Promise.race([
-                        audioSession.value.stop(),
-                        timeoutPromise,
-                    ]);
-                    _audioRevoke = revoke || null;
-                    audioBlob.value = blob instanceof Blob ? blob : null;
-                    audioUrl.value = url || null;
-                } else if (mediaRecorder.value && mediaRecorder.value.state !== "inactive") {
-                    usingMediaRecorder = true;
-                    mediaRecorder.value.stop();
-                    recording.value = false;
-                    microfono.value = "admin-wrap/assets/images/mic.gif";
-                    await new Promise((r) => setTimeout(r, 200));
-                    if (audioChunks.value && audioChunks.value.length > 0) {
-                        audioBlob.value = new Blob(audioChunks.value, { type: "audio/webm" });
-                        audioUrl.value = URL.createObjectURL(audioBlob.value);
-                    }
-                    doResolve();
-                    return;
-                }
-            } catch (e) {
-                console.warn("[stopRecording] Error:", e);
-            } finally {
+        try {
+            if (audioSession.value && typeof audioSession.value.stop === "function") {
+                const timeoutPromise = new Promise((r) =>
+                    setTimeout(
+                        () => r({ blob: null, url: null, chunks: [], revoke: () => {} }),
+                        3000
+                    )
+                );
+                const { blob, url, revoke } = await Promise.race([
+                    audioSession.value.stop(),
+                    timeoutPromise,
+                ]);
+                _audioRevoke = revoke || null;
+                audioBlob.value = blob instanceof Blob ? blob : null;
+                audioUrl.value = url || null;
+            } else if (mediaRecorder.value && mediaRecorder.value.state !== "inactive") {
+                mediaRecorder.value.stop();
                 recording.value = false;
                 microfono.value = "admin-wrap/assets/images/mic.gif";
-                if (!usingMediaRecorder) {
-                    doResolve();
+                await new Promise((r) => setTimeout(r, 200));
+                if (audioChunks.value && audioChunks.value.length > 0) {
+                    audioBlob.value = new Blob(audioChunks.value, { type: "audio/webm" });
+                    audioUrl.value = URL.createObjectURL(audioBlob.value);
                 }
+                return;
             }
-        });
+        } catch (e) {
+            console.warn("[stopRecording] Error:", e);
+        } finally {
+            recording.value = false;
+            microfono.value = "admin-wrap/assets/images/mic.gif";
+        }
     }
 
     async function stopAll() {
@@ -700,36 +684,36 @@ export function useDictationFlow() {
             if (voiceSession.value) {
                 try {
                     voiceSession.value.cleanup();
-                } catch (e) {}
+                } catch {}
                 voiceSession.value = null;
             }
             if (audioSession.value) {
                 try {
                     audioSession.value.cleanup();
-                } catch (e) {}
+                } catch {}
                 audioSession.value = null;
             } else if (mediaStream.value && mediaStream.value.getTracks) {
                 try {
                     mediaStream.value.getTracks().forEach((t) => t.stop());
-                } catch (e) {}
+                } catch {}
             }
             mediaStream.value = null;
             if (_audioRevoke) {
                 try {
                     _audioRevoke();
-                } catch (e) {}
+                } catch {}
                 _audioRevoke = null;
             }
             if (audioUrl.value) {
                 try {
                     URL.revokeObjectURL(audioUrl.value);
-                } catch (e) {}
+                } catch {}
                 audioUrl.value = null;
             }
             recording.value = false;
             microfono.value = "admin-wrap/assets/images/mic.gif";
-        } catch (e) {
-            console.error("Error en stopAll:", e);
+        } catch (error) {
+            console.error("Error en stopAll:", error);
         }
     }
 
@@ -737,13 +721,13 @@ export function useDictationFlow() {
         if (_audioRevoke) {
             try {
                 _audioRevoke();
-            } catch (e) {}
+            } catch {}
             _audioRevoke = null;
         }
         if (audioUrl.value) {
             try {
                 URL.revokeObjectURL(audioUrl.value);
-            } catch (e) {}
+            } catch {}
             audioUrl.value = null;
         }
         audioChunks.value = [];
@@ -853,7 +837,7 @@ export function useDictationFlow() {
                     if (_audioRevoke) {
                         try {
                             _audioRevoke();
-                        } catch (e) {}
+                        } catch {}
                         _audioRevoke = null;
                     }
                     audioSession.value = as;
@@ -897,11 +881,11 @@ export function useDictationFlow() {
             if (voiceSession.value) {
                 try {
                     voiceSession.value.pause();
-                } catch (e) {}
+                } catch {}
             } else {
                 try {
                     mediaRecorder.value.pause();
-                } catch (e) {}
+                } catch {}
                 pauseRecognition();
             }
             microfono.value = "admin-wrap/assets/images/mic.gif";
@@ -909,11 +893,11 @@ export function useDictationFlow() {
             if (voiceSession.value) {
                 try {
                     voiceSession.value.resume();
-                } catch (e) {}
+                } catch {}
             } else {
                 try {
                     mediaRecorder.value.resume();
-                } catch (e) {}
+                } catch {}
                 resumeRecognition();
             }
             microfono.value = "admin-wrap/assets/images/mic-animate.gif";
@@ -1011,7 +995,7 @@ export function useDictationFlow() {
         if (onKeydownHandler) {
             try {
                 window.removeEventListener("keydown", onKeydownHandler);
-            } catch (e) {}
+            } catch {}
             onKeydownHandler = null;
         }
     }

@@ -235,7 +235,7 @@ import { useConfigCrud } from "@/composables/useConfigCrud.js";
 import { useConfigForm } from "@/composables/useConfigForm.js";
 import { useDataTable } from "@/composables/useDataTable.js";
 
-const props = defineProps({
+defineProps({
     sedes: {
         type: Array,
         default: () => [],

@@ -211,7 +211,6 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 const dt = ref(null);
 const sidebarRef = ref(null);
-const sidebarVisible = ref(false);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { confirmAction, toastMessage } from "@/helpers/alerts.js";
@@ -235,14 +234,6 @@ function clearErrors() {
 
 function setErrors(newErrors) {
     errores.value = newErrors || {};
-}
-
-function hasError(field) {
-    return !!errores.value[field];
-}
-
-function getError(field) {
-    return errores.value[field]?.[0];
 }
 
 async function listarMotivos() {

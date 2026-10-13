@@ -14,7 +14,7 @@ export function isWorkerSupported() {
         if (typeof Worker === "undefined") return false;
         if (typeof MediaRecorder === "undefined") return false;
         return true;
-    } catch (e) {
+    } catch {
         return false;
     }
 }
@@ -31,9 +31,9 @@ export function isWorkerSupported() {
  * @date 2026-06-11
  */
 export async function createAudioRecorderWorkerSession({
-    constraints = getVoiceAudioConstraints(),
-    mimeType = "audio/wav",
-    audioBitsPerSecond = 64000,
+    _constraints = getVoiceAudioConstraints(),
+    _mimeType = "audio/wav",
+    _audioBitsPerSecond = 64000,
 } = {}) {
     const worker = new Worker(new URL("./audioRecordingWorker.js", import.meta.url));
 
@@ -172,7 +172,7 @@ export async function createAudioRecorderWorkerSession({
         cleanup() {
             try {
                 worker.terminate();
-            } catch (e) {
+            } catch {
                 /* ignore */
             }
             if (lastUrl) {

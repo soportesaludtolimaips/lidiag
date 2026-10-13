@@ -296,7 +296,7 @@ async function cargarProductosDisponibles() {
         productosDisponibles.value = res.data.data;
         await nextTick();
         select2Productos.value?.rebuild();
-    } catch (error) {
+    } catch {
         toastMessage({
             heading: "Error",
             text: "No fue posible cargar los productos disponibles.",
@@ -402,7 +402,7 @@ async function eliminarVinculo(id) {
             icon: "success",
         });
         cargarProductosVinculados();
-    } catch (error) {
+    } catch {
         toastMessage({
             heading: "Error",
             text: "No fue posible desvincular el producto.",

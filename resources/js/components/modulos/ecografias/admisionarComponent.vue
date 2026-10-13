@@ -913,7 +913,10 @@ import { useSede } from "@/composables/useSede.js";
 import { useSahiInterface } from "@/composables/useSahiInterface.js";
 import axios from "axios";
 
-const props = defineProps({ usuarioactual: Object, permisos: Array });
+const props = defineProps({
+    usuarioactual: { type: Object, default: () => ({}) },
+    permisos: { type: Array, default: () => [] },
+});
 const { can } = usePermissions(props.permisos);
 const { sedeActual, sedeInterface, establecerSede: establecerSedeComposable } = useSede();
 const { consultarEstado, enviarEcografiaProducto } = useSahiInterface();
@@ -1327,7 +1330,7 @@ function anularEcografia() {
             const cerrarModal = document.getElementById("btnCerrarModalAunular");
             if (cerrarModal) cerrarModal.click();
             await listarAtenciones();
-        } catch (error) {
+        } catch {
             alertError("Error", "No fue posible anular la ecografía.", "error");
         } finally {
             isAnulandoEcografia.value = false;
@@ -1450,12 +1453,9 @@ async function reenviarASahi(item) {
  */
 async function listarMedicos() {
     try {
-        const pathname = String(window?.location?.pathname || "").toLowerCase();
-        const moduloId =
-            sessionStorage.getItem("ST-modulo") || (pathname.includes("ecografia") ? "2" : "1");
         const res = await axios.get(`/api/user.listarUsuarios/Medico/2`);
         medicos.value = res.data.data;
-    } catch (error) {
+    } catch {
         medicos.value = [];
     }
 }
@@ -1472,7 +1472,7 @@ async function listarTipoDocumentos() {
     try {
         const res = await axios.get("/api/config-tipos-documentos/listar/activos");
         tipoDocumentos.value = res.data.data;
-    } catch (error) {
+    } catch {
         tipoDocumentos.value = [];
     }
 }
@@ -1489,7 +1489,7 @@ async function listarProductos() {
     try {
         const res = await axios.get("/api/config-productos");
         productos.value = res.data.data;
-    } catch (error) {
+    } catch {
         productos.value = [];
     }
 }

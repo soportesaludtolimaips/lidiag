@@ -685,20 +685,6 @@ function formatDate(dateStr) {
 }
 
 /**
- * Formatea un número a moneda colombiana (COP)
- *
- * @param {number|null} value - Valor numérico a formatear
- * @returns {string} Cadena con formato de moneda o "$0"
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
- */
-function formatMoney(value) {
-    if (!value) return "$0";
-    return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP" }).format(value);
-}
-
-/**
  * Cuenta los médicos únicos vinculados a un contrato.
  * Como cada registro de contratos_medicos es un par médico+producto,
  * se descuentan duplicados por medico_id para obtener el total real.
@@ -737,8 +723,8 @@ async function listar() {
             dom: "Bfrtip",
             buttons: ["copy", "csv", "excel", "pdf", "print"],
         });
-    } catch (e) {
-        console.error(e);
+    } catch (error) {
+        console.error(error);
         toastMessage({ heading: "Error", text: "Error al cargar los contratos", icon: "error" });
     } finally {
         loadingListar.value = false;
@@ -832,11 +818,11 @@ async function guardarRegistro() {
         }
         btnCerralModalForm();
         await listar();
-    } catch (e) {
-        if (e.response?.status === 422) {
-            errores.value = e.response.data.errors || {};
+    } catch (error) {
+        if (error.response?.status === 422) {
+            errores.value = error.response.data.errors || {};
         } else {
-            const msg = e.response?.data?.message || "Error al guardar el contrato";
+            const msg = error.response?.data?.message || "Error al guardar el contrato";
             toastMessage({ heading: "Error", text: msg, icon: "error" });
         }
     } finally {
@@ -866,9 +852,9 @@ async function desactivarRegistro(item) {
         await axios.delete(`/api/contratos/${item.id}`);
         toastMessage({ heading: "Ok", text: "Contrato eliminado correctamente", icon: "success" });
         await listar();
-    } catch (e) {
-        console.error(e);
-        const msg = e.response?.data?.message || "Error al eliminar el contrato";
+    } catch (error) {
+        console.error(error);
+        const msg = error.response?.data?.message || "Error al eliminar el contrato";
         toastMessage({ heading: "Error", text: msg, icon: "error" });
     } finally {
         loadingEliminarId.value = null;
@@ -892,9 +878,9 @@ async function cargarCatalogos() {
         const moduloId = sessionStorage.getItem("ST-modulo") || "1";
         const medRes = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
         medicos.value = medRes.data.data || [];
-    } catch (e) {
-        console.error("Error cargando catálogos:", e);
-        const msg = e.response?.data?.message || e.message || "Error desconocido";
+    } catch (error) {
+        console.error("Error cargando catálogos:", error);
+        const msg = error.response?.data?.message || error.message || "Error desconocido";
         toastMessage({ heading: "Error", text: "Error cargando médicos: " + msg, icon: "error" });
     }
 }
@@ -1287,8 +1273,8 @@ async function procesarImportacion() {
             await listar();
             break;
         }
-    } catch (e) {
-        const msg = e.response?.data?.message || "Error al importar el archivo";
+    } catch (error) {
+        const msg = error.response?.data?.message || "Error al importar el archivo";
         toastMessage({ heading: "Error", text: msg, icon: "error" });
     } finally {
         loadingImportar.value = false;

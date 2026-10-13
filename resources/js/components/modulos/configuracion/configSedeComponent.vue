@@ -516,7 +516,6 @@ import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js
 import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
 import axios from "axios";
 
-const id = ref(0);
 const registros = ref([]);
 const registro = ref({
     id: null,
@@ -565,7 +564,7 @@ async function ListarDatos() {
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
         });
-    } catch (error) {
+    } catch {
         registros.value = [];
     } finally {
         loadingListar.value = false;
@@ -639,7 +638,7 @@ async function elimnarRegistro(id) {
         const response = await axios.delete("/api/config-sedes/" + id);
         alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
         ListarDatos();
-    } catch (error) {
+    } catch {
         alertError("Error", "No fue posible eliminar el registro.", "error");
     } finally {
         loadingEliminarId.value = null;

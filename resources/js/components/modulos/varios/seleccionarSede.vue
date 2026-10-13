@@ -51,7 +51,7 @@ async function listarSucursales() {
             sessionStorage.setItem("ST-sede", registros.value[0].id);
             emitter.emit("sedeSeleccionada", { idSede: registros.value[0].id });
         }
-    } catch (error) {
+    } catch {
         registros.value = [];
     }
 }

@@ -25,7 +25,7 @@ export async function createAudioRecorderSessionSmart(opts = {}) {
     if (isWorkerSupported()) {
         try {
             return await createAudioRecorderWorkerSession(opts);
-        } catch (e) {
+        } catch {
             // fallback a main thread
         }
     }
@@ -93,7 +93,7 @@ export async function createAudioRecorderSession({
     let mediaRecorder;
     try {
         mediaRecorder = new MediaRecorder(stream, { mimeType, audioBitsPerSecond });
-    } catch (e) {
+    } catch {
         // Fallback (por compatibilidad de mimeType)
         mediaRecorder = new MediaRecorder(stream);
     }
@@ -161,7 +161,7 @@ export async function createAudioRecorderSession({
         clearTimeout(autoResumeTimer);
         try {
             if (stream && stream.getTracks) stream.getTracks().forEach((t) => t.stop());
-        } catch (e) {}
+        } catch {}
         if (lastUrl) {
             URL.revokeObjectURL(lastUrl);
             lastUrl = null;

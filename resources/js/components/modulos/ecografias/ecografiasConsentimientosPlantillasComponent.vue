@@ -328,7 +328,10 @@ import { confirmAction, toastMessage } from "@/helpers/alerts";
 import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import axios from "axios";
 
-const props = defineProps({ usuarioactual: Object, permisos: Array });
+const props = defineProps({
+    usuarioactual: { type: Object, default: () => ({}) },
+    permisos: { type: Array, default: () => [] },
+});
 const { can } = usePermissions(props.permisos);
 
 const q = ref("");
@@ -415,7 +418,7 @@ async function listar() {
             },
         });
         registros.value = Array.isArray(res.data?.data) ? res.data.data : [];
-    } catch (error) {
+    } catch {
         registros.value = [];
     } finally {
         loading.value = false;

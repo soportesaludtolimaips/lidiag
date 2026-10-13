@@ -679,8 +679,8 @@ async function iniciarQuemado() {
         burnStatusStatus.value = "burning";
         burnStatusProgress.value = 70;
         startPolling();
-    } catch (e) {
-        const errMsg = e.response?.data?.message || e.message;
+    } catch (error) {
+        const errMsg = error.response?.data?.message || error.message;
         burnStatusStatus.value = "failed";
         burnStatusProgress.value = 0;
         burnStatusError.value = errMsg;

@@ -68,7 +68,7 @@ export function useConfigCrud({ resolveUrl, validate, messages = {} } = {}) {
                 icon: "success",
             });
             return true;
-        } catch (error) {
+        } catch {
             toastMessage({
                 heading: "Error",
                 text: "No fue posible eliminar el registro.",

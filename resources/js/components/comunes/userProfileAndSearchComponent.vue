@@ -197,7 +197,7 @@ import { computed, getCurrentInstance, onBeforeUnmount, onMounted, ref } from "v
 
 import axios from "axios";
 
-const props = defineProps({
+defineProps({
     usuarioactual: { type: Object, default: null },
     perfilUrl: { type: String, default: "" },
 });
@@ -218,10 +218,6 @@ const hdIntervalId = ref(null);
 
 const hdUnreadCount = computed(() => {
     return (hdItems.value || []).filter((x) => !x.read_at).length;
-});
-const medicoOptions = computed(() => {
-    // Opciones para el Select2 local de medicos.
-    return (medicos.value || []).map((p) => ({ id: String(p.id), name: p.name }));
 });
 
 /**
@@ -306,7 +302,6 @@ async function listarSedes() {
  */
 async function listarMedicos() {
     try {
-        const moduloId = sessionStorage.getItem("ST-modulo") || establecerModuloActual();
         const res = await axios.get(`/api/user.listarUsuarios/Medico/2`);
         medicos.value = res.data.data;
         if (medicos.value.length === 1 && !medicoSeleccionado.value) {
@@ -422,6 +417,7 @@ async function cargarHdNotificaciones(silent = false) {
         if (status === 403 || status === 404) {
             hdDisponible.value = false;
         } else if (!silent) {
+            // noop
         }
     } finally {
         hdLoading.value = false;
@@ -441,7 +437,7 @@ async function marcarHdLeida(n) {
     try {
         await axios.post(`/api/helpdesk-notificaciones/${n.id}/read`);
         n.read_at = new Date().toISOString();
-    } catch (error) {}
+    } catch {}
 }
 /**
  * Marca todas las notificaciones del helpdesk como leídas
@@ -456,7 +452,7 @@ async function marcarHdTodas() {
     try {
         await axios.post("/api/helpdesk-notificaciones/read-all");
         await cargarHdNotificaciones(true);
-    } catch (error) {}
+    } catch {}
 }
 /**
  * Abre una notificación del helpdesk: la marca como leída si no lo estaba
@@ -506,15 +502,7 @@ onMounted(() => {
         }, delay);
     }
     schedulePoll();
-    function onVisibilityChange() {
-        if (!document.hidden) {
-            cargarHdNotificaciones(true);
-        }
-    }
     document.addEventListener("visibilitychange", onVisibilityChange);
-
-    const medicoSeleccionado = sessionStorage.getItem("ST-medico");
-    const sedeSeleccionada = sessionStorage.getItem("ST-sede");
 
     const url = window.location.pathname;
     const rutasEcografias = [
@@ -526,6 +514,19 @@ onMounted(() => {
     ];
     mostrarMedico.value = rutasEcografias.includes(url);
 });
+
+/**
+ * Listener de visibilidad: refresca las notificaciones del help-desk
+ * cuando la pestaña vuelve a ser visible.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
+function onVisibilityChange() {
+    if (!document.hidden) {
+        cargarHdNotificaciones(true);
+    }
+}
 
 /**
  * Lifecycle hook que limpia el intervalo de polling y remueve
