@@ -949,9 +949,17 @@ async function guardarRegistro() {
             nom_pacien: registro.value.nom_pacien,
             email: registro.value.email,
             fec_naci: registro.value.fec_naci,
+            fec_estudio: registro.value.fec_estudio,
+            fec_lectura: registro.value.fec_lectura,
             url_oviyam: registro.value.url_oviyam,
             study_iuid: registro.value.study_iuid,
             tap_oviyam: registro.value.tap_oviyam,
+            // Mapeo explícito: esta query usa aliases distintos a los que
+            // espera PlantillaEstudioService para generar el PDF con firma.
+            nombres_medico: registro.value.medico ?? null,
+            reg_medico: registro.value.reg_med ?? null,
+            num_docu_medico: registro.value.num_docu_medi ?? null,
+            firma_medico: registro.value.firma ?? null,
         };
         const res = await axios.post("/api/estudio-guardarTranscripcion", payload);
 

@@ -354,7 +354,7 @@
     </div>
 </template>
 <script setup>
-import { computed, nextTick, onBeforeUnmount, ref } from "vue";
+import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import DatosPacienteDisplay from "@/components/comunes/datosPacienteDisplayComponent.vue";
@@ -369,6 +369,9 @@ defineProps({
 });
 
 const { loadingImprimir, imprimirReporte } = useEstudioHelpers();
+
+const { appContext } = getCurrentInstance();
+const emitter = appContext.config.globalProperties.emitter;
 
 const dt = ref(null);
 const registros = ref([]);
@@ -658,7 +661,31 @@ function limpiar() {
     registro.value.id_producto_lectura = "";
 }
 
+/**
+ * Maneja el evento global "sedeSeleccionada": limpia los resultados actuales
+ * y actualiza el filtro de sede para que la próxima búsqueda sea en la sede correcta.
+ *
+ * @param {Object} data - Payload del evento, contiene data.idSede con el ID de la sede elegida.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-10-14
+ */
+function onSedeSeleccionada(data) {
+    busqueda.value.sede_id = data.idSede;
+    destroyDataTable();
+    registros.value = [];
+    limpiar();
+}
+
+onMounted(() => {
+    emitter.on("sedeSeleccionada", onSedeSeleccionada);
+});
+
 onBeforeUnmount(() => {
+    emitter.off("sedeSeleccionada", onSedeSeleccionada);
     destroyDataTable();
     registros.value = [];
     registro.value = {};

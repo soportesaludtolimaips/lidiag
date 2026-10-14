@@ -33,6 +33,7 @@ class GuardarTranscripcionRequest extends FormRequest
         return [
             'estudio_producto_id' => 'required|integer|exists:estudios_productos,id',
             'id_estudio' => 'nullable|integer',
+            'destino_estudio' => 'nullable|string|max:255',
             'lectura' => 'required|string|min:3',
             'num_docu' => 'required|string|max:50',
             'nom_pacien' => 'required|string|max:255',
@@ -41,6 +42,7 @@ class GuardarTranscripcionRequest extends FormRequest
             'sexo' => 'nullable|string|max:10',
             'direccion' => 'nullable|string|max:500',
             'fec_naci' => 'nullable|string|max:50',
+            'fec_estudio' => 'nullable|string|max:50',
             'sede_id' => 'required|integer|exists:config_sedes,id',
             'cod_cups' => 'required|string|max:50',
             'nom_produc' => 'required|string|max:255',
@@ -50,9 +52,14 @@ class GuardarTranscripcionRequest extends FormRequest
             'url_oviyam' => 'nullable|string|max:500',
             'study_iuid' => 'nullable|string|max:500',
             'tap_oviyam' => 'nullable|string|max:500',
-            'destino_estudio' => 'nullable|string|max:255',
             'fechor_lectura' => 'nullable|date',
             'fec_lectura' => 'nullable|date',
+            'fechor_trascrito' => 'nullable|date',
+            // Datos del médico para generar la plantilla PDF
+            'nombres_medico' => 'nullable|string|max:255',
+            'reg_medico' => 'nullable|string|max:100',
+            'num_docu_medico' => 'nullable|string|max:50',
+            'firma_medico' => 'nullable|string|max:500',
         ];
     }
 

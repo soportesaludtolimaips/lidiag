@@ -909,6 +909,8 @@ async function guardarRegistro() {
 
         const payload = {
             estudio_producto_id: registro.value.estudio_producto_id,
+            id_estudio: registro.value.id_estudio,
+            destino_estudio: registro.value.destino_estudio ?? null,
             lectura: registro.value.lectura,
             url_oviyam: registro.value.url_oviyam,
             study_iuid: registro.value.study_iuid,
@@ -922,7 +924,12 @@ async function guardarRegistro() {
             nom_pacien: registro.value.nom_pacien,
             email: registro.value.email,
             fec_naci: registro.value.fec_naci,
-            id_estudio: registro.value.id_estudio,
+            fec_estudio: registro.value.fec_estudio,
+            fec_lectura: registro.value.fec_lectura,
+            nombres_medico: registro.value.nombres_medico ?? null,
+            reg_medico: registro.value.reg_medico ?? null,
+            num_docu_medico: registro.value.num_docu_medico ?? null,
+            firma_medico: registro.value.firma_medico ?? null,
         };
         const res = await axios.post("/api/estudio-guardarTranscripcion", payload);
 
@@ -1127,6 +1134,9 @@ async function mostrarRegistro(data = {}) {
         registro.value.url_oviyam = data.url_oviyam;
         registro.value.study_iuid = data.study_iuid;
         registro.value.tap_oviyam = data.tap_oviyam;
+        // Fix: id_estudio y destino_estudio son necesarios para Tele-Radiología
+        registro.value.id_estudio = data.id;
+        registro.value.destino_estudio = data.destino_estudio ?? null;
 
         const res = await axios.get("/api/study-listar-diagnostico-por-estudio?id=" + id.value);
         diagnosticosEstudio.value = res.data.data;

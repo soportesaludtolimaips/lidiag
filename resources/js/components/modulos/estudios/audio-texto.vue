@@ -51,7 +51,7 @@ const emit = defineEmits(["audio-saved"]);
 
 // Refs reactivos expuestos por el composable de dictado
 const dictationFlow = useDictationFlow();
-const { recognizing, microfono, audioBlob, audioUrl } = dictationFlow;
+const { recognizing, microfono, audioBlob, audioUrl, toggleSpeechRecognition } = dictationFlow;
 
 /**
  * ID numérico del estudio asociado al audio.

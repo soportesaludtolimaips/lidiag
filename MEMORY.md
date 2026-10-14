@@ -71,7 +71,16 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - Refactorizados y normalizados todos los controladores de Configuración (`ConfigSedeController`, `ConfigServicioController`, `ConfigProductoController`, `ConfigDiagnosticoController`, `ConfigPlantillaController`, `ConfigPlantillaTipoController`, `ConfigPrioridadController`, `ConfigAdminSaludController`, `ConfigModulosController`, `ConfigTipoDocumentoController`, `ConfigWhatsappController`, `ConfigSedeWhatsappNumberController`, `ConsentimientoInformadoController`, `ServicioProductoController`) con respuestas tipadas, casting entero `(int) $result["status"]` y comillas dobles.
   - Verificación estricta: `vendor\bin\pint.bat --test` passed y `npm run build` passed en 866ms.
 - [x] **Refactorización integral de 6 fases completada al 100%:** Estudios, Ecografías, Citas & Agenda, Contratación & Liquidación, Help Desk, Seguridad & Configuración.
-- [ ] Revisión final con el usuario y aprobación para commit.
+- [x] **2026-10-14 — Auditoría y hotfixes del módulo `resources/js/components/modulos/estudios` (9 componentes Vue):**
+  - **Bug 1 — `audio-texto.vue`:** `toggleSpeechRecognition` no estaba desestructurado desde `useDictationFlow()`. El clic en el micrófono lanzaba `TypeError`. **Fix:** añadido al destructuring.
+  - **Bug 2 — `transcribirEstudioComponent.vue`:** `registro.value.id_estudio` y `registro.value.destino_estudio` nunca se asignaban en `mostrarRegistro()`. Para estudios de Tele-Radiología el backend hacía `Estudio::findOrFail(null)` → HTTP 500. **Fix:** asignación añadida + payload de `guardarRegistro` completado con todos los campos del médico (`nombres_medico`, `reg_medico`, `num_docu_medico`, `firma_medico`, `fec_estudio`, `fec_lectura`).
+  - **Bug 3 — `GuardarTranscripcionRequest.php`:** Los campos del médico y fechas adicionales no tenían reglas `nullable`, por lo que `$request->validated()` los descartaba antes de llegar a `PlantillaEstudioService`; el PDF se generaba sin nombre ni firma del médico. **Fix:** reglas `nullable|string` añadidas.
+  - **Bug 4 — `leerEstudioComponent.vue`:** Upload de audio fire-and-forget (se perdía si el médico cerraba el panel). `catch` del POST principal silencioso (sin toast). **Fix:** `await axios.post('/api/upload-audio')` dentro del try/success con toast de advertencia propio; toast de error añadido al catch principal.
+  - **Bug 5 — `notificarEstudioComponent.vue`:** Sin listener de `emitter.on('sedeSeleccionada')`. Al cambiar sede, el módulo mostraba datos obsoletos. **Fix:** `onMounted`/`onBeforeUnmount` con `onSedeSeleccionada` que limpia resultados y actualiza `busqueda.sede_id`.
+  - **Inconsistencia — `estudioAsignadosComponent.vue`:** El payload enviaba `medico`, `reg_med`, `num_docu_medi`, `firma` (aliases de la query SQL) en lugar de los nombres canónicos que espera `PlantillaEstudioService` → PDF sin datos del médico. **Fix:** mapeo explícito a `nombres_medico`, `reg_medico`, `num_docu_medico`, `firma_medico`.
+  - Verificación: ESLint ✅ | Pint ✅ | `npm run build` ✅ en todos los archivos modificados.
+- [ ] Aprobación de commit pendiente.
+
 
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.

@@ -1564,6 +1564,25 @@ async function guardarRegistro() {
             const estudioId = id.value;
             const productoId = registro.value.estudio_producto_id;
 
+            // Subir audio ANTES de cerrar el panel: si falla, el médico
+            // recibe feedback pero el estudio ya quedó guardado en BD.
+            if (blobToSend && blobToSend instanceof Blob) {
+                const formData = new FormData();
+                formData.append("audio", blobToSend, "audio.webm");
+                formData.append("estudio_id", estudioId);
+                formData.append("estudio_producto_id", productoId);
+                try {
+                    await axios.post("/api/upload-audio", formData);
+                } catch (audioErr) {
+                    console.error("Audio upload failed:", audioErr);
+                    toastMessage({
+                        heading: "Aviso",
+                        text: "La lectura fue guardada, pero no fue posible subir el audio. Intente nuevamente.",
+                        icon: "warning",
+                    });
+                }
+            }
+
             toastMessage({
                 heading: "Completado",
                 text: res.data.message,
@@ -1585,22 +1604,17 @@ async function guardarRegistro() {
 
             cerrarSidebar();
             limpiar();
-
-            if (blobToSend && blobToSend instanceof Blob) {
-                const formData = new FormData();
-                formData.append("audio", blobToSend, "audio.webm");
-                formData.append("estudio_id", estudioId);
-                formData.append("estudio_producto_id", productoId);
-                axios.post("/api/upload-audio", formData).catch((e) => {
-                    console.error("Audio upload failed:", e);
-                });
-            }
         }
     } catch (error) {
         errores.value =
             error?.response?.data?.errors && typeof error.response.data.errors === "object"
                 ? error.response.data.errors
                 : {};
+        toastMessage({
+            heading: "Error",
+            text: getUserSafeError(error, "No fue posible guardar la lectura del estudio."),
+            icon: "error",
+        });
     } finally {
         await stopAll();
         loadingGuardar.value = false;
