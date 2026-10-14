@@ -241,7 +241,14 @@ const granTotal = computed(() => resultado.value?.gran_total ?? 0);
  */
 function formatDate(dateStr) {
     if (!dateStr) return "";
-    return new Date(dateStr).toLocaleDateString("es-CO");
+    const cleanDate = String(dateStr).split(/[ T]/)[0];
+    const parts = cleanDate.split("-");
+    if (parts.length === 3) {
+        const [year, month, day] = parts;
+        return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+    }
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? "" : d.toLocaleDateString("es-CO");
 }
 
 /**
@@ -254,8 +261,14 @@ function formatDate(dateStr) {
  * @date 2026-10-01
  */
 function formatMoney(value) {
-    if (!value) return "$0";
-    return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP" }).format(value);
+    const num = Number(value);
+    if (value === null || value === undefined || isNaN(num)) return "$ 0";
+    return new Intl.NumberFormat("es-CO", {
+        style: "currency",
+        currency: "COP",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(num);
 }
 
 /**

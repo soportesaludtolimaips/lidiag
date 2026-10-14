@@ -78,7 +78,17 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Bug 4 — `leerEstudioComponent.vue`:** Upload de audio fire-and-forget (se perdía si el médico cerraba el panel). `catch` del POST principal silencioso (sin toast). **Fix:** `await axios.post('/api/upload-audio')` dentro del try/success con toast de advertencia propio; toast de error añadido al catch principal.
   - **Bug 5 — `notificarEstudioComponent.vue`:** Sin listener de `emitter.on('sedeSeleccionada')`. Al cambiar sede, el módulo mostraba datos obsoletos. **Fix:** `onMounted`/`onBeforeUnmount` con `onSedeSeleccionada` que limpia resultados y actualiza `busqueda.sede_id`.
   - **Inconsistencia — `estudioAsignadosComponent.vue`:** El payload enviaba `medico`, `reg_med`, `num_docu_medi`, `firma` (aliases de la query SQL) en lugar de los nombres canónicos que espera `PlantillaEstudioService` → PDF sin datos del médico. **Fix:** mapeo explícito a `nombres_medico`, `reg_medico`, `num_docu_medico`, `firma_medico`.
-  - Verificación: ESLint ✅ | Pint ✅ | `npm run build` ✅ en todos los archivos modificados.
+  - Verificación: ESLint ✅ | Pint ✅ | `npm run build` ✅ en todos los archivos modificados (Commit: `cccecdda6`).
+- [x] **2026-10-14 — Auditoría y hotfixes de los módulos `contratos` y `liquidacion` (`contratoComponent.vue`, `liquidacionComponent.vue`, `productividadComponent.vue`):**
+  - **BUG-01 — `contratoComponent.vue`:** Diálogo de registros ausentes cancelado no abortaba el PUT y guardaba sin confirmación explícita del usuario. **Fix:** Agregada confirmación explícita para guardar solo altas/cambios al cancelar el retiro de faltantes.
+  - **BUG-02 — Verificación de contrato backend:** El campo `registro: JSON.stringify(...)` cumple estrictamente la regla `'registro' => 'required|json'` de `ContratoRequest.php`. Se mantuvo intacto para preservar el contrato de API.
+  - **BUG-03 — `liquidacionComponent.vue` & `productividadComponent.vue`:** `formatMoney(0)` devolvía el string crudo `"$0"` sin separadores ni espaciado de moneda estándar `es-CO`. **Fix:** Normalización con `Number()` y formateo uniforme con `Intl.NumberFormat("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 0 })`.
+  - **BUG-04 — `contratoComponent.vue`:** Los sidebars de edición de contrato (`sidebarVisible`) y de detalle de médicos (`detalleVisible`) se abrían en paralelo superponiéndose en el DOM. **Fix:** Cierre mutuo al invocar `mostrarRegistro()` y `abrirDetalle()`.
+  - **BUG-05 — `contratoComponent.vue`:** Bucle `while (intentos < MAX_INTENTOS)` de importación de Excel finalizaba silenciosamente al agotar intentos sin éxito. **Fix:** Bandera de control `exito` con toast de error informativo de fallback.
+  - **BUG-06 — `contratoComponent.vue`, `liquidacionComponent.vue` & `productividadComponent.vue`:** `new Date(dateStr)` sin hora interpretaba medianoche UTC y restaba 1 día en Colombia (UTC-5). **Fix:** Parseo determinista de componentes `[YYYY, MM, DD]` a `DD/MM/YYYY`.
+  - **BUG-07 — `liquidacionComponent.vue`:** Botón "Exportar" permitía abrir ventana con archivo vacío o error 422 si no se había calculado la liquidación. **Fix:** Validación defensiva con toast de atención y desactivación del botón en template (`:disabled="loading || !resultado?.lineas?.length"`).
+  - **BUG-08 — `contratoComponent.vue`:** Catch de `guardarDetalles` no validaba que `_error.response?.data?.errors` fuese un objeto, arriesgando `TypeError` en errores 500. **Fix:** Lectura y extracción defensiva de mensajes de error.
+  - Verificación estricta: ESLint ✅ (0 errores) | `npm run build` ✅.
 - [ ] Aprobación de commit pendiente.
 
 

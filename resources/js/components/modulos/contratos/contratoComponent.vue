@@ -681,7 +681,14 @@ const medicoOptions = computed(() =>
  */
 function formatDate(dateStr) {
     if (!dateStr) return "";
-    return new Date(dateStr).toLocaleDateString("es-CO");
+    const cleanDate = String(dateStr).split(/[ T]/)[0];
+    const parts = cleanDate.split("-");
+    if (parts.length === 3) {
+        const [year, month, day] = parts;
+        return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+    }
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? "" : d.toLocaleDateString("es-CO");
 }
 
 /**
@@ -744,6 +751,9 @@ async function listar() {
  * @date 2026-08-20
  */
 function mostrarRegistro(item = null) {
+    if (detalleVisible.value) {
+        detalleVisible.value = false;
+    }
     errores.value = {};
     const sedeId = sedeActual.value?.id ?? "";
     if (item) {
@@ -899,6 +909,9 @@ async function cargarCatalogos() {
  * @date 2026-08-20
  */
 async function abrirDetalle(contrato) {
+    if (sidebarVisible.value) {
+        sidebarVisible.value = false;
+    }
     contratoSeleccionado.value = contrato;
     cargarCobertura(contrato.id);
     detallesLocales.value = mapearMedicosDetalle(contrato.medicos || []);
@@ -1046,15 +1059,24 @@ async function guardarDetalles() {
                 icon: "warning",
             });
 
+            if (!retirar) {
+                const soloAltas = await confirmAction({
+                    title: "Confirmar cambios parciales",
+                    text:
+                        resumen +
+                        " Los registros ausentes se conservarán. ¿Desea aplicar solo las altas y cambios?",
+                    icon: "question",
+                });
+                if (!soloAltas) return;
+            }
             payload.retirar_faltantes = retirar;
-        } else if (
-            !(await confirmAction({
+        } else {
+            const ok = await confirmAction({
                 title: "Confirmar cambios",
                 text: resumen + " ¿Desea aplicarlos?",
                 icon: "question",
-            }))
-        ) {
-            return;
+            });
+            if (!ok) return;
         }
 
         await axios.put(url, payload);
@@ -1071,12 +1093,16 @@ async function guardarDetalles() {
         await cargarCobertura(contratoSeleccionado.value.id);
         await listar();
     } catch (_error) {
-        const msg =
-            _error.response?.data?.message ||
-            Object.values(_error.response?.data?.errors || {})
-                .flat()
-                .join(", ");
-        toastMessage({ heading: "Error", text: msg || "Error de validación", icon: "error" });
+        const errorData = _error.response?.data;
+        let msg = typeof errorData === "object" ? errorData?.message : null;
+        if (!msg && errorData?.errors && typeof errorData.errors === "object") {
+            msg = Object.values(errorData.errors).flat().join(", ");
+        }
+        toastMessage({
+            heading: "Error",
+            text: msg || "Error al guardar los detalles del contrato",
+            icon: "error",
+        });
     } finally {
         loadingGuardarDetalle.value = false;
     }
@@ -1220,6 +1246,7 @@ async function procesarImportacion() {
         let crearFaltantes = false;
         let intentos = 0;
         const MAX_INTENTOS = 2;
+        let exito = false;
 
         while (intentos < MAX_INTENTOS) {
             intentos++;
@@ -1271,7 +1298,16 @@ async function procesarImportacion() {
                 detallesLocales.value = mapearMedicosDetalle(detalle.data.data.medicos || []);
             }
             await listar();
+            exito = true;
             break;
+        }
+
+        if (!exito) {
+            toastMessage({
+                heading: "Error",
+                text: "No fue posible completar la importación tras verificar los productos. Intente nuevamente.",
+                icon: "error",
+            });
         }
     } catch (error) {
         const msg = error.response?.data?.message || "Error al importar el archivo";
