@@ -88,7 +88,15 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **BUG-06 — `contratoComponent.vue`, `liquidacionComponent.vue` & `productividadComponent.vue`:** `new Date(dateStr)` sin hora interpretaba medianoche UTC y restaba 1 día en Colombia (UTC-5). **Fix:** Parseo determinista de componentes `[YYYY, MM, DD]` a `DD/MM/YYYY`.
   - **BUG-07 — `liquidacionComponent.vue`:** Botón "Exportar" permitía abrir ventana con archivo vacío o error 422 si no se había calculado la liquidación. **Fix:** Validación defensiva con toast de atención y desactivación del botón en template (`:disabled="loading || !resultado?.lineas?.length"`).
   - **BUG-08 — `contratoComponent.vue`:** Catch de `guardarDetalles` no validaba que `_error.response?.data?.errors` fuese un objeto, arriesgando `TypeError` en errores 500. **Fix:** Lectura y extracción defensiva de mensajes de error.
-  - Verificación estricta: ESLint ✅ (0 errores) | `npm run build` ✅.
+  - Verificación estricta: ESLint ✅ (0 errores) | `npm run build` ✅ (Commit: `51534fc0b`).
+- [x] **2026-10-14 — Auditoría profunda y hotfixes del módulo `resources/js/components/modulos/estudios` (5 componentes Vue corregidos):**
+  - **BUG-EST-01 — `estudioAsignadosComponent.vue`:** Desincronización del evento global `sedeSeleccionada`. **Fix:** Inyección de `emitter` y sincronización reactiva en `onMounted`/`onBeforeUnmount`.
+  - **BUG-EST-02 — `notificarEstudioComponent.vue`:** Mutación imperativa con jQuery que rompía el binding reactivo `:class="{ 'shw-rside': sidebarVisible }"`. **Fix:** Control 100% reactivo mediante `sidebarVisible.value`.
+  - **BUG-EST-03 — `QuemadorCdComponent.vue` & `QuemarMultiplesComponent.vue`:** Polling cada 5 segundos disparaba tormenta de toasts de error si el servicio óptico fallaba. **Fix:** Parametrización `listarUnidades(silent = true)` en timers de fondo y umbral de reintentos en sondeo de quemado.
+  - **BUG-EST-04 — `AsignarEstudioComponent.vue`:** Superposición de paneles laterales `sidebarVisible` y `sidebarQuemarMultiplesVisible`. **Fix:** Cierre mutuamente excluyente al abrir cualquiera de los dos.
+  - **BUG-EST-05 — `AsignarEstudioComponent.vue`:** Promesa no esperada en liberación de lock y rama inalcanzable de Axios que silenciaba errores 500 en `buscarStudy()`. **Fix:** `await liberarLockAsignacion()` secuenciado y notificación adecuada de errores en `catch`.
+  - **BUG-EST-06 — `notificarEstudioComponent.vue`:** Pre-validación de filtros antes de activar `loadingBuscar` y captura no restrictiva de errores en búsquedas. **Fix:** Validación temprana y notificación defensiva en `catch`.
+  - Verificación estricta: ESLint ✅ (0 errores, 0 advertencias) | `npm run build` ✅.
 - [ ] Aprobación de commit pendiente.
 
 

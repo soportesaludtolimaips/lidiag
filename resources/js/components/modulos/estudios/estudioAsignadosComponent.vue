@@ -739,7 +739,7 @@
     </div>
 </template>
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { listarUsuariosYSedes } from "@/helpers/usuarios";
@@ -749,6 +749,9 @@ import axios from "axios";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
 
 defineProps({ usuarioactual: { type: Object, default: () => ({}) } });
+
+const { appContext } = getCurrentInstance();
+const emitter = appContext.config.globalProperties.emitter;
 
 const {
     loadingDescarga,
@@ -1153,7 +1156,14 @@ function btnCerrarModalForm() {
     sidebarVisible.value = false;
 }
 
+function onSedeSeleccionada(data) {
+    busqueda.value.sede_id = data.idSede;
+    destroyDataTable();
+    registros.value = [];
+}
+
 onMounted(async () => {
+    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
     await listarUsuariosYSedes({
         set quienes_asignaron(v) {
             quienes_asignaron.value = v;
@@ -1162,9 +1172,11 @@ onMounted(async () => {
             medicos.value = v;
         },
     });
+    emitter.on("sedeSeleccionada", onSedeSeleccionada);
 });
 
 onBeforeUnmount(() => {
+    emitter.off("sedeSeleccionada", onSedeSeleccionada);
     destroyDataTable();
     registros.value = [];
     soportesHC.value = [];

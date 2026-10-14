@@ -420,22 +420,23 @@ function btnLimpiar() {
  */
 async function buscarStudy() {
     if (loadingBuscar.value) return;
+
+    if (
+        busqueda.value.bus_num_docu == "" &&
+        busqueda.value.bus_fech_ini == "" &&
+        busqueda.value.bus_fecha_fin == "" &&
+        busqueda.value.bus_nom == ""
+    ) {
+        toastMessage({
+            heading: "Upsss!!!",
+            text: "Debe indicar documento, nombre o un rango de fechas para la búsqueda.",
+            icon: "warning",
+        });
+        return;
+    }
+
     loadingBuscar.value = true;
     try {
-        if (
-            busqueda.value.bus_num_docu == "" &&
-            busqueda.value.bus_fech_ini == "" &&
-            busqueda.value.bus_fecha_fin == "" &&
-            busqueda.value.bus_nom == ""
-        ) {
-            toastMessage({
-                heading: "Upsss!!!",
-                text: "Debe indicar documento, nombre o un rango de fechas para la búsqueda.",
-                icon: "warning",
-            });
-            return;
-        }
-
         const res = await axios.post("/api/listar.estudios.notificaciones", busqueda.value);
 
         registros.value = res.data.data || [];
@@ -449,14 +450,11 @@ async function buscarStudy() {
         });
     } catch (error) {
         registros.value = [];
-        const status = error?.response?.status;
-        if (status == 500) {
-            toastMessage({
-                heading: "Upss!!!",
-                text: getUserSafeError(error, "Error al listar estudios."),
-                icon: "error",
-            });
-        }
+        toastMessage({
+            heading: "Error",
+            text: getUserSafeError(error, "Error al listar estudios."),
+            icon: "error",
+        });
     } finally {
         loadingBuscar.value = false;
     }
@@ -587,13 +585,11 @@ async function enviarPortalPacientes() {
 }
 
 function abrirModal() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").addClass("shw-rside");
+    sidebarVisible.value = true;
 }
 
 function btnCerralModalForm() {
-    $(".right-sidebar").slideUp(50);
-    $(".right-sidebar").removeClass("shw-rside");
+    sidebarVisible.value = false;
 }
 
 /**

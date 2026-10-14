@@ -1250,16 +1250,15 @@ async function buscarStudy() {
                         buttons: ["copy", "csv", "excel", "pdf", "print"],
                     });
                 });
-            } else if (res.status == 500) {
-                toastMessage({
-                    heading: "Upsss!!!",
-                    text: res.data.message,
-                    icon: "danger",
-                });
             }
         }
     } catch (error) {
         erroresBusqueda.value = error?.response?.data?.errors || {};
+        toastMessage({
+            heading: "Error",
+            text: getUserSafeError(error, "No fue posible listar los estudios."),
+            icon: "error",
+        });
     } finally {
         loadingBuscar.value = false;
     }
@@ -1400,8 +1399,8 @@ async function tomarLockAsignacion(data) {
     };
 
     try {
+        await liberarLockAsignacion();
         await axios.post("/api/estudio-lock/tomar", params);
-        liberarLockAsignacion();
         lockAsignParams.value = params;
         iniciarHeartbeatLockAsignacion();
         return true;
@@ -1649,6 +1648,7 @@ function establecerSede() {
  * @date 2026-09-29
  */
 function abrirModal() {
+    sidebarQuemarMultiplesVisible.value = false;
     sidebarVisible.value = true;
     nextTick(() => {
         primerInput.value?.focus();
@@ -2083,6 +2083,9 @@ function onDescargaZipCompletado() {
  * @date 2026-09-29
  */
 function abrirSidebarQuemarMultiples() {
+    if (sidebarVisible.value) {
+        cerrarModal();
+    }
     sidebarQuemarMultiplesVisible.value = true;
 }
 

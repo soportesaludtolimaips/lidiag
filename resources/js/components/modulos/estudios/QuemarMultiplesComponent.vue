@@ -499,10 +499,12 @@ function startPolling() {
         MAX_POLL_MINUTES * 60 * 1000
     );
 
+    let pollErrors = 0;
     pollTimer = setInterval(async () => {
         if (!burnId.value) return;
         try {
             const res = await axios.get(`/api/dicom/burn-status/${burnId.value}`);
+            pollErrors = 0;
             if (res.data.status === "success") {
                 const data = res.data.data;
                 burnStatusStatus.value = data.status;
@@ -518,11 +520,14 @@ function startPolling() {
                 }
             }
         } catch (_e) {
-            toastMessage({
-                heading: "Error de conexión",
-                text: "No se pudo consultar el estado del quemado.",
-                icon: "error",
-            });
+            pollErrors++;
+            if (pollErrors === 3) {
+                toastMessage({
+                    heading: "Error de conexión",
+                    text: "No se pudo consultar el estado del quemado.",
+                    icon: "error",
+                });
+            }
         }
     }, 2000);
 }
@@ -550,7 +555,7 @@ function quitarEstudio(index) {
     estudiosLocales.value.splice(index, 1);
 }
 
-async function listarUnidades() {
+async function listarUnidades(silent = false) {
     loadingDrives.value = true;
     try {
         const res = await axios.get("/api/dicom/list-drives");
@@ -568,11 +573,13 @@ async function listarUnidades() {
             }
         }
     } catch (_e) {
-        toastMessage({
-            heading: "Error",
-            text: "No fue posible consultar las unidades de CD/DVD del servidor.",
-            icon: "error",
-        });
+        if (!silent) {
+            toastMessage({
+                heading: "Error",
+                text: "No fue posible consultar las unidades de CD/DVD del servidor.",
+                icon: "error",
+            });
+        }
         drives.value = [];
         selectedDrive.value = null;
     } finally {
@@ -708,7 +715,7 @@ onMounted(async () => {
     // Auto-refresh drives every 5 seconds
     driveRefreshTimer = setInterval(() => {
         if (!burning.value) {
-            listarUnidades();
+            listarUnidades(true);
         }
     }, 5000);
 });
