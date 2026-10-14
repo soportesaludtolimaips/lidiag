@@ -7,7 +7,6 @@ use App\Models\Agenda\AgendaDisponibilidaDetalle;
 use App\Models\Citas\ConfigCitaRechazoMotivo;
 use App\Models\Citas\WhatsAppConversation;
 use App\Models\Configuracion\ConfigRecomendacionProducto;
-use App\Models\Configuracion\ConfigServicio;
 use App\Models\General\Paciente;
 use App\Models\Interface\Sahi\Paciente as SahiPaciente;
 use App\Services\BaseService;
@@ -26,6 +25,7 @@ class AgendaCitaService extends BaseService
      *
      * @param  WhatsAppService  $whatsAppService  servicio de mensajería WhatsApp.
      * @param  WhatsAppFlowService  $whatsAppFlowService  servicio de flujos de WhatsApp.
+     * @param  AgendaCitaQueryService  $queryService  servicio de consultas y lecturas de citas.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -34,12 +34,13 @@ class AgendaCitaService extends BaseService
     public function __construct(
         private readonly WhatsAppService $whatsAppService,
         private readonly WhatsAppFlowService $whatsAppFlowService,
+        private readonly AgendaCitaQueryService $queryService,
     ) {}
 
     /**
      * Obtiene todas las citas con filtros opcionales y paginación.
      *
-     * @param  Request  $request  parámetros de búsqueda: estado, fechas, servicio, sede, búsqueda de paciente.
+     * @param  Request|array  $request  parámetros de búsqueda: estado, fechas, servicio, sede, búsqueda de paciente.
      *
      * @returns array resultado con las citas paginadas.
      *
@@ -47,41 +48,11 @@ class AgendaCitaService extends BaseService
      *
      * @date 2026-05-26
      */
-    public function all(Request $request): array
+    public function all(Request|array $request): array
     {
-        $query = AgendaCita::with(['paciente', 'servicio', 'producto', 'sede', 'quienRegistra']);
+        $filters = $request instanceof Request ? $request->all() : $request;
 
-        if ($request->has('estado')) {
-            $query->where('estado', $request->estado);
-        }
-
-        if ($request->has('fecha_inicio') && $request->has('fecha_fin')) {
-            $query->whereBetween('fecha_hora_inicio', [
-                $request->fecha_inicio.' 00:00:00',
-                $request->fecha_fin.' 23:59:59',
-            ]);
-        }
-
-        if ($request->has('servicio_id')) {
-            $query->where('servicio_id', $request->servicio_id);
-        }
-
-        if ($request->has('sede_id')) {
-            $query->where('sede_id', $request->sede_id);
-        }
-
-        if ($request->has('busqueda')) {
-            $busqueda = $request->busqueda;
-            $query->whereHas('paciente', function ($q) use ($busqueda) {
-                $q->where('num_docu', 'like', '%'.$this->sanitizeLike($busqueda).'%')
-                    ->orWhere('nombres', 'like', '%'.$this->sanitizeLike($busqueda).'%')
-                    ->orWhere('pri_ape', 'like', '%'.$this->sanitizeLike($busqueda).'%');
-            });
-        }
-
-        $citas = $query->orderBy('created_at', 'desc')->paginate($request->per_page ?? 20);
-
-        return $this->success($citas);
+        return $this->queryService->all($filters);
     }
 
     /**
@@ -352,7 +323,7 @@ class AgendaCitaService extends BaseService
     /**
      * Obtiene las citas solicitadas pendientes de revisión con filtros opcionales.
      *
-     * @param  Request  $request  parámetros de filtrado: servicio, sede, búsqueda de paciente.
+     * @param  Request|array  $request  parámetros de filtrado: servicio, sede, búsqueda de paciente.
      *
      * @returns array resultado con las citas pendientes.
      *
@@ -360,31 +331,11 @@ class AgendaCitaService extends BaseService
      *
      * @date 2026-05-26
      */
-    public function pendientes(Request $request): array
+    public function pendientes(Request|array $request): array
     {
-        $query = AgendaCita::with(['paciente', 'servicio', 'producto', 'sede', 'quienRegistra', 'rechazoMotivo'])
-            ->where('estado', 'solicitada');
+        $filters = $request instanceof Request ? $request->all() : $request;
 
-        if ($request->servicio_id) {
-            $query->where('servicio_id', $request->servicio_id);
-        }
-
-        if ($request->sede_id) {
-            $query->where('sede_id', $request->sede_id);
-        }
-
-        if ($request->busqueda) {
-            $busqueda = $request->busqueda;
-            $query->whereHas('paciente', function ($q) use ($busqueda) {
-                $q->where('num_docu', 'like', '%'.$this->sanitizeLike($busqueda).'%')
-                    ->orWhere('nombres', 'like', '%'.$this->sanitizeLike($busqueda).'%')
-                    ->orWhere('pri_ape', 'like', '%'.$this->sanitizeLike($busqueda).'%');
-            });
-        }
-
-        $citas = $query->orderBy('created_at', 'desc')->get();
-
-        return $this->success($citas);
+        return $this->queryService->pendientes($filters);
     }
 
     /**
@@ -439,30 +390,7 @@ class AgendaCitaService extends BaseService
      */
     public function disponibilidad(array $data): array
     {
-        $fecha = Carbon::parse($data['fecha']);
-
-        $detalles = AgendaDisponibilidaDetalle::query()
-            ->whereHas('agendaDisponibilida', function ($q) use ($data) {
-                $q->where('sede_id', $data['sede_id'])
-                    ->where('servicio_id', $data['servicio_id'])
-                    ->where('estado', 'Activo');
-            })
-            ->whereDate('fecha_hora_inicio', $fecha)
-            ->where('estado', 'Disponible')
-            ->orderBy('fecha_hora_inicio')
-            ->get(['id', 'fecha_hora_inicio', 'fecha_hora_fin', 'estado']);
-
-        return $this->success([
-            'fecha' => $data['fecha'],
-            'detalles' => $detalles->map(function ($detalle) {
-                return [
-                    'id' => $detalle->id,
-                    'inicio' => $detalle->fecha_hora_inicio->format('Y-m-d H:i'),
-                    'fin' => $detalle->fecha_hora_fin->format('Y-m-d H:i'),
-                    'disponible' => $detalle->estado === 'Disponible',
-                ];
-            }),
-        ]);
+        return $this->queryService->disponibilidad($data);
     }
 
     /**
@@ -476,9 +404,7 @@ class AgendaCitaService extends BaseService
      */
     public function servicios(): array
     {
-        $servicios = ConfigServicio::where('estado', true)->get();
-
-        return $this->success($servicios);
+        return $this->queryService->servicios();
     }
 
     /**
@@ -495,15 +421,7 @@ class AgendaCitaService extends BaseService
      */
     public function productosPorServicio(int $servicioCitaId, ?string $sedeId = null): array
     {
-        $servicio = ConfigServicio::with(['productos' => function ($query) {
-            $query->where('config_productos.estado', true);
-        }])->findOrFail($servicioCitaId);
-
-        if ($sedeId && $servicio->sede_id != $sedeId) {
-            return $this->success([]);
-        }
-
-        return $this->success($servicio->productos);
+        return $this->queryService->productosPorServicio($servicioCitaId, $sedeId);
     }
 
     /**
@@ -846,20 +764,7 @@ class AgendaCitaService extends BaseService
      */
     public function verConversacion(AgendaCita $cita): array
     {
-        $conversacion = null;
-
-        if ($cita->paciente && $cita->paciente->cel) {
-            $cel = preg_replace('/[^0-9]/', '', $cita->paciente->cel);
-            $conversacion = WhatsAppConversation::whereRaw(
-                "REPLACE(REPLACE(REPLACE(telefono, ' ', ''), '-', ''), '+', '') LIKE ?",
-                ["%{$cel}"]
-            )->first();
-        }
-
-        return $this->success([
-            'cita' => $cita->load(['paciente', 'servicio', 'producto', 'sede']),
-            'conversacion' => $conversacion,
-        ]);
+        return $this->queryService->verConversacion($cita);
     }
 
     /**
@@ -883,20 +788,6 @@ class AgendaCitaService extends BaseService
         }
 
         return Storage::disk('local')->path($path);
-    }
-
-    /**
-     * Escapa los caracteres especiales de comodín SQL utilizados en búsquedas LIKE.
-     *
-     * @param  string  $value  Valor a sanitizar para la cláusula LIKE
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-10-13
-     */
-    private function sanitizeLike(string $value): string
-    {
-        return str_replace(['%', '_'], ['\\%', '\\_'], $value);
     }
 
     /**

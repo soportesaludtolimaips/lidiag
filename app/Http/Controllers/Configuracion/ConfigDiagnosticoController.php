@@ -39,7 +39,7 @@ class ConfigDiagnosticoController extends Controller
     {
         $result = $this->configDiagnosticoService->all();
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -57,7 +57,7 @@ class ConfigDiagnosticoController extends Controller
     {
         $result = $this->configDiagnosticoService->create($request->validated());
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -76,7 +76,7 @@ class ConfigDiagnosticoController extends Controller
     {
         $result = $this->configDiagnosticoService->update($id, $request->validated());
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -94,6 +94,6 @@ class ConfigDiagnosticoController extends Controller
     {
         $result = $this->configDiagnosticoService->delete($id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 }

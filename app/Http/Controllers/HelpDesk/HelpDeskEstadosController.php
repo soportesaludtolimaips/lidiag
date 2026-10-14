@@ -38,7 +38,7 @@ class HelpDeskEstadosController extends Controller
     {
         $result = $this->estadoService->all();
 
-        return response()->json($result, $result["status"]);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -56,7 +56,7 @@ class HelpDeskEstadosController extends Controller
     {
         $result = $this->estadoService->create();
 
-        return response()->json(['message' => $result['message']], $result['status']);
+        return response()->json(["message" => $result["message"]], (int) $result["status"]);
     }
 
     /**
@@ -74,7 +74,7 @@ class HelpDeskEstadosController extends Controller
     {
         $result = $this->estadoService->find($estado->id);
 
-        return response()->json($result, $result["status"]);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -93,7 +93,7 @@ class HelpDeskEstadosController extends Controller
     {
         $result = $this->estadoService->update($estado->id);
 
-        return response()->json(['message' => $result['message']], $result['status']);
+        return response()->json(["message" => $result["message"]], (int) $result["status"]);
     }
 
     /**
@@ -111,6 +111,6 @@ class HelpDeskEstadosController extends Controller
     {
         $result = $this->estadoService->delete($estado->id);
 
-        return response()->json(['message' => $result['message']], $result['status']);
+        return response()->json(["message" => $result["message"]], (int) $result["status"]);
     }
 }

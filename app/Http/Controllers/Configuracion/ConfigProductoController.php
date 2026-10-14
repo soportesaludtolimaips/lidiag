@@ -39,7 +39,7 @@ class ConfigProductoController extends Controller
     {
         $result = $this->configProductoService->all();
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -47,7 +47,7 @@ class ConfigProductoController extends Controller
      *
      * @param  int  $id  Identificador del producto.
      *
-     * @returns {JsonResponse}
+     * @returns JsonResponse
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -57,7 +57,7 @@ class ConfigProductoController extends Controller
     {
         $result = $this->configProductoService->find($id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -65,7 +65,7 @@ class ConfigProductoController extends Controller
      *
      * @param  ConfigProductoRequest  $request  Solicitud validada con los datos.
      *
-     * @returns {JsonResponse}
+     * @returns JsonResponse
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -75,7 +75,7 @@ class ConfigProductoController extends Controller
     {
         $result = $this->configProductoService->create($request->validated());
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -84,7 +84,7 @@ class ConfigProductoController extends Controller
      * @param  ConfigProductoRequest  $request  Solicitud validada con los datos.
      * @param  int  $id  Identificador del producto.
      *
-     * @returns {JsonResponse}
+     * @returns JsonResponse
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -94,7 +94,7 @@ class ConfigProductoController extends Controller
     {
         $result = $this->configProductoService->update($id, $request->validated());
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -102,7 +102,7 @@ class ConfigProductoController extends Controller
      *
      * @param  int  $id  Identificador del producto.
      *
-     * @returns {JsonResponse}
+     * @returns JsonResponse
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -112,6 +112,6 @@ class ConfigProductoController extends Controller
     {
         $result = $this->configProductoService->delete($id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 }

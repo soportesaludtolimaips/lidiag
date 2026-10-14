@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\HelpDesk\HelpDeskChangeStatusRequest;
 use App\Http\Requests\HelpDesk\HelpDeskCommentRequest;
 use App\Http\Requests\HelpDesk\HelpDeskReassignRequest;
+use App\Http\Requests\HelpDesk\HelpDeskTicketIndexRequest;
 use App\Http\Requests\HelpDesk\HelpDeskTicketStoreRequest;
 use App\Http\Requests\HelpDesk\HelpDeskTicketUpdateRequest;
 use App\Models\HelpDesk\HelpDeskTickets;
@@ -33,7 +34,7 @@ class HelpDeskTicketsController extends Controller
     /**
      * Lista los tickets de help desk aplicando filtros y paginación según el alcance solicitado.
      *
-     * @param  Request  $request  Petición HTTP con los filtros de consulta (scope, estado, categoría, prioridad, sede, fechas, búsqueda y paginación).
+     * @param  HelpDeskTicketIndexRequest  $request  Petición validada con los filtros de consulta.
      *
      * @returns JsonResponse Respuesta JSON con la lista paginada de tickets.
      *
@@ -41,24 +42,25 @@ class HelpDeskTicketsController extends Controller
      *
      * @date 2026-02-13
      */
-    public function index(Request $request): JsonResponse
+    public function index(HelpDeskTicketIndexRequest $request): JsonResponse
     {
+        $validated = $request->validated();
         $filters = [
-            'scope' => $request->query('scope', 'mine'),
-            'estado_id' => $request->query('estado_id'),
-            'categoria_id' => $request->query('categoria_id'),
-            'prioridad_id' => $request->query('prioridad_id'),
-            'sede_id' => $request->query('sede_id'),
-            'desde' => $request->query('desde') ?: $request->query('fechaIni'),
-            'hasta' => $request->query('hasta') ?: $request->query('fechaFin'),
-            'q' => $request->query('q'),
-            'per_page' => (int) $request->query('per_page', 50),
-            'page' => (int) $request->query('page', 1),
+            'scope' => $validated['scope'] ?? 'mine',
+            'estado_id' => $validated['estado_id'] ?? null,
+            'categoria_id' => $validated['categoria_id'] ?? null,
+            'prioridad_id' => $validated['prioridad_id'] ?? null,
+            'sede_id' => $validated['sede_id'] ?? null,
+            'desde' => $validated['desde'] ?? ($validated['fechaIni'] ?? null),
+            'hasta' => $validated['hasta'] ?? ($validated['fechaFin'] ?? null),
+            'q' => $validated['q'] ?? null,
+            'per_page' => (int) ($validated['per_page'] ?? 50),
+            'page' => (int) ($validated['page'] ?? 1),
         ];
 
         $result = $this->ticketService->list($filters, $request->user());
 
-        return response()->json($result, $result["status"]);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -76,7 +78,7 @@ class HelpDeskTicketsController extends Controller
     {
         $result = $this->ticketService->create($request->validated(), $request->user());
 
-        return response()->json($result, $result["status"]);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -95,7 +97,7 @@ class HelpDeskTicketsController extends Controller
     {
         $result = $this->ticketService->find($ticket, $request->user());
 
-        return response()->json($result, $result["status"]);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -114,7 +116,7 @@ class HelpDeskTicketsController extends Controller
     {
         $result = $this->ticketService->update($ticket, $request->validated(), $request->user());
 
-        return response()->json($result, $result["status"]);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -133,7 +135,7 @@ class HelpDeskTicketsController extends Controller
     {
         $result = $this->ticketService->delete($ticket, $request->user());
 
-        return response()->json(['ok' => true], $result['status']);
+        return response()->json(['ok' => true], (int) $result['status']);
     }
 
     /**
@@ -152,7 +154,7 @@ class HelpDeskTicketsController extends Controller
     {
         $result = $this->ticketService->comment($ticket, $request->validated(), $request->user());
 
-        return response()->json($result, $result["status"]);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -171,7 +173,7 @@ class HelpDeskTicketsController extends Controller
     {
         $result = $this->ticketService->reassign($ticket, $request->validated(), $request->user());
 
-        return response()->json($result, $result["status"]);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -190,6 +192,6 @@ class HelpDeskTicketsController extends Controller
     {
         $result = $this->ticketService->changeStatus($ticket, $request->validated(), $request->user());
 
-        return response()->json($result, $result["status"]);
+        return response()->json($result, (int) $result["status"]);
     }
 }

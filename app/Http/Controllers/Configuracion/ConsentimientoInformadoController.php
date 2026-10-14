@@ -44,7 +44,7 @@ class ConsentimientoInformadoController extends Controller
     {
         $result = $this->consentimientoInformadoService->all();
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -62,7 +62,7 @@ class ConsentimientoInformadoController extends Controller
     {
         $result = $this->consentimientoInformadoService->find($id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -78,7 +78,7 @@ class ConsentimientoInformadoController extends Controller
     {
         $result = $this->consentimientoInformadoService->listarActivos();
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -96,10 +96,10 @@ class ConsentimientoInformadoController extends Controller
     {
         $result = $this->consentimientoInformadoService->create(
             $request->validated(),
-            $request->file('archivo'),
+            $request->file("archivo"),
         );
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -119,10 +119,10 @@ class ConsentimientoInformadoController extends Controller
         $result = $this->consentimientoInformadoService->update(
             $id,
             $request->validated(),
-            $request->file('archivo'),
+            $request->file("archivo"),
         );
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -140,6 +140,6 @@ class ConsentimientoInformadoController extends Controller
     {
         $result = $this->consentimientoInformadoService->delete($id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 }

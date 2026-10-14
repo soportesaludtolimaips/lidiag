@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Agenda;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Agenda\AgendaDisponibilidaIndexRequest;
 use App\Http\Requests\Agenda\AgendaDisponibilidaRequest;
 use App\Services\Agenda\AgendaDisponibilidaService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class AgendaDisponibilidaController extends Controller
 {
@@ -33,7 +33,7 @@ class AgendaDisponibilidaController extends Controller
     /**
      * Lista las disponibilidades de agenda con filtros por sede, servicio y rango de fechas.
      *
-     * @param  Request  $request  parámetros de filtrado (sede_id, servicio_id, fechas).
+     * @param  AgendaDisponibilidaIndexRequest  $request  parámetros validados de filtrado.
      *
      * @returns JsonResponse respuesta con las disponibilidades encontradas.
      *
@@ -41,13 +41,11 @@ class AgendaDisponibilidaController extends Controller
      *
      * @date 2026-01-21
      */
-    public function index(Request $request): JsonResponse
+    public function index(AgendaDisponibilidaIndexRequest $request): JsonResponse
     {
-        $result = $this->service->list($request->only([
-            'sede_id', 'servicio_id', 'bus_fech_ini', 'bus_fecha_fin',
-        ]));
+        $result = $this->service->list($request->validated());
 
-        return response()->json($result, $result["status"]);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Configuracion;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Configuracion\ConfigWhatsappBuscarRequest;
 use App\Http\Requests\Configuracion\StoreConfigWhatsappRequest;
 use App\Http\Requests\Configuracion\UpdateConfigWhatsappRequest;
 use App\Services\Configuracion\ConfigWhatsappService;
@@ -39,9 +40,9 @@ class ConfigWhatsappController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $result = $this->configWhatsappService->all($request->integer('sede_id'));
+        $result = $this->configWhatsappService->all($request->integer("sede_id"));
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -59,7 +60,7 @@ class ConfigWhatsappController extends Controller
     {
         $result = $this->configWhatsappService->find($id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -77,7 +78,7 @@ class ConfigWhatsappController extends Controller
     {
         $result = $this->configWhatsappService->create($request->validated());
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -96,7 +97,7 @@ class ConfigWhatsappController extends Controller
     {
         $result = $this->configWhatsappService->update($id, $request->validated());
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -114,13 +115,13 @@ class ConfigWhatsappController extends Controller
     {
         $result = $this->configWhatsappService->delete($id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
      * Busca la configuración de WhatsApp según la sede y el servicio de cita indicados.
      *
-     * @param  Request  $request  Solicitud HTTP con los parámetros sede_id y servicio_id.
+     * @param  ConfigWhatsappBuscarRequest  $request  Solicitud HTTP validada con los parámetros sede_id y servicio_id.
      *
      * @returns JsonResponse Respuesta JSON con la configuración encontrada y su estado.
      *
@@ -128,13 +129,14 @@ class ConfigWhatsappController extends Controller
      *
      * @date 2026-06-11
      */
-    public function buscar(Request $request): JsonResponse
+    public function buscar(ConfigWhatsappBuscarRequest $request): JsonResponse
     {
+        $validated = $request->validated();
         $result = $this->configWhatsappService->buscarPorSedeYServicio(
-            (int) $request->input('sede_id'),
-            (int) $request->input('servicio_id'),
+            (int) $validated["sede_id"],
+            (int) $validated["servicio_id"],
         );
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 }

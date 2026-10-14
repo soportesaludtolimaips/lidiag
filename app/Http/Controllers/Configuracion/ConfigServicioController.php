@@ -57,9 +57,9 @@ class ConfigServicioController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $result = $this->configServicioService->all($request->integer('sede_id'));
+        $result = $this->configServicioService->all($request->integer("sede_id"));
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -67,7 +67,7 @@ class ConfigServicioController extends Controller
      *
      * @param  int  $id  Identificador único del servicio de cita.
      *
-     * @returns Illuminate\Http\JsonResponse Respuesta JSON con los datos del servicio de cita.
+     * @returns JsonResponse Respuesta JSON con los datos del servicio de cita.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -77,7 +77,7 @@ class ConfigServicioController extends Controller
     {
         $result = $this->configServicioService->find($id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -85,7 +85,7 @@ class ConfigServicioController extends Controller
      *
      * @param  StoreConfigServicioRequest  $request  Solicitud con los datos validados del servicio.
      *
-     * @returns Illuminate\Http\JsonResponse Respuesta JSON con el servicio de cita creado.
+     * @returns JsonResponse Respuesta JSON con el servicio de cita creado.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -95,7 +95,7 @@ class ConfigServicioController extends Controller
     {
         $result = $this->configServicioService->create($request->validated());
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -104,7 +104,7 @@ class ConfigServicioController extends Controller
      * @param  UpdateConfigServicioRequest  $request  Solicitud con los datos validados.
      * @param  int  $id  Identificador único del servicio de cita a actualizar.
      *
-     * @returns Illuminate\Http\JsonResponse Respuesta JSON con el servicio de cita actualizado.
+     * @returns JsonResponse Respuesta JSON con el servicio de cita actualizado.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -114,7 +114,7 @@ class ConfigServicioController extends Controller
     {
         $result = $this->configServicioService->update($id, $request->validated());
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -122,7 +122,7 @@ class ConfigServicioController extends Controller
      *
      * @param  int  $id  Identificador único del servicio de cita a eliminar.
      *
-     * @returns Illuminate\Http\JsonResponse Respuesta JSON con el resultado de la eliminación.
+     * @returns JsonResponse Respuesta JSON con el resultado de la eliminación.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -132,6 +132,6 @@ class ConfigServicioController extends Controller
     {
         $result = $this->configServicioService->delete($id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 }

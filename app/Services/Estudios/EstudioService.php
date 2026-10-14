@@ -12,9 +12,7 @@ use App\Models\General\Paciente;
 use App\Models\Liquidacion\LiquidacionLinea;
 use App\Models\User;
 use App\Services\BaseService;
-use App\Services\Contracts\FileServiceInterface;
 use App\Services\Liquidacion\LiquidacionService;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -28,20 +26,20 @@ class EstudioService extends BaseService
     /**
      * Constructor del servicio principal de estudios
      *
-     * @param  FileServiceInterface  $fileService  Servicio de gestión de archivos
      * @param  PlantillaEstudioService  $plantillaEstudioService  Servicio de plantillas Word/PDF
      * @param  EstudioNotificacionService  $estudioNotificacionService  Servicio de notificaciones
      * @param  EstudioLockService  $lockService  Servicio de reservas de lectura/asignación
+     * @param  EstudioQueryService  $queryService  Servicio de consultas de estudios
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-07-14
      */
     public function __construct(
-        private readonly FileServiceInterface $fileService,
         private readonly PlantillaEstudioService $plantillaEstudioService,
         private readonly EstudioNotificacionService $estudioNotificacionService,
         private readonly EstudioLockService $lockService,
+        private readonly EstudioQueryService $queryService,
     ) {}
 
     private const DESTINO_TELE_RADIOLOGIA = 'Tele Radiologia';
@@ -57,7 +55,7 @@ class EstudioService extends BaseService
      */
     public function all(): array
     {
-        return $this->success(Estudio::all());
+        return $this->queryService->all();
     }
 
     /**
@@ -167,65 +165,7 @@ class EstudioService extends BaseService
      */
     public function listarPendientesMedico(int $medicoId, int $sedeId): array
     {
-        $results = Estudio::select(
-            'estudios.id',
-            'estudios.study_pk',
-            'estudios.study_iuid',
-            'estudios.study_id',
-            'estudios.fec_estudio',
-            'estudios.accession_no',
-            'estudios.study_desc',
-            'estudios.mods_in_study',
-            'estudios.email_reportar',
-            'estudios.paciente_id',
-            'estudios.medico_id',
-            'estudios.quien_registro_id',
-            'estudios.sede_id',
-            'estudios.prioridad_id',
-            'estudios.observaciones',
-            'estudios.motivo_examen',
-            'estudios.atencion',
-            'estudios.servicio',
-            'estudios.eps',
-            'estudios.contrato',
-            'estudios.plan',
-            'estudios.estado',
-            DB::raw("DATE_FORMAT(estudios.created_at, '%Y-%m-%d %H:%i:%s') AS created_at"),
-            'pacien.num_docu',
-            'pacien.nombres as nom_pacien',
-            'pacien.fec_naci',
-            'pacien.sexo',
-            'estu_produc.id as estudio_producto_id',
-            'estu_produc.cod_cups',
-            'estu_produc.nom_produc',
-            'estu_produc.fechor_lectura',
-            'estu_produc.visto',
-            'users.name AS quien_registro',
-            'priori.id as priori_id',
-            'priori.nom_priori',
-            'priori.nivel AS priori_nivel',
-            'priori.tiempo AS priori_tiempo',
-            'sesde.nom_sede as nom_sede',
-            'sesde.url_oviyam',
-            'sesde.tap_oviyam',
-        )
-            ->join('pacientes AS pacien', 'estudios.paciente_id', '=', 'pacien.id')
-            ->join('config_sedes AS sesde', 'estudios.sede_id', '=', 'sesde.id')
-            ->join('estudios_productos AS estu_produc', 'estu_produc.estudio_id', '=', 'estudios.id')
-            ->join('users', 'estudios.quien_registro_id', '=', 'users.id')
-            ->join('config_prioridades AS priori', 'estudios.prioridad_id', '=', 'priori.id')
-            ->join('config_productos AS config_produc', 'estu_produc.producto_id', '=', 'config_produc.id')
-            ->where('estudios.medico_id', $medicoId)
-            ->where('estu_produc.activo', 1)
-            ->whereNull('estu_produc.transcriptor_id')
-            ->where('config_produc.requi_lectura', 1)
-            ->whereNull('estu_produc.fechor_trascrito')
-            ->whereNull('estu_produc.fechor_lectura')
-            ->where('sesde.id', $sedeId)
-            ->orderBy('priori.nivel')
-            ->get();
-
-        return $this->success($results);
+        return $this->queryService->listarPendientesMedico($medicoId, $sedeId);
     }
 
     /**
@@ -321,9 +261,7 @@ class EstudioService extends BaseService
      */
     public function listarDiagnosticosPorEstudio(int $estudioId): array
     {
-        return $this->success(
-            EstudioDiagnostico::where('estudio_id', $estudioId)->get()
-        );
+        return $this->queryService->listarDiagnosticosPorEstudio($estudioId);
     }
 
     /**
@@ -339,64 +277,7 @@ class EstudioService extends BaseService
      */
     public function listarPendientesTranscribir(array $filters): array
     {
-        $query = Estudio::select(
-            'estudios.id',
-            'estudios.study_pk',
-            'estudios.study_iuid',
-            'estudios.study_id',
-            'estudios.fec_estudio',
-            'estudios.accession_no',
-            'estudios.study_desc',
-            'estudios.mods_in_study',
-            'estudios.email_reportar',
-            'estudios.paciente_id',
-            'estudios.medico_id',
-            'estudios.quien_registro_id',
-            'estudios.sede_id',
-            'estudios.prioridad_id',
-            'estudios.observaciones',
-            'estudios.atencion',
-            'estudios.servicio',
-            'estudios.eps',
-            'estudios.contrato',
-            'estudios.plan',
-            'estudios.estado',
-            DB::raw("DATE_FORMAT(estudios.created_at, '%Y-%m-%d %H:%i:%s') AS created_at"),
-            'pacien.num_docu',
-            'pacien.nombres as nom_pacien',
-            'pacien.fec_naci',
-            'pacien.direccion',
-            'pacien.email',
-            'pacien.tel',
-            'estudios_productos.id as estudio_producto_id',
-            'estudios_productos.cod_cups',
-            'estudios_productos.nom_produc',
-            'estudios_productos.fechor_lectura',
-            'estudios_productos.lectura',
-            'users.name AS quien_registro',
-            'priori.id as priori_id',
-            'priori.nom_priori',
-            'priori.nivel AS priori_nivel',
-            'priori.tiempo AS priori_tiempo',
-            'medi.name as nombres_medico',
-            'medi.firma as firma_medico',
-            'medi.reg_med as reg_medico',
-            'medi.num_docu AS num_docu_medico',
-            'sede.nom_sede',
-            'sede.url_oviyam',
-            'sede.tap_oviyam',
-        )
-            ->join('estudios_productos', 'estudios_productos.estudio_id', '=', 'estudios.id')
-            ->join('pacientes AS pacien', 'estudios.paciente_id', '=', 'pacien.id')
-            ->join('config_sedes AS sede', 'estudios.sede_id', '=', 'sede.id')
-            ->join('users', 'estudios.quien_registro_id', '=', 'users.id')
-            ->leftJoin('users as medi', 'estudios.medico_id', '=', 'medi.id')
-            ->join('config_prioridades AS priori', 'estudios.prioridad_id', '=', 'priori.id')
-            ->join('config_productos', 'estudios_productos.producto_id', '=', 'config_productos.id');
-        $query = $this->applyTranscripcionFilters($query, $filters);
-        $results = $query->orderBy('priori.nivel')->get();
-
-        return $this->success($results);
+        return $this->queryService->listarPendientesTranscribir($filters);
     }
 
     /**
@@ -412,49 +293,7 @@ class EstudioService extends BaseService
      */
     public function listarEstudiosAsignados(array $filters): array
     {
-        $query = Estudio::select(
-            'estudios.*',
-            'pacien.num_docu',
-            'pacien.nombres as nom_pacien',
-            'pacien.fec_naci',
-            'pacien.sexo',
-            'pacien.direccion',
-            'pacien.email',
-            'pacien.tel',
-            'estudios_productos.id as estudio_producto_id',
-            'estudios_productos.cod_cups',
-            'estudios_productos.nom_produc',
-            'estudios_productos.fechor_lectura',
-            'estudios_productos.lectura',
-            'estudios_productos.transcriptor_id',
-            'estudios_productos.activo',
-            'users.name AS quien_registro',
-            'priori.id as priori_id',
-            'priori.nom_priori',
-            'priori.nivel AS priori_nivel',
-            'priori.tiempo AS priori_tiempo',
-            'medi.name as medico',
-            'medi.firma',
-            'medi.reg_med',
-            'medi.num_docu AS num_docu_medi',
-            'sede.nom_sede',
-            'sede.url_oviyam',
-            'sede.tap_oviyam',
-        )
-            ->join('estudios_productos', 'estudios_productos.estudio_id', '=', 'estudios.id')
-            ->join('pacientes AS pacien', 'estudios.paciente_id', '=', 'pacien.id')
-            ->join('config_sedes AS sede', 'estudios.sede_id', '=', 'sede.id')
-            ->join('users', 'estudios.quien_registro_id', '=', 'users.id')
-            ->join('users as medi', 'estudios.medico_id', '=', 'medi.id')
-            ->join('config_prioridades AS priori', 'estudios.prioridad_id', '=', 'priori.id')
-            ->join('config_productos', 'estudios_productos.producto_id', '=', 'config_productos.id');
-
-        $query = $this->applyAsignadosFilters($query, $filters);
-        $results = $query->orderByDesc('estudios.fec_estudio')
-            ->orderByDesc('estudios.created_at')
-            ->get();
-
-        return $this->success($results);
+        return $this->queryService->listarEstudiosAsignados($filters);
     }
 
     /**
@@ -472,6 +311,10 @@ class EstudioService extends BaseService
      *     medico_id?: int,
      *     fechor_lectura?: string,
      *     fechor_trascrito?: string,
+     *     direccion?: string,
+     *     sexo?: string,
+     *     fec_naci?: string,
+     *     destino_estudio?: string,
      * } $data
      */
     public function guardarTranscripcion(array $data): array
@@ -512,7 +355,7 @@ class EstudioService extends BaseService
                 $producto->visto = 1;
                 $producto->save();
 
-                if (! empty($data['destino_estudio']) && $data['destino_estudio'] === DESTINO_TELE_RADIOLOGIA) {
+                if (! empty($data['destino_estudio']) && $data['destino_estudio'] === self::DESTINO_TELE_RADIOLOGIA) {
                     $estudio = Estudio::findOrFail($data['id_estudio']);
                     $estudio->medico_id = $data['medico_id'];
                     $estudio->save();
@@ -554,39 +397,7 @@ class EstudioService extends BaseService
      */
     public function pendientesPorLeerTranscribir(): array
     {
-        $results = Estudio::select(
-            'estudios.*',
-            'pacien.num_docu',
-            'pacien.nombres as nom_pacien',
-            'pacien.fec_naci',
-            'pacien.sexo',
-            'produc.id as estudio_producto_id',
-            'produc.cod_cups',
-            'produc.nom_produc',
-            'produc.fechor_lectura',
-            'users.name AS quien_registro',
-            'priori.id as priori_id',
-            'priori.nom_priori',
-            'priori.nivel AS priori_nivel',
-            'priori.tiempo AS priori_tiempo',
-            'sesde.nom_sede as nom_sede',
-            'sesde.url_oviyam',
-            'sesde.tap_oviyam',
-            'medico.id as medico_id',
-            'medico.name as medico_name',
-        )
-            ->join('pacientes AS pacien', 'estudios.paciente_id', '=', 'pacien.id')
-            ->join('config_sedes AS sesde', 'estudios.sede_id', '=', 'sesde.id')
-            ->join('estudios_productos AS produc', 'produc.estudio_id', '=', 'estudios.id')
-            ->join('users', 'estudios.quien_registro_id', '=', 'users.id')
-            ->join('config_prioridades AS priori', 'estudios.prioridad_id', '=', 'priori.id')
-            ->join('users as medico', 'estudios.medico_id', '=', 'medico.id')
-            ->whereNull('produc.fechor_lectura')
-            ->where('medico.permitir_transcribir', 1)
-            ->orderBy('priori.nom_priori')
-            ->get();
-
-        return $this->success($results);
+        return $this->queryService->pendientesPorLeerTranscribir();
     }
 
     /**
@@ -602,12 +413,7 @@ class EstudioService extends BaseService
      */
     public function buscarPorNumDocu(string $numDocu): array
     {
-        $count = Estudio::select('pacientes.num_docu')
-            ->join('pacientes', 'estudios.paciente_id', 'pacientes.id')
-            ->where('pacientes.num_docu', $numDocu)
-            ->count();
-
-        return $this->success(['tiene_estudios' => $count > 0]);
+        return $this->queryService->buscarPorNumDocu($numDocu);
     }
 
     /**
@@ -943,117 +749,5 @@ class EstudioService extends BaseService
                 'archivo_encrip' => $nombreEncrip,
             ]);
         }
-    }
-
-    /**
-     * Aplica los filtros del listado de pendientes por transcribir.
-     *
-     * @param  Builder  $query  Consulta base con los joins ya aplicados
-     * @param  array  $filters  Filtros: sede_id, destino, fechas, nombre/doc, quién asignó, médico
-     *
-     * @returns \Illuminate\Database\Eloquent\Builder Consulta con los filtros aplicados
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-10-08
-     */
-    private function applyTranscripcionFilters($query, array $filters)
-    {
-        $sedeId = $filters['sede_id'] ?? null;
-        $destinoEstudio = $filters['destino_estudio'] ?? null;
-        $estudioParaTranscribir = $filters['estudioParaTranscribir'] ?? null;
-
-        $query->where('estudios_productos.activo', 1)
-            ->where('estudios.estado', 1)
-            ->whereNull('estudios_productos.transcriptor_id');
-
-        if ($sedeId) {
-            $query->where('estudios.sede_id', $sedeId);
-        }
-
-        if ($destinoEstudio) {
-            $query->where(function ($q) use ($destinoEstudio) {
-                $q->where('estudios.destino_estudio', $destinoEstudio)
-                    ->orWhereNull('estudios.destino_estudio');
-            });
-        }
-
-        if ($estudioParaTranscribir) {
-            $query->where(function ($q) {
-                $q->whereNotNull('estudios_productos.fechor_lectura');
-            });
-        }
-
-        if (! empty($filters['bus_fech_ini']) && ! empty($filters['bus_fecha_fin'])) {
-            $inicio = Carbon::parse($filters['bus_fech_ini'])->startOfDay();
-            $fin = Carbon::parse($filters['bus_fecha_fin'])->endOfDay();
-            $query->whereBetween('estudios.fec_estudio', [$inicio, $fin]);
-        }
-
-        if (! empty($filters['bus_nom_num_docu'])) {
-            $search = $filters['bus_nom_num_docu'];
-            $query->where(function ($q) use ($search) {
-                $q->where('pacien.num_docu', $search)
-                    ->orWhere('pacien.nombres', 'LIKE', "%{$search}%");
-            });
-        }
-
-        if (! empty($filters['quien_asigno_id'])) {
-            $query->where('estudios.quien_registro_id', $filters['quien_asigno_id']);
-        }
-
-        if (! empty($filters['medico_id'])) {
-            $query->where('estudios.medico_id', $filters['medico_id']);
-        }
-
-        return $query;
-    }
-
-    /**
-     * Aplica los filtros del listado de estudios asignados.
-     *
-     * @param  Builder  $query  Consulta base con los joins ya aplicados
-     * @param  array  $filters  Filtros: sede_id, fechas, nombre/doc, quién asignó, médico
-     *
-     * @returns \Illuminate\Database\Eloquent\Builder Consulta con los filtros aplicados
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-10-08
-     */
-    private function applyAsignadosFilters($query, array $filters)
-    {
-        $sedeId = $filters['sede_id'] ?? null;
-
-        $query->where('estudios_productos.activo', 1);
-
-        if ($sedeId) {
-            $query->where('estudios.sede_id', $sedeId);
-        }
-
-        if (! empty($filters['bus_fech_ini']) && ! empty($filters['bus_fecha_fin'])) {
-            $query->whereBetween('estudios.fec_estudio', [
-                $filters['bus_fech_ini'].' 00:00:00',
-                $filters['bus_fecha_fin'].' 23:59:59',
-            ]);
-        }
-
-        if (! empty($filters['bus_nom_num_docu'])) {
-            $search = $filters['bus_nom_num_docu'];
-            $query->where(function ($q) use ($search) {
-                $q->where('pacien.num_docu', $search)
-                    ->orWhere('pacien.nombres', 'LIKE', "%{$search}%");
-            });
-        }
-
-        if (! empty($filters['quien_asigno_id'])) {
-            $query->where('estudios.quien_registro_id', $filters['quien_asigno_id']);
-        }
-
-        if (! empty($filters['medico_id'])) {
-            $query->where('estudios.medico_id', $filters['medico_id']);
-        }
-
-        return $query;
     }
 }

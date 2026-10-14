@@ -39,7 +39,7 @@ class ConfigAdminSaludController extends Controller
     {
         $result = $this->configAdminSaludService->all();
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -57,7 +57,7 @@ class ConfigAdminSaludController extends Controller
     {
         $result = $this->configAdminSaludService->create($request->validated());
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -76,7 +76,7 @@ class ConfigAdminSaludController extends Controller
     {
         $result = $this->configAdminSaludService->update($id, $request->validated());
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -94,6 +94,6 @@ class ConfigAdminSaludController extends Controller
     {
         $result = $this->configAdminSaludService->delete($id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 }

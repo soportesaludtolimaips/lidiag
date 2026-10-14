@@ -41,9 +41,9 @@ class ConfigSedeWhatsappNumberController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $result = $this->configSedeWhatsappNumberService->all($request->integer('sede_id'));
+        $result = $this->configSedeWhatsappNumberService->all($request->integer("sede_id"));
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -51,7 +51,7 @@ class ConfigSedeWhatsappNumberController extends Controller
      *
      * @param  StoreConfigSedeWhatsappNumberRequest  $request  Solicitud con los datos validados del número.
      *
-     * @returns Illuminate\Http\JsonResponse Respuesta JSON con el número de WhatsApp creado.
+     * @returns JsonResponse Respuesta JSON con el número de WhatsApp creado.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -61,7 +61,7 @@ class ConfigSedeWhatsappNumberController extends Controller
     {
         $result = $this->configSedeWhatsappNumberService->create($request->validated());
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -70,7 +70,7 @@ class ConfigSedeWhatsappNumberController extends Controller
      * @param  UpdateConfigSedeWhatsappNumberRequest  $request  Solicitud con los datos validados.
      * @param  int  $id  Identificador único del número de WhatsApp a actualizar.
      *
-     * @returns Illuminate\Http\JsonResponse Respuesta JSON con el número de WhatsApp actualizado.
+     * @returns JsonResponse Respuesta JSON con el número de WhatsApp actualizado.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -80,7 +80,7 @@ class ConfigSedeWhatsappNumberController extends Controller
     {
         $result = $this->configSedeWhatsappNumberService->update($id, $request->validated());
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -88,7 +88,7 @@ class ConfigSedeWhatsappNumberController extends Controller
      *
      * @param  int  $id  Identificador único del número de WhatsApp a eliminar.
      *
-     * @returns Illuminate\Http\JsonResponse Respuesta JSON con el resultado de la eliminación.
+     * @returns JsonResponse Respuesta JSON con el resultado de la eliminación.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -98,6 +98,6 @@ class ConfigSedeWhatsappNumberController extends Controller
     {
         $result = $this->configSedeWhatsappNumberService->delete($id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 }

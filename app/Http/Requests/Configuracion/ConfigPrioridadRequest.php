@@ -37,7 +37,10 @@ class ConfigPrioridadRequest extends FormRequest
         }
 
         return [
-            'nom_priori' => ['required', 'string', 'min:2', 'max:50', $uniqueRule],
+            "nom_priori" => ["required", "string", "min:2", "max:50", $uniqueRule],
+            "nivel" => ["nullable", "integer"],
+            "tiempo" => ["nullable", "integer"],
+            "estado" => ["nullable", "boolean"],
         ];
     }
 

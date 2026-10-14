@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Configuracion\ConfigPrioridadRequest;
 use App\Services\Configuracion\ConfigPrioridadService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class ConfigPrioridadController extends Controller
 {
@@ -26,17 +25,17 @@ class ConfigPrioridadController extends Controller
     public function __construct(
         private readonly ConfigPrioridadService $configPrioridadService,
     ) {
-        $this->middleware('auth:sanctum')->except(['index']);
-        $this->middleware('permission:config.prioridades.index')->only(['index']);
-        $this->middleware('permission:config.prioridades.create')->only(['store']);
-        $this->middleware('permission:config.prioridades.edit')->only(['update']);
-        $this->middleware('permission:config.prioridades.destroy')->only(['destroy']);
+        $this->middleware("auth:sanctum")->except(["index"]);
+        $this->middleware("permission:config.prioridades.index")->only(["index"]);
+        $this->middleware("permission:config.prioridades.create")->only(["store"]);
+        $this->middleware("permission:config.prioridades.edit")->only(["update"]);
+        $this->middleware("permission:config.prioridades.destroy")->only(["destroy"]);
     }
 
     /**
      * Lista todas las prioridades registradas en el sistema.
      *
-     * @returns Illuminate\Http\JsonResponse Respuesta JSON con la lista de prioridades.
+     * @returns JsonResponse Respuesta JSON con la lista de prioridades.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -46,7 +45,7 @@ class ConfigPrioridadController extends Controller
     {
         $result = $this->configPrioridadService->all();
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -54,7 +53,7 @@ class ConfigPrioridadController extends Controller
      *
      * @param  int  $id  Identificador único de la prioridad.
      *
-     * @returns Illuminate\Http\JsonResponse Respuesta JSON con los datos de la prioridad.
+     * @returns JsonResponse Respuesta JSON con los datos de la prioridad.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -64,7 +63,7 @@ class ConfigPrioridadController extends Controller
     {
         $result = $this->configPrioridadService->find($id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -72,7 +71,7 @@ class ConfigPrioridadController extends Controller
      *
      * @param  ConfigPrioridadRequest  $request  Solicitud con los datos validados de la prioridad.
      *
-     * @returns Illuminate\Http\JsonResponse Respuesta JSON con la prioridad creada.
+     * @returns JsonResponse Respuesta JSON con la prioridad creada.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -82,33 +81,26 @@ class ConfigPrioridadController extends Controller
     {
         $result = $this->configPrioridadService->create($request->validated());
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
-     * Actualiza una prioridad existente con los datos proporcionados.
+     * Actualiza una prioridad existente con los datos validados.
      *
-     * @param  Illuminate\Http\Request  $request  Solicitud con los datos a actualizar.
+     * @param  ConfigPrioridadRequest  $request  Solicitud validada con los datos a actualizar.
      * @param  int  $id  Identificador único de la prioridad.
      *
-     * @returns Illuminate\Http\JsonResponse Respuesta JSON con la prioridad actualizada.
+     * @returns JsonResponse Respuesta JSON con la prioridad actualizada.
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2024-04-04
      */
-    public function update(Request $request, int $id): JsonResponse
+    public function update(ConfigPrioridadRequest $request, int $id): JsonResponse
     {
-        $data = $request->validate([
-            'nom_priori' => 'required|string|max:255',
-            'nivel' => 'nullable|integer',
-            'tiempo' => 'nullable|integer',
-            'estado' => 'nullable|boolean',
-        ]);
+        $result = $this->configPrioridadService->update($id, $request->validated());
 
-        $result = $this->configPrioridadService->update($id, $data);
-
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -116,7 +108,7 @@ class ConfigPrioridadController extends Controller
      *
      * @param  int  $id  Identificador único de la prioridad a eliminar.
      *
-     * @returns Illuminate\Http\JsonResponse Respuesta JSON con el resultado de la eliminación.
+     * @returns JsonResponse Respuesta JSON con el resultado de la eliminación.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -126,6 +118,6 @@ class ConfigPrioridadController extends Controller
     {
         $result = $this->configPrioridadService->delete($id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 }

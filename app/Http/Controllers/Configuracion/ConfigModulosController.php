@@ -32,7 +32,7 @@ class ConfigModulosController extends Controller
     {
         $result = $this->configModuloService->all();
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -48,6 +48,6 @@ class ConfigModulosController extends Controller
     {
         $result = $this->configModuloService->all();
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 }

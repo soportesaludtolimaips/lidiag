@@ -43,7 +43,7 @@ class HelpDeskAdjuntosController extends Controller
     {
         $result = $this->adjuntoService->upload($ticket, $request->validated(), $request->user());
 
-        return response()->json($result, $result["status"]);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -62,7 +62,7 @@ class HelpDeskAdjuntosController extends Controller
     {
         $response = $this->adjuntoService->download($adjunto, $request->user());
         if ($response === null) {
-            return response()->json(['message' => 'Archivo no encontrado'], 404);
+            return response()->json(["message" => "Archivo no encontrado"], 404);
         }
 
         return $response;
@@ -84,6 +84,6 @@ class HelpDeskAdjuntosController extends Controller
     {
         $result = $this->adjuntoService->delete($adjunto, $request->user());
 
-        return response()->json(['ok' => true], $result['status']);
+        return response()->json(["ok" => true], (int) $result["status"]);
     }
 }

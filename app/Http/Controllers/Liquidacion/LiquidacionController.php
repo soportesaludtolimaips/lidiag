@@ -4,9 +4,10 @@ namespace App\Http\Controllers\Liquidacion;
 
 use App\Exports\LiquidacionExport;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Liquidacion\LiquidacionFiltroRequest;
+use App\Http\Requests\Liquidacion\LiquidacionProductividadRequest;
 use App\Services\Liquidacion\LiquidacionService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -53,11 +54,11 @@ class LiquidacionController extends Controller
      * Calcula la liquidación de pagos a médicos de una sede en un rango de fechas.
      *
      * Flujo del proceso:
-     * 1. Valida sede_id contra config_sedes y el rango de fechas.
+     * 1. Valida los filtros mediante LiquidacionFiltroRequest.
      * 2. Delega el cálculo a LiquidacionService::calcular().
      * 3. Devuelve líneas, exclusiones y totales con el estado del servicio.
      *
-     * @param  Request  $request  Petición con sede_id, fecha_inicio y fecha_fin.
+     * @param  LiquidacionFiltroRequest  $request  Petición validada con sede_id, fecha_inicio, fecha_fin y opcionales.
      *
      * @returns JsonResponse Líneas liquidables, exclusiones con conteo y totales por médico.
      *
@@ -65,9 +66,9 @@ class LiquidacionController extends Controller
      *
      * @date 2026-09-30
      */
-    public function calcular(Request $request): JsonResponse
+    public function calcular(LiquidacionFiltroRequest $request): JsonResponse
     {
-        $validated = $this->validarFiltros($request);
+        $validated = $request->validated();
 
         $result = $this->liquidacionService->calcular(
             (int) $validated["sede_id"],
@@ -77,18 +78,18 @@ class LiquidacionController extends Controller
             isset($validated["medico_id"]) ? (int) $validated["medico_id"] : null
         );
 
-        return response()->json($result, $result["status"]);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
      * Descarga la liquidación de un periodo en Excel.
      *
      * Flujo del proceso:
-     * 1. Valida sede_id contra config_sedes y el rango de fechas.
-     * 2. Construye el export con los mismos filtros que calcular.
+     * 1. Valida los filtros mediante LiquidacionFiltroRequest.
+     * 2. Construye el export con los filtros validados.
      * 3. Devuelve la descarga del xlsx generada por Maatwebsite Excel.
      *
-     * @param  Request  $request  Mismos filtros que calcular.
+     * @param  LiquidacionFiltroRequest  $request  Mismos filtros validados que calcular.
      *
      * @returns \Symfony\Component\HttpFoundation\BinaryFileResponse Archivo xlsx.
      *
@@ -96,9 +97,9 @@ class LiquidacionController extends Controller
      *
      * @date 2026-09-30
      */
-    public function exportar(Request $request): BinaryFileResponse
+    public function exportar(LiquidacionFiltroRequest $request): BinaryFileResponse
     {
-        $validated = $this->validarFiltros($request);
+        $validated = $request->validated();
 
         return Excel::download(
             new LiquidacionExport(
@@ -116,11 +117,11 @@ class LiquidacionController extends Controller
      * Reporte de productividad por médico para el corte de mes.
      *
      * Flujo del proceso:
-     * 1. Valida sede_id y periodo en formato YYYY-MM.
+     * 1. Valida sede_id y periodo en formato YYYY-MM mediante LiquidacionProductividadRequest.
      * 2. Delega a LiquidacionService::productividad() (lee lo congelado).
      * 3. Devuelve médicos con detalle, totales y gran total.
      *
-     * @param  Request  $request  Petición con sede_id y periodo.
+     * @param  LiquidacionProductividadRequest  $request  Petición validada con sede_id y periodo.
      *
      * @returns JsonResponse Productividad del periodo por médico.
      *
@@ -128,42 +129,12 @@ class LiquidacionController extends Controller
      *
      * @date 2026-10-01
      */
-    public function productividad(Request $request): JsonResponse
+    public function productividad(LiquidacionProductividadRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            "sede_id" => "required|integer|exists:config_sedes,id",
-            "periodo" => ["required", "regex:/^\\d{4}-(0[1-9]|1[0-2])$/"],
-        ]);
+        $validated = $request->validated();
 
         $result = $this->liquidacionService->productividad((int) $validated["sede_id"], $validated["periodo"]);
 
-        return response()->json($result, $result["status"]);
-    }
-
-    /**
-     * Valida los filtros compartidos de calcular y exportar.
-     *
-     * Flujo del proceso:
-     * 1. Exige sede_id existente en config_sedes.
-     * 2. Exige fecha_inicio y fecha_fin con fin posterior o igual al inicio.
-     * 3. Acepta contrato_id y medico_id opcionales (deben existir si vienen).
-     *
-     * @param  Request  $request  Petición con sede_id, fecha_inicio, fecha_fin y opcionales.
-     *
-     * @returns array{sede_id: int, fecha_inicio: string, fecha_fin: string} Filtros validados.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-09-30
-     */
-    private function validarFiltros(Request $request): array
-    {
-        return $request->validate([
-            "sede_id" => "required|integer|exists:config_sedes,id",
-            "fecha_inicio" => "required|date",
-            "fecha_fin" => "required|date|after_or_equal:fecha_inicio",
-            "contrato_id" => "sometimes|integer|exists:contratos,id",
-            "medico_id" => "sometimes|integer|exists:users,id",
-        ]);
+        return response()->json($result, (int) $result["status"]);
     }
 }

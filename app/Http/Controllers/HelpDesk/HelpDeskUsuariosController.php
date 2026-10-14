@@ -36,6 +36,6 @@ class HelpDeskUsuariosController extends Controller
     {
         $result = $this->usuarioService->asignables();
 
-        return response()->json($result, $result["status"]);
+        return response()->json($result, (int) $result["status"]);
     }
 }

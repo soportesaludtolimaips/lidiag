@@ -4,11 +4,16 @@ namespace App\Http\Controllers\Agenda;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Agenda\AgendaCitaAsignarRequest;
+use App\Http\Requests\Agenda\AgendaCitaCancelarRequest;
 use App\Http\Requests\Agenda\AgendaCitaDisponibilidadRequest;
+use App\Http\Requests\Agenda\AgendaCitaIndexRequest;
+use App\Http\Requests\Agenda\AgendaCitaPendientesRequest;
 use App\Http\Requests\Agenda\AgendaCitaRechazarRequest;
 use App\Http\Requests\Agenda\AgendaCitaStoreRequest;
+use App\Http\Requests\Agenda\AgendaCitaTestEnviarRequest;
 use App\Http\Requests\Agenda\AgendaCitaUpdateRequest;
 use App\Models\Agenda\AgendaCita;
+use App\Services\Agenda\AgendaCitaQueryService;
 use App\Services\Agenda\AgendaCitaService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,7 +23,8 @@ class AgendaCitaController extends Controller
     /**
      * Constructor del controlador de citas de agenda.
      *
-     * @param  AgendaCitaService  $agendaCitaService  servicio de gestión de citas.
+     * @param  AgendaCitaService  $agendaCitaService  servicio de comandos y mutaciones de citas.
+     * @param  AgendaCitaQueryService  $agendaCitaQueryService  servicio de consultas y lecturas de citas.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -26,12 +32,13 @@ class AgendaCitaController extends Controller
      */
     public function __construct(
         private readonly AgendaCitaService $agendaCitaService,
+        private readonly AgendaCitaQueryService $agendaCitaQueryService,
     ) {}
 
     /**
      * Lista todas las citas con filtros opcionales y paginación.
      *
-     * @param  Request  $request  parámetros de búsqueda y filtrado.
+     * @param  AgendaCitaIndexRequest  $request  parámetros validados de búsqueda y filtrado.
      *
      * @returns JsonResponse respuesta con las citas encontradas.
      *
@@ -39,9 +46,9 @@ class AgendaCitaController extends Controller
      *
      * @date 2026-05-26
      */
-    public function index(Request $request): JsonResponse
+    public function index(AgendaCitaIndexRequest $request): JsonResponse
     {
-        $result = $this->agendaCitaService->all($request);
+        $result = $this->agendaCitaQueryService->all($request->validated());
 
         return response()->json($result, (int) $result["status"]);
     }
@@ -159,7 +166,7 @@ class AgendaCitaController extends Controller
     /**
      * Cancela una cita existente con un motivo opcional.
      *
-     * @param  Request  $request  petición con el motivo de cancelación.
+     * @param  AgendaCitaCancelarRequest  $request  petición validada con el motivo de cancelación.
      * @param  AgendaCita  $cita  modelo de la cita a cancelar.
      *
      * @returns JsonResponse respuesta con la cita cancelada.
@@ -168,9 +175,9 @@ class AgendaCitaController extends Controller
      *
      * @date 2026-05-26
      */
-    public function cancelar(Request $request, AgendaCita $cita): JsonResponse
+    public function cancelar(AgendaCitaCancelarRequest $request, AgendaCita $cita): JsonResponse
     {
-        $result = $this->agendaCitaService->cancelar($cita, $request->input('motivo', ''));
+        $result = $this->agendaCitaService->cancelar($cita, (string) $request->input('motivo', ''));
 
         return response()->json($result, (int) $result["status"]);
     }
@@ -214,7 +221,7 @@ class AgendaCitaController extends Controller
     /**
      * Lista las citas pendientes de revisión (solicitadas).
      *
-     * @param  Request  $request  parámetros de búsqueda y filtrado.
+     * @param  AgendaCitaPendientesRequest  $request  parámetros validados de filtrado.
      *
      * @returns JsonResponse respuesta con las citas pendientes.
      *
@@ -222,9 +229,9 @@ class AgendaCitaController extends Controller
      *
      * @date 2026-05-26
      */
-    public function pendientes(Request $request): JsonResponse
+    public function pendientes(AgendaCitaPendientesRequest $request): JsonResponse
     {
-        $result = $this->agendaCitaService->pendientes($request);
+        $result = $this->agendaCitaQueryService->pendientes($request->validated());
 
         return response()->json($result, (int) $result["status"]);
     }
@@ -261,7 +268,7 @@ class AgendaCitaController extends Controller
      */
     public function disponibilidad(AgendaCitaDisponibilidadRequest $request): JsonResponse
     {
-        $result = $this->agendaCitaService->disponibilidad($request->validated());
+        $result = $this->agendaCitaQueryService->disponibilidad($request->validated());
 
         return response()->json($result, (int) $result["status"]);
     }
@@ -277,7 +284,7 @@ class AgendaCitaController extends Controller
      */
     public function servicios(): JsonResponse
     {
-        $result = $this->agendaCitaService->servicios();
+        $result = $this->agendaCitaQueryService->servicios();
 
         return response()->json($result, (int) $result["status"]);
     }
@@ -296,7 +303,7 @@ class AgendaCitaController extends Controller
      */
     public function productosPorServicio(Request $request, int $servicioCitaId): JsonResponse
     {
-        $result = $this->agendaCitaService->productosPorServicio($servicioCitaId, $request->query('sede_id'));
+        $result = $this->agendaCitaQueryService->productosPorServicio($servicioCitaId, $request->query('sede_id'));
 
         return response()->json($result, (int) $result["status"]);
     }
@@ -361,7 +368,7 @@ class AgendaCitaController extends Controller
     /**
      * Envía un mensaje de prueba por WhatsApp a un número específico.
      *
-     * @param  Request  $request  petición con el teléfono y mensaje de prueba.
+     * @param  AgendaCitaTestEnviarRequest  $request  petición validada con el teléfono y mensaje de prueba.
      *
      * @returns JsonResponse respuesta con el resultado del envío.
      *
@@ -369,17 +376,10 @@ class AgendaCitaController extends Controller
      *
      * @date 2026-05-26
      */
-    public function testEnviar(Request $request): JsonResponse
+    public function testEnviar(AgendaCitaTestEnviarRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'telefono' => 'required|string|max:20',
-            'mensaje' => 'required|string|max:1000',
-        ]);
-
-        $telefono = $validated['telefono'];
-        $mensaje = $validated['mensaje'];
-
-        $result = $this->agendaCitaService->testEnviar($telefono, $mensaje);
+        $validated = $request->validated();
+        $result = $this->agendaCitaService->testEnviar($validated['telefono'], $validated['mensaje']);
 
         return response()->json($result, (int) $result["status"]);
     }
@@ -447,7 +447,7 @@ class AgendaCitaController extends Controller
      */
     public function verConversacion(AgendaCita $cita): JsonResponse
     {
-        $result = $this->agendaCitaService->verConversacion($cita);
+        $result = $this->agendaCitaQueryService->verConversacion($cita);
 
         return response()->json($result, (int) $result["status"]);
     }

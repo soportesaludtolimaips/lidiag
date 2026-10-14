@@ -46,7 +46,7 @@ class ConfigSedeController extends Controller
     {
         $result = $this->configSedeService->all();
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -54,7 +54,7 @@ class ConfigSedeController extends Controller
      *
      * @param  mixed  $id  Identificador de la sede a buscar.
      *
-     * @returns Illuminate\Http\JsonResponse Respuesta JSON con los datos de la sede.
+     * @returns JsonResponse Respuesta JSON con los datos de la sede.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -64,13 +64,13 @@ class ConfigSedeController extends Controller
     {
         $result = $this->configSedeService->buscarPorId((int) $id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
      * Lista únicamente las sedes que se encuentran activas.
      *
-     * @returns Illuminate\Http\JsonResponse Respuesta JSON con la lista de sedes activas.
+     * @returns JsonResponse Respuesta JSON con la lista de sedes activas.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -80,7 +80,7 @@ class ConfigSedeController extends Controller
     {
         $result = $this->configSedeService->listarActivas();
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -88,7 +88,7 @@ class ConfigSedeController extends Controller
      *
      * @param  StoreConfigSedeRequest  $request  Solicitud con los datos y archivos validados de la sede.
      *
-     * @returns Illuminate\Http\JsonResponse Respuesta JSON con la sede creada.
+     * @returns JsonResponse Respuesta JSON con la sede creada.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -98,11 +98,11 @@ class ConfigSedeController extends Controller
     {
         $result = $this->configSedeService->create(
             $request->decoded(),
-            $request->file('plantilla_rx'),
-            $request->file('plantilla_rx_ecografia'),
+            $request->file("plantilla_rx"),
+            $request->file("plantilla_rx_ecografia"),
         );
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -110,7 +110,7 @@ class ConfigSedeController extends Controller
      *
      * @param  UpdateConfigSedeRequest  $request  Solicitud con los datos y archivos validados de la sede.
      *
-     * @returns Illuminate\Http\JsonResponse Respuesta JSON con la sede actualizada.
+     * @returns JsonResponse Respuesta JSON con la sede actualizada.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -120,11 +120,11 @@ class ConfigSedeController extends Controller
     {
         $result = $this->configSedeService->update(
             $request->decoded(),
-            $request->file('plantilla_rx'),
-            $request->file('plantilla_rx_ecografia'),
+            $request->file("plantilla_rx"),
+            $request->file("plantilla_rx_ecografia"),
         );
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -132,7 +132,7 @@ class ConfigSedeController extends Controller
      *
      * @param  int  $id  Identificador único de la sede a eliminar.
      *
-     * @returns Illuminate\Http\JsonResponse Respuesta JSON con el resultado de la eliminación.
+     * @returns JsonResponse Respuesta JSON con el resultado de la eliminación.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -142,6 +142,6 @@ class ConfigSedeController extends Controller
     {
         $result = $this->configSedeService->delete($id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 }

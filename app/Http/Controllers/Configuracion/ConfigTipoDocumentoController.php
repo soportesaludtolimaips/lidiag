@@ -39,7 +39,7 @@ class ConfigTipoDocumentoController extends Controller
     {
         $result = $this->configTipoDocumentoService->all();
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -47,7 +47,7 @@ class ConfigTipoDocumentoController extends Controller
      *
      * @param  int  $id  Identificador del tipo de documento.
      *
-     * @returns {JsonResponse}
+     * @returns JsonResponse
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -57,13 +57,13 @@ class ConfigTipoDocumentoController extends Controller
     {
         $result = $this->configTipoDocumentoService->find($id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
      * Lista los tipos de documento activos.
      *
-     * @returns {JsonResponse}
+     * @returns JsonResponse
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -73,7 +73,7 @@ class ConfigTipoDocumentoController extends Controller
     {
         $result = $this->configTipoDocumentoService->listarActivos();
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -81,7 +81,7 @@ class ConfigTipoDocumentoController extends Controller
      *
      * @param  StoreConfigTipoDocumentoRequest  $request  Solicitud validada con los datos.
      *
-     * @returns {JsonResponse}
+     * @returns JsonResponse
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -91,7 +91,7 @@ class ConfigTipoDocumentoController extends Controller
     {
         $result = $this->configTipoDocumentoService->create($request->validated());
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -100,7 +100,7 @@ class ConfigTipoDocumentoController extends Controller
      * @param  UpdateConfigTipoDocumentoRequest  $request  Solicitud validada con los datos.
      * @param  int  $id  Identificador del tipo de documento.
      *
-     * @returns {JsonResponse}
+     * @returns JsonResponse
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -110,7 +110,7 @@ class ConfigTipoDocumentoController extends Controller
     {
         $result = $this->configTipoDocumentoService->update($id, $request->validated());
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -118,7 +118,7 @@ class ConfigTipoDocumentoController extends Controller
      *
      * @param  int  $id  Identificador del tipo de documento.
      *
-     * @returns {JsonResponse}
+     * @returns JsonResponse
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -128,6 +128,6 @@ class ConfigTipoDocumentoController extends Controller
     {
         $result = $this->configTipoDocumentoService->delete($id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 }

@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Seguridad;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Seguridad\RolActualizarRequest;
 use App\Http\Requests\Seguridad\RolAgregarRequest;
 use App\Services\Seguridad\RolService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class RolController extends Controller
 {
@@ -20,12 +20,12 @@ class RolController extends Controller
     public function __construct(
         private readonly RolService $rolService,
     ) {
-        $this->middleware('auth');
-        $this->middleware('permission:seguridad.roles.index')->only(['index']);
-        $this->middleware('permission:seguridad.roles.create')->only(['store']);
-        $this->middleware('permission:seguridad.roles.show')->only(['show']);
-        $this->middleware('permission:seguridad.roles.edit')->only(['update', 'estadoRol']);
-        $this->middleware('permission:seguridad.roles.destroy')->only(['destroy']);
+        $this->middleware("auth");
+        $this->middleware("permission:seguridad.roles.index")->only(["index"]);
+        $this->middleware("permission:seguridad.roles.create")->only(["store"]);
+        $this->middleware("permission:seguridad.roles.show")->only(["show"]);
+        $this->middleware("permission:seguridad.roles.edit")->only(["update", "estadoRol"]);
+        $this->middleware("permission:seguridad.roles.destroy")->only(["destroy"]);
     }
 
     /**
@@ -42,7 +42,7 @@ class RolController extends Controller
     {
         $result = $this->rolService->all();
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -59,7 +59,7 @@ class RolController extends Controller
     {
         $result = $this->rolService->create($request->validated());
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -76,13 +76,13 @@ class RolController extends Controller
     {
         $result = $this->rolService->find($id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
-     * Detalle y descripción de la función
+     * Actualiza los datos de un rol y sus permisos asociados.
      *
-     * @param  Request  $request  Cuerpo con `registro` (name y permisosRol).
+     * @param  RolActualizarRequest  $request  Cuerpo validado con `registro` (name y permisosRol).
      * @param  int  $id  Identificador del rol.
      * @return JsonResponse Resultado de la actualización.
      *
@@ -90,21 +90,11 @@ class RolController extends Controller
      *
      * @date 2026-07-14
      */
-    public function update(Request $request, int $id): JsonResponse
+    public function update(RolActualizarRequest $request, int $id): JsonResponse
     {
-        $data = $request->validate([
-            'registro' => 'required|array',
-            'registro.name' => 'required|string|min:2|max:100',
-            'registro.permisosRol' => 'nullable|array',
-            'registro.permisosRol.*' => 'nullable|array',
-            'registro.permisosRol.*.id' => 'required_with:registro.permisosRol.*|integer',
-            'registro.permisosRol.*.name' => 'required_with:registro.permisosRol.*|string',
-            'registro.permisosRol.*.checked' => 'required_with:registro.permisosRol.*|boolean',
-        ]);
+        $result = $this->rolService->update($id, $request->validated());
 
-        $result = $this->rolService->update($id, $data);
-
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -121,7 +111,7 @@ class RolController extends Controller
     {
         $result = $this->rolService->delete($id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -138,6 +128,6 @@ class RolController extends Controller
     {
         $result = $this->rolService->toggleEstado($id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 }

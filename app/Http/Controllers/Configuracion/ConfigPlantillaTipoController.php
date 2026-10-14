@@ -39,7 +39,7 @@ class ConfigPlantillaTipoController extends Controller
     {
         $result = $this->configPlantillaTipoService->all();
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -57,7 +57,7 @@ class ConfigPlantillaTipoController extends Controller
     {
         $result = $this->configPlantillaTipoService->find($id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -73,7 +73,7 @@ class ConfigPlantillaTipoController extends Controller
     {
         $result = $this->configPlantillaTipoService->listarActivos();
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -91,7 +91,7 @@ class ConfigPlantillaTipoController extends Controller
     {
         $result = $this->configPlantillaTipoService->create($request->validated());
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -110,7 +110,7 @@ class ConfigPlantillaTipoController extends Controller
     {
         $result = $this->configPlantillaTipoService->update($id, $request->validated());
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -128,6 +128,6 @@ class ConfigPlantillaTipoController extends Controller
     {
         $result = $this->configPlantillaTipoService->delete($id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 }

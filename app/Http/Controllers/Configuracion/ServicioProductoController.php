@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Configuracion;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Configuracion\ServicioProductoNoVinculadosRequest;
 use App\Http\Requests\Configuracion\StoreServicioProductoRequest;
 use App\Services\Configuracion\ServicioProductoService;
 use Illuminate\Http\JsonResponse;
@@ -39,11 +40,11 @@ class ServicioProductoController extends Controller
     public function index(Request $request): JsonResponse
     {
         $result = $this->servicioProductoService->all(
-            $request->integer('sede_id') ?: null,
-            $request->integer('servicio_id') ?: null,
+            $request->integer("sede_id") ?: null,
+            $request->integer("servicio_id") ?: null,
         );
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -61,7 +62,7 @@ class ServicioProductoController extends Controller
     {
         $result = $this->servicioProductoService->create($request->validated());
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -79,13 +80,13 @@ class ServicioProductoController extends Controller
     {
         $result = $this->servicioProductoService->delete($id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
      * Lista los productos que aún no están vinculados en la sede (y servicio) indicados.
      *
-     * @param  Request  $request  Solicitud HTTP con los parámetros sede_id y servicio_id (opcional).
+     * @param  ServicioProductoNoVinculadosRequest  $request  Solicitud HTTP validada con los parámetros sede_id y servicio_id (opcional).
      *
      * @returns JsonResponse Respuesta JSON con los productos no vinculados y su estado.
      *
@@ -93,13 +94,14 @@ class ServicioProductoController extends Controller
      *
      * @date 2026-05-26
      */
-    public function productosNoVinculados(Request $request): JsonResponse
+    public function productosNoVinculados(ServicioProductoNoVinculadosRequest $request): JsonResponse
     {
+        $validated = $request->validated();
         $result = $this->servicioProductoService->productosNoVinculados(
-            (int) $request->input('sede_id'),
-            $request->input('servicio_id') ? (int) $request->input('servicio_id') : null,
+            (int) $validated["sede_id"],
+            isset($validated["servicio_id"]) ? (int) $validated["servicio_id"] : null,
         );
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 }

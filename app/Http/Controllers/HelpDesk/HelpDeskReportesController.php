@@ -40,7 +40,7 @@ class HelpDeskReportesController extends Controller
         $filters = $this->reporteService->normalizeFilters($request->validated());
         $result = $this->reporteService->indicadores($filters);
 
-        return response()->json($result, $result["status"]);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -57,10 +57,10 @@ class HelpDeskReportesController extends Controller
     public function detallado(HelpDeskReporteRequest $request): JsonResponse
     {
         $filters = $this->reporteService->normalizeFilters($request->validated());
-        $limit = (int) ($request->input('limit') ?? 500);
+        $limit = (int) ($request->input("limit") ?? 500);
         $result = $this->reporteService->detallado($filters, $limit);
 
-        return response()->json($result, $result["status"]);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -77,7 +77,7 @@ class HelpDeskReportesController extends Controller
     public function exportExcel(HelpDeskReporteRequest $request)
     {
         $filters = $this->reporteService->normalizeFilters($request->validated());
-        $filters['limit'] = (int) ($request->input('limit') ?? 5000);
+        $filters["limit"] = (int) ($request->input("limit") ?? 5000);
 
         return $this->reporteService->exportExcel($filters);
     }

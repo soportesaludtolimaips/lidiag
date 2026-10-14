@@ -38,7 +38,7 @@ class HelpDeskPrioridadesController extends Controller
     {
         $result = $this->prioridadService->all();
 
-        return response()->json($result, $result["status"]);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -56,7 +56,7 @@ class HelpDeskPrioridadesController extends Controller
     {
         $result = $this->prioridadService->create($request->validated());
 
-        return response()->json($result, $result["status"]);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -74,7 +74,7 @@ class HelpDeskPrioridadesController extends Controller
     {
         $result = $this->prioridadService->find($prioridad->id);
 
-        return response()->json($result, $result["status"]);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -93,7 +93,7 @@ class HelpDeskPrioridadesController extends Controller
     {
         $result = $this->prioridadService->update($prioridad->id, $request->validated());
 
-        return response()->json($result, $result["status"]);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -111,6 +111,6 @@ class HelpDeskPrioridadesController extends Controller
     {
         $result = $this->prioridadService->delete($prioridad->id);
 
-        return response()->json(['ok' => true], $result['status']);
+        return response()->json(['ok' => true], (int) $result['status']);
     }
 }

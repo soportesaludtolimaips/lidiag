@@ -38,7 +38,7 @@ class HelpDeskCategoriasController extends Controller
     {
         $result = $this->categoriaService->all();
 
-        return response()->json($result, $result["status"]);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -56,7 +56,7 @@ class HelpDeskCategoriasController extends Controller
     {
         $result = $this->categoriaService->create($request->validated());
 
-        return response()->json($result, $result["status"]);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -74,7 +74,7 @@ class HelpDeskCategoriasController extends Controller
     {
         $result = $this->categoriaService->find($categoria->id);
 
-        return response()->json($result, $result["status"]);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -93,7 +93,7 @@ class HelpDeskCategoriasController extends Controller
     {
         $result = $this->categoriaService->update($categoria->id, $request->validated());
 
-        return response()->json($result, $result["status"]);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -111,6 +111,6 @@ class HelpDeskCategoriasController extends Controller
     {
         $result = $this->categoriaService->delete($categoria->id);
 
-        return response()->json(['ok' => true], $result['status']);
+        return response()->json(['ok' => true], (int) $result['status']);
     }
 }

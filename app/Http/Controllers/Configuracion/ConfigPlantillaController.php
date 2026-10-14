@@ -39,7 +39,7 @@ class ConfigPlantillaController extends Controller
     {
         $result = $this->configPlantillaService->all();
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -57,7 +57,7 @@ class ConfigPlantillaController extends Controller
     {
         $result = $this->configPlantillaService->find($id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -73,7 +73,7 @@ class ConfigPlantillaController extends Controller
     {
         $result = $this->configPlantillaService->listarActivos();
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -92,7 +92,7 @@ class ConfigPlantillaController extends Controller
     {
         $result = $this->configPlantillaService->listarActivosPorTipo($tipoId, $medicoId);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -110,7 +110,7 @@ class ConfigPlantillaController extends Controller
     {
         $result = $this->configPlantillaService->create($request->validated());
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -129,7 +129,7 @@ class ConfigPlantillaController extends Controller
     {
         $result = $this->configPlantillaService->update($id, $request->validated());
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -147,6 +147,6 @@ class ConfigPlantillaController extends Controller
     {
         $result = $this->configPlantillaService->delete($id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 }

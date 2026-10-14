@@ -90,6 +90,6 @@ class ConfigCitaRechazoMotivoController extends Controller
     {
         $result = $this->service->delete($id);
 
-        return response()->json($result['message'], $result['status']);
+        return response()->json($result, (int) $result['status']);
     }
 }

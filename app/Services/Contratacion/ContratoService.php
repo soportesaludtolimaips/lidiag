@@ -2,13 +2,18 @@
 
 namespace App\Services\Contratacion;
 
+use App\Exceptions\CupsFaltantesException;
+use App\Imports\ContratoMedicoImport;
 use App\Models\Configuracion\ConfigProducto;
 use App\Models\Configuracion\ConfigSede;
 use App\Models\Contratacion\Contrato;
 use App\Models\Contratacion\ContratoMedico;
 use App\Models\Contratacion\ContratoProducto;
 use App\Services\BaseService;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 /**
  * Service ContratoService: lógica de negocio del módulo de contratación.
@@ -599,5 +604,63 @@ class ContratoService extends BaseService
             'tarifados' => $catalogo->count() - count($faltantes),
             'faltantes' => $faltantes,
         ]);
+    }
+
+    /**
+     * Importa médicos-producto a un contrato desde un archivo Excel.
+     *
+     * Flujo del proceso:
+     * 1. Valida el ID del contrato en la celda C2 contra el contrato recibido.
+     * 2. Si no coincide o no existe, devuelve error 422.
+     * 3. Ejecuta la importación con ContratoMedicoImport vía Maatwebsite Excel.
+     * 4. Si surgen CUPS faltantes (CupsFaltantesException) y no se envió crear_faltantes,
+     *    devuelve respuesta con status 200 y requiere_confirmacion = true.
+     * 5. Retorna la cantidad de registros importados exitosamente.
+     *
+     * @param  int  $contratoId  Identificador del contrato.
+     * @param  UploadedFile  $archivo  Archivo Excel cargado.
+     * @param  int  $medicoId  Identificador del médico.
+     * @param  bool  $crearFaltantes  Si true, crea los productos no encontrados.
+     *
+     * @returns array Resultado estructurado para la respuesta API.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
+    public function importarMedicos(int $contratoId, UploadedFile $archivo, int $medicoId, bool $crearFaltantes = false): array
+    {
+        try {
+            $excel = IOFactory::load($archivo->getPathname());
+            $c2Value = $excel->getActiveSheet()->getCell('C2')->getValue();
+
+            if (! $c2Value || ! preg_match('/(\d+)/', (string) $c2Value, $matches)) {
+                return $this->error('No se encontró el ID del contrato en el archivo Excel (celda C2).', 422);
+            }
+
+            $excelContratoId = (int) $matches[1];
+
+            if ($excelContratoId !== $contratoId) {
+                return $this->error("El archivo no corresponde a este contrato. Se esperaba ID {$contratoId}, el archivo tiene ID {$excelContratoId}.", 422);
+            }
+
+            $import = new ContratoMedicoImport($contratoId, $medicoId, $crearFaltantes);
+            Excel::import($import, $archivo);
+
+            return $this->success(
+                ['importados' => $import->importados],
+                "Detalle importado correctamente ({$import->importados} registros)."
+            );
+        } catch (CupsFaltantesException $e) {
+            return [
+                'success' => false,
+                'requiere_confirmacion' => true,
+                'message' => $e->getMessage(),
+                'data' => ['faltantes' => $e->faltantes],
+                'status' => 200,
+            ];
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 422);
+        }
     }
 }

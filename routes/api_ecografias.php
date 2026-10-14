@@ -3,7 +3,7 @@
 use App\Http\Controllers\Consentimientos\ConsentimientoPlantillasController;
 use App\Http\Controllers\Ecografias\EcografiaConsentimientosController;
 use App\Http\Controllers\Ecografias\EcografiaController;
-use App\Http\Controllers\Ecografias\ecografiaLecturaController;
+use App\Http\Controllers\Ecografias\EcografiaLecturaController;
 use App\Http\Controllers\Ecografias\EcografiaProductoController;
 use App\Http\Controllers\Interface\SAHIEcografiasController;
 use App\Http\Controllers\Interface\SAHIEcografiasEnviarController;
@@ -35,7 +35,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('api.ecografias.anular')
         ->middleware(['permission:ecografias.anular,web']);
 
-    Route::put('ecografia-lectura/{ecografia_id}', [ecografiaLecturaController::class, 'leer'])
+    Route::put('ecografia-lectura/{ecografia_id}', [EcografiaLecturaController::class, 'leer'])
         ->middleware('throttle:api-lectura')
         ->name('api.ecografias.lectura')
         ->middleware(['permission:ecografias.leer,web']);
@@ -44,7 +44,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('api.ecografias.generar.reporte')
         ->middleware(['permission:ecografias.reporte,web']);
 
-    Route::post('/ecografia-listarPendientesPorLectura/{idMedico}', [ecografiaLecturaController::class, 'listarPendientesPorLectura'])
+    Route::post('/ecografia-listarPendientesPorLectura/{idMedico}', [EcografiaLecturaController::class, 'listarPendientesPorLectura'])
         ->middleware('throttle:api-lectura')
         ->name('api.ecografia.listarPendientesPorLectura')
         ->middleware(['permission:ecografias.leer,web']);
