@@ -617,10 +617,10 @@ async function desactivar(p) {
  *
  * @date 2026-02-13
  */
-onMounted(() => {
+onMounted(async () => {
     listarProductos();
-    listarModulos();
-    listar();
+    await listarModulos();
+    await listar();
 });
 </script>
 <style scoped>

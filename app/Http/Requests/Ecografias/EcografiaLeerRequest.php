@@ -28,10 +28,12 @@ class EcografiaLeerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'accion' => 'required|string|in:IMPRIMIR_LECTURA,TERMINAR_LECTURA,GUARDAR_BORRADOR',
-            'registro' => 'required|array',
-            'registro.lectura' => 'nullable|string',
-            'registro.opinion' => 'nullable|string',
+            "accion" => "required|string|in:IMPRIMIR_LECTURA,TERMINAR_LECTURA,GUARDAR_BORRADOR",
+            "ecografia_producto_id" => "sometimes|integer|nullable",
+            "registro" => "required|array",
+            "registro.ecografia_producto_id" => "sometimes|integer|nullable",
+            "registro.lectura" => "nullable|string",
+            "registro.opinion" => "nullable|string",
         ];
     }
 

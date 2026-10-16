@@ -282,7 +282,7 @@
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-info btn-rounded btn-outline-primary btn-sm m-r-5"
-                                                @click="imprimirReporte(item.id)"
+                                                @click="imprimirReporte(item)"
                                                 title="Imprimir reporte"
                                                 aria-label="Imprimir reporte"
                                                 :disabled="isImprimiendoReporte"
@@ -369,11 +369,10 @@
     </div>
 </template>
 <script setup>
-import { nextTick, onMounted, ref, getCurrentInstance } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 
 import usePermissions from "@/helpers/permissions.js";
 import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
-import { setMapValue } from "@/helpers/sahi";
 import { useSede } from "@/composables/useSede.js";
 import { useSahiInterface } from "@/composables/useSahiInterface.js";
 import axios from "axios";
@@ -387,6 +386,7 @@ const { sedeInterface, establecerSede: establecerSedeComposable } = useSede();
 const { consultarEstado, enviarEcografiaProducto } = useSahiInterface();
 
 const { proxy } = getCurrentInstance();
+const emitter = proxy.emitter;
 
 const dt = ref(null);
 const actualizar = ref(false);
@@ -565,17 +565,48 @@ async function listarAtenciones() {
  *
  * @date 2025-11-18
  */
-async function imprimirReporte(id) {
+async function imprimirReporte(item) {
+    if (!item?.id) return;
     try {
         isImprimiendoReporte.value = true;
-        const res = await axios.post(`/api/ecografia-generar-reporte/${id}`);
-        const url = res?.data?.plantilla || res?.data?.url;
+        const nombrePaciente =
+            `${item.paciente?.nombres || item.PrimerNombre || ""} ${item.paciente?.seg_nom || item.SegundoNombre || ""} ${item.paciente?.pri_ape || item.PrimerApellido || ""} ${item.paciente?.seg_ape || item.SegundoApellido || ""}`.trim();
+
+        const payload = {
+            sede_id: item.sede_id || busqueda.value.sede_id || sessionStorage.getItem("ST-sede"),
+            medico_id: item.medico_id || item.medico?.id || props.usuarioactual?.id,
+            num_docu: String(item.paciente?.num_docu || item.NumDocumento || ""),
+            nom_pacien: nombrePaciente || "Paciente",
+            tipo_estudio: item.tipo_estudio || "ECOGRAFIA",
+            lectura: item.lectura || "",
+            opinion: item.opinion || "",
+            fec_estudio: item.fec_cita_sahi || item.FecIngreso || null,
+            fehor_lectura: item.fechor_lectura || null,
+            cod_cups: item.cod_cups || "",
+            nom_produc: item.nom_produc || item.NomProducto || "",
+            nom_sede: item.nom_sede || "",
+            fec_naci: item.paciente?.fec_naci || null,
+            sexo: item.paciente?.sexo || "",
+            edad: String(item.paciente?.edad || ""),
+            dir: item.paciente?.direccion || item.DirCasa || "",
+            tel: item.paciente?.tel || item.TelCasa || "",
+            cel: item.paciente?.cel || item.TelCelular || "",
+            atencion: String(item.atencion_id || item.IdAtencion || ""),
+            admin_salud: item.admin_salud?.nom_admin_salud || item.NomTercero || "",
+            contrato: item.contrato || item.DesContrato || "",
+        };
+
+        const res = await axios.post(`/api/ecografia-generar-reporte/${item.id}`, payload);
+        const url = res?.data?.data?.plantilla || res?.data?.plantilla || res?.data?.url;
         if (url) {
             window.open(url, "_blank", "noopener,noreferrer");
         } else {
             toastMessage({
                 heading: "Upss!!!",
-                text: res?.data?.message || "No fue posible generar el reporte.",
+                text:
+                    res?.data?.message ||
+                    res?.data?.data?.message ||
+                    "No fue posible generar el reporte.",
                 icon: "warning",
             });
         }
@@ -664,7 +695,7 @@ async function consultarEstadoSahi(item) {
 
     const id = item.ecografia_producto_id;
     try {
-        setMapValue(proxy, "isConsultandoSahi", id, true);
+        isConsultandoSahi.value[id] = true;
         const estado = await consultarEstado(id);
 
         item.estado_envio_sahi = estado.estado_envio_sahi ?? item.estado_envio_sahi;
@@ -682,7 +713,7 @@ async function consultarEstadoSahi(item) {
             icon: "warning",
         });
     } finally {
-        setMapValue(proxy, "isConsultandoSahi", id, false);
+        isConsultandoSahi.value[id] = false;
     }
 }
 /**
@@ -702,7 +733,7 @@ async function reenviarASahi(item) {
 
     const id = item.ecografia_producto_id;
     try {
-        setMapValue(proxy, "isEnviandoSahi", id, true);
+        isEnviandoSahi.value[id] = true;
         item.estado_envio_sahi = "ENVIANDO";
         item.error_envio_sahi = null;
 
@@ -722,12 +753,27 @@ async function reenviarASahi(item) {
             hideAfter: 4500,
         });
     } finally {
-        setMapValue(proxy, "isEnviandoSahi", id, false);
+        isEnviandoSahi.value[id] = false;
     }
 }
 
+function onSedeSeleccionada(data) {
+    if (data?.idSede) {
+        busqueda.value.sede_id = String(data.idSede);
+    }
+    initSede();
+    registros.value = [];
+}
+
+function onMedicoSeleccionado(data) {
+    if (data?.idMedico) {
+        busqueda.value.medico_id = String(data.idMedico);
+    }
+    registros.value = [];
+}
+
 /**
- * Hook de ciclo de vida que inicializa la sede al montar el componente.
+ * Hook de ciclo de vida que inicializa la sede y sincroniza los eventos globales al montar el componente.
  *
  * @returns {void}
  *
@@ -737,6 +783,13 @@ async function reenviarASahi(item) {
  */
 onMounted(() => {
     initSede();
+    emitter.on("sedeSeleccionada", onSedeSeleccionada);
+    emitter.on("medicoSeleccionado", onMedicoSeleccionado);
+});
+
+onBeforeUnmount(() => {
+    emitter.off("sedeSeleccionada", onSedeSeleccionada);
+    emitter.off("medicoSeleccionado", onMedicoSeleccionado);
 });
 </script>
 <style scoped>

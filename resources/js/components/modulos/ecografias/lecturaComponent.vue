@@ -498,7 +498,13 @@
                     <h4 class="modal-title" id="myLargeModalLabel-impri-repor">
                         Reporte de lectura
                     </h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    <button
+                        type="button"
+                        class="close"
+                        data-dismiss="modal"
+                        aria-hidden="true"
+                        @click="cerrarModalReporte()"
+                    >
                         ×
                     </button>
                 </div>
@@ -517,6 +523,7 @@
                         type="button"
                         class="btn btn-danger waves-effect text-left"
                         data-dismiss="modal"
+                        @click="cerrarModalReporte()"
                     >
                         Close
                     </button>
@@ -623,7 +630,6 @@ const emitter = proxy.emitter;
 
 import usePermissions from "@/helpers/permissions.js";
 import { toastMessage } from "@/helpers/alerts";
-import { setMapValue } from "@/helpers/sahi";
 import { createVoiceSession } from "@/helpers/voice/voiceSession";
 import medicalReplacements from "@/data/medical_replacements.json";
 import medicalTermsRaw from "@/data/terminos_medicos.txt?raw";
@@ -1532,7 +1538,7 @@ async function firmarConsentimientoMedico(item) {
     if (!id) return;
     if (isFirmandoConsentimiento.value[id]) return;
     try {
-        setMapValue(proxy, "isFirmandoConsentimiento", id, true);
+        isFirmandoConsentimiento.value[id] = true;
         await axios.post("/api/ecografias-consentimientos/firmar-medico", {
             consentimiento_id: id,
         });
@@ -1551,7 +1557,7 @@ async function firmarConsentimientoMedico(item) {
             icon: "error",
         });
     } finally {
-        setMapValue(proxy, "isFirmandoConsentimiento", id, false);
+        isFirmandoConsentimiento.value[id] = false;
     }
 }
 /**
@@ -1571,7 +1577,7 @@ async function generarLectura() {
             registro: registro.value,
         });
 
-        if (res.status === 201) {
+        if (res.status === 200 || res.status === 201) {
             // Mostrar notificación de éxito
             toastMessage({
                 heading: "¡Éxito!",
@@ -1581,7 +1587,14 @@ async function generarLectura() {
 
             return true;
         } else {
-            toastMessage({ heading: "Upss!!!", text: res.data.data.message, icon: "error" });
+            toastMessage({
+                heading: "Upss!!!",
+                text:
+                    res.data?.message ||
+                    res.data?.data?.message ||
+                    "No se pudo guardar la lectura.",
+                icon: "error",
+            });
 
             return false;
         }
@@ -1590,6 +1603,11 @@ async function generarLectura() {
         if (error.response?.data?.errors) {
             errores.value = error.response.data.errors;
         }
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "Ocurrió un error al guardar la lectura.",
+            icon: "error",
+        });
 
         return false;
     }
@@ -1728,9 +1746,10 @@ async function generarReporte() {
             "/api/ecografia-generar-reporte/" + registro.value.ecografia_id,
             registro.value
         );
-        const pathReporte = res.data.data.plantilla;
+        const pathReporte = res.data?.data?.plantilla || res.data?.plantilla;
 
-        iframe.src = pathReporte;
+        if (iframe) iframe.src = pathReporte;
+        modalReporteVisible.value = true;
 
         listarPendiestePorLectura();
 
@@ -1748,6 +1767,19 @@ async function generarReporte() {
     } finally {
         isGenerandoReporte.value = false;
     }
+}
+
+/**
+ * Cierra la visualización del modal de reporte de lectura.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-10-15
+ */
+function cerrarModalReporte() {
+    modalReporteVisible.value = false;
 }
 
 /**
@@ -1933,14 +1965,21 @@ function mostrarRegistro(data = {}) {
     registro.value.tipo_estudio = data.tipo_estudio || "";
 
     if (data.paciente.fec_naci) {
-        const hoy = new Date();
-        const nac = new Date(data.paciente.fec_naci);
-        let edad = hoy.getFullYear() - nac.getFullYear();
-        const mes = hoy.getMonth() - nac.getMonth();
-        if (mes < 0 || (mes === 0 && hoy.getDate() < nac.getDate())) {
-            edad--;
+        const partes = String(data.paciente.fec_naci).substring(0, 10).split("-");
+        if (partes.length === 3) {
+            const anio = parseInt(partes[0], 10);
+            const mes = parseInt(partes[1], 10) - 1;
+            const dia = parseInt(partes[2], 10);
+            const hoy = new Date();
+            let edad = hoy.getFullYear() - anio;
+            const mesDiff = hoy.getMonth() - mes;
+            if (mesDiff < 0 || (mesDiff === 0 && hoy.getDate() < dia)) {
+                edad--;
+            }
+            registro.value.edad = String(edad);
+        } else {
+            registro.value.edad = "";
         }
-        registro.value.edad = String(edad);
     } else {
         registro.value.edad = "";
     }
@@ -2008,28 +2047,43 @@ function limpiarFormulario() {
  *
  * @date 2025-11-18
  */
+function onSedeSeleccionada(data) {
+    registro.value.sede_id = data?.idSede || sessionStorage.getItem("ST-sede");
+    initSede();
+}
+
+function onMedicoSeleccionado(data) {
+    if (data?.idMedico) {
+        registro.value.medico_id = data.idMedico;
+        busqueda.value.medico_id = String(data.idMedico);
+    }
+    establecerMedico();
+}
+
+/**
+ * Hook de ciclo de vida que inicializa sede, tipos de plantillas, médico, vocabulario médico y suscripciones a eventos del emitter.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-11-18
+ */
 onMounted(() => {
     initSede();
     listarTiposPlantillas();
     establecerMedico();
     rebuildMedicalVocabulary();
 
-    emitter.on("sedeSeleccionada", (data) => {
-        registro.value.sede_id = data.idSede;
-        initSede();
-    });
-
-    emitter.on("medicoSeleccionado", (data) => {
-        registro.value.medico_id = data.idMedico;
-        establecerMedico();
-    });
+    emitter.on("sedeSeleccionada", onSedeSeleccionada);
+    emitter.on("medicoSeleccionado", onMedicoSeleccionado);
 
     url.value = window.location.pathname;
 });
 
 onBeforeUnmount(() => {
-    emitter.off("sedeSeleccionada");
-    emitter.off("medicoSeleccionado");
+    emitter.off("sedeSeleccionada", onSedeSeleccionada);
+    emitter.off("medicoSeleccionado", onMedicoSeleccionado);
     stopSahiPolling();
     try {
         stopVoice();

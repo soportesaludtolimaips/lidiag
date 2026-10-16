@@ -908,7 +908,6 @@ const emitter = proxy.emitter;
 import usePermissions from "@/helpers/permissions.js";
 import { formatoMoneda } from "@/helpers/funciones.js";
 import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
-import { setMapValue } from "@/helpers/sahi";
 import { useSede } from "@/composables/useSede.js";
 import { useSahiInterface } from "@/composables/useSahiInterface.js";
 import axios from "axios";
@@ -1142,6 +1141,11 @@ async function listarAtenciones() {
         }
     } catch (error) {
         erroresBusqueda.value = error?.response?.data?.errors || {};
+        toastMessage({
+            heading: "Error",
+            text: error?.response?.data?.message || "No fue posible consultar las atenciones.",
+            icon: "error",
+        });
     } finally {
         isBuscandoAtenciones.value = false;
     }
@@ -1251,7 +1255,7 @@ async function guardarRegistro() {
 
         const ecografiaRes = await axios.post("/api/ecografias", registro.value);
 
-        if (ecografiaRes.status === 201) {
+        if (ecografiaRes.status === 200 || ecografiaRes.status === 201) {
             // Mostrar notificación de éxito
             toastMessage({
                 heading: "¡Éxito!",
@@ -1266,7 +1270,7 @@ async function guardarRegistro() {
         } else {
             toastMessage({
                 heading: "Upss!!!",
-                text: ecografiaRes.data.message,
+                text: ecografiaRes.data?.message || "No se pudo guardar la agenda.",
                 icon: "error",
             });
         }
@@ -1275,6 +1279,11 @@ async function guardarRegistro() {
         if (error.response?.data?.errors) {
             errores.value = error.response.data.errors;
         }
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible guardar la ecografía.",
+            icon: "error",
+        });
     } finally {
         isGuardandoEcografia.value = false;
     }
@@ -1387,7 +1396,7 @@ async function consultarEstadoSahi(item) {
 
     const id = item.ecografia_producto_id;
     try {
-        setMapValue(proxy, "isConsultandoSahi", id, true);
+        isConsultandoSahi.value[id] = true;
         const estado = await consultarEstado(id);
 
         item.estado_envio_sahi = estado.estado_envio_sahi ?? item.estado_envio_sahi;
@@ -1402,7 +1411,7 @@ async function consultarEstadoSahi(item) {
             icon: "warning",
         });
     } finally {
-        setMapValue(proxy, "isConsultandoSahi", id, false);
+        isConsultandoSahi.value[id] = false;
     }
 }
 /**
@@ -1422,7 +1431,7 @@ async function reenviarASahi(item) {
 
     const id = item.ecografia_producto_id;
     try {
-        setMapValue(proxy, "isEnviandoSahi", id, true);
+        isEnviandoSahi.value[id] = true;
         item.estado_envio_sahi = "ENVIANDO";
         item.error_envio_sahi = null;
 
@@ -1439,7 +1448,7 @@ async function reenviarASahi(item) {
             hideAfter: 4500,
         });
     } finally {
-        setMapValue(proxy, "isEnviandoSahi", id, false);
+        isEnviandoSahi.value[id] = false;
     }
 }
 /**
@@ -1693,7 +1702,30 @@ function quitarProductoAgenda(codProduc) {
  *
  * @date 2024-04-04
  */
+async function onSedeSeleccionada(data) {
+    const sedeId = data?.idSede || sessionStorage.getItem("ST-sede");
+    if (sedeId) {
+        sessionStorage.setItem("ST-sede", sedeId);
+    }
+    await establecerMedico();
+}
+
+/**
+ * Hook de montaje: valida sede, carga catálogos y escucha cambios de sede.
+ *
+ * @returns {any}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2024-04-04
+ */
 onMounted(() => {
+    listarMedicos();
+    listarTipoDocumentos();
+    listarProductos();
+
+    emitter.on("sedeSeleccionada", onSedeSeleccionada);
+
     if (sessionStorage.getItem("ST-sede") == null) {
         toastMessage({
             heading: "Upsss!!!",
@@ -1704,20 +1736,11 @@ onMounted(() => {
         return;
     }
 
-    listarMedicos();
     initSede();
-    listarTipoDocumentos();
-    listarProductos();
-
-    emitter.on("sedeSeleccionada", (data) => {
-        registro.value.sede_id = data.idSede;
-        initSede();
-        establecerMedico();
-    });
 });
 
 onBeforeUnmount(() => {
-    emitter.off("sedeSeleccionada");
+    emitter.off("sedeSeleccionada", onSedeSeleccionada);
 });
 </script>
 <style scoped>

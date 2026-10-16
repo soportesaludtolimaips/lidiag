@@ -168,11 +168,14 @@
     </div>
 </template>
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 
 import usePermissions from "@/helpers/permissions.js";
 import { toastMessage } from "@/helpers/alerts";
 import axios from "axios";
+
+const { proxy } = getCurrentInstance();
+const emitter = proxy.emitter;
 
 const props = defineProps({
     usuarioactual: { type: Object, default: () => ({}) },
@@ -449,8 +452,17 @@ async function _ejecutarAnulacion(id, obs) {
     }
 }
 
+function onSedeSeleccionada(data) {
+    if (data?.idSede) {
+        filtros.value.sede_id = String(data.idSede);
+    } else {
+        filtros.value.sede_id = sessionStorage.getItem("ST-sede") || "";
+    }
+    buscar();
+}
+
 /**
- * Hook de ciclo de vida que ejecuta la búsqueda inicial de consentimientos al montar el componente.
+ * Hook de ciclo de vida que ejecuta la búsqueda inicial de consentimientos y escucha cambios de sede.
  *
  * @returns {void}
  *
@@ -460,6 +472,11 @@ async function _ejecutarAnulacion(id, obs) {
  */
 onMounted(() => {
     buscar();
+    emitter.on("sedeSeleccionada", onSedeSeleccionada);
+});
+
+onBeforeUnmount(() => {
+    emitter.off("sedeSeleccionada", onSedeSeleccionada);
 });
 </script>
 <style scoped>
