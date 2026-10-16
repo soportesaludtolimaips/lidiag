@@ -555,11 +555,15 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { getUserSafeError, toastMessage } from "@/helpers/alerts";
+import { normalizarFecha } from "@/helpers/dateUtils";
 import axios from "axios";
 import usePermissions from "@/helpers/permissions.js";
+
+const { appContext } = getCurrentInstance();
+const emitter = appContext.config.globalProperties.emitter;
 
 const DESTINO_TELE_RADIOLOGIA = "Tele Radiologia";
 const ADJUNTO_ACCEPT = ".pdf,.doc,.docx";
@@ -717,14 +721,11 @@ async function buscarStudy() {
             initDataTable();
         });
     } catch (error) {
-        const status = error?.response?.status;
-        if (status == 500) {
-            toastMessage({
-                heading: "Upsss!!!",
-                text: getUserSafeError(error, "Error al listar estudios."),
-                icon: "error",
-            });
-        }
+        toastMessage({
+            heading: "Upsss!!!",
+            text: getUserSafeError(error, "Error al listar estudios."),
+            icon: "error",
+        });
     } finally {
         loadingBuscar.value = false;
     }
@@ -807,17 +808,16 @@ async function guardarRegistro() {
                 headers: { "Content-Type": "multipart/form-data" },
             });
 
-            if (resEstudio.status == 200) {
+            if (resEstudio.status == 200 || resEstudio.status == 201) {
                 toastMessage({
                     heading: "Ok!!!",
-                    text: resEstudio.data.message,
+                    text: resEstudio.data.message || "Estudio guardado correctamente.",
                     icon: "success",
                 });
+                btnCerrarModal();
+                btnLimpiar();
             }
         }
-
-        btnCerrarModal();
-        btnLimpiar();
     } catch (error) {
         if (error.response) {
             errores.value = error.response.data;
@@ -878,7 +878,7 @@ async function mostrarRegistro(data = {}) {
     orden.value.paciente.num_docu = data.pat_id;
     orden.value.paciente.nom_pacien = data.pat_name;
     orden.value.paciente.sexo = data.pat_sex;
-    orden.value.paciente.fec_naci = data.pat_birthdate;
+    orden.value.paciente.fec_naci = normalizarFecha(data.pat_birthdate) ?? "";
 
     registro.value.study_pk = data.study_pk;
     registro.value.study_iuid = data.study_iuid;
@@ -892,7 +892,7 @@ async function mostrarRegistro(data = {}) {
     registro.value.num_docu = data.pat_id;
     registro.value.nombres = data.pat_name;
     registro.value.sexo = data.pat_sex;
-    registro.value.fec_naci = data.pat_birthdate;
+    registro.value.fec_naci = normalizarFecha(data.pat_birthdate) ?? "";
 
     abrirModal();
 
@@ -981,6 +981,27 @@ async function establecerSede() {
     nomSedeActual.value = sessionStorage.getItem("ST-nomsede");
     registro.value.sede_id = sessionStorage.getItem("ST-sede");
     registros.value = [];
+}
+
+/**
+ * Maneja el evento global sedeSeleccionada sincronizando la sede activa
+ * y limpiando los resultados previos para evitar mezclar información.
+ *
+ * @param {Object} data - Datos del evento con idSede y nomSede.
+ * @returns {void}
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-10-16
+ */
+function onSedeSeleccionada(data) {
+    const idSede = data?.idSede ?? sessionStorage.getItem("ST-sede");
+    orden.value.sede.id = idSede;
+    busqueda.value.sede_id = idSede;
+    idSedeActual.value = idSede;
+    nomSedeActual.value = data?.nomSede ?? sessionStorage.getItem("ST-nomsede");
+    registro.value.sede_id = idSede;
+    destroyDataTable();
+    registros.value = [];
+    limpiar();
 }
 
 function btnCerrarModal() {
@@ -1160,9 +1181,11 @@ onMounted(() => {
     listarPrioridades();
     listarProductos();
     establecerSede();
+    emitter.on("sedeSeleccionada", onSedeSeleccionada);
 });
 
 onBeforeUnmount(() => {
+    emitter.off("sedeSeleccionada", onSedeSeleccionada);
     destroyDataTable();
 });
 </script>

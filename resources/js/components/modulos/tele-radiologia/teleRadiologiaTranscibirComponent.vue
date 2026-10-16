@@ -557,7 +557,7 @@
     </div>
 </template>
 <script setup>
-import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { listarUsuariosYSedes } from "../../../helpers/usuarios";
@@ -569,6 +569,9 @@ dayjs.extend(timezone);
 import axios from "axios";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables";
 import { confirmAction, getUserSafeError, toastMessage } from "@/helpers/alerts";
+
+const { appContext } = getCurrentInstance();
+const emitter = appContext.config.globalProperties.emitter;
 
 const DESTINO_TELE_RADIOLOGIA = "Tele Radiologia";
 
@@ -726,6 +729,12 @@ async function guardarRegistro() {
             email: registro.value.email || undefined,
             tel: registro.value.tel || undefined,
             fec_naci: registro.value.fec_naci || undefined,
+            fec_estudio: registro.value.fec_estudio || undefined,
+            fec_lectura: registro.value.fec_lectura || undefined,
+            nombres_medico: registro.value.nombres_medico || undefined,
+            reg_medico: registro.value.reg_medico || undefined,
+            num_docu_medico: registro.value.num_docu_medico || undefined,
+            firma_medico: registro.value.firma_medico || undefined,
             sede_id: registro.value.sede_id,
             nom_sede: registro.value.nom_sede || undefined,
             cod_cups: registro.value.cod_cups,
@@ -766,7 +775,7 @@ async function guardarRegistro() {
             toastMessage({
                 heading: "Upss!!!",
                 text: res.data.data.message,
-                icon: "danger",
+                icon: "error",
             });
         }
     } catch (error) {
@@ -933,6 +942,23 @@ function establecerSede() {
     registros.value = [];
 }
 
+/**
+ * Maneja el evento global sedeSeleccionada actualizando la sede activa
+ * y limpiando resultados previos para evitar discrepancias de datos.
+ *
+ * @param {Object} data - Datos del evento con idSede y nomSede.
+ * @returns {void}
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-10-16
+ */
+function onSedeSeleccionada(data) {
+    const idSede = data?.idSede ?? sessionStorage.getItem("ST-sede");
+    busqueda.value.sede_id = idSede;
+    destroyDataTable();
+    registros.value = [];
+    btnCerrarModal();
+}
+
 function formatDate(timestamp) {
     return dayjs.utc(timestamp).local().format("YYYY-MM-DD HH:mm:ss");
 }
@@ -1017,6 +1043,7 @@ function btnCerrarModal() {
 onMounted(async () => {
     listarMedicos();
     establecerSede();
+    emitter.on("sedeSeleccionada", onSedeSeleccionada);
     await listarUsuariosYSedes({
         set quienes_asignaron(v) {
             quienes_asignaron.value = v;
@@ -1028,6 +1055,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+    emitter.off("sedeSeleccionada", onSedeSeleccionada);
     destroyDataTable();
 });
 </script>

@@ -105,7 +105,19 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **BUG-ECO-10 — `ecografiasConsentimientosComponent.vue`:** Desconexión del event bus de sede. **Fix:** Listener `sedeSeleccionada` con handler `onSedeSeleccionada` y cleanup en `onBeforeUnmount`.
   - **BUG-ECO-11 — `ecografiasConsentimientosPlantillasComponent.vue`:** Condición de carrera asíncrona en `onMounted` donde `listar()` abortaba antes de que `listarModulos()` asignara el módulo por defecto. **Fix:** Secuenciación `await listarModulos()` antes de `listar()` en `onMounted`.
   - Verificación estricta: `vendor\bin\pint.bat --test` passed ✅ | `php artisan route:list` passed ✅ | ESLint 0 errores en todos los componentes ✅ | `npm run build` en 1.69s ✅.
-- [ ] Aprobación de commit pendiente.
+- [x] **2026-10-16 — Auditoría profunda y hotfixes del módulo `resources/js/components/modulos/tele-radiologia` (2 componentes Vue):**
+  - **`teleRadiologiaEnviarEstudioComponent.vue`:**
+    - Sincronización reactiva de sede mediante listener `emitter.on('sedeSeleccionada')` con cleanup en `onBeforeUnmount`.
+    - Captura defensiva de errores en `buscarStudy()` con `getUserSafeError` sin silenciar fallos 4xx/red.
+    - Soporte para códigos de éxito HTTP 200 y 201 en la creación de estudios (`resEstudio.status == 200 || resEstudio.status == 201`).
+    - Cierre defensivo de modal y limpieza condicionados estrictamente a la confirmación exitosa de envío y persistencia.
+    - Normalización de fecha de nacimiento (`pat_birthdate`) con `normalizarFecha` de `@/helpers/dateUtils` para inputs tipo date.
+  - **`teleRadiologiaTranscibirComponent.vue`:**
+    - Completado payload a `/api/estudio-guardarTranscripcion` con metadatos del médico (`nombres_medico`, `reg_medico`, `num_docu_medico`, `firma_medico`) y fechas del estudio (`fec_estudio`, `fec_lectura`) garantizando la emisión íntegra del informe PDF/Word.
+    - Sincronización reactiva de sede mediante listener `emitter.on('sedeSeleccionada')` con reseteo de lista y cleanup en `onBeforeUnmount`.
+    - Corrección de toast icon a `icon: "error"` (reemplazando `danger`).
+  - Verificación estricta: ESLint ✅ (0 errores, 0 warnings en ambos archivos) | Vite `npm run build` en 2.13s ✅.
+- [ ] Aprobación de commit pendiente para Tele-Radiología.
 
 
 ### Estado de módulos recientes (oct. 2026)
