@@ -117,7 +117,14 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     - Sincronización reactiva de sede mediante listener `emitter.on('sedeSeleccionada')` con reseteo de lista y cleanup en `onBeforeUnmount`.
     - Corrección de toast icon a `icon: "error"` (reemplazando `danger`).
   - Verificación estricta: ESLint ✅ (0 errores, 0 warnings en ambos archivos) | Vite `npm run build` en 2.13s ✅.
-- [ ] Aprobación de commit pendiente para Tele-Radiología.
+- [x] **2026-10-16 — Auditoría profunda y hotfixes de HelpDesk & Agenda/Citas (Frontend - 5 componentes Vue + helper alerts):**
+  - **`helpdeskReportesComponent.vue` (BUG-HD-01 & BUG-HD-02):** Eliminada condición bloqueante `if (!canExport.value) return;` en `buscar()` que exigía `detallado.length > 0` antes de consultar. Conectado listener reactivo `emitter.on('sedeSeleccionada')` con cleanup en `onBeforeUnmount`.
+  - **`helpdeskTicketsComponent.vue` (BUG-HD-02):** Conectado listener reactivo `emitter.on('sedeSeleccionada')` con cleanup en `onBeforeUnmount`.
+  - **`helpers/alerts.js`:** Exportada la función faltante `alertWarning(title, text, icon = "warning")` homologada con SweetAlert2/alerts del proyecto.
+  - **`citasComponent.vue` (BUG-CIT-01 & BUG-CIT-02):** Desenvoltura defensiva de respuestas del backend envueltas en `BaseService::success()` (`res.data?.data || res.data || []`) en carga de servicios, sedes, productos y slots de agenda (`res.data?.data?.detalles || res.data?.detalles || []`). Reemplazado `$swal` roto con helpers de `@/helpers/alerts.js` (`confirmAction`, `alertSuccess`, `alertError`, `alertWarning`). Conectado listener reactivo `emitter.on('sedeSeleccionada')` con cleanup.
+  - **`citasRevisionComponent.vue` (BUG-CIT-03 & BUG-CIT-05):** Estandarizada la extracción de colecciones con fallback en `cargarListas()` y `cargarProductosPorServicio()`. Conectado listener reactivo `emitter.on('sedeSeleccionada')` con cleanup.
+  - **`agendaDisponibilidadComponent.vue` (BUG-CIT-04):** Corregido variable shadowing en `validarFormulario()` (`errs` vs `errores`). Limpieza de import `computed` no utilizado y desconexión segura de `emitter.off('sedeSeleccionada')` en `onBeforeUnmount`.
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 927ms ✅.
 
 
 ### Estado de módulos recientes (oct. 2026)

@@ -91,6 +91,25 @@ export function alertInfo(title = "Info", text = "", icon = "info") {
 }
 
 /**
+ * Muestra una alerta de advertencia utilizando SweetAlert si esta disponible; de lo contrario usa alert().
+ *
+ * @param string $title Titulo de la alerta.
+ * @param string $text Texto descriptivo de la alerta.
+ * @param string $icon Tipo de icono a mostrar (por defecto warning).
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-10-16
+ */
+export function alertWarning(title = "Advertencia", text = "", icon = "warning") {
+    const swal = getSwal();
+    if (swal) return swal(title, text, icon);
+    window.alert([title, text].filter(Boolean).join("\n"));
+}
+
+/**
  * Solicita confirmacion al usuario y devuelve una promesa que resuelve true o false segun la decision.
  *
  * @param object $options Opciones de la confirmacion (title, text, icon).

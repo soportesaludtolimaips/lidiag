@@ -484,11 +484,14 @@
     </div>
 </template>
 <script setup>
-import { computed, onMounted, ref, getCurrentInstance } from "vue";
+import { computed, getCurrentInstance, onBeforeUnmount, onMounted, ref } from "vue";
 
-const { proxy } = getCurrentInstance();
+const { proxy, appContext } = getCurrentInstance();
+const emitter = appContext.config.globalProperties.emitter;
+
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { formatFecha, getEstadoLabel, getEstadoClase } from "@/composables/useCitasUtils.js";
+import { alertError, alertSuccess, alertWarning, confirmAction } from "@/helpers/alerts";
 import axios from "axios";
 
 const registros = ref([]);
@@ -566,13 +569,13 @@ function cargarListas() {
     var thisVue = proxy;
 
     axios.get("/api/citas/servicios").then(function (response) {
-        thisVue.servicios = response.data;
+        thisVue.servicios = response.data?.data || response.data || [];
     });
 
     axios
         .get("/api/config-sedes/listar/sedes/activas")
         .then(function (response) {
-            thisVue.sedes = response.data;
+            thisVue.sedes = response.data?.data || response.data || [];
         })
         .catch(function (e) {
             mostrarError(e);
@@ -598,7 +601,7 @@ function cargarProductosPorServicio() {
     axios
         .get(url)
         .then(function (response) {
-            thisVue.productosFiltrados = response.data;
+            thisVue.productosFiltrados = response.data?.data || response.data || [];
         })
         .catch(function (error) {
             mostrarError(error);
@@ -633,7 +636,7 @@ function cargarDisponibilidad() {
             },
         })
         .then(function (response) {
-            thisVue.detalles = response.data.detalles || [];
+            thisVue.detalles = response.data?.data?.detalles || response.data?.detalles || [];
         })
         .catch(function (error) {
             thisVue.mostrarError(error);
@@ -673,7 +676,7 @@ function asignarCita() {
         !thisVue.citaSeleccionada.fecha ||
         !thisVue.citaSeleccionada.agenda_disponibilidad_detalle_id
     ) {
-        thisVue.mostrarAdvertencia("Todos los campos obligatorios deben ser llenados");
+        alertWarning("Advertencia", "Todos los campos obligatorios deben ser llenados");
         return;
     }
 
@@ -708,115 +711,89 @@ function asignarCita() {
         });
 }
 
-function confirmarCita(cita) {
+async function confirmarCita(cita) {
     var thisVue = proxy;
 
-    thisVue
-        .$swal({
-            title: "Confirmar Cita",
-            text: "¿Está seguro de confirmar esta cita?",
-            type: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Sí, confirmar",
-            cancelButtonText: "No",
+    const ok = await confirmAction({
+        title: "Confirmar Cita",
+        text: "¿Está seguro de confirmar esta cita?",
+        icon: "warning",
+    });
+    if (!ok) return;
+
+    axios
+        .post("/api/citas/" + cita.id + "/confirmar")
+        .then(function (_response) {
+            mostrarExito("Cita confirmada");
+            thisVue.listarRegistros();
         })
-        .then(function (result) {
-            if (result.isConfirmed) {
-                axios
-                    .post("/api/citas/" + cita.id + "/confirmar")
-                    .then(function (_response) {
-                        mostrarExito("Cita confirmada");
-                        thisVue.listarRegistros();
-                    })
-                    .catch(function (error) {
-                        thisVue.mostrarError(error);
-                    });
-            }
+        .catch(function (error) {
+            thisVue.mostrarError(error);
         });
 }
 
-function cancelarCita(cita) {
+async function cancelarCita(cita) {
     var thisVue = proxy;
 
-    thisVue
-        .$swal({
-            title: "Cancelar Cita",
-            input: "text",
-            text: "Ingrese el motivo de cancelación (opcional)",
-            type: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Sí, cancelar",
-            cancelButtonText: "No",
+    const ok = await confirmAction({
+        title: "Cancelar Cita",
+        text: "¿Está seguro de cancelar esta cita?",
+        icon: "warning",
+    });
+    if (!ok) return;
+
+    axios
+        .post("/api/citas/" + cita.id + "/cancelar", {
+            motivo: "Cancelada por usuario",
         })
-        .then(function (result) {
-            if (result.isConfirmed) {
-                var motivo = result.value || "";
-                axios
-                    .post("/api/citas/" + cita.id + "/cancelar", {
-                        motivo: motivo,
-                    })
-                    .then(function (_response) {
-                        mostrarExito("Cita cancelada");
-                        thisVue.listarRegistros();
-                    })
-                    .catch(function (error) {
-                        thisVue.mostrarError(error);
-                    });
-            }
+        .then(function (_response) {
+            mostrarExito("Cita cancelada");
+            thisVue.listarRegistros();
+        })
+        .catch(function (error) {
+            thisVue.mostrarError(error);
         });
 }
 
-function cumplirCita(cita) {
+async function cumplirCita(cita) {
     var thisVue = proxy;
 
-    thisVue
-        .$swal({
-            title: "Cumplir Cita",
-            text: "¿Marcar esta cita como cumplida?",
-            type: "question",
-            showCancelButton: true,
-            confirmButtonText: "Sí, cumplida",
-            cancelButtonText: "No",
+    const ok = await confirmAction({
+        title: "Cumplir Cita",
+        text: "¿Marcar esta cita como cumplida?",
+        icon: "question",
+    });
+    if (!ok) return;
+
+    axios
+        .post("/api/citas/" + cita.id + "/cumplir")
+        .then(function (_response) {
+            mostrarExito("Cita marcada como cumplida");
+            thisVue.listarRegistros();
         })
-        .then(function (result) {
-            if (result.isConfirmed) {
-                axios
-                    .post("/api/citas/" + cita.id + "/cumplir")
-                    .then(function (_response) {
-                        mostrarExito("Cita marcada como cumplida");
-                        thisVue.listarRegistros();
-                    })
-                    .catch(function (error) {
-                        thisVue.mostrarError(error);
-                    });
-            }
+        .catch(function (error) {
+            thisVue.mostrarError(error);
         });
 }
 
-function noAsistioCita(cita) {
+async function noAsistioCita(cita) {
     var thisVue = proxy;
 
-    thisVue
-        .$swal({
-            title: "No Asistió",
-            text: "¿Marcar esta cita como no asistió?",
-            type: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Sí, no asistió",
-            cancelButtonText: "No",
+    const ok = await confirmAction({
+        title: "No Asistió",
+        text: "¿Marcar esta cita como no asistió?",
+        icon: "warning",
+    });
+    if (!ok) return;
+
+    axios
+        .post("/api/citas/" + cita.id + "/no-asistio")
+        .then(function (_response) {
+            mostrarExito("Inasistencia registrada");
+            thisVue.listarRegistros();
         })
-        .then(function (result) {
-            if (result.isConfirmed) {
-                axios
-                    .post("/api/citas/" + cita.id + "/no-asistio")
-                    .then(function (_response) {
-                        mostrarExito("Inasistencia registrada");
-                        thisVue.listarRegistros();
-                    })
-                    .catch(function (error) {
-                        thisVue.mostrarError(error);
-                    });
-            }
+        .catch(function (error) {
+            thisVue.mostrarError(error);
         });
 }
 
@@ -829,7 +806,7 @@ function verConversacion(cita) {
     axios
         .get("/api/citas/" + cita.id + "/conversacion")
         .then(function (response) {
-            thisVue.conversacion = response.data.conversacion;
+            thisVue.conversacion = response.data?.data?.conversacion || response.data?.conversacion;
         })
         .catch(function (error) {
             thisVue.mostrarError(error);
@@ -852,18 +829,28 @@ function limpiarFiltros() {
 
 function mostrarError(error) {
     var mensaje = error.response?.data?.error || error.message || "Error desconocido";
-    mostrarAdvertencia(mensaje);
-}
-
-function mostrarAdvertencia(mensaje) {
-    $swal("Advertencia", mensaje, "warning");
+    alertError("Error", mensaje);
 }
 
 function mostrarExito(mensaje) {
-    $swal("Éxito", mensaje, "success");
+    alertSuccess("Éxito", mensaje);
+}
+
+function onSedeSeleccionada(data) {
+    const idSede = data?.idSede ?? sessionStorage.getItem("ST-sede");
+    if (idSede) {
+        citaSeleccionada.value.sede_id = idSede;
+    }
+    cargarListas();
+    listarRegistros();
 }
 
 onMounted(() => {
     inicializar();
+    emitter?.on("sedeSeleccionada", onSedeSeleccionada);
+});
+
+onBeforeUnmount(() => {
+    emitter?.off("sedeSeleccionada", onSedeSeleccionada);
 });
 </script>

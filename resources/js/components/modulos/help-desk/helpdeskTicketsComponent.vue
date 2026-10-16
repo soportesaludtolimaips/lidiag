@@ -263,12 +263,15 @@
     </div>
 </template>
 <script setup>
-import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import { toastMessage } from "@/helpers/alerts.js";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { formatDateTime } from "@/helpers/dateUtils.js";
 import { helpdesk } from "@/helpers/api.js";
+
+const { appContext } = getCurrentInstance();
+const emitter = appContext.config.globalProperties.emitter;
 
 const scope = ref("mine");
 const loading = ref(false);
@@ -383,6 +386,12 @@ async function buscar() {
     }
 }
 
+function onSedeSeleccionada(data) {
+    const idSede = data?.idSede ?? sessionStorage.getItem("ST-sede") ?? "";
+    filters.value.sede_id = idSede;
+    buscar();
+}
+
 onMounted(async () => {
     try {
         // sede activa por defecto
@@ -392,11 +401,13 @@ onMounted(async () => {
         console.warn("No se pudo leer sede activa de sessionStorage", e);
     }
 
+    emitter.on("sedeSeleccionada", onSedeSeleccionada);
     await cargarCatalogos();
     await buscar();
 });
 
 onBeforeUnmount(() => {
+    emitter.off("sedeSeleccionada", onSedeSeleccionada);
     destroyDataTable();
 });
 </script>

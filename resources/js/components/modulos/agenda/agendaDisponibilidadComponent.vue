@@ -339,14 +339,15 @@
     </div>
 </template>
 <script setup>
-const { proxy } = getCurrentInstance();
-const emitter = proxy.emitter;
-import { nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
+import { getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts";
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import axios from "axios";
+
+const { appContext } = getCurrentInstance();
+const emitter = appContext.config.globalProperties.emitter;
 
 const props = defineProps({ usuarioactual: { type: Object, default: () => ({}) } });
 
@@ -400,21 +401,21 @@ async function buscarStudy() {
     }
 }
 function validarFormulario() {
-    const errores = {};
+    const errs = {};
     if (!registro.value.fecha_hora_ini) {
-        errores.fecha_hora_ini = ["Debe seleccionar la fecha de inicio."];
+        errs.fecha_hora_ini = ["Debe seleccionar la fecha de inicio."];
     }
     if (!registro.value.servicio_id) {
-        errores.servicio_id = ["Debe seleccionar un servicio de cita."];
+        errs.servicio_id = ["Debe seleccionar un servicio de cita."];
     }
     if (!registro.value.total_citas || registro.value.total_citas < 1) {
-        errores.total_citas = ["El total de citas debe ser al menos 1."];
+        errs.total_citas = ["El total de citas debe ser al menos 1."];
     }
     if (!registro.value.dura_cita || registro.value.dura_cita < 1) {
-        errores.dura_cita = ["La duraci\u00f3n debe ser al menos 1 minuto."];
+        errs.dura_cita = ["La duración debe ser al menos 1 minuto."];
     }
-    errores.value = errores;
-    return Object.keys(errores).length === 0;
+    errores.value = errs;
+    return Object.keys(errs).length === 0;
 }
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
@@ -533,18 +534,21 @@ function formatFecha(fecha) {
     return `${dia}/${mes}/${anio} ${horas}:${minutos}`;
 }
 
+function onSedeSeleccionada() {
+    establecerSede();
+    safeDestroyDataTable(dt.value || "#tabla-disponibilidad");
+}
+
 onMounted(() => {
     establecerSede();
     listarServiciosCitas();
     buscarStudy();
 
-    emitter.on("sedeSeleccionada", () => {
-        establecerSede();
-        safeDestroyDataTable(dt.value || "#tabla-disponibilidad");
-    });
+    emitter?.on("sedeSeleccionada", onSedeSeleccionada);
 });
 
 onBeforeUnmount(() => {
+    emitter?.off("sedeSeleccionada", onSedeSeleccionada);
     safeDestroyDataTable(dt.value || "#tabla-disponibilidad");
 });
 </script>

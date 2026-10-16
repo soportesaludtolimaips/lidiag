@@ -378,12 +378,15 @@
     </div>
 </template>
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { toastMessage } from "@/helpers/alerts.js";
 import { formatDateTime } from "@/helpers/dateUtils.js";
 import { helpdesk } from "@/helpers/api.js";
+
+const { appContext } = getCurrentInstance();
+const emitter = appContext.config.globalProperties.emitter;
 
 const dt = ref(null);
 const loading = ref(false);
@@ -495,7 +498,7 @@ function initDT() {
 }
 
 async function buscar() {
-    if (!canExport.value) return;
+    if (!filters.value.fechaIni || !filters.value.fechaFin) return;
     if (loading.value) return;
     if (
         filters.value.fechaIni &&
@@ -546,6 +549,12 @@ function exportPdf() {
     window.open(helpdesk.exportPdfUrl(params), "_blank", "noopener,noreferrer");
 }
 
+function onSedeSeleccionada(data) {
+    const idSede = data?.idSede ?? sessionStorage.getItem("ST-sede") ?? "";
+    filters.value.sedeId = idSede;
+    buscar();
+}
+
 onMounted(async () => {
     // sede activa por defecto
     try {
@@ -554,11 +563,13 @@ onMounted(async () => {
     } catch (e) {
         console.warn("No se pudo leer sede activa de sessionStorage", e);
     }
+    emitter.on("sedeSeleccionada", onSedeSeleccionada);
     await cargarCatalogos();
     await buscar();
 });
 
 onBeforeUnmount(() => {
+    emitter.off("sedeSeleccionada", onSedeSeleccionada);
     safeDestroyDataTable(dt.value || "#helpdeskReportesDetallado");
 });
 </script>

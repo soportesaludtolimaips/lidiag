@@ -529,9 +529,10 @@
     </div>
 </template>
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
+import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-const { proxy } = getCurrentInstance();
+const { proxy, appContext } = getCurrentInstance();
+const emitter = appContext.config.globalProperties.emitter;
 const dt = ref(null);
 
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
@@ -603,7 +604,7 @@ function cargarListas() {
     axios
         .get("/api/citas/servicios")
         .then((r) => {
-            self.servicios = r.data;
+            self.servicios = r.data?.data || r.data || [];
         })
         .catch((_e) => {
             alertError("Error", "No se pudieron cargar los servicios");
@@ -612,7 +613,7 @@ function cargarListas() {
     axios
         .get("/api/config-sedes/listar/sedes/activas")
         .then((r) => {
-            self.sedes = r.data;
+            self.sedes = r.data?.data || r.data || [];
         })
         .catch((_e) => {
             alertError("Error", "No se pudieron cargar las sedes");
@@ -621,7 +622,7 @@ function cargarListas() {
     axios
         .get("/api/citas-rechazo-motivos")
         .then((r) => {
-            self.motivosRechazo = r.data;
+            self.motivosRechazo = r.data?.data || r.data || [];
         })
         .catch((_e) => {
             alertError("Error", "No se pudieron cargar los motivos de rechazo");
@@ -630,7 +631,7 @@ function cargarListas() {
     axios
         .get("/api/config-recomendacion-productos")
         .then((r) => {
-            self.recomendaciones = r.data || [];
+            self.recomendaciones = r.data?.data || r.data || [];
         })
         .catch((_e) => {
             alertError("Error", "No se pudieron cargar las recomendaciones");
@@ -702,7 +703,7 @@ function cargarProductosPorServicio() {
     if (sedeId) url += "?sede_id=" + sedeId;
 
     axios.get(url).then((r) => {
-        productos.value = r.data;
+        productos.value = r.data?.data || r.data || [];
     });
 }
 
@@ -844,6 +845,16 @@ function limpiarFiltros() {
     listarRegistros();
 }
 
+function onSedeSeleccionada(data) {
+    const idSede = data?.idSede ?? sessionStorage.getItem("ST-sede");
+    if (idSede) {
+        filtro.value.sede_id = idSede;
+        formAprobar.value.sede_id = idSede;
+    }
+    cargarListas();
+    listarRegistros();
+}
+
 onMounted(() => {
     cargarListas();
     listarRegistros();
@@ -851,9 +862,11 @@ onMounted(() => {
     pollingInterval.value = setInterval(() => {
         listarRegistros();
     }, 30000);
+    emitter?.on("sedeSeleccionada", onSedeSeleccionada);
 });
 
 onBeforeUnmount(() => {
+    emitter?.off("sedeSeleccionada", onSedeSeleccionada);
     destroyDataTable();
     if (pollingInterval.value) {
         clearInterval(pollingInterval.value);
