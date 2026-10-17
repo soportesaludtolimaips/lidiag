@@ -482,7 +482,7 @@ async function cargarServicios() {
         const res = await axios.get("/api/config-servicio-citas", {
             params: { sede_id: sedeActual.value },
         });
-        servicios.value = res.data.data;
+        servicios.value = res?.data?.data || res?.data || [];
     } catch {
         servicios.value = [];
     }
@@ -499,7 +499,7 @@ async function listarSaludos() {
         const res = await axios.get("/api/config-whatsapp", {
             params: { sede_id: sedeActual.value },
         });
-        registrosSaludos.value = res.data.data;
+        registrosSaludos.value = res?.data?.data || res?.data || [];
         dtSaludosApi.refresh(true);
     } catch (error) {
         errorSaludos.value = error?.response?.data?.message || "No fue posible cargar los saludos.";

@@ -231,7 +231,7 @@ function cargarServicios() {
     axios
         .get("/api/config-servicio-citas/mis-servicios")
         .then(function (response) {
-            servicios.value = response.data;
+            servicios.value = response.data?.data || response.data || [];
 
             var servicioIdUrl = servicioIdDesdeUrl.value;
             if (servicioIdUrl) {
@@ -276,7 +276,7 @@ function cargarProductosVinculados() {
             params: { servicio_id: servicioSeleccionado.value },
         })
         .then(function (response) {
-            productosVinculados.value = response.data;
+            productosVinculados.value = response.data?.data || response.data || [];
         })
         .catch(function (_error) {
             toastMessage({
@@ -300,7 +300,7 @@ function mostrarModalAgregar() {
             },
         })
         .then(function (response) {
-            productosDisponibles.value = response.data;
+            productosDisponibles.value = response.data?.data || response.data || [];
             abrirModal();
         })
         .catch(function (_error) {
@@ -381,35 +381,30 @@ function agregarProducto() {
         });
 }
 
-function eliminarVinculo(id) {
-    confirmAction({
+async function eliminarVinculo(id) {
+    const confirmado = await confirmAction({
         title: "¿Está seguro?",
         text: "El producto se desvinculará del servicio.",
-        confirmButtonText: "Sí, eliminar",
-        cancelButtonText: "Cancelar",
-    }).then(function (confirmado) {
-        if (confirmado) {
-            axios
-                .delete("/api/servicio-producto/" + id)
-                .then(function () {
-                    toastMessage({
-                        heading: "Éxito",
-                        text: "Producto desvinculado correctamente.",
-                        icon: "success",
-                    });
-                    cargarProductosVinculados();
-                })
-                .catch(function (error) {
-                    var mensaje =
-                        error.response?.data?.message || error.message || "Error desconocido";
-                    toastMessage({
-                        heading: "Error",
-                        text: mensaje,
-                        icon: "error",
-                    });
-                });
-        }
+        icon: "warning",
     });
+    if (!confirmado) return;
+
+    try {
+        await axios.delete("/api/servicio-producto/" + id);
+        toastMessage({
+            heading: "Éxito",
+            text: "Producto desvinculado correctamente.",
+            icon: "success",
+        });
+        cargarProductosVinculados();
+    } catch (error) {
+        var mensaje = error.response?.data?.message || error.message || "Error desconocido";
+        toastMessage({
+            heading: "Error",
+            text: mensaje,
+            icon: "error",
+        });
+    }
 }
 
 onMounted(() => {

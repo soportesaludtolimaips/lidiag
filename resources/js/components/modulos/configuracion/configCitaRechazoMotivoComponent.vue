@@ -80,10 +80,7 @@
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                @click="
-                                                    prepararEdicion(item);
-                                                    abrirSidebar();
-                                                "
+                                                @click="prepararEdicion(item)"
                                             >
                                                 <i class="fa fa-pencil"></i>
                                             </button>
@@ -115,6 +112,7 @@
         <div
             class="right-sidebar"
             ref="sidebarRef"
+            :class="{ 'shw-rside': sidebarVisible }"
             style="overflow-x: hidden; overflow-y: scroll; height: 100%"
         >
             <div class="slimscrollright">
@@ -137,14 +135,14 @@
                                             type="text"
                                             v-model="registro.motivo"
                                             class="form-control"
-                                            :class="{ 'is-invalid': errores.hasError('motivo') }"
+                                            :class="{ 'is-invalid': errores.motivo }"
                                             placeholder="Ingrese el motivo de rechazo"
                                         />
-                                        <span
-                                            class="text-danger"
-                                            v-if="errores.hasError('motivo')"
-                                            >{{ errores.getError("motivo") }}</span
-                                        >
+                                        <span class="text-danger" v-if="errores.motivo">{{
+                                            Array.isArray(errores.motivo)
+                                                ? errores.motivo[0]
+                                                : errores.motivo
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -225,6 +223,7 @@ const loadingListar = ref(false);
 const errorMotivos = ref("");
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
+const sidebarVisible = ref(false);
 
 const errores = ref({});
 
@@ -244,7 +243,7 @@ async function listarMotivos() {
     try {
         const res = await axios.get("/api/citas-rechazo-motivos");
         safeDestroyDataTable(dt.value || "#tblRechazoMotivos");
-        registros.value = res.data.data;
+        registros.value = res?.data?.data || res?.data || [];
         nextTick(() => {
             safeInitDataTable(dt.value || "#tblRechazoMotivos", {
                 dom: "Bfrtip",
@@ -365,17 +364,11 @@ function limpiar() {
 }
 
 function abrirSidebar() {
-    nextTick(() => {
-        if (sidebarRef.value) {
-            sidebarRef.value.classList.add("shw-rside");
-        }
-    });
+    sidebarVisible.value = true;
 }
 
 function cerrarSidebar() {
-    if (sidebarRef.value) {
-        sidebarRef.value.classList.remove("shw-rside");
-    }
+    sidebarVisible.value = false;
 }
 
 onMounted(() => {

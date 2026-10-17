@@ -100,7 +100,7 @@
             </div>
         </div>
 
-        <div class="right-sidebar" ref="sidebarRef">
+        <div class="right-sidebar" ref="sidebarRef" :class="{ 'shw-rside': sidebarVisible }">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
@@ -268,7 +268,7 @@ const dt = ref(null);
 const sidebarRef = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
+import { confirmAction, toastMessage } from "@/helpers/alerts.js";
 import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import axios from "axios";
 
@@ -290,13 +290,14 @@ const tiposPlantillas = ref([]);
 const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
+const sidebarVisible = ref(false);
 
 async function ListarDatos() {
     if (loadingListar.value) return;
     loadingListar.value = true;
     try {
         const res = await axios.get("/api/config-plantillas");
-        registrosData.value = res.data.data;
+        registrosData.value = res?.data?.data || res?.data || [];
 
         safeDestroyDataTable(dt.value || "#example23");
 
@@ -308,6 +309,11 @@ async function ListarDatos() {
         });
     } catch {
         registrosData.value = [];
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar el listado de plantillas.",
+            icon: "error",
+        });
     } finally {
         loadingListar.value = false;
     }
@@ -316,6 +322,7 @@ async function ListarDatos() {
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
+    errores.value = {};
     try {
         if (actualizar.value === false) {
             const res = await axios.post("/api/config-plantillas", registro.value);
@@ -323,7 +330,7 @@ async function guardarRegistro() {
             if (res.status >= 200 && res.status < 300) {
                 toastMessage({
                     heading: "Ok!!!",
-                    text: res.data.data.message,
+                    text: res.data?.data?.message || res.data?.message || "Guardado correctamente.",
                     icon: "success",
                 });
 
@@ -336,7 +343,10 @@ async function guardarRegistro() {
             if (res.status >= 200 && res.status < 300) {
                 toastMessage({
                     heading: "Ok!!!",
-                    text: res.data.data.message,
+                    text:
+                        res.data?.data?.message ||
+                        res.data?.message ||
+                        "Actualizado correctamente.",
                     icon: "success",
                 });
 
@@ -346,7 +356,15 @@ async function guardarRegistro() {
             }
         }
     } catch (error) {
-        errores.value = error?.response?.data?.errors || {};
+        if (error.response?.status === 422) {
+            errores.value = error.response.data?.errors || {};
+        } else {
+            toastMessage({
+                heading: "Error",
+                text: error.response?.data?.message || "No fue posible guardar la plantilla.",
+                icon: "error",
+            });
+        }
     } finally {
         loadingGuardar.value = false;
     }
@@ -364,10 +382,18 @@ async function eliminarRegistro(idEliminar, nom) {
         if (loadingEliminarId.value) return;
         loadingEliminarId.value = idEliminar;
         const response = await axios.delete("/api/config-plantillas/" + idEliminar);
-        alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
+        toastMessage({
+            heading: "Ok!",
+            text: response?.data?.message || "Registro eliminado.",
+            icon: "success",
+        });
         ListarDatos();
-    } catch {
-        alertError("Error", "No fue posible eliminar el registro.", "error");
+    } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible eliminar el registro.",
+            icon: "error",
+        });
     } finally {
         loadingEliminarId.value = null;
     }
@@ -379,7 +405,7 @@ async function listarMedicos() {
         const moduloId =
             sessionStorage.getItem("ST-modulo") || (pathname.includes("ecografia") ? "2" : "1");
         const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
-        medicos.value = res.data.data;
+        medicos.value = res?.data?.data || res?.data || [];
     } catch {
         toastMessage({
             heading: "Error",
@@ -392,7 +418,7 @@ async function listarMedicos() {
 async function listarTiposPlantillas() {
     try {
         const res = await axios.get("/api/config-tipos-plantillas/listar/activos");
-        tiposPlantillas.value = res.data.data;
+        tiposPlantillas.value = res?.data?.data || res?.data || [];
     } catch {
         toastMessage({
             heading: "Error",
@@ -441,17 +467,11 @@ function limpiarFormulario() {
 }
 
 function abrirSidebar() {
-    nextTick(() => {
-        if (sidebarRef.value) {
-            sidebarRef.value.classList.add("shw-rside");
-        }
-    });
+    sidebarVisible.value = true;
 }
 
 function cerrarSidebar() {
-    if (sidebarRef.value) {
-        sidebarRef.value.classList.remove("shw-rside");
-    }
+    sidebarVisible.value = false;
 }
 
 onMounted(() => {

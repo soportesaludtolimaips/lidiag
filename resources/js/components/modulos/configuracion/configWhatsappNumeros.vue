@@ -285,7 +285,7 @@ async function listarNumeros() {
     errorNumeros.value = "";
     try {
         const res = await axios.get("/api/config-sede-whatsapp-numbers");
-        registrosNumeros.value = res.data.data;
+        registrosNumeros.value = res?.data?.data || res?.data || [];
         dtNumerosApi.refresh(true);
     } catch (error) {
         errorNumeros.value =

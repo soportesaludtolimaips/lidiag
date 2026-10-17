@@ -130,7 +130,15 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **`usuarioPerfil.vue` (BUG-SEG-06 & BUG-SEG-07):** Lectura segura `res.data?.data?.usuario || res.data?.usuario || {}` evitando `TypeError` y normalizado el toast de actualización de perfil con fallback.
   - **`UserService.php` (BUG-SEG-08):** Eliminados caracteres mojibake en mensajes de error (`"El usuario no se encontró"` y `"La contraseña actual no es correcta."`).
   - Verificación estricta: ESLint 0 errores/warnings ✅ | Pint passed ✅ | Vite `npm run build` en 1.94s ✅.
-- [ ] Aprobación de commit pendiente para Seguridad.
+- [x] Aprobación de commit completada para Seguridad (Commit: `0cc3ed962`).
+- [x] **2026-10-17 — Auditoría profunda y normalización integral del módulo `resources/js/components/modulos/configuracion` (19 componentes Vue corregidos):**
+  - **Catálogos Generales y Sedes (5):** `configAdminSaludComponent`, `configDiagnosticoComponent`, `configTipoDocumentoComponent`, `configPrioridadComponent`, `configSedeComponent`. Eliminación de mutaciones directas de clases en el DOM sustituidas por `:class="{ 'shw-rside': sidebarVisible }"`, remoción de doble `abrirSidebar()` en templates, toasts en bloques catch silenciosos y no-422, corrección de typos (`elimnarRegistro` -> `eliminarRegistro`) y desempaquetado defensivo.
+  - **Servicios y Productos (3):** `configProductoComponent`, `configServicioCitaComponent`, `configServicioProductoComponent`. Eliminación de doble apertura, sidebar reactivo, desempaquetado defensivo en sedes, servicios y productos no vinculados, toasts en catch y migración de `eliminarVinculo` a `async/await`.
+  - **Plantillas y Consentimientos (3):** `configPlantilla`, `configTipoPlantilla`, `configConsentimientoInformadoComponent`. Reactividad unificada en right-sidebar, eliminación de llamadas redundantes, toasts en catch silenciosos y fallos no-422, reemplazo de popups SweetAlert (`alertSuccess`/`alertError`) por `toastMessage`, y desempaquetado defensivo en catálogos auxiliares.
+  - **WhatsApp y Bot (5):** `configWhatsappComponent`, `configWhatsappNumeros`, `configWhatsappSaludos`, `configWhatsappProductos`, `configCitaRechazoMotivoComponent`. Desempaquetado defensivo de listas, resolución de potencial `TypeError` con `hasError`/`getError` sobre objetos reactivos planos, y enlace reactivo del right-sidebar.
+  - **HelpDesk Config (3):** `helpdeskConfigCategoriasComponent`, `helpdeskConfigEstadosComponent`, `helpdeskConfigPrioridadesComponent`. Eliminación de doble apertura, sustitución de `hasError`/`getError` por enlaces reactivos estándar a `errores.nombre`/`errores.orden`, desempaquetado defensivo con fallback `[]`, y sidebar reactivo.
+  - Verificación estricta: ESLint 0 errores/warnings en los 19 componentes ✅ | Vite `npm run build` en 945ms ✅.
+
 
 
 

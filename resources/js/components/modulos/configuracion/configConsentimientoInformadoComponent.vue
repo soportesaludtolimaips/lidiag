@@ -84,10 +84,7 @@
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                @click="
-                                                    prepararEdicion(item);
-                                                    abrirSidebar();
-                                                "
+                                                @click="prepararEdicion(item)"
                                             >
                                                 <i class="fa fa-pencil"></i>
                                             </button>
@@ -116,7 +113,7 @@
             </div>
         </div>
 
-        <div class="right-sidebar" ref="sidebarRef">
+        <div class="right-sidebar" ref="sidebarRef" :class="{ 'shw-rside': sidebarVisible }">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
@@ -277,6 +274,7 @@ const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
 const productos = ref([]);
+const sidebarVisible = ref(false);
 
 const errores = ref({});
 
@@ -312,6 +310,11 @@ async function ListarDatos() {
         });
     } catch {
         registros.value = [];
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar los consentimientos informados.",
+            icon: "error",
+        });
     } finally {
         loadingListar.value = false;
     }
@@ -398,7 +401,7 @@ async function eliminarRegistro(idEliminar, nom) {
 async function listarProductos() {
     try {
         const res = await axios.get("/api/config-productos");
-        productos.value = res.data.data;
+        productos.value = res?.data?.data || res?.data || [];
     } catch {
         toastMessage({
             heading: "Error",
@@ -471,17 +474,11 @@ function limpiarFormulario() {
 }
 
 function abrirSidebar() {
-    nextTick(() => {
-        if (sidebarRef.value) {
-            sidebarRef.value.classList.add("shw-rside");
-        }
-    });
+    sidebarVisible.value = true;
 }
 
 function cerrarSidebar() {
-    if (sidebarRef.value) {
-        sidebarRef.value.classList.remove("shw-rside");
-    }
+    sidebarVisible.value = false;
 }
 
 onMounted(() => {

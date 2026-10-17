@@ -58,10 +58,7 @@
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                @click="
-                                                    prepararEdicion(item);
-                                                    abrirSidebar();
-                                                "
+                                                @click="prepararEdicion(item)"
                                             >
                                                 <i class="fa fa-pencil"></i>
                                             </button>
@@ -90,7 +87,12 @@
             </div>
         </div>
 
-        <div class="right-sidebar" ref="sidebarRef" style="width: 400px">
+        <div
+            class="right-sidebar"
+            ref="sidebarRef"
+            :class="{ 'shw-rside': sidebarVisible }"
+            style="width: 400px"
+        >
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
@@ -107,14 +109,14 @@
                                             type="text"
                                             v-model="registro.nombre"
                                             class="form-control"
-                                            :class="{ 'is-invalid': errores.hasError('nombre') }"
+                                            :class="{ 'is-invalid': errores.nombre }"
                                             maxlength="100"
                                         />
-                                        <span
-                                            class="text-danger"
-                                            v-if="errores.hasError('nombre')"
-                                            >{{ errores.getError("nombre") }}</span
-                                        >
+                                        <span class="text-danger" v-if="errores.nombre">{{
+                                            Array.isArray(errores.nombre)
+                                                ? errores.nombre[0]
+                                                : errores.nombre
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -196,6 +198,7 @@ const actualizar = ref(false);
 const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
+const sidebarVisible = ref(false);
 
 const errores = ref({});
 
@@ -214,7 +217,7 @@ async function listar() {
     try {
         const res = await axios.get("/api/helpdesk-categorias");
         safeDestroyDataTable(dt.value || "#example23");
-        registros.value = res.data.data || [];
+        registros.value = res?.data?.data || res?.data || [];
         nextTick(() => {
             safeInitDataTable(dt.value || "#example23", {
                 dom: "Bfrtip",
@@ -249,17 +252,11 @@ function prepararNuevo() {
 }
 
 function abrirSidebar() {
-    nextTick(() => {
-        if (sidebarRef.value) {
-            sidebarRef.value.classList.add("shw-rside");
-        }
-    });
+    sidebarVisible.value = true;
 }
 
 function cerrarSidebar() {
-    if (sidebarRef.value) {
-        sidebarRef.value.classList.remove("shw-rside");
-    }
+    sidebarVisible.value = false;
 }
 
 async function guardarRegistro() {

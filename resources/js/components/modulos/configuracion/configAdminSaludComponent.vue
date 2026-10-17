@@ -85,7 +85,7 @@
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
                                                 :disabled="loadingEliminarId === item.id"
                                                 @click="
-                                                    elimnarRegistro(item.id, item.nom_admin_salud)
+                                                    eliminarRegistro(item.id, item.nom_admin_salud)
                                                 "
                                             >
                                                 <i
@@ -104,7 +104,7 @@
             </div>
         </div>
 
-        <div class="right-sidebar" ref="sidebarRef">
+        <div class="right-sidebar" :class="{ 'shw-rside': sidebarVisible }" ref="sidebarRef">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
@@ -259,7 +259,7 @@ async function ListarDatos() {
         const res = await axios.get("/api/config-admin-salud");
 
         safeDestroyDataTable(dt.value || "#example23");
-        registros.value = res.data.data;
+        registros.value = res.data?.data || res.data || [];
         nextTick(() => {
             safeInitDataTable(dt.value || "#example23", {
                 dom: "Bfrtip",
@@ -292,7 +292,7 @@ async function guardarRegistro() {
         if (res.status >= 200 && res.status < 300) {
             toastMessage({
                 heading: "Ok!!!",
-                text: res.data.data?.message || "Operación exitosa.",
+                text: res.data?.data?.message || res.data?.message || "Operación exitosa.",
                 icon: "success",
             });
             btnCerrarModalForm();
@@ -313,7 +313,7 @@ async function guardarRegistro() {
     }
 }
 
-async function elimnarRegistro(idRegistro, nom) {
+async function eliminarRegistro(idRegistro, nom) {
     const ok = await confirmAction({
         title: `¿Estás seguro de eliminar la administradora de salud ${nom}?`,
         text: "No podrás recuperar este registro!",
@@ -369,16 +369,10 @@ function mostrarRegistro(data = {}) {
 
 function btnAbrirModalForm() {
     sidebarVisible.value = true;
-    if (sidebarRef.value) {
-        sidebarRef.value.classList.add("shw-rside");
-    }
 }
 
 function btnCerrarModalForm() {
     sidebarVisible.value = false;
-    if (sidebarRef.value) {
-        sidebarRef.value.classList.remove("shw-rside");
-    }
 }
 
 onMounted(() => {

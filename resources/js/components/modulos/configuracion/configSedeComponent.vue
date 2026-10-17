@@ -95,7 +95,7 @@
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                @click="elimnarRegistro(item.id)"
+                                                @click="eliminarRegistro(item.id)"
                                                 :disabled="loadingEliminarId === item.id"
                                             >
                                                 <i
@@ -557,15 +557,20 @@ async function ListarDatos() {
     try {
         const res = await axios.get("/api/config-sedes");
         safeDestroyDataTable(dt.value || "#example23");
-        registros.value = res.data.data;
+        registros.value = res.data?.data || res.data || [];
         nextTick(() => {
             safeInitDataTable(dt.value || "#example23", {
                 dom: "Bfrtip",
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
         });
-    } catch {
+    } catch (error) {
         registros.value = [];
+        toastMessage({
+            heading: "Error",
+            text: error?.response?.data?.message || "No fue posible cargar las sedes.",
+            icon: "error",
+        });
     } finally {
         loadingListar.value = false;
     }
@@ -592,7 +597,10 @@ async function guardarRegistro() {
             if (res.status >= 200 && res.status < 300) {
                 toastMessage({
                     heading: "Ok!!!",
-                    text: res.data.data.message,
+                    text:
+                        res.data?.data?.message ||
+                        res.data?.message ||
+                        "Sede creada correctamente.",
                     icon: "success",
                 });
 
@@ -608,7 +616,10 @@ async function guardarRegistro() {
             if (res.status >= 200 && res.status < 300) {
                 toastMessage({
                     heading: "Ok!!!",
-                    text: res.data.data.message,
+                    text:
+                        res.data?.data?.message ||
+                        res.data?.message ||
+                        "Sede actualizada correctamente.",
                     icon: "success",
                 });
 
@@ -619,12 +630,19 @@ async function guardarRegistro() {
         }
     } catch (error) {
         errores.value = error?.response?.data?.errors || {};
+        if (error?.response?.status !== 422) {
+            toastMessage({
+                heading: "Error",
+                text: error?.response?.data?.message || "No fue posible guardar la sede.",
+                icon: "error",
+            });
+        }
     } finally {
         loadingGuardar.value = false;
     }
 }
 
-async function elimnarRegistro(id) {
+async function eliminarRegistro(id) {
     const ok = await confirmAction({
         title: "¿Estas seguro?",
         text: "No podrás recuperar este registro!",

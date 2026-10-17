@@ -241,7 +241,7 @@ async function cargarServicios() {
         const res = await axios.get("/api/config-servicio-citas", {
             params: { sede_id: sedeActual.value },
         });
-        servicios.value = res.data.data;
+        servicios.value = res?.data?.data || res?.data || [];
     } catch (error) {
         servicios.value = [];
         toastMessage({
@@ -265,7 +265,7 @@ async function cargarProductosVinculados() {
         const res = await axios.get("/api/servicio-producto", {
             params: { sede_id: sedeActual.value },
         });
-        productosVinculados.value = res.data.data;
+        productosVinculados.value = res?.data?.data || res?.data || [];
     } catch (error) {
         const msg =
             error?.response?.data?.message ||
@@ -293,7 +293,7 @@ async function cargarProductosDisponibles() {
                 servicio_id: servicioSeleccionado.value,
             },
         });
-        productosDisponibles.value = res.data.data;
+        productosDisponibles.value = res?.data?.data || res?.data || [];
         await nextTick();
         select2Productos.value?.rebuild();
     } catch {

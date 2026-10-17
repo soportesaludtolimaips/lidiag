@@ -116,7 +116,7 @@
             </div>
         </div>
 
-        <div class="right-sidebar" ref="sidebarRef">
+        <div class="right-sidebar" :class="{ 'shw-rside': sidebarVisible }" ref="sidebarRef">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
@@ -219,6 +219,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 const dt = ref(null);
 const sidebarRef = ref(null);
+const sidebarVisible = ref(false);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
@@ -241,7 +242,7 @@ async function cargarSedes() {
     loadingSedes.value = true;
     try {
         const res = await axios.get("/api/config-sedes");
-        sedes.value = res.data.data;
+        sedes.value = res.data?.data || res.data || [];
     } catch {
         toastMessage({
             heading: "Error",
@@ -261,15 +262,20 @@ async function ListarDatos() {
         if (filtroSede.value) params.sede_id = filtroSede.value;
         const res = await axios.get("/api/config-servicio-citas", { params });
         safeDestroyDataTable(dt.value || "#tablaServicios");
-        registros.value = res.data.data;
+        registros.value = res.data?.data || res.data || [];
         nextTick(() => {
             safeInitDataTable(dt.value || "#tablaServicios", {
                 dom: "Bfrtip",
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
         });
-    } catch {
+    } catch (error) {
         registros.value = [];
+        toastMessage({
+            heading: "Error",
+            text: error?.response?.data?.message || "No fue posible cargar los servicios de citas.",
+            icon: "error",
+        });
     } finally {
         loadingListar.value = false;
     }
@@ -311,6 +317,13 @@ async function guardarRegistro() {
         cerrarSidebar();
     } catch (error) {
         errores.value = error?.response?.data?.errors || {};
+        if (error?.response?.status !== 422) {
+            toastMessage({
+                heading: "Error",
+                text: error?.response?.data?.message || "No fue posible guardar el servicio.",
+                icon: "error",
+            });
+        }
     } finally {
         loadingGuardar.value = false;
     }
@@ -340,17 +353,11 @@ async function eliminarRegistro(id) {
 }
 
 function abrirSidebar() {
-    nextTick(() => {
-        if (sidebarRef.value) {
-            sidebarRef.value.classList.add("shw-rside");
-        }
-    });
+    sidebarVisible.value = true;
 }
 
 function cerrarSidebar() {
-    if (sidebarRef.value) {
-        sidebarRef.value.classList.remove("shw-rside");
-    }
+    sidebarVisible.value = false;
 }
 
 onMounted(() => {

@@ -81,10 +81,7 @@
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                @click="
-                                                    prepararEdicion(item);
-                                                    abrirSidebar();
-                                                "
+                                                @click="prepararEdicion(item)"
                                             >
                                                 <i class="fa fa-pencil"></i>
                                             </button>
@@ -115,6 +112,7 @@
 
         <div
             class="right-sidebar"
+            :class="{ 'shw-rside': sidebarVisible }"
             ref="sidebarRef"
             style="overflow-x: hidden; overflow-y: scroll; height: 100%"
         >
@@ -324,6 +322,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 const dt = ref(null);
 const sidebarRef = ref(null);
+const sidebarVisible = ref(false);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { confirmAction, toastMessage } from "@/helpers/alerts.js";
@@ -373,15 +372,20 @@ async function ListarDatos() {
     try {
         const res = await axios.get("/api/config-productos");
         safeDestroyDataTable(dt.value || "#example23");
-        registros.value = res.data.data;
+        registros.value = res.data?.data || res.data || [];
         nextTick(() => {
             safeInitDataTable(dt.value || "#example23", {
                 dom: "Bfrtip",
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
         });
-    } catch {
+    } catch (error) {
         registros.value = [];
+        toastMessage({
+            heading: "Error",
+            text: error?.response?.data?.message || "No fue posible cargar los productos.",
+            icon: "error",
+        });
     } finally {
         loadingListar.value = false;
     }
@@ -505,17 +509,11 @@ function limpiar() {
 }
 
 function abrirSidebar() {
-    nextTick(() => {
-        if (sidebarRef.value) {
-            sidebarRef.value.classList.add("shw-rside");
-        }
-    });
+    sidebarVisible.value = true;
 }
 
 function cerrarSidebar() {
-    if (sidebarRef.value) {
-        sidebarRef.value.classList.remove("shw-rside");
-    }
+    sidebarVisible.value = false;
 }
 
 onMounted(() => {
