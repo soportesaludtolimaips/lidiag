@@ -385,7 +385,7 @@ async function listarSedes() {
         });
 
         const res = await axios.get("/api/config-sedes/listar/sedes/activas");
-        sedes.value = res.data.data;
+        sedes.value = res?.data?.data || res?.data || [];
     } catch (_error) {
         toastMessage({
             heading: "Error",

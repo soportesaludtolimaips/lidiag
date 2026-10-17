@@ -23,18 +23,19 @@
     </div>
 </template>
 <script setup>
+import { getCurrentInstance, onMounted, ref } from "vue";
+import axios from "axios";
+import { toastMessage } from "@/helpers/alerts.js";
+
 const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
-import { onMounted, ref, getCurrentInstance } from "vue";
-
-import axios from "axios";
 
 const sucursalActual = ref(1);
 const nomSucursal = ref("");
 const registros = ref([]);
 
 /**
- * Carga el listado de sedes desde la API y establece la primera como predeterminada.
+ * Carga el listado de sedes desde la API y establece la sede guardada o la primera como predeterminada.
  * Emite el evento sedeSeleccionada al componente padre.
  *
  * @returns {Promise<void>}
@@ -45,14 +46,26 @@ const registros = ref([]);
 async function listarSucursales() {
     try {
         const res = await axios.get("/api/config-sedes");
-        registros.value = res.data.data;
+        registros.value = res?.data?.data || res?.data || [];
         if (Array.isArray(registros.value) && registros.value.length > 0 && !nomSucursal.value) {
-            nomSucursal.value = registros.value[0].sucursal || "";
-            sessionStorage.setItem("ST-sede", registros.value[0].id);
-            emitter.emit("sedeSeleccionada", { idSede: registros.value[0].id });
+            const sedeGuardadaId = sessionStorage.getItem("ST-sede");
+            const sedeEncontrada = sedeGuardadaId
+                ? registros.value.find((s) => String(s.id) === String(sedeGuardadaId))
+                : null;
+            const sedeActiva = sedeEncontrada || registros.value[0];
+
+            nomSucursal.value = sedeActiva.sucursal || "";
+            sucursalActual.value = sedeActiva.id;
+            sessionStorage.setItem("ST-sede", sedeActiva.id);
+            emitter.emit("sedeSeleccionada", { idSede: sedeActiva.id });
         }
     } catch {
         registros.value = [];
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar las sedes disponibles.",
+            icon: "error",
+        });
     }
 }
 /**

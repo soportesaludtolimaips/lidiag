@@ -138,10 +138,11 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **WhatsApp y Bot (5):** `configWhatsappComponent`, `configWhatsappNumeros`, `configWhatsappSaludos`, `configWhatsappProductos`, `configCitaRechazoMotivoComponent`. Desempaquetado defensivo de listas, resolución de potencial `TypeError` con `hasError`/`getError` sobre objetos reactivos planos, y enlace reactivo del right-sidebar.
   - **HelpDesk Config (3):** `helpdeskConfigCategoriasComponent`, `helpdeskConfigEstadosComponent`, `helpdeskConfigPrioridadesComponent`. Eliminación de doble apertura, sustitución de `hasError`/`getError` por enlaces reactivos estándar a `errores.nombre`/`errores.orden`, desempaquetado defensivo con fallback `[]`, y sidebar reactivo.
   - Verificación estricta: ESLint 0 errores/warnings en los 19 componentes ✅ | Vite `npm run build` en 945ms ✅.
-
-
-
-
+- [x] Aprobación de commit completada para Configuración (Commit: `da2ac94dc`).
+- [x] **2026-10-17 — Auditoría profunda y normalización de Reportes y Varios (`reporteProduccionComponent.vue`, `seleccionarSede.vue`):**
+  - **`reporteProduccionComponent.vue`:** Desempaquetado defensivo de sedes activas (`res?.data?.data || res?.data || []`) evitando excepciones en respuestas vacías o no canónicas. Preservada la independencia de selección por modal (sin listener de emitter global de sede).
+  - **`seleccionarSede.vue`:** Desempaquetado defensivo (`res?.data?.data || res?.data || []`), persistencia coherente recuperando la sede previamente guardada en `sessionStorage.getItem("ST-sede")` para evitar reinicios al índice 0 tras recargar, y agregada notificación con `toastMessage` en el bloque `catch` ante fallos de conexión.
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 939ms ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.
