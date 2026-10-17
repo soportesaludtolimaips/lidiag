@@ -891,12 +891,17 @@ async function eliminarRegistro(userId) {
 async function ListarModulos() {
     try {
         const res = await axios.get("/api/config-modulos-listar");
-        registro.value.modulos = res.data.data.map((modulo) => ({
+        const data = res.data?.data || res.data || [];
+        registro.value.modulos = data.map((modulo) => ({
             ...modulo,
             checked: false,
         }));
-    } catch {
-        alertError("Error", "No fue posible cargar los módulos.", "error");
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar los módulos.",
+            icon: "error",
+        });
     }
 }
 async function ListarSedes() {
@@ -907,8 +912,12 @@ async function ListarSedes() {
             ...sede,
             checked: false,
         }));
-    } catch {
-        alertError("Error", "No fue posible cargar las sedes.", "error");
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar las sedes.",
+            icon: "error",
+        });
     }
 }
 async function ListarServiciosCitas() {
@@ -918,8 +927,12 @@ async function ListarServiciosCitas() {
             ...sc,
             checked: false,
         }));
-    } catch {
-        alertError("Error", "No fue posible cargar los servicios.", "error");
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar los servicios de citas.",
+            icon: "error",
+        });
     }
 }
 function obtenerFirma(event) {
@@ -979,24 +992,35 @@ function mostrarRegistro(data = {}) {
         });
 
         /**
-         * Listo los los datos del usuario con sus respectivos roles
+         * Listo los datos del usuario con sus respectivos roles
          * Recorro los roles que estan en el Frond y los desactivo para
          * marcar los roles del usuario a editar
          */
-        axios.get("/api/seguridad-usuarios/" + id.value).then((res) => {
-            const RolesDelUsuario = res.data.data.RolesDeUsuario;
+        axios
+            .get("/api/seguridad-usuarios/" + id.value)
+            .then((res) => {
+                const RolesDelUsuario = res.data?.data?.RolesDeUsuario || [];
 
-            (registro.value.rolesUsuario || []).forEach(function (rol, index) {
-                registro.value.rolesUsuario[index].checked = false;
-            });
+                (registro.value.rolesUsuario || []).forEach(function (rol, index) {
+                    registro.value.rolesUsuario[index].checked = false;
+                });
 
-            (RolesDelUsuario || []).forEach(function (rolId) {
-                let rolActivo = roles.value.findIndex((x) => x.id == rolId);
-                if (rolActivo !== -1) {
-                    registro.value.rolesUsuario[rolActivo].checked = true;
-                }
+                (RolesDelUsuario || []).forEach(function (rolId) {
+                    let rolActivo = roles.value.findIndex((x) => x.id == rolId);
+                    if (rolActivo !== -1) {
+                        registro.value.rolesUsuario[rolActivo].checked = true;
+                    }
+                });
+            })
+            .catch((_error) => {
+                toastMessage({
+                    heading: "Error",
+                    text:
+                        _error?.response?.data?.message ||
+                        "No fue posible cargar los roles del usuario.",
+                    icon: "error",
+                });
             });
-        });
     } else {
         actualizar.value = false;
         tituloModal.value = "Nuevo registro";
@@ -1013,7 +1037,7 @@ function mostrarRegistro(data = {}) {
         registro.value.serviciosCitas.forEach((sc) => (sc.checked = false));
     }
 
-    btnCerrarModalForm();
+    sidebarOpen.value = true;
 }
 function ampliarFirma(firma, nombre) {
     firmaAmpliadaError.value = false;
@@ -1025,7 +1049,7 @@ function cerrarModalFirma() {
     $("#modalAmpliarFirma").modal("hide");
 }
 function btnCerrarModalForm() {
-    sidebarOpen.value = !sidebarOpen.value;
+    sidebarOpen.value = false;
 }
 function limpiarFormulario() {
     actualizar.value = false;

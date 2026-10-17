@@ -124,7 +124,14 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **`citasComponent.vue` (BUG-CIT-01 & BUG-CIT-02):** Desenvoltura defensiva de respuestas del backend envueltas en `BaseService::success()` (`res.data?.data || res.data || []`) en carga de servicios, sedes, productos y slots de agenda (`res.data?.data?.detalles || res.data?.detalles || []`). Reemplazado `$swal` roto con helpers de `@/helpers/alerts.js` (`confirmAction`, `alertSuccess`, `alertError`, `alertWarning`). Conectado listener reactivo `emitter.on('sedeSeleccionada')` con cleanup.
   - **`citasRevisionComponent.vue` (BUG-CIT-03 & BUG-CIT-05):** Estandarizada la extracción de colecciones con fallback en `cargarListas()` y `cargarProductosPorServicio()`. Conectado listener reactivo `emitter.on('sedeSeleccionada')` con cleanup.
   - **`agendaDisponibilidadComponent.vue` (BUG-CIT-04):** Corregido variable shadowing en `validarFormulario()` (`errs` vs `errores`). Limpieza de import `computed` no utilizado y desconexión segura de `emitter.off('sedeSeleccionada')` en `onBeforeUnmount`.
-  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 927ms ✅.
+- [x] **2026-10-17 — Auditoría profunda y hotfixes de Seguridad (3 componentes Vue y 1 servicio PHP):**
+  - **`auditLogComponent.vue` (BUG-SEG-01 & BUG-SEG-02):** Desempaquetado normalizado y defensivo del `LengthAwarePaginator` (`res.data?.data?.data || res.data?.data || []`) y de las propiedades de paginación (`total`, `last_page`, `current_page`), solucionando ruptura de la tabla y controles. Desempaquetado seguro en `cargarEventos()` (`res.data?.data || res.data || []`).
+  - **`usuarioComponent.vue` (BUG-SEG-03 a BUG-SEG-05):** Corrección del toggle inverso del sidebar, fijando apertura determinista `sidebarOpen.value = true;` en `mostrarRegistro()`. Agregado bloque `.catch()` con `toastMessage` en la carga de roles del usuario. Sustitución de `alertError` modal por `toastMessage` y desempaquetado defensivo en `ListarModulos()`, `ListarSedes()` y `ListarServiciosCitas()`.
+  - **`usuarioPerfil.vue` (BUG-SEG-06 & BUG-SEG-07):** Lectura segura `res.data?.data?.usuario || res.data?.usuario || {}` evitando `TypeError` y normalizado el toast de actualización de perfil con fallback.
+  - **`UserService.php` (BUG-SEG-08):** Eliminados caracteres mojibake en mensajes de error (`"El usuario no se encontró"` y `"La contraseña actual no es correcta."`).
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Pint passed ✅ | Vite `npm run build` en 1.94s ✅.
+- [ ] Aprobación de commit pendiente para Seguridad.
+
 
 
 ### Estado de módulos recientes (oct. 2026)

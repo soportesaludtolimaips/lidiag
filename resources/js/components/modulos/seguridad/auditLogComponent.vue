@@ -314,7 +314,7 @@ const mostrarDetalle = ref(false);
 async function cargarEventos() {
     try {
         const res = await axios.get("/api/seguridad-auditoria/eventos");
-        eventosDisponibles.value = res.data;
+        eventosDisponibles.value = res.data?.data || res.data || [];
     } catch (_error) {
         toastMessage({
             heading: "Error",
@@ -343,10 +343,15 @@ async function cargarLogs() {
 
         const res = await axios.get("/api/seguridad-auditoria", { params });
 
-        registros.value = res.data.data;
-        totalRegistros.value = res.data.data.total;
-        totalPaginas.value = res.data.data.last_page;
-        paginaActual.value = res.data.data.current_page;
+        const paginador = res.data?.data || res.data || {};
+        registros.value = Array.isArray(paginador.data)
+            ? paginador.data
+            : Array.isArray(paginador)
+              ? paginador
+              : [];
+        totalRegistros.value = paginador.total ?? registros.value.length;
+        totalPaginas.value = paginador.last_page ?? 1;
+        paginaActual.value = paginador.current_page ?? 1;
 
         nextTick(() => {
             safeInitDataTable(dt.value || "#tablaAuditoria", {

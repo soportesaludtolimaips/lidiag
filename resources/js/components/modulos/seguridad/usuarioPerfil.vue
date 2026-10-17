@@ -278,12 +278,13 @@ async function obtenerRegistro() {
     loadingObtener.value = true;
     try {
         const res = await axios.get("/api/seguridad-usuarios/" + id.value);
+        const u = res.data?.data?.usuario || res.data?.usuario || {};
 
-        registro.value.num_docu = res.data.data.usuario.num_docu;
-        registro.value.name = res.data.data.usuario.name;
-        registro.value.email = res.data.data.usuario.email;
-        registro.value.firma = res.data.data.usuario.firma;
-        registro.value.imagen_perfil = res.data.data.usuario.imagen_perfil || null;
+        registro.value.num_docu = u.num_docu || "";
+        registro.value.name = u.name || "";
+        registro.value.email = u.email || "";
+        registro.value.firma = u.firma || null;
+        registro.value.imagen_perfil = u.imagen_perfil || null;
     } catch (_error) {
         toastMessage({
             heading: "Error",
@@ -322,7 +323,8 @@ async function actualizarPerfil() {
 
         toastMessage({
             heading: "Ok!!!",
-            text: res.data.message,
+            text:
+                res.data?.message || res.data?.data?.message || "Perfil actualizado correctamente.",
             position: "top-right",
             loaderBg: "#ff6849",
             icon: "success",

@@ -96,7 +96,7 @@ class UserService extends BaseService
         $user = User::find($id);
 
         if (! $user) {
-            return $this->notFound('El usuario no se encontrÃ³');
+            return $this->notFound("El usuario no se encontró");
         }
 
         $authCheck = $this->checkSelfOrPermission($id, 'seguridad.usuarios.show');
@@ -271,7 +271,7 @@ class UserService extends BaseService
             $cambiarPassword = ! empty($data['password']);
 
             if ($cambiarPassword && ! Hash::check($data['current_password'] ?? '', $user->password)) {
-                return $this->error('La contraseÃ±a actual no es correcta.', 422);
+                return $this->error("La contraseña actual no es correcta.", 422);
             }
 
             $datosViejos = Arr::except($user->getOriginal(), ['password', 'remember_token']);
