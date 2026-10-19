@@ -330,7 +330,7 @@
                                     <form-paciente
                                         :registro="registro"
                                         :errores="errores"
-                                        :mostrar-errores="false"
+                                        :mostrar-errores="true"
                                     />
 
                                     <h5 class="card-title text-info">
@@ -370,11 +370,16 @@
                                                     name="study_desc"
                                                     v-model="registro.study_desc"
                                                     class="form-control"
+                                                    :class="getInputClass(statusStudyDesc)"
                                                     ref="primerInput"
+                                                    @blur="touch('study_desc')"
                                                 />
-                                                <span class="text-danger" v-if="errores.study_desc">
-                                                    {{ errores.study_desc[0] }}
-                                                </span>
+                                                <div
+                                                    class="invalid-feedback d-block"
+                                                    v-if="statusStudyDesc.isInvalid"
+                                                >
+                                                    {{ statusStudyDesc.message }}
+                                                </div>
                                             </div>
                                         </div>
 
@@ -390,13 +395,15 @@
                                                     name="accession_no"
                                                     v-model="registro.accession_no"
                                                     class="form-control"
+                                                    :class="getInputClass(statusAccessionNo)"
+                                                    @blur="touch('accession_no')"
                                                 />
-                                                <span
-                                                    class="text-danger"
-                                                    v-if="errores.accession_no"
+                                                <div
+                                                    class="invalid-feedback d-block"
+                                                    v-if="statusAccessionNo.isInvalid"
                                                 >
-                                                    {{ errores.accession_no[0] }}
-                                                </span>
+                                                    {{ statusAccessionNo.message }}
+                                                </div>
                                             </div>
                                         </div>
 
@@ -411,13 +418,15 @@
                                                     name="study_datetime"
                                                     v-model="registro.study_datetime"
                                                     class="form-control"
+                                                    :class="getInputClass(statusStudyDatetime)"
+                                                    @blur="touch('study_datetime')"
                                                 />
-                                                <span
-                                                    class="text-danger"
-                                                    v-if="errores.study_datetime"
+                                                <div
+                                                    class="invalid-feedback d-block"
+                                                    v-if="statusStudyDatetime.isInvalid"
                                                 >
-                                                    {{ errores.study_datetime[0] }}
-                                                </span>
+                                                    {{ statusStudyDatetime.message }}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -434,7 +443,16 @@
                                                     name="email_reportar"
                                                     v-model="registro.email_reportar"
                                                     class="form-control"
+                                                    :class="getInputClass(statusEmailReportar)"
+                                                    placeholder="correo@ejemplo.com"
+                                                    @blur="touch('email_reportar')"
                                                 />
+                                                <div
+                                                    class="invalid-feedback d-block"
+                                                    v-if="statusEmailReportar.isInvalid"
+                                                >
+                                                    {{ statusEmailReportar.message }}
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="col-md-12">
@@ -568,6 +586,8 @@
                                                     name="prioridad_id"
                                                     id="prioridad_id"
                                                     class="form-control custom-select"
+                                                    :class="getInputClass(statusPrioridadId)"
+                                                    @blur="touch('prioridad_id')"
                                                 >
                                                     <option
                                                         v-for="(
@@ -582,12 +602,12 @@
                                                         {{ ItemPrioridad.observacion }}
                                                     </option>
                                                 </select>
-                                                <span
-                                                    class="text-danger"
-                                                    v-if="errores.prioridad_id"
+                                                <div
+                                                    class="invalid-feedback d-block"
+                                                    v-if="statusPrioridadId.isInvalid"
                                                 >
-                                                    {{ errores.prioridad_id[0] }}
-                                                </span>
+                                                    {{ statusPrioridadId.message }}
+                                                </div>
                                             </div>
                                         </div>
 
@@ -967,6 +987,7 @@ import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
 import QuemadorCdComponent from "@/components/modulos/estudios/QuemadorCdComponent.vue";
 import QuemarMultiplesComponent from "@/components/modulos/estudios/QuemarMultiplesComponent.vue";
 import DescargarZipComponent from "@/components/modulos/estudios/DescargarZipComponent.vue";
+import { useFormValidation } from "@/composables/useFormValidation";
 
 const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
@@ -1073,6 +1094,49 @@ const sidebarQuemarMultiplesVisible = ref(false);
 const contadorRegistros = computed(() => {
     return registros.value.length;
 });
+
+const { touch, touchAll, getFieldStatus, getInputClass, validators, resetTouched } =
+    useFormValidation();
+
+const statusStudyDesc = computed(() =>
+    getFieldStatus("study_desc", registro.value.study_desc, [validators.required], errores.value)
+);
+
+const statusAccessionNo = computed(() =>
+    getFieldStatus(
+        "accession_no",
+        registro.value.accession_no,
+        [validators.required],
+        errores.value
+    )
+);
+
+const statusStudyDatetime = computed(() =>
+    getFieldStatus(
+        "study_datetime",
+        registro.value.study_datetime,
+        [validators.required],
+        errores.value
+    )
+);
+
+const statusEmailReportar = computed(() =>
+    getFieldStatus(
+        "email_reportar",
+        registro.value.email_reportar,
+        [validators.required, validators.email],
+        errores.value
+    )
+);
+
+const statusPrioridadId = computed(() =>
+    getFieldStatus(
+        "prioridad_id",
+        registro.value.prioridad_id,
+        [validators.required],
+        errores.value
+    )
+);
 
 const todoSeleccionado = computed(() => {
     if (registros.value.length === 0) return false;
@@ -1274,6 +1338,25 @@ async function buscarStudy() {
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
+
+    touchAll(["study_desc", "accession_no", "study_datetime", "email_reportar", "prioridad_id"]);
+
+    if (
+        statusStudyDesc.value.isInvalid ||
+        statusAccessionNo.value.isInvalid ||
+        statusStudyDatetime.value.isInvalid ||
+        statusEmailReportar.value.isInvalid ||
+        statusPrioridadId.value.isInvalid
+    ) {
+        toastMessage({
+            heading: "Formulario incompleto",
+            text: "Por favor complete o corrija los campos requeridos del estudio antes de continuar.",
+            icon: "warning",
+        });
+
+        loadingGuardar.value = false;
+        return;
+    }
 
     if (
         (props.usuarioactual.transcrip_remoto == 0 ||
@@ -1705,6 +1788,7 @@ function cerrarModal() {
  * @date 2026-09-29
  */
 function limpiarFormulario() {
+    resetTouched();
     registro.value.study_pk = "";
     registro.value.study_iuid = "";
     registro.value.study_id = "";

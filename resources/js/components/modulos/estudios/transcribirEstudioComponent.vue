@@ -428,9 +428,17 @@
                                                     name="email_reportar"
                                                     v-model="registro.email_reportar"
                                                     class="form-control"
+                                                    :class="getInputClass(statusEmailReportar)"
                                                     placeholder="Ingrese aquí el email a reportar"
                                                     ref="primerInput"
+                                                    @blur="touch('email_reportar')"
                                                 />
+                                                <div
+                                                    class="invalid-feedback d-block"
+                                                    v-if="statusEmailReportar.isInvalid"
+                                                >
+                                                    {{ statusEmailReportar.message }}
+                                                </div>
                                             </div>
 
                                             <div class="form-group">
@@ -733,6 +741,7 @@ import { confirmAction, getUserSafeError, toastMessage } from "@/helpers/alerts"
 import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import dayjs from "dayjs";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
+import { useFormValidation } from "@/composables/useFormValidation";
 import axios from "axios";
 
 const { proxy } = getCurrentInstance();
@@ -817,6 +826,17 @@ const sidebarVisible = ref(false);
 const contadorRegistros = computed(() => {
     return registros.value.length;
 });
+
+const { touch, getFieldStatus, getInputClass, validators, resetTouched } = useFormValidation();
+
+const statusEmailReportar = computed(() =>
+    getFieldStatus(
+        "email_reportar",
+        registro.value.email_reportar,
+        [validators.required, validators.email],
+        errores.value
+    )
+);
 
 /**
  * Aplica un prellenado del dashboard si existe un accession almacenado en sessionStorage. Si se encuentra un accession válido, se busca el estudio correspondiente y se muestra en la interfaz. Si no hay un accession válido, simplemente se listan los estudios pendientes.
@@ -910,6 +930,19 @@ async function listarPendientesTrascribir() {
  */
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
+
+    touch("email_reportar");
+    if (statusEmailReportar.value.isInvalid) {
+        toastMessage({
+            heading: "Email inválido",
+            text:
+                statusEmailReportar.value.message ||
+                "Por favor ingrese un email válido para reportar.",
+            icon: "warning",
+        });
+        return;
+    }
+
     loadingGuardar.value = true;
     try {
         toastMessage({
@@ -1189,6 +1222,7 @@ function abrirModal() {
 }
 function btnCerrarModalForm() {
     sidebarVisible.value = false;
+    resetTouched();
 }
 
 onMounted(async () => {

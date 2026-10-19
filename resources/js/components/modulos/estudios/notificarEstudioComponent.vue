@@ -320,16 +320,25 @@
                                     <div class="col-md-12">
                                         <div class="form-group">
                                             <label class="control-label" for="email"
-                                                >Correo electrónico</label
+                                                >Correo electrónico
+                                                <span class="text-danger">*</span></label
                                             >
                                             <input
                                                 type="email"
                                                 id="email"
                                                 name="email"
                                                 class="form-control"
+                                                :class="getInputClass(statusEmail)"
                                                 v-model="registro.email"
                                                 placeholder="Correo electrónico del paciente"
+                                                @blur="touch('email')"
                                             />
+                                            <div
+                                                class="invalid-feedback d-block"
+                                                v-if="statusEmail.isInvalid"
+                                            >
+                                                {{ statusEmail.message }}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -371,6 +380,7 @@ import DatosPacienteDisplay from "@/components/comunes/datosPacienteDisplayCompo
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { getUserSafeError, toastMessage } from "@/helpers/alerts.js";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
+import { useFormValidation } from "@/composables/useFormValidation";
 import axios from "axios";
 
 defineProps({
@@ -405,6 +415,12 @@ const loadingNotificar = ref(false);
 const loadingAbrirId = ref(null);
 const loadingPortalId = ref(null);
 const sidebarVisible = ref(false);
+
+const { touch, getFieldStatus, getInputClass, validators, resetTouched } = useFormValidation();
+
+const statusEmail = computed(() =>
+    getFieldStatus("email", registro.value.email, [validators.required, validators.email])
+);
 
 const contadorRegistros = computed(() => {
     return registros.value.length;
@@ -479,17 +495,19 @@ async function buscarStudy() {
 async function notificar() {
     if (loadingNotificar.value) return;
 
-    // Validar destinatario antes de enviar: evita correos vacíos o inválidos
-    const email = (registro.value.email || "").trim();
-    const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    if (!emailValido) {
+    touch("email");
+    if (statusEmail.value.isInvalid) {
         toastMessage({
             heading: "Atención",
-            text: "Ingrese un correo electrónico válido para notificar al paciente.",
+            text:
+                statusEmail.value.message ||
+                "Ingrese un correo electrónico válido para notificar al paciente.",
             icon: "warning",
         });
         return;
     }
+
+    const email = (registro.value.email || "").trim();
 
     loadingNotificar.value = true;
     try {
@@ -601,6 +619,7 @@ function abrirModal() {
 function btnCerralModalForm() {
     sidebarVisible.value = false;
 }
+const btnCerrarModalForm = btnCerralModalForm;
 
 /**
  * Mostrar el registro del estudio en el modal para notificar al paciente.
@@ -623,6 +642,7 @@ function mostrarRegistro(data = {}) {
     registro.value.nom_produc = data.nom_produc;
     registro.value.id_producto_lectura = data.id;
 
+    resetTouched();
     abrirModal();
     loadingAbrirId.value = null;
 }

@@ -258,6 +258,15 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - `notificarEstudioComponent.vue` (`/estudios.notificar.listar`): Reemplazado spinner por `<table-skeleton-loader :visible="loadingBuscar" :rows="6" :columns="8" />` y `<empty-state-component>` interactivo.
   - Limpieza de imports obsoletos `LoadingSpinner` y ajuste semántico de tablas vacías.
   - Verificación estricta: ESLint 0 errores/warnings en todos los componentes ✅ | Vite `npm run build` en 968ms ✅.
+- [x] **2026-10-19 — UI/UX Categoría 5.1: Validación Visual Inline y Feedback en Tiempo Real en Formularios del Módulo de Estudios:**
+  - Creado composable reutilizable `useFormValidation.js` en `resources/js/composables/` con validadores clínicos estándar (documento, email, teléfono, fechas no futuras, requeridos), tracking reactivo de interacción (`touched`) y combinación con errores del backend.
+  - Soporte de alto contraste en `resources/css/dark-theme.css` para clases `.is-invalid`, `.is-valid`, `.invalid-feedback` y `.valid-feedback` en estaciones radiológicas / modo oscuro.
+  - `formPacienteComponent.vue`: Feedback reactivo en tiempo real con select controlado de sexo (M/F/O), alertas `.invalid-feedback` al desenfocar o corregir en documento, nombres, teléfono, fecha y email.
+  - `AsignarEstudioComponent.vue`: Validaciones inline en datos del estudio (`study_desc`, `accession_no`, `study_datetime`, `email_reportar`, `prioridad_id`), sincronización activa con `form-paciente` y bloqueo previo defensivo en `guardarRegistro()`.
+  - `notificarEstudioComponent.vue`: Validación reactiva inline en correo electrónico con estado `.is-invalid`/`.is-valid` y corrección de typo en cierre de modal (`btnCerrarModalForm`).
+  - `transcribirEstudioComponent.vue`: Validación inline en `email_reportar` y pre-validación de envío.
+  - `leerEstudioComponent.vue`: Pre-validación defensiva de informe médico no vacío antes de persistir y feedback visual estructurado con icono.
+  - Verificación estricta: ESLint 0 errores/warnings en todos los archivos ✅ | Vite `npm run build` en 1.04s ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.

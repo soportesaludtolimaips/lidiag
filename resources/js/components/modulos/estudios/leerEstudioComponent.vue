@@ -601,9 +601,10 @@
                                     </div>
                                 </div>
 
-                                <span class="text-danger" v-if="errores.lectura">{{
-                                    errores.lectura[0]
-                                }}</span>
+                                <div class="invalid-feedback d-block mb-2" v-if="errores.lectura">
+                                    <i class="fa fa-exclamation-circle mr-1"></i>
+                                    {{ errores.lectura[0] }}
+                                </div>
                                 <div class="row">
                                     <div class="col-12">
                                         <div class="form-group">
@@ -1674,6 +1675,19 @@ async function guardarRegistro() {
             toastMessage({
                 heading: "Upsss!!!",
                 text: "No hay un estudio seleccionado para guardar.",
+                icon: "warning",
+            });
+            return;
+        }
+
+        const textoLimpio = (registro.value.lectura || "")
+            .replace(/<[^>]*>/g, "")
+            .replace(/&nbsp;/g, " ")
+            .trim();
+        if (!textoLimpio) {
+            toastMessage({
+                heading: "Lectura requerida",
+                text: "Debe ingresar o dictar el informe de lectura antes de guardar.",
                 icon: "warning",
             });
             return;
