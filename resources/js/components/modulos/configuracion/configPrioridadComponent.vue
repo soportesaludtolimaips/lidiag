@@ -16,7 +16,22 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-info btnDesplegarRigthSidebar"
+                    class="btn btn-outline-secondary btn-action-clinical m-r-5"
+                    @click="ListarDatos"
+                    :disabled="loadingListar"
+                    title="Actualizar listado (F2)"
+                >
+                    <i class="fa" :class="loadingListar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                    Refrescar
+                    <span
+                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                        style="font-size: 10px; opacity: 0.9"
+                        >F2</span
+                    >
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-info btnDesplegarRigthSidebar btn-action-clinical"
                     @click="prepararNuevo"
                 >
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
@@ -100,12 +115,10 @@
             </div>
         </div>
 
-        <div
-            class="right-sidebar"
-            :class="{ 'shw-rside': sidebarVisible }"
-            ref="sidebarRef"
-            style="width: 400px"
-        >
+        <!-- Backdrop overlay para cerrar al hacer clic afuera -->
+        <div v-if="sidebarVisible" class="sidebar-backdrop" @click="cerrarSidebar"></div>
+
+        <div class="right-sidebar" :class="{ 'shw-rside': sidebarVisible }" ref="sidebarRef">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
@@ -127,21 +140,19 @@
                                             v-model="registro.nom_priori"
                                             class="form-control"
                                             :class="{
-                                                'is-invalid': errores.hasError('nom_priori'),
+                                                'is-invalid': errores.nom_priori,
                                             }"
                                             placeholder="Prioridad"
                                         />
-                                        <span
-                                            class="text-danger"
-                                            v-if="errores.hasError('nom_priori')"
-                                            >{{ errores.getError("nom_priori") }}</span
-                                        >
+                                        <span class="text-danger" v-if="errores.nom_priori">{{
+                                            errores.nom_priori[0]
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="row">
-                                <div class="col-md-3">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="control-label">Nivel</label>
                                         <input
@@ -150,16 +161,14 @@
                                             name="nivel"
                                             v-model="registro.nivel"
                                             class="form-control"
-                                            :class="{ 'is-invalid': errores.hasError('nivel') }"
+                                            :class="{ 'is-invalid': errores.nivel }"
                                         />
-                                        <span
-                                            class="text-danger"
-                                            v-if="errores.hasError('nivel')"
-                                            >{{ errores.getError("nivel") }}</span
-                                        >
+                                        <span class="text-danger" v-if="errores.nivel">{{
+                                            errores.nivel[0]
+                                        }}</span>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="control-label">Tiempo</label>
                                         <input
@@ -168,13 +177,11 @@
                                             name="tiempo"
                                             v-model="registro.tiempo"
                                             class="form-control"
-                                            :class="{ 'is-invalid': errores.hasError('tiempo') }"
+                                            :class="{ 'is-invalid': errores.tiempo }"
                                         />
-                                        <span
-                                            class="text-danger"
-                                            v-if="errores.hasError('tiempo')"
-                                            >{{ errores.getError("tiempo") }}</span
-                                        >
+                                        <span class="text-danger" v-if="errores.tiempo">{{
+                                            errores.tiempo[0]
+                                        }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -200,38 +207,56 @@
                             <div class="form-actions mt-3">
                                 <button
                                     type="button"
-                                    class="btn btn-success m-r-5"
+                                    class="btn btn-success m-r-5 btn-action-clinical"
                                     @click="guardarRegistro"
                                     v-if="!actualizar"
                                     :disabled="loadingGuardar"
+                                    title="Guardar prioridad (Ctrl+S)"
                                 >
                                     <i
                                         class="fa"
                                         :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"
                                     ></i>
                                     Guardar
+                                    <span
+                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                                        style="font-size: 10px; opacity: 0.9"
+                                        >Ctrl+S</span
+                                    >
                                 </button>
 
                                 <button
                                     type="button"
-                                    class="btn btn-warning m-r-5"
+                                    class="btn btn-warning m-r-5 btn-action-clinical"
                                     v-if="actualizar"
                                     @click="guardarRegistro"
                                     :disabled="loadingGuardar"
+                                    title="Actualizar prioridad (Ctrl+S)"
                                 >
                                     <i
                                         class="fa"
                                         :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-pencil'"
                                     ></i>
                                     Actualizar
+                                    <span
+                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                                        style="font-size: 10px; opacity: 0.9"
+                                        >Ctrl+S</span
+                                    >
                                 </button>
 
                                 <button
                                     type="button"
-                                    class="btn btn-inverse"
+                                    class="btn btn-inverse btn-action-clinical"
                                     @click="cerrarSidebar"
+                                    title="Cerrar panel (Esc)"
                                 >
                                     Cancelar
+                                    <span
+                                        class="badge badge-secondary ml-1 d-none d-md-inline"
+                                        style="font-size: 10px"
+                                        >Esc</span
+                                    >
                                 </button>
                             </div>
                         </div>
@@ -250,7 +275,24 @@ const sidebarVisible = ref(false);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { confirmAction, toastMessage } from "@/helpers/alerts.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import axios from "axios";
+
+useKeyboardShortcuts({
+    onSearch: () => {
+        if (!sidebarVisible.value) {
+            ListarDatos();
+        }
+    },
+    onSave: () => {
+        if (sidebarVisible.value) {
+            guardarRegistro();
+        }
+    },
+    onEscape: cerrarSidebar,
+    isActive: () => true,
+    isLoading: loadingGuardar,
+});
 
 const id = ref(0);
 const registros = ref([]);
@@ -401,6 +443,9 @@ function limpiar() {
 
 function abrirSidebar() {
     sidebarVisible.value = true;
+    nextTick(() => {
+        document.getElementById("nom_priori")?.focus();
+    });
 }
 
 function cerrarSidebar() {
@@ -416,26 +461,44 @@ onBeforeUnmount(() => {
 });
 </script>
 <style scoped>
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 1090;
+}
+
 .right-sidebar {
     position: fixed;
-    right: -400px;
-    width: 400px;
-    display: none;
+    right: -450px;
+    width: 450px;
     z-index: 1100;
     background: #ffffff;
     top: 0px;
     padding-bottom: 20px;
     height: 100%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .shw-rside {
-    right: 0px;
-    width: 400px;
-    display: block;
+    right: 0px !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+@media (max-width: 768px) {
+    .right-sidebar {
+        width: 100% !important;
+        right: -100% !important;
+    }
 }
 </style>

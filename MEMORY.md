@@ -254,7 +254,7 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - Verificación exitosa:
     * Agente DCM: prueba integral completada en **17.98s** con generación de hash SHA-256 y manifiesto de estado ✅.
     * Backup Central (`php artisan lidiag:backup --only-db`): completado en **29.9s**, validando pre-flight check de 1.61 TB, verificación de integridad, hash SHA-256 y manifiesto `backup_manifest.json` ✅ | Pint `--test passed` ✅.
-    * Actualizados paquetes comprimidos para distribución hospitalaria: `scripts/dcm_agent.rar` y `scripts/dcm_agent.zip` ✅.
+    * Reubicación a `storage/app_lidiag/agente_backups_dcm/` (sin versionar, estándar del sistema) y distribución en `storage/app_lidiag/agente_backups_dcm.rar` y `.zip` ✅.
 
 
 
@@ -412,7 +412,11 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Atajos Asistenciales (`useKeyboardShortcuts`):** Habilitado atajo `F2` para recarga/búsqueda inmediata de atenciones y ecografías pendientes (`onSearch`), atajo `Ctrl+S` para guardar admisión o lectura, atajo `Ctrl+D` para dictado por voz, y tecla `Escape` para cerrar la estación de lectura o panel lateral.
   - **Botón Asistencial y Badges en Cabecera (`page-titles`):** Incorporado botón "Refrescar" asistencial con spinner reactivo y badge `F2` en `admisionarComponent.vue` y `lecturaComponent.vue`.
   - **Ergonomía Clínica y Botones:** Estandarización de `.btn-action-clinical` en botones de cabecera y búsqueda, manteniendo transiciones suaves y foco accesible.
-  - Verificación estricta: ESLint 0 errores/warnings en ambos archivos ✅ | Vite `npm run build` en 1.15s ✅.
+- [x] **2026-10-19 — UI/UX Nivelación: Atajos Clínicos, Backdrop y Botones Asistenciales en Catálogos Base de Configuración (`configSedeComponent.vue`, `configProductoComponent.vue`, `configTipoDocumentoComponent.vue`, `configDiagnosticoComponent.vue`, `configAdminSaludComponent.vue`, `configPrioridadComponent.vue`):**
+  - **Transición Suave y Backdrop Overlay Desacoplador:** Eliminado el salto abrupto de `display: none/block` en `.right-sidebar` reemplazándolo por animación fluida a 350ms con aceleración `cubic-bezier(0.16, 1, 0.3, 1)`, altura al 100%, z-index 1100 y backdrop desenfocado con `backdrop-filter: blur(2px)` que desacopla la vista y permite cerrar al clic exterior en todos los componentes del grupo.
+  - **Atajos Asistenciales (`useKeyboardShortcuts`):** Habilitado atajo `F2` para refrescar y recargar listados inmediatamente (`onSearch`), atajo `Ctrl+S` para guardar o actualizar registro dentro del panel lateral (`onSave`), y tecla `Escape` para cerrar de inmediato el sidebar (`onEscape`).
+  - **Foco Accesible (`a11y`) y Ergonomía Clínica:** Autofoco automático reactivo (`nextTick`) en el primer campo de cada catálogo al abrir el formulario (`#nom_sede`, `#cod_cups`, `#codigo`, `#cod_diagnos`, `#cod_admin_salud`, `#nom_priori`), botones "Refrescar" asistenciales con spinner dinámico y badge `F2` en `page-titles`, badges `Ctrl+S` y `Esc`, y estandarización completa de la clase `.btn-action-clinical`.
+  - Verificación estricta: ESLint 0 errores/warnings en los 6 componentes ✅ | Vite `npm run build` en 1.11s ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.

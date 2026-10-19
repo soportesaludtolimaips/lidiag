@@ -243,13 +243,14 @@ php artisan lidiag:backup --destination="D:\Backups" --retention=60
 
 Para las bases de datos de imágenes de los hospitales remotos (bases de datos de gran tamaño, >47 GB combinados), se implementó una **arquitectura local descentralizada** para máxima velocidad y sincronización desatendida hacia el NAS QNAP:
 
-#### 1. Agente Local en cada Servidor Hospitalario (`scripts/dcm_agent/`):
-- **Script en Python 3 puro:** [`scripts/dcm_agent/backup_dcm_agent.py`](scripts/dcm_agent/backup_dcm_agent.py) (sin dependencias `pip`).
+#### 1. Agente Local en cada Servidor Hospitalario (`storage/app_lidiag/agente_backups_dcm/`):
+- **Script en Python 3 puro:** `storage/app_lidiag/agente_backups_dcm/backup_dcm_agent.py` (sin dependencias `pip`).
 - **Ruta de destino:** `C:\backups_dcm\` (sincronizada automáticamente por el cliente **Qsync de QNAP** hacia el almacenamiento NAS).
 - **Protección PACS y disco:** Pre-flight check de espacio libre en disco, `--hex-blob` y `--max_allowed_packet=512M`.
 - **Compresión e Integridad:** Vuelca `pacsdb` a velocidad de disco SSD local, comprime a `.zip`, valida integridad CRC32 interna (`testzip`), genera hash SHA-256 (`.sha256`) y emite manifiesto de telemetría (`backup_status_sede_{id}.json`).
 - **Purga de retención:** Elimina automáticamente de `C:\backups_dcm` los respaldos y hashes con más de **30 días**.
-- **Instalación en 1 clic:** Incluye [`scripts/dcm_agent/instalar_tarea_programada.bat`](scripts/dcm_agent/instalar_tarea_programada.bat) para registrar la tarea `LIDiag_Local_DCM_Backup` en el Programador de Tareas de Windows a las **02:00 AM** con permisos `SYSTEM`.
+- **Instalación en 1 clic:** Incluye `storage/app_lidiag/agente_backups_dcm/instalar_tarea_programada.bat` para registrar la tarea `LIDiag_Local_DCM_Backup` en el Programador de Tareas de Windows a las **02:00 AM** con permisos `SYSTEM`.
+- **Paquetes listos para distribución:** Disponibles en `storage/app_lidiag/agente_backups_dcm.rar` y `.zip`.
 
 ```bash
 # Ejecución manual del agente en el servidor DCM
@@ -271,10 +272,10 @@ php artisan lidiag:backup-dcm --timeout=600 --retention=45
 ### Automatización en Windows (Task Scheduler)
 
 El proyecto incluye scripts por lotes para programar tareas desatendidas:
-1. **En Servidor Central LIDiag ([`scripts/programar_tarea_backup.bat`](scripts/programar_tarea_backup.bat)):**
+1. **En Servidor Central LIDiag (`storage/app_lidiag/agente_backups_dcm/programar_tarea_backup.bat`):**
    - `LIDiag_Daily_Backup`: Respaldo central de Base de Datos y Storage clínico a las **02:00 AM**.
    - `LIDiag_Daily_Backup_DCM`: Tarea central programada a las **02:30 AM** como respaldo secundario.
-2. **En Servidores de Hospitales DCM ([`scripts/dcm_agent/instalar_tarea_programada.bat`](scripts/dcm_agent/instalar_tarea_programada.bat)):**
+2. **En Servidores de Hospitales DCM (`storage/app_lidiag/agente_backups_dcm/instalar_tarea_programada.bat`):**
    - `LIDiag_Local_DCM_Backup`: Ejecución local a las **02:00 AM** generando el `.zip` en `C:\backups_dcm` para sincronización con **QNAP Qsync**.
 
 
@@ -422,11 +423,11 @@ El sistema utiliza varios servicios de terceros configurados en el archivo `.env
 -   **Servicio externo de reportes (`URL_API_REPORTES`, `PASSWORD_API_REPORTES`)**:
     -   Variables usadas por flujos de notificación/reportes (revisar `.env` en cada entorno).
 
--   **Sistema Descentralizado de Backups DCM / PACS por Sedes (`scripts/dcm_agent/`)**:
+-   **Sistema de Backups DCM / PACS por Sedes (`storage/app_lidiag/agente_backups_dcm/`)**:
     -   **Agente en Python 3 puro** sin dependencias externas (`backup_dcm_agent.py`) desplegado en el servidor local de cada hospital o sede.
-    -   Ejecuta el volcado local de `pacsdb` a velocidad de disco SSD, lo comprime a ZIP in situ (reducción del 95% del tráfico de red: de 9 GB a ~450 MB) y lo transmite mediante HTTP POST multipart al webhook central de LIDiag.
-    -   **Webhook receptor**: `POST /api/backups/upload-dcm` autenticado con Bearer Token (`BACKUP_API_TOKEN`). Almacena los archivos en `C:\Backups_Lidiag\dcm_sedes\` y aplica retención de 30 días.
-    -   Documentación y manual de automatización completo en: [`scripts/dcm_agent/README.md`](scripts/dcm_agent/README.md).
+    -   Ejecuta el volcado local de `pacsdb` a velocidad de disco SSD, lo comprime a ZIP in situ en `C:\backups_dcm` para sincronización con **QNAP Qsync**, verifica integridad interna CRC32, genera checksum SHA-256 y emite manifiesto de telemetría.
+    -   Documentación y manual de automatización completo en: `storage/app_lidiag/agente_backups_dcm/README.md`.
+    -   Paquetes comprimidos listos para distribución en: `storage/app_lidiag/agente_backups_dcm.rar` y `.zip`.
 
 ---
 
