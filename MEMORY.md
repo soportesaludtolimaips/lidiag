@@ -164,6 +164,11 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - `leerEstudioComponent.vue`, `lecturaComponent.vue` y `teleRadiologiaTranscibirComponent.vue`: Agregado botón de conmutación rápida Pantalla Completa / Modo Zen (`fa-expand` / `fa-compress`) en el encabezado `rpanel-title`.
   - Clase `.zen-mode` que expande la estación de lectura al 100% del viewport (`width: 100% !important; height: 100% !important; z-index: 2500 !important; right: 0 !important;`) ocultando barras laterales y distracciones.
   - Verificación estricta: ESLint 0 errores/warnings en los 3 componentes ✅ | Vite `npm run build` en 1.04s ✅.
+- [x] **2026-10-19 — UI/UX Categoría 2.1: Indicador visual de Sede y Médico Activo en el Topbar:**
+  - `userProfileAndSearchComponent.vue`: Integración de chips visuales destacados en la barra superior con el nombre de la Sede Activa (`badge badge-info` con icono de hospital) y del Médico Activo (`badge badge-success` con icono de médico cuando aplica).
+  - Computed reactivos `nomSedeActiva` y `nomMedicoActivo` sincronizados con `sessionStorage`, `sedes`, `medicos` y escuchas dinámicas de `emitter` (`sedeSeleccionada`, `medicoSeleccionado`).
+  - Al hacer clic abre directamente el selector de sedes y médicos sin navegación intermedia.
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.00s ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.

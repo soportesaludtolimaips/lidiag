@@ -78,16 +78,37 @@
         <!-- ============================================================== -->
         <!-- mega menu -->
         <!-- ============================================================== -->
-        <li class="nav-item dropdown mega-dropdown">
+        <li class="nav-item dropdown mega-dropdown d-flex align-items-center">
             <a
-                class="nav-link dropdown-toggle waves-effect waves-dark"
+                class="nav-link dropdown-toggle waves-effect waves-dark d-flex align-items-center"
                 href=""
                 data-toggle="dropdown"
                 aria-haspopup="true"
                 aria-expanded="false"
+                style="padding-top: 0; padding-bottom: 0"
+                :title="
+                    'Sede activa: ' +
+                    nomSedeActiva +
+                    (mostrarMedico ? ' | Médico: ' + nomMedicoActivo : '')
+                "
             >
-                <i class="icon-Box-Close"></i
-            ></a>
+                <span
+                    class="badge badge-info m-r-5 p-2 d-flex align-items-center"
+                    style="font-size: 12px; font-weight: 500"
+                >
+                    <i class="fa fa-hospital-o m-r-5"></i>
+                    <span>{{ nomSedeActiva }}</span>
+                </span>
+                <span
+                    v-if="mostrarMedico"
+                    class="badge badge-success m-r-5 p-2 d-flex align-items-center"
+                    style="font-size: 12px; font-weight: 500"
+                >
+                    <i class="fa fa-user-md m-r-5"></i>
+                    <span>{{ nomMedicoActivo }}</span>
+                </span>
+                <i class="icon-Box-Close" style="font-size: 18px"></i>
+            </a>
             <div class="dropdown-menu animated bounceInDown">
                 <ul class="mega-dropdown-menu row">
                     <li class="col-lg-3 m-b-30">
@@ -229,8 +250,26 @@ const sedes = ref([]);
 const sedeSeleccionada = ref(sessionStorage.getItem("ST-sede"));
 const medicoSeleccionado = ref(sessionStorage.getItem("ST-medico"));
 const medicos = ref([]);
-const nomMedicoSeleccionado = ref(null);
+const nomMedicoSeleccionado = ref(sessionStorage.getItem("ST-nomMedico") || null);
 const mostrarMedico = ref(false);
+
+const nomSedeActiva = computed(() => {
+    if (!sedeSeleccionada.value) return "Sin Sede";
+    const encontrada = (sedes.value || []).find(
+        (s) => String(s.id) === String(sedeSeleccionada.value)
+    );
+    return encontrada
+        ? encontrada.nom_sede
+        : sessionStorage.getItem("ST-nomsede") || "Sede Seleccionada";
+});
+
+const nomMedicoActivo = computed(() => {
+    if (!medicoSeleccionado.value) return "Sin Médico";
+    const encontrado = (medicos.value || []).find(
+        (m) => String(m.id) === String(medicoSeleccionado.value)
+    );
+    return encontrado ? encontrado.name : nomMedicoSeleccionado.value || "Médico Seleccionado";
+});
 const hdDisponible = ref(true);
 const hdLoading = ref(false);
 const hdItems = ref([]);
@@ -549,6 +588,21 @@ onMounted(() => {
         if (e.key === "lidiag_dark_mode") {
             isDarkMode.value = e.newValue === "true";
             applyGlobalTheme(isDarkMode.value);
+        }
+    });
+
+    emitter.on("sedeSeleccionada", (data) => {
+        if (data?.idSede) {
+            sedeSeleccionada.value = data.idSede;
+        }
+    });
+
+    emitter.on("medicoSeleccionado", (data) => {
+        if (data?.idMedico) {
+            medicoSeleccionado.value = data.idMedico;
+            if (data?.nomMedico) {
+                nomMedicoSeleccionado.value = data.nomMedico;
+            }
         }
     });
 
