@@ -358,6 +358,8 @@
                                                     item.estudio_producto_id
                                                 "
                                                 @click="mostrarRegistro(item)"
+                                                title="Editar asignación"
+                                                aria-label="Editar asignación"
                                             >
                                                 <i
                                                     v-if="
@@ -381,6 +383,8 @@
                                                         item.nom_produc
                                                     )
                                                 "
+                                                title="Anular asignación"
+                                                aria-label="Anular asignación"
                                             >
                                                 <i
                                                     v-if="
