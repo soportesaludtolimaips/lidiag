@@ -209,6 +209,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - Se eliminan los popups modales bloqueantes de SweetAlert en operaciones cotidianas y exitosas de guardado/eliminación/asignación, agilizando el flujo del médico y del personal asistencial sin obligar a clics repetitivos en "OK".
   - Agregado soporte de estilo para Toast Master (`.jq-toast-single`, `.jq-icon-success`, `.jq-icon-error`, etc.) en `resources/css/dark-theme.css`, asegurando alto contraste y legibilidad óptima en estaciones de trabajo radiológicas y modo oscuro global.
   - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.64s ✅.
+- [x] **2026-10-19 — UI/UX Categoría 4.2: Centro de Notificaciones en Topbar:**
+  - Modernizada y unificada la campana del Topbar en `userProfileAndSearchComponent.vue` (`#unified_bell`).
+  - Dropdown interactivo con pestañas de filtrado rápido: `[ Todas | Citas | Helpdesk ]` mostrando badges individuales de conteo no leído y badge global acumulado con animación de pulso (`.heartbit`).
+  - Integración en tiempo real de solicitudes de Citas por WhatsApp (`/api/citas/notificaciones/no-leidas`) y tickets de soporte técnico Helpdesk (`/api/helpdesk-notificaciones`).
+  - Acciones de lectura interactiva: clic en notificación marca como leída y navega al detalle correspondiente, botón "Marcar todas como leídas" ejecutado concurrentemente con `Promise.allSettled`.
+  - Polling inteligente cada 30 segundos con backoff progresivo al desenfocar o minimizar la pestaña (respetando `document.hidden`).
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.13s ✅.
 - [x] **2026-10-19 — Sistema de Backups Automáticos Separados (MySQL y 16 carpetas de Storage):**
   - Creado `config/backup.php` parametrizado con `BACKUP_DESTINATION_PATH=C:\Backups_Lidiag`, `BACKUP_RETENTION_DAYS=30`, `MYSQLDUMP_PATH` y listado de las 16 carpetas seleccionadas de `storage/app/*`.
   - Agregado canal de logging `'backups'` en `config/logging.php` apuntando a `storage/logs/backups.log`.

@@ -1,73 +1,190 @@
 <template>
     <ul class="navbar-nav my-lg-0">
         <!-- ============================================================== -->
-        <!-- Notificaciones (Helpdesk) -->
+        <!-- Centro de Notificaciones Unificado (Citas & Helpdesk) -->
         <!-- ============================================================== -->
-        <li class="nav-item dropdown" v-if="hdDisponible">
+        <li class="nav-item dropdown" v-if="notificacionesDisponibles">
             <a
                 class="nav-link dropdown-toggle waves-effect waves-dark"
                 href=""
-                id="hd_bell"
+                id="unified_bell"
                 data-toggle="dropdown"
                 aria-haspopup="true"
                 aria-expanded="false"
-                @click.prevent="onOpenHdDropdown()"
+                @click.prevent="onOpenNotificacionesDropdown()"
+                title="Centro de Notificaciones"
             >
                 <i class="icon-Bell"></i>
-                <div class="notify" v-if="hdUnreadCount > 0">
+                <div class="notify" v-if="totalUnreadCount > 0">
                     <span class="heartbit"></span>
                     <span class="point"></span>
                 </div>
             </a>
             <div
                 class="dropdown-menu dropdown-menu-right mailbox animated bounceInDown"
-                aria-labelledby="hd_bell"
+                aria-labelledby="unified_bell"
+                style="min-width: 360px; max-width: 400px; padding-bottom: 0"
             >
                 <ul>
                     <li>
                         <div class="drop-title d-flex justify-content-between align-items-center">
-                            <span>Helpdesk</span>
-                            <a
-                                href="/helpdesk-notificaciones"
-                                class="text-info"
-                                @click.prevent="goHdNotificaciones()"
-                            >
-                                Ver todas
-                            </a>
+                            <span class="font-weight-bold">
+                                Notificaciones
+                                <span
+                                    v-if="totalUnreadCount > 0"
+                                    class="badge badge-pill badge-danger m-l-5"
+                                    style="font-size: 11px"
+                                >
+                                    {{ totalUnreadCount }}
+                                </span>
+                            </span>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button
+                                    type="button"
+                                    class="btn"
+                                    :class="tabActiva === 'todas' ? 'btn-info' : 'btn-secondary'"
+                                    @click.prevent.stop="tabActiva = 'todas'"
+                                    style="padding: 2px 8px; font-size: 11px"
+                                >
+                                    Todas
+                                </button>
+                                <button
+                                    v-if="citasDisponible"
+                                    type="button"
+                                    class="btn"
+                                    :class="tabActiva === 'citas' ? 'btn-info' : 'btn-secondary'"
+                                    @click.prevent.stop="tabActiva = 'citas'"
+                                    style="padding: 2px 8px; font-size: 11px"
+                                >
+                                    Citas
+                                    <span
+                                        v-if="citasUnreadCount > 0"
+                                        class="badge badge-light text-dark m-l-5"
+                                        style="font-size: 9px"
+                                    >
+                                        {{ citasUnreadCount }}
+                                    </span>
+                                </button>
+                                <button
+                                    v-if="hdDisponible"
+                                    type="button"
+                                    class="btn"
+                                    :class="tabActiva === 'helpdesk' ? 'btn-info' : 'btn-secondary'"
+                                    @click.prevent.stop="tabActiva = 'helpdesk'"
+                                    style="padding: 2px 8px; font-size: 11px"
+                                >
+                                    Helpdesk
+                                    <span
+                                        v-if="hdUnreadCount > 0"
+                                        class="badge badge-light text-dark m-l-5"
+                                        style="font-size: 9px"
+                                    >
+                                        {{ hdUnreadCount }}
+                                    </span>
+                                </button>
+                            </div>
                         </div>
                     </li>
                     <li>
-                        <div class="message-center">
-                            <div v-if="hdLoading" class="p-10 text-muted">
-                                <i class="fa fa-spinner fa-spin"></i> Cargando...
+                        <div class="message-center" style="max-height: 320px; overflow-y: auto">
+                            <div v-if="notifLoading" class="p-15 text-center text-muted">
+                                <i class="fa fa-spinner fa-spin m-r-5"></i> Cargando
+                                notificaciones...
                             </div>
 
-                            <a
-                                v-for="n in hdItems"
-                                :key="n.id"
-                                href="#"
-                                @click.prevent="abrirHdNotificacion(n)"
-                            >
-                                <div
-                                    class="btn btn-circle"
-                                    :class="n.read_at ? 'btn-secondary' : 'btn-info'"
+                            <template v-else-if="notificacionesFiltradas.length > 0">
+                                <a
+                                    v-for="item in notificacionesFiltradas"
+                                    :key="item.uniqueId"
+                                    href="#"
+                                    @click.prevent="abrirNotificacion(item)"
+                                    class="d-flex align-items-center"
+                                    :style="item.read ? 'opacity: 0.75;' : ''"
                                 >
-                                    <i class="fa" :class="n.read_at ? 'fa-check' : 'fa-bell'"></i>
-                                </div>
-                                <div class="mail-contnet">
-                                    <h5 class="m-0">{{ n.data?.folio || "Ticket" }}</h5>
-                                    <span class="mail-desc">{{ n.data?.mensaje || "" }}</span>
-                                    <span class="time">{{ formatHdTime(n.created_at) }}</span>
-                                </div>
-                            </a>
+                                    <div
+                                        class="btn btn-circle"
+                                        :class="
+                                            item.tipo === 'cita'
+                                                ? item.read
+                                                    ? 'btn-secondary'
+                                                    : 'btn-success'
+                                                : item.read
+                                                  ? 'btn-secondary'
+                                                  : 'btn-info'
+                                        "
+                                    >
+                                        <i
+                                            class="fa"
+                                            :class="
+                                                item.tipo === 'cita'
+                                                    ? 'fa-calendar-check-o'
+                                                    : item.read
+                                                      ? 'fa-check'
+                                                      : 'fa-ticket'
+                                            "
+                                        ></i>
+                                    </div>
+                                    <div class="mail-contnet" style="width: calc(100% - 50px)">
+                                        <div
+                                            class="d-flex justify-content-between align-items-center"
+                                        >
+                                            <h5
+                                                class="m-0"
+                                                style="
+                                                    font-size: 12px;
+                                                    max-width: 170px;
+                                                    white-space: nowrap;
+                                                    overflow: hidden;
+                                                    text-overflow: ellipsis;
+                                                "
+                                            >
+                                                {{ item.titulo }}
+                                            </h5>
+                                            <span
+                                                class="badge"
+                                                :class="
+                                                    item.tipo === 'cita'
+                                                        ? 'badge-success'
+                                                        : 'badge-info'
+                                                "
+                                                style="font-size: 9px; padding: 2px 6px"
+                                            >
+                                                {{ item.tipo === "cita" ? "Cita" : "Ticket" }}
+                                            </span>
+                                        </div>
+                                        <span
+                                            class="mail-desc"
+                                            style="
+                                                font-size: 11px;
+                                                white-space: nowrap;
+                                                overflow: hidden;
+                                                text-overflow: ellipsis;
+                                            "
+                                        >
+                                            {{ item.descripcion }}
+                                        </span>
+                                        <span class="time" style="font-size: 10px">{{
+                                            item.tiempoRelativo
+                                        }}</span>
+                                    </div>
+                                </a>
+                            </template>
 
-                            <div v-if="!hdLoading && hdItems.length === 0" class="p-10 text-muted">
-                                Sin notificaciones.
+                            <div v-else class="p-20 text-center text-muted" style="font-size: 12px">
+                                <i
+                                    class="fa fa-bell-slash-o d-block m-b-5"
+                                    style="font-size: 20px"
+                                ></i>
+                                Sin notificaciones en esta categoría.
                             </div>
                         </div>
                     </li>
-                    <li v-if="hdUnreadCount > 0">
-                        <a class="nav-link text-center" href="#" @click.prevent="marcarHdTodas()">
+                    <li v-if="totalUnreadCount > 0">
+                        <a
+                            class="nav-link text-center"
+                            href="#"
+                            @click.prevent="marcarTodasComoLeidas()"
+                        >
                             <strong>Marcar todas como leídas</strong>
                         </a>
                     </li>
@@ -270,13 +387,75 @@ const nomMedicoActivo = computed(() => {
     );
     return encontrado ? encontrado.name : nomMedicoSeleccionado.value || "Médico Seleccionado";
 });
+
+// Estado de notificaciones (Helpdesk + Citas/WhatsApp)
+const tabActiva = ref("todas");
+const notifLoading = ref(false);
+const notifIntervalId = ref(null);
+
 const hdDisponible = ref(true);
-const hdLoading = ref(false);
 const hdItems = ref([]);
-const hdIntervalId = ref(null);
+
+const citasDisponible = ref(true);
+const citasItems = ref([]);
+const citasCount = ref(0);
 
 const hdUnreadCount = computed(() => {
     return (hdItems.value || []).filter((x) => !x.read_at).length;
+});
+
+const citasUnreadCount = computed(() => {
+    return citasCount.value;
+});
+
+const totalUnreadCount = computed(() => {
+    return hdUnreadCount.value + citasUnreadCount.value;
+});
+
+const notificacionesDisponibles = computed(() => {
+    return hdDisponible.value || citasDisponible.value;
+});
+
+const notificacionesFiltradas = computed(() => {
+    const lista = [];
+
+    // Citas / WhatsApp
+    if (citasDisponible.value && (tabActiva.value === "todas" || tabActiva.value === "citas")) {
+        (citasItems.value || []).forEach((c) => {
+            lista.push({
+                uniqueId: `cita-${c.id}`,
+                id: c.id,
+                tipo: "cita",
+                titulo: "Solicitud de Cita",
+                descripcion: c.mensaje || "Nueva cita recibida por WhatsApp",
+                tiempoRelativo: c.created_at || "Reciente",
+                url: c.url || "/citas/revision",
+                read: false,
+                raw: c,
+            });
+        });
+    }
+
+    // Helpdesk
+    if (hdDisponible.value && (tabActiva.value === "todas" || tabActiva.value === "helpdesk")) {
+        (hdItems.value || []).forEach((h) => {
+            lista.push({
+                uniqueId: `hd-${h.id}`,
+                id: h.id,
+                tipo: "helpdesk",
+                titulo: h.data?.folio ? `Ticket ${h.data.folio}` : "Ticket Helpdesk",
+                descripcion: h.data?.mensaje || h.data?.titulo || "Actualización de ticket",
+                tiempoRelativo: formatHdTime(h.created_at),
+                url: h.data?.ticket_id
+                    ? `/helpdesk-tickets/${h.data.ticket_id}`
+                    : "/helpdesk-notificaciones",
+                read: Boolean(h.read_at),
+                raw: h,
+            });
+        });
+    }
+
+    return lista;
 });
 
 const isDarkMode = ref(localStorage.getItem("lidiag_dark_mode") === "true");
@@ -443,16 +622,16 @@ async function estableserMedico() {
     });
 }
 /**
- * Maneja la apertura del dropdown de notificaciones del helpdesk,
- * recargando las notificaciones de forma silenciosa.
+ * Maneja la apertura del dropdown de notificaciones unificado,
+ * recargando las notificaciones de Helpdesk y Citas de forma silenciosa.
  *
  * @author Jhon Javer Lozano Arce
- * @date 2024-04-04
+ * @date 2026-10-19
  */
-function onOpenHdDropdown() {
-    // Recarga rápida al abrir
-    cargarHdNotificaciones(true);
+function onOpenNotificacionesDropdown() {
+    cargarTodasNotificaciones(true);
 }
+
 /**
  * Formatea una fecha/hora de notificación del helpdesk a zona horaria de Bogotá.
  *
@@ -470,20 +649,19 @@ function formatHdTime(dt) {
         return String(dt);
     }
 }
+
 /**
- * Carga las notificaciones del helpdesk desde la API.
- * Si el endpoint retorna 403 o 404, oculta el ícono de notificaciones.
+ * Carga las notificaciones de Helpdesk desde la API.
+ * Si el endpoint retorna 403 o 404, desactiva la sección de helpdesk.
  *
- * @param {boolean} silent - Si es true, no muestra errores en consola.
+ * @param {boolean} silent - Si es true, no activa spinner visual grande.
  * @returns {Promise<void>}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2024-04-04
+ * @date 2026-10-19
  */
 async function cargarHdNotificaciones(silent = false) {
     if (!hdDisponible.value) return;
-    if (hdLoading.value) return;
-    hdLoading.value = true;
     try {
         const res = await axios.get("/api/helpdesk-notificaciones", {
             params: { limit: 10 },
@@ -491,19 +669,65 @@ async function cargarHdNotificaciones(silent = false) {
         hdItems.value = res.data?.items || [];
     } catch (error) {
         const status = error?.response?.status;
-        // Si no tiene permisos o no existe el endpoint, ocultar el ícono.
         if (status === 403 || status === 404) {
             hdDisponible.value = false;
         } else if (!silent) {
             // noop
         }
-    } finally {
-        hdLoading.value = false;
     }
 }
+
 /**
- * Marca una notificación individual del helpdesk como leída
- * llamando al endpoint correspondiente de la API.
+ * Carga las notificaciones de Citas/WhatsApp pendientes desde la API.
+ * Si el endpoint retorna 403 o 404, desactiva la sección de citas.
+ *
+ * @param {boolean} silent - Si es true, no activa spinner visual grande.
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-10-19
+ */
+async function cargarCitasNotificaciones(silent = false) {
+    if (!citasDisponible.value) return;
+    try {
+        const res = await axios.get("/api/citas/notificaciones/no-leidas");
+        const data = res.data?.data || res.data || {};
+        citasCount.value = Number(data.count || 0);
+        citasItems.value = Array.isArray(data.notifications) ? data.notifications : [];
+    } catch (error) {
+        const status = error?.response?.status;
+        if (status === 403 || status === 404) {
+            citasDisponible.value = false;
+        } else if (!silent) {
+            // noop
+        }
+    }
+}
+
+/**
+ * Orquestador para cargar simultáneamente las notificaciones de Helpdesk y Citas.
+ *
+ * @param {boolean} silent - Si es true, no muestra spinner bloqueante.
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-10-19
+ */
+async function cargarTodasNotificaciones(silent = false) {
+    if (notifLoading.value) return;
+    if (!silent) notifLoading.value = true;
+    try {
+        await Promise.allSettled([
+            cargarHdNotificaciones(silent),
+            cargarCitasNotificaciones(silent),
+        ]);
+    } finally {
+        if (!silent) notifLoading.value = false;
+    }
+}
+
+/**
+ * Marca una notificación individual del helpdesk como leída.
  *
  * @param {Object} n - Objeto notificación con propiedad id.
  * @returns {Promise<void>}
@@ -517,49 +741,68 @@ async function marcarHdLeida(n) {
         n.read_at = new Date().toISOString();
     } catch {}
 }
+
 /**
- * Marca todas las notificaciones del helpdesk como leídas
- * y recarga la lista de notificaciones.
+ * Marca una notificación individual de citas como leída.
  *
+ * @param {Object} n - Objeto notificación con propiedad id.
  * @returns {Promise<void>}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2024-04-04
+ * @date 2026-10-19
  */
-async function marcarHdTodas() {
+async function marcarCitaLeida(n) {
     try {
-        await axios.post("/api/helpdesk-notificaciones/read-all");
-        await cargarHdNotificaciones(true);
+        await axios.post(`/api/citas/notificaciones/${n.id}/leida`);
+        citasCount.value = Math.max(0, citasCount.value - 1);
+        citasItems.value = citasItems.value.filter((item) => item.id !== n.id);
     } catch {}
 }
+
 /**
- * Abre una notificación del helpdesk: la marca como leída si no lo estaba
- * y redirige a la página del ticket correspondiente.
+ * Abre una notificación (Cita o Helpdesk): la marca como leída y redirige a su destino.
  *
- * @param {Object} n - Objeto notificación con propiedades id, read_at y data.ticket_id.
+ * @param {Object} item - Notificación normalizada.
  * @returns {Promise<void>}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2024-04-04
+ * @date 2026-10-19
  */
-async function abrirHdNotificacion(n) {
-    if (!n.read_at) await marcarHdLeida(n);
-    if (n.data?.ticket_id) window.location.href = `/helpdesk-tickets/${n.data.ticket_id}`;
+async function abrirNotificacion(item) {
+    if (item.tipo === "cita") {
+        await marcarCitaLeida(item);
+        window.location.href = item.url || "/citas/revision";
+    } else {
+        if (!item.read) await marcarHdLeida(item.raw);
+        window.location.href = item.url || "/helpdesk-notificaciones";
+    }
 }
+
 /**
- * Redirige al usuario a la página de notificaciones del helpdesk.
+ * Marca todas las notificaciones como leídas en las categorías activas.
+ *
+ * @returns {Promise<void>}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2024-04-04
+ * @date 2026-10-19
  */
-function goHdNotificaciones() {
-    window.location.href = "/helpdesk-notificaciones";
+async function marcarTodasComoLeidas() {
+    const promises = [];
+    if (hdDisponible.value && hdUnreadCount.value > 0) {
+        promises.push(axios.post("/api/helpdesk-notificaciones/read-all"));
+    }
+    if (citasDisponible.value && citasUnreadCount.value > 0) {
+        promises.push(axios.post("/api/citas/notificaciones/todas-leidas"));
+    }
+    try {
+        await Promise.allSettled(promises);
+        await cargarTodasNotificaciones(true);
+    } catch {}
 }
 
 /**
  * Lifecycle hook que inicializa el módulo, lista sedes y médicos,
- * carga notificaciones del helpdesk y configura polling inteligente
- * con backoff progresivo basado en visibilidad de la pestaña.
+ * carga notificaciones unificadas y configura polling inteligente a 30s.
  *
  * @author Jhon Javer Lozano Arce
  * @date 2024-04-04
@@ -568,14 +811,14 @@ onMounted(() => {
     establecerModuloActual();
     listarSedes();
     listarMedicos();
-    cargarHdNotificaciones();
+    cargarTodasNotificaciones();
 
-    // Polling inteligente: solo si la pestaña está visible, con backoff progresivo
-    let pollInterval = 30000;
+    // Polling inteligente cada 30 segundos (con backoff cuando la pestaña está oculta)
+    const pollInterval = 30000;
     function schedulePoll() {
         const delay = document.hidden ? Math.min(pollInterval * 3, 120000) : pollInterval;
-        hdIntervalId.value = setTimeout(() => {
-            cargarHdNotificaciones(true);
+        notifIntervalId.value = setTimeout(() => {
+            cargarTodasNotificaciones(true);
             schedulePoll();
         }, delay);
     }
@@ -618,15 +861,14 @@ onMounted(() => {
 });
 
 /**
- * Listener de visibilidad: refresca las notificaciones del help-desk
- * cuando la pestaña vuelve a ser visible.
+ * Listener de visibilidad: refresca las notificaciones cuando la pestaña vuelve a ser visible.
  *
  * @author Jhon Javer Lozano Arce
  * @date 2024-04-04
  */
 function onVisibilityChange() {
     if (!document.hidden) {
-        cargarHdNotificaciones(true);
+        cargarTodasNotificaciones(true);
     }
 }
 
@@ -639,7 +881,7 @@ function onVisibilityChange() {
  */
 onBeforeUnmount(() => {
     try {
-        if (hdIntervalId.value) clearTimeout(hdIntervalId.value);
+        if (notifIntervalId.value) clearTimeout(notifIntervalId.value);
     } catch (_) {}
     try {
         document.removeEventListener("visibilitychange", onVisibilityChange);
