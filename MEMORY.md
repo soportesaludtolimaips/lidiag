@@ -169,6 +169,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - Computed reactivos `nomSedeActiva` y `nomMedicoActivo` sincronizados con `sessionStorage`, `sedes`, `medicos` y escuchas dinámicas de `emitter` (`sedeSeleccionada`, `medicoSeleccionado`).
   - Al hacer clic abre directamente el selector de sedes y médicos sin navegación intermedia.
   - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.00s ✅.
+- [x] **2026-10-19 — UI/UX Categoría 2.2: Búsqueda Global y Command Palette (Ctrl+K):**
+  - Creado `commandPaletteComponent.vue` registrado globalmente en `app.js` y montado en `toggleAndNavItems.blade.php`.
+  - Disparador visual en el Topbar con atajo de teclado global `Ctrl + K` (o `Cmd + K` en macOS) y tecla `Escape` para cerrar.
+  - Catálogo exhaustivo de pantallas y módulos clínicos (Estudios, Ecografías, Tele-Radiología, Citas, Agenda, HelpDesk, Contratación, Liquidación, Configuración y Seguridad) con filtrado instantáneo en tiempo real.
+  - Navegación accesible con flechas del teclado (`↑` / `↓`) y `Enter` para saltar inmediatamente a la ruta seleccionada.
+  - Soporte nativo para Modo Claro y Modo Oscuro radiológico (`body.theme-dark`).
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 948ms ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.

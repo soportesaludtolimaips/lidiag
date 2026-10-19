@@ -37,6 +37,8 @@ window.dayjs = dayjs;
 
 import dashboardComponent from "./components/dashboard/dashboardComponent.vue";
 app.component("DashboardComponent", dashboardComponent);
+import commandPaletteComponent from "./components/comunes/commandPaletteComponent.vue";
+app.component("CommandPaletteComponent", commandPaletteComponent);
 
 /**
  * Cofiguración
