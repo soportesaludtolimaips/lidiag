@@ -174,6 +174,44 @@ function attachObserver(editor) {
             subtree: true,
             characterData: true,
         });
+
+        attachKeydownForwarding(iframe);
+    } catch (_) {
+        /* noop */
+    }
+}
+
+/**
+ * Reenvía atajos de teclado clínicos (Ctrl+S, F2, Esc) desde el iframe hacia window.
+ *
+ * @param {HTMLIFrameElement} iframe Elemento iframe del sandbox wysihtml5.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-10-19
+ */
+function attachKeydownForwarding(iframe) {
+    try {
+        if (!iframe?.contentDocument) return;
+        iframe.contentDocument.addEventListener("keydown", (e) => {
+            const isSave = (e.ctrlKey || e.metaKey) && (e.key === "s" || e.key === "S");
+            const isF2 = e.key === "F2";
+            const isEscape = e.key === "Escape";
+
+            if (isSave || isF2 || isEscape) {
+                e.preventDefault();
+                const evt = new KeyboardEvent("keydown", {
+                    key: e.key,
+                    code: e.code,
+                    ctrlKey: e.ctrlKey,
+                    metaKey: e.metaKey,
+                    altKey: e.altKey,
+                    shiftKey: e.shiftKey,
+                    bubbles: true,
+                    cancelable: true,
+                });
+                window.dispatchEvent(evt);
+            }
+        });
     } catch (_) {
         /* noop */
     }

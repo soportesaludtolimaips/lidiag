@@ -5,9 +5,9 @@
   "db_name": "pacsdb",
   "db_user": "root",
   "db_password": "",
+  "mysqldump_path": "C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysqldump.exe",
   "api_url": "https://lidiag.test/api/backups/upload-dcm",
   "api_token": "lidiag_backup_secure_token_2026",
-  "mysqldump_bin": "mysqldump",
   "temp_dir": "./temp_backups",
   "keep_local": false,
   "timeout_upload": 1800

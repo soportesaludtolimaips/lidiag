@@ -46,7 +46,7 @@ def parse_arguments():
     parser.add_argument("--db-password", help="Contraseña de MySQL (anula config)")
     parser.add_argument("--api-url", help="URL del endpoint de LIDiag (anula config)")
     parser.add_argument("--api-token", help="Token Bearer de autenticación (anula config)")
-    parser.add_argument("--mysqldump", help="Ruta ejecutable a mysqldump")
+    parser.add_argument("--mysqldump-path", "--mysqldump", dest="mysqldump_path", help="Ruta completa al ejecutable mysqldump (anula config)")
     parser.add_argument("--keep-local", action="store_true", help="Conservar el archivo .zip localmente tras subirlo")
     return parser.parse_args()
 
@@ -59,9 +59,9 @@ def load_config(config_path, args):
         "db_name": "pacsdb",
         "db_user": "root",
         "db_password": "",
+        "mysqldump_path": "",
         "api_url": "https://lidiag.test/api/backups/upload-dcm",
         "api_token": "lidiag_backup_secure_token_2026",
-        "mysqldump_bin": "mysqldump",
         "temp_dir": "./temp_backups",
         "keep_local": False,
         "timeout_upload": 1800,  # 30 minutos máximo para subida
@@ -73,6 +73,9 @@ def load_config(config_path, args):
             with open(config_path, "r", encoding="utf-8") as f:
                 loaded = json.load(f)
                 config.update(loaded)
+                # Normalizar clave mysqldump_bin a mysqldump_path
+                if "mysqldump_bin" in loaded and not loaded.get("mysqldump_path"):
+                    config["mysqldump_path"] = loaded["mysqldump_bin"]
         except Exception as e:
             print(f"[ADVERTENCIA] No se pudo leer {config_path}: {e}. Usando valores por defecto/argumentos.")
 
@@ -93,8 +96,8 @@ def load_config(config_path, args):
         config["api_url"] = args.api_url
     if args.api_token:
         config["api_token"] = args.api_token
-    if args.mysqldump:
-        config["mysqldump_bin"] = args.mysqldump
+    if args.mysqldump_path:
+        config["mysqldump_path"] = args.mysqldump_path
     if args.keep_local:
         config["keep_local"] = True
 
@@ -109,25 +112,38 @@ def format_bytes(bytes_num):
     return f"{bytes_num:.2f} PB"
 
 
-def find_mysqldump(custom_bin):
-    if custom_bin and (os.path.exists(custom_bin) or shutil.which(custom_bin)):
-        return custom_bin
+def find_mysqldump(custom_path):
+    if custom_path:
+        clean_path = custom_path.strip("\"' \t\r\n")
+        clean_path = os.path.expandvars(os.path.expanduser(clean_path))
+        if os.path.isfile(clean_path):
+            return clean_path
+        if shutil.which(clean_path):
+            return shutil.which(clean_path)
+        print(f"[ADVERTENCIA] La ruta configurada 'mysqldump_path' ({custom_path}) no existe. Buscando automáticamente...")
 
+    # 1. Búsqueda en PATH del sistema
     which_path = shutil.which("mysqldump")
     if which_path:
         return which_path
 
-    # Rutas comunes en Windows (Laragon / XAMPP / MySQL Server)
-    windows_paths = [
-        r"C:\laragon\bin\mysql\mysql-8.4.3-winx64\bin\mysqldump.exe",
-        r"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqldump.exe",
+    # 2. Búsqueda dinámica en instalaciones de MySQL Server en Windows
+    import glob
+    search_patterns = [
+        r"C:\Program Files\MySQL\MySQL Server *\bin\mysqldump.exe",
+        r"C:\Program Files (x86)\MySQL\MySQL Server *\bin\mysqldump.exe",
+        r"C:\Program Files\MariaDB *\bin\mysqldump.exe",
+        r"C:\laragon\bin\mysql\*\bin\mysqldump.exe",
         r"C:\xampp\mysql\bin\mysqldump.exe",
+        r"D:\Program Files\MySQL\MySQL Server *\bin\mysqldump.exe",
     ]
-    for p in windows_paths:
-        if os.path.exists(p):
-            return p
+    for pattern in search_patterns:
+        matches = glob.glob(pattern)
+        if matches:
+            matches.sort(reverse=True)
+            return matches[0]
 
-    # Rutas comunes en Linux
+    # 3. Rutas comunes en Linux
     linux_paths = ["/usr/bin/mysqldump", "/usr/local/bin/mysqldump"]
     for p in linux_paths:
         if os.path.exists(p):
@@ -179,6 +195,8 @@ def main():
     print(f" Sede ID          : {config['sede_id']}")
     print(f" Base de Datos    : {config['db_name']} @ {config['db_host']}:{config['db_port']}")
     print(f" Usuario MySQL    : {config['db_user']}")
+    if config.get("mysqldump_path"):
+        print(f" MySQLDump Path   : {config['mysqldump_path']}")
     print(f" Endpoint LIDiag  : {config['api_url']}")
     print("=========================================================")
 
@@ -191,7 +209,7 @@ def main():
     zip_filename = f"backup_dcm_sede_{config['sede_id']}_{timestamp}.zip"
     zip_path = os.path.join(temp_dir, zip_filename)
 
-    mysqldump_bin = find_mysqldump(config.get("mysqldump_bin"))
+    mysqldump_bin = find_mysqldump(config.get("mysqldump_path") or config.get("mysqldump_bin"))
     print(f"[1/4] Ejecutable mysqldump detectado: {mysqldump_bin}")
 
     # Paso 1: Dump local

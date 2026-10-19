@@ -707,10 +707,16 @@
                                     class="btn btn-success m-r-5"
                                     :disabled="loadingGuardar"
                                     @click="guardarRegistro()"
+                                    title="Guardar transcripción (Ctrl + S)"
                                 >
                                     <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
                                     <i v-else class="fa fa-check"></i>
                                     Guardar
+                                    <span
+                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                                        style="font-size: 10px"
+                                        >Ctrl+S</span
+                                    >
                                 </button>
 
                                 <button
@@ -718,8 +724,14 @@
                                     class="btn btn-inverse"
                                     ref="btnCerrarForm"
                                     @click="btnCerrarModalForm()"
+                                    title="Cerrar panel (Esc)"
                                 >
-                                    Cancel
+                                    Cancelar
+                                    <span
+                                        class="badge badge-secondary ml-1 d-none d-md-inline"
+                                        style="font-size: 10px"
+                                        >Esc</span
+                                    >
                                 </button>
                             </div>
                         </div>
@@ -742,6 +754,7 @@ import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import dayjs from "dayjs";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
 import { useFormValidation } from "@/composables/useFormValidation";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import axios from "axios";
 
 const { proxy } = getCurrentInstance();
@@ -837,6 +850,13 @@ const statusEmailReportar = computed(() =>
         errores.value
     )
 );
+
+useKeyboardShortcuts({
+    onSave: guardarRegistro,
+    onEscape: btnCerrarModalForm,
+    isActive: () => sidebarVisible.value,
+    isLoading: loadingGuardar,
+});
 
 /**
  * Aplica un prellenado del dashboard si existe un accession almacenado en sessionStorage. Si se encuentra un accession válido, se busca el estudio correspondiente y se muestra en la interfaz. Si no hay un accession válido, simplemente se listan los estudios pendientes.

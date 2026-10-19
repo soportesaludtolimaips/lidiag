@@ -33,12 +33,14 @@ No requiere librerías adicionales con `pip` (utiliza únicamente la biblioteca 
      "db_name": "pacsdb",
      "db_user": "root",
      "db_password": "tu_password",
+     "mysqldump_path": "C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysqldump.exe",
      "api_url": "https://tuservidor-lidiag.com/api/backups/upload-dcm",
      "api_token": "lidiag_backup_secure_token_2026",
      "temp_dir": "./temp_backups",
      "keep_local": false
    }
    ```
+   > **Nota para servidores Windows:** Si tienes MySQL instalado como servicio en `Program Files`, especifica la ruta completa a `mysqldump.exe` en `mysqldump_path` usando doble barra invertida (`\\`), por ejemplo: `C:\\Program Files\\MySQL\\MySQL Server 5.7\\bin\\mysqldump.exe` o `C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysqldump.exe`. Si se deja vacío, el script buscará automáticamente en las rutas estándar del sistema.
 
 ---
 

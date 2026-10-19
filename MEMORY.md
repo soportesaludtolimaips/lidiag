@@ -247,7 +247,7 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 - [x] **2026-10-19 — Arquitectura Descentralizada de Backups DCM (Agente Python + Webhook):**
   - Implementado endpoint receptor `POST /api/backups/upload-dcm` en `app/Http/Controllers/Api/BackupUploadController.php` protegido mediante Bearer Token (`BACKUP_API_TOKEN`). Almacena los `.zip` recibidos en `C:\Backups_Lidiag\dcm_sedes\` y aplica retención de 30 días.
   - Creado agente en Python 3 puro `scripts/dcm_agent/backup_dcm_agent.py` sin dependencias externas: ejecuta volcado local a alta velocidad de disco, comprime a ZIP in situ (reducción del 95% de tráfico de red) y transmite vía HTTP POST multipart a LIDiag.
-  - Creada plantilla `scripts/dcm_agent/config.json.example` y manual completo de automatización (crontab/Windows) en `scripts/dcm_agent/README.md`.
+  - Creada plantilla `scripts/dcm_agent/config.json.example` y manual completo de automatización (crontab/Windows) en `scripts/dcm_agent/README.md`, con soporte explícito y auto-detección dinámica para `mysqldump_path` (útil para servidores con MySQL como servicio en Windows `Program Files`).
   - Verificación exitosa: prueba integral de agente Python transmitiendo al webhook y persistiendo en `C:\Backups_Lidiag\dcm_sedes\` en solo **17.34s** ✅ | Pint `--test passed` ✅.
   - Actualizado `scripts/programar_tarea_backup.bat` para registrar la tarea `LIDiag_Daily_Backup_DCM` en Windows Task Scheduler.
   - Verificación exitosa: respaldo real de Sede #1 (Espinal - Hospital San Rafael: `pacsdb`) volcando **9.06 GB** de SQL a un archivo `.zip` de **464.22 MB** en `C:\Backups_Lidiag\dcm_sedes\` ✅ | Pint `--test passed` ✅.
@@ -265,8 +265,17 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - `AsignarEstudioComponent.vue`: Validaciones inline en datos del estudio (`study_desc`, `accession_no`, `study_datetime`, `email_reportar`, `prioridad_id`), sincronización activa con `form-paciente` y bloqueo previo defensivo en `guardarRegistro()`.
   - `notificarEstudioComponent.vue`: Validación reactiva inline en correo electrónico con estado `.is-invalid`/`.is-valid` y corrección de typo en cierre de modal (`btnCerrarModalForm`).
   - `transcribirEstudioComponent.vue`: Validación inline en `email_reportar` y pre-validación de envío.
-  - `leerEstudioComponent.vue`: Pre-validación defensiva de informe médico no vacío antes de persistir y feedback visual estructurado con icono.
-  - Verificación estricta: ESLint 0 errores/warnings en todos los archivos ✅ | Vite `npm run build` en 1.04s ✅.
+- [x] **2026-10-19 — UI/UX Categoría 5.2: Atajos de Teclado Clínicos Adicionales (Ctrl+S, Escape) y Foco Accesible (a11y) en Módulo de Estudios:**
+  - Creado composable reutilizable `useKeyboardShortcuts.js` en `resources/js/composables/` para captura global y accesible de combinaciones clínicas:
+    * `Ctrl+S` / `Cmd+S`: Previene la acción nativa del navegador de guardar HTML y dispara la función de guardado `onSave` con verificación de concurrencia (`isLoading`) y visibilidad (`isActive`).
+    * `Escape`: Cierra limpiamente sidebars y modales abiertos (`onEscape`).
+  - Actualizado `WysiwygEditor.vue`: Implementado puente de eventos de teclado `attachKeydownForwarding(iframe)` que escucha eventos `keydown` dentro del `iframe` de wysihtml5 (`Ctrl+S`, `F2`, `Escape`) y los reenvía de forma sintética a `window` para que el médico pueda guardar el informe clínico con `Ctrl+S` sin perder foco del editor.
+  - Integrado soporte de atajos y badges visuales (`Ctrl+S`, `Esc`) en todos los componentes del flujo de estudios:
+    * `leerEstudioComponent.vue`: Atajo `Ctrl+S` para guardar reporte radiológico y `Escape` para cerrar sidebar de lectura; badges descriptivos en botones de acción.
+    * `AsignarEstudioComponent.vue`: Atajo `Ctrl+S` para guardar asignación de estudio, `Escape` para cerrar modal, badges visuales y autofocus en primer input (`primerInput.value?.focus()`).
+    * `transcribirEstudioComponent.vue`: Atajo `Ctrl+S` para guardar transcripción, `Escape` para cerrar modal, badges visuales y autofocus reactivo en `mostrarRegistro()`.
+    * `notificarEstudioComponent.vue`: Atajo `Ctrl+S` para notificar al paciente, `Escape` para cerrar modal, badges visuales y autofocus reactivo en campo `#email`.
+  - Verificación estricta: ESLint 0 errores/warnings en todos los archivos modificados ✅ | Vite `npm run build` en 981ms ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.

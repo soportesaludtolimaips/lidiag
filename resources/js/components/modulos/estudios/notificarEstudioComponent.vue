@@ -350,18 +350,30 @@
                                     class="btn btn-success m-r-5"
                                     @click="notificar()"
                                     :disabled="loadingNotificar"
+                                    title="Notificar por email (Ctrl + S)"
                                 >
                                     <i v-if="loadingNotificar" class="fa fa-spinner fa-spin"></i>
                                     <i v-else class="fa fa-envelope-o"></i>
                                     Notificar
+                                    <span
+                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                                        style="font-size: 10px"
+                                        >Ctrl+S</span
+                                    >
                                 </button>
 
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    @click="btnCerralModalForm()"
+                                    @click="btnCerrarModalForm()"
+                                    title="Cerrar panel (Esc)"
                                 >
-                                    Cancel
+                                    Cancelar
+                                    <span
+                                        class="badge badge-secondary ml-1 d-none d-md-inline"
+                                        style="font-size: 10px"
+                                        >Esc</span
+                                    >
                                 </button>
                             </div>
                         </div>
@@ -381,6 +393,7 @@ import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js
 import { getUserSafeError, toastMessage } from "@/helpers/alerts.js";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
 import { useFormValidation } from "@/composables/useFormValidation";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import axios from "axios";
 
 defineProps({
@@ -415,6 +428,13 @@ const loadingNotificar = ref(false);
 const loadingAbrirId = ref(null);
 const loadingPortalId = ref(null);
 const sidebarVisible = ref(false);
+
+useKeyboardShortcuts({
+    onSave: notificar,
+    onEscape: btnCerrarModalForm,
+    isActive: () => sidebarVisible.value,
+    isLoading: loadingNotificar,
+});
 
 const { touch, getFieldStatus, getInputClass, validators, resetTouched } = useFormValidation();
 
@@ -644,6 +664,9 @@ function mostrarRegistro(data = {}) {
 
     resetTouched();
     abrirModal();
+    nextTick(() => {
+        document.getElementById("email")?.focus();
+    });
     loadingAbrirId.value = null;
 }
 

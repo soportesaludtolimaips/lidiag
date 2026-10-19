@@ -830,18 +830,30 @@
                                     class="btn btn-success m-r-5"
                                     @click="guardarRegistro()"
                                     :disabled="loadingGuardar"
+                                    title="Guardar asignación (Ctrl + S)"
                                 >
                                     <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
                                     <i v-else class="fa fa-check"></i>
                                     Guardar
+                                    <span
+                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                                        style="font-size: 10px"
+                                        >Ctrl+S</span
+                                    >
                                 </button>
 
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
                                     @click="cerrarModal()"
+                                    title="Cerrar panel (Esc)"
                                 >
                                     Cancelar
+                                    <span
+                                        class="badge badge-secondary ml-1 d-none d-md-inline"
+                                        style="font-size: 10px"
+                                        >Esc</span
+                                    >
                                 </button>
                             </div>
                             <div class="progress mt-2 progress-thin" v-if="progresoUpload !== null">
@@ -988,6 +1000,7 @@ import QuemadorCdComponent from "@/components/modulos/estudios/QuemadorCdCompone
 import QuemarMultiplesComponent from "@/components/modulos/estudios/QuemarMultiplesComponent.vue";
 import DescargarZipComponent from "@/components/modulos/estudios/DescargarZipComponent.vue";
 import { useFormValidation } from "@/composables/useFormValidation";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 
 const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
@@ -1137,6 +1150,13 @@ const statusPrioridadId = computed(() =>
         errores.value
     )
 );
+
+useKeyboardShortcuts({
+    onSave: guardarRegistro,
+    onEscape: cerrarModal,
+    isActive: () => sidebarVisible.value,
+    isLoading: loadingGuardar,
+});
 
 const todoSeleccionado = computed(() => {
     if (registros.value.length === 0) return false;

@@ -1271,14 +1271,30 @@
                                 class="btn btn-success m-r-5"
                                 @click="guardarRegistro()"
                                 :disabled="loadingGuardar"
+                                title="Guardar informe (Ctrl + S)"
                             >
                                 <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
                                 <i v-else class="fa fa-check"></i>
                                 Guardar
+                                <span
+                                    class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                                    style="font-size: 10px"
+                                    >Ctrl+S</span
+                                >
                             </button>
 
-                            <button type="button" class="btn btn-inverse" @click="cerrarSidebar()">
-                                Cancel
+                            <button
+                                type="button"
+                                class="btn btn-inverse"
+                                @click="cerrarSidebar()"
+                                title="Cerrar panel (Esc)"
+                            >
+                                Cancelar
+                                <span
+                                    class="badge badge-secondary ml-1 d-none d-md-inline"
+                                    style="font-size: 10px"
+                                    >Esc</span
+                                >
                             </button>
                         </div>
                     </div>
@@ -1354,6 +1370,7 @@ import { useDictationFlow } from "@/composables/useDictationFlow";
 import { useAudioUploadFlow } from "@/composables/useAudioUploadFlow";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
 import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import axios from "axios";
 
 const { proxy } = getCurrentInstance();
@@ -1461,6 +1478,13 @@ let lockHeartbeatTimer = null;
 const loadingVistoId = ref(null);
 const sidebarVisible = ref(false);
 const isZenMode = ref(false);
+
+useKeyboardShortcuts({
+    onSave: guardarRegistro,
+    onEscape: cerrarSidebar,
+    isActive: () => sidebarVisible.value,
+    isLoading: loadingGuardar,
+});
 
 function toggleZenMode() {
     isZenMode.value = !isZenMode.value;
