@@ -71,7 +71,17 @@ class BackupService extends BaseService
         $archivosPurgados = [];
 
         try {
+            // 0. CONTROL PREVIO DE ESPACIO EN DISCO (Pre-flight check)
+            $espacioLibreBytes = @disk_free_space($destino);
+            if ($espacioLibreBytes !== false && $espacioLibreBytes < (5 * 1024 * 1024 * 1024)) {
+                throw new Exception("Espacio insuficiente en disco destino ({$destino}): ".$this->formatearBytes($espacioLibreBytes)." disponibles. Se requieren al menos 5 GB.");
+            }
+            if ($espacioLibreBytes !== false) {
+                $this->notificar($callback, "info", "Espacio libre verificado en destino: ".$this->formatearBytes($espacioLibreBytes));
+            }
+
             // 1. BACKUP DE BASE DE DATOS (si no se indicó only_files)
+            $sha256Db = null;
             if (! $onlyFiles) {
                 $nombreZipDb = "backup_lidiag_db_{$timestamp}.zip";
                 $rutaZipDb = rtrim($destino, "\\/").DIRECTORY_SEPARATOR.$nombreZipDb;
@@ -85,10 +95,15 @@ class BackupService extends BaseService
                 $this->empaquetarDb($rutaZipDb, $rutaSqlDump);
 
                 $tamanoZipDbBytes = file_exists($rutaZipDb) ? filesize($rutaZipDb) : 0;
+                $sha256Db = hash_file("sha256", $rutaZipDb);
+                @file_put_contents("{$rutaZipDb}.sha256", "{$sha256Db}  {$nombreZipDb}\n");
+
                 $this->notificar($callback, "success", "Archivo DB generado: {$nombreZipDb} (".$this->formatearBytes($tamanoZipDbBytes).")");
+                $this->notificar($callback, "info", "Checksum SHA-256 (BD): {$sha256Db}");
             }
 
             // 2. BACKUP DE STORAGE (si no se indicó only_db)
+            $sha256Storage = null;
             if (! $onlyDb) {
                 $nombreZipStorage = "backup_lidiag_storage_{$timestamp}.zip";
                 $rutaZipStorage = rtrim($destino, "\\/").DIRECTORY_SEPARATOR.$nombreZipStorage;
@@ -99,8 +114,11 @@ class BackupService extends BaseService
                 $resumenStorage = $this->empaquetarStorage($rutaZipStorage, $carpetasStorage, $callback);
                 $archivosStorageCount = $resumenStorage["total_archivos"];
                 $tamanoZipStorageBytes = file_exists($rutaZipStorage) ? filesize($rutaZipStorage) : 0;
+                $sha256Storage = hash_file("sha256", $rutaZipStorage);
+                @file_put_contents("{$rutaZipStorage}.sha256", "{$sha256Storage}  {$nombreZipStorage}\n");
 
                 $this->notificar($callback, "success", "Archivo Storage generado: {$nombreZipStorage} (".$this->formatearBytes($tamanoZipStorageBytes).", {$archivosStorageCount} archivos)");
+                $this->notificar($callback, "info", "Checksum SHA-256 (Storage): {$sha256Storage}");
             }
 
             // 3. POLÍTICA DE RETENCIÓN EN EL DESTINO
@@ -112,13 +130,37 @@ class BackupService extends BaseService
             $duracionSegundos = round(microtime(true) - $inicioTiempo, 2);
             $totalTamanoBytes = $tamanoZipDbBytes + $tamanoZipStorageBytes;
 
+            // 4. EMISIÓN DE MANIFIESTO DE TELEMETRÍA CENTRAL (backup_manifest.json)
+            $manifiesto = [
+                "tipo" => "backup_central_lidiag",
+                "fecha_ejecucion" => now()->toDateTimeString(),
+                "estado" => "SUCCESS",
+                "archivo_db" => $nombreZipDb,
+                "sha256_db" => $sha256Db,
+                "tamano_db_bytes" => $tamanoZipDbBytes,
+                "tamano_db_humano" => $this->formatearBytes($tamanoZipDbBytes),
+                "archivo_storage" => $nombreZipStorage,
+                "sha256_storage" => $sha256Storage,
+                "tamano_storage_bytes" => $tamanoZipStorageBytes,
+                "tamano_storage_humano" => $this->formatearBytes($tamanoZipStorageBytes),
+                "archivos_storage_count" => $archivosStorageCount,
+                "tamano_total_humano" => $this->formatearBytes($totalTamanoBytes),
+                "espacio_libre_disco" => $espacioLibreBytes !== false ? $this->formatearBytes($espacioLibreBytes) : "N/A",
+                "duracion_segundos" => $duracionSegundos,
+                "purgados" => $archivosPurgados,
+            ];
+            @file_put_contents(rtrim($destino, "\\/").DIRECTORY_SEPARATOR."backup_manifest_{$timestamp}.json", json_encode($manifiesto, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            @file_put_contents(rtrim($destino, "\\/").DIRECTORY_SEPARATOR."backup_manifest.json", json_encode($manifiesto, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
             $resultado = [
                 "archivo_db" => $nombreZipDb,
                 "ruta_db" => $rutaZipDb,
+                "sha256_db" => $sha256Db,
                 "tamano_db_bytes" => $tamanoZipDbBytes,
                 "tamano_db_humano" => $this->formatearBytes($tamanoZipDbBytes),
                 "archivo_storage" => $nombreZipStorage,
                 "ruta_storage" => $rutaZipStorage,
+                "sha256_storage" => $sha256Storage,
                 "tamano_storage_bytes" => $tamanoZipStorageBytes,
                 "tamano_storage_humano" => $this->formatearBytes($tamanoZipStorageBytes),
                 "archivos_storage_count" => $archivosStorageCount,
@@ -204,6 +246,8 @@ class BackupService extends BaseService
             "--quick",
             "--routines",
             "--triggers",
+            "--hex-blob",
+            "--max_allowed_packet=512M",
             "--default-character-set=utf8mb4",
             "--result-file=".escapeshellarg($sqlPath),
             escapeshellarg($database),
@@ -282,6 +326,14 @@ class BackupService extends BaseService
             throw new Exception("Error al cerrar el archivo ZIP de la BD en {$zipPath}.");
         }
 
+        // Verificación de integridad interna del ZIP
+        $zipTest = new ZipArchive;
+        $testRes = $zipTest->open($zipPath, ZipArchive::CHECKCONS);
+        if ($testRes !== true) {
+            throw new Exception("La prueba de integridad del archivo ZIP de BD falló en {$zipPath} (Código: {$testRes})");
+        }
+        $zipTest->close();
+
         clearstatcache(true, $zipPath);
     }
 
@@ -351,6 +403,14 @@ class BackupService extends BaseService
             throw new Exception("Error al consolidar y cerrar el archivo ZIP de Storage en {$zipPath}.");
         }
 
+        // Verificación de integridad interna del ZIP
+        $zipTest = new ZipArchive;
+        $testRes = $zipTest->open($zipPath, ZipArchive::CHECKCONS);
+        if ($testRes !== true) {
+            throw new Exception("La prueba de integridad del archivo ZIP de Storage falló en {$zipPath} (Código: {$testRes})");
+        }
+        $zipTest->close();
+
         clearstatcache(true, $zipPath);
 
         return [
@@ -400,6 +460,12 @@ class BackupService extends BaseService
                     $eliminados[] = $nombreArchivo;
                     $this->notificar($callback, "comment", "  - Purgado por retención (> {$diasRetencion} días): {$nombreArchivo}");
                     Log::channel("backups")->info("Archivo de backup purgado por política de retención: {$nombreArchivo}");
+
+                    // Purgar archivo .sha256 gemelo si existe
+                    $shaFile = $archivo.".sha256";
+                    if (file_exists($shaFile)) {
+                        @unlink($shaFile);
+                    }
                 }
             }
         }

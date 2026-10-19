@@ -244,14 +244,15 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - Creado comando Artisan `LidiagBackupDcmCommand.php` (`php artisan lidiag:backup-dcm`) con soporte para `--sede=ID`, `--destination`, `--retention`, `--timeout` y tabla detallada por sede.
   - Registrado en Laravel Scheduler (`routes/console.php`) a las **02:30 AM** con protección `withoutOverlapping()`.
   - Actualizado `scripts/programar_tarea_backup.bat` para registrar la tarea `LIDiag_Daily_Backup_DCM` en Windows Task Scheduler.
-- [x] **2026-10-19 — Arquitectura Local de Backups DCM + Sincronización QNAP Qsync:**
-  - Rediseñado el agente Python `scripts/dcm_agent/backup_dcm_agent.py` para operar en modo **100% local**: genera el volcado MySQL a alta velocidad, lo comprime a ZIP directamente en la carpeta sincronizada por el cliente QNAP Qsync (`C:\backups_dcm`), y ejecuta purga automática de archivos antiguos que superen los 30 días de retención (`retention_days`).
-  - Actualizados `config.json.example` y `README.md` con la nueva estructura de configuración simplificada (`destination_dir`, `retention_days`, `mysqldump_path`).
-  - **Hotfix Producción (MySQL 5.7, Rutas Windows y Eliminación de Defaults Quemados):**
-    * Eliminados valores por defecto quemados en código (`db_user`, `db_password`, `db_name`, `sede_id`); el archivo `config.json` ahora es estrictamente obligatorio y se validan campos requeridos para evitar ejecuciones con credenciales erróneas por fallos silenciosos.
-    * Implementado `parse_tolerant_json()` para soportar barras invertidas simples (`\`) en rutas de Windows dentro de `config.json` sin romper con `JSONDecodeError: Invalid \escape`.
-    * Implementada detección dinámica `check_column_statistics_supported()` y reintento automático sin `--column-statistics=0` para compatibilidad transparente con MySQL 5.7 / MariaDB donde la variable no existe (evitando código de error 7).
-  - Verificación exitosa en entorno local: respaldo real volcando 330.88 MB de base de datos a un ZIP de 54.49 MB en **15.32s** y validando purga de retención ✅.
+  - **Paquete Completo de Mejoras de Grado Clínico (Implementado y Verificado):**
+    1. *Pre-flight check de disco:* Medición previa de espacio libre disponible antes del volcado con umbral de seguridad para prevenir colapsos de disco o caídas de MySQL.
+    2. *Parámetros robustos de MySQL:* `--hex-blob` y `--max_allowed_packet=512M` en `mysqldump` para proteger volcados masivos de metadatos DICOM y prevenir errores de desconexión o corrupción binaria.
+    3. *Prueba de integridad CRC32:* Validación interna de ZIP (`testzip()` en Python, `ZipArchive::CHECKCONS` en PHP) antes de eliminar el archivo `.sql` crudo original.
+    4. *Huella Criptográfica SHA-256:* Generación automática de archivo gemelo `.sha256` en formato estándar GNU (`<hash>  <archivo>`) para trazabilidad legal y auditorías.
+    5. *Manifiesto de Telemetría Centralizado:* Emisión automática de `backup_status_sede_{id}.json` (en sedes) y `backup_manifest.json` (en central) sincronizados por Qsync al QNAP para monitoreo unificado de estado de toda la red.
+  - Verificación exitosa:
+    * Agente DCM: prueba integral completada en **17.98s** con generación de hash SHA-256 y manifiesto de estado ✅.
+    * Backup Central (`php artisan lidiag:backup --only-db`): completado en **29.9s**, validando pre-flight check de 1.61 TB, verificación de integridad, hash SHA-256 y manifiesto `backup_manifest.json` ✅ | Pint `--test passed` ✅.
 
 
 

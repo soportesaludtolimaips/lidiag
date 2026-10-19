@@ -237,7 +237,7 @@ php artisan lidiag:backup --only-files
 php artisan lidiag:backup --destination="D:\Backups" --retention=60
 ```
 
-**Descripción:** Genera respaldos independientes en archivos `.zip` dentro de `C:\Backups_Lidiag` (`backup_lidiag_db_*.zip` y `backup_lidiag_storage_*.zip`) para desacoplar escalabilidad, evitar corrupción de archivos masivos y purgar automáticamente copias con más de 30 días de antigüedad.
+**Descripción:** Genera respaldos independientes en archivos `.zip` dentro de `C:\Backups_Lidiag` (`backup_lidiag_db_*.zip` y `backup_lidiag_storage_*.zip`) para desacoplar escalabilidad, evitar corrupción de archivos masivos, verificar integridad interna ZIP (`ZipArchive::CHECKCONS`), generar checksums criptográficos SHA-256 (`.sha256`), emitir manifiestos de salud (`backup_manifest.json`) y purgar automáticamente copias con más de 30 días de antigüedad.
 
 ### Sistema de Backups de Bases de Datos DCM / PACS por Sedes
 
@@ -246,8 +246,9 @@ Para las bases de datos de imágenes de los hospitales remotos (bases de datos d
 #### 1. Agente Local en cada Servidor Hospitalario (`scripts/dcm_agent/`):
 - **Script en Python 3 puro:** [`scripts/dcm_agent/backup_dcm_agent.py`](scripts/dcm_agent/backup_dcm_agent.py) (sin dependencias `pip`).
 - **Ruta de destino:** `C:\backups_dcm\` (sincronizada automáticamente por el cliente **Qsync de QNAP** hacia el almacenamiento NAS).
-- **Compresión in situ:** Vuelca `pacsdb` a velocidad de disco SSD local y comprime a `.zip` (`backup_dcm_sede_{id}_{nombre}_{timestamp}.zip`), reduciendo el tráfico de red en un ~95%.
-- **Purga de retención:** Elimina automáticamente de `C:\backups_dcm` los respaldos con más de **30 días**.
+- **Protección PACS y disco:** Pre-flight check de espacio libre en disco, `--hex-blob` y `--max_allowed_packet=512M`.
+- **Compresión e Integridad:** Vuelca `pacsdb` a velocidad de disco SSD local, comprime a `.zip`, valida integridad CRC32 interna (`testzip`), genera hash SHA-256 (`.sha256`) y emite manifiesto de telemetría (`backup_status_sede_{id}.json`).
+- **Purga de retención:** Elimina automáticamente de `C:\backups_dcm` los respaldos y hashes con más de **30 días**.
 - **Instalación en 1 clic:** Incluye [`scripts/dcm_agent/instalar_tarea_programada.bat`](scripts/dcm_agent/instalar_tarea_programada.bat) para registrar la tarea `LIDiag_Local_DCM_Backup` en el Programador de Tareas de Windows a las **02:00 AM** con permisos `SYSTEM`.
 
 ```bash

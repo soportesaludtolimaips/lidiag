@@ -9,5 +9,6 @@
   "mysqldump_path": "C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysqldump.exe",
   "destination_dir": "C:\\backups_dcm",
   "retention_days": 30,
+  "min_free_space_gb": 5,
   "temp_dir": "./temp_backups"
 }

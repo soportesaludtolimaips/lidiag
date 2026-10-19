@@ -3,11 +3,15 @@
 Este agente se instala y ejecuta localmente en el servidor PACS/Dcm4chee de cada sede u hospital.
 Genera el volcado local de MySQL comprimido en ZIP en la carpeta local sincronizada por el cliente **Qsync de QNAP** (por defecto `C:\backups_dcm`), y purga automáticamente los backups antiguos (> 30 días).
 
-## Ventajas del flujo local + QNAP Qsync:
+## Ventajas y Características de Grado Clínico:
 1. **Velocidad y aislamiento:** El volcado `mysqldump` se realiza a velocidad de disco SSD local en cuestión de segundos o pocos minutos.
-2. **Sincronización desatendida:** El cliente **Qsync** detecta el archivo `.zip` en `C:\backups_dcm` y lo sincroniza de manera incremental y segura hacia el NAS QNAP central.
-3. **Independiente de la conexión:** Si la VPN o el enlace a internet se cae temporalmente, el backup local se completa exitosamente y Qsync lo transferirá automáticamente en cuanto se restablezca la conectividad.
-4. **Auto-limpieza (Purga):** Elimina automáticamente los backups locales que superen los días de retención configurados (30 días), protegiendo el espacio en disco del servidor del hospital.
+2. **Sincronización desatendida:** El cliente **Qsync** detecta el archivo `.zip`, el hash `.sha256` y el manifiesto `backup_status_sede_{id}.json` en `C:\backups_dcm` y los sincroniza de manera incremental y segura hacia el NAS QNAP central.
+3. **Pre-flight Check de Disco:** Mide el espacio libre disponible en disco antes de iniciar, previniendo colapsos de disco o caídas de MySQL por falta de almacenamiento.
+4. **Verificación de Integridad CRC32 (testzip):** Valida la integridad interna del archivo ZIP antes de eliminar el volcado `.sql` temporal; si el ZIP está incompleto, no se borra el dump.
+5. **Huella Criptográfica SHA-256:** Genera un archivo gemelo `.sha256` para garantizar trazabilidad e inmutabilidad legal ante auditorías.
+6. **Manifiesto de Telemetría Centralizado:** Emite `backup_status_sede_{id}.json` con métricas de salud (fecha, duración, tamaño, espacio libre, purgas) para monitorear todas las sedes desde una sola vista en el QNAP.
+7. **Protección PACS en MySQL:** Incluye `--hex-blob` y `--max_allowed_packet=512M` para exportar metadatos DICOM masivos sin errores de paquete ni corrupción de caracteres.
+8. **Auto-limpieza (Purga):** Elimina automáticamente los backups locales y sus hashes `.sha256` que superen los días de retención configurados (30 días).
 
 ---
 
