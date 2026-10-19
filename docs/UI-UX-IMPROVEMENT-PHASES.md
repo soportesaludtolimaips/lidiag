@@ -253,12 +253,49 @@ methods: {
 
 ---
 
+## Fase 5: Ergonomía Clínica Avanzada y Productividad (2026)
+
+### E1 — Skeleton Loaders con Shimmer (`TableSkeletonLoader.vue`)
+Sustituir los antiguos spinners de pantalla por esqueletos con efecto shimmer en las tablas para eliminar el layout shift (CLS = 0):
+```html
+<table-skeleton-loader :visible="loadingBuscar" :rows="6" :columns="8" />
+```
+Y combinar con `<empty-state-component>` al no haber registros tras buscar.
+
+### E2 — Toasts Unificados y No Invasivos (`toastMessage`)
+Evitar popups modales bloqueantes de SweetAlert para operaciones exitosas comunes (guardar, actualizar, notificar). Usar `toastMessage` de `alerts.js`:
+```js
+toastMessage({
+    heading: "Completado",
+    text: "El estudio fue asignado correctamente.",
+    icon: "success",
+});
+```
+
+### E3 — Validación Visual Inline (`useFormValidation.js`)
+Proporcionar feedback visual en tiempo real en los campos del formulario asistencial:
+- Clases `.is-invalid` y `.is-valid` según interacción (`touched`).
+- Alertas contextuales con `.invalid-feedback`.
+- Pre-validación defensiva en el método de envío antes de disparar llamadas a la API.
+
+### E4 — Atajos de Teclado Clínicos y Foco Accesible (`useKeyboardShortcuts.js`)
+- `Ctrl+S` / `Cmd+S`: Guardado rápido del registro activo con prevención de la descarga del navegador.
+- `Escape`: Cancelar y cerrar sidebars/modales abiertos.
+- `F2`: Activar o detener el dictado médico por voz.
+- **Puente WYSIWYG:** Escuchar eventos dentro del iframe de `wysihtml5` y reenviarlos a `window`.
+- **Foco Accesible (`a11y`):** `nextTick(() => { primerInput.value?.focus(); })` al abrir cualquier panel.
+
+### E5 — Modo Oscuro Radiológico de Alto Contraste (`dark-theme.css`)
+Garantizar contraste clínico óptimo (WCAG AAA) bajo `body.theme-dark` en modales, botones, inputs de formulario y badges para estaciones de diagnóstico.
+
+---
+
 ## Resumen por severidad
 
 | Prioridad | Área | Items |
 |-----------|------|-------|
-| 🔴 Alta | Accesibilidad, validación, bugs | H2, H3, H4, H5, H6, H7 |
-| 🟠 Media | Feedback, consistencia | M1-M8 |
+| 🔴 Alta | Accesibilidad, validación, bugs | H2, H3, H4, H5, H6, H7, E3, E4 |
+| 🟠 Media | Feedback, consistencia, rendimiento | M1-M8, E1, E2, E5 |
 | 🔵 Baja | Limpieza, tipografía | L1-L10 |
 
 ## Orden de ejecución sugerido
@@ -267,7 +304,9 @@ methods: {
 2. **Fase 2** — Sidebar unificado (~10 min por módulo)
 3. **Fase 3** — Feedback visual (~20 min por módulo)
 4. **Fase 4** — Consistencia (~15 min por módulo)
+5. **Fase 5** — Ergonomía clínica y accesibilidad (~25 min por módulo)
 
 ---
 
-*Basado en auditoría UI/UX del módulo Estudios (6 componentes, 24 hallazgos).*
+*Basado en auditoría UI/UX y modernización asistencial de LIDiag (Estudios, Citas, Ecografías).*
+

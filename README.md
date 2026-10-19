@@ -221,6 +221,45 @@ php artisan sync:dicom-ecografias
 -   **Productos:** Actualiza el listado de procedimientos (CUPS).
 -   **Ecografías:** Migra el historial de lecturas, asociándolas a pacientes, médicos y atenciones correspondientes.
 
+### Sistema de Backups Automáticos Separados (BD y Storage)
+
+```bash
+# Respaldo completo (Base de Datos MySQL + 16 carpetas de Storage clínico)
+php artisan lidiag:backup
+
+# Respaldo solo de Base de Datos MySQL
+php artisan lidiag:backup --only-db
+
+# Respaldo solo de archivos clínicos de Storage
+php artisan lidiag:backup --only-files
+
+# Personalizar ruta de destino y retención (días)
+php artisan lidiag:backup --destination="D:\Backups" --retention=60
+```
+
+**Descripción:** Genera respaldos independientes en archivos `.zip` dentro de `C:\Backups_Lidiag` (`backup_lidiag_db_*.zip` y `backup_lidiag_storage_*.zip`) para desacoplar escalabilidad, evitar corrupción de archivos masivos y purgar automáticamente copias con más de 30 días de antigüedad.
+
+### Sistema de Backups de Bases de Datos DCM / PACS por Sedes
+
+```bash
+# Respaldar todas las sedes activas con servidor DCM configurado
+php artisan lidiag:backup-dcm
+
+# Respaldar una sede específica por su ID
+php artisan lidiag:backup-dcm --sede=1
+
+# Ajustar timeout de volcado (segundos) y días de retención
+php artisan lidiag:backup-dcm --timeout=600 --retention=45
+```
+
+**Descripción:** Realiza volcados TCP seguros de las bases de datos de imágenes (`pacsdb`) de cada hospital o sede remota, empaquetándolos individualmente por sede en `C:\Backups_Lidiag\dcm_sedes\`.
+
+### Automatización en Windows (Task Scheduler)
+
+El proyecto incluye el script por lotes [`scripts/programar_tarea_backup.bat`](scripts/programar_tarea_backup.bat) para registrar automáticamente en el Programador de Tareas de Windows las siguientes tareas desatendidas:
+1. `LIDiag_Daily_Backup`: Ejecuta diariamente a las **02:00 AM** el respaldo central de BD y Storage.
+2. `LIDiag_Daily_Backup_DCM`: Ejecuta diariamente a las **02:30 AM** el respaldo de bases de datos DCM por sede.
+
 ### Rate limiting (API / Login)
 
 Por defecto (ver `app/Providers/AppServiceProvider.php`):
@@ -365,6 +404,12 @@ El sistema utiliza varios servicios de terceros configurados en el archivo `.env
 -   **Servicio externo de reportes (`URL_API_REPORTES`, `PASSWORD_API_REPORTES`)**:
     -   Variables usadas por flujos de notificación/reportes (revisar `.env` en cada entorno).
 
+-   **Sistema Descentralizado de Backups DCM / PACS por Sedes (`scripts/dcm_agent/`)**:
+    -   **Agente en Python 3 puro** sin dependencias externas (`backup_dcm_agent.py`) desplegado en el servidor local de cada hospital o sede.
+    -   Ejecuta el volcado local de `pacsdb` a velocidad de disco SSD, lo comprime a ZIP in situ (reducción del 95% del tráfico de red: de 9 GB a ~450 MB) y lo transmite mediante HTTP POST multipart al webhook central de LIDiag.
+    -   **Webhook receptor**: `POST /api/backups/upload-dcm` autenticado con Bearer Token (`BACKUP_API_TOKEN`). Almacena los archivos en `C:\Backups_Lidiag\dcm_sedes\` y aplica retención de 30 días.
+    -   Documentación y manual de automatización completo en: [`scripts/dcm_agent/README.md`](scripts/dcm_agent/README.md).
+
 ---
 
 ## Estructura del Proyecto
@@ -459,6 +504,22 @@ El frontend está organizado como **componentes Vue montados en vistas Blade**. 
 - `resources/js/helpers/*`: helpers reutilizables (alerts, permisos, datatables, utilidades, etc.).
 - `resources/js/helpers/voice/*`: helpers para captura/dictado/voz.
 - `resources/js/data/*`: archivos de datos (por ejemplo diccionarios/reemplazos médicos usados en transcripción).
+
+### Sistema de Experiencia de Usuario y Ergonomía Clínica (UI/UX)
+
+El frontend integra un sistema de diseño clínico orientado a la alta productividad médica y el uso en salas oscuras de radiología:
+
+-   **Skeleton Loaders con Shimmer (`TableSkeletonLoader.vue`):** Reemplazo de spinners intrusivos por esqueletos de carga animados que previenen saltos visuales (Cumulative Layout Shift, CLS = 0) en tablas de Estudios, Citas y Ecografías.
+-   **Centro de Notificaciones en Topbar (`userProfileAndSearchComponent.vue`):** Campana unificada con dropdown interactivo y selector por pestañas (`[ Todas | Citas | Helpdesk ]`) que consolida en tiempo real solicitudes asistenciales de WhatsApp y tickets técnicos, con auto-dismiss y polling inteligente respetando el foco de la pestaña (`document.hidden`).
+-   **Notificaciones No Invasivas (`toastMessage` en `alerts.js`):** Mensajes flotantes con auto-cierre a 3500ms para operaciones rutinarias de guardado o actualización, eliminando popups modales bloqueantes.
+-   **Validación Visual Inline (`useFormValidation.js`):** Feedback visual en tiempo real en formularios asistenciales con estados semánticos (`.is-invalid`, `.is-valid`, `.invalid-feedback`) validados tanto al desenfocar (`touched`) como al corregir.
+-   **Atajos de Teclado Clínicos y Accesibilidad (`useKeyboardShortcuts.js`):**
+    -   `Ctrl+S` / `Cmd+S`: Guardado rápido del informe o formulario asistencial con cancelación de la acción nativa de descarga HTML del navegador.
+    -   `Escape`: Cierre ágil y ordenado de paneles laterales o modales.
+    -   `F2`: Alternar dictado por voz y reconocimiento Whisper.
+    -   **Puente WYSIWYG (`WysiwygEditor.vue`):** Reenvío sintético de teclas desde el `iframe` de edición hacia `window` para guardar sin abandonar el editor.
+    -   **Foco Accesible (`a11y`):** Autofoco automático reactivo en el primer campo interactivo de cada formulario.
+-   **Modo Oscuro Radiológico (`resources/css/dark-theme.css`):** Paleta de colores *Slate Clínico* de alto contraste optimizada para minimizar la fatiga visual en estaciones diagnósticas PACS/RIS.
 
 ## Storage / Filesystems (detalle)
 
@@ -655,8 +716,24 @@ En Laragon, normalmente accederás por tu vhost, por ejemplo `https://lidiag.tes
 
 ## Colas (Queue) y Scheduler
 
-- En `.env` el valor típico es `QUEUE_CONNECTION=sync` (ejecución síncrona).
-- `app/Console/Kernel.php` no tiene tareas programadas por defecto (scheduler vacío).
+- **Colas:** En `.env` el valor típico en desarrollo es `QUEUE_CONNECTION=sync` (ejecución síncrona).
+- **Scheduler de Laravel (`routes/console.php`):**
+  Las tareas programadas se gestionan de forma centralizada y protegida contra solapamiento (`withoutOverlapping()`):
+
+| Frecuencia | Comando | Propósito |
+|------------|---------|-----------|
+| **Cada 10 min** | `ecografias:sahi-reconcile --minutes=10 --limit=200` | Reconciliación bidireccional de estados de ecografías con SAHI |
+| **Cada 10 min** | `citas:notificar-2h` | Recordatorios automáticos de citas próximas (2h antes) vía WhatsApp |
+| **Diario 08:00 AM** | `citas:notificar` | Notificaciones matutinas de citas del día vía WhatsApp |
+| **Diario 02:00 AM** | `lidiag:backup` | Respaldo automático de Base de Datos MySQL y las 16 carpetas de Storage clínico |
+| **Diario 02:30 AM** | `lidiag:backup-dcm` | Respaldo automático de bases de datos DCM/PACS por sede |
+| **Cada hora** | `sessions:prune --hours=24 --user-hours=168` | Purga de sesiones inactivas |
+| **Diario** | `notifications:prune --days=90` | Purga de notificaciones con más de 90 días |
+
+Para ejecutar el scheduler en entornos de producción (Linux cron o Windows Task Scheduler):
+```bash
+php artisan schedule:run
+```
 
 ## Solución de Problemas (Troubleshooting)
 

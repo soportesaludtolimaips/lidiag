@@ -364,6 +364,16 @@
     <!-- ============================================================== -->
     <!-- Right sidebar -->
     <!-- ============================================================== -->
+    <!-- Backdrop para cerrar al hacer clic y atenuar fondo -->
+    <transition name="fade">
+        <div
+            v-if="sidebarVisible && !isZenMode"
+            class="sidebar-backdrop"
+            @click="cerrarSidebar()"
+            aria-hidden="true"
+        ></div>
+    </transition>
+
     <!-- .right-sidebar -->
     <div
         class="right-sidebar sidebar-scroll"
@@ -2311,21 +2321,44 @@ onBeforeUnmount(() => {
     transform: translateY(15px);
 }
 
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: 1090;
+    cursor: pointer;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.25s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
 .right-sidebar {
     position: fixed;
     right: -80%;
     width: 80%;
-    display: none;
     z-index: 1100;
     background: #ffffff;
     top: 0px;
     padding-bottom: 20px;
     height: 100%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
+    box-shadow: -5px 0 35px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 @media (max-width: 767px) {
@@ -2336,9 +2369,10 @@ onBeforeUnmount(() => {
 }
 
 .shw-rside {
-    right: 0px;
+    right: 0px !important;
     width: 80%;
-    display: block;
+    visibility: visible;
+    pointer-events: auto;
 }
 
 @media (max-width: 767px) {

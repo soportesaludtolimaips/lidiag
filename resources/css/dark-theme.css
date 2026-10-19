@@ -486,3 +486,46 @@ body.theme-dark .valid-feedback {
     margin-top: 0.25rem;
 }
 
+/* Sidebar Backdrop (Dark Mode) */
+body.theme-dark .sidebar-backdrop {
+    background: rgba(0, 0, 0, 0.65) !important;
+}
+
+/* Modales y Paneles Laterales Right-Sidebar (Dark Mode) */
+body.theme-dark .right-sidebar {
+    background: #181a20 !important;
+    color: #e2e8f0 !important;
+    box-shadow: -5px 0 35px rgba(0, 0, 0, 0.5) !important;
+}
+
+body.theme-dark .right-sidebar .rpanel-title {
+    background: #12141a !important;
+    color: #f1f5f9 !important;
+    border-bottom: 1px solid #2d3343 !important;
+}
+
+body.theme-dark .right-sidebar .r-panel-body {
+    background: #181a20 !important;
+    color: #e2e8f0 !important;
+}
+
+/* Microinteracciones clínicas en botones asistenciales */
+.btn-action-clinical,
+.btn-guardar-estudio,
+.btn-notificar-estudio {
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.btn-action-clinical:active:not(:disabled),
+.btn-guardar-estudio:active:not(:disabled),
+.btn-notificar-estudio:active:not(:disabled) {
+    transform: scale(0.97);
+}
+
+.btn-action-clinical:hover:not(:disabled),
+.btn-guardar-estudio:hover:not(:disabled),
+.btn-notificar-estudio:hover:not(:disabled) {
+    box-shadow: 0 4px 14px rgba(0, 188, 212, 0.25);
+}
+
+
