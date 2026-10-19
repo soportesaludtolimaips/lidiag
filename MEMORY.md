@@ -369,6 +369,10 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Atajos Asistenciales (`useKeyboardShortcuts`):** Atajo `Ctrl+S` para confirmar y registrar firma digital (validado contra ausencia de trazo `hasInk` y protegido contra concurrencia), y `Escape` para limpiar el lienzo.
   - **Feedback Visual y Temporizador Crítico:** Indicador animado pulsante (`animate-pulse`) cuando restan menos de 5 minutos de validez al enlace, spinner de carga asistencial y pantalla de confirmación exitosa con bloqueo defensivo que previene firmas duplicadas.
   - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.06s ✅.
+- [x] **2026-10-19 — UI/UX Módulo Citas & Agenda: Sincronización Reactiva Inmediata y Pulso Asistencial en `citasNotificationBadgeComponent.vue`:**
+  - **Sincronización Inmediata por EventBus:** Conectado listener de `citasActualizadas` y `sedeSeleccionada` sobre el `emitter` global con cleanup en `onBeforeUnmount`, actualizando el conteo de citas pendientes en tiempo real sin esperar el ciclo de 30s.
+  - **Microanimación de Pulso:** Indicador visual animado (`badge-pulse`) al recibir nuevas solicitudes pendientes, transición suave de entrada/salida (`fade`) y accesibilidad reforzada con `aria-live="polite"`.
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.01s ✅.
 - [x] **2026-10-19 — Herramienta Autónoma Python: Monitor de Discos DICOM con Bot de Telegram (`dcm_disk_monitor_telegram`):**
   - Implementada herramienta en `storage/app_lidiag/dcm_disk_monitor_telegram/` usando exclusivamente la librería estándar de Python (sin dependencias `pip`).
   - **Modo Dual (Opción C):**
@@ -376,7 +380,7 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * Tarea Programada Windows (`instalar_tarea_programada.bat` / `--check-once`): Ejecución puntual silenciosa cada 1 hora registrada en Windows Task Scheduler.
   - **Alertas Proactivas y Anti-Spam:** Notificación inmediata en transiciones a 🟡 Advertencia (<15% o <50 GB) y 🔴 Crítico (<5% o <20 GB), notificación de recuperación a 🟢 OK, y cooldown configurable (4h) para evitar saturación de mensajes. Reporte diario matutino a las 08:00 AM.
   - **Multidestinatario:** Soporta múltiples Chat IDs simultáneos (usuarios y grupos con ID negativo `-100...`).
-  - **Herramientas y Scripts Incluidos:** `obtener_chat_id.bat` (`--get-chat-ids`), `verificar_estado.bat` (`--status`), `config.json.example`, `README.md` con tutorial para BotFather, y paquete comprimido listo para distribución `dcm_disk_monitor_telegram.zip`.
+  - **Herramientas y Scripts Incluidos:** `iniciar_segundo_plano.bat` (ejecución sin consola mediante `pythonw.exe` nativo de Python, sin VBS), `detener_bot.bat`, `configurar.bat` / `configurar_interactivo.py` (asistente interactivo con detección automática de discos), `obtener_chat_id.bat`, `verificar_estado.bat`, `config.json.example` (con variable `SEDE`), `README.md`, y paquete comprimido `dcm_disk_monitor_telegram.zip`.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.
