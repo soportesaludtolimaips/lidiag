@@ -12,7 +12,22 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-info btnDesplegarRigthSidebar"
+                    class="btn btn-outline-secondary btn-action-clinical m-r-5"
+                    @click="listar"
+                    :disabled="loadingListar"
+                    title="Actualizar listado (F2)"
+                >
+                    <i class="fa" :class="loadingListar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                    Refrescar
+                    <span
+                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                        style="font-size: 10px; opacity: 0.9"
+                        >F2</span
+                    >
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-info btnDesplegarRigthSidebar btn-action-clinical"
                     @click="prepararNuevo"
                 >
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
@@ -89,16 +104,29 @@
             </div>
         </div>
 
+        <!-- Backdrop overlay para cerrar al hacer clic afuera -->
+        <div v-if="sidebarVisible" class="sidebar-backdrop" @click="cerrarSidebar"></div>
+
         <div
             class="right-sidebar"
             ref="sidebarRef"
             :class="{ 'shw-rside': sidebarVisible }"
-            style="width: 400px"
+            style="width: 450px"
         >
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
-                    <span><i class="ti-close right-side-toggle" @click="cerrarSidebar"></i></span>
+                    <span>
+                        <button
+                            type="button"
+                            class="close right-side-toggle"
+                            aria-label="Cerrar panel"
+                            title="Cerrar (Esc)"
+                            @click="cerrarSidebar"
+                        >
+                            &times;
+                        </button>
+                    </span>
                 </div>
                 <div class="r-panel-body">
                     <form action="#" @submit.prevent>
@@ -108,6 +136,7 @@
                                     <div class="form-group">
                                         <label class="control-label">Nombre</label>
                                         <input
+                                            id="prioridad_nombre"
                                             type="text"
                                             v-model="registro.nombre"
                                             class="form-control"
@@ -160,7 +189,7 @@
                             <div class="form-actions mt-3">
                                 <button
                                     type="button"
-                                    class="btn btn-success m-r-5"
+                                    class="btn btn-success m-r-5 btn-action-clinical"
                                     v-if="!actualizar"
                                     @click="guardarRegistro"
                                     :disabled="loadingGuardar"
@@ -170,11 +199,16 @@
                                         :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"
                                     ></i>
                                     Guardar
+                                    <span
+                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                                        style="font-size: 10px; opacity: 0.9"
+                                        >Ctrl+S</span
+                                    >
                                 </button>
 
                                 <button
                                     type="button"
-                                    class="btn btn-warning m-r-5"
+                                    class="btn btn-warning m-r-5 btn-action-clinical"
                                     v-if="actualizar"
                                     @click="guardarRegistro"
                                     :disabled="loadingGuardar"
@@ -184,14 +218,24 @@
                                         :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-pencil'"
                                     ></i>
                                     Actualizar
+                                    <span
+                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                                        style="font-size: 10px; opacity: 0.9"
+                                        >Ctrl+S</span
+                                    >
                                 </button>
 
                                 <button
                                     type="button"
-                                    class="btn btn-inverse"
+                                    class="btn btn-inverse btn-action-clinical"
                                     @click="cerrarSidebar"
                                 >
                                     Cancelar
+                                    <span
+                                        class="badge badge-secondary ml-1 d-none d-md-inline"
+                                        style="font-size: 10px"
+                                        >Esc</span
+                                    >
                                 </button>
                             </div>
                         </div>
@@ -209,6 +253,7 @@ const sidebarRef = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { toastMessage, confirmAction } from "@/helpers/alerts.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 import axios from "axios";
 
 const registros = ref([]);
@@ -278,11 +323,22 @@ function prepararNuevo() {
 
 function abrirSidebar() {
     sidebarVisible.value = true;
+    nextTick(() => {
+        document.getElementById("prioridad_nombre")?.focus();
+    });
 }
 
 function cerrarSidebar() {
     sidebarVisible.value = false;
 }
+
+useKeyboardShortcuts({
+    onSearch: listar,
+    onSave: guardarRegistro,
+    onEscape: cerrarSidebar,
+    isActive: sidebarVisible,
+    isLoading: loadingGuardar,
+});
 
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
@@ -352,3 +408,45 @@ onBeforeUnmount(() => {
     safeDestroyDataTable(dt.value || "#example23");
 });
 </script>
+<style scoped>
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 1090;
+}
+
+.right-sidebar {
+    position: fixed;
+    right: -450px;
+    width: 450px;
+    z-index: 1100;
+    background: #ffffff;
+    top: 0px;
+    padding-bottom: 20px;
+    height: 100%;
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.shw-rside {
+    right: 0px !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+@media (max-width: 768px) {
+    .right-sidebar {
+        width: 100% !important;
+        right: -100% !important;
+    }
+}
+</style>

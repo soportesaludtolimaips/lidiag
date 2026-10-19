@@ -16,7 +16,22 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-info btnDesplegarRigthSidebar"
+                    class="btn btn-outline-secondary btn-action-clinical m-r-5"
+                    @click="listarDatos"
+                    :disabled="loadingListar"
+                    title="Actualizar listado activo (F2)"
+                >
+                    <i class="fa" :class="loadingListar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                    Refrescar
+                    <span
+                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                        style="font-size: 10px; opacity: 0.9"
+                        >F2</span
+                    >
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-info btnDesplegarRigthSidebar btn-action-clinical"
                     @click="nuevoRegistro()"
                 >
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
@@ -87,6 +102,7 @@ import { getCurrentInstance, onBeforeUnmount, onMounted, ref } from "vue";
 import axios from "axios";
 
 import { toastMessage } from "@/helpers/alerts.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 import ConfigWhatsappNumeros from "./configWhatsappNumeros.vue";
 import ConfigWhatsappProductos from "./configWhatsappProductos.vue";
 import ConfigWhatsappSaludos from "./configWhatsappSaludos.vue";
@@ -100,6 +116,27 @@ const sedeId = ref(sessionStorage.getItem("ST-sede") || "");
 const numerosRef = ref(null);
 const saludosRef = ref(null);
 const productosRef = ref(null);
+const loadingListar = ref(false);
+
+async function listarDatos() {
+    if (loadingListar.value) return;
+    loadingListar.value = true;
+    try {
+        if (tabActivo.value === "numeros") {
+            await numerosRef.value?.listar?.();
+        } else if (tabActivo.value === "saludos") {
+            await saludosRef.value?.listar?.();
+        } else if (tabActivo.value === "productos") {
+            await productosRef.value?.listar?.();
+        }
+    } finally {
+        loadingListar.value = false;
+    }
+}
+
+useKeyboardShortcuts({
+    onSearch: listarDatos,
+});
 
 function cambiarTab(tab) {
     tabActivo.value = tab;

@@ -9,6 +9,23 @@
                     <li class="breadcrumb-item active">Helpdesk - Estados</li>
                 </ol>
             </div>
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-action-clinical"
+                    @click="listar"
+                    :disabled="loadingListar"
+                    title="Actualizar listado (F2)"
+                >
+                    <i class="fa" :class="loadingListar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                    Refrescar
+                    <span
+                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                        style="font-size: 10px; opacity: 0.9"
+                        >F2</span
+                    >
+                </button>
+            </div>
         </div>
 
         <div class="row">
@@ -61,6 +78,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { toastMessage } from "@/helpers/alerts.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 import axios from "axios";
 
 const dt = ref(null);
@@ -90,6 +108,10 @@ async function listar() {
         loadingListar.value = false;
     }
 }
+
+useKeyboardShortcuts({
+    onSearch: listar,
+});
 
 onMounted(() => {
     listar();

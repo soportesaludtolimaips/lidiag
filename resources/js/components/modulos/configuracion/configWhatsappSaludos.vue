@@ -99,8 +99,12 @@
             </table>
         </div>
 
+        <!-- Backdrop overlay para cerrar al hacer clic afuera -->
+        <div v-if="sidebarVisible" class="sidebar-backdrop" @click="cerrarFormSidebar"></div>
+
         <div
             class="right-sidebar"
+            ref="sidebarRef"
             :class="{ 'shw-rside': sidebarVisible }"
             style="overflow-x: hidden; overflow-y: scroll; height: 100%"
         >
@@ -108,7 +112,15 @@
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <span>
-                        <i class="ti-close right-side-toggle" @click="cerrarFormSidebar"></i>
+                        <button
+                            type="button"
+                            class="close right-side-toggle"
+                            aria-label="Cerrar panel"
+                            title="Cerrar (Esc)"
+                            @click="cerrarFormSidebar"
+                        >
+                            &times;
+                        </button>
                     </span>
                 </div>
                 <div class="r-panel-body">
@@ -139,6 +151,7 @@
                                             <small class="text-muted">(opcional)</small>
                                         </label>
                                         <select
+                                            id="form_servicio_id"
                                             v-model="form.servicio_id"
                                             class="form-control"
                                             :class="{ 'is-invalid': errores.servicio_id }"
@@ -251,7 +264,7 @@
                             <div class="form-actions mt-3">
                                 <button
                                     type="button"
-                                    class="btn btn-success m-r-5"
+                                    class="btn btn-success m-r-5 btn-action-clinical"
                                     @click="guardarRegistro()"
                                     v-if="!actualizar"
                                     :disabled="loadingGuardar"
@@ -261,11 +274,16 @@
                                         :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"
                                     ></i>
                                     Guardar
+                                    <span
+                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                                        style="font-size: 10px; opacity: 0.9"
+                                        >Ctrl+S</span
+                                    >
                                 </button>
 
                                 <button
                                     type="button"
-                                    class="btn btn-warning m-r-5"
+                                    class="btn btn-warning m-r-5 btn-action-clinical"
                                     v-if="actualizar"
                                     @click="guardarRegistro()"
                                     :disabled="loadingGuardar"
@@ -275,14 +293,24 @@
                                         :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-pencil'"
                                     ></i>
                                     Actualizar
+                                    <span
+                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                                        style="font-size: 10px; opacity: 0.9"
+                                        >Ctrl+S</span
+                                    >
                                 </button>
 
                                 <button
                                     type="button"
-                                    class="btn btn-inverse"
+                                    class="btn btn-inverse btn-action-clinical"
                                     @click="cerrarFormSidebar()"
                                 >
                                     Cancelar
+                                    <span
+                                        class="badge badge-secondary ml-1 d-none d-md-inline"
+                                        style="font-size: 10px"
+                                        >Esc</span
+                                    >
                                 </button>
                             </div>
                         </div>
@@ -411,6 +439,7 @@ import axios from "axios";
 import { useConfigCrud } from "@/composables/useConfigCrud.js";
 import { useConfigForm } from "@/composables/useConfigForm.js";
 import { useDataTable } from "@/composables/useDataTable.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 import { toastMessage } from "@/helpers/alerts.js";
 import EmojiPicker from "@/components/shared/EmojiPicker.vue";
 
@@ -575,10 +604,24 @@ function limpiar() {
 }
 function abrirFormSidebar() {
     sidebarVisible.value = true;
+    nextTick(() => {
+        document.getElementById("form_servicio_id")?.focus();
+    });
 }
 function cerrarFormSidebar() {
     sidebarVisible.value = false;
 }
+
+useKeyboardShortcuts({
+    onSave: guardarRegistro,
+    onEscape: () => {
+        if (sidebarVisible.value) {
+            cerrarFormSidebar();
+        }
+    },
+    isActive: sidebarVisible,
+    isLoading: loadingGuardar,
+});
 function abrirProbarEnvio() {
     testPhoneNumber.value = "";
     testResultado.value = null;
@@ -689,28 +732,45 @@ onBeforeUnmount(() => {
 });
 </script>
 <style scoped>
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 1090;
+}
+
 .right-sidebar {
     position: fixed;
     right: -70%;
     width: 70%;
-    display: none;
     z-index: 1100;
     background: #ffffff;
     top: 0px;
     padding-bottom: 20px;
     height: 100%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .shw-rside {
-    right: 0px;
-    width: 70%;
-    display: block;
-    overflow-y: auto;
+    right: 0px !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+@media (max-width: 768px) {
+    .right-sidebar {
+        width: 100% !important;
+        right: -100% !important;
+    }
 }
 
 .whatsapp-editor {
