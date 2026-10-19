@@ -62,6 +62,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 'api_burn.php',
                 'api_contratacion.php',
                 'api_liquidacion.php',
+                'api_telegram.php',
             ];
             foreach ($apiFiles as $file) {
                 Route::middleware('api')
