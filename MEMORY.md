@@ -395,6 +395,10 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Foco Accesible (`a11y`):** Autofoco automático reactivo (`nextTick`) en el selector de sedes `#prod-sede` y `#pac-sede` al abrir cualquiera de los modales.
   - **Botón Asistencial y Badges en Cabecera (`page-titles`):** Incorporado botón "Refrescar" en la cabecera con spinner interactivo y badge `F2`, badges `Ctrl+S`/`Esc` en botones de acción y estandarización de la clase `.btn-action-clinical`.
   - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.06s ✅.
+- [x] **2026-10-19 — UI/UX Nivelación: Atajos Clínicos, Backdrop y Botones Asistenciales en `roleComponente.vue` y `helpdeskNotificacionesComponent.vue`:**
+  - **Roles y Permisos (`roleComponente.vue`):** Desacoplado `.right-sidebar` con animación suave `cubic-bezier` a 350ms y backdrop con `backdrop-filter: blur(2px)`; botón "Refrescar" asistencial en `page-titles` con badge `F2`; atajos `F2` (refrescar listado), `Ctrl+S` (guardar/actualizar rol) y `Esc` (cerrar panel); autofoco en `#name` (`nextTick`); clase clínica `.btn-action-clinical`.
+  - **Notificaciones HelpDesk (`helpdeskNotificacionesComponent.vue`):** Botón "Refrescar" asistencial con spinner dinámico y badge `F2`, botón "Volver" con badge `Esc`, atajos `F2` y `Esc`, y estandarización de `.btn-action-clinical`.
+  - Verificación estricta: ESLint 0 errores/warnings en ambos archivos ✅ | Vite `npm run build` en 1.53s ✅.
 - [x] **2026-10-19 — Herramienta Autónoma Python: Monitor de Discos DICOM con Bot de Telegram (`dcm_disk_monitor_telegram`):**
   - Implementada herramienta en `storage/app_lidiag/dcm_disk_monitor_telegram/` usando exclusivamente la librería estándar de Python (sin dependencias `pip`).
   - **Modo Dual (Opción C):**
