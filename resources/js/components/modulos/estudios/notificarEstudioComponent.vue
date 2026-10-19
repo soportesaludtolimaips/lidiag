@@ -458,7 +458,7 @@ const sidebarVisible = ref(false);
 
 useKeyboardShortcuts({
     onSave: notificar,
-    onEscape: btnCerrarModalForm,
+    onEscape: () => btnCerrarModalForm(),
     isActive: () => sidebarVisible.value,
     isLoading: loadingNotificar,
 });
@@ -661,10 +661,13 @@ function abrirModal() {
     sidebarVisible.value = true;
 }
 
-function btnCerralModalForm() {
+function btnCerrarModalForm() {
     sidebarVisible.value = false;
 }
-const btnCerrarModalForm = btnCerralModalForm;
+
+function btnCerralModalForm() {
+    btnCerrarModalForm();
+}
 
 /**
  * Mostrar el registro del estudio en el modal para notificar al paciente.

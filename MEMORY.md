@@ -334,7 +334,9 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Atajos Asistenciales (`useKeyboardShortcuts`):** Integrado `Ctrl+S` para guardar recomendaciones por producto (protegido por `loadingGuardar`) y `Escape` para cerrar el panel lateral.
   - **Foco Accesible (`a11y`):** Autofoco automático reactivo en `#form-producto-parent .select2-selection` o textarea en `abrirModal()`, y sustitución de `<span>` por `<button class="close right-side-toggle" aria-label="Cerrar panel" title="Cerrar (Esc)">` cumpliendo el estándar de botones accesibles.
   - **Badges Visuales y Microinteracciones:** Badges `Ctrl+S` y `Esc`, títulos contextuales y clase `.btn-action-clinical` con microinteracción táctil.
-  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.02s ✅.
+- [x] **2026-10-19 — UI/UX Módulo Estudios: Hotfix ReferenceError TDZ en `notificarEstudioComponent.vue`:**
+  - **Corrección de Inicialización en `setup()`:** Sustituida la asignación `const btnCerrarModalForm` por declaración de función canónica con hoisting (`function btnCerrarModalForm()`), y envuelto en callback diferido `onEscape: () => btnCerrarModalForm()` dentro de `useKeyboardShortcuts` para evitar el error `Uncaught ReferenceError: Cannot access 'btnCerrarModalForm' before initialization`.
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 971ms ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.
