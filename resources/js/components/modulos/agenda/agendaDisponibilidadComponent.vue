@@ -175,12 +175,15 @@
             </div>
         </div>
 
+        <!-- Backdrop overlay para cerrar al hacer clic afuera -->
+        <div v-if="showSidebar" class="sidebar-backdrop" @click="cerrarModal()"></div>
+
         <!-- Right sidebar -->
         <div
             class="right-sidebar"
             id="right-sidebar"
             :class="{ 'shw-rside': showSidebar }"
-            style="overflow-x: hidden; overflow-y: scroll; height: 100%"
+            style="overflow-x: hidden; overflow-y: auto; height: 100%"
         >
             <div class="slimscrollright">
                 <div class="rpanel-title">
@@ -190,7 +193,8 @@
                         class="close right-side-toggle"
                         id="btnCerrarModalForm"
                         @click="cerrarModal()"
-                        aria-label="Cerrar"
+                        aria-label="Cerrar panel"
+                        title="Cerrar (Esc)"
                     >
                         <i class="ti-close"></i>
                     </button>
@@ -306,9 +310,14 @@
                             <div class="form-actions mt-3">
                                 <button
                                     type="button"
-                                    class="btn btn-success m-r-5"
+                                    class="btn btn-success m-r-5 btn-action-clinical"
                                     @click="guardarRegistro()"
                                     :disabled="loadingGuardar"
+                                    :title="
+                                        editando
+                                            ? 'Actualizar disponibilidad (Ctrl+S)'
+                                            : 'Guardar disponibilidad (Ctrl+S)'
+                                    "
                                 >
                                     <i
                                         class="fa"
@@ -321,14 +330,25 @@
                                               ? "Actualizar"
                                               : "Guardar"
                                     }}
+                                    <span
+                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                                        style="font-size: 10px; opacity: 0.9"
+                                        >Ctrl+S</span
+                                    >
                                 </button>
 
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
                                     @click="cerrarModal()"
+                                    title="Cancelar y cerrar (Esc)"
                                 >
                                     Cancelar
+                                    <span
+                                        class="badge badge-secondary ml-1 d-none d-md-inline"
+                                        style="font-size: 10px"
+                                        >Esc</span
+                                    >
                                 </button>
                             </div>
                         </div>
@@ -344,6 +364,7 @@ import { getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "v
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts";
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import axios from "axios";
 
 const { appContext } = getCurrentInstance();
@@ -357,6 +378,13 @@ const editando = ref(false);
 const editandoId = ref(null);
 const tituloModal = ref("Guardar disponibilidad de citas");
 const showSidebar = ref(false);
+
+useKeyboardShortcuts({
+    onSave: guardarRegistro,
+    onEscape: cerrarModal,
+    isActive: () => showSidebar.value,
+    isLoading: loadingGuardar,
+});
 const sedeActual = ref(sessionStorage.getItem("ST-sede"));
 const registro = ref({
     sede_id: sedeActual.value,
@@ -463,6 +491,9 @@ async function editarRegistro(item) {
     tituloModal.value = "Actualizar disponibilidad de citas";
     errores.value = [];
     showSidebar.value = true;
+    nextTick(() => {
+        document.getElementById("total_citas")?.focus();
+    });
 }
 async function elimnarRegistro(id) {
     const ok = await confirmAction({
@@ -518,6 +549,9 @@ function mostrarRegistro() {
     };
     errores.value = [];
     showSidebar.value = true;
+    nextTick(() => {
+        document.getElementById("total_citas")?.focus();
+    });
 }
 function cerrarModal() {
     showSidebar.value = false;
@@ -553,26 +587,44 @@ onBeforeUnmount(() => {
 });
 </script>
 <style scoped>
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 1090;
+}
+
 .right-sidebar {
     position: fixed;
     right: -50%;
     width: 50%;
-    display: none;
+    height: 100%;
+    top: 0px;
     z-index: 1100;
     background: #ffffff;
-    top: 0px;
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
+    visibility: hidden;
+    pointer-events: none;
     padding-bottom: 20px;
-    height: 100%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
 }
 
 .shw-rside {
-    right: 0px;
-    width: 50%;
-    display: block;
+    right: 0 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+@media (max-width: 768px) {
+    .right-sidebar {
+        width: 100% !important;
+        right: -100% !important;
+    }
 }
 </style>

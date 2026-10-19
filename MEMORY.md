@@ -317,6 +317,12 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 - [x] **2026-10-19 — Actualización de Documentación (`README.md` & `docs/UI-UX-IMPROVEMENT-PHASES.md`):**
   - Incorporados al `README.md` los detalles de la arquitectura UI/UX: atajos clínicos extendidos (`Ctrl+S`, `Escape`, `F2`), foco accesible `a11y`, modales desacopladores con backdrop blur y transiciones fluidas sin layout shift en Estudios, Ecografías y Citas.
   - Actualizado `docs/UI-UX-IMPROVEMENT-PHASES.md` con la fase `E6 — Transición Suave y Backdrop Overlay Desacoplador`.
+- [x] **2026-10-19 — UI/UX Módulo Citas & Agenda: Atajos, Foco y Transición Suave en `agendaDisponibilidadComponent.vue`:**
+  - **Transición Suave y Backdrop Overlay:** Eliminado el salto de `display: none/block` en `.right-sidebar` con animación deslizante suave `cubic-bezier(0.16, 1, 0.3, 1)` a 350ms, altura al 100%, z-index 1100, backdrop desacoplador (`.sidebar-backdrop`) con `backdrop-filter: blur(2px)` y cierre al hacer clic exterior (`@click="cerrarModal()"`).
+  - **Atajos Asistenciales (`useKeyboardShortcuts`):** `Ctrl+S` para guardar/actualizar disponibilidad (protegido por `loadingGuardar`) y `Escape` para cerrar el panel lateral.
+  - **Foco Accesible (`a11y`):** Autofoco automático reactivo en `#total_citas` al abrir `mostrarRegistro()` y `editarRegistro()`.
+  - **Badges Visuales y Microinteracciones:** Badges `Ctrl+S` y `Esc`, títulos contextuales y microinteracciones clínicas.
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 996ms ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.
