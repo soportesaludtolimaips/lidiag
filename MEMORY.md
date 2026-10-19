@@ -276,6 +276,10 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * `transcribirEstudioComponent.vue`: Atajo `Ctrl+S` para guardar transcripción, `Escape` para cerrar modal, badges visuales y autofocus reactivo en `mostrarRegistro()`.
     * `notificarEstudioComponent.vue`: Atajo `Ctrl+S` para notificar al paciente, `Escape` para cerrar modal, badges visuales y autofocus reactivo en campo `#email`.
   - Verificación estricta: ESLint 0 errores/warnings en todos los archivos modificados ✅ | Vite `npm run build` en 981ms ✅.
+- [x] **2026-10-19 — Actualización Integral de Documentación (`README.md`, `scripts/dcm_agent/README.md`, `docs/UI-UX-IMPROVEMENT-PHASES.md`):**
+  - `README.md` actualizado con comandos de respaldo `lidiag:backup` (BD + Storage), `lidiag:backup-dcm` (PACS por sedes), programación Windows Task Scheduler, arquitectura del agente descentralizado Python (`backup_dcm_agent.py` + webhook), tabla de tareas programadas en `routes/console.php` y resumen del sistema de diseño clínico/UI-UX (shimmer loaders, toasts no invasivos, validación visual inline, atajos `Ctrl+S`/`Esc`, foco accesible y modo oscuro).
+  - `scripts/dcm_agent/README.md`: manual ampliado con opciones de instalación automática (`instalar_tarea_programada.bat`) y manual en `taskschd.msc`.
+  - `docs/UI-UX-IMPROVEMENT-PHASES.md`: añadida Fase 5 (Ergonomía Clínica Avanzada y Productividad).
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.

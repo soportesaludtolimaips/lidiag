@@ -70,7 +70,28 @@ Agrega la siguiente línea:
 ```
 
 ### En Windows (Programador de Tareas):
-Ejecuta en una terminal PowerShell o CMD como Administrador:
-```cmd
-schtasks /create /tn "LIDiag_Local_DCM_Backup" /tr "python C:\lidiag_backup\backup_dcm_agent.py" /sc daily /st 02:00 /ru "SYSTEM" /f
-```
+
+#### Opción A — Instalación automática en 1 clic (Recomendada):
+1. Copia toda la carpeta `dcm_agent` al servidor del hospital (ej: `C:\lidiag_backup\`).
+2. Configura tu `config.json`.
+3. Haz **clic derecho** sobre `instalar_tarea_programada.bat` y selecciona **"Ejecutar como administrador"**.
+4. ¡Listo! La tarea `LIDiag_Local_DCM_Backup` quedará programada para las **02:00 AM** con permisos de sistema (`SYSTEM`) para que corra incluso sin un usuario conectado.
+
+#### Opción B — Configuración manual en la interfaz gráfica (taskschd.msc):
+1. Presiona `Win + R`, escribe `taskschd.msc` y presiona Enter.
+2. En el panel derecho haz clic en **"Crear tarea básica..."** (o "Crear tarea...").
+3. **General:**
+   - Nombre: `LIDiag_Local_DCM_Backup`
+   - Seleccionar: *"Ejecutar tanto si el usuario inició sesión como si no"*
+   - Marcar: *"Ejecutar con los privilegios más altos"*
+4. **Desencadenadores (Triggers):**
+   - Nuevo desencadenador $\rightarrow$ *Diariamente* $\rightarrow$ Hora: `02:00:00 AM`.
+5. **Acciones (Actions):**
+   - Nueva acción $\rightarrow$ *Iniciar un programa*.
+   - **Programa o script:** `C:\lidiag_backup\ejecutar_backup.bat` (o `python.exe`).
+   - Si usas `python.exe` directo:
+     - Argumentos: `backup_dcm_agent.py --config config.json`
+     - Iniciar en (Start in): `C:\lidiag_backup\`
+6. Guarda la tarea y escribe la contraseña de administrador si te la solicita.
+
+> Los logs de cada ejecución automática se guardarán en `backup_agent.log` dentro de la misma carpeta.
