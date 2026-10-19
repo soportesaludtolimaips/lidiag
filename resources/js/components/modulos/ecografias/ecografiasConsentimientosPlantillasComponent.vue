@@ -17,6 +17,18 @@
                     <li class="breadcrumb-item active">Plantillas Consentimientos</li>
                 </ol>
             </div>
+            <div class="col-md-6 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-info btn-action-clinical"
+                    @click="listar"
+                    :disabled="loading"
+                    title="Actualizar listado de plantillas (Refrescar)"
+                >
+                    <i class="fa" :class="loading ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                    Refrescar
+                </button>
+            </div>
         </div>
 
         <div class="card">
@@ -49,10 +61,8 @@
                     <div class="col-md-4 text-right">
                         <button
                             v-if="can('ecografias.consentimientos.plantillas.create')"
-                            class="btn btn-info mt-4"
+                            class="btn btn-info mt-4 btn-action-clinical"
                             type="button"
-                            data-toggle="modal"
-                            data-target="#modal-plantilla"
                             @click="nuevo()"
                         >
                             <i class="fa fa-plus"></i> Nueva plantilla
@@ -119,10 +129,8 @@
 
                                     <button
                                         v-if="can('ecografias.consentimientos.plantillas.edit')"
-                                        class="btn btn-sm btn-warning m-r-5"
+                                        class="btn btn-sm btn-warning m-r-5 btn-action-clinical"
                                         type="button"
-                                        data-toggle="modal"
-                                        data-target="#modal-plantilla"
                                         @click="editar(p)"
                                         title="Editar plantilla"
                                         aria-label="Editar plantilla"
@@ -164,14 +172,20 @@
 
         <!-- Modal Plantilla -->
         <div
+            v-if="modalPlantillaVisible"
             id="modal-plantilla"
-            class="modal fade"
+            class="modal show"
             tabindex="-1"
             role="dialog"
             aria-labelledby="modal-plantilla-title"
             aria-hidden="true"
-            v-show="modalPlantillaVisible"
-            :style="{ display: modalPlantillaVisible ? 'block' : 'none' }"
+            style="
+                display: block;
+                background: rgba(15, 23, 42, 0.45);
+                backdrop-filter: blur(2px);
+                -webkit-backdrop-filter: blur(2px);
+            "
+            @click.self="cerrarModalPlantilla()"
         >
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -179,7 +193,12 @@
                         <h4 class="modal-title" id="modal-plantilla-title">
                             {{ form.id ? "Actualizar (nueva versión)" : "Nueva plantilla" }}
                         </h4>
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <button
+                            type="button"
+                            class="close"
+                            aria-label="Cerrar modal"
+                            @click="cerrarModalPlantilla()"
+                        >
                             ×
                         </button>
                     </div>
@@ -216,19 +235,35 @@
                     </div>
                     <div class="modal-footer">
                         <button
-                            class="btn btn-success"
+                            class="btn btn-default btn-action-clinical"
+                            type="button"
+                            @click="cerrarModalPlantilla()"
+                            title="Cancelar y cerrar modal (Esc)"
+                        >
+                            Cancelar
+                            <span
+                                class="badge badge-secondary ml-1 d-none d-md-inline"
+                                style="font-size: 10px; opacity: 0.9"
+                                >Esc</span
+                            >
+                        </button>
+                        <button
+                            class="btn btn-success btn-action-clinical"
                             type="button"
                             @click="guardar"
-                            :disabled="loadingGuardar"
+                            :disabled="loadingGuardar || !form.producto_id"
+                            title="Guardar plantilla (Ctrl+S / Cmd+S)"
                         >
                             <i
                                 class="fa"
                                 :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"
                             ></i>
                             {{ loadingGuardar ? "Guardando…" : "Guardar" }}
-                        </button>
-                        <button class="btn btn-default" type="button" data-dismiss="modal">
-                            Cerrar
+                            <span
+                                class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                                style="font-size: 10px; opacity: 0.9"
+                                >Ctrl+S</span
+                            >
                         </button>
                     </div>
                 </div>
@@ -237,14 +272,20 @@
 
         <!-- Modal Versiones -->
         <div
+            v-if="modalVersionesVisible"
             id="modal-versiones"
-            class="modal fade"
+            class="modal show"
             tabindex="-1"
             role="dialog"
             aria-labelledby="modal-versiones-title"
             aria-hidden="true"
-            v-show="modalVersionesVisible"
-            :style="{ display: modalVersionesVisible ? 'block' : 'none' }"
+            style="
+                display: block;
+                background: rgba(15, 23, 42, 0.45);
+                backdrop-filter: blur(2px);
+                -webkit-backdrop-filter: blur(2px);
+            "
+            @click.self="cerrarModalVersiones()"
         >
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -252,12 +293,20 @@
                         <h4 class="modal-title" id="modal-versiones-title">
                             Histórico de versiones
                         </h4>
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <button
+                            type="button"
+                            class="close"
+                            aria-label="Cerrar modal"
+                            @click="cerrarModalVersiones()"
+                        >
                             ×
                         </button>
                     </div>
                     <div class="modal-body">
-                        <div v-if="loadingVersions" class="text-muted">Cargando…</div>
+                        <div v-if="loadingVersions" class="text-muted text-center py-3">
+                            <i class="fa fa-spinner fa-spin fa-2x"></i>
+                            <span class="d-block mt-2">Cargando versiones...</span>
+                        </div>
                         <div v-else class="table-responsive">
                             <table class="table table-bordered table-striped">
                                 <thead>
@@ -272,13 +321,15 @@
                                     <tr v-for="v in versions" :key="v.id">
                                         <td>{{ v.version }}</td>
                                         <td>
-                                            <span v-if="v.vigente" class="text-success">Sí</span>
-                                            <span v-else class="text-muted">No</span>
+                                            <span v-if="v.vigente" class="badge badge-success"
+                                                >Sí</span
+                                            >
+                                            <span v-else class="badge badge-secondary">No</span>
                                         </td>
                                         <td>{{ v.created_at }}</td>
                                         <td class="text-nowrap">
                                             <button
-                                                class="btn btn-sm btn-info m-r-5"
+                                                class="btn btn-sm btn-info m-r-5 btn-action-clinical"
                                                 type="button"
                                                 @click="previewPdf(v)"
                                                 title="Vista previa PDF"
@@ -293,9 +344,10 @@
                                                         'ecografias.consentimientos.plantillas.edit'
                                                     )
                                                 "
-                                                class="btn btn-sm btn-success"
+                                                class="btn btn-sm btn-success btn-action-clinical"
                                                 type="button"
                                                 @click="activarVersion(v)"
+                                                title="Activar como versión vigente"
                                             >
                                                 <i class="fa fa-check"></i> Activar
                                             </button>
@@ -311,8 +363,18 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn btn-default" type="button" data-dismiss="modal">
+                        <button
+                            class="btn btn-default btn-action-clinical"
+                            type="button"
+                            @click="cerrarModalVersiones()"
+                            title="Cerrar modal (Esc)"
+                        >
                             Cerrar
+                            <span
+                                class="badge badge-secondary ml-1 d-none d-md-inline"
+                                style="font-size: 10px; opacity: 0.9"
+                                >Esc</span
+                            >
                         </button>
                     </div>
                 </div>
@@ -321,11 +383,12 @@
     </div>
 </template>
 <script setup>
-import { onMounted, ref } from "vue";
+import { nextTick, onMounted, ref } from "vue";
 
 import usePermissions from "@/helpers/permissions.js";
 import { confirmAction, toastMessage } from "@/helpers/alerts";
 import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 import axios from "axios";
 
 const props = defineProps({
@@ -348,6 +411,31 @@ const loadingVersions = ref(false);
 const productoVersionsId = ref(null);
 const modalPlantillaVisible = ref(false);
 const modalVersionesVisible = ref(false);
+
+function cerrarModalPlantilla() {
+    modalPlantillaVisible.value = false;
+}
+
+function cerrarModalVersiones() {
+    modalVersionesVisible.value = false;
+}
+
+useKeyboardShortcuts({
+    onSave: () => {
+        if (modalPlantillaVisible.value) {
+            guardar();
+        }
+    },
+    onEscape: () => {
+        if (modalPlantillaVisible.value) {
+            cerrarModalPlantilla();
+        } else if (modalVersionesVisible.value) {
+            cerrarModalVersiones();
+        }
+    },
+    isActive: () => modalPlantillaVisible.value || modalVersionesVisible.value,
+    isLoading: loadingGuardar,
+});
 /**
  * Carga la lista de productos de configuración disponibles para asociar a las plantillas.
  *
@@ -435,6 +523,13 @@ async function listar() {
  */
 function nuevo() {
     form.value = { id: null, producto_id: "", nombre: "", html: "" };
+    modalPlantillaVisible.value = true;
+    nextTick(() => {
+        const select = document.getElementById("form_producto_id");
+        if (select && typeof select.focus === "function") {
+            select.focus();
+        }
+    });
 }
 /**
  * Carga los datos de una plantilla existente en el formulario para editarla (nueva versión).
@@ -445,10 +540,17 @@ function nuevo() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-02-13
+ * @date 2026-10-19
  */
 function editar(p) {
     form.value = { id: p.id, producto_id: p.producto_id, nombre: p.nombre, html: p.html };
+    modalPlantillaVisible.value = true;
+    nextTick(() => {
+        const input = document.getElementById("form_nombre");
+        if (input && typeof input.focus === "function") {
+            input.focus();
+        }
+    });
 }
 /**
  * Crea o actualiza una plantilla de consentimiento y cierra el modal tras guardar.

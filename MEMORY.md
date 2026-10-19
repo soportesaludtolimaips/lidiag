@@ -353,6 +353,20 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Foco Accesible (`a11y`):** Autofoco automático reactivo en `#message-text` (motivo de anulación) al abrir el modal.
   - **Botón Asistencial y Microinteracciones:** Botón de refresco en la cabecera (`page-titles`) con spinner dinámico, badges descriptivos `Ctrl+S` y `Esc`, y clase clínica `.btn-action-clinical`.
   - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 976ms ✅.
+- [x] **2026-10-19 — UI/UX Módulo Ecografías: Modales Reactivos, Atajos y Foco en `ecografiasConsentimientosPlantillasComponent.vue`:**
+  - **Modales Reactivos con Backdrop Blur:** Migrados `#modal-plantilla` y `#modal-versiones` de jQuery/Bootstrap a control 100% reactivo en Vue (`modalPlantillaVisible`, `modalVersionesVisible`), backdrop translúcido con `backdrop-filter: blur(2px)` y cierre al clic exterior (`@click.self`).
+  - **Atajos Asistenciales (`useKeyboardShortcuts`):** Atajo `Ctrl+S` para guardar plantilla (protegido por `loadingGuardar` y validación de producto) y `Escape` para cerrar cualquiera de los modales activos.
+  - **Foco Accesible (`a11y`):** Autofoco automático reactivo en `#form_producto_id` al crear nueva plantilla y en `#form_nombre` al editar versión existente.
+  - **Botón Asistencial y Microinteracciones:** Botón de refresco en la cabecera (`page-titles`) con spinner interactivo, badges `Ctrl+S` y `Esc`, y clase clínica `.btn-action-clinical`.
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 982ms ✅.
+- [x] **2026-10-19 — Herramienta Autónoma Python: Monitor de Discos DICOM con Bot de Telegram (`dcm_disk_monitor_telegram`):**
+  - Implementada herramienta en `storage/app_lidiag/dcm_disk_monitor_telegram/` usando exclusivamente la librería estándar de Python (sin dependencias `pip`).
+  - **Modo Dual (Opción C):**
+    * Servicio Residente 24/7 (`iniciar_bot.bat` / `--daemon`): Long-Polling para comandos de Telegram (`/discos`, `/estado`, `/alertas`, `/info`, `/ayuda`) y timer de fondo cada 15 min.
+    * Tarea Programada Windows (`instalar_tarea_programada.bat` / `--check-once`): Ejecución puntual silenciosa cada 1 hora registrada en Windows Task Scheduler.
+  - **Alertas Proactivas y Anti-Spam:** Notificación inmediata en transiciones a 🟡 Advertencia (<15% o <50 GB) y 🔴 Crítico (<5% o <20 GB), notificación de recuperación a 🟢 OK, y cooldown configurable (4h) para evitar saturación de mensajes. Reporte diario matutino a las 08:00 AM.
+  - **Multidestinatario:** Soporta múltiples Chat IDs simultáneos (usuarios y grupos con ID negativo `-100...`).
+  - **Herramientas y Scripts Incluidos:** `obtener_chat_id.bat` (`--get-chat-ids`), `verificar_estado.bat` (`--status`), `config.json.example`, `README.md` con tutorial para BotFather, y paquete comprimido listo para distribución `dcm_disk_monitor_telegram.zip`.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.
