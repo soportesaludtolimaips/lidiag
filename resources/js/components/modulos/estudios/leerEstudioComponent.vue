@@ -182,6 +182,20 @@
                             >
                                 <i class="fa fa-sync"></i> Actualizar
                             </button>
+                            <button
+                                type="button"
+                                class="btn btn-sm ml-2"
+                                :class="isDarkMode ? 'btn-warning' : 'btn-outline-dark'"
+                                @click="toggleDarkMode"
+                                :title="
+                                    isDarkMode
+                                        ? 'Cambiar a Modo Claro'
+                                        : 'Cambiar a Modo Oscuro / Radiología'
+                                "
+                            >
+                                <i :class="isDarkMode ? 'fa fa-sun-o' : 'fa fa-moon-o'"></i>
+                                {{ isDarkMode ? "Modo Claro" : "Modo Oscuro" }}
+                            </button>
                         </div>
                     </div>
                     <loading-spinner :visible="!tablaVisible" />
@@ -342,18 +356,39 @@
     <!-- Right sidebar -->
     <!-- ============================================================== -->
     <!-- .right-sidebar -->
-    <div class="right-sidebar sidebar-scroll" :class="{ 'shw-rside': sidebarVisible }">
+    <div
+        class="right-sidebar sidebar-scroll"
+        :class="{ 'shw-rside': sidebarVisible, 'dark-mode': isDarkMode }"
+    >
         <div class="slimscrollright" style="overflow-x: hidden">
-            <div class="rpanel-title">
-                {{ tituloModal }}
-                <button
-                    type="button"
-                    class="right-side-toggle"
-                    @click="cerrarSidebar()"
-                    aria-label="Cerrar panel"
-                >
-                    <i class="ti-close"></i>
-                </button>
+            <div class="rpanel-title d-flex justify-content-between align-items-center">
+                <span>{{ tituloModal }}</span>
+                <div class="d-flex align-items-center">
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-link p-0 mr-3"
+                        style="color: inherit; text-decoration: none"
+                        @click="toggleDarkMode"
+                        :title="
+                            isDarkMode
+                                ? 'Cambiar a Modo Claro'
+                                : 'Cambiar a Modo Oscuro / Radiología'
+                        "
+                    >
+                        <i :class="isDarkMode ? 'fa fa-sun-o' : 'fa fa-moon-o'"></i>
+                        <span class="ml-1 d-none d-sm-inline">{{
+                            isDarkMode ? "Claro" : "Oscuro"
+                        }}</span>
+                    </button>
+                    <button
+                        type="button"
+                        class="right-side-toggle"
+                        @click="cerrarSidebar()"
+                        aria-label="Cerrar panel"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
+                </div>
             </div>
             <div class="r-panel-body">
                 <!-- ============================================================== -->
@@ -1245,6 +1280,17 @@ import axios from "axios";
 const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
 
+const isDarkMode = ref(localStorage.getItem("lidiag_dark_mode") === "true");
+
+function toggleDarkMode() {
+    isDarkMode.value = !isDarkMode.value;
+    try {
+        localStorage.setItem("lidiag_dark_mode", String(isDarkMode.value));
+    } catch {
+        // Fallback silencioso si el almacenamiento local está restringido
+    }
+}
+
 const props = defineProps({
     usuarioactual: { type: Object, default: null },
     permisos: { type: Array, default: () => [] },
@@ -2051,5 +2097,111 @@ onBeforeUnmount(() => {
     overflow-x: hidden;
     overflow-y: scroll;
     height: 100%;
+}
+
+/* ============================================================== */
+/* Modo Oscuro / Radiología (Dark Mode para entorno PACS)         */
+/* ============================================================== */
+.right-sidebar.dark-mode {
+    background: #181a20 !important;
+    color: #e2e8f0 !important;
+}
+
+.right-sidebar.dark-mode .rpanel-title {
+    background: #12141a !important;
+    color: #f1f5f9 !important;
+    border-bottom: 1px solid #2d3343 !important;
+}
+
+.right-sidebar.dark-mode .r-panel-body {
+    background: #181a20 !important;
+}
+
+.right-sidebar.dark-mode hr {
+    border-top-color: #2d3343 !important;
+}
+
+.right-sidebar.dark-mode dt,
+.right-sidebar.dark-mode label {
+    color: #cbd5e1 !important;
+}
+
+.right-sidebar.dark-mode dd,
+.right-sidebar.dark-mode p,
+.right-sidebar.dark-mode span,
+.right-sidebar.dark-mode li {
+    color: #e2e8f0;
+}
+
+.right-sidebar.dark-mode .form-control {
+    background-color: #222632 !important;
+    color: #f8fafc !important;
+    border-color: #3b4254 !important;
+}
+
+.right-sidebar.dark-mode .form-control:focus {
+    background-color: #262b38 !important;
+    border-color: #00bcd4 !important;
+    color: #ffffff !important;
+}
+
+.right-sidebar.dark-mode .nav-tabs {
+    border-bottom-color: #2d3343 !important;
+}
+
+.right-sidebar.dark-mode .nav-tabs .nav-link {
+    color: #94a3b8 !important;
+    background-color: transparent !important;
+    border-color: transparent !important;
+}
+
+.right-sidebar.dark-mode .nav-tabs .nav-link.active {
+    color: #38bdf8 !important;
+    background-color: #222632 !important;
+    border-color: #2d3343 #2d3343 transparent !important;
+}
+
+.right-sidebar.dark-mode .tab-content {
+    background: #1f232d !important;
+    border-color: #2d3343 !important;
+}
+
+.right-sidebar.dark-mode .list-group-item {
+    background-color: #222632 !important;
+    border-color: #2d3343 !important;
+    color: #e2e8f0 !important;
+}
+
+.right-sidebar.dark-mode .table {
+    color: #e2e8f0 !important;
+}
+
+.right-sidebar.dark-mode .table-bordered,
+.right-sidebar.dark-mode .table-bordered th,
+.right-sidebar.dark-mode .table-bordered td {
+    border-color: #2d3343 !important;
+}
+
+.right-sidebar.dark-mode :deep(.wysihtml5-toolbar) {
+    background: #222632 !important;
+    border-color: #3b4254 !important;
+    padding: 6px !important;
+    border-radius: 4px 4px 0 0 !important;
+}
+
+.right-sidebar.dark-mode :deep(.wysihtml5-toolbar .btn) {
+    background-color: #2d3343 !important;
+    border-color: #3b4254 !important;
+    color: #f1f5f9 !important;
+}
+
+.right-sidebar.dark-mode :deep(.wysihtml5-toolbar .btn:hover) {
+    background-color: #3b4254 !important;
+    color: #38bdf8 !important;
+}
+
+.right-sidebar.dark-mode :deep(.wysihtml5-sandbox) {
+    border-color: #3b4254 !important;
+    background-color: #1e222b !important;
 }
 </style>

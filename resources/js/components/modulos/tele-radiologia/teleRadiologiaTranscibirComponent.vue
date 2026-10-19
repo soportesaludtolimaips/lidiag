@@ -120,10 +120,28 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title">Listado de estudios disponibles</h4>
-                        <h6 class="card-subtitle text-info">
-                            Asigne los estudios a los médicos para su respectiva lectura.
-                        </h6>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <h4 class="card-title mb-0">Listado de estudios disponibles</h4>
+                                <h6 class="card-subtitle text-info mt-1">
+                                    Asigne los estudios a los médicos para su respectiva lectura.
+                                </h6>
+                            </div>
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-rounded"
+                                :class="isDarkMode ? 'btn-warning' : 'btn-outline-secondary'"
+                                @click="toggleDarkMode"
+                                :title="
+                                    isDarkMode
+                                        ? 'Cambiar a Modo Claro'
+                                        : 'Cambiar a Modo Oscuro (Lectura)'
+                                "
+                            >
+                                <i :class="isDarkMode ? 'fa fa-sun-o' : 'fa fa-moon-o'"></i>
+                                {{ isDarkMode ? "Modo Claro" : "Modo Oscuro" }}
+                            </button>
+                        </div>
                         <div class="table-responsive">
                             <table
                                 id="example23"
@@ -271,15 +289,29 @@
         <!-- .right-sidebar -->
         <div
             class="right-sidebar"
-            :class="{ 'shw-rside': sidebarVisible }"
+            :class="{ 'shw-rside': sidebarVisible, 'dark-mode': isDarkMode }"
             style="overflow-x: hidden; overflow-y: scroll; height: 100%"
         >
             <div class="slimscrollright">
-                <div class="rpanel-title">
-                    {{ tituloModal }}
-                    <span @click="btnCerrarModal()">
-                        <i class="ti-close right-side-toggle"></i>
-                    </span>
+                <div class="rpanel-title d-flex justify-content-between align-items-center">
+                    <span>{{ tituloModal }}</span>
+                    <div class="d-flex align-items-center">
+                        <button
+                            type="button"
+                            class="btn btn-xs btn-outline-light m-r-10"
+                            @click="toggleDarkMode"
+                            :title="isDarkMode ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Oscuro'"
+                            style="padding: 2px 8px; font-size: 11px; border-radius: 12px"
+                        >
+                            <i
+                                :class="isDarkMode ? 'fa fa-sun-o text-warning' : 'fa fa-moon-o'"
+                            ></i>
+                            {{ isDarkMode ? "Claro" : "Oscuro" }}
+                        </button>
+                        <span @click="btnCerrarModal()" class="cursor-pointer">
+                            <i class="ti-close right-side-toggle"></i>
+                        </span>
+                    </div>
                 </div>
                 <div class="r-panel-body">
                     <form @submit.prevent>
@@ -582,6 +614,13 @@ defineProps({
 const dt = ref(null);
 const actualizar = ref(false);
 const sidebarVisible = ref(false);
+
+const isDarkMode = ref(localStorage.getItem("lidiag_dark_mode") === "true");
+
+function toggleDarkMode() {
+    isDarkMode.value = !isDarkMode.value;
+    localStorage.setItem("lidiag_dark_mode", isDarkMode.value ? "true" : "false");
+}
 
 const soportesHC = ref([]);
 const registros = ref([]);
@@ -1081,5 +1120,90 @@ onBeforeUnmount(() => {
     right: 0px;
     width: 95%;
     display: block;
+}
+
+/* ============================================================== */
+/* Modo Oscuro / Radiología (Dark Mode para entorno PACS)         */
+/* ============================================================== */
+.right-sidebar.dark-mode {
+    background: #181a20 !important;
+    color: #e2e8f0 !important;
+}
+
+.right-sidebar.dark-mode .rpanel-title {
+    background: #12141a !important;
+    color: #f1f5f9 !important;
+    border-bottom: 1px solid #2d3343 !important;
+}
+
+.right-sidebar.dark-mode .r-panel-body {
+    background: #181a20 !important;
+}
+
+.right-sidebar.dark-mode hr {
+    border-top-color: #2d3343 !important;
+}
+
+.right-sidebar.dark-mode dt,
+.right-sidebar.dark-mode label {
+    color: #cbd5e1 !important;
+}
+
+.right-sidebar.dark-mode dd,
+.right-sidebar.dark-mode p,
+.right-sidebar.dark-mode span,
+.right-sidebar.dark-mode li {
+    color: #e2e8f0;
+}
+
+.right-sidebar.dark-mode .form-control {
+    background-color: #222632 !important;
+    color: #f8fafc !important;
+    border-color: #3b4254 !important;
+}
+
+.right-sidebar.dark-mode .form-control:focus {
+    background-color: #262b38 !important;
+    border-color: #00bcd4 !important;
+    color: #ffffff !important;
+}
+
+.right-sidebar.dark-mode .list-group-item {
+    background-color: #222632 !important;
+    border-color: #2d3343 !important;
+    color: #e2e8f0 !important;
+}
+
+.right-sidebar.dark-mode .table {
+    color: #e2e8f0 !important;
+}
+
+.right-sidebar.dark-mode .table-bordered,
+.right-sidebar.dark-mode .table-bordered th,
+.right-sidebar.dark-mode .table-bordered td {
+    border-color: #2d3343 !important;
+}
+
+.right-sidebar.dark-mode :deep(.wysihtml5-toolbar) {
+    background: #222632 !important;
+    border-color: #3b4254 !important;
+    padding: 6px !important;
+    border-radius: 4px 4px 0 0 !important;
+}
+
+.right-sidebar.dark-mode :deep(.wysihtml5-toolbar .btn) {
+    background-color: #2d3343 !important;
+    border-color: #3b4254 !important;
+    color: #f1f5f9 !important;
+}
+
+.right-sidebar.dark-mode :deep(.wysihtml5-toolbar .btn:hover) {
+    background-color: #3b4254 !important;
+    color: #38bdf8 !important;
+}
+
+.right-sidebar.dark-mode :deep(.wysihtml5-sandbox) {
+    border-color: #3b4254 !important;
+    background-color: #1e222b !important;
 }
 </style>

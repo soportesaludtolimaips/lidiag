@@ -142,7 +142,12 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 - [x] **2026-10-17 — Auditoría profunda y normalización de Reportes y Varios (`reporteProduccionComponent.vue`, `seleccionarSede.vue`):**
   - **`reporteProduccionComponent.vue`:** Desempaquetado defensivo de sedes activas (`res?.data?.data || res?.data || []`) evitando excepciones en respuestas vacías o no canónicas. Preservada la independencia de selección por modal (sin listener de emitter global de sede).
   - **`seleccionarSede.vue`:** Desempaquetado defensivo (`res?.data?.data || res?.data || []`), persistencia coherente recuperando la sede previamente guardada en `sessionStorage.getItem("ST-sede")` para evitar reinicios al índice 0 tras recargar, y agregada notificación con `toastMessage` en el bloque `catch` ante fallos de conexión.
-  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 939ms ✅.
+- [x] **2026-10-19 — UI/UX Categoría 1.1: Implementación de Modo Oscuro / Modo Lectura Radiológica:**
+  - `leerEstudioComponent.vue`, `lecturaComponent.vue` y `teleRadiologiaTranscibirComponent.vue`: Sincronización compartida bajo la clave `localStorage.getItem("lidiag_dark_mode")`.
+  - Botón selector y conmutador rápido en tabla de estudios y encabezado modal (`.rpanel-title`).
+  - Paleta radiológica especializada de alto contraste y bajo brillo (`#181a20`, `#12141a`, `#222632`, `#3b4254`, `#e2e8f0`) optimizada para lectura diagnóstica en estaciones PACS.
+  - Soporte scoped para wysihtml5 (`:deep(.wysihtml5-toolbar)`, `:deep(.wysihtml5-sandbox)`).
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.07s ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.
