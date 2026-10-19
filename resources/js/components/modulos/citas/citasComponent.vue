@@ -164,7 +164,17 @@
 
                         <loading-spinner :visible="loadingBuscar" />
 
-                        <div :class="{ 'd-none': loadingBuscar }">
+                        <empty-state-component
+                            v-if="!loadingBuscar && registros.length === 0"
+                            icon="fa fa-calendar-check-o"
+                            title="No se encontraron citas"
+                            description="No hay solicitudes o citas registradas para los filtros indicados."
+                            action-text="Limpiar filtros"
+                            action-icon="fa fa-refresh"
+                            @action="limpiarFiltros()"
+                        />
+
+                        <div v-show="!loadingBuscar && registros.length > 0">
                             <div class="table-responsive">
                                 <table class="table table-bordered table-striped">
                                     <thead>

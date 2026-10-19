@@ -223,7 +223,19 @@
                             </div>
                         </div>
                         <loading-spinner :visible="loadingBuscar" />
-                        <div class="table-responsive" :class="{ 'd-none': loadingBuscar }">
+                        <empty-state-component
+                            v-if="!loadingBuscar && registros.length === 0"
+                            icon="fa fa-folder-open-o"
+                            title="No hay estudios asignados para mostrar"
+                            description="No se encontraron estudios que coincidan con los filtros seleccionados o aún no ha realizado una búsqueda."
+                            action-text="Limpiar filtros"
+                            action-icon="fa fa-refresh"
+                            @action="btnLimpiar()"
+                        />
+                        <div
+                            v-show="!loadingBuscar && registros.length > 0"
+                            class="table-responsive"
+                        >
                             <table
                                 id="example23"
                                 ref="dt"

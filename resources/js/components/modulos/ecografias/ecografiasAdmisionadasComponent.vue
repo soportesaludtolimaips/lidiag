@@ -151,7 +151,20 @@
                         <h6 class="card-subtitle text-info">
                             Asigne los médicos para su respectiva lectura.
                         </h6>
-                        <div class="table-responsive">
+                        <loading-spinner :visible="isBuscandoAdmisionadas" />
+                        <empty-state-component
+                            v-if="!isBuscandoAdmisionadas && registros.length === 0"
+                            icon="fa fa-etsy"
+                            title="No hay ecografías para mostrar"
+                            description="No se encontraron ecografías admisionadas que coincidan con los filtros ingresados."
+                            action-text="Limpiar filtros"
+                            action-icon="fa fa-refresh"
+                            @action="btnLimpiar()"
+                        />
+                        <div
+                            v-show="!isBuscandoAdmisionadas && registros.length > 0"
+                            class="table-responsive"
+                        >
                             <table
                                 id="example23"
                                 ref="dt"
@@ -400,6 +413,7 @@
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 
+import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import usePermissions from "@/helpers/permissions.js";
 import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
 import { useSede } from "@/composables/useSede.js";

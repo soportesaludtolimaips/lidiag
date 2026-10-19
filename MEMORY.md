@@ -191,6 +191,12 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - Auto-ejecución inteligente de la búsqueda al retornar de una lectura o detalle si existen filtros previos persistidos.
   - Botón "Limpiar" conectado a `limpiarFiltrosStorage()` para reseteo completo y limpio.
   - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.09s ✅.
+- [x] **2026-10-19 — UI/UX Categoría 3.2: Estados Vacíos Ilustrados (Empty States) y Feedback Visual:**
+  - Creado componente global reutilizable `EmptyStateComponent.vue` en `resources/js/components/comunes/` y registrado en `app.js`.
+  - Iconos contextuales clínicos, círculos con micro-interacción hover, textos descriptivos orientados a la acción y botones de recuperación ("Limpiar filtros", "Actualizar").
+  - Integrado como reemplazo de tablas vacías ("No data available") en `estudioAsignadosComponent.vue`, `citasComponent.vue` y `ecografiasAdmisionadasComponent.vue`.
+  - Soporte integrado de alto contraste para Modo Claro y Modo Oscuro radiológico (`body.theme-dark`).
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.13s ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.

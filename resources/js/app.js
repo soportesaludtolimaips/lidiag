@@ -39,6 +39,8 @@ import dashboardComponent from "./components/dashboard/dashboardComponent.vue";
 app.component("DashboardComponent", dashboardComponent);
 import commandPaletteComponent from "./components/comunes/commandPaletteComponent.vue";
 app.component("CommandPaletteComponent", commandPaletteComponent);
+import emptyStateComponent from "./components/comunes/EmptyStateComponent.vue";
+app.component("EmptyStateComponent", emptyStateComponent);
 
 /**
  * Cofiguración
