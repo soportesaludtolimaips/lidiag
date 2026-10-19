@@ -19,7 +19,18 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-info btnDesplegarRigthSidebar"
+                    class="btn btn-sm btn-outline-secondary btn-action-clinical m-r-5"
+                    :disabled="loadingListar"
+                    title="Actualizar listado de usuarios (F2)"
+                    @click="ListarDatos()"
+                >
+                    <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loadingListar }"></i>
+                    Refrescar <span class="badge badge-light border ml-1">F2</span>
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-info btn-action-clinical btnDesplegarRigthSidebar"
+                    title="Crear nuevo usuario"
                     @click="
                         actualizar = false;
                         mostrarRegistro();
@@ -226,6 +237,7 @@
         <!-- ============================================================== -->
         <!-- Right sidebar -->
         <!-- ============================================================== -->
+        <div v-if="sidebarOpen" class="sidebar-backdrop" @click="btnCerrarModalForm()"></div>
         <!-- .right-sidebar -->
         <div
             class="right-sidebar"
@@ -237,12 +249,12 @@
                     {{ tituloModal }}
                     <button
                         type="button"
-                        class="close"
-                        title="Cerrar"
+                        class="right-side-toggle text-white border-0 bg-transparent"
+                        title="Cerrar panel (Esc)"
                         aria-label="Cerrar panel"
                         @click="btnCerrarModalForm()"
                     >
-                        <i class="ti-close right-side-toggle"></i>
+                        <i class="ti-close"></i>
                     </button>
                 </div>
                 <div class="r-panel-body">
@@ -595,32 +607,38 @@
                             <div class="form-actions mt-3">
                                 <button
                                     type="button"
-                                    class="btn btn-success m-r-5"
+                                    class="btn btn-success btn-action-clinical m-r-5"
                                     @click="guardarRegistro()"
                                     v-if="!actualizar"
                                     :disabled="loadingGuardar"
+                                    title="Guardar usuario (Ctrl+S)"
                                 >
-                                    <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
-                                    <i v-else class="fa fa-check"></i> Guardar
+                                    <i v-if="loadingGuardar" class="fa fa-spinner fa-spin mr-1"></i>
+                                    <i v-else class="fa fa-check mr-1"></i> Guardar
+                                    <span class="badge badge-light text-dark ml-1">Ctrl+S</span>
                                 </button>
 
                                 <button
                                     type="button"
-                                    class="btn btn-warning m-r-5"
+                                    class="btn btn-warning btn-action-clinical m-r-5"
                                     v-if="actualizar"
                                     @click="guardarRegistro()"
                                     :disabled="loadingGuardar"
+                                    title="Actualizar usuario (Ctrl+S)"
                                 >
-                                    <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
-                                    <i v-else class="fa fa-pencil"></i> Actualizar
+                                    <i v-if="loadingGuardar" class="fa fa-spinner fa-spin mr-1"></i>
+                                    <i v-else class="fa fa-pencil mr-1"></i> Actualizar
+                                    <span class="badge badge-light text-dark ml-1">Ctrl+S</span>
                                 </button>
 
                                 <button
                                     type="button"
-                                    class="btn btn-inverse"
+                                    class="btn btn-inverse btn-action-clinical"
+                                    title="Cancelar (Esc)"
                                     @click="btnCerrarModalForm()"
                                 >
                                     Cancelar
+                                    <span class="badge badge-secondary ml-1">Esc</span>
                                 </button>
                             </div>
                         </div>
@@ -634,11 +652,15 @@
 
         <!-- Modal ampliar firma -->
         <div
-            class="modal fade"
+            v-if="modalFirmaVisible"
+            class="modal fade show d-block"
             id="modalAmpliarFirma"
             tabindex="-1"
             role="dialog"
-            aria-hidden="true"
+            aria-modal="true"
+            aria-hidden="false"
+            style="background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(2px); z-index: 1060"
+            @click.self="cerrarModalFirma"
         >
             <div class="modal-dialog modal-sm">
                 <div class="modal-content">
@@ -648,7 +670,8 @@
                             type="button"
                             class="close"
                             @click="cerrarModalFirma"
-                            aria-hidden="true"
+                            aria-label="Cerrar modal"
+                            title="Cerrar (Esc)"
                         >
                             &times;
                         </button>
@@ -667,8 +690,14 @@
                         </p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-inverse" @click="cerrarModalFirma">
+                        <button
+                            type="button"
+                            class="btn btn-inverse btn-action-clinical"
+                            title="Cerrar (Esc)"
+                            @click="cerrarModalFirma"
+                        >
                             Cerrar
+                            <span class="badge badge-secondary ml-1">Esc</span>
                         </button>
                     </div>
                 </div>
@@ -680,11 +709,13 @@
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { confirmAction, alertError, alertSuccess, toastMessage } from "@/helpers/alerts";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 import axios from "axios";
 
 defineProps({ usuarioactual: { type: Object, default: () => ({}) } });
 
 const dt = ref(null);
+const modalFirmaVisible = ref(false);
 
 const registros = ref([]);
 const roles = ref([]);
@@ -1038,15 +1069,19 @@ function mostrarRegistro(data = {}) {
     }
 
     sidebarOpen.value = true;
+    nextTick(() => {
+        const el = document.getElementById("num_docu");
+        if (el) el.focus();
+    });
 }
-function ampliarFirma(firma, nombre) {
+function ampliarFirma(firmaPath, nombre) {
     firmaAmpliadaError.value = false;
-    firmaAmpliadaSrc.value = "/" + firma;
+    firmaAmpliadaSrc.value = "/" + firmaPath;
     firmaAmpliadaNombre.value = nombre || "Firma";
-    $("#modalAmpliarFirma").modal("show");
+    modalFirmaVisible.value = true;
 }
 function cerrarModalFirma() {
-    $("#modalAmpliarFirma").modal("hide");
+    modalFirmaVisible.value = false;
 }
 function btnCerrarModalForm() {
     sidebarOpen.value = false;
@@ -1075,28 +1110,73 @@ onMounted(() => {
 onBeforeUnmount(() => {
     destroyDataTable();
 });
+
+useKeyboardShortcuts({
+    onSearch: () => {
+        if (!sidebarOpen.value && !modalFirmaVisible.value && !loadingListar.value) {
+            ListarDatos();
+        }
+    },
+    onSave: () => {
+        if (sidebarOpen.value && !loadingGuardar.value) {
+            guardarRegistro();
+        }
+    },
+    onEscape: () => {
+        if (modalFirmaVisible.value) {
+            cerrarModalFirma();
+        } else if (sidebarOpen.value) {
+            btnCerrarModalForm();
+        }
+    },
+});
 </script>
 <style scoped>
 .right-sidebar {
     position: fixed;
     right: -55%;
     width: 55%;
-    display: none;
+    visibility: hidden;
+    pointer-events: none;
     z-index: 1100;
     background: #ffffff;
     top: 0px;
     padding-bottom: 20px;
     height: 100%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
 }
 
 .shw-rside {
     right: 0px;
-    width: 55%;
-    display: block;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(2px);
+    z-index: 1050;
+    transition: opacity 0.25s ease;
+}
+
+.btn-action-clinical {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-action-clinical:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 </style>

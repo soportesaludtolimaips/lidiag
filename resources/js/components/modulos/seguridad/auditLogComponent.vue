@@ -14,8 +14,15 @@
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
-                <button type="button" class="btn btn-info btn-rounded" @click="cargarLogs">
-                    <i class="fa fa-refresh m-r-5"></i> Refrescar
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary btn-action-clinical m-r-5"
+                    :disabled="loading"
+                    title="Actualizar registros de auditoría (F2)"
+                    @click="cargarLogs"
+                >
+                    <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loading }"></i>
+                    Refrescar <span class="badge badge-light border ml-1">F2</span>
                 </button>
             </div>
         </div>
@@ -67,7 +74,10 @@
                                 />
                             </div>
                             <div class="col-md-2 d-flex align-items-end">
-                                <button class="btn btn-success btn-block" @click="cargarLogs">
+                                <button
+                                    class="btn btn-success btn-block btn-action-clinical"
+                                    @click="cargarLogs"
+                                >
                                     <i class="fa fa-search"></i> Filtrar
                                 </button>
                             </div>
@@ -174,12 +184,15 @@
         </div>
 
         <div
-            class="modal fade"
+            v-if="mostrarDetalle"
+            class="modal fade show d-block"
             id="modalDetalleAuditoria"
             tabindex="-1"
             role="dialog"
-            aria-hidden="true"
-            v-if="mostrarDetalle"
+            aria-modal="true"
+            aria-hidden="false"
+            style="background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px); z-index: 1060"
+            @click.self="mostrarDetalle = false"
         >
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -189,7 +202,8 @@
                             type="button"
                             class="close"
                             @click="mostrarDetalle = false"
-                            aria-hidden="true"
+                            aria-label="Cerrar modal"
+                            title="Cerrar (Esc)"
                         >
                             &times;
                         </button>
@@ -262,10 +276,12 @@
                     <div class="modal-footer">
                         <button
                             type="button"
-                            class="btn btn-inverse"
+                            class="btn btn-inverse btn-action-clinical"
+                            title="Cerrar (Esc)"
                             @click="mostrarDetalle = false"
                         >
                             Cerrar
+                            <span class="badge badge-secondary ml-1">Esc</span>
                         </button>
                     </div>
                 </div>
@@ -280,6 +296,7 @@ const dt = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { toastMessage } from "@/helpers/alerts";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 import axios from "axios";
 
 const registros = ref([]);
@@ -402,6 +419,19 @@ onMounted(() => {
 onBeforeUnmount(() => {
     safeDestroyDataTable(dt.value || "#tablaAuditoria");
 });
+
+useKeyboardShortcuts({
+    onSearch: () => {
+        if (!loading.value && !mostrarDetalle.value) {
+            cargarLogs();
+        }
+    },
+    onEscape: () => {
+        if (mostrarDetalle.value) {
+            mostrarDetalle.value = false;
+        }
+    },
+});
 </script>
 <style scoped>
 .cell-descripcion {
@@ -409,5 +439,17 @@ onBeforeUnmount(() => {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+.btn-action-clinical {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-action-clinical:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 </style>

@@ -16,6 +16,18 @@
                     <li class="breadcrumb-item active">Perfil</li>
                 </ol>
             </div>
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary btn-action-clinical m-r-5"
+                    :disabled="loadingObtener"
+                    title="Recargar datos del perfil (F2)"
+                    @click="obtenerRegistro()"
+                >
+                    <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loadingObtener }"></i>
+                    Refrescar <span class="badge badge-light border ml-1">F2</span>
+                </button>
+            </div>
         </div>
         <!-- ============================================================== -->
         <!-- End Bread crumb and right sidebar toggle -->
@@ -218,16 +230,20 @@
                                         <div class="col-sm-12">
                                             <button
                                                 type="button"
-                                                class="btn btn-success m-r-5"
+                                                class="btn btn-success btn-action-clinical m-r-5"
                                                 :disabled="loadingActualizar"
+                                                title="Guardar cambios del perfil (Ctrl+S)"
                                                 @click="actualizarPerfil()"
                                             >
                                                 <i
                                                     v-if="loadingActualizar"
-                                                    class="fa fa-spinner fa-spin"
+                                                    class="fa fa-spinner fa-spin mr-1"
                                                 ></i>
-                                                <i v-else class="fa fa-pencil"></i> Actualizar
+                                                <i v-else class="fa fa-pencil mr-1"></i> Actualizar
                                                 Perfil
+                                                <span class="badge badge-light text-dark ml-1">
+                                                    Ctrl+S
+                                                </span>
                                             </button>
                                         </div>
                                     </div>
@@ -249,6 +265,7 @@ import { onBeforeUnmount, onMounted, ref } from "vue";
 
 import axios from "axios";
 import { toastMessage } from "@/helpers/alerts";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 
 const props = defineProps({ usuarioactual: { type: Object, default: () => ({}) } });
 
@@ -369,28 +386,31 @@ onBeforeUnmount(() => {
     if (avatarPreview.value) URL.revokeObjectURL(avatarPreview.value);
     if (firmaPreview.value) URL.revokeObjectURL(firmaPreview.value);
 });
+
+useKeyboardShortcuts({
+    onSearch: () => {
+        if (!loadingObtener.value) {
+            obtenerRegistro();
+        }
+    },
+    onSave: () => {
+        if (!loadingActualizar.value) {
+            actualizarPerfil();
+        }
+    },
+});
 </script>
 <style scoped>
-.right-sidebar {
-    position: fixed;
-    right: -25%;
-    width: 25%;
-    display: none;
-    z-index: 1100;
-    background: #ffffff;
-    top: 0px;
-    padding-bottom: 20px;
-    height: 100%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
+.btn-action-clinical {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
-.shw-rside {
-    right: 0px;
-    width: 25%;
-    display: block;
+.btn-action-clinical:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 </style>
