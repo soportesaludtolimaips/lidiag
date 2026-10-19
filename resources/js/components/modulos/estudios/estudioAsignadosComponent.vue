@@ -222,7 +222,7 @@
                                 <span class="badge badge-secondary" v-else>Sin resultados</span>
                             </div>
                         </div>
-                        <loading-spinner :visible="loadingBuscar" />
+                        <table-skeleton-loader :visible="loadingBuscar" :rows="6" :columns="8" />
                         <empty-state-component
                             v-if="!loadingBuscar && registros.length === 0"
                             icon="fa fa-folder-open-o"
@@ -785,7 +785,6 @@
 <script setup>
 import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { listarUsuariosYSedes } from "@/helpers/usuarios";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { confirmAction, getUserSafeError, toastMessage } from "@/helpers/alerts";

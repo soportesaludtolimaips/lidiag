@@ -162,7 +162,7 @@
                             Gestione las solicitudes de citas y asígneles fecha y hora
                         </h6>
 
-                        <loading-spinner :visible="loadingBuscar" />
+                        <table-skeleton-loader :visible="loadingBuscar" :rows="6" :columns="9" />
 
                         <empty-state-component
                             v-if="!loadingBuscar && registros.length === 0"
@@ -532,7 +532,6 @@ import { computed, getCurrentInstance, onBeforeUnmount, onMounted, ref } from "v
 const { proxy, appContext } = getCurrentInstance();
 const emitter = appContext.config.globalProperties.emitter;
 
-import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { formatFecha, getEstadoLabel, getEstadoClase } from "@/composables/useCitasUtils.js";
 import { alertError, alertSuccess, alertWarning, confirmAction } from "@/helpers/alerts";
 import axios from "axios";

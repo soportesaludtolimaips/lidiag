@@ -197,6 +197,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - Integrado como reemplazo de tablas vacías ("No data available") en `estudioAsignadosComponent.vue`, `citasComponent.vue` y `ecografiasAdmisionadasComponent.vue`.
   - Soporte integrado de alto contraste para Modo Claro y Modo Oscuro radiológico (`body.theme-dark`).
   - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.13s ✅.
+- [x] **2026-10-19 — UI/UX Categoría 3.3: Skeleton Loaders con Efecto Shimmer en Tablas:**
+  - Creado componente global reutilizable `TableSkeletonLoader.vue` en `resources/js/components/comunes/` y registrado en `app.js`.
+  - Simula tablas completas con cabeceras y celdas esqueléticas pulsantes (`skeleton-shimmer`) de anchos variables, eliminando el layout shift (CLS = 0).
+  - Parámetros configurables (`:rows` y `:columns`) adaptados a cada tabla.
+  - Integrado en `estudioAsignadosComponent.vue`, `citasComponent.vue` y `ecografiasAdmisionadasComponent.vue`.
+  - Soporte completo para Modo Claro y Modo Oscuro radiológico (`body.theme-dark`).
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.14s ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.

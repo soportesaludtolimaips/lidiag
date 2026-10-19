@@ -41,6 +41,8 @@ import commandPaletteComponent from "./components/comunes/commandPaletteComponen
 app.component("CommandPaletteComponent", commandPaletteComponent);
 import emptyStateComponent from "./components/comunes/EmptyStateComponent.vue";
 app.component("EmptyStateComponent", emptyStateComponent);
+import tableSkeletonLoader from "./components/comunes/TableSkeletonLoader.vue";
+app.component("TableSkeletonLoader", tableSkeletonLoader);
 
 /**
  * Cofiguración

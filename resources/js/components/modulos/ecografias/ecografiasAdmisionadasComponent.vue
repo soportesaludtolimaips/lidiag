@@ -151,7 +151,11 @@
                         <h6 class="card-subtitle text-info">
                             Asigne los médicos para su respectiva lectura.
                         </h6>
-                        <loading-spinner :visible="isBuscandoAdmisionadas" />
+                        <table-skeleton-loader
+                            :visible="isBuscandoAdmisionadas"
+                            :rows="6"
+                            :columns="8"
+                        />
                         <empty-state-component
                             v-if="!isBuscandoAdmisionadas && registros.length === 0"
                             icon="fa fa-etsy"
@@ -413,7 +417,6 @@
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 
-import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import usePermissions from "@/helpers/permissions.js";
 import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
 import { useSede } from "@/composables/useSede.js";
