@@ -30,3 +30,7 @@ Schedule::command('notifications:prune --days=90')
 Schedule::command('lidiag:backup')
     ->dailyAt('02:00')
     ->withoutOverlapping();
+
+Schedule::command('lidiag:backup-dcm')
+    ->dailyAt('02:30')
+    ->withoutOverlapping();

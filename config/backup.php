@@ -71,4 +71,32 @@ return [
     |
     */
     "temp_path" => storage_path("app/backup-temp"),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Destino de Backups de Bases de Datos DCM (Sedes)
+    |--------------------------------------------------------------------------
+    |
+    | Subcarpeta donde se almacenarán los archivos .zip de cada sede PACS/DCM.
+    |
+    */
+    "dcm_destination_path" => env("BACKUP_DCM_DESTINATION_PATH", "C:\\Backups_Lidiag\\dcm_sedes"),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Política de Retención DCM (Días)
+    |--------------------------------------------------------------------------
+    |
+    */
+    "dcm_retention_days" => (int) env("BACKUP_DCM_RETENTION_DAYS", 30),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Timeout de Conexión a Sede (Segundos)
+    |--------------------------------------------------------------------------
+    |
+    | Tiempo máximo para probar si el puerto MySQL de la sede remota responde.
+    |
+    */
+    "dcm_timeout_seconds" => (int) env("BACKUP_DCM_TIMEOUT", 5),
 ];

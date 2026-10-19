@@ -179,12 +179,14 @@ class BackupService extends BaseService
      */
     public function generarDumpDatabase(string $tempPath, string $timestamp, ?callable $callback = null): string
     {
-        $dbConfig = config("database.connections.mysql");
-        $host = $dbConfig["host"] ?? "127.0.0.1";
-        $port = $dbConfig["port"] ?? "3306";
-        $database = $dbConfig["database"] ?? "lidiag";
-        $username = $dbConfig["username"] ?? "root";
-        $password = $dbConfig["password"] ?? "";
+        $defaultConn = config("database.default", "mysql");
+        $dbConfig = config("database.connections.{$defaultConn}", []);
+
+        $host = env("DB_HOST", $dbConfig["host"] ?? "127.0.0.1");
+        $port = env("DB_PORT", $dbConfig["port"] ?? "3306");
+        $database = env("DB_DATABASE", $dbConfig["database"] ?? "");
+        $username = env("DB_USERNAME", $dbConfig["username"] ?? "");
+        $password = env("DB_PASSWORD", $dbConfig["password"] ?? "");
 
         $mysqldumpBin = $this->resolverRutaMysqldump();
 
@@ -195,6 +197,7 @@ class BackupService extends BaseService
         $cmdArgs = [
             escapeshellarg($mysqldumpBin),
             "--host=".escapeshellarg($host),
+            "--protocol=tcp",
             "--port=".escapeshellarg((string) $port),
             "--user=".escapeshellarg($username),
             "--single-transaction",
@@ -209,9 +212,14 @@ class BackupService extends BaseService
         $command = implode(" ", $cmdArgs);
 
         // Si hay contraseña, se suministra mediante entorno MYSQL_PWD para no exponerla en proceso
-        $env = null;
+        $env = [];
+        foreach ($_SERVER as $k => $v) {
+            if (is_scalar($v)) {
+                $env[(string) $k] = (string) $v;
+            }
+        }
         if (! empty($password)) {
-            $env = array_merge($_ENV, ["MYSQL_PWD" => $password]);
+            $env["MYSQL_PWD"] = $password;
         }
 
         $descriptors = [

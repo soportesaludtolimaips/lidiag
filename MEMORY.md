@@ -220,13 +220,23 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - Creado `config/backup.php` parametrizado con `BACKUP_DESTINATION_PATH=C:\Backups_Lidiag`, `BACKUP_RETENTION_DAYS=30`, `MYSQLDUMP_PATH` y listado de las 16 carpetas seleccionadas de `storage/app/*`.
   - Agregado canal de logging `'backups'` en `config/logging.php` apuntando a `storage/logs/backups.log`.
   - Implementado `BackupService.php` en `app/Services/Backup/`: generación de backups independientes para desacoplar escalabilidad:
-    * Base de Datos: `backup_lidiag_db_*.zip` conteniendo el volcado SQL seguro (`database_lidiag_*.sql`).
+    * Base de Datos: `backup_lidiag_db_*.zip` conteniendo el volcado SQL seguro (`database_lidiag_*.sql`). Corregido para leer credenciales directamente desde `.env` (`env('DB_HOST')`, `env('DB_DATABASE')`, etc.) con prioridad sobre config.
     * Storage: `backup_lidiag_storage_*.zip` conteniendo las 16 carpetas clínicas.
     * Retención automática: purga periódica de archivos `.zip` de backup más antiguos a 30 días.
   - Creado comando Artisan `LidiagBackupCommand.php` (`php artisan lidiag:backup`) con banderas `--only-db`, `--only-files`, `--destination`, `--retention` y tabla resumen formateada.
   - Registrado en Laravel Scheduler (`routes/console.php`) para ejecutarse diariamente a las 02:00 AM (`dailyAt('02:00')->withoutOverlapping()`).
   - Creado script auxiliar `scripts/programar_tarea_backup.bat` para registro de la tarea en el Programador de Tareas de Windows (Task Scheduler).
   - Verificación exitosa: `backup_lidiag_db_*.zip` (53.3 MB) y `backup_lidiag_storage_*.zip` (1.28 GB, 3,972 archivos) generados en 74s ✅ | Pint `--test passed` ✅.
+- [x] **2026-10-19 — Sistema de Backups de Bases de Datos DCM / PACS por Sedes:**
+  - Implementado `BackupDcmService.php` en `app/Services/Backup/`:
+    * Conexión tolerante a fallos: prueba rápida de socket TCP (`probarConexion`) antes de volcado para no demorar si una sede está offline o la VPN caída.
+    * Volcado seguro con `mysqldump` usando `--protocol=tcp`, `--column-statistics=0` y propagación de variables escalares de entorno Windows para evitar errores de socket Winsock (10106).
+    * Empaquetado individual en archivos `.zip` independientes por sede bajo `C:\Backups_Lidiag\dcm_sedes\` (`backup_dcm_sede_{id}_{slug}_{timestamp}.zip`).
+    * Purga automática de retención configurada a 30 días (`BACKUP_DCM_RETENTION_DAYS`).
+  - Creado comando Artisan `LidiagBackupDcmCommand.php` (`php artisan lidiag:backup-dcm`) con soporte para `--sede=ID`, `--destination`, `--retention`, `--timeout` y tabla detallada por sede.
+  - Registrado en Laravel Scheduler (`routes/console.php`) a las **02:30 AM** con protección `withoutOverlapping()`.
+  - Actualizado `scripts/programar_tarea_backup.bat` para registrar la tarea `LIDiag_Daily_Backup_DCM` en Windows Task Scheduler.
+  - Verificación exitosa: respaldo real de Sede #1 (Espinal - Hospital San Rafael: `pacsdb`) volcando **9.06 GB** de SQL a un archivo `.zip` de **464.22 MB** en `C:\Backups_Lidiag\dcm_sedes\` ✅ | Pint `--test passed` ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.
