@@ -389,6 +389,12 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Atajos Asistenciales (`useKeyboardShortcuts`):** Atajos `F2` para recarga/búsqueda inmediata en listado de usuarios, perfil y auditoría; `Ctrl+S` para guardar en creación/edición de usuario y actualización de perfil; `Escape` para cerrar paneles laterales y modales.
   - **Foco Accesible y Botones Clínicos:** Autofoco automático en `#num_docu` al abrir formulario de usuario, botón "Refrescar" asistencial en cabeceras `page-titles` con badges `F2`, badges `Ctrl+S`/`Esc`, y estandarización de `.btn-action-clinical`.
   - Verificación estricta: ESLint 0 errores/warnings en los 3 componentes ✅ | Vite `npm run build` en 1.13s ✅.
+- [x] **2026-10-19 — UI/UX Módulo Reportes: Atajos de Teclado, Badges y Ergonomía Clínica en `reporteProduccionComponent.vue`:**
+  - **Modales Reactivos con Backdrop Blur:** Modales de Producción Detallada (Rx/Ecografía) y Estudios PAC migrados a renderizado reactivo con desenfoque de fondo (`backdrop-filter: blur(2px)`), eliminando elementos redundantes `.modal-backdrop` y permitiendo cierre al clic exterior (`@click.self`).
+  - **Atajos Asistenciales (`useKeyboardShortcuts`):** Atajo `F2` para recargar catálogo de sedes y usuarios asistenciales; `Ctrl+S` para disparar la descarga de reportes dentro del modal activo; `Escape` para cerrar y resetear formularios de filtros.
+  - **Foco Accesible (`a11y`):** Autofoco automático reactivo (`nextTick`) en el selector de sedes `#prod-sede` y `#pac-sede` al abrir cualquiera de los modales.
+  - **Botón Asistencial y Badges en Cabecera (`page-titles`):** Incorporado botón "Refrescar" en la cabecera con spinner interactivo y badge `F2`, badges `Ctrl+S`/`Esc` en botones de acción y estandarización de la clase `.btn-action-clinical`.
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.06s ✅.
 - [x] **2026-10-19 — Herramienta Autónoma Python: Monitor de Discos DICOM con Bot de Telegram (`dcm_disk_monitor_telegram`):**
   - Implementada herramienta en `storage/app_lidiag/dcm_disk_monitor_telegram/` usando exclusivamente la librería estándar de Python (sin dependencias `pip`).
   - **Modo Dual (Opción C):**

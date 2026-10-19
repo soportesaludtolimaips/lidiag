@@ -14,6 +14,18 @@
                     <li class="breadcrumb-item active">Producción</li>
                 </ol>
             </div>
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary btn-action-clinical m-r-5"
+                    :disabled="loadingSedes"
+                    title="Actualizar sedes y catálogos asistenciales (F2)"
+                    @click="listarSedes()"
+                >
+                    <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loadingSedes }"></i>
+                    Refrescar <span class="badge badge-light border ml-1">F2</span>
+                </button>
+            </div>
         </div>
 
         <!-- Page Content -->
@@ -27,13 +39,7 @@
 
                         <div class="row">
                             <div class="col-12">
-                                <a
-                                    href="javascript:void(0)"
-                                    @click="
-                                        tipoReporte = 'Rx';
-                                        modalProduccionVisible = true;
-                                    "
-                                >
+                                <a href="javascript:void(0)" @click="abrirModalProduccion('Rx')">
                                     <i class="fa fa-check text-info"></i>
                                     Producción detallada (RX, Tomografía, Mamografía, Resonancia)
                                 </a>
@@ -41,10 +47,7 @@
                             <div class="col-12" v-if="can('ecografias.reporte')">
                                 <a
                                     href="javascript:void(0)"
-                                    @click="
-                                        tipoReporte = 'Ecografia';
-                                        modalProduccionVisible = true;
-                                    "
+                                    @click="abrirModalProduccion('Ecografia')"
                                 >
                                     <i class="fa fa-check text-info"></i>
                                     Producción detallada (Ecografias)
@@ -63,7 +66,7 @@
 
                         <div class="row">
                             <div class="col-12">
-                                <a href="javascript:void(0)" @click="modalPACVisible = true">
+                                <a href="javascript:void(0)" @click="abrirModalPAC()">
                                     <i class="fa fa-check text-info"></i>
                                     Descargar reporte de estudios tomados
                                 </a>
@@ -76,25 +79,33 @@
 
         <!-- Modal Producción Detallada -->
         <div
-            class="modal fade"
-            :class="{ show: modalProduccionVisible }"
-            :style="{ display: modalProduccionVisible ? 'block' : 'none' }"
+            v-if="modalProduccionVisible"
+            class="modal fade show d-block"
             tabindex="-1"
             role="dialog"
-            aria-hidden="true"
-            @click.self="modalProduccionVisible = false"
+            aria-modal="true"
+            aria-hidden="false"
+            style="background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px); z-index: 1050"
+            @click.self="
+                resetearFormulario();
+                modalProduccionVisible = false;
+            "
         >
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title">Filtro para el reporte</h4>
+                        <h4 class="modal-title">Filtro para el reporte ({{ tipoReporte }})</h4>
                         <button
                             type="button"
                             class="close"
-                            @click="modalProduccionVisible = false"
-                            aria-hidden="true"
+                            aria-label="Cerrar modal"
+                            title="Cerrar (Esc)"
+                            @click="
+                                resetearFormulario();
+                                modalProduccionVisible = false;
+                            "
                         >
-                            ×
+                            &times;
                         </button>
                     </div>
                     <div class="modal-body">
@@ -181,51 +192,65 @@
                     <div class="modal-footer">
                         <button
                             type="button"
-                            class="btn btn-default waves-effect"
+                            class="btn btn-inverse btn-action-clinical waves-effect"
+                            title="Cerrar (Esc)"
                             @click="
                                 resetearFormulario();
                                 modalProduccionVisible = false;
                             "
                         >
                             Cerrar
+                            <span class="badge badge-secondary ml-1">Esc</span>
                         </button>
                         <button
                             type="button"
-                            class="btn btn-info waves-effect waves-light"
+                            class="btn btn-info btn-action-clinical waves-effect waves-light"
+                            title="Descargar reporte en Excel (Ctrl+S)"
                             @click="descargarReporte()"
                             :disabled="loadingDescargarProduccion"
                         >
-                            <i v-if="loadingDescargarProduccion" class="fa fa-spinner fa-spin"></i>
-                            <i v-else class="fa fa-download"></i>
+                            <i
+                                v-if="loadingDescargarProduccion"
+                                class="fa fa-spinner fa-spin mr-1"
+                            ></i>
+                            <i v-else class="fa fa-download mr-1"></i>
                             Descargar reportes
+                            <span class="badge badge-light text-dark ml-1">Ctrl+S</span>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
-        <div v-if="modalProduccionVisible" class="modal-backdrop fade show"></div>
 
         <!-- Modal PAC -->
         <div
-            class="modal fade"
-            :class="{ show: modalPACVisible }"
-            :style="{ display: modalPACVisible ? 'block' : 'none' }"
+            v-if="modalPACVisible"
+            class="modal fade show d-block"
             tabindex="-1"
             role="dialog"
-            aria-hidden="true"
-            @click.self="modalPACVisible = false"
+            aria-modal="true"
+            aria-hidden="false"
+            style="background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px); z-index: 1050"
+            @click.self="
+                resetearFormularioPAC();
+                modalPACVisible = false;
+            "
         >
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title">Filtro para el reporte</h4>
+                        <h4 class="modal-title">Filtro para el reporte de estudios tomados</h4>
                         <button
                             type="button"
                             class="close"
-                            @click="modalPACVisible = false"
-                            aria-hidden="true"
+                            aria-label="Cerrar modal"
+                            title="Cerrar (Esc)"
+                            @click="
+                                resetearFormularioPAC();
+                                modalPACVisible = false;
+                            "
                         >
-                            ×
+                            &times;
                         </button>
                     </div>
                     <div class="modal-body">
@@ -277,37 +302,41 @@
                     <div class="modal-footer">
                         <button
                             type="button"
-                            class="btn btn-default waves-effect"
+                            class="btn btn-inverse btn-action-clinical waves-effect"
+                            title="Cerrar (Esc)"
                             @click="
                                 resetearFormularioPAC();
                                 modalPACVisible = false;
                             "
                         >
                             Cerrar
+                            <span class="badge badge-secondary ml-1">Esc</span>
                         </button>
                         <button
                             type="button"
-                            class="btn btn-info waves-effect waves-light"
+                            class="btn btn-info btn-action-clinical waves-effect waves-light"
+                            title="Descargar reporte en Excel (Ctrl+S)"
                             @click="descargarReporteEstudiosPAC()"
                             :disabled="loadingDescargarPAC"
                         >
-                            <i v-if="loadingDescargarPAC" class="fa fa-spinner fa-spin"></i>
-                            <i v-else class="fa fa-download"></i>
+                            <i v-if="loadingDescargarPAC" class="fa fa-spinner fa-spin mr-1"></i>
+                            <i v-else class="fa fa-download mr-1"></i>
                             Descargar reporte
+                            <span class="badge badge-light text-dark ml-1">Ctrl+S</span>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
-        <div v-if="modalPACVisible" class="modal-backdrop fade show"></div>
     </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { nextTick, onMounted, ref } from "vue";
 
 import { listarUsuariosYSedes } from "../../../helpers/usuarios";
 import { toastMessage } from "@/helpers/alerts.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 import usePermissions from "@/helpers/permissions.js";
 import axios from "axios";
 
@@ -326,6 +355,7 @@ const datosPAC = ref({ sedeId: 0, fechaIni: "", fechaFin: "" });
 const quienes_asignaron = ref([]);
 const medicos = ref([]);
 const tipoReporte = ref("Rx");
+const loadingSedes = ref(false);
 const loadingDescargarProduccion = ref(false);
 const loadingDescargarPAC = ref(false);
 const modalProduccionVisible = ref(false);
@@ -374,6 +404,8 @@ function validarFechas(fechaIni, fechaFin) {
  * Carga las sedes activas y los catálogos de usuarios (quienes asignaron, médicos).
  */
 async function listarSedes() {
+    if (loadingSedes.value) return;
+    loadingSedes.value = true;
     try {
         await listarUsuariosYSedes({
             set quienes_asignaron(v) {
@@ -392,6 +424,8 @@ async function listarSedes() {
             text: "No fue posible cargar las sedes o usuarios.",
             icon: "error",
         });
+    } finally {
+        loadingSedes.value = false;
     }
 }
 
@@ -486,13 +520,63 @@ async function descargarReporteEstudiosPAC() {
     }
 }
 
+function abrirModalProduccion(tipo) {
+    tipoReporte.value = tipo;
+    modalProduccionVisible.value = true;
+    nextTick(() => {
+        const el = document.getElementById("prod-sede");
+        if (el) el.focus();
+    });
+}
+
+function abrirModalPAC() {
+    modalPACVisible.value = true;
+    nextTick(() => {
+        const el = document.getElementById("pac-sede");
+        if (el) el.focus();
+    });
+}
+
 onMounted(() => {
     listarSedes();
+});
+
+useKeyboardShortcuts({
+    onSearch: () => {
+        if (!modalProduccionVisible.value && !modalPACVisible.value && !loadingSedes.value) {
+            listarSedes();
+        }
+    },
+    onSave: () => {
+        if (modalProduccionVisible.value && !loadingDescargarProduccion.value) {
+            descargarReporte();
+        } else if (modalPACVisible.value && !loadingDescargarPAC.value) {
+            descargarReporteEstudiosPAC();
+        }
+    },
+    onEscape: () => {
+        if (modalProduccionVisible.value) {
+            resetearFormulario();
+            modalProduccionVisible.value = false;
+        } else if (modalPACVisible.value) {
+            resetearFormularioPAC();
+            modalPACVisible.value = false;
+        }
+    },
 });
 </script>
 
 <style scoped>
-.modal.show {
-    background: rgba(0, 0, 0, 0.5);
+.btn-action-clinical {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-action-clinical:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 </style>
