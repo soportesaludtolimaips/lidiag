@@ -153,6 +153,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - Script anti-parpadeo (FOUC) en el `<head>` y `<body>` de `resources/views/layouts/app.blade.php`.
   - Soporte integral de componentes: Topbar, Sidebar lateral, Cards, Tablas (DataTables), Formularios/Inputs, Dropdowns y Modales de Bootstrap.
   - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.02s ✅.
+- [x] **2026-10-19 — UI/UX Categoría 1.2: Panel de Dictado por Voz (STT Whisper) Flotante y Feedback Visual:**
+  - Implementado widget flotante tipo cápsula (`.floating-dictation-pill`) en `leerEstudioComponent.vue` y `lecturaComponent.vue`.
+  - Aparece de forma no intrusiva en la esquina inferior derecha mientras el panel de informe médico está abierto, acompañando al especialista durante el scroll.
+  - Indicador de estado con luz led pulsante (`status-dot`), etiqueta descriptiva ("Grabando Audio", "Escuchando Voz", "Dictado en Pausa", "Dictado Inactivo"), atajo de teclado visible (`F2`) y ondas de sonido animadas (`.pill-waveform`).
+  - Botón de control rápido (play/pause/stop) integrado en la cápsula.
+  - Soporte completo y automático para Modo Claro y Modo Oscuro radiológico (`.is-dark`).
+  - Verificación estricta: ESLint 0 errores/warnings en ambos componentes ✅ | Vite `npm run build` en 973ms ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.

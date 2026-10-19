@@ -519,6 +519,76 @@
                     </form>
                 </div>
             </div>
+
+            <!-- ============================================================== -->
+            <!-- Floating Dictation Capsule (Widget flotante de dictado por voz)-->
+            <!-- ============================================================== -->
+            <transition name="fade-slide">
+                <div
+                    v-if="sidebarVisible"
+                    class="floating-dictation-pill"
+                    :class="{
+                        'is-recording': voiceState === 'active',
+                        'is-paused': voiceState === 'paused',
+                        'is-idle': voiceState === 'inactive',
+                        'is-dark': isDarkMode,
+                    }"
+                >
+                    <div class="pill-indicator">
+                        <span class="status-dot"></span>
+                    </div>
+
+                    <div class="pill-waveform" v-if="voiceState === 'active'">
+                        <span class="wave-bar bar-1"></span>
+                        <span class="wave-bar bar-2"></span>
+                        <span class="wave-bar bar-3"></span>
+                        <span class="wave-bar bar-4"></span>
+                    </div>
+
+                    <div class="pill-info">
+                        <span class="pill-status-text">
+                            {{
+                                voiceState === "active"
+                                    ? "Grabando Audio"
+                                    : voiceState === "paused"
+                                      ? "Dictado en Pausa"
+                                      : "Dictado Inactivo"
+                            }}
+                        </span>
+                        <span class="pill-shortcut text-muted">Voz STT</span>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="btn btn-circle pill-btn"
+                        :class="
+                            voiceState === 'active'
+                                ? 'btn-danger'
+                                : voiceState === 'paused'
+                                  ? 'btn-warning'
+                                  : 'btn-info'
+                        "
+                        @click="toggleSpeechRecognition()"
+                        :title="
+                            voiceState === 'active'
+                                ? 'Pausar dictado por voz'
+                                : voiceState === 'paused'
+                                  ? 'Reanudar dictado por voz'
+                                  : 'Iniciar dictado por voz'
+                        "
+                    >
+                        <i
+                            :class="
+                                voiceState === 'active'
+                                    ? 'fa fa-pause'
+                                    : voiceState === 'paused'
+                                      ? 'fa fa-play'
+                                      : 'fa fa-microphone'
+                            "
+                        ></i>
+                    </button>
+                </div>
+            </transition>
         </div>
         <!-- ============================================================== -->
         <!-- End Right sidebar -->
@@ -2147,6 +2217,156 @@ onBeforeUnmount(() => {
 });
 </script>
 <style scoped>
+/* ============================================================== */
+/* Floating Dictation Pill Widget                                 */
+/* ============================================================== */
+.floating-dictation-pill {
+    position: fixed;
+    bottom: 30px;
+    right: 40px;
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    padding: 6px 10px 6px 14px;
+    border-radius: 50px;
+    box-shadow:
+        0 10px 25px -5px rgba(0, 0, 0, 0.2),
+        0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+}
+
+.floating-dictation-pill.is-dark {
+    background: #1e222b;
+    border-color: #3b4254;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+}
+
+.floating-dictation-pill .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #94a3b8;
+    display: inline-block;
+    margin-right: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.floating-dictation-pill.is-recording .status-dot {
+    background-color: #ef4444;
+    box-shadow: 0 0 10px #ef4444;
+    animation: pulse 1.2s infinite;
+}
+
+.floating-dictation-pill.is-paused .status-dot {
+    background-color: #f59e0b;
+    box-shadow: 0 0 8px #f59e0b;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.pill-waveform {
+    display: flex;
+    align-items: center;
+    height: 16px;
+    margin-right: 10px;
+    gap: 3px;
+}
+
+.wave-bar {
+    width: 3px;
+    background-color: #ef4444;
+    border-radius: 2px;
+    animation: soundWave 0.8s ease-in-out infinite alternate;
+}
+
+.wave-bar.bar-1 {
+    height: 6px;
+    animation-delay: 0.1s;
+}
+.wave-bar.bar-2 {
+    height: 14px;
+    animation-delay: 0.3s;
+}
+.wave-bar.bar-3 {
+    height: 10px;
+    animation-delay: 0.2s;
+}
+.wave-bar.bar-4 {
+    height: 16px;
+    animation-delay: 0.4s;
+}
+
+@keyframes soundWave {
+    0% {
+        height: 4px;
+    }
+    100% {
+        height: 18px;
+    }
+}
+
+.pill-info {
+    display: flex;
+    flex-direction: column;
+    margin-right: 12px;
+    min-width: 110px;
+}
+
+.pill-status-text {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: #1e293b;
+}
+
+.floating-dictation-pill.is-dark .pill-status-text {
+    color: #f8fafc;
+}
+
+.pill-shortcut {
+    font-size: 10px;
+    line-height: 1;
+}
+
+.pill-btn {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    transition: transform 0.15s ease;
+}
+
+.pill-btn:hover {
+    transform: scale(1.08);
+}
+
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+    transition: all 0.3s ease;
+}
+
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+    opacity: 0;
+    transform: translateY(15px);
+}
+
 .right-sidebar {
     position: fixed;
     right: -96%;
