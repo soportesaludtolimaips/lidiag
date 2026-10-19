@@ -347,6 +347,12 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Identificación Multisede de Estudios:** Incorporada la columna "Sede" con badge clínico (`badge-info` e ícono `fa-hospital-o`) en la tabla de estudios disponibles, permitiendo diferenciar estudios tomados en distintas sedes para un mismo paciente.
   - **Detalle de Sede en Panel Lateral:** Agregado bloque de identificación de "Sede del Estudio" y "Producto" en el modal lateral de notificación, y actualizado el skeleton loader a 9 columnas.
   - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.14s ✅.
+- [x] **2026-10-19 — UI/UX Módulo Ecografías: Modal Reactivo, Atajos y Foco Accesible en `ecografiasAdmisionadasComponent.vue`:**
+  - **Modal Reactivo con Backdrop Blur:** Migrado el modal de anulación `#responsive-modal` de jQuery/Bootstrap a control 100% reactivo en Vue (`modalAnularVisible`), backdrop translúcido con `backdrop-filter: blur(2px)` y cierre al clic exterior. Corrección del botón "Close" a "Cancelar".
+  - **Atajos Asistenciales (`useKeyboardShortcuts`):** Atajo `Ctrl+S` para confirmar anulación (validado contra campo vacío y protegido por `isAnulandoAdmisionada`) y `Escape` para cerrar el modal.
+  - **Foco Accesible (`a11y`):** Autofoco automático reactivo en `#message-text` (motivo de anulación) al abrir el modal.
+  - **Botón Asistencial y Microinteracciones:** Botón de refresco en la cabecera (`page-titles`) con spinner dinámico, badges descriptivos `Ctrl+S` y `Esc`, y clase clínica `.btn-action-clinical`.
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 976ms ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.

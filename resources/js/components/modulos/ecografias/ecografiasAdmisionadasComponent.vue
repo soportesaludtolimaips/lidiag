@@ -20,6 +20,21 @@
                     <li class="breadcrumb-item active">Ecografías admisionadas</li>
                 </ol>
             </div>
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-info btn-action-clinical"
+                    @click="listarAtenciones()"
+                    :disabled="isBuscandoAdmisionadas"
+                    title="Actualizar listado de ecografías admisionadas (Refrescar)"
+                >
+                    <i
+                        class="fa"
+                        :class="isBuscandoAdmisionadas ? 'fa-spinner fa-spin' : 'fa-refresh'"
+                    ></i>
+                    Refrescar
+                </button>
+            </div>
         </div>
         <!-- ============================================================== -->
         <!-- End Bread crumb and right sidebar toggle -->
@@ -310,15 +325,12 @@
                                         <td class="text-nowrap">
                                             <button
                                                 type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5 btn-action-clinical"
                                                 @click="
                                                     actualizar = false;
                                                     registroParaAnular(item);
                                                 "
                                                 title="Anular lectura"
-                                                alt="default"
-                                                data-toggle="modal"
-                                                data-target="#responsive-modal"
                                                 v-if="item.estado === 'EN PROCESO'"
                                                 aria-label="Anular lectura"
                                             >
@@ -357,32 +369,46 @@
     </div>
 
     <div
+        v-if="modalAnularVisible"
         id="responsive-modal"
-        class="modal fade"
+        class="modal show"
         tabindex="-1"
         role="dialog"
         aria-labelledby="myModalLabel"
         aria-hidden="true"
-        style="display: none"
+        style="
+            display: block;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+        "
+        @click.self="cerrarModalAnular()"
     >
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title" id="myModalLabel">Anular Agenda</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    <button
+                        type="button"
+                        class="close"
+                        aria-label="Cerrar modal"
+                        @click="cerrarModalAnular()"
+                    >
                         ×
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form>
+                    <form @submit.prevent="anularEcografia()">
                         <div class="form-group">
                             <label for="message-text" class="control-label"
-                                >Motivo de anulación:</label
+                                >Motivo de anulación: <span class="text-danger">*</span></label
                             >
                             <textarea
                                 class="form-control"
                                 id="message-text"
                                 v-model="registroAnular.motivo_anula"
+                                rows="3"
+                                placeholder="Especifique el motivo de la anulación..."
                             ></textarea>
                         </div>
                     </form>
@@ -390,24 +416,39 @@
                 <div class="modal-footer">
                     <button
                         type="button"
-                        class="btn btn-default waves-effect"
-                        data-dismiss="modal"
+                        class="btn btn-default waves-effect btn-action-clinical"
                         id="btnCerrarModalAunular"
+                        @click="cerrarModalAnular()"
+                        title="Cancelar y cerrar modal (Esc)"
                     >
-                        Close
+                        Cancelar
+                        <span
+                            class="badge badge-secondary ml-1 d-none d-md-inline"
+                            style="font-size: 10px; opacity: 0.9"
+                            >Esc</span
+                        >
                     </button>
                     <button
                         type="button"
-                        class="btn btn-danger waves-effect waves-light"
+                        class="btn btn-danger waves-effect waves-light btn-action-clinical"
                         v-if="can('ecografias.anular')"
                         @click="anularEcografia()"
-                        :disabled="isAnulandoAdmisionada"
+                        :disabled="
+                            isAnulandoAdmisionada ||
+                            !(registroAnular.motivo_anula && registroAnular.motivo_anula.trim())
+                        "
+                        title="Confirmar anulación (Ctrl+S / Cmd+S)"
                     >
                         <i
                             class="fa"
                             :class="isAnulandoAdmisionada ? 'fa-spinner fa-spin' : 'fa-trash'"
                         ></i>
                         {{ isAnulandoAdmisionada ? "Anulando..." : "Anular" }}
+                        <span
+                            class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                            style="font-size: 10px; opacity: 0.9"
+                            >Ctrl+S</span
+                        >
                     </button>
                 </div>
             </div>
@@ -422,6 +463,7 @@ import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers
 import { useSede } from "@/composables/useSede.js";
 import { useSahiInterface } from "@/composables/useSahiInterface.js";
 import { useFilterPersistence } from "@/composables/useFilterPersistence.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 import axios from "axios";
 
 const props = defineProps({
@@ -471,6 +513,27 @@ const isImprimiendoReporte = ref(false);
 const isAnulandoAdmisionada = ref(false);
 const isConsultandoSahi = ref({});
 const isEnviandoSahi = ref({});
+const modalAnularVisible = ref(false);
+
+function cerrarModalAnular() {
+    modalAnularVisible.value = false;
+    registroAnular.value.motivo_anula = "";
+}
+
+useKeyboardShortcuts({
+    onSave: () => {
+        if (modalAnularVisible.value) {
+            anularEcografia();
+        }
+    },
+    onEscape: () => {
+        if (modalAnularVisible.value) {
+            cerrarModalAnular();
+        }
+    },
+    isActive: () => modalAnularVisible.value,
+    isLoading: isAnulandoAdmisionada,
+});
 
 /**
  * Permite disparar la búsqueda de atenciones al presionar Enter en el campo de texto, delegando en listarAtenciones.
@@ -692,18 +755,26 @@ async function imprimirReporte(item) {
 function registroParaAnular(data) {
     registroAnular.value.ecografia_id = data.id;
     registroAnular.value.atencion_id = data?.atencion_id ?? data?.IdAtencion ?? "";
+    registroAnular.value.motivo_anula = "";
+    modalAnularVisible.value = true;
+    nextTick(() => {
+        const textarea = document.getElementById("message-text");
+        if (textarea && typeof textarea.focus === "function") {
+            textarea.focus();
+        }
+    });
 }
 /**
  * Valida el motivo de anulación, solicita confirmación y envía la petición para anular la ecografía seleccionada.
  *
- * @returns {void}
+ * @returns {Promise<void>}
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2025-11-18
+ * @date 2026-10-19
  */
-function anularEcografia() {
-    if (registroAnular.value.motivo_anula === "") {
+async function anularEcografia() {
+    if (!registroAnular.value.motivo_anula || !registroAnular.value.motivo_anula.trim()) {
         toastMessage({
             heading: "¡Atención!",
             text: "Debe ingresar el motivo de anulación.",
@@ -712,29 +783,27 @@ function anularEcografia() {
         return;
     }
 
-    confirmAction({
-        title: "Estas seguro de anular la ecografia?",
-        text: "No podrás recuperar este registro!",
+    const ok = await confirmAction({
+        title: "¿Estás seguro de anular la ecografía?",
+        text: "¡No podrás recuperar este registro!",
         icon: "warning",
-    }).then(async (ok) => {
-        if (!ok) return;
-        if (isAnulandoAdmisionada.value) return;
-        isAnulandoAdmisionada.value = true;
-        try {
-            const response = await axios.post(
-                `/api/ecografia-anular/${registroAnular.value.ecografia_id}`,
-                registroAnular.value
-            );
-            alertSuccess("Ok!", response?.data?.message || "Ecografía anulada.", "success");
-            const cerrarModal = document.getElementById("btnCerrarModalAunular");
-            if (cerrarModal) cerrarModal.click();
-            await listarAtenciones();
-        } catch {
-            alertError("Error", "No fue posible anular la ecografía.", "error");
-        } finally {
-            isAnulandoAdmisionada.value = false;
-        }
     });
+    if (!ok) return;
+    if (isAnulandoAdmisionada.value) return;
+    isAnulandoAdmisionada.value = true;
+    try {
+        const response = await axios.post(
+            `/api/ecografia-anular/${registroAnular.value.ecografia_id}`,
+            registroAnular.value
+        );
+        alertSuccess("Ok!", response?.data?.message || "Ecografía anulada.", "success");
+        cerrarModalAnular();
+        await listarAtenciones();
+    } catch {
+        alertError("Error", "No fue posible anular la ecografía.", "error");
+    } finally {
+        isAnulandoAdmisionada.value = false;
+    }
 }
 /**
  * Consulta el estado de envío a SAHI de una ecografía producto y actualiza la información en la fila correspondiente.
