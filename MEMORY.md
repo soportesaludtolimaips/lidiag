@@ -290,6 +290,12 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Transición Suave y Backdrop Overlay:** Eliminado el salto abrupto de `display: none/block` en `.right-sidebar` reemplazándolo por animación fluida a 350ms, altura completa al 100%, z-index 1100 y backdrop oscurecido desacoplador con cierre al clic exterior.
   - **Badges Visuales y Microinteracciones:** Añadidos badges `Ctrl+S` y `Esc`, títulos accesibles y clase `.btn-action-clinical` con microinteracción táctil.
   - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 953ms ✅.
+- [x] **2026-10-19 — UI/UX Módulo Ecografías: Atajos Clínicos, Foco Accesible y Backdrop en `admisionarComponent.vue`:**
+  - **Atajos de Teclado Asistenciales:** Integrado `useKeyboardShortcuts` con `Ctrl+S` para guardar admisión (protegido contra concurrencia `isGuardandoEcografia`) y `Escape` para cancelar y cerrar el panel lateral.
+  - **Foco Accesible (`a11y`):** Autofoco automático reactivo en el campo `#num_docu` del paciente en `abrirModal()` tras cargar los datos de la atención.
+  - **Transición Suave y Backdrop Overlay:** Eliminado `display: none/block` en `.right-sidebar` con altura unificada al 100%, z-index 1100 y backdrop oscurecido con cierre al hacer clic exterior.
+  - **Badges Visuales y Microinteracciones:** Añadidos badges descriptivos `Ctrl+S` y `Esc`, títulos accesibles y botón de cierre `<button class="right-side-toggle">`.
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 977ms ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.

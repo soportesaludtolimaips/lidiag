@@ -366,14 +366,29 @@
         <!-- ============================================================== -->
         <!-- Right sidebar -->
         <!-- ============================================================== -->
+        <!-- Backdrop para cerrar al hacer clic y atenuar fondo -->
+        <transition name="fade">
+            <div
+                v-if="sidebarVisible"
+                class="sidebar-backdrop"
+                @click="cerrarSidebar()"
+                aria-hidden="true"
+            ></div>
+        </transition>
+
         <!-- .right-sidebar -->
         <div class="right-sidebar sidebar-scroll" :class="{ 'shw-rside': sidebarVisible }">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
-                    <span @click="btnCerrarModalForm()">
-                        <i class="ti-close right-side-toggle" id="btnCerrarModalForm"></i>
-                    </span>
+                    <button
+                        type="button"
+                        class="right-side-toggle"
+                        @click="cerrarSidebar()"
+                        aria-label="Cerrar panel"
+                    >
+                        <i class="ti-close" id="btnCerrarModalForm"></i>
+                    </button>
                 </div>
                 <div class="r-panel-body">
                     <!-- ============================================================== -->
@@ -660,9 +675,10 @@
                             <div class="form-actions mt-3">
                                 <button
                                     type="button"
-                                    class="btn btn-success m-r-5"
+                                    class="btn btn-success m-r-5 btn-action-clinical"
                                     @click="guardarRegistro()"
                                     :disabled="isGuardandoEcografia"
+                                    title="Guardar admisión (Ctrl+S)"
                                 >
                                     <i
                                         class="fa"
@@ -671,15 +687,26 @@
                                         "
                                     ></i>
                                     {{ isGuardandoEcografia ? "Guardando..." : "Guardar" }}
+                                    <span
+                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                                        style="font-size: 10px; opacity: 0.9"
+                                        >Ctrl+S</span
+                                    >
                                 </button>
 
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    @click="btnCerrarModalForm()"
+                                    @click="cerrarSidebar()"
                                     :disabled="isGuardandoEcografia"
+                                    title="Cerrar panel (Esc)"
                                 >
-                                    Cancel
+                                    Cancelar
+                                    <span
+                                        class="badge badge-secondary ml-1 d-none d-md-inline"
+                                        style="font-size: 10px"
+                                        >Esc</span
+                                    >
                                 </button>
                             </div>
                         </div>
@@ -910,6 +937,7 @@ import { formatoMoneda } from "@/helpers/funciones.js";
 import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
 import { useSede } from "@/composables/useSede.js";
 import { useSahiInterface } from "@/composables/useSahiInterface.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import axios from "axios";
 
 const props = defineProps({
@@ -984,6 +1012,13 @@ const sidebarVisible = ref(false);
 const selTipoDoc = ref(null);
 const selMedico = ref(null);
 const selProducto = ref(null);
+
+useKeyboardShortcuts({
+    onSave: guardarRegistro,
+    onEscape: cerrarSidebar,
+    isActive: () => sidebarVisible.value,
+    isLoading: isGuardandoEcografia,
+});
 
 /**
  * Opciones derivadas de médicos para el componente Select2 local.
@@ -1583,26 +1618,37 @@ function onProductoSelect(value) {
     }
 }
 /**
- * Cierra o alterna la visualización de la barra lateral del formulario.
+ * Cierra la visualización de la barra lateral del formulario de admisión.
  *
- * @returns {any}
+ * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
- *
  * @date 2024-04-04
  */
-function btnCerrarModalForm() {
-    sidebarVisible.value = !sidebarVisible.value;
-    if (sidebarVisible.value) {
-        // El panel nace oculto (display:none): Select2 se niega a inicializar
-        // dentro de contenedores ocultos, así que se reconstruye al abrir.
-        nextTick(() => {
-            selTipoDoc.value?.rebuild();
-            selMedico.value?.rebuild();
-            selProducto.value?.rebuild();
-        });
-    }
+function cerrarSidebar() {
+    sidebarVisible.value = false;
 }
+
+const btnCerrarModalForm = cerrarSidebar;
+
+/**
+ * Abre el panel lateral, reconstruye componentes dependientes y aplica foco accesible.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-10-19
+ */
+function abrirModal() {
+    sidebarVisible.value = true;
+    nextTick(() => {
+        selTipoDoc.value?.rebuild();
+        selMedico.value?.rebuild();
+        selProducto.value?.rebuild();
+        document.getElementById("num_docu")?.focus();
+    });
+}
+
 /**
  * Carga los datos de la atención seleccionada en el formulario de admisión.
  *
@@ -1643,7 +1689,7 @@ function mostrarRegistro(data = {}) {
         registro.value.tipo_documento_id = tipoHomologado.id;
     }
 
-    btnCerrarModalForm();
+    abrirModal();
 }
 /**
  * Reinicia los campos del formulario de admisión de la ecografía.
@@ -1744,27 +1790,51 @@ onBeforeUnmount(() => {
 });
 </script>
 <style scoped>
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: 1090;
+    cursor: pointer;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.25s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
 .right-sidebar {
     position: fixed;
     right: -80%;
     width: 80%;
-    display: none;
-    z-index: 180;
+    z-index: 1100;
     background: #ffffff;
     top: 0px;
     padding-bottom: 20px;
-    height: 80%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
+    height: 100%;
+    box-shadow: -5px 0 35px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .shw-rside {
-    right: 0px;
+    right: 0px !important;
     width: 80%;
-    display: block;
+    visibility: visible;
+    pointer-events: auto;
 }
 
 .audio {
