@@ -53,34 +53,83 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def load_config(config_path, args):
-    config = {
-        "sede_id": 1,
-        "sede_nombre": "",
-        "db_host": "127.0.0.1",
-        "db_port": 3306,
-        "db_name": "pacsdb",
-        "db_user": "root",
-        "db_password": "",
-        "mysqldump_path": "",
-        "destination_dir": "C:\\backups_dcm",
-        "retention_days": 30,
-        "temp_dir": "./temp_backups",
-    }
+def parse_tolerant_json(content):
+    r"""
+    Parsea JSON con tolerancia a rutas de Windows con barras invertidas simples (\).
+    En Windows, al escribir 'C:\Program Files\...' o 'C:\backups_dcm' el parser estándar
+    falla con 'Invalid \escape' (\b es backspace, \P es escape inválido).
+    """
+    try:
+        return json.loads(content)
+    except Exception:
+        pass
 
-    # Cargar archivo JSON si existe
-    if os.path.exists(config_path):
-        try:
-            with open(config_path, "r", encoding="utf-8") as f:
-                loaded = json.load(f)
-                config.update(loaded)
-                # Compatibilidad de claves alternativas
-                if "mysqldump_bin" in loaded and not loaded.get("mysqldump_path"):
-                    config["mysqldump_path"] = loaded["mysqldump_bin"]
-                if "sede_slug" in loaded and not loaded.get("sede_nombre"):
-                    config["sede_nombre"] = loaded["sede_slug"]
-        except Exception as e:
-            print(f"[ADVERTENCIA] No se pudo leer {config_path}: {e}. Usando valores por defecto/argumentos.")
+    def fix_string(match):
+        val = match.group(0)
+        inner = val[1:-1]
+        inner = inner.replace('\\"', '___ESCAPED_QUOTE___')
+        inner = inner.replace('\\', '/')
+        inner = inner.replace('___ESCAPED_QUOTE___', '\\"')
+        return f'"{inner}"'
+
+    fixed = re.sub(r'"(?:[^"\\]|\\.)*"', fix_string, content)
+    try:
+        return json.loads(fixed)
+    except Exception:
+        return json.loads(content.replace('\\', '/'))
+
+
+def load_config(config_path, args):
+    if not os.path.exists(config_path):
+        print("=========================================================")
+        print(f"[ERROR] No se encontró el archivo de configuración: {config_path}")
+        print("Copia 'config.json.example' a 'config.json' y ajusta las credenciales de esta sede.")
+        print("=========================================================")
+        sys.exit(1)
+
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        loaded = parse_tolerant_json(content)
+        if not isinstance(loaded, dict):
+            raise ValueError("El contenido del archivo no es un objeto JSON válido.")
+    except Exception as e:
+        print("=========================================================")
+        print(f"[ERROR] No se pudo leer o parsear el archivo '{config_path}': {e}")
+        print("Verifica la sintaxis del archivo JSON antes de continuar.")
+        print("=========================================================")
+        sys.exit(1)
+
+    # Compatibilidad de claves alternativas
+    if "mysqldump_bin" in loaded and not loaded.get("mysqldump_path"):
+        loaded["mysqldump_path"] = loaded["mysqldump_bin"]
+    if "sede_slug" in loaded and not loaded.get("sede_nombre"):
+        loaded["sede_nombre"] = loaded["sede_slug"]
+
+    # Validar campos obligatorios de la sede
+    required_fields = ["sede_id", "db_name", "db_user"]
+    missing = [field for field in required_fields if field not in loaded]
+    if missing:
+        print("=========================================================")
+        print(f"[ERROR] Faltan campos obligatorios en '{config_path}': {', '.join(missing)}")
+        print("Por favor especifícalos en el archivo de configuración.")
+        print("=========================================================")
+        sys.exit(1)
+
+    # Configuración base con valores operativos por defecto si no vienen definidos
+    config = {
+        "sede_id": loaded["sede_id"],
+        "sede_nombre": loaded.get("sede_nombre", ""),
+        "db_host": loaded.get("db_host", "127.0.0.1"),
+        "db_port": int(loaded.get("db_port", 3306)),
+        "db_name": loaded["db_name"],
+        "db_user": loaded["db_user"],
+        "db_password": loaded.get("db_password", ""),
+        "mysqldump_path": loaded.get("mysqldump_path", ""),
+        "destination_dir": loaded.get("destination_dir", "C:\\backups_dcm"),
+        "retention_days": int(loaded.get("retention_days", 30)),
+        "temp_dir": loaded.get("temp_dir", "./temp_backups"),
+    }
 
     # Sobreescribir con argumentos de línea de comandos si fueron suministrados
     if args.sede is not None:
@@ -161,6 +210,24 @@ def find_mysqldump(custom_path):
     return "mysqldump"
 
 
+def check_column_statistics_supported(mysqldump_bin):
+    """
+    Verifica si mysqldump soporta la opción --column-statistics (introducida en MySQL 8.0+).
+    En MySQL 5.7 o MariaDB dicha opción no existe y provoca error fatal con código 7.
+    """
+    try:
+        proc = subprocess.run(
+            [mysqldump_bin, "--help"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=False,
+        )
+        return "column-statistics" in (proc.stdout or "")
+    except Exception:
+        return False
+
+
 def purge_old_backups(destination_dir, retention_days):
     if retention_days <= 0:
         return 0, 0
@@ -220,7 +287,8 @@ def main():
     zip_path = os.path.join(dest_dir, zip_filename)
 
     mysqldump_bin = find_mysqldump(config.get("mysqldump_path"))
-    print(f"[1/3] Ejecutable mysqldump: {mysqldump_bin}")
+    supports_col_stats = check_column_statistics_supported(mysqldump_bin)
+    print(f"[1/3] Ejecutable mysqldump: {mysqldump_bin} (column-statistics: {'soportado' if supports_col_stats else 'no requerido/ignorado'})")
 
     # Paso 1: Dump local
     print(f"[2/3] Generando volcado MySQL en disco local ({sql_filename})...")
@@ -235,10 +303,15 @@ def main():
         "--quick",
         "--routines",
         "--triggers",
-        "--column-statistics=0",
+    ]
+
+    if supports_col_stats:
+        cmd.append("--column-statistics=0")
+
+    cmd.extend([
         f"--result-file={sql_path}",
         config["db_name"],
-    ]
+    ])
 
     env = os.environ.copy()
     if config.get("db_password"):
@@ -246,6 +319,13 @@ def main():
 
     try:
         proc = subprocess.run(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False)
+
+        # Reintento de contingencia si falló por unknown variable 'column-statistics=0'
+        if proc.returncode != 0 and "column-statistics" in proc.stderr:
+            print("      [AVISO] Reintentando volcado sin opción --column-statistics=0...")
+            cmd_retry = [arg for arg in cmd if not arg.startswith("--column-statistics")]
+            proc = subprocess.run(cmd_retry, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False)
+
         if proc.returncode != 0:
             print(f"[ERROR] mysqldump falló con código {proc.returncode}: {proc.stderr.strip()}")
             sys.exit(1)

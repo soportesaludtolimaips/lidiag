@@ -247,7 +247,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 - [x] **2026-10-19 — Arquitectura Local de Backups DCM + Sincronización QNAP Qsync:**
   - Rediseñado el agente Python `scripts/dcm_agent/backup_dcm_agent.py` para operar en modo **100% local**: genera el volcado MySQL a alta velocidad, lo comprime a ZIP directamente en la carpeta sincronizada por el cliente QNAP Qsync (`C:\backups_dcm`), y ejecuta purga automática de archivos antiguos que superen los 30 días de retención (`retention_days`).
   - Actualizados `config.json.example` y `README.md` con la nueva estructura de configuración simplificada (`destination_dir`, `retention_days`, `mysqldump_path`).
+  - **Hotfix Producción (MySQL 5.7, Rutas Windows y Eliminación de Defaults Quemados):**
+    * Eliminados valores por defecto quemados en código (`db_user`, `db_password`, `db_name`, `sede_id`); el archivo `config.json` ahora es estrictamente obligatorio y se validan campos requeridos para evitar ejecuciones con credenciales erróneas por fallos silenciosos.
+    * Implementado `parse_tolerant_json()` para soportar barras invertidas simples (`\`) en rutas de Windows dentro de `config.json` sin romper con `JSONDecodeError: Invalid \escape`.
+    * Implementada detección dinámica `check_column_statistics_supported()` y reintento automático sin `--column-statistics=0` para compatibilidad transparente con MySQL 5.7 / MariaDB donde la variable no existe (evitando código de error 7).
   - Verificación exitosa en entorno local: respaldo real volcando 330.88 MB de base de datos a un ZIP de 54.49 MB en **15.32s** y validando purga de retención ✅.
+
+
 
 - [x] **2026-10-19 — UI/UX Categoría 3.3 (Extensión): Skeleton Loaders Shimmer & Empty States en todo el Módulo de Estudios:**
   - `AsignarEstudioComponent.vue` (`/estudios.asignar.listar`): Reemplazado spinner tradicional por `<table-skeleton-loader :visible="loadingBuscar" :rows="6" :columns="7" />` y añadido `<empty-state-component>` interactivo conectado a `btnLimpiar()`.
