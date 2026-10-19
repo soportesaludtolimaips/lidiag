@@ -42,6 +42,15 @@
                     <div class="card-body">
                         <h4 class="card-title text-themecolor">
                             <i class="fa fa-filter"></i> Filtros para busqueda de estudios
+                            <span
+                                v-if="filtrosActivosCount > 0"
+                                class="badge badge-pill badge-info ml-2"
+                            >
+                                {{ filtrosActivosCount }}
+                                {{
+                                    filtrosActivosCount === 1 ? "filtro activo" : "filtros activos"
+                                }}
+                            </span>
                         </h4>
                         <form action="#">
                             <div class="form-body">
@@ -246,7 +255,7 @@
                                             <button
                                                 type="button"
                                                 v-if="permisos.includes('estudios.notificar.index')"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-success btn-sm m-r-5"
                                                 :disabled="
                                                     loadingPortalId === item.estudio_producto_id
                                                 "
@@ -260,19 +269,12 @@
                                                     "
                                                     class="fa fa-spinner fa-spin"
                                                 ></i>
-                                                <i v-else class="fa fa-send"></i>
+                                                <i v-else class="fa fa-cloud-upload"></i>
                                             </button>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
-                            <div
-                                v-if="registros.length === 0 && !loadingBuscar"
-                                class="text-center py-4 text-muted"
-                            >
-                                <i class="fa fa-inbox fa-3x mb-3"></i>
-                                <p>No hay estudios para notificar</p>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -357,7 +359,7 @@
                             <div class="form-actions mt-3">
                                 <button
                                     type="button"
-                                    class="btn btn-success m-r-5"
+                                    class="btn btn-success m-r-5 btn-action-clinical"
                                     @click="notificar()"
                                     :disabled="loadingNotificar"
                                     title="Notificar por email (Ctrl + S)"
@@ -404,6 +406,7 @@ import { getUserSafeError, toastMessage } from "@/helpers/alerts.js";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
 import { useFormValidation } from "@/composables/useFormValidation";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
+import { useFilterPersistence } from "@/composables/useFilterPersistence";
 import axios from "axios";
 
 defineProps({
@@ -432,7 +435,21 @@ const registro = ref({
     id_producto_lectura: null,
 });
 const estudio = ref({});
-const busqueda = ref({ bus_num_docu: "", bus_nom: "", bus_fech_ini: "", bus_fecha_fin: "" });
+
+const defaultBusqueda = {
+    bus_num_docu: "",
+    bus_nom: "",
+    bus_fech_ini: "",
+    bus_fecha_fin: "",
+    sede_id: sessionStorage.getItem("ST-sede") || "",
+};
+
+const {
+    filtros: busqueda,
+    filtrosActivosCount,
+    guardarFiltros,
+    limpiarFiltrosStorage,
+} = useFilterPersistence("lidiag_filters_notificar_estudios", defaultBusqueda, ["sede_id"]);
 const loadingBuscar = ref(false);
 const loadingNotificar = ref(false);
 const loadingAbrirId = ref(null);
@@ -460,10 +477,7 @@ function destroyDataTable() {
     safeDestroyDataTable(dt.value || "#example23");
 }
 function btnLimpiar() {
-    busqueda.value.bus_num_docu = "";
-    busqueda.value.bus_nom = "";
-    busqueda.value.bus_fech_ini = "";
-    busqueda.value.bus_fecha_fin = "";
+    limpiarFiltrosStorage();
     destroyDataTable();
     registros.value = [];
     limpiar();
@@ -496,6 +510,7 @@ async function buscarStudy() {
         const res = await axios.post("/api/listar.estudios.notificaciones", busqueda.value);
 
         registros.value = res.data.data || [];
+        guardarFiltros();
 
         nextTick(() => {
             destroyDataTable();
@@ -740,7 +755,18 @@ function onSedeSeleccionada(data) {
 }
 
 onMounted(() => {
+    if (!busqueda.value.sede_id) {
+        busqueda.value.sede_id = sessionStorage.getItem("ST-sede") || "";
+    }
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
+    if (
+        busqueda.value.bus_num_docu ||
+        busqueda.value.bus_nom ||
+        busqueda.value.bus_fech_ini ||
+        busqueda.value.bus_fecha_fin
+    ) {
+        buscarStudy();
+    }
 });
 
 onBeforeUnmount(() => {
