@@ -160,6 +160,10 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - Botón de control rápido (play/pause/stop) integrado en la cápsula.
   - Soporte completo y automático para Modo Claro y Modo Oscuro radiológico (`.is-dark`).
   - Verificación estricta: ESLint 0 errores/warnings en ambos componentes ✅ | Vite `npm run build` en 973ms ✅.
+- [x] **2026-10-19 — UI/UX Categoría 1.3: Modo Pantalla Completa / Modo Zen en Estaciones de Lectura:**
+  - `leerEstudioComponent.vue`, `lecturaComponent.vue` y `teleRadiologiaTranscibirComponent.vue`: Agregado botón de conmutación rápida Pantalla Completa / Modo Zen (`fa-expand` / `fa-compress`) en el encabezado `rpanel-title`.
+  - Clase `.zen-mode` que expande la estación de lectura al 100% del viewport (`width: 100% !important; height: 100% !important; z-index: 2500 !important; right: 0 !important;`) ocultando barras laterales y distracciones.
+  - Verificación estricta: ESLint 0 errores/warnings en los 3 componentes ✅ | Vite `npm run build` en 1.04s ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.

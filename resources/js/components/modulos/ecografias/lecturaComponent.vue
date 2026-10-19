@@ -299,7 +299,7 @@
         <!-- .right-sidebar -->
         <div
             class="right-sidebar sidebar-scroll"
-            :class="{ 'shw-rside': sidebarVisible, 'dark-mode': isDarkMode }"
+            :class="{ 'shw-rside': sidebarVisible, 'dark-mode': isDarkMode, 'zen-mode': isZenMode }"
         >
             <div class="slimscrollright">
                 <div class="rpanel-title d-flex justify-content-between align-items-center">
@@ -311,6 +311,22 @@
                         {{ subTituloModal }}
                     </div>
                     <div class="d-flex align-items-center">
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-link p-0 mr-3"
+                            style="color: inherit; text-decoration: none"
+                            @click="toggleZenMode"
+                            :title="
+                                isZenMode
+                                    ? 'Salir de Pantalla Completa / Modo Zen'
+                                    : 'Modo Pantalla Completa / Modo Zen (100% Pantalla)'
+                            "
+                        >
+                            <i :class="isZenMode ? 'fa fa-compress' : 'fa fa-expand'"></i>
+                            <span class="ml-1 d-none d-sm-inline">{{
+                                isZenMode ? "Normal" : "Zen"
+                            }}</span>
+                        </button>
                         <button
                             type="button"
                             class="btn btn-sm btn-link p-0 mr-3"
@@ -750,6 +766,12 @@ function toggleDarkMode() {
     } catch {
         // Fallback silencioso si localStorage está restringido
     }
+}
+
+const isZenMode = ref(false);
+
+function toggleZenMode() {
+    isZenMode.value = !isZenMode.value;
 }
 
 import usePermissions from "@/helpers/permissions.js";
@@ -2399,6 +2421,16 @@ onBeforeUnmount(() => {
     overflow-x: hidden;
     overflow-y: scroll;
     height: 100%;
+}
+
+/* ============================================================== */
+/* Modo Zen / Pantalla Completa (100% viewport)                   */
+/* ============================================================== */
+.right-sidebar.zen-mode {
+    width: 100% !important;
+    right: 0 !important;
+    height: 100% !important;
+    z-index: 2500 !important;
 }
 
 .breadcrumb-btn {
