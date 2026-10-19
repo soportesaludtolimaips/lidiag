@@ -408,6 +408,11 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Botón Asistencial y Badges en Cabecera (`page-titles`):** Incorporado botón "Refrescar" asistencial con spinner dinámico y badge `F2` en `citasComponent.vue`, `agendaDisponibilidadComponent.vue`, `citasRevisionComponent.vue` y `recomendacionProductoComponent.vue`.
   - **Foco Accesible y Ergonomía Clínica:** Autofoco accesible (`nextTick`) en inputs clave al desplegar modales y sidebars, badges visuales `Ctrl+S`/`Esc`, y estandarización completa de la clase `.btn-action-clinical`.
   - Verificación estricta: ESLint 0 errores/warnings en los 4 componentes ✅ | Vite `npm run build` en 1.04s ✅.
+- [x] **2026-10-19 — UI/UX Nivelación: Atajos Clínicos, Botones Asistenciales y Ergonomía en Ecografías Flujo Principal (`admisionarComponent.vue`, `lecturaComponent.vue`):**
+  - **Atajos Asistenciales (`useKeyboardShortcuts`):** Habilitado atajo `F2` para recarga/búsqueda inmediata de atenciones y ecografías pendientes (`onSearch`), atajo `Ctrl+S` para guardar admisión o lectura, atajo `Ctrl+D` para dictado por voz, y tecla `Escape` para cerrar la estación de lectura o panel lateral.
+  - **Botón Asistencial y Badges en Cabecera (`page-titles`):** Incorporado botón "Refrescar" asistencial con spinner reactivo y badge `F2` en `admisionarComponent.vue` y `lecturaComponent.vue`.
+  - **Ergonomía Clínica y Botones:** Estandarización de `.btn-action-clinical` en botones de cabecera y búsqueda, manteniendo transiciones suaves y foco accesible.
+  - Verificación estricta: ESLint 0 errores/warnings en ambos archivos ✅ | Vite `npm run build` en 1.15s ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.

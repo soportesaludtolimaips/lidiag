@@ -20,6 +20,26 @@
                     <li class="breadcrumb-item active">Admisionar Paciente</li>
                 </ol>
             </div>
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-info btn-action-clinical"
+                    @click="listarAtenciones()"
+                    :disabled="isBuscandoAtenciones"
+                    title="Actualizar listado de atenciones (F2)"
+                >
+                    <i
+                        class="fa"
+                        :class="isBuscandoAtenciones ? 'fa-spinner fa-spin' : 'fa-refresh'"
+                    ></i>
+                    Refrescar
+                    <span
+                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                        style="font-size: 10px; opacity: 0.9"
+                        >F2</span
+                    >
+                </button>
+            </div>
         </div>
         <!-- ============================================================== -->
         <!-- End Bread crumb and right sidebar toggle -->
@@ -83,7 +103,7 @@
                                 <div class="form-actions mt-3">
                                     <button
                                         type="button"
-                                        class="btn btn-success m-r-5"
+                                        class="btn btn-success btn-action-clinical m-r-5"
                                         @click="listarAtenciones()"
                                         :disabled="isBuscandoAtenciones"
                                     >
@@ -100,7 +120,7 @@
 
                                     <button
                                         type="button"
-                                        class="btn btn-inverse"
+                                        class="btn btn-inverse btn-action-clinical"
                                         @click="btnLimpiar()"
                                         :disabled="isBuscandoAtenciones || isGuardandoEcografia"
                                     >
@@ -696,7 +716,7 @@
 
                                 <button
                                     type="button"
-                                    class="btn btn-inverse"
+                                    class="btn btn-inverse btn-action-clinical"
                                     @click="cerrarSidebar()"
                                     :disabled="isGuardandoEcografia"
                                     title="Cerrar panel (Esc)"
@@ -1014,9 +1034,14 @@ const selMedico = ref(null);
 const selProducto = ref(null);
 
 useKeyboardShortcuts({
+    onSearch: () => {
+        if (!sidebarVisible.value) {
+            listarAtenciones();
+        }
+    },
     onSave: guardarRegistro,
     onEscape: cerrarSidebar,
-    isActive: () => sidebarVisible.value,
+    isActive: () => true,
     isLoading: isGuardandoEcografia,
 });
 

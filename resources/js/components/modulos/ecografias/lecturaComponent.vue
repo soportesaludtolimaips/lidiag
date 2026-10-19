@@ -21,10 +21,29 @@
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-info btn-action-clinical m-r-10"
+                    @click="listarPendiestePorLectura()"
+                    :disabled="isBuscandoPendientes"
+                    title="Actualizar lista de pendientes (F2)"
+                >
+                    <i
+                        class="fa"
+                        :class="isBuscandoPendientes ? 'fa-spinner fa-spin' : 'fa-refresh'"
+                    ></i>
+                    Refrescar
+                    <span
+                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                        style="font-size: 10px; opacity: 0.9"
+                        >F2</span
+                    >
+                </button>
                 <i
                     class="fa fa-life-ring model_img img-responsive text-info"
                     data-toggle="modal"
                     data-target=".bs-example-modal-lg"
+                    title="Comandos de voz"
                 ></i>
             </div>
             <!-- sample modal content -->
@@ -889,10 +908,15 @@ function cerrarSidebar() {
 }
 
 useKeyboardShortcuts({
+    onSearch: () => {
+        if (!sidebarVisible.value) {
+            listarPendiestePorLectura();
+        }
+    },
     onSave: guardarRegistro,
     onEscape: cerrarSidebar,
     onDictate: toggleSpeechRecognition,
-    isActive: () => sidebarVisible.value,
+    isActive: () => true,
     isLoading: isGuardandoLectura,
 });
 
