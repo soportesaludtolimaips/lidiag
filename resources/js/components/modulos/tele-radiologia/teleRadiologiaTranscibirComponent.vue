@@ -16,6 +16,18 @@
                     <li class="breadcrumb-item active">Transcribir Estudios Tele radiología</li>
                 </ol>
             </div>
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    :disabled="loadingBuscar"
+                    title="Actualizar listado de estudios (F2)"
+                    @click="listarPendientesTrascribir()"
+                >
+                    <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loadingBuscar }"></i>
+                    Refrescar <span class="badge badge-light border ml-1">F2</span>
+                </button>
+            </div>
         </div>
         <!-- ============================================================== -->
         <!-- End Bread crumb and right sidebar toggle -->
@@ -98,16 +110,21 @@
                             <div class="form-actions mt-3">
                                 <button
                                     type="button"
-                                    class="btn btn-success m-r-5"
+                                    class="btn btn-success m-r-5 btn-action-clinical"
                                     :disabled="loadingBuscar"
                                     @click="listarPendientesTrascribir()"
                                 >
                                     <i v-if="loadingBuscar" class="fa fa-spinner fa-spin"></i>
                                     <i v-else class="fa fa-search"></i>
                                     Buscar
+                                    <span class="badge badge-light border ml-1">F2</span>
                                 </button>
-                                <button type="button" class="btn btn-inverse" @click="btnLimpiar()">
-                                    <i class="fa fa-refresh"></i> Limpiar
+                                <button
+                                    type="button"
+                                    class="btn btn-inverse btn-action-clinical"
+                                    @click="btnLimpiar()"
+                                >
+                                    <i class="fa fa-eraser"></i> Limpiar
                                 </button>
                             </div>
                         </div>
@@ -284,8 +301,17 @@
         <!-- ============================================================== -->
 
         <!-- ============================================================== -->
+        <!-- Backdrop para cerrar al hacer clic y atenuar fondo -->
+        <transition name="fade">
+            <div
+                v-if="sidebarVisible"
+                class="sidebar-backdrop"
+                @click="btnCerrarModal()"
+                aria-hidden="true"
+            ></div>
+        </transition>
+
         <!-- Right sidebar -->
-        <!-- ============================================================== -->
         <!-- .right-sidebar -->
         <div
             class="right-sidebar"
@@ -322,9 +348,15 @@
                             ></i>
                             {{ isDarkMode ? "Claro" : "Oscuro" }}
                         </button>
-                        <span @click="btnCerrarModal()" class="cursor-pointer">
-                            <i class="ti-close right-side-toggle"></i>
-                        </span>
+                        <button
+                            type="button"
+                            class="right-side-toggle text-white border-0 bg-transparent p-0 cursor-pointer"
+                            @click="btnCerrarModal()"
+                            aria-label="Cerrar panel"
+                            title="Cerrar panel (Esc)"
+                        >
+                            <i class="ti-close"></i>
+                        </button>
                     </div>
                 </div>
                 <div class="r-panel-body">
@@ -575,21 +607,28 @@
                             <div class="form-actions mt-3">
                                 <button
                                     type="button"
-                                    class="btn btn-success m-r-5"
+                                    class="btn btn-success m-r-5 btn-action-clinical"
                                     @click="guardarRegistro()"
                                     :disabled="loadingGuardar"
+                                    :title="
+                                        (actualizar ? 'Actualizar' : 'Guardar') +
+                                        ' transcripción (Ctrl + S)'
+                                    "
                                 >
                                     <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
                                     <i v-else class="fa fa-check"></i>
                                     {{ actualizar ? "Actualizar" : "Guardar" }}
+                                    <span class="badge badge-light border ml-1">Ctrl+S</span>
                                 </button>
 
                                 <button
                                     type="button"
-                                    class="btn btn-inverse"
+                                    class="btn btn-inverse btn-action-clinical"
                                     @click="btnCerrarModal()"
+                                    title="Cerrar panel (Esc)"
                                 >
                                     Cancelar
+                                    <span class="badge badge-secondary ml-1">Esc</span>
                                 </button>
                             </div>
                         </div>
@@ -615,6 +654,7 @@ dayjs.extend(timezone);
 import axios from "axios";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables";
 import { confirmAction, getUserSafeError, toastMessage } from "@/helpers/alerts";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 
 const { appContext } = getCurrentInstance();
 const emitter = appContext.config.globalProperties.emitter;
@@ -1099,6 +1139,24 @@ function btnCerrarModal() {
     errores.value = {};
 }
 
+useKeyboardShortcuts({
+    onSave: () => {
+        if (sidebarVisible.value && !loadingGuardar.value) {
+            guardarRegistro();
+        }
+    },
+    onEscape: () => {
+        if (sidebarVisible.value) {
+            btnCerrarModal();
+        }
+    },
+    onSearch: () => {
+        if (!sidebarVisible.value) {
+            listarPendientesTrascribir();
+        }
+    },
+});
+
 onMounted(async () => {
     listarMedicos();
     establecerSede();
@@ -1123,23 +1181,60 @@ onBeforeUnmount(() => {
     position: fixed;
     right: -95%;
     width: 95%;
-    display: none;
     z-index: 1100;
     background: #ffffff;
     top: 0px;
     padding-bottom: 20px;
     height: 100%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
+    box-shadow: -5px 0 35px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .shw-rside {
-    right: 0px;
+    right: 0px !important;
     width: 95%;
-    display: block;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: 1050;
+}
+
+.btn-action-clinical {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-action-clinical:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
 }
 
 /* ============================================================== */

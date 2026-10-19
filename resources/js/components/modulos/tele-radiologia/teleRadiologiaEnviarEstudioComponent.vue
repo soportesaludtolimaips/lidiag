@@ -14,6 +14,18 @@
                     <li class="breadcrumb-item active">Tele radiologia</li>
                 </ol>
             </div>
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    :disabled="loadingBuscar"
+                    title="Actualizar listado de estudios (F2)"
+                    @click="buscarStudy()"
+                >
+                    <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loadingBuscar }"></i>
+                    Refrescar <span class="badge badge-light border ml-1">F2</span>
+                </button>
+            </div>
         </div>
 
         <!-- Filtros -->
@@ -72,29 +84,34 @@
                                 <div class="form-actions mt-3">
                                     <button
                                         type="button"
-                                        class="btn btn-success m-r-5"
+                                        class="btn btn-success m-r-5 btn-action-clinical"
                                         @click="buscarStudy()"
                                         :disabled="loadingBuscar"
                                     >
                                         <i v-if="loadingBuscar" class="fa fa-spinner fa-spin"></i>
                                         <i v-else class="fa fa-search"></i> Buscar
+                                        <span class="badge badge-light border ml-1">F2</span>
                                     </button>
 
                                     <button
                                         type="button"
-                                        class="btn btn-outline-primary m-r-5"
+                                        class="btn btn-outline-primary m-r-5 btn-action-clinical"
                                         @click="buscarStudy()"
                                         :disabled="loadingBuscar"
                                     >
-                                        <i class="fa fa-sync"></i> Actualizar
+                                        <i
+                                            class="fa fa-refresh"
+                                            :class="{ 'fa-spin': loadingBuscar }"
+                                        ></i>
+                                        Actualizar
                                     </button>
 
                                     <button
                                         type="button"
-                                        class="btn btn-inverse"
+                                        class="btn btn-inverse btn-action-clinical"
                                         @click="btnLimpiar()"
                                     >
-                                        <i class="fa fa-refresh"></i> Limpiar
+                                        <i class="fa fa-eraser"></i> Limpiar
                                     </button>
                                 </div>
                             </div>
@@ -193,6 +210,16 @@
             </div>
         </div>
 
+        <!-- Backdrop para cerrar al hacer clic y atenuar fondo -->
+        <transition name="fade">
+            <div
+                v-if="sidebarVisible"
+                class="sidebar-backdrop"
+                @click="btnCerrarModal()"
+                aria-hidden="true"
+            ></div>
+        </transition>
+
         <!-- Right sidebar -->
         <div
             class="right-sidebar"
@@ -200,11 +227,17 @@
             style="overflow-x: hidden; overflow-y: scroll; height: 100%"
         >
             <div class="slimscrollright">
-                <div class="rpanel-title">
-                    {{ tituloModal }}
-                    <span>
-                        <i class="ti-close right-side-toggle" @click="btnCerrarModal()"></i>
-                    </span>
+                <div class="rpanel-title d-flex justify-content-between align-items-center">
+                    <span>{{ tituloModal }}</span>
+                    <button
+                        type="button"
+                        class="right-side-toggle text-white border-0 bg-transparent"
+                        @click="btnCerrarModal()"
+                        aria-label="Cerrar panel"
+                        title="Cerrar panel (Esc)"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
                 </div>
                 <div class="r-panel-body">
                     <form action="#">
@@ -534,16 +567,24 @@
                             <div class="form-actions mt-3">
                                 <button
                                     type="button"
-                                    class="btn btn-success m-r-5"
+                                    class="btn btn-success m-r-5 btn-action-clinical"
                                     @click="guardarRegistro()"
                                     :disabled="loadingGuardar"
+                                    title="Guardar orden (Ctrl + S)"
                                 >
                                     <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
                                     <i v-else class="fa fa-check"></i> Guardar
+                                    <span class="badge badge-light border ml-1">Ctrl+S</span>
                                 </button>
 
-                                <button type="button" class="btn btn-inverse" @click="btnLimpiar()">
+                                <button
+                                    type="button"
+                                    class="btn btn-inverse btn-action-clinical"
+                                    @click="btnCerrarModal()"
+                                    title="Cerrar panel (Esc)"
+                                >
                                     Cancelar
+                                    <span class="badge badge-secondary ml-1">Esc</span>
                                 </button>
                             </div>
                         </div>
@@ -559,6 +600,7 @@ import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { getUserSafeError, toastMessage } from "@/helpers/alerts";
 import { normalizarFecha } from "@/helpers/dateUtils";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 import axios from "axios";
 import usePermissions from "@/helpers/permissions.js";
 
@@ -1177,6 +1219,24 @@ function verImagen(pat_id, study_iuid, studyPk) {
     }
 }
 
+useKeyboardShortcuts({
+    onSave: () => {
+        if (sidebarVisible.value && !loadingGuardar.value) {
+            guardarRegistro();
+        }
+    },
+    onEscape: () => {
+        if (sidebarVisible.value) {
+            btnCerrarModal();
+        }
+    },
+    onSearch: () => {
+        if (!sidebarVisible.value) {
+            buscarStudy();
+        }
+    },
+});
+
 onMounted(() => {
     listarPrioridades();
     listarProductos();
@@ -1195,33 +1255,72 @@ onBeforeUnmount(() => {
     position: fixed;
     right: -80%;
     width: 80%;
-    display: none;
-    z-index: 180;
+    z-index: 1100;
     background: #ffffff;
     top: 0px;
     padding-bottom: 20px;
-    height: 80%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
-}
-
-.shw-rside {
-    right: 0px;
-    width: 80%;
-    display: block;
+    height: 100%;
+    box-shadow: -5px 0 35px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 @media (max-width: 768px) {
     .right-sidebar {
-        width: 100%;
         right: -100%;
+        width: 100%;
     }
+}
+
+.shw-rside {
+    right: 0px !important;
+    width: 80%;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+@media (max-width: 768px) {
     .shw-rside {
         width: 100%;
-        right: 0;
     }
+}
+
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: 1050;
+}
+
+.btn-action-clinical {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-action-clinical:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
 }
 </style>

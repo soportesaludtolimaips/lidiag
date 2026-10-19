@@ -373,6 +373,11 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Sincronización Inmediata por EventBus:** Conectado listener de `citasActualizadas` y `sedeSeleccionada` sobre el `emitter` global con cleanup en `onBeforeUnmount`, actualizando el conteo de citas pendientes en tiempo real sin esperar el ciclo de 30s.
   - **Microanimación de Pulso:** Indicador visual animado (`badge-pulse`) al recibir nuevas solicitudes pendientes, transición suave de entrada/salida (`fade`) y accesibilidad reforzada con `aria-live="polite"`.
   - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.01s ✅.
+- [x] **2026-10-19 — UI/UX Módulo Tele-radiología: Atajos Clínicos, Backdrop y Transición Suave en `teleRadiologiaEnviarEstudioComponent.vue` y `teleRadiologiaTranscibirComponent.vue`:**
+  - **Transición Suave y Backdrop Overlay:** Eliminado `display: none/block` en `.right-sidebar` con animación deslizante suave `cubic-bezier(0.16, 1, 0.3, 1)` a 350ms, altura al 100%, z-index 1100 y backdrop desacoplador (`.sidebar-backdrop`) con `backdrop-filter: blur(2px)`.
+  - **Atajos Asistenciales (`useKeyboardShortcuts`):** Atajos `Ctrl+S` para guardar orden/transcripción (protegido contra concurrencia), `Escape` para cerrar paneles laterales y `F2` para ejecutar búsquedas/refresco de estudios.
+  - **Foco Accesible y Botones Clínicos:** Botón "Refrescar" en `page-titles` con spinner interactivo y badge `F2`, botón accesible `<button class="right-side-toggle">` y clase `.btn-action-clinical`.
+  - Verificación estricta: ESLint 0 errores/warnings en ambos archivos ✅ | Vite `npm run build` en 990ms ✅.
 - [x] **2026-10-19 — Herramienta Autónoma Python: Monitor de Discos DICOM con Bot de Telegram (`dcm_disk_monitor_telegram`):**
   - Implementada herramienta en `storage/app_lidiag/dcm_disk_monitor_telegram/` usando exclusivamente la librería estándar de Python (sin dependencias `pip`).
   - **Modo Dual (Opción C):**
