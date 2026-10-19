@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\BackupUploadController;
 use App\Http\Controllers\OHIF_visor\OhifVisorController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +28,9 @@ Route::middleware(['auth'])->get('/user', function (Request $request) {
 Route::get('/test', function () {
     return response()->json(['message' => 'API funcionando correctamente']);
 });
+
+// Endpoint receptor de backups de bases de datos DCM por sedes (autenticado por Bearer Token)
+Route::post('/backups/upload-dcm', [BackupUploadController::class, 'uploadDcm']);
 
 /**
  * Diagnóstico mínimo de sesión para el interceptor 401 del frontend.

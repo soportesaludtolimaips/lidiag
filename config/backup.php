@@ -99,4 +99,14 @@ return [
     |
     */
     "dcm_timeout_seconds" => (int) env("BACKUP_DCM_TIMEOUT", 5),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Token de Autenticación para Webhook de Recepción de Backups
+    |--------------------------------------------------------------------------
+    |
+    | Clave Bearer esperada en la cabecera Authorization para subir backups desde agentes.
+    |
+    */
+    "api_token" => env("BACKUP_API_TOKEN", "lidiag_backup_secure_token_2026"),
 ];
