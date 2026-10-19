@@ -302,6 +302,12 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Transición Suave y Backdrop Overlay:** Eliminado `display: none/block` en `.right-sidebar` con altura unificada al 100%, z-index 1100 y backdrop oscurecido con cierre al hacer clic exterior.
   - **Badges Visuales y Microinteracciones:** Añadidos badges descriptivos `Ctrl+S` y `Esc`, títulos accesibles y botón de cierre `<button class="right-side-toggle">`.
   - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 977ms ✅.
+- [x] **2026-10-19 — UI/UX Módulo Citas & Agenda: Atajos Clínicos, Foco Accesible y Modales con Backdrop en `citasComponent.vue`:**
+  - **Atajos de Teclado Asistenciales:** Integrado `useKeyboardShortcuts` con `Ctrl+S` para guardar asignación de cita (protegido contra concurrencia `loadingGuardar`) y `Escape` para cerrar cualquiera de los modales activos (`#modalAsignar`, `#modalConversacion`).
+  - **Foco Accesible (`a11y`):** Autofoco automático reactivo en `#modal_servicio_id` al desplegar el modal de asignación de cita.
+  - **Modales Modernos con Backdrop Blur:** Modales con `style="display: block"`, backdrop desenfocado semitransparente, y cierre al hacer clic en el backdrop exterior (`@click.self`).
+  - **Badges Visuales:** Badges descriptivos `Ctrl+S` y `Esc` en botones de acción y cierre.
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.79s ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.

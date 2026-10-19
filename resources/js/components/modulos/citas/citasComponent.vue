@@ -308,10 +308,12 @@
         <div
             v-if="showModalAsignar"
             id="modalAsignar"
-            class="modal"
+            class="modal show"
+            style="display: block"
             tabindex="-1"
             role="dialog"
             aria-hidden="true"
+            @click.self="showModalAsignar = false"
         >
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -321,7 +323,7 @@
                             type="button"
                             class="close"
                             @click="showModalAsignar = false"
-                            aria-hidden="true"
+                            aria-label="Cerrar modal"
                         >
                             ×
                         </button>
@@ -330,8 +332,11 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="control-label">Servicio</label>
+                                    <label class="control-label" for="modal_servicio_id"
+                                        >Servicio</label
+                                    >
                                     <select
+                                        id="modal_servicio_id"
                                         v-model="citaSeleccionada.servicio_id"
                                         class="form-control"
                                         @change="cargarProductosPorServicio()"
@@ -445,20 +450,32 @@
                             type="button"
                             class="btn btn-inverse"
                             @click="showModalAsignar = false"
+                            title="Cerrar modal (Esc)"
                         >
                             Cerrar
+                            <span
+                                class="badge badge-secondary ml-1 d-none d-md-inline"
+                                style="font-size: 10px"
+                                >Esc</span
+                            >
                         </button>
                         <button
                             type="button"
-                            class="btn btn-success"
+                            class="btn btn-success btn-action-clinical"
                             @click="asignarCita()"
                             :disabled="loadingGuardar"
+                            title="Guardar cita (Ctrl+S)"
                         >
                             <i
                                 class="fa"
                                 :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-save'"
                             ></i>
                             {{ loadingGuardar ? "Guardando..." : "Guardar" }}
+                            <span
+                                class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                                style="font-size: 10px; opacity: 0.9"
+                                >Ctrl+S</span
+                            >
                         </button>
                     </div>
                 </div>
@@ -468,10 +485,12 @@
         <div
             v-if="showModalConversacion"
             id="modalConversacion"
-            class="modal"
+            class="modal show"
+            style="display: block"
             tabindex="-1"
             role="dialog"
             aria-hidden="true"
+            @click.self="showModalConversacion = false"
         >
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -481,7 +500,7 @@
                             type="button"
                             class="close"
                             @click="showModalConversacion = false"
-                            aria-hidden="true"
+                            aria-label="Cerrar modal"
                         >
                             ×
                         </button>
@@ -517,8 +536,14 @@
                             type="button"
                             class="btn btn-inverse"
                             @click="showModalConversacion = false"
+                            title="Cerrar modal (Esc)"
                         >
                             Cerrar
+                            <span
+                                class="badge badge-secondary ml-1 d-none d-md-inline"
+                                style="font-size: 10px"
+                                >Esc</span
+                            >
                         </button>
                     </div>
                 </div>
@@ -527,7 +552,7 @@
     </div>
 </template>
 <script setup>
-import { computed, getCurrentInstance, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 const { proxy, appContext } = getCurrentInstance();
 const emitter = appContext.config.globalProperties.emitter;
@@ -536,6 +561,7 @@ import { formatFecha, getEstadoLabel, getEstadoClase } from "@/composables/useCi
 import { alertError, alertSuccess, alertWarning, confirmAction } from "@/helpers/alerts";
 import axios from "axios";
 import { useFilterPersistence } from "@/composables/useFilterPersistence";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 
 const registros = ref([]);
 const productosFiltrados = ref([]);
@@ -578,6 +604,22 @@ const loadingGuardar = ref(false);
 const actualizar = ref(false);
 const showModalAsignar = ref(false);
 const showModalConversacion = ref(false);
+
+function cerrarModales() {
+    showModalAsignar.value = false;
+    showModalConversacion.value = false;
+}
+
+useKeyboardShortcuts({
+    onSave: () => {
+        if (showModalAsignar.value) {
+            asignarCita();
+        }
+    },
+    onEscape: cerrarModales,
+    isActive: () => showModalAsignar.value || showModalConversacion.value,
+    isLoading: loadingGuardar,
+});
 
 const productoOptions = computed(() => {
     return (productosFiltrados.value || []).map((p) => ({
@@ -719,6 +761,9 @@ function mostrarModalAsignar(cita) {
     }
 
     showModalAsignar.value = true;
+    nextTick(() => {
+        document.getElementById("modal_servicio_id")?.focus();
+    });
 }
 
 function asignarCita() {
@@ -902,3 +947,13 @@ onBeforeUnmount(() => {
     emitter?.off("sedeSeleccionada", onSedeSeleccionada);
 });
 </script>
+<style scoped>
+.modal.show {
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    overflow-y: auto;
+}
+.modal-dialog {
+    margin-top: 50px;
+}
+</style>
