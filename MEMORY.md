@@ -250,9 +250,11 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     3. *Prueba de integridad CRC32:* Validación interna de ZIP (`testzip()` en Python, `ZipArchive::CHECKCONS` en PHP) antes de eliminar el archivo `.sql` crudo original.
     4. *Huella Criptográfica SHA-256:* Generación automática de archivo gemelo `.sha256` en formato estándar GNU (`<hash>  <archivo>`) para trazabilidad legal y auditorías.
     5. *Manifiesto de Telemetría Centralizado:* Emisión automática de `backup_status_sede_{id}.json` (en sedes) y `backup_manifest.json` (en central) sincronizados por Qsync al QNAP para monitoreo unificado de estado de toda la red.
+    6. *Resolución determinista de mysqldump:* Eliminados los patrones quemados de búsqueda (`search_patterns`) en favor de la ruta explícita de `config.json` o el `PATH` del sistema, con terminación inmediata y mensaje instructivo si no se localiza.
   - Verificación exitosa:
     * Agente DCM: prueba integral completada en **17.98s** con generación de hash SHA-256 y manifiesto de estado ✅.
     * Backup Central (`php artisan lidiag:backup --only-db`): completado en **29.9s**, validando pre-flight check de 1.61 TB, verificación de integridad, hash SHA-256 y manifiesto `backup_manifest.json` ✅ | Pint `--test passed` ✅.
+    * Actualizados paquetes comprimidos para distribución hospitalaria: `scripts/dcm_agent.rar` y `scripts/dcm_agent.zip` ✅.
 
 
 
@@ -336,7 +338,11 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Badges Visuales y Microinteracciones:** Badges `Ctrl+S` y `Esc`, títulos contextuales y clase `.btn-action-clinical` con microinteracción táctil.
 - [x] **2026-10-19 — UI/UX Módulo Estudios: Hotfix ReferenceError TDZ en `notificarEstudioComponent.vue`:**
   - **Corrección de Inicialización en `setup()`:** Sustituida la asignación `const btnCerrarModalForm` por declaración de función canónica con hoisting (`function btnCerrarModalForm()`), y envuelto en callback diferido `onEscape: () => btnCerrarModalForm()` dentro de `useKeyboardShortcuts` para evitar el error `Uncaught ReferenceError: Cannot access 'btnCerrarModalForm' before initialization`.
-  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 971ms ✅.
+- [x] **2026-10-19 — UI/UX Módulo Citas & Agenda: Sincronización Multisede y Refresque Asistencial en `gestionCitasComponent.vue`:**
+  - **Sincronización Reactiva Multisede:** Conectado listener de `emitter.on('sedeSeleccionada')` con cleanup en `onBeforeUnmount` y enlace con `sessionStorage.getItem("ST-sede")` para filtrar métricas y citas próximas por la sede activa del usuario.
+  - **Optimización Asíncrona:** Migrada la carga de estadísticas y estados a `Promise.all` estructurado con `async/await`, eliminando condiciones de carrera y llamadas desordenadas.
+  - **Botón Asistencial y Empty State:** Agregado botón de refrescar con microinteracción `.btn-action-clinical` y spinner dinámico en la cabecera superior derecha (`page-titles`), clases interactivas en accesos rápidos y empty state visual en la tabla de citas próximas.
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.01s ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.

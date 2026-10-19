@@ -209,6 +209,10 @@ def check_disk_space(target_path, min_gb_required):
 
 
 def find_mysqldump(custom_path):
+    """
+    Resuelve el ejecutable mysqldump según la ruta configurada en config.json
+    o buscándolo en el PATH del sistema.
+    """
     if custom_path:
         clean_path = custom_path.strip("\"' \t\r\n")
         clean_path = os.path.expandvars(os.path.expanduser(clean_path))
@@ -216,35 +220,22 @@ def find_mysqldump(custom_path):
             return clean_path
         if shutil.which(clean_path):
             return shutil.which(clean_path)
-        print(f"[ADVERTENCIA] La ruta configurada 'mysqldump_path' ({custom_path}) no existe. Buscando automáticamente...")
+        print("=========================================================")
+        print(f"[ERROR] La ruta 'mysqldump_path' configurada en config.json no existe: {custom_path}")
+        print("Verifica la ruta al ejecutable mysqldump.exe en el servidor.")
+        print("=========================================================")
+        sys.exit(1)
 
-    # 1. Búsqueda en PATH del sistema
+    # Si no se configuró ruta, buscar en el PATH del sistema
     which_path = shutil.which("mysqldump")
     if which_path:
         return which_path
 
-    # 2. Búsqueda dinámica en instalaciones de MySQL Server en Windows
-    search_patterns = [
-        r"C:\Program Files\MySQL\MySQL Server *\bin\mysqldump.exe",
-        r"C:\Program Files (x86)\MySQL\MySQL Server *\bin\mysqldump.exe",
-        r"C:\Program Files\MariaDB *\bin\mysqldump.exe",
-        r"C:\laragon\bin\mysql\*\bin\mysqldump.exe",
-        r"C:\xampp\mysql\bin\mysqldump.exe",
-        r"D:\Program Files\MySQL\MySQL Server *\bin\mysqldump.exe",
-    ]
-    for pattern in search_patterns:
-        matches = glob.glob(pattern)
-        if matches:
-            matches.sort(reverse=True)
-            return matches[0]
-
-    # 3. Rutas comunes en Linux
-    linux_paths = ["/usr/bin/mysqldump", "/usr/local/bin/mysqldump"]
-    for p in linux_paths:
-        if os.path.exists(p):
-            return p
-
-    return "mysqldump"
+    print("=========================================================")
+    print("[ERROR] No se encontró el ejecutable 'mysqldump' en el PATH del sistema.")
+    print("Por favor especifica la ruta completa en el parámetro 'mysqldump_path' de config.json.")
+    print("=========================================================")
+    sys.exit(1)
 
 
 def check_column_statistics_supported(mysqldump_bin):
