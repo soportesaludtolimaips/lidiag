@@ -189,8 +189,20 @@
                                 <span class="badge badge-secondary" v-else>Sin resultados</span>
                             </div>
                         </div>
-                        <loading-spinner :visible="loadingBuscar" />
-                        <div class="table-responsive" :class="{ 'd-none': loadingBuscar }">
+                        <table-skeleton-loader :visible="loadingBuscar" :rows="6" :columns="11" />
+                        <empty-state-component
+                            v-if="!loadingBuscar && registros.length === 0"
+                            icon="fa fa-folder-open-o"
+                            title="No hay estudios pendientes por transcribir"
+                            description="No se encontraron estudios pendientes para transcripción con los filtros seleccionados o use los filtros para buscar."
+                            action-text="Limpiar filtros"
+                            action-icon="fa fa-refresh"
+                            @action="btnLimpiar()"
+                        />
+                        <div
+                            class="table-responsive"
+                            v-show="!loadingBuscar && registros.length > 0"
+                        >
                             <table
                                 id="example23"
                                 ref="dt"
@@ -714,7 +726,6 @@
 </template>
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
-import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { listarUsuariosYSedes } from "@/helpers/usuarios";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";

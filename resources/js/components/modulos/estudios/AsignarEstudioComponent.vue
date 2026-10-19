@@ -172,8 +172,20 @@
                                 <span class="badge badge-secondary" v-else>Sin resultados</span>
                             </div>
                         </div>
-                        <loading-spinner :visible="loadingBuscar" />
-                        <div class="table-responsive" v-show="!loadingBuscar">
+                        <table-skeleton-loader :visible="loadingBuscar" :rows="6" :columns="7" />
+                        <empty-state-component
+                            v-if="!loadingBuscar && registros.length === 0"
+                            icon="fa fa-folder-open-o"
+                            title="No hay estudios para mostrar"
+                            description="No se encontraron estudios con los filtros seleccionados o use los filtros para buscar."
+                            action-text="Limpiar filtros"
+                            action-icon="fa fa-refresh"
+                            @action="btnLimpiar()"
+                        />
+                        <div
+                            class="table-responsive"
+                            v-show="!loadingBuscar && registros.length > 0"
+                        >
                             <table
                                 id="example23"
                                 ref="dt"
@@ -200,15 +212,6 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-if="registros.length === 0">
-                                        <td colspan="7" class="text-center text-muted py-4">
-                                            <i class="fa fa-search fa-2x m-b-10"></i>
-                                            <p>
-                                                No se encontraron estudios. Use los filtros de
-                                                búsqueda para comenzar.
-                                            </p>
-                                        </td>
-                                    </tr>
                                     <tr
                                         v-for="(item, index) in registros"
                                         :key="item.study_pk"
@@ -956,7 +959,6 @@
 import axios from "axios";
 
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
-import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { confirmAction, toastMessage, getUserSafeError } from "@/helpers/alerts";

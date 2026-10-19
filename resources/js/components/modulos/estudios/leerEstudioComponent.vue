@@ -198,8 +198,17 @@
                             </button>
                         </div>
                     </div>
-                    <loading-spinner :visible="!tablaVisible" />
-                    <div class="table-responsive" v-show="tablaVisible">
+                    <table-skeleton-loader :visible="!tablaVisible" :rows="6" :columns="9" />
+                    <empty-state-component
+                        v-if="tablaVisible && registros.length === 0"
+                        icon="fa fa-folder-open-o"
+                        title="No hay estudios pendientes por leer"
+                        description="Excelente trabajo. Todos los estudios asignados han sido informados o no hay registros pendientes."
+                        action-text="Actualizar lista"
+                        action-icon="fa fa-refresh"
+                        @action="listarPendiestePorLectura()"
+                    />
+                    <div class="table-responsive" v-show="tablaVisible && registros.length > 0">
                         <table
                             id="example23"
                             ref="dt"
@@ -1336,7 +1345,6 @@
 </template>
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
-import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import DatosPacienteDisplay from "@/components/comunes/datosPacienteDisplayComponent.vue";
 import { normalizarFecha } from "@/helpers/dateUtils.js";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";

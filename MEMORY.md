@@ -245,6 +245,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - Registrado en Laravel Scheduler (`routes/console.php`) a las **02:30 AM** con protección `withoutOverlapping()`.
   - Actualizado `scripts/programar_tarea_backup.bat` para registrar la tarea `LIDiag_Daily_Backup_DCM` en Windows Task Scheduler.
   - Verificación exitosa: respaldo real de Sede #1 (Espinal - Hospital San Rafael: `pacsdb`) volcando **9.06 GB** de SQL a un archivo `.zip` de **464.22 MB** en `C:\Backups_Lidiag\dcm_sedes\` ✅ | Pint `--test passed` ✅.
+- [x] **2026-10-19 — UI/UX Categoría 3.3 (Extensión): Skeleton Loaders Shimmer & Empty States en todo el Módulo de Estudios:**
+  - `AsignarEstudioComponent.vue` (`/estudios.asignar.listar`): Reemplazado spinner tradicional por `<table-skeleton-loader :visible="loadingBuscar" :rows="6" :columns="7" />` y añadido `<empty-state-component>` interactivo conectado a `btnLimpiar()`.
+  - `leerEstudioComponent.vue` (`/estudios.lectura.listar`): Reemplazado spinner tradicional por `<table-skeleton-loader :visible="!tablaVisible" :rows="6" :columns="9" />` y `<empty-state-component>` con acción de refresco `listarPendiestePorLectura()`.
+  - `transcribirEstudioComponent.vue` (`/estudios.transcribir.listar`): Reemplazado spinner por `<table-skeleton-loader :visible="loadingBuscar" :rows="6" :columns="11" />` y `<empty-state-component>` interactivo.
+  - `notificarEstudioComponent.vue` (`/estudios.notificar.listar`): Reemplazado spinner por `<table-skeleton-loader :visible="loadingBuscar" :rows="6" :columns="8" />` y `<empty-state-component>` interactivo.
+  - Limpieza de imports obsoletos `LoadingSpinner` y ajuste semántico de tablas vacías.
+  - Verificación estricta: ESLint 0 errores/warnings en todos los componentes ✅ | Vite `npm run build` en 968ms ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.
