@@ -40,133 +40,165 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> Filtros para busqueda de estudios asignados
-                        </h4>
-                        <form action="#">
-                            <div class="form-body">
-                                <div class="row p-t-2">
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label for="quien_asigno_id">Quien asigno</label>
-                                            <select
-                                                v-model="busqueda.quien_asigno_id"
-                                                name="quien_asigno_id"
-                                                id="quien_asigno_id"
-                                                class="form-control custom-select"
-                                            >
-                                                <option value="">
-                                                    ...::: Todos los usuarios :::...
-                                                </option>
-                                                <option
-                                                    v-for="ItemUsuario in quienes_asignaron"
-                                                    :key="ItemUsuario.id"
-                                                    :value="ItemUsuario.id"
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h4 class="card-title text-themecolor mb-0">
+                                <i class="fa fa-filter"></i> Filtros para búsqueda de estudios
+                                asignados
+                                <span
+                                    v-if="filtrosActivosCount > 0"
+                                    class="badge badge-pill badge-info ml-2"
+                                >
+                                    {{ filtrosActivosCount }}
+                                    {{
+                                        filtrosActivosCount === 1
+                                            ? "filtro activo"
+                                            : "filtros activos"
+                                    }}
+                                </span>
+                            </h4>
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-secondary"
+                                @click="toggleFiltros()"
+                                :title="filtrosVisible ? 'Ocultar filtros' : 'Mostrar filtros'"
+                            >
+                                <i
+                                    :class="
+                                        filtrosVisible ? 'fa fa-chevron-up' : 'fa fa-chevron-down'
+                                    "
+                                ></i>
+                                {{ filtrosVisible ? "Ocultar filtros" : "Mostrar filtros" }}
+                            </button>
+                        </div>
+                        <transition name="fade-collapse">
+                            <form v-show="filtrosVisible" action="#">
+                                <div class="form-body">
+                                    <div class="row p-t-2">
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label for="quien_asigno_id">Quien asigno</label>
+                                                <select
+                                                    v-model="busqueda.quien_asigno_id"
+                                                    name="quien_asigno_id"
+                                                    id="quien_asigno_id"
+                                                    class="form-control custom-select"
                                                 >
-                                                    {{ ItemUsuario.name }}
-                                                </option>
-                                            </select>
+                                                    <option value="">
+                                                        ...::: Todos los usuarios :::...
+                                                    </option>
+                                                    <option
+                                                        v-for="ItemUsuario in quienes_asignaron"
+                                                        :key="ItemUsuario.id"
+                                                        :value="ItemUsuario.id"
+                                                    >
+                                                        {{ ItemUsuario.name }}
+                                                    </option>
+                                                </select>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label for="medico_id">Medicos</label>
-                                            <select
-                                                v-model="busqueda.medico_id"
-                                                name="medico_id"
-                                                id="medico_id"
-                                                class="form-control custom-select"
-                                            >
-                                                <option value="" selected>
-                                                    ...::: Todos los medicos :::...
-                                                </option>
-                                                <option
-                                                    v-for="ItemUsuario in medicos"
-                                                    :key="ItemUsuario.id"
-                                                    :value="ItemUsuario.id"
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label for="medico_id">Medicos</label>
+                                                <select
+                                                    v-model="busqueda.medico_id"
+                                                    name="medico_id"
+                                                    id="medico_id"
+                                                    class="form-control custom-select"
                                                 >
-                                                    {{ ItemUsuario.name }}
-                                                </option>
-                                            </select>
+                                                    <option value="" selected>
+                                                        ...::: Todos los medicos :::...
+                                                    </option>
+                                                    <option
+                                                        v-for="ItemUsuario in medicos"
+                                                        :key="ItemUsuario.id"
+                                                        :value="ItemUsuario.id"
+                                                    >
+                                                        {{ ItemUsuario.name }}
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label class="control-label" for="bus_nom_num_docu"
+                                                    >Nombres o # documento</label
+                                                >
+                                                <input
+                                                    type="text"
+                                                    id="bus_nom_num_docu"
+                                                    name="bus_nom_num_docu"
+                                                    v-model="busqueda.bus_nom_num_docu"
+                                                    class="form-control"
+                                                    placeholder="Nombres de paciente o # de documento"
+                                                    @keyup.enter="listarEstudiosAsignados()"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label class="control-label" for="bus_fech_ini"
+                                                    >Fecha Inicio</label
+                                                >
+                                                <input
+                                                    type="date"
+                                                    id="bus_fech_ini"
+                                                    name="bus_fech_ini"
+                                                    v-model="busqueda.bus_fech_ini"
+                                                    class="form-control"
+                                                    @keyup.enter="listarEstudiosAsignados()"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label class="control-label" for="bus_fecha_fin"
+                                                    >Fecha Fin</label
+                                                >
+                                                <input
+                                                    type="date"
+                                                    id="bus_fecha_fin"
+                                                    name="bus_fecha_fin"
+                                                    v-model="busqueda.bus_fecha_fin"
+                                                    class="form-control"
+                                                    @keyup.enter="listarEstudiosAsignados()"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label class="control-label" for="bus_nom_num_docu"
-                                                >Nombres o # documento</label
-                                            >
-                                            <input
-                                                type="text"
-                                                id="bus_nom_num_docu"
-                                                name="bus_nom_num_docu"
-                                                v-model="busqueda.bus_nom_num_docu"
-                                                class="form-control"
-                                                placeholder="Nombres de paciente o # de documento"
-                                                @keyup.enter="listarEstudiosAsignados()"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label class="control-label" for="bus_fech_ini"
-                                                >Fecha Inicio</label
-                                            >
-                                            <input
-                                                type="date"
-                                                id="bus_fech_ini"
-                                                name="bus_fech_ini"
-                                                v-model="busqueda.bus_fech_ini"
-                                                class="form-control"
-                                                @keyup.enter="listarEstudiosAsignados()"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label class="control-label" for="bus_fecha_fin"
-                                                >Fecha Fin</label
-                                            >
-                                            <input
-                                                type="date"
-                                                id="bus_fecha_fin"
-                                                name="bus_fecha_fin"
-                                                v-model="busqueda.bus_fecha_fin"
-                                                class="form-control"
-                                                @keyup.enter="listarEstudiosAsignados()"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
 
-                                <div class="form-actions mt-3">
-                                    <button
-                                        type="button"
-                                        class="btn btn-success m-r-5"
-                                        :disabled="loadingBuscar"
-                                        @click="listarEstudiosAsignados()"
-                                    >
-                                        <i v-if="loadingBuscar" class="fa fa-spinner fa-spin"></i>
-                                        <i v-else class="fa fa-search"></i>
-                                        Buscar
-                                    </button>
-                                    <button
-                                        type="button"
-                                        class="btn btn-inverse"
-                                        @click="btnLimpiar()"
-                                    >
-                                        <i class="fa fa-refresh"></i> Limpiar
-                                    </button>
-                                    <button
-                                        type="button"
-                                        class="btn btn-outline-primary ml-2"
-                                        @click="listarEstudiosAsignados()"
-                                        :disabled="loadingBuscar"
-                                    >
-                                        <i class="fa fa-sync"></i> Actualizar
-                                    </button>
+                                    <div class="form-actions mt-3">
+                                        <button
+                                            type="button"
+                                            class="btn btn-success m-r-5"
+                                            :disabled="loadingBuscar"
+                                            @click="listarEstudiosAsignados()"
+                                        >
+                                            <i
+                                                v-if="loadingBuscar"
+                                                class="fa fa-spinner fa-spin"
+                                            ></i>
+                                            <i v-else class="fa fa-search"></i>
+                                            Buscar
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="btn btn-inverse"
+                                            @click="btnLimpiar()"
+                                        >
+                                            <i class="fa fa-refresh"></i> Limpiar
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-primary ml-2"
+                                            @click="listarEstudiosAsignados()"
+                                            :disabled="loadingBuscar"
+                                        >
+                                            <i class="fa fa-sync"></i> Actualizar
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                        </form>
+                            </form>
+                        </transition>
                     </div>
                 </div>
             </div>
@@ -747,6 +779,7 @@ import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js
 import { confirmAction, getUserSafeError, toastMessage } from "@/helpers/alerts";
 import axios from "axios";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
+import { useFilterPersistence } from "@/composables/useFilterPersistence";
 
 defineProps({ usuarioactual: { type: Object, default: () => ({}) } });
 
@@ -799,15 +832,28 @@ const registro = ref({
     medico: "",
     firma: "",
 });
-const busqueda = ref({
+const defaultBusqueda = {
     estudioParaTranscibir: "si",
     quien_asigno_id: "",
     medico_id: "",
-    sede_id: sessionStorage.getItem("ST-sede"),
+    sede_id: sessionStorage.getItem("ST-sede") || "",
     bus_nom_num_docu: "",
     bus_fech_ini: "",
     bus_fecha_fin: "",
-});
+};
+
+const {
+    filtros: busqueda,
+    filtrosVisible,
+    filtrosActivosCount,
+    hasRestoredFilters,
+    guardarFiltros,
+    toggleFiltros,
+    limpiarFiltrosStorage,
+} = useFilterPersistence("lidiag_filters_estudios_asignados", defaultBusqueda, [
+    "estudioParaTranscibir",
+    "sede_id",
+]);
 const datosImagen = ref({ urlOviyam: "", patientId: "", studyUID: "", serverName: "" });
 const quienes_asignaron = ref([]);
 const medicos = ref([]);
@@ -834,11 +880,7 @@ function destroyDataTable() {
     safeDestroyDataTable(dt.value || "#example23");
 }
 function btnLimpiar() {
-    busqueda.value.quien_asigno_id = "";
-    busqueda.value.medico_id = "";
-    busqueda.value.bus_nom_num_docu = "";
-    busqueda.value.bus_fech_ini = "";
-    busqueda.value.bus_fecha_fin = "";
+    limpiarFiltrosStorage();
     errores.value = {};
     destroyDataTable();
     registros.value = [];
@@ -905,6 +947,7 @@ async function listarEstudiosAsignados() {
         const res = await axios.post("/api/estudio-listarEstudiosAsignados", busqueda.value);
 
         registros.value = res.data.data;
+        guardarFiltros();
 
         nextTick(() => {
             destroyDataTable();
@@ -1173,6 +1216,9 @@ onMounted(async () => {
         },
     });
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
+    if (hasRestoredFilters && busqueda.value.sede_id) {
+        listarEstudiosAsignados();
+    }
 });
 
 onBeforeUnmount(() => {

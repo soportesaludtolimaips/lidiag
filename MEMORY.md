@@ -183,6 +183,14 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - Refinamiento tipográfico de encabezados `.nav-small-cap` (eliminación de guiones crudos `--- ` y estilo moderno con letter-spacing).
   - Micro-transiciones y resaltado de enlaces activos (`.active`) para Modo Claro (`#0284c7`) y Modo Oscuro radiológico (`#38bdf8`) en `app.css` y `dark-theme.css`.
   - Verificación estricta: `npm run build` en 2.24s ✅ | `php artisan view:clear` ✅.
+- [x] **2026-10-19 — UI/UX Categoría 3.1: Filtros de Búsqueda Colapsables y Persistencia en Sesión:**
+  - Creado composable reutilizable `useFilterPersistence.js` en `resources/js/composables/` para gestión transparente de persistencia en `sessionStorage` y estado colapsable/expandido con conteo reactivo de filtros activos.
+  - Implementado en las 3 bandejas operativas principales: `estudioAsignadosComponent.vue`, `citasComponent.vue` y `ecografiasAdmisionadasComponent.vue`.
+  - Botón toggle de colapso rápido con animación CSS `.fade-collapse` liberando hasta un 30% más de espacio vertical para tablas DataTable.
+  - Badge pill dinámico indicando cuántos filtros activos están aplicados (`X filtros activos`).
+  - Auto-ejecución inteligente de la búsqueda al retornar de una lectura o detalle si existen filtros previos persistidos.
+  - Botón "Limpiar" conectado a `limpiarFiltrosStorage()` para reseteo completo y limpio.
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.09s ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.

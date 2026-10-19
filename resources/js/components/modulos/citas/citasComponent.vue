@@ -19,102 +19,135 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> Filtros de búsqueda
-                        </h4>
-                        <form action="#">
-                            <div class="form-body">
-                                <div class="row p-t-2">
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label class="control-label">Estado</label>
-                                            <select v-model="busqueda.estado" class="form-control">
-                                                <option value="">Todos</option>
-                                                <option value="solicitada">Solicitada</option>
-                                                <option value="asignada">Asignada</option>
-                                                <option value="confirmada">Confirmada</option>
-                                                <option value="cancelada">Cancelada</option>
-                                                <option value="cumplida">Cumplida</option>
-                                                <option value="no_asistio">No asistió</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label class="control-label">Servicio</label>
-                                            <select
-                                                v-model="busqueda.servicio_id"
-                                                class="form-control"
-                                            >
-                                                <option value="">Todos</option>
-                                                <option
-                                                    v-for="s in servicios"
-                                                    :key="s.id"
-                                                    :value="s.id"
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h4 class="card-title text-themecolor mb-0">
+                                <i class="fa fa-filter"></i> Filtros de búsqueda
+                                <span
+                                    v-if="filtrosActivosCount > 0"
+                                    class="badge badge-pill badge-info ml-2"
+                                >
+                                    {{ filtrosActivosCount }}
+                                    {{
+                                        filtrosActivosCount === 1
+                                            ? "filtro activo"
+                                            : "filtros activos"
+                                    }}
+                                </span>
+                            </h4>
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-secondary"
+                                @click="toggleFiltros()"
+                                :title="filtrosVisible ? 'Ocultar filtros' : 'Mostrar filtros'"
+                            >
+                                <i
+                                    :class="
+                                        filtrosVisible ? 'fa fa-chevron-up' : 'fa fa-chevron-down'
+                                    "
+                                ></i>
+                                {{ filtrosVisible ? "Ocultar filtros" : "Mostrar filtros" }}
+                            </button>
+                        </div>
+                        <transition name="fade-collapse">
+                            <form v-show="filtrosVisible" action="#">
+                                <div class="form-body">
+                                    <div class="row p-t-2">
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label class="control-label">Estado</label>
+                                                <select
+                                                    v-model="busqueda.estado"
+                                                    class="form-control"
                                                 >
-                                                    {{ s.nombre }}
-                                                </option>
-                                            </select>
+                                                    <option value="">Todos</option>
+                                                    <option value="solicitada">Solicitada</option>
+                                                    <option value="asignada">Asignada</option>
+                                                    <option value="confirmada">Confirmada</option>
+                                                    <option value="cancelada">Cancelada</option>
+                                                    <option value="cumplida">Cumplida</option>
+                                                    <option value="no_asistio">No asistió</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label class="control-label">Servicio</label>
+                                                <select
+                                                    v-model="busqueda.servicio_id"
+                                                    class="form-control"
+                                                >
+                                                    <option value="">Todos</option>
+                                                    <option
+                                                        v-for="s in servicios"
+                                                        :key="s.id"
+                                                        :value="s.id"
+                                                    >
+                                                        {{ s.nombre }}
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label class="control-label">Fecha Inicio</label>
+                                                <input
+                                                    type="date"
+                                                    v-model="busqueda.fecha_inicio"
+                                                    class="form-control"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label class="control-label">Fecha Fin</label>
+                                                <input
+                                                    type="date"
+                                                    v-model="busqueda.fecha_fin"
+                                                    class="form-control"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label class="control-label">Búsqueda</label>
+                                                <input
+                                                    type="text"
+                                                    v-model="busqueda.busqueda"
+                                                    placeholder="Documento o nombre"
+                                                    class="form-control"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label class="control-label">Fecha Inicio</label>
-                                            <input
-                                                type="date"
-                                                v-model="busqueda.fecha_inicio"
-                                                class="form-control"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label class="control-label">Fecha Fin</label>
-                                            <input
-                                                type="date"
-                                                v-model="busqueda.fecha_fin"
-                                                class="form-control"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="form-group">
-                                            <label class="control-label">Búsqueda</label>
-                                            <input
-                                                type="text"
-                                                v-model="busqueda.busqueda"
-                                                placeholder="Documento o nombre"
-                                                class="form-control"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
 
-                                <div class="form-actions mt-3">
-                                    <button
-                                        type="button"
-                                        class="btn btn-success m-r-5"
-                                        @click="listarRegistros()"
-                                        :disabled="loadingBuscar"
-                                    >
-                                        <i
-                                            class="fa"
-                                            :class="
-                                                loadingBuscar ? 'fa-spinner fa-spin' : 'fa-search'
-                                            "
-                                        ></i>
-                                        {{ loadingBuscar ? "Buscando..." : "Buscar" }}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        class="btn btn-inverse"
-                                        @click="limpiarFiltros()"
-                                    >
-                                        <i class="fa fa-refresh"></i> Limpiar
-                                    </button>
+                                    <div class="form-actions mt-3">
+                                        <button
+                                            type="button"
+                                            class="btn btn-success m-r-5"
+                                            @click="listarRegistros()"
+                                            :disabled="loadingBuscar"
+                                        >
+                                            <i
+                                                class="fa"
+                                                :class="
+                                                    loadingBuscar
+                                                        ? 'fa-spinner fa-spin'
+                                                        : 'fa-search'
+                                                "
+                                            ></i>
+                                            {{ loadingBuscar ? "Buscando..." : "Buscar" }}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="btn btn-inverse"
+                                            @click="limpiarFiltros()"
+                                        >
+                                            <i class="fa fa-refresh"></i> Limpiar
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                        </form>
+                            </form>
+                        </transition>
                     </div>
                 </div>
             </div>
@@ -493,6 +526,7 @@ import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { formatFecha, getEstadoLabel, getEstadoClase } from "@/composables/useCitasUtils.js";
 import { alertError, alertSuccess, alertWarning, confirmAction } from "@/helpers/alerts";
 import axios from "axios";
+import { useFilterPersistence } from "@/composables/useFilterPersistence";
 
 const registros = ref([]);
 const productosFiltrados = ref([]);
@@ -502,13 +536,23 @@ const detalles = ref([]);
 const datosPaginacion = ref({});
 const conversacion = ref(null);
 const loadingConversacion = ref(false);
-const busqueda = ref({
+
+const defaultBusqueda = {
     estado: "",
     servicio_id: "",
     fecha_inicio: "",
     fecha_fin: "",
     busqueda: "",
-});
+};
+
+const {
+    filtros: busqueda,
+    filtrosVisible,
+    filtrosActivosCount,
+    guardarFiltros,
+    toggleFiltros,
+    limpiarFiltrosStorage,
+} = useFilterPersistence("lidiag_filters_citas", defaultBusqueda);
 const citaSeleccionada = ref({
     id: null,
     servicio_id: "",
@@ -556,6 +600,7 @@ function listarRegistros(page) {
         .then(function (response) {
             thisVue.registros = response.data.data;
             thisVue.datosPaginacion = response.data;
+            guardarFiltros();
         })
         .catch(function (error) {
             thisVue.mostrarError(error);
@@ -817,13 +862,7 @@ function verConversacion(cita) {
 }
 
 function limpiarFiltros() {
-    busqueda.value = {
-        estado: "",
-        servicio_id: "",
-        fecha_inicio: "",
-        fecha_fin: "",
-        busqueda: "",
-    };
+    limpiarFiltrosStorage();
     listarRegistros();
 }
 

@@ -32,3 +32,23 @@
 .sidebar-nav ul li a {
     transition: all 0.15s ease-in-out;
 }
+
+/* Transición fluida para paneles de filtros colapsables */
+.fade-collapse-enter-active,
+.fade-collapse-leave-active {
+    transition: all 0.25s ease-out;
+    max-height: 600px;
+    opacity: 1;
+    overflow: hidden;
+}
+
+.fade-collapse-enter-from,
+.fade-collapse-leave-to {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    overflow: hidden;
+}

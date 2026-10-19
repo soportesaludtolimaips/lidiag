@@ -32,83 +32,112 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> Filtros para búsqueda de ecografías
-                            admisionadas.
-                        </h4>
-                        <form action="#">
-                            <div class="form-body">
-                                <div class="row p-t-2">
-                                    <div class="col-md-3">
-                                        <div class="form-group">
-                                            <label class="control-label">
-                                                # de atención, # de documento ó Nombres de paciente
-                                            </label>
-                                            <input
-                                                type="text"
-                                                id="bus_nom_num_docu"
-                                                name="bus_nom_num_docu"
-                                                v-model="busqueda.bus_nom_num_docu"
-                                                class="form-control"
-                                                placeholder=" Atención, Nombres de paciente o # de documento"
-                                                @keyup.enter="buscarStudy()"
-                                            />
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h4 class="card-title text-themecolor mb-0">
+                                <i class="fa fa-filter"></i> Filtros para búsqueda de ecografías
+                                admisionadas
+                                <span
+                                    v-if="filtrosActivosCount > 0"
+                                    class="badge badge-pill badge-info ml-2"
+                                >
+                                    {{ filtrosActivosCount }}
+                                    {{
+                                        filtrosActivosCount === 1
+                                            ? "filtro activo"
+                                            : "filtros activos"
+                                    }}
+                                </span>
+                            </h4>
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-secondary"
+                                @click="toggleFiltros()"
+                                :title="filtrosVisible ? 'Ocultar filtros' : 'Mostrar filtros'"
+                            >
+                                <i
+                                    :class="
+                                        filtrosVisible ? 'fa fa-chevron-up' : 'fa fa-chevron-down'
+                                    "
+                                ></i>
+                                {{ filtrosVisible ? "Ocultar filtros" : "Mostrar filtros" }}
+                            </button>
+                        </div>
+                        <transition name="fade-collapse">
+                            <form v-show="filtrosVisible" action="#">
+                                <div class="form-body">
+                                    <div class="row p-t-2">
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label class="control-label">
+                                                    # de atención, # de documento ó Nombres de
+                                                    paciente
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    id="bus_nom_num_docu"
+                                                    name="bus_nom_num_docu"
+                                                    v-model="busqueda.bus_nom_num_docu"
+                                                    class="form-control"
+                                                    placeholder=" Atención, Nombres de paciente o # de documento"
+                                                    @keyup.enter="buscarStudy()"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label class="control-label">Fecha Inicio</label>
+                                                <input
+                                                    type="date"
+                                                    id="bus_fech_ini"
+                                                    name="bus_fech_ini"
+                                                    v-model="busqueda.bus_fech_ini"
+                                                    class="form-control"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label class="control-label">Fecha Fin</label>
+                                                <input
+                                                    type="date"
+                                                    id="bus_fecha_fin"
+                                                    name="bus_fecha_fin"
+                                                    v-model="busqueda.bus_fecha_fin"
+                                                    class="form-control"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label class="control-label">Fecha Inicio</label>
-                                            <input
-                                                type="date"
-                                                id="bus_fech_ini"
-                                                name="bus_fech_ini"
-                                                v-model="busqueda.bus_fech_ini"
-                                                class="form-control"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label class="control-label">Fecha Fin</label>
-                                            <input
-                                                type="date"
-                                                id="bus_fecha_fin"
-                                                name="bus_fecha_fin"
-                                                v-model="busqueda.bus_fecha_fin"
-                                                class="form-control"
-                                            />
-                                        </div>
+
+                                    <div class="form-actions mt-3">
+                                        <button
+                                            type="button"
+                                            class="btn btn-success m-r-5"
+                                            @click="listarAtenciones()"
+                                            :disabled="isBuscandoAdmisionadas"
+                                        >
+                                            <i
+                                                class="fa"
+                                                :class="
+                                                    isBuscandoAdmisionadas
+                                                        ? 'fa-spinner fa-spin'
+                                                        : 'fa-search'
+                                                "
+                                            ></i>
+                                            {{ isBuscandoAdmisionadas ? "Buscando..." : "Buscar" }}
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-inverse"
+                                            @click="btnLimpiar()"
+                                        >
+                                            <i class="fa fa-refresh"></i> Limpiar
+                                        </button>
                                     </div>
                                 </div>
-
-                                <div class="form-actions mt-3">
-                                    <button
-                                        type="button"
-                                        class="btn btn-success m-r-5"
-                                        @click="listarAtenciones()"
-                                        :disabled="isBuscandoAdmisionadas"
-                                    >
-                                        <i
-                                            class="fa"
-                                            :class="
-                                                isBuscandoAdmisionadas
-                                                    ? 'fa-spinner fa-spin'
-                                                    : 'fa-search'
-                                            "
-                                        ></i>
-                                        {{ isBuscandoAdmisionadas ? "Buscando..." : "Buscar" }}
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        class="btn btn-inverse"
-                                        @click="btnLimpiar()"
-                                    >
-                                        <i class="fa fa-refresh"></i> Limpiar
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
+                            </form>
+                        </transition>
                     </div>
                 </div>
             </div>
@@ -375,6 +404,7 @@ import usePermissions from "@/helpers/permissions.js";
 import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
 import { useSede } from "@/composables/useSede.js";
 import { useSahiInterface } from "@/composables/useSahiInterface.js";
+import { useFilterPersistence } from "@/composables/useFilterPersistence.js";
 import axios from "axios";
 
 const props = defineProps({
@@ -391,13 +421,26 @@ const emitter = proxy.emitter;
 const dt = ref(null);
 const actualizar = ref(false);
 
-const busqueda = ref({
+const defaultBusqueda = {
     sede_id: "",
     medico_id: "",
     bus_nom_num_docu: "",
     bus_fech_ini: "",
     bus_fecha_fin: "",
-});
+};
+
+const {
+    filtros: busqueda,
+    filtrosVisible,
+    filtrosActivosCount,
+    hasRestoredFilters,
+    guardarFiltros,
+    toggleFiltros,
+    limpiarFiltrosStorage,
+} = useFilterPersistence("lidiag_filters_ecografias_admisionadas", defaultBusqueda, [
+    "sede_id",
+    "medico_id",
+]);
 const registros = ref([]);
 const registroAnular = ref({
     ecografia_id: "",
@@ -435,10 +478,7 @@ function buscarStudy() {
  * @date 2025-11-18
  */
 function btnLimpiar() {
-    // Limpia criterios de búsqueda (mantiene sede/medico del contexto)
-    busqueda.value.bus_nom_num_docu = "";
-    busqueda.value.bus_fech_ini = "";
-    busqueda.value.bus_fecha_fin = "";
+    limpiarFiltrosStorage();
     erroresBusqueda.value = {};
 
     safeDestroyDataTable(dt.value || "#example23");
@@ -540,6 +580,7 @@ async function listarAtenciones() {
             safeDestroyDataTable(dt.value || "#example23");
 
             registros.value = res.data.data;
+            guardarFiltros();
 
             safeInitDataTable(dt.value || "#example23");
         }
@@ -781,10 +822,18 @@ function onMedicoSeleccionado(data) {
  *
  * @date 2025-11-18
  */
-onMounted(() => {
-    initSede();
+onMounted(async () => {
+    await initSede();
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
     emitter.on("medicoSeleccionado", onMedicoSeleccionado);
+    if (
+        hasRestoredFilters &&
+        (busqueda.value.bus_nom_num_docu ||
+            busqueda.value.bus_fech_ini ||
+            busqueda.value.bus_fecha_fin)
+    ) {
+        listarAtenciones();
+    }
 });
 
 onBeforeUnmount(() => {
