@@ -99,9 +99,11 @@ class TelegramService
             return ["ok" => false, "description" => "TELEGRAM_BOT_TOKEN no configurado."];
         }
 
+        $cleanText = mb_convert_encoding($text, "UTF-8", "UTF-8");
+
         $payload = [
             "chat_id" => $chatId,
-            "text" => $text,
+            "text" => $cleanText,
             "parse_mode" => $parseMode,
             "disable_web_page_preview" => true,
         ];
@@ -163,7 +165,7 @@ class TelegramService
             ];
 
             if ($caption) {
-                $data["caption"] = $caption;
+                $data["caption"] = mb_convert_encoding($caption, "UTF-8", "UTF-8");
                 $data["parse_mode"] = $parseMode;
             }
 
