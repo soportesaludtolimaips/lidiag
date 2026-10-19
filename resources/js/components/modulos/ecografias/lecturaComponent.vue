@@ -296,6 +296,16 @@
         <!-- ============================================================== -->
         <!-- Right sidebar -->
         <!-- ============================================================== -->
+        <!-- Backdrop para cerrar al hacer clic y atenuar fondo -->
+        <transition name="fade">
+            <div
+                v-if="sidebarVisible && !isZenMode"
+                class="sidebar-backdrop"
+                @click="cerrarSidebar()"
+                aria-hidden="true"
+            ></div>
+        </transition>
+
         <!-- .right-sidebar -->
         <div
             class="right-sidebar sidebar-scroll"
@@ -466,24 +476,30 @@
                         <div class="form-actions mt-3">
                             <button
                                 type="button"
-                                class="btn btn-success m-r-5"
+                                class="btn btn-success m-r-5 btn-action-clinical"
                                 @click="guardarRegistro()"
                                 :disabled="
                                     isGuardandoLectura ||
                                     (sedeInterface && registro.estado_envio_sahi === 'ENVIANDO')
                                 "
+                                title="Guardar informe ecográfico (Ctrl+S)"
                             >
                                 <i
                                     class="fa"
                                     :class="isGuardandoLectura ? 'fa-spinner fa-spin' : 'fa-check'"
                                 ></i>
                                 {{ isGuardandoLectura ? "Guardando..." : "Guardar" }}
+                                <span
+                                    class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                                    style="font-size: 10px; opacity: 0.9"
+                                    >Ctrl+S</span
+                                >
                             </button>
 
                             <button
                                 v-if="sedeInterface && registro.ecografia_producto_id"
                                 type="button"
-                                class="btn btn-info m-r-5"
+                                class="btn btn-info m-r-5 btn-action-clinical"
                                 @click="consultarEstadoSahi(false)"
                                 :disabled="isConsultando"
                             >
@@ -497,7 +513,7 @@
                             <button
                                 v-if="sedeInterface && registro.estado_envio_sahi === 'ERROR'"
                                 type="button"
-                                class="btn btn-warning m-r-5"
+                                class="btn btn-warning m-r-5 btn-action-clinical"
                                 @click="enviarASahiEcografiaProducto()"
                                 :disabled="isEnviando || registro.estado_envio_sahi === 'ENVIANDO'"
                             >
@@ -532,8 +548,14 @@
                                 type="button"
                                 class="btn btn-inverse"
                                 @click="btnCerrarModalForm()"
+                                title="Cerrar panel (Esc)"
                             >
-                                Cancel
+                                Cancelar
+                                <span
+                                    class="badge badge-secondary ml-1 d-none d-md-inline"
+                                    style="font-size: 10px"
+                                    >Esc</span
+                                >
                             </button>
                         </div>
                     </form>
@@ -785,6 +807,7 @@ import medicalReplacements from "@/data/medical_replacements.json";
 import medicalTermsRaw from "@/data/terminos_medicos.txt?raw";
 import { useSede } from "@/composables/useSede.js";
 import { useSahiInterface } from "@/composables/useSahiInterface.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import axios from "axios";
 
@@ -857,6 +880,21 @@ const selTipoPlantilla = ref(null);
 const selPlantilla = ref(null);
 const modalPendientesConsentimientosVisible = ref(false);
 const modalReporteVisible = ref(false);
+
+function cerrarSidebar() {
+    if (sidebarVisible.value) {
+        sidebarVisible.value = false;
+        stopSahiPolling();
+    }
+}
+
+useKeyboardShortcuts({
+    onSave: guardarRegistro,
+    onEscape: cerrarSidebar,
+    onDictate: toggleSpeechRecognition,
+    isActive: () => sidebarVisible.value,
+    isLoading: isGuardandoLectura,
+});
 
 /**
  * Compila las opciones de tipos de plantillas para el Select2 local a partir de `tiposPlantillas`.
@@ -1851,6 +1889,16 @@ async function enviarASahiEcografiaProducto() {
  * @date 2024-06-10
  */
 async function guardarRegistro() {
+    const lecturaTexto = (registro.value.lectura || "").replace(/<[^>]*>/g, "").trim();
+    if (!lecturaTexto) {
+        toastMessage({
+            heading: "Atención",
+            text: "El informe de la ecografía no puede estar vacío antes de guardar.",
+            icon: "warning",
+        });
+        return;
+    }
+
     const accionActual = "TERMINAR_LECTURA";
     accion.value = accionActual;
 
@@ -2393,27 +2441,64 @@ onBeforeUnmount(() => {
     transform: translateY(15px);
 }
 
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: 1090;
+    cursor: pointer;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.25s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
 .right-sidebar {
     position: fixed;
     right: -96%;
     width: 96%;
-    display: none;
-    z-index: 96;
+    z-index: 1100;
     background: #ffffff;
     top: 0px;
     padding-bottom: 20px;
-    height: 96%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
+    height: 100%;
+    box-shadow: -5px 0 35px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+@media (max-width: 767px) {
+    .right-sidebar {
+        right: -100%;
+        width: 100%;
+    }
 }
 
 .shw-rside {
-    right: 0px;
+    right: 0px !important;
     width: 96%;
-    display: block;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+@media (max-width: 767px) {
+    .shw-rside {
+        width: 100%;
+    }
 }
 
 .audio {

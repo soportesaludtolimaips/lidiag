@@ -283,6 +283,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Estandarización de Altura y Z-Index:** Corregido `height: 80%` y `z-index: 180` en `AsignarEstudioComponent` a `height: 100%` y `z-index: 1100`, unificando el ancho responsivo del 80% (100% en móvil).
   - **Soporte en Modo Oscuro (`resources/css/dark-theme.css`):** Estilos para `.sidebar-backdrop` oscurecido (`rgba(0,0,0,0.65)`) y microinteracciones de clic/hover (`.btn-action-clinical`, `.btn-guardar-estudio`, etc.) con elevación y sombras adaptadas al *Slate Clínico*.
   - Verificación estricta: ESLint 0 errores/warnings en todos los componentes ✅ | Vite `npm run build` en 883ms ✅.
+- [x] **2026-10-19 — UI/UX Módulo Ecografías: Atajos Clínicos, Foco Accesible, Validación y Pulido en `lecturaComponent.vue`:**
+  - **Atajos de Teclado Asistenciales:** Integrado `useKeyboardShortcuts` con `Ctrl+S` para guardar reporte ecográfico y envío a SAHI (protegido contra concurrencia `isGuardandoLectura`), `Escape` para cerrar sidebar y `F2` para alternar dictado por voz (`toggleSpeechRecognition`).
+  - **Puente WYSIWYG:** Integrado con el reenvío sintético de teclas desde el iframe de `WysiwygEditor.vue` para redactar y guardar sin perder foco.
+  - **Pre-validación Defensiva:** Validación inline que impide guardar informes ecográficos en blanco antes de invocar la API o transmitir a SAHI.
+  - **Transición Suave y Backdrop Overlay:** Eliminado el salto abrupto de `display: none/block` en `.right-sidebar` reemplazándolo por animación fluida a 350ms, altura completa al 100%, z-index 1100 y backdrop oscurecido desacoplador con cierre al clic exterior.
+  - **Badges Visuales y Microinteracciones:** Añadidos badges `Ctrl+S` y `Esc`, títulos accesibles y clase `.btn-action-clinical` con microinteracción táctil.
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 953ms ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.

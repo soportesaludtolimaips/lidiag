@@ -13,14 +13,21 @@ import { onBeforeUnmount, onMounted, unref } from "vue";
  * @param {Object} options Opciones de configuración de atajos.
  * @param {Function} [options.onSave] Función a ejecutar al presionar Ctrl+S o Cmd+S.
  * @param {Function} [options.onEscape] Función a ejecutar al presionar Escape.
+ * @param {Function} [options.onDictate] Función a ejecutar al presionar F2 (dictado por voz).
  * @param {import('vue').Ref<boolean>|Function|boolean} [options.isActive=true] Indicador de activación de los atajos (ej: sidebar abierto).
  * @param {import('vue').Ref<boolean>} [options.isLoading] Ref reactivo de estado de carga para evitar ejecuciones concurrentes.
- * @returns {{ teardown: Function }} Método de limpieza manual de listeners.
+ * @returns {{ teardown: Function, setup: Function }} Métodos de control manual de listeners.
  *
  * @author Jhon Javer Lozano Arce
  * @date 2026-10-19
  */
-export function useKeyboardShortcuts({ onSave, onEscape, isActive = true, isLoading = null } = {}) {
+export function useKeyboardShortcuts({
+    onSave,
+    onEscape,
+    onDictate,
+    isActive = true,
+    isLoading = null,
+} = {}) {
     let keydownHandler = null;
 
     const isConditionActive = () => {
@@ -43,6 +50,16 @@ export function useKeyboardShortcuts({ onSave, onEscape, isActive = true, isLoad
 
             if (typeof onSave === "function") {
                 onSave();
+            }
+            return;
+        }
+
+        // Atajo Dictado por Voz: F2
+        if (e.key === "F2") {
+            if (typeof onDictate === "function") {
+                e.preventDefault();
+                e.stopPropagation();
+                onDictate();
             }
             return;
         }
