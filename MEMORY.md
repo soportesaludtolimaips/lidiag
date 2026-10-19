@@ -204,6 +204,19 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - Integrado en `estudioAsignadosComponent.vue`, `citasComponent.vue` y `ecografiasAdmisionadasComponent.vue`.
   - Soporte completo para Modo Claro y Modo Oscuro radiológico (`body.theme-dark`).
   - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.14s ✅.
+- [x] **2026-10-19 — UI/UX Categoría 4.1: Toasts Unificados y No Invasivos:**
+  - Modificado `alertSuccess` en `resources/js/helpers/alerts.js` para despachar notificaciones no invasivas tipo toast flotante (`toastMessage`) con auto-dismiss a 3500ms y fallback defensivo a SweetAlert/alert nativo.
+  - Se eliminan los popups modales bloqueantes de SweetAlert en operaciones cotidianas y exitosas de guardado/eliminación/asignación, agilizando el flujo del médico y del personal asistencial sin obligar a clics repetitivos en "OK".
+  - Agregado soporte de estilo para Toast Master (`.jq-toast-single`, `.jq-icon-success`, `.jq-icon-error`, etc.) en `resources/css/dark-theme.css`, asegurando alto contraste y legibilidad óptima en estaciones de trabajo radiológicas y modo oscuro global.
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.64s ✅.
+- [x] **2026-10-19 — Sistema de Backups Automáticos (MySQL + 16 carpetas de Storage):**
+  - Creado `config/backup.php` parametrizado con `BACKUP_DESTINATION_PATH=C:\Backups_Lidiag`, `BACKUP_RETENTION_DAYS=30`, `MYSQLDUMP_PATH` y listado de las 16 carpetas seleccionadas de `storage/app/*`.
+  - Agregado canal de logging `'backups'` en `config/logging.php` apuntando a `storage/logs/backups.log`.
+  - Implementado `BackupService.php` en `app/Services/Backup/`: volcado rápido con `mysqldump` protegiendo credenciales mediante `proc_open` + `MYSQL_PWD`, compresión en archivo `.zip` unificado con `ZipArchive` y estructura (`database/` y `storage/`), y purga automática de retención (> 30 días).
+  - Creado comando Artisan `LidiagBackupCommand.php` (`php artisan lidiag:backup`) con banderas `--only-db`, `--only-files`, `--destination`, `--retention` y tabla resumen formateada.
+  - Registrado en Laravel Scheduler (`routes/console.php`) para ejecutarse diariamente a las 02:00 AM (`dailyAt('02:00')->withoutOverlapping()`).
+  - Creado script auxiliar `scripts/programar_tarea_backup.bat` para registro de la tarea en el Programador de Tareas de Windows (Task Scheduler).
+  - Verificación exitosa: prueba de volcado MySQL y compresión integral de storage (3,973 archivos empaquetados en `C:\Backups_Lidiag\backup_lidiag_*.zip` de 1.33 GB en 112s) ✅ | Pint `--test passed` ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.

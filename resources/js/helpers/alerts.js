@@ -34,7 +34,7 @@ function getToast() {
 }
 
 /**
- * Muestra una alerta de exito utilizando SweetAlert si esta disponible; de lo contrario usa alert().
+ * Muestra una alerta de exito no invasiva tipo toast flotante por defecto; si no esta disponible usa SweetAlert/alert.
  *
  * @param string $title Titulo de la alerta.
  * @param string $text Texto descriptivo de la alerta.
@@ -44,9 +44,20 @@ function getToast() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-02-03
+ * @date 2026-10-19
  */
 export function alertSuccess(title = "Ok", text = "", icon = "success") {
+    const toast = getToast();
+    if (toast) {
+        toastMessage({
+            heading: title,
+            text,
+            icon,
+            position: "top-right",
+            hideAfter: 3500,
+        });
+        return;
+    }
     const swal = getSwal();
     if (swal) return swal(title, text, icon);
     window.alert([title, text].filter(Boolean).join("\n"));

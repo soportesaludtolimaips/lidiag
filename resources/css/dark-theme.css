@@ -303,3 +303,51 @@ body.theme-dark .footer {
     border-top: 1px solid var(--dark-border-color) !important;
     color: #94a3b8 !important;
 }
+
+/* Toast Master / jQuery Toast Notifications (Dark Mode) */
+body.theme-dark .jq-toast-single {
+    background-color: var(--dark-bg-card) !important;
+    color: var(--dark-text-main) !important;
+    border: 1px solid var(--dark-border-color) !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.6) !important;
+    border-radius: 6px;
+}
+
+body.theme-dark .jq-toast-single h2 {
+    color: var(--dark-text-bright) !important;
+    font-weight: 600;
+}
+
+body.theme-dark .close-jq-toast-single {
+    color: var(--dark-text-muted) !important;
+    opacity: 0.8;
+}
+
+body.theme-dark .close-jq-toast-single:hover {
+    color: var(--dark-text-bright) !important;
+    opacity: 1;
+}
+
+body.theme-dark .jq-icon-success {
+    background-color: #064e3b !important;
+    border-color: #059669 !important;
+    color: #ecfdf5 !important;
+}
+
+body.theme-dark .jq-icon-error {
+    background-color: #7f1d1d !important;
+    border-color: #dc2626 !important;
+    color: #fef2f2 !important;
+}
+
+body.theme-dark .jq-icon-warning {
+    background-color: #78350f !important;
+    border-color: #d97706 !important;
+    color: #fffbeb !important;
+}
+
+body.theme-dark .jq-icon-info {
+    background-color: #0c4a6e !important;
+    border-color: #0284c7 !important;
+    color: #f0f9ff !important;
+}
