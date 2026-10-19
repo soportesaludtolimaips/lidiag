@@ -8,8 +8,18 @@
                     <li class="breadcrumb-item active">Tickets</li>
                 </ol>
             </div>
-            <div class="col-md-7 align-self-center text-right">
-                <a href="/helpdesk-tickets/crear" class="btn btn-info btn-sm">
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary m-r-5 btn-action-clinical"
+                    :disabled="loading"
+                    title="Actualizar listado de tickets (F2)"
+                    @click="buscar()"
+                >
+                    <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loading }"></i>
+                    Refrescar <span class="badge badge-light border ml-1">F2</span>
+                </button>
+                <a href="/helpdesk-tickets/crear" class="btn btn-info btn-sm btn-action-clinical">
                     <i class="fa fa-plus"></i> Crear ticket
                 </a>
             </div>
@@ -113,6 +123,7 @@
                                     type="text"
                                     class="form-control"
                                     placeholder="Folio / título / descripción"
+                                    @keyup.enter="buscar()"
                                 />
                             </div>
                         </div>
@@ -125,6 +136,7 @@
                                     v-model="filters.desde"
                                     type="date"
                                     class="form-control"
+                                    @change="buscar()"
                                 />
                             </div>
                             <div class="col-md-2">
@@ -134,6 +146,7 @@
                                     v-model="filters.hasta"
                                     type="date"
                                     class="form-control"
+                                    @change="buscar()"
                                 />
                             </div>
                             <div class="col-md-3">
@@ -142,6 +155,7 @@
                                     id="ticketSede"
                                     v-model="filters.sede_id"
                                     class="form-control custom-select"
+                                    @change="buscar()"
                                 >
                                     <option value="">Todas</option>
                                     <option v-for="s in sedes" :key="s.id" :value="s.id">
@@ -152,7 +166,7 @@
 
                             <div class="col-md-5 d-flex align-items-end">
                                 <button
-                                    class="btn btn-success m-r-5"
+                                    class="btn btn-success m-r-5 btn-action-clinical"
                                     type="button"
                                     :disabled="loading"
                                     @click="buscar()"
@@ -160,14 +174,15 @@
                                     <i v-if="loading" class="fa fa-spinner fa-spin"></i>
                                     <i v-else class="fa fa-search"></i>
                                     Buscar
+                                    <span class="badge badge-light border ml-1">F2</span>
                                 </button>
                                 <button
-                                    class="btn btn-inverse"
+                                    class="btn btn-inverse btn-action-clinical"
                                     type="button"
                                     :disabled="loading"
                                     @click="limpiar()"
                                 >
-                                    <i class="fa fa-refresh"></i> Limpiar
+                                    <i class="fa fa-eraser"></i> Limpiar
                                 </button>
                             </div>
                         </div>
@@ -269,6 +284,7 @@ import { toastMessage } from "@/helpers/alerts.js";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { formatDateTime } from "@/helpers/dateUtils.js";
 import { helpdesk } from "@/helpers/api.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 
 const { appContext } = getCurrentInstance();
 const emitter = appContext.config.globalProperties.emitter;
@@ -392,6 +408,15 @@ function onSedeSeleccionada(data) {
     buscar();
 }
 
+useKeyboardShortcuts({
+    onSearch: () => {
+        buscar();
+    },
+    onEscape: () => {
+        limpiar();
+    },
+});
+
 onMounted(async () => {
     try {
         // sede activa por defecto
@@ -411,3 +436,19 @@ onBeforeUnmount(() => {
     destroyDataTable();
 });
 </script>
+
+<style scoped>
+.btn-action-clinical {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-action-clinical:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+</style>

@@ -378,6 +378,11 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Atajos Asistenciales (`useKeyboardShortcuts`):** Atajos `Ctrl+S` para guardar orden/transcripción (protegido contra concurrencia), `Escape` para cerrar paneles laterales y `F2` para ejecutar búsquedas/refresco de estudios.
   - **Foco Accesible y Botones Clínicos:** Botón "Refrescar" en `page-titles` con spinner interactivo y badge `F2`, botón accesible `<button class="right-side-toggle">` y clase `.btn-action-clinical`.
   - Verificación estricta: ESLint 0 errores/warnings en ambos archivos ✅ | Vite `npm run build` en 990ms ✅.
+- [x] **2026-10-19 — UI/UX Módulo HelpDesk & Tickets: Atajos de Teclado, Foco Accesible y Botones Clínicos:**
+  - **Atajos Asistenciales (`useKeyboardShortcuts`):** Atajos `F2` para recarga/búsqueda inmediata en tickets, reportes y detalle; `Ctrl+S` para guardar en creación de tickets; `Escape` para volver o limpiar filtros.
+  - **Botón Asistencial y Badges en Cabecera (`page-titles`):** Incorporado botón "Refrescar" asistencial con spinner interactivo y badges `F2`/`Esc` en `helpdeskTicketsComponent.vue`, `helpdeskReportesComponent.vue` y `helpdeskDetalleTicketComponent.vue`.
+  - **Foco Accesible y Microinteracciones:** Tecla `Enter` en campo de búsqueda rápida, clase `.btn-action-clinical` estandarizada en todos los botones de acción (estados, asignación, comentarios, adjuntos).
+  - Verificación estricta: ESLint 0 errores/warnings en 4 componentes ✅ | Vite `npm run build` en 1.05s ✅.
 - [x] **2026-10-19 — Herramienta Autónoma Python: Monitor de Discos DICOM con Bot de Telegram (`dcm_disk_monitor_telegram`):**
   - Implementada herramienta en `storage/app_lidiag/dcm_disk_monitor_telegram/` usando exclusivamente la librería estándar de Python (sin dependencias `pip`).
   - **Modo Dual (Opción C):**

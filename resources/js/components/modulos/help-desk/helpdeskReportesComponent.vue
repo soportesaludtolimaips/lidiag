@@ -8,31 +8,32 @@
                     <li class="breadcrumb-item active">Reportes</li>
                 </ol>
             </div>
-            <div class="col-md-7 align-self-center text-right">
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
-                    class="btn btn-success btn-sm m-r-5"
+                    class="btn btn-success btn-sm m-r-5 btn-action-clinical"
                     type="button"
                     :disabled="loading"
+                    title="Consultar reporte (F2)"
                     @click="buscar()"
                 >
-                    <i class="fa" :class="loading ? 'fa-spinner fa-spin' : 'fa-search'"></i>
-                    Consultar
+                    <i class="fa mr-1" :class="loading ? 'fa-spinner fa-spin' : 'fa-search'"></i>
+                    Consultar <span class="badge badge-light border ml-1">F2</span>
                 </button>
                 <button
-                    class="btn btn-info btn-sm m-r-5"
+                    class="btn btn-info btn-sm m-r-5 btn-action-clinical"
                     type="button"
                     :disabled="!canExport"
                     @click="exportExcel()"
                 >
-                    <i class="fa fa-file-excel-o"></i> Excel
+                    <i class="fa fa-file-excel-o mr-1"></i> Excel
                 </button>
                 <button
-                    class="btn btn-danger btn-sm"
+                    class="btn btn-danger btn-sm btn-action-clinical"
                     type="button"
                     :disabled="!canExport"
                     @click="exportPdf()"
                 >
-                    <i class="fa fa-file-pdf-o"></i> PDF
+                    <i class="fa fa-file-pdf-o mr-1"></i> PDF
                 </button>
             </div>
         </div>
@@ -138,12 +139,14 @@
                             </div>
                             <div class="col-md-3 d-flex align-items-end">
                                 <button
-                                    class="btn btn-inverse btn-sm"
+                                    class="btn btn-inverse btn-sm btn-action-clinical"
                                     type="button"
                                     :disabled="loading"
+                                    title="Limpiar filtros (Esc)"
                                     @click="limpiar()"
                                 >
-                                    <i class="fa fa-refresh"></i> Limpiar
+                                    <i class="fa fa-eraser mr-1"></i> Limpiar
+                                    <span class="badge badge-secondary ml-1">Esc</span>
                                 </button>
                             </div>
                         </div>
@@ -384,6 +387,7 @@ import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js
 import { toastMessage } from "@/helpers/alerts.js";
 import { formatDateTime } from "@/helpers/dateUtils.js";
 import { helpdesk } from "@/helpers/api.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 
 const { appContext } = getCurrentInstance();
 const emitter = appContext.config.globalProperties.emitter;
@@ -555,6 +559,15 @@ function onSedeSeleccionada(data) {
     buscar();
 }
 
+useKeyboardShortcuts({
+    onSearch: () => {
+        buscar();
+    },
+    onEscape: () => {
+        limpiar();
+    },
+});
+
 onMounted(async () => {
     // sede activa por defecto
     try {
@@ -573,3 +586,19 @@ onBeforeUnmount(() => {
     safeDestroyDataTable(dt.value || "#helpdeskReportesDetallado");
 });
 </script>
+
+<style scoped>
+.btn-action-clinical {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-action-clinical:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+</style>

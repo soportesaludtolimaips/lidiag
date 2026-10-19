@@ -122,23 +122,27 @@
                                     </div>
                                 </div>
 
-                                <div class="form-actions">
+                                <div class="form-actions mt-3">
                                     <button
                                         type="submit"
-                                        class="btn btn-success"
+                                        class="btn btn-success btn-action-clinical m-r-5"
                                         :disabled="loading"
+                                        title="Guardar ticket (Ctrl + S)"
                                     >
                                         <i v-if="loading" class="fa fa-spinner fa-spin"></i>
                                         <i v-else class="fa fa-check"></i>
                                         Guardar
+                                        <span class="badge badge-light border ml-1">Ctrl+S</span>
                                     </button>
                                     <a
                                         href="/helpdesk-tickets"
-                                        class="btn btn-inverse m-l-5"
+                                        class="btn btn-inverse btn-action-clinical"
                                         :class="{ disabled: loading }"
                                         tabindex="0"
+                                        title="Cancelar y volver (Esc)"
                                     >
                                         Cancelar
+                                        <span class="badge badge-secondary ml-1">Esc</span>
                                     </a>
                                 </div>
                             </div>
@@ -156,6 +160,7 @@ import { toastMessage } from "@/helpers/alerts.js";
 import { isHtmlEffectivelyEmpty } from "@/helpers/wysiwyg.js";
 import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import { helpdesk } from "@/helpers/api.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 
 const loading = ref(false);
 const categorias = ref([]);
@@ -286,6 +291,17 @@ async function guardar() {
     }
 }
 
+useKeyboardShortcuts({
+    onSave: () => {
+        if (!loading.value) {
+            guardar();
+        }
+    },
+    onEscape: () => {
+        window.location.href = "/helpdesk-tickets";
+    },
+});
+
 onMounted(async () => {
     try {
         const sedeActiva = sessionStorage.getItem("ST-sede");
@@ -297,3 +313,19 @@ onMounted(async () => {
     await cargar();
 });
 </script>
+
+<style scoped>
+.btn-action-clinical {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-action-clinical:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+</style>
