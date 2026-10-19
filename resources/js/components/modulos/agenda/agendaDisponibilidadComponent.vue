@@ -16,7 +16,22 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-info btnDesplegarRigthSidebar"
+                    class="btn btn-outline-secondary btn-action-clinical m-r-5"
+                    @click="buscarStudy()"
+                    :disabled="loadingBuscar"
+                    title="Actualizar listado (F2)"
+                >
+                    <i class="fa" :class="loadingBuscar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                    Refrescar
+                    <span
+                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                        style="font-size: 10px; opacity: 0.9"
+                        >F2</span
+                    >
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-info btnDesplegarRigthSidebar btn-action-clinical"
                     @click="
                         editando = false;
                         mostrarRegistro();
@@ -66,7 +81,7 @@
                                 <div class="form-actions mt-3">
                                     <button
                                         type="button"
-                                        class="btn btn-success m-r-5"
+                                        class="btn btn-success btn-action-clinical m-r-5"
                                         @click="buscarStudy()"
                                         :disabled="loadingBuscar"
                                     >
@@ -81,7 +96,7 @@
 
                                     <button
                                         type="button"
-                                        class="btn btn-inverse"
+                                        class="btn btn-inverse btn-action-clinical"
                                         @click="btnLimpiar()"
                                     >
                                         <i class="fa fa-refresh"></i> Limpiar
@@ -339,7 +354,7 @@
 
                                 <button
                                     type="button"
-                                    class="btn btn-inverse"
+                                    class="btn btn-inverse btn-action-clinical"
                                     @click="cerrarModal()"
                                     title="Cancelar y cerrar (Esc)"
                                 >
@@ -380,9 +395,14 @@ const tituloModal = ref("Guardar disponibilidad de citas");
 const showSidebar = ref(false);
 
 useKeyboardShortcuts({
+    onSearch: () => {
+        if (!showSidebar.value) {
+            buscarStudy();
+        }
+    },
     onSave: guardarRegistro,
     onEscape: cerrarModal,
-    isActive: () => showSidebar.value,
+    isActive: () => true,
     isLoading: loadingGuardar,
 });
 const sedeActual = ref(sessionStorage.getItem("ST-sede"));

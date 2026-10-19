@@ -13,6 +13,31 @@
                     <li class="breadcrumb-item active">Recomendaciones por Producto</li>
                 </ol>
             </div>
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-action-clinical m-r-5"
+                    @click="buscar()"
+                    :disabled="loadingBuscar"
+                    title="Actualizar listado (F2)"
+                >
+                    <i class="fa" :class="loadingBuscar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                    Refrescar
+                    <span
+                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                        style="font-size: 10px; opacity: 0.9"
+                        >F2</span
+                    >
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-info btn-action-clinical"
+                    @click="mostrarRegistro(null)"
+                    title="Nueva recomendación"
+                >
+                    <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
+                </button>
+            </div>
         </div>
 
         <div class="row">
@@ -360,9 +385,14 @@ const loadingEliminarId = ref(null);
 const showSidebar = ref(false);
 
 useKeyboardShortcuts({
+    onSearch: () => {
+        if (!showSidebar.value) {
+            buscar();
+        }
+    },
     onSave: guardar,
     onEscape: cerrarModal,
-    isActive: () => showSidebar.value,
+    isActive: () => true,
     isLoading: loadingGuardar,
 });
 

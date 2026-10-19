@@ -403,10 +403,11 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - Implementada herramienta en `storage/app_lidiag/dcm_disk_monitor_telegram/` usando exclusivamente la librería estándar de Python (sin dependencias `pip`).
   - **Modo Dual (Opción C):**
     * Servicio Residente 24/7 (`iniciar_bot.bat` / `--daemon`): Long-Polling para comandos de Telegram (`/discos`, `/estado`, `/alertas`, `/info`, `/ayuda`) y timer de fondo cada 15 min.
-    * Tarea Programada Windows (`instalar_tarea_programada.bat` / `--check-once`): Ejecución puntual silenciosa cada 1 hora registrada en Windows Task Scheduler.
-  - **Alertas Proactivas y Anti-Spam:** Notificación inmediata en transiciones a 🟡 Advertencia (<15% o <50 GB) y 🔴 Crítico (<5% o <20 GB), notificación de recuperación a 🟢 OK, y cooldown configurable (4h) para evitar saturación de mensajes. Reporte diario matutino a las 08:00 AM.
-  - **Multidestinatario:** Soporta múltiples Chat IDs simultáneos (usuarios y grupos con ID negativo `-100...`).
-  - **Herramientas y Scripts Incluidos:** `iniciar_segundo_plano.bat` (ejecución sin consola mediante `pythonw.exe` nativo de Python, sin VBS), `detener_bot.bat`, `configurar.bat` / `configurar_interactivo.py` (asistente interactivo con detección automática de discos), `obtener_chat_id.bat`, `verificar_estado.bat`, `config.json.example` (con variable `SEDE`), `README.md`, y paquete comprimido `dcm_disk_monitor_telegram.zip`.
+- [x] **2026-10-19 — UI/UX Nivelación: Atajos Clínicos, Backdrop y Botones Asistenciales en Citas y Agenda (`citasComponent.vue`, `agendaDisponibilidadComponent.vue`, `citasRevisionComponent.vue`, `recomendacionProductoComponent.vue`):**
+  - **Atajos Asistenciales (`useKeyboardShortcuts`):** Habilitado atajo `F2` para recarga/búsqueda inmediata de listados (`onSearch`), atajo `Ctrl+S` para guardar asignación, disponibilidad o recomendación, y tecla `Escape` para cerrar modales y paneles laterales de inmediato.
+  - **Botón Asistencial y Badges en Cabecera (`page-titles`):** Incorporado botón "Refrescar" asistencial con spinner dinámico y badge `F2` en `citasComponent.vue`, `agendaDisponibilidadComponent.vue`, `citasRevisionComponent.vue` y `recomendacionProductoComponent.vue`.
+  - **Foco Accesible y Ergonomía Clínica:** Autofoco accesible (`nextTick`) en inputs clave al desplegar modales y sidebars, badges visuales `Ctrl+S`/`Esc`, y estandarización completa de la clase `.btn-action-clinical`.
+  - Verificación estricta: ESLint 0 errores/warnings en los 4 componentes ✅ | Vite `npm run build` en 1.04s ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.

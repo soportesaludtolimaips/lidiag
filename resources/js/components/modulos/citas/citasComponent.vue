@@ -13,6 +13,23 @@
                     <li class="breadcrumb-item active">Gestión de citas</li>
                 </ol>
             </div>
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-info btn-action-clinical"
+                    @click="listarRegistros()"
+                    :disabled="loadingBuscar"
+                    title="Actualizar listado (F2)"
+                >
+                    <i class="fa" :class="loadingBuscar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                    Refrescar
+                    <span
+                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                        style="font-size: 10px; opacity: 0.9"
+                        >F2</span
+                    >
+                </button>
+            </div>
         </div>
 
         <div class="row">
@@ -611,13 +628,18 @@ function cerrarModales() {
 }
 
 useKeyboardShortcuts({
+    onSearch: () => {
+        if (!showModalAsignar.value && !showModalConversacion.value) {
+            listarRegistros();
+        }
+    },
     onSave: () => {
         if (showModalAsignar.value) {
             asignarCita();
         }
     },
     onEscape: cerrarModales,
-    isActive: () => showModalAsignar.value || showModalConversacion.value,
+    isActive: () => true,
     isLoading: loadingGuardar,
 });
 
