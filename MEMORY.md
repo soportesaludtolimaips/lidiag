@@ -364,6 +364,11 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Atajos Asistenciales (`useKeyboardShortcuts`):** Atajo `F2` para ejecutar búsqueda / refrescar listado, `Ctrl+S` para confirmar anulación dentro del modal y `Escape` para cerrar modal o deseleccionar registros marcados.
   - **Botón Asistencial y Badges Clínicos:** Botón "Refrescar" en la cabecera (`page-titles`) con spinner dinámico y badge `F2`, badges clínicos para estados (`badge-success` COMPLETO, `badge-danger` ANULADO) y PDF generado, y loading indicator en la tabla.
   - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.18s ✅.
+- [x] **2026-10-19 — UI/UX Módulo Ecografías: Ergonomía de Lienzo de Firma, Atajos y Feedback en `ecografiaFirmaConsentimientoComponent.vue`:**
+  - **Lienzo de Firma Ergonómico:** Incorporada línea guía visual punteada ("Firme sobre la línea") con marca de agua sutil, contraste estandarizado para exportación electrónica a PDF y trazado de alta resolución.
+  - **Atajos Asistenciales (`useKeyboardShortcuts`):** Atajo `Ctrl+S` para confirmar y registrar firma digital (validado contra ausencia de trazo `hasInk` y protegido contra concurrencia), y `Escape` para limpiar el lienzo.
+  - **Feedback Visual y Temporizador Crítico:** Indicador animado pulsante (`animate-pulse`) cuando restan menos de 5 minutos de validez al enlace, spinner de carga asistencial y pantalla de confirmación exitosa con bloqueo defensivo que previene firmas duplicadas.
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.06s ✅.
 - [x] **2026-10-19 — Herramienta Autónoma Python: Monitor de Discos DICOM con Bot de Telegram (`dcm_disk_monitor_telegram`):**
   - Implementada herramienta en `storage/app_lidiag/dcm_disk_monitor_telegram/` usando exclusivamente la librería estándar de Python (sin dependencias `pip`).
   - **Modo Dual (Opción C):**
