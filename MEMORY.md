@@ -328,7 +328,14 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Sincronización Defensiva de Sede:** Inicialización automática de `busqueda.sede_id` con `sessionStorage.getItem("ST-sede")` en `onMounted`.
   - **Limpieza Visual y Microinteracciones:** Eliminado bloque de empty state redundante dentro de `.table-responsive`, diferenciado botón de "Enviar al portal" con `btn-outline-success` e ícono `fa fa-cloud-upload`, y clase `.btn-action-clinical` en botón Notificar.
   - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.01s ✅.
+- [x] **2026-10-19 — UI/UX Módulo Citas & Agenda: Atajos, Foco, Backdrop y Transición Suave en `recomendacionProductoComponent.vue`:**
+  - **Transición Suave y Backdrop Overlay:** Eliminado el salto abrupto de `display: none/block`, altura truncada al 80% y z-index 180 (que quedaba debajo del header) en `.right-sidebar`. Reemplazado por animación deslizante fluida `cubic-bezier(0.16, 1, 0.3, 1)` a 350ms, altura al 100%, z-index 1100, backdrop desacoplador (`.sidebar-backdrop`) con `backdrop-filter: blur(1px)` y cierre al hacer clic exterior (`@click="cerrarModal()"`). Adaptación al 100% en pantallas móviles.
+  - **Atajos Asistenciales (`useKeyboardShortcuts`):** Integrado `Ctrl+S` para guardar recomendaciones por producto (protegido por `loadingGuardar`) y `Escape` para cerrar el panel lateral.
+  - **Foco Accesible (`a11y`):** Autofoco automático reactivo en `#form-producto-parent .select2-selection` o textarea en `abrirModal()`, y sustitución de `<span>` por `<button class="close right-side-toggle" aria-label="Cerrar panel" title="Cerrar (Esc)">` cumpliendo el estándar de botones accesibles.
+  - **Badges Visuales y Microinteracciones:** Badges `Ctrl+S` y `Esc`, títulos contextuales y clase `.btn-action-clinical` con microinteracción táctil.
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.02s ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.
+
 

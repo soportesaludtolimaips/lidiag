@@ -222,22 +222,28 @@
             </div>
         </div>
 
+        <!-- Backdrop overlay para cerrar al hacer clic afuera -->
+        <div v-if="showSidebar" class="sidebar-backdrop" @click="cerrarModal()"></div>
+
         <div
             class="right-sidebar"
             id="right-sidebar"
             :class="{ 'shw-rside': showSidebar }"
-            style="overflow-x: hidden; overflow-y: scroll; height: 100%"
+            style="overflow-x: hidden; overflow-y: auto; height: 100%"
         >
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ editando ? "Editar recomendación" : "Nueva recomendación" }}
-                    <span>
-                        <i
-                            class="ti-close right-side-toggle"
-                            id="btnCerrarModalForm"
-                            @click="cerrarModal()"
-                        ></i>
-                    </span>
+                    <button
+                        type="button"
+                        class="close right-side-toggle"
+                        id="btnCerrarModalForm"
+                        @click="cerrarModal()"
+                        aria-label="Cerrar panel"
+                        title="Cerrar (Esc)"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
                 </div>
                 <div class="r-panel-body">
                     <form action="#">
@@ -277,21 +283,39 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="form-actions mt-3">
-                            <button type="button" class="btn btn-inverse" @click="cerrarModal()">
+                        <div
+                            class="form-actions mt-3 d-flex justify-content-end align-items-center"
+                        >
+                            <button
+                                type="button"
+                                class="btn btn-inverse btn-action-clinical"
+                                @click="cerrarModal()"
+                                title="Cancelar cambios y cerrar panel (Esc)"
+                            >
                                 Cancelar
+                                <span
+                                    class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                                    style="font-size: 10px; opacity: 0.9"
+                                    >Esc</span
+                                >
                             </button>
                             <button
                                 type="button"
-                                class="btn btn-success m-l-5"
+                                class="btn btn-success m-l-5 btn-action-clinical"
                                 @click="guardar()"
                                 :disabled="loadingGuardar"
+                                title="Guardar recomendación (Ctrl+S / Cmd+S)"
                             >
                                 <i
                                     class="fa"
                                     :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"
                                 ></i>
                                 {{ loadingGuardar ? "Guardando..." : "Guardar" }}
+                                <span
+                                    class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                                    style="font-size: 10px; opacity: 0.9"
+                                    >Ctrl+S</span
+                                >
                             </button>
                         </div>
                     </form>
@@ -309,6 +333,7 @@ import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js
 import { alertSuccess, alertError, confirmAction } from "@/helpers/alerts";
 import FormattedTextEditor from "@/components/shared/FormattedTextEditor.vue";
 import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import axios from "axios";
 
 const registros = ref([]);
@@ -333,6 +358,13 @@ const loadingBuscar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
 const showSidebar = ref(false);
+
+useKeyboardShortcuts({
+    onSave: guardar,
+    onEscape: cerrarModal,
+    isActive: () => showSidebar.value,
+    isLoading: loadingGuardar,
+});
 
 const filterProductoOptions = computed(() => {
     return (productos.value || []).map((p) => ({
@@ -503,6 +535,15 @@ function mostrarRegistro(item) {
 
 function abrirModal() {
     showSidebar.value = true;
+    nextTick(() => {
+        const target =
+            document.querySelector("#form-producto-parent .select2-selection") ||
+            document.querySelector("#form-producto-parent select") ||
+            document.querySelector(".r-panel-body textarea");
+        if (target && typeof target.focus === "function") {
+            target.focus();
+        }
+    });
 }
 
 function cerrarModal() {
@@ -528,26 +569,43 @@ onBeforeUnmount(() => {
 });
 </script>
 <style scoped>
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 1090;
+    backdrop-filter: blur(1px);
+}
+
 .right-sidebar {
     position: fixed;
     right: -80%;
     width: 80%;
-    display: none;
-    z-index: 180;
+    visibility: hidden;
+    z-index: 1100;
     background: #ffffff;
-    top: 0px;
-    padding-bottom: 20px;
-    height: 80%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
+    top: 0;
+    bottom: 0;
+    height: 100%;
+    overflow-y: auto;
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s ease;
 }
 
 .shw-rside {
-    right: 0px;
-    width: 80%;
-    display: block;
+    right: 0;
+    visibility: visible;
+}
+
+@media (max-width: 768px) {
+    .right-sidebar {
+        width: 100%;
+        right: -100%;
+    }
 }
 </style>
