@@ -167,7 +167,7 @@
                                 <span class="badge badge-secondary" v-else>Sin resultados</span>
                             </div>
                         </div>
-                        <table-skeleton-loader :visible="loadingBuscar" :rows="6" :columns="8" />
+                        <table-skeleton-loader :visible="loadingBuscar" :rows="6" :columns="9" />
                         <empty-state-component
                             v-if="!loadingBuscar && registros.length === 0"
                             icon="fa fa-folder-open-o"
@@ -192,6 +192,7 @@
                                     <tr>
                                         <th>Fecha del Estudio</th>
                                         <th>Fecha de lectura</th>
+                                        <th>Sede</th>
                                         <th># Documento</th>
                                         <th>Paciente</th>
                                         <th>Telefono</th>
@@ -204,6 +205,12 @@
                                     <tr v-for="item in registros" :key="item.estudio_producto_id">
                                         <td>{{ item.fec_estudio }}</td>
                                         <td>{{ item.fechor_lectura }}</td>
+                                        <td>
+                                            <span class="badge badge-info font-weight-bold">
+                                                <i class="fa fa-hospital-o mr-1"></i>
+                                                {{ item.nom_sede || "—" }}
+                                            </span>
+                                        </td>
                                         <td>{{ item.num_docu }}</td>
                                         <td>{{ item.nom_pacien }}</td>
                                         <td>{{ item.tel }}</td>
@@ -329,6 +336,29 @@
                                         <i class="fa fa-edit"></i> Datos del Estudio
                                     </h5>
                                     <hr />
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <dl class="mb-1">
+                                                <dt class="text-muted" style="font-size: 12px">
+                                                    Sede del Estudio:
+                                                </dt>
+                                                <dd class="font-weight-bold text-dark mb-0">
+                                                    <i class="fa fa-hospital-o text-info mr-1"></i>
+                                                    {{ estudio.nom_sede || "—" }}
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <dl class="mb-1">
+                                                <dt class="text-muted" style="font-size: 12px">
+                                                    Producto:
+                                                </dt>
+                                                <dd class="font-weight-bold text-dark mb-0">
+                                                    {{ estudio.nom_produc || "—" }}
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                    </div>
                                     <div class="col-md-12">
                                         <div class="form-group">
                                             <label class="control-label" for="email"

@@ -343,6 +343,10 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Optimización Asíncrona:** Migrada la carga de estadísticas y estados a `Promise.all` estructurado con `async/await`, eliminando condiciones de carrera y llamadas desordenadas.
   - **Botón Asistencial y Empty State:** Agregado botón de refrescar con microinteracción `.btn-action-clinical` y spinner dinámico en la cabecera superior derecha (`page-titles`), clases interactivas en accesos rápidos y empty state visual en la tabla de citas próximas.
   - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.01s ✅.
+- [x] **2026-10-19 — UI/UX Módulo Estudios: Columna y Detalle de Sede en `notificarEstudioComponent.vue` (`/estudios.notificar.index`):**
+  - **Identificación Multisede de Estudios:** Incorporada la columna "Sede" con badge clínico (`badge-info` e ícono `fa-hospital-o`) en la tabla de estudios disponibles, permitiendo diferenciar estudios tomados en distintas sedes para un mismo paciente.
+  - **Detalle de Sede en Panel Lateral:** Agregado bloque de identificación de "Sede del Estudio" y "Producto" en el modal lateral de notificación, y actualizado el skeleton loader a 9 columnas.
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.14s ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.
