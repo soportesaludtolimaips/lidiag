@@ -288,6 +288,12 @@ Proporcionar feedback visual en tiempo real en los campos del formulario asisten
 ### E5 — Modo Oscuro Radiológico de Alto Contraste (`dark-theme.css`)
 Garantizar contraste clínico óptimo (WCAG AAA) bajo `body.theme-dark` en modales, botones, inputs de formulario y badges para estaciones de diagnóstico.
 
+### E6 — Transición Suave y Backdrop Overlay Desacoplador
+Eliminar el parpadeo abrupto de `display: none/block` en `.right-sidebar` y modales:
+- Control mediante `right: -80%` (o `-50%`) a `right: 0` y `visibility: hidden` / `visible` con transición `cubic-bezier(0.16, 1, 0.3, 1)` a 350ms.
+- Añadir `.sidebar-backdrop` con `backdrop-filter: blur(2px)` y click-outside dismiss.
+- En modales Vue/Bootstrap: `style="display: block"`, `@click.self` y `class="modal show"`.
+
 ---
 
 ## Resumen por severidad
@@ -295,7 +301,7 @@ Garantizar contraste clínico óptimo (WCAG AAA) bajo `body.theme-dark` en modal
 | Prioridad | Área | Items |
 |-----------|------|-------|
 | 🔴 Alta | Accesibilidad, validación, bugs | H2, H3, H4, H5, H6, H7, E3, E4 |
-| 🟠 Media | Feedback, consistencia, rendimiento | M1-M8, E1, E2, E5 |
+| 🟠 Media | Feedback, consistencia, rendimiento | M1-M8, E1, E2, E5, E6 |
 | 🔵 Baja | Limpieza, tipografía | L1-L10 |
 
 ## Orden de ejecución sugerido

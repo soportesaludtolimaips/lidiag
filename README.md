@@ -531,11 +531,12 @@ El frontend integra un sistema de diseño clínico orientado a la alta productiv
 -   **Notificaciones No Invasivas (`toastMessage` en `alerts.js`):** Mensajes flotantes con auto-cierre a 3500ms para operaciones rutinarias de guardado o actualización, eliminando popups modales bloqueantes.
 -   **Validación Visual Inline (`useFormValidation.js`):** Feedback visual en tiempo real en formularios asistenciales con estados semánticos (`.is-invalid`, `.is-valid`, `.invalid-feedback`) validados tanto al desenfocar (`touched`) como al corregir.
 -   **Atajos de Teclado Clínicos y Accesibilidad (`useKeyboardShortcuts.js`):**
-    -   `Ctrl+S` / `Cmd+S`: Guardado rápido del informe o formulario asistencial con cancelación de la acción nativa de descarga HTML del navegador.
-    -   `Escape`: Cierre ágil y ordenado de paneles laterales o modales.
-    -   `F2`: Alternar dictado por voz y reconocimiento Whisper.
+    -   `Ctrl+S` / `Cmd+S`: Guardado y aprobación rápida de informes y citas asistenciales (Estudios, Ecografías y Citas) con cancelación de la acción nativa de descarga HTML del navegador y protección de concurrencia.
+    -   `Escape`: Cierre ágil y ordenado de paneles laterales y modales activos.
+    -   `F2`: Alternar dictado por voz y reconocimiento Whisper tanto en Estudios como en Ecografías.
     -   **Puente WYSIWYG (`WysiwygEditor.vue`):** Reenvío sintético de teclas desde el `iframe` de edición hacia `window` para guardar sin abandonar el editor.
-    -   **Foco Accesible (`a11y`):** Autofoco automático reactivo en el primer campo interactivo de cada formulario.
+    -   **Foco Accesible (`a11y`):** Autofoco automático reactivo en el primer campo interactivo de cada formulario y modal.
+-   **Transición Suave y Backdrop Overlay Desacoplador:** Eliminación del parpadeo abrupto de `display: none/block` en paneles laterales (`.right-sidebar`) con aceleración ergonómica `cubic-bezier(0.16, 1, 0.3, 1)` a 350ms, fondos atenuados (`.sidebar-backdrop`) con `backdrop-filter: blur(2px)` y modales con cierre exterior (`@click.self`), unificando anchos responsivos en Estudios, Ecografías y Citas.
 -   **Modo Oscuro Radiológico (`resources/css/dark-theme.css`):** Paleta de colores *Slate Clínico* de alto contraste optimizada para minimizar la fatiga visual en estaciones diagnósticas PACS/RIS.
 
 ## Storage / Filesystems (detalle)

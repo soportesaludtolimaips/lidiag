@@ -314,6 +314,9 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Modales Modernos con Backdrop Blur:** Modales `#modalAprobar` y `#modalRechazar` con `style="display: block"`, cierre al clic exterior (`@click.self`), atributos `aria-label` y estilos con `backdrop-filter: blur(2px)`.
   - **Badges Visuales y Microinteracciones:** Badges `Ctrl+S` y `Esc` en botones de confirmación y cancelación.
   - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 954ms ✅.
+- [x] **2026-10-19 — Actualización de Documentación (`README.md` & `docs/UI-UX-IMPROVEMENT-PHASES.md`):**
+  - Incorporados al `README.md` los detalles de la arquitectura UI/UX: atajos clínicos extendidos (`Ctrl+S`, `Escape`, `F2`), foco accesible `a11y`, modales desacopladores con backdrop blur y transiciones fluidas sin layout shift en Estudios, Ecografías y Citas.
+  - Actualizado `docs/UI-UX-IMPROVEMENT-PHASES.md` con la fase `E6 — Transición Suave y Backdrop Overlay Desacoplador`.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.
