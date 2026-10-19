@@ -17,6 +17,18 @@
                     <li class="breadcrumb-item active">Consentimientos</li>
                 </ol>
             </div>
+            <div class="col-md-6 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    :disabled="loading"
+                    title="Actualizar listado de consentimientos (F2)"
+                    @click="buscar"
+                >
+                    <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loading }"></i>
+                    Refrescar <span class="badge badge-light border ml-1">F2</span>
+                </button>
+            </div>
         </div>
 
         <div class="card">
@@ -30,6 +42,7 @@
                             class="form-control"
                             v-model="filtros.q"
                             placeholder="Nombre o documento"
+                            @keyup.enter="buscar"
                         />
                     </div>
                     <div class="col-md-3">
@@ -39,6 +52,7 @@
                             type="date"
                             class="form-control"
                             v-model="filtros.desde"
+                            @change="buscar"
                         />
                     </div>
                     <div class="col-md-3">
@@ -48,60 +62,68 @@
                             type="date"
                             class="form-control"
                             v-model="filtros.hasta"
+                            @change="buscar"
                         />
                     </div>
                 </div>
 
-                <div class="mt-3 d-flex gap-2">
+                <div class="mt-3 d-flex flex-wrap gap-2">
                     <button
-                        class="btn btn-success"
+                        class="btn btn-success btn-action-clinical"
                         type="button"
                         @click="buscar"
                         :disabled="loading"
                     >
-                        <i class="fa" :class="loading ? 'fa-spinner fa-spin' : 'fa-search'"></i>
-                        Buscar
+                        <i
+                            class="fa mr-1"
+                            :class="loading ? 'fa-spinner fa-spin' : 'fa-search'"
+                        ></i>
+                        Buscar <span class="badge badge-light border ml-1">F2</span>
                     </button>
 
                     <button
                         v-if="can('ecografias.consentimientos.pdf.generar')"
-                        class="btn btn-info"
+                        class="btn btn-info btn-action-clinical"
                         type="button"
                         @click="generarPdfSeleccionado"
                         :disabled="loading || selectedIds.length !== 1"
                     >
+                        <i class="fa fa-file-pdf-o mr-1"></i>
                         Generar PDF
                     </button>
 
                     <button
                         v-if="can('ecografias.consentimientos.pdf.descargar')"
-                        class="btn btn-primary"
+                        class="btn btn-primary btn-action-clinical"
                         type="button"
                         @click="descargarPdfSeleccionado"
                         :disabled="
                             loading || selectedIds.length !== 1 || !selectedConsentimiento?.pdf_path
                         "
                     >
+                        <i class="fa fa-download mr-1"></i>
                         Descargar PDF
                     </button>
 
                     <button
                         v-if="can('ecografias.consentimientos.zip.generar')"
-                        class="btn btn-warning"
+                        class="btn btn-warning btn-action-clinical"
                         type="button"
                         @click="generarZip"
                         :disabled="loading || selectedIds.length < 2"
                     >
-                        Descargar ZIP
+                        <i class="fa fa-file-archive-o mr-1"></i>
+                        Descargar ZIP ({{ selectedIds.length }})
                     </button>
 
                     <button
                         v-if="can('ecografias.consentimientos.anular')"
-                        class="btn btn-danger"
+                        class="btn btn-danger btn-action-clinical"
                         type="button"
-                        @click="anularSeleccionado"
+                        @click="abrirModalAnular"
                         :disabled="loading || selectedIds.length !== 1"
                     >
+                        <i class="fa fa-ban mr-1"></i>
                         Anular
                     </button>
                 </div>
@@ -115,7 +137,7 @@
                     <table class="table table-bordered table-striped">
                         <thead>
                             <tr>
-                                <th width="40">
+                                <th width="40" class="text-center">
                                     <input
                                         type="checkbox"
                                         :checked="allSelectableSelected"
@@ -126,52 +148,179 @@
                                 <th>Paciente</th>
                                 <th>Documento</th>
                                 <th>Examen</th>
-                                <th>Estado</th>
-                                <th>PDF</th>
+                                <th width="130" class="text-center">Estado</th>
+                                <th width="120" class="text-center">PDF</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="c in registros" :key="c.id">
-                                <td>
-                                    <input
-                                        type="checkbox"
-                                        :disabled="!esSeleccionable(c)"
-                                        :checked="selectedMap[c.id] === true"
-                                        @change="toggleSelect(c)"
-                                        aria-label="Seleccionar consentimiento"
-                                    />
-                                </td>
-                                <td>{{ pacienteNombre(c) }}</td>
-                                <td>
-                                    {{ c.ecografia_producto?.ecografia?.paciente?.num_docu || "—" }}
-                                </td>
-                                <td>{{ c.producto?.nom_produc || "—" }}</td>
-                                <td>
-                                    <span v-if="c.estado === 'COMPLETO'" class="text-success"
-                                        >COMPLETO</span
-                                    >
-                                    <span v-else class="text-danger">{{ c.estado }}</span>
-                                </td>
-                                <td>
-                                    <span v-if="c.pdf_path" class="text-success">Generado</span>
-                                    <span v-else class="text-muted">—</span>
+                            <tr v-if="loading">
+                                <td colspan="6" class="text-center py-4 text-muted">
+                                    <i
+                                        class="fa fa-circle-o-notch fa-spin fa-2x mb-2 text-primary"
+                                    ></i>
+                                    <div>Cargando consentimientos...</div>
                                 </td>
                             </tr>
-                            <tr v-if="registros.length === 0">
-                                <td colspan="6" class="text-center text-muted">Sin resultados.</td>
-                            </tr>
+                            <template v-else>
+                                <tr
+                                    v-for="c in registros"
+                                    :key="c.id"
+                                    :class="{ 'table-active': selectedMap[c.id] }"
+                                >
+                                    <td class="text-center">
+                                        <input
+                                            type="checkbox"
+                                            :disabled="!esSeleccionable(c)"
+                                            :checked="selectedMap[c.id] === true"
+                                            @change="toggleSelect(c)"
+                                            aria-label="Seleccionar consentimiento"
+                                        />
+                                    </td>
+                                    <td>{{ pacienteNombre(c) }}</td>
+                                    <td>
+                                        {{
+                                            c.ecografia_producto?.ecografia?.paciente?.num_docu ||
+                                            "—"
+                                        }}
+                                    </td>
+                                    <td>{{ c.producto?.nom_produc || "—" }}</td>
+                                    <td class="text-center">
+                                        <span
+                                            v-if="c.estado === 'COMPLETO'"
+                                            class="badge badge-success"
+                                        >
+                                            <i class="fa fa-check mr-1"></i>COMPLETO
+                                        </span>
+                                        <span
+                                            v-else-if="c.estado === 'ANULADO'"
+                                            class="badge badge-danger"
+                                        >
+                                            <i class="fa fa-ban mr-1"></i>ANULADO
+                                        </span>
+                                        <span v-else class="badge badge-secondary">
+                                            {{ c.estado }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span v-if="c.pdf_path" class="badge badge-info">
+                                            <i class="fa fa-file-pdf-o mr-1"></i>Generado
+                                        </span>
+                                        <span v-else class="text-muted">—</span>
+                                    </td>
+                                </tr>
+                                <tr v-if="registros.length === 0">
+                                    <td colspan="6" class="text-center text-muted py-4">
+                                        <i class="fa fa-info-circle mr-1"></i>Sin resultados
+                                        encontrados.
+                                    </td>
+                                </tr>
+                            </template>
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Reactivo de Anulación -->
+        <div
+            v-if="modalAnularVisible"
+            class="modal fade show d-block"
+            tabindex="-1"
+            role="dialog"
+            aria-labelledby="modalAnularTitle"
+            aria-modal="true"
+            style="
+                background: rgba(15, 23, 42, 0.45);
+                backdrop-filter: blur(2px);
+                -webkit-backdrop-filter: blur(2px);
+            "
+            @click.self="cerrarModalAnular"
+        >
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content shadow-lg border-0">
+                    <div class="modal-header bg-danger text-white py-2">
+                        <h5 class="modal-title font-weight-bold" id="modalAnularTitle">
+                            <i class="fa fa-ban mr-1"></i> Anular Consentimiento
+                        </h5>
+                        <button
+                            type="button"
+                            class="close text-white"
+                            aria-label="Cerrar modal"
+                            @click="cerrarModalAnular"
+                        >
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div v-if="selectedConsentimiento" class="alert alert-warning py-2 mb-3">
+                            <div class="font-weight-bold">
+                                {{ pacienteNombre(selectedConsentimiento) }}
+                            </div>
+                            <small class="text-muted d-block">
+                                Documento:
+                                {{
+                                    selectedConsentimiento.ecografia_producto?.ecografia?.paciente
+                                        ?.num_docu || "—"
+                                }}
+                            </small>
+                            <small class="text-muted d-block">
+                                Examen:
+                                {{ selectedConsentimiento.producto?.nom_produc || "—" }}
+                            </small>
+                        </div>
+                        <div class="form-group mb-0">
+                            <label for="anulacion_observacion" class="font-weight-bold">
+                                Observación de anulación <span class="text-danger">*</span>
+                            </label>
+                            <textarea
+                                id="anulacion_observacion"
+                                ref="motivoAnulaRef"
+                                class="form-control"
+                                rows="3"
+                                v-model="anulacionObservacion"
+                                placeholder="Especifique detalladamente el motivo de la anulación..."
+                            ></textarea>
+                            <small class="form-text text-muted">
+                                Esta acción es irreversible y quedará registrada en la auditoría
+                                clínica.
+                            </small>
+                        </div>
+                    </div>
+                    <div class="modal-footer py-2 bg-light">
+                        <button
+                            type="button"
+                            class="btn btn-secondary btn-action-clinical"
+                            @click="cerrarModalAnular"
+                            :disabled="anulando"
+                        >
+                            <i class="fa fa-times mr-1"></i> Cancelar
+                            <span class="badge badge-light border ml-1">Esc</span>
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-danger btn-action-clinical"
+                            @click="confirmarAnulacion"
+                            :disabled="anulando || !anulacionObservacion.trim()"
+                        >
+                            <i
+                                class="fa mr-1"
+                                :class="anulando ? 'fa-spinner fa-spin' : 'fa-check'"
+                            ></i>
+                            {{ anulando ? "Anulando..." : "Confirmar Anulación" }}
+                            <span class="badge badge-light border ml-1">Ctrl+S</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </template>
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 
 import usePermissions from "@/helpers/permissions.js";
 import { toastMessage } from "@/helpers/alerts";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 import axios from "axios";
 
 const { proxy } = getCurrentInstance();
@@ -193,6 +342,11 @@ const registros = ref([]);
 const loading = ref(false);
 const selectedMap = ref({});
 
+const modalAnularVisible = ref(false);
+const anulacionObservacion = ref("");
+const anulando = ref(false);
+const motivoAnulaRef = ref(null);
+
 /**
  * Obtiene la lista de identificadores de consentimientos actualmente seleccionados.
  *
@@ -207,6 +361,7 @@ const selectedIds = computed(() => {
         .filter((k) => selectedMap.value[k])
         .map((k) => Number(k));
 });
+
 /**
  * Devuelve el consentimiento seleccionado cuando exactamente uno está marcado, o null en caso contrario.
  *
@@ -221,6 +376,7 @@ const selectedConsentimiento = computed(() => {
     const id = selectedIds.value[0];
     return registros.value.find((r) => Number(r.id) === Number(id)) || null;
 });
+
 /**
  * Indica si todos los consentimientos seleccionables (estado COMPLETO) se encuentran marcados.
  *
@@ -252,6 +408,7 @@ function pacienteNombre(c) {
     if (!p) return "—";
     return String(p.nombres || "").trim();
 }
+
 /**
  * Determina si un consentimiento puede ser seleccionado (solo aquellos en estado COMPLETO).
  *
@@ -266,6 +423,7 @@ function pacienteNombre(c) {
 function esSeleccionable(c) {
     return c?.estado === "COMPLETO";
 }
+
 /**
  * Alterna la selección de un consentimiento individual si este es seleccionable.
  *
@@ -282,6 +440,7 @@ function toggleSelect(c) {
     if (!esSeleccionable(c)) return;
     selectedMap.value[id] = !selectedMap.value[id];
 }
+
 /**
  * Marca o desmarca todos los consentimientos seleccionables según el estado del checkbox de cabecera.
  *
@@ -302,6 +461,7 @@ function toggleSelectAll(e) {
     });
     selectedMap.value = next;
 }
+
 /**
  * Consulta al backend el listado de consentimientos aplicando los filtros de búsqueda.
  *
@@ -325,6 +485,7 @@ async function buscar() {
         loading.value = false;
     }
 }
+
 /**
  * Genera el PDF del consentimiento seleccionado (cuando hay exactamente uno) y refresca la lista.
  *
@@ -351,6 +512,7 @@ async function generarPdfSeleccionado() {
         loading.value = false;
     }
 }
+
 /**
  * Abre en una nueva pestaña la descarga del PDF del consentimiento seleccionado.
  *
@@ -369,6 +531,7 @@ function descargarPdfSeleccionado() {
         "noopener,noreferrer"
     );
 }
+
 /**
  * Genera y descarga un archivo ZIP con los PDF de los consentimientos seleccionados (mínimo dos).
  *
@@ -406,40 +569,65 @@ async function generarZip() {
         loading.value = false;
     }
 }
+
 /**
- * Solicita la observación de anulación (vía SweetAlert o prompt) y anula el consentimiento seleccionado.
+ * Abre el modal clínico de anulación para el consentimiento seleccionado.
  *
- * @returns {Promise<void>}
+ * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-02-13
+ * @date 2026-10-19
  */
-async function anularSeleccionado() {
+function abrirModalAnular() {
     if (selectedIds.value.length !== 1) return;
-    const id = selectedIds.value[0];
-    const obs = window.prompt("Observación de anulación (obligatoria):");
-    if (!obs || !String(obs).trim()) return;
-    await _ejecutarAnulacion(id, obs);
+    anulacionObservacion.value = "";
+    modalAnularVisible.value = true;
+    nextTick(() => {
+        if (motivoAnulaRef.value) {
+            motivoAnulaRef.value.focus();
+        }
+    });
 }
+
 /**
- * Envía la petición de anulación de un consentimiento con su observación y refresca la lista.
+ * Cierra el modal reactivo de anulación.
  *
- * @param {number} id Identificador del consentimiento a anular.
- * @param {string} obs Observación obligatoria de la anulación.
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-10-19
+ */
+function cerrarModalAnular() {
+    if (anulando.value) return;
+    modalAnularVisible.value = false;
+    anulacionObservacion.value = "";
+}
+
+/**
+ * Confirma y procesa la anulación del consentimiento seleccionado.
  *
  * @returns {Promise<void>}
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-02-13
+ * @date 2026-10-19
  */
-async function _ejecutarAnulacion(id, obs) {
-    loading.value = true;
+async function confirmarAnulacion() {
+    if (selectedIds.value.length !== 1 || !anulacionObservacion.value.trim()) return;
+    const id = selectedIds.value[0];
+    anulando.value = true;
     try {
         await axios.post(`/api/ecografias-consentimientos/${id}/anular`, {
-            observacion: String(obs).trim(),
+            observacion: anulacionObservacion.value.trim(),
         });
+        toastMessage({
+            heading: "Éxito",
+            text: "Consentimiento anulado correctamente.",
+            icon: "success",
+        });
+        cerrarModalAnular();
         await buscar();
     } catch (error) {
         toastMessage({
@@ -448,7 +636,7 @@ async function _ejecutarAnulacion(id, obs) {
             icon: "error",
         });
     } finally {
-        loading.value = false;
+        anulando.value = false;
     }
 }
 
@@ -460,6 +648,26 @@ function onSedeSeleccionada(data) {
     }
     buscar();
 }
+
+useKeyboardShortcuts({
+    onSave: () => {
+        if (modalAnularVisible.value) {
+            confirmarAnulacion();
+        }
+    },
+    onEscape: () => {
+        if (modalAnularVisible.value) {
+            cerrarModalAnular();
+        } else if (selectedIds.value.length > 0) {
+            selectedMap.value = {};
+        }
+    },
+    onSearch: () => {
+        if (!modalAnularVisible.value) {
+            buscar();
+        }
+    },
+});
 
 /**
  * Hook de ciclo de vida que ejecuta la búsqueda inicial de consentimientos y escucha cambios de sede.
@@ -482,5 +690,17 @@ onBeforeUnmount(() => {
 <style scoped>
 .breadcrumb-btn {
     vertical-align: baseline;
+}
+.btn-action-clinical {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease-in-out;
+}
+.btn-action-clinical:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 </style>

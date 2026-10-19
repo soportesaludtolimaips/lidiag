@@ -359,6 +359,11 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Foco Accesible (`a11y`):** Autofoco automático reactivo en `#form_producto_id` al crear nueva plantilla y en `#form_nombre` al editar versión existente.
   - **Botón Asistencial y Microinteracciones:** Botón de refresco en la cabecera (`page-titles`) con spinner interactivo, badges `Ctrl+S` y `Esc`, y clase clínica `.btn-action-clinical`.
   - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 982ms ✅.
+- [x] **2026-10-19 — UI/UX Módulo Ecografías: Modal Reactivo de Anulación, Atajos y Badges en `ecografiasConsentimientosComponent.vue`:**
+  - **Modal Reactivo de Anulación con Backdrop Blur:** Reemplazado `window.prompt` nativo por un modal clínico reactivo con desenfoque de fondo (`backdrop-filter: blur(2px)`), textarea con foco automático (`nextTick`), resumen asistencial del paciente y validación contra texto en blanco.
+  - **Atajos Asistenciales (`useKeyboardShortcuts`):** Atajo `F2` para ejecutar búsqueda / refrescar listado, `Ctrl+S` para confirmar anulación dentro del modal y `Escape` para cerrar modal o deseleccionar registros marcados.
+  - **Botón Asistencial y Badges Clínicos:** Botón "Refrescar" en la cabecera (`page-titles`) con spinner dinámico y badge `F2`, badges clínicos para estados (`badge-success` COMPLETO, `badge-danger` ANULADO) y PDF generado, y loading indicator en la tabla.
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.18s ✅.
 - [x] **2026-10-19 — Herramienta Autónoma Python: Monitor de Discos DICOM con Bot de Telegram (`dcm_disk_monitor_telegram`):**
   - Implementada herramienta en `storage/app_lidiag/dcm_disk_monitor_telegram/` usando exclusivamente la librería estándar de Python (sin dependencias `pip`).
   - **Modo Dual (Opción C):**
