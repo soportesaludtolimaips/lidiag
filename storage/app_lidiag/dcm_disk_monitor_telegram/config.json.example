@@ -1,0 +1,32 @@
+{
+  "SEDE": "Espinal - Hospital San Rafael",
+  "servidor_identificador": "SR-PACS-01",
+  "telegram": {
+    "bot_token": "PEGA_AQUI_TU_BOT_TOKEN_DE_BOTFATHER",
+    "chat_ids": [
+      "PEGA_AQUI_TU_CHAT_ID"
+    ]
+  },
+  "rutas_monitoreo": [
+    {
+      "nombre": "Disco del Sistema (OS)",
+      "ruta": "C:\\"
+    },
+    {
+      "nombre": "Repositorio Imágenes DICOM (PACS)",
+      "ruta": "D:\\img_dcm"
+    }
+  ],
+  "umbrales": {
+    "advertencia_porcentaje_libre": 15.0,
+    "advertencia_gb_libres": 50.0,
+    "critico_porcentaje_libre": 5.0,
+    "critico_gb_libres": 20.0
+  },
+  "intervalo_revision_minutos": 15,
+  "cooldown_alerta_horas": 4,
+  "reporte_diario": {
+    "activo": true,
+    "hora": "08:00"
+  }
+}

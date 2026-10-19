@@ -61,7 +61,12 @@ storage/app_lidiag/transcriptor/venv/
 storage/app_lidiag/transcriptor/__pycache__/
 
 # app_lidiag (aplicaciones empaquetadas propias)
-storage/app_lidiag/
+storage/app_lidiag/*
+!storage/app_lidiag/dcm_disk_monitor_telegram/
+storage/app_lidiag/dcm_disk_monitor_telegram/config.json
+storage/app_lidiag/dcm_disk_monitor_telegram/last_alert_state.json
+storage/app_lidiag/dcm_disk_monitor_telegram/*.log
+storage/app_lidiag/dcm_disk_monitor_telegram.zip
 
 # Tauri build artifacts and logs
 storage/app_lidiag/src-tauri/target/
