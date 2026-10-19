@@ -1,20 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-backup_dcm_agent.py — Agente de Backup Local y Transmisión Webhook para LIDiag
+backup_dcm_agent.py — Agente de Backup Local DCM para LIDiag y Sincronización QNAP (Qsync)
 
 Este script se ejecuta localmente en el servidor de cada sede/hospital.
 Realiza el volcado local de MySQL con mysqldump a alta velocidad de disco (SSD/NVMe),
-lo comprime a formato ZIP y lo envía mediante HTTP/HTTPS POST al servidor central de LIDiag.
+lo comprime a formato ZIP en la carpeta destino local (C:\\backups_dcm) y purga los
+archivos antiguos que superen los días de retención (30 días).
+
+El cliente Qsync de QNAP instalado en el servidor detecta los archivos generados
+y los sincroniza automáticamente en segundo plano con el almacenamiento NAS central.
 
 Requisitos:
 - Python 3.7+ (Solo utiliza librerías estándar de Python: no requiere pip install).
-- Acceso local al comando mysqldump.
+- Acceso local al comando mysqldump (MySQL Server o MariaDB).
 
 Uso:
   python backup_dcm_agent.py
-  python backup_dcm_agent.py --config /ruta/a/config.json
-  python backup_dcm_agent.py --sede 1 --db-name pacsdb --api-url https://lidiag.test/api/backups/upload-dcm
+  python backup_dcm_agent.py --config config.json
+  python backup_dcm_agent.py --sede 1 --nombre espinal --destination-dir "C:\\backups_dcm"
 
 Autor: Jhon Javer Lozano Arce
 Fecha: 2026-10-19
@@ -22,49 +26,46 @@ Fecha: 2026-10-19
 
 import argparse
 import datetime
+import glob
 import json
-import mimetypes
 import os
+import re
 import shutil
 import subprocess
 import sys
 import time
-import urllib.error
-import urllib.request
-import uuid
 import zipfile
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Agente de Backup Local DCM para LIDiag")
+    parser = argparse.ArgumentParser(description="Agente de Backup Local DCM para LIDiag / QNAP Qsync")
     parser.add_argument("--config", "-c", default="config.json", help="Ruta al archivo de configuración JSON (por defecto: config.json)")
     parser.add_argument("--sede", type=int, help="ID de la sede (anula valor del config.json)")
+    parser.add_argument("--nombre", "--sede-nombre", dest="sede_nombre", help="Nombre o slug de la sede (ej. espinal, chaparral)")
     parser.add_argument("--db-host", help="Host de MySQL (anula config)")
     parser.add_argument("--db-port", type=int, help="Puerto de MySQL (anula config)")
     parser.add_argument("--db-name", help="Nombre de la base de datos (anula config)")
     parser.add_argument("--db-user", help="Usuario de MySQL (anula config)")
     parser.add_argument("--db-password", help="Contraseña de MySQL (anula config)")
-    parser.add_argument("--api-url", help="URL del endpoint de LIDiag (anula config)")
-    parser.add_argument("--api-token", help="Token Bearer de autenticación (anula config)")
-    parser.add_argument("--mysqldump-path", "--mysqldump", dest="mysqldump_path", help="Ruta completa al ejecutable mysqldump (anula config)")
-    parser.add_argument("--keep-local", action="store_true", help="Conservar el archivo .zip localmente tras subirlo")
+    parser.add_argument("--mysqldump-path", "--mysqldump", dest="mysqldump_path", help="Ruta completa al ejecutable mysqldump")
+    parser.add_argument("--destination-dir", "--dest", dest="destination_dir", help="Carpeta destino local sincronizada por Qsync (ej. C:\\backups_dcm)")
+    parser.add_argument("--retention-days", type=int, dest="retention_days", help="Días de retención de backups locales (por defecto: 30)")
     return parser.parse_args()
 
 
 def load_config(config_path, args):
     config = {
         "sede_id": 1,
+        "sede_nombre": "",
         "db_host": "127.0.0.1",
         "db_port": 3306,
         "db_name": "pacsdb",
         "db_user": "root",
         "db_password": "",
         "mysqldump_path": "",
-        "api_url": "https://lidiag.test/api/backups/upload-dcm",
-        "api_token": "lidiag_backup_secure_token_2026",
+        "destination_dir": "C:\\backups_dcm",
+        "retention_days": 30,
         "temp_dir": "./temp_backups",
-        "keep_local": False,
-        "timeout_upload": 1800,  # 30 minutos máximo para subida
     }
 
     # Cargar archivo JSON si existe
@@ -73,15 +74,19 @@ def load_config(config_path, args):
             with open(config_path, "r", encoding="utf-8") as f:
                 loaded = json.load(f)
                 config.update(loaded)
-                # Normalizar clave mysqldump_bin a mysqldump_path
+                # Compatibilidad de claves alternativas
                 if "mysqldump_bin" in loaded and not loaded.get("mysqldump_path"):
                     config["mysqldump_path"] = loaded["mysqldump_bin"]
+                if "sede_slug" in loaded and not loaded.get("sede_nombre"):
+                    config["sede_nombre"] = loaded["sede_slug"]
         except Exception as e:
             print(f"[ADVERTENCIA] No se pudo leer {config_path}: {e}. Usando valores por defecto/argumentos.")
 
     # Sobreescribir con argumentos de línea de comandos si fueron suministrados
     if args.sede is not None:
         config["sede_id"] = args.sede
+    if args.sede_nombre:
+        config["sede_nombre"] = args.sede_nombre
     if args.db_host:
         config["db_host"] = args.db_host
     if args.db_port:
@@ -92,14 +97,12 @@ def load_config(config_path, args):
         config["db_user"] = args.db_user
     if args.db_password is not None:
         config["db_password"] = args.db_password
-    if args.api_url:
-        config["api_url"] = args.api_url
-    if args.api_token:
-        config["api_token"] = args.api_token
     if args.mysqldump_path:
         config["mysqldump_path"] = args.mysqldump_path
-    if args.keep_local:
-        config["keep_local"] = True
+    if args.destination_dir:
+        config["destination_dir"] = args.destination_dir
+    if args.retention_days is not None:
+        config["retention_days"] = args.retention_days
 
     return config
 
@@ -110,6 +113,13 @@ def format_bytes(bytes_num):
             return f"{bytes_num:.2f} {unit}"
         bytes_num /= 1024.0
     return f"{bytes_num:.2f} PB"
+
+
+def sanitize_filename_part(text):
+    if not text:
+        return ""
+    cleaned = re.sub(r"[^a-zA-Z0-9_\-]+", "_", str(text).strip().lower())
+    return cleaned.strip("_")
 
 
 def find_mysqldump(custom_path):
@@ -128,7 +138,6 @@ def find_mysqldump(custom_path):
         return which_path
 
     # 2. Búsqueda dinámica en instalaciones de MySQL Server en Windows
-    import glob
     search_patterns = [
         r"C:\Program Files\MySQL\MySQL Server *\bin\mysqldump.exe",
         r"C:\Program Files (x86)\MySQL\MySQL Server *\bin\mysqldump.exe",
@@ -152,37 +161,28 @@ def find_mysqldump(custom_path):
     return "mysqldump"
 
 
-def create_multipart_request(url, fields, files, token, timeout=1800):
-    boundary = f"----WebKitFormBoundary{uuid.uuid4().hex}"
-    body = bytearray()
+def purge_old_backups(destination_dir, retention_days):
+    if retention_days <= 0:
+        return 0, 0
 
-    # Campos simples
-    for name, value in fields.items():
-        body.extend(f"--{boundary}\r\n".encode("utf-8"))
-        body.extend(f'Content-Disposition: form-data; name="{name}"\r\n\r\n'.encode("utf-8"))
-        body.extend(f"{value}\r\n".encode("utf-8"))
+    cutoff_time = time.time() - (retention_days * 86400)
+    purged_count = 0
+    purged_bytes = 0
 
-    # Archivo
-    for name, filepath in files.items():
-        filename = os.path.basename(filepath)
-        mime_type = mimetypes.guess_type(filepath)[0] or "application/octet-stream"
-        body.extend(f"--{boundary}\r\n".encode("utf-8"))
-        body.extend(f'Content-Disposition: form-data; name="{name}"; filename="{filename}"\r\n'.encode("utf-8"))
-        body.extend(f"Content-Type: {mime_type}\r\n\r\n".encode("utf-8"))
+    pattern = os.path.join(destination_dir, "backup_dcm_*.zip")
+    for file_path in glob.glob(pattern):
+        try:
+            mtime = os.path.getmtime(file_path)
+            if mtime < cutoff_time:
+                file_size = os.path.getsize(file_path)
+                os.remove(file_path)
+                purged_count += 1
+                purged_bytes += file_size
+                print(f"      [PURGA] Eliminado por retención (> {retention_days} días): {os.path.basename(file_path)} ({format_bytes(file_size)})")
+        except Exception as e:
+            print(f"      [ADVERTENCIA] No se pudo purgar {file_path}: {e}")
 
-        with open(filepath, "rb") as f:
-            while chunk := f.read(1024 * 1024):  # Chunks de 1MB
-                body.extend(chunk)
-        body.extend(b"\r\n")
-
-    body.extend(f"--{boundary}--\r\n".encode("utf-8"))
-
-    req = urllib.request.Request(url, data=body, method="POST")
-    req.add_header("Content-Type", f"multipart/form-data; boundary={boundary}")
-    req.add_header("Authorization", f"Bearer {token}")
-    req.add_header("User-Agent", "LIDiag-DCM-Agent/1.0")
-
-    return req
+    return purged_count, purged_bytes
 
 
 def main():
@@ -190,30 +190,40 @@ def main():
     config = load_config(args.config, args)
 
     print("=========================================================")
-    print("      AGENTE LOCAL DE BACKUPS DCM — LIDiag               ")
+    print("      AGENTE LOCAL DE BACKUPS DCM — LIDiag / QNAP        ")
     print("=========================================================")
-    print(f" Sede ID          : {config['sede_id']}")
+    print(f" Sede ID          : {config['sede_id']}" + (f" ({config['sede_nombre']})" if config.get("sede_nombre") else ""))
     print(f" Base de Datos    : {config['db_name']} @ {config['db_host']}:{config['db_port']}")
     print(f" Usuario MySQL    : {config['db_user']}")
     if config.get("mysqldump_path"):
         print(f" MySQLDump Path   : {config['mysqldump_path']}")
-    print(f" Endpoint LIDiag  : {config['api_url']}")
+    print(f" Carpeta Destino  : {config['destination_dir']} (Sincronizada por Qsync)")
+    print(f" Días Retención   : {config['retention_days']} días")
     print("=========================================================")
 
+    # Asegurar existencia de directorios
+    dest_dir = os.path.abspath(config.get("destination_dir", "C:\\backups_dcm"))
     temp_dir = os.path.abspath(config.get("temp_dir", "./temp_backups"))
+    os.makedirs(dest_dir, exist_ok=True)
     os.makedirs(temp_dir, exist_ok=True)
 
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")
-    sql_filename = f"database_dcm_sede_{config['sede_id']}_{config['db_name']}_{timestamp}.sql"
-    sql_path = os.path.join(temp_dir, sql_filename)
-    zip_filename = f"backup_dcm_sede_{config['sede_id']}_{timestamp}.zip"
-    zip_path = os.path.join(temp_dir, zip_filename)
+    sede_tag = f"sede_{config['sede_id']}"
+    if config.get("sede_nombre"):
+        slug = sanitize_filename_part(config["sede_nombre"])
+        if slug:
+            sede_tag = f"sede_{config['sede_id']}_{slug}"
 
-    mysqldump_bin = find_mysqldump(config.get("mysqldump_path") or config.get("mysqldump_bin"))
-    print(f"[1/4] Ejecutable mysqldump detectado: {mysqldump_bin}")
+    sql_filename = f"database_dcm_{sede_tag}_{config['db_name']}_{timestamp}.sql"
+    sql_path = os.path.join(temp_dir, sql_filename)
+    zip_filename = f"backup_dcm_{sede_tag}_{timestamp}.zip"
+    zip_path = os.path.join(dest_dir, zip_filename)
+
+    mysqldump_bin = find_mysqldump(config.get("mysqldump_path"))
+    print(f"[1/3] Ejecutable mysqldump: {mysqldump_bin}")
 
     # Paso 1: Dump local
-    print(f"[2/4] Generando volcado MySQL en disco local ({sql_filename})...")
+    print(f"[2/3] Generando volcado MySQL en disco local ({sql_filename})...")
     start_dump = time.time()
 
     cmd = [
@@ -240,7 +250,7 @@ def main():
             print(f"[ERROR] mysqldump falló con código {proc.returncode}: {proc.stderr.strip()}")
             sys.exit(1)
     except FileNotFoundError:
-        print(f"[ERROR] No se pudo ejecutar mysqldump en '{mysqldump_bin}'. Verifica que esté instalado o configúralo en config.json.")
+        print(f"[ERROR] No se pudo ejecutar mysqldump en '{mysqldump_bin}'. Verifica la ruta configurada.")
         sys.exit(1)
 
     if not os.path.exists(sql_path) or os.path.getsize(sql_path) == 0:
@@ -249,16 +259,16 @@ def main():
 
     dump_size = os.path.getsize(sql_path)
     dump_duration = round(time.time() - start_dump, 2)
-    print(f"      [OK] Dump local completado en {dump_duration}s (Tamaño sin comprimir: {format_bytes(dump_size)})")
+    print(f"      [OK] Dump completado en {dump_duration}s (Tamaño sin comprimir: {format_bytes(dump_size)})")
 
-    # Paso 2: Compresión local en ZIP
-    print(f"[3/4] Comprimiendo archivo a formato ZIP ({zip_filename})...")
+    # Paso 2: Compresión directa en carpeta destino
+    print(f"[3/3] Comprimiendo directamente en destino Qsync ({zip_filename})...")
     start_zip = time.time()
 
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.write(sql_path, arcname=sql_filename)
 
-    # Eliminar archivo SQL crudo de inmediato para liberar espacio en disco del hospital
+    # Eliminar archivo SQL crudo temporal para liberar espacio de inmediato
     try:
         os.remove(sql_path)
     except Exception:
@@ -267,65 +277,23 @@ def main():
     zip_size = os.path.getsize(zip_path)
     zip_duration = round(time.time() - start_zip, 2)
     ratio = round(dump_size / zip_size, 1) if zip_size > 0 else 1
-    print(f"      [OK] Compresión lista en {zip_duration}s: {format_bytes(zip_size)} (Ratio {ratio}x)")
+    print(f"      [OK] Archivo ZIP generado en {zip_duration}s: {zip_path}")
+    print(f"      Tamaño final: {format_bytes(zip_size)} (Compresión {ratio}x)")
 
-    # Paso 3: Transmisión Webhook hacia LIDiag
-    print(f"[4/4] Transmitiendo archivo comprimido al servidor LIDiag ({config['api_url']})...")
-    start_upload = time.time()
-
-    fields = {
-        "sede_id": str(config["sede_id"]),
-    }
-    files = {
-        "backup_file": zip_path,
-    }
-
-    try:
-        req = create_multipart_request(config["api_url"], fields, files, config["api_token"], timeout=config.get("timeout_upload", 1800))
-
-        # En caso de servidores locales con certificado autofirmado (ignorar SSL verify en local si se requiere)
-        import ssl
-        ctx = ssl.create_default_context()
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
-
-        with urllib.request.urlopen(req, context=ctx, timeout=config.get("timeout_upload", 1800)) as response:
-            status_code = response.getcode()
-            response_data = response.read().decode("utf-8")
-
-            if status_code in (200, 201):
-                upload_duration = round(time.time() - start_upload, 2)
-                print(f"      [OK] ¡Subida exitosa en {upload_duration}s! (HTTP {status_code})")
-                try:
-                    res_json = json.loads(response_data)
-                    print(f"      Respuesta servidor: {res_json.get('message', 'Completado')}")
-                except Exception:
-                    print(f"      Respuesta servidor: {response_data[:120]}")
-            else:
-                print(f"[ERROR] Servidor LIDiag respondió con código HTTP {status_code}: {response_data}")
-                sys.exit(1)
-
-    except urllib.error.HTTPError as e:
-        err_msg = e.read().decode("utf-8") if e.fp else str(e)
-        print(f"[ERROR] HTTP Error {e.code}: {err_msg}")
-        sys.exit(1)
-    except Exception as e:
-        print(f"[ERROR] Error de conexión durante la subida al servidor LIDiag: {e}")
-        sys.exit(1)
-
-    # Limpieza final del archivo .zip si no se solicitó keep_local
-    if not config.get("keep_local", False):
-        try:
-            os.remove(zip_path)
-            print("      [OK] Archivo temporal local eliminado.")
-        except Exception:
-            pass
+    # Paso 3: Purga automática por retención
+    retention_days = int(config.get("retention_days", 30))
+    print(f"[Purga] Verificando backups mayores a {retention_days} días en {dest_dir}...")
+    purged_count, purged_bytes = purge_old_backups(dest_dir, retention_days)
+    if purged_count > 0:
+        print(f"      [OK] Purgados {purged_count} archivo(s) antiguo(s), liberados {format_bytes(purged_bytes)}.")
     else:
-        print(f"      [INFO] Archivo conservado en: {zip_path}")
+        print("      [OK] No hay archivos que superen los días de retención.")
 
-    total_duration = round(dump_duration + zip_duration + (time.time() - start_upload), 2)
+    total_duration = round(dump_duration + zip_duration, 2)
     print("=========================================================")
-    print(f" BACKUP COMPLETADO EXITOSAMENTE EN {total_duration}s")
+    print(f" BACKUP DCM FINALIZADO CON ÉXITO EN {total_duration}s")
+    print(f" Destino: {zip_path}")
+    print(" Qsync sincronizará automáticamente el archivo con el NAS QNAP.")
     print("=========================================================")
 
 

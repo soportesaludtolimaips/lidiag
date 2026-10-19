@@ -244,13 +244,11 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - Creado comando Artisan `LidiagBackupDcmCommand.php` (`php artisan lidiag:backup-dcm`) con soporte para `--sede=ID`, `--destination`, `--retention`, `--timeout` y tabla detallada por sede.
   - Registrado en Laravel Scheduler (`routes/console.php`) a las **02:30 AM** con protección `withoutOverlapping()`.
   - Actualizado `scripts/programar_tarea_backup.bat` para registrar la tarea `LIDiag_Daily_Backup_DCM` en Windows Task Scheduler.
-- [x] **2026-10-19 — Arquitectura Descentralizada de Backups DCM (Agente Python + Webhook):**
-  - Implementado endpoint receptor `POST /api/backups/upload-dcm` en `app/Http/Controllers/Api/BackupUploadController.php` protegido mediante Bearer Token (`BACKUP_API_TOKEN`). Almacena los `.zip` recibidos en `C:\Backups_Lidiag\dcm_sedes\` y aplica retención de 30 días.
-  - Creado agente en Python 3 puro `scripts/dcm_agent/backup_dcm_agent.py` sin dependencias externas: ejecuta volcado local a alta velocidad de disco, comprime a ZIP in situ (reducción del 95% de tráfico de red) y transmite vía HTTP POST multipart a LIDiag.
-  - Creada plantilla `scripts/dcm_agent/config.json.example` y manual completo de automatización (crontab/Windows) en `scripts/dcm_agent/README.md`, con soporte explícito y auto-detección dinámica para `mysqldump_path` (útil para servidores con MySQL como servicio en Windows `Program Files`).
-  - Verificación exitosa: prueba integral de agente Python transmitiendo al webhook y persistiendo en `C:\Backups_Lidiag\dcm_sedes\` en solo **17.34s** ✅ | Pint `--test passed` ✅.
-  - Actualizado `scripts/programar_tarea_backup.bat` para registrar la tarea `LIDiag_Daily_Backup_DCM` en Windows Task Scheduler.
-  - Verificación exitosa: respaldo real de Sede #1 (Espinal - Hospital San Rafael: `pacsdb`) volcando **9.06 GB** de SQL a un archivo `.zip` de **464.22 MB** en `C:\Backups_Lidiag\dcm_sedes\` ✅ | Pint `--test passed` ✅.
+- [x] **2026-10-19 — Arquitectura Local de Backups DCM + Sincronización QNAP Qsync:**
+  - Rediseñado el agente Python `scripts/dcm_agent/backup_dcm_agent.py` para operar en modo **100% local**: genera el volcado MySQL a alta velocidad, lo comprime a ZIP directamente en la carpeta sincronizada por el cliente QNAP Qsync (`C:\backups_dcm`), y ejecuta purga automática de archivos antiguos que superen los 30 días de retención (`retention_days`).
+  - Actualizados `config.json.example` y `README.md` con la nueva estructura de configuración simplificada (`destination_dir`, `retention_days`, `mysqldump_path`).
+  - Verificación exitosa en entorno local: respaldo real volcando 330.88 MB de base de datos a un ZIP de 54.49 MB en **15.32s** y validando purga de retención ✅.
+
 - [x] **2026-10-19 — UI/UX Categoría 3.3 (Extensión): Skeleton Loaders Shimmer & Empty States en todo el Módulo de Estudios:**
   - `AsignarEstudioComponent.vue` (`/estudios.asignar.listar`): Reemplazado spinner tradicional por `<table-skeleton-loader :visible="loadingBuscar" :rows="6" :columns="7" />` y añadido `<empty-state-component>` interactivo conectado a `btnLimpiar()`.
   - `leerEstudioComponent.vue` (`/estudios.lectura.listar`): Reemplazado spinner tradicional por `<table-skeleton-loader :visible="!tablaVisible" :rows="6" :columns="9" />` y `<empty-state-component>` con acción de refresco `listarPendiestePorLectura()`.
