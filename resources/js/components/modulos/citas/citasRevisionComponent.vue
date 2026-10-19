@@ -296,10 +296,12 @@
         <div
             v-if="showModalAprobar"
             id="modalAprobar"
-            class="modal"
+            class="modal show"
+            style="display: block"
             tabindex="-1"
             role="dialog"
             aria-hidden="true"
+            @click.self="showModalAprobar = false"
         >
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -309,7 +311,7 @@
                             type="button"
                             class="close"
                             @click="showModalAprobar = false"
-                            aria-hidden="true"
+                            aria-label="Cerrar modal"
                         >
                             ×
                         </button>
@@ -436,20 +438,32 @@
                             type="button"
                             class="btn btn-inverse"
                             @click="showModalAprobar = false"
+                            title="Cerrar modal (Esc)"
                         >
                             Cancelar
+                            <span
+                                class="badge badge-secondary ml-1 d-none d-md-inline"
+                                style="font-size: 10px"
+                                >Esc</span
+                            >
                         </button>
                         <button
                             type="button"
-                            class="btn btn-success"
+                            class="btn btn-success btn-action-clinical"
                             @click="aprobarCita()"
                             :disabled="loadingGuardar"
+                            title="Aprobar y Asignar (Ctrl+S)"
                         >
                             <i
                                 class="fa"
                                 :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"
                             ></i>
                             {{ loadingGuardar ? "Guardando..." : "Aprobar y Asignar" }}
+                            <span
+                                class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                                style="font-size: 10px; opacity: 0.9"
+                                >Ctrl+S</span
+                            >
                         </button>
                     </div>
                 </div>
@@ -459,10 +473,12 @@
         <div
             v-if="showModalRechazar"
             id="modalRechazar"
-            class="modal"
+            class="modal show"
+            style="display: block"
             tabindex="-1"
             role="dialog"
             aria-hidden="true"
+            @click.self="showModalRechazar = false"
         >
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -472,7 +488,7 @@
                             type="button"
                             class="close"
                             @click="showModalRechazar = false"
-                            aria-hidden="true"
+                            aria-label="Cerrar modal"
                         >
                             ×
                         </button>
@@ -484,8 +500,14 @@
                             <strong>Documento:</strong> {{ citaSeleccionada.paciente?.num_docu }}
                         </div>
                         <div class="form-group">
-                            <label class="control-label">Motivo de rechazo *</label>
-                            <select v-model="formRechazar.rechazo_motivo_id" class="form-control">
+                            <label class="control-label" for="modal_rechazo_motivo_id"
+                                >Motivo de rechazo *</label
+                            >
+                            <select
+                                id="modal_rechazo_motivo_id"
+                                v-model="formRechazar.rechazo_motivo_id"
+                                class="form-control"
+                            >
                                 <option value="">Seleccione un motivo...</option>
                                 <option v-for="m in motivosRechazo" :key="m.id" :value="m.id">
                                     {{ m.motivo }}
@@ -493,8 +515,11 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label class="control-label">Observación</label>
+                            <label class="control-label" for="modal_rechazo_observacion"
+                                >Observación</label
+                            >
                             <textarea
+                                id="modal_rechazo_observacion"
                                 v-model="formRechazar.rechazo_observacion"
                                 class="form-control"
                                 rows="3"
@@ -507,20 +532,32 @@
                             type="button"
                             class="btn btn-inverse"
                             @click="showModalRechazar = false"
+                            title="Cerrar modal (Esc)"
                         >
                             Cancelar
+                            <span
+                                class="badge badge-secondary ml-1 d-none d-md-inline"
+                                style="font-size: 10px"
+                                >Esc</span
+                            >
                         </button>
                         <button
                             type="button"
-                            class="btn btn-danger"
+                            class="btn btn-danger btn-action-clinical"
                             @click="rechazarCita()"
                             :disabled="loadingGuardar"
+                            title="Rechazar cita (Ctrl+S)"
                         >
                             <i
                                 class="fa"
                                 :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-times'"
                             ></i>
                             {{ loadingGuardar ? "Guardando..." : "Rechazar" }}
+                            <span
+                                class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                                style="font-size: 10px; opacity: 0.9"
+                                >Ctrl+S</span
+                            >
                         </button>
                     </div>
                 </div>
@@ -539,6 +576,7 @@ import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { alertSuccess, alertError } from "@/helpers/alerts";
 import { formatFecha } from "@/composables/useCitasUtils.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import axios from "axios";
 
 const registros = ref([]);
@@ -553,6 +591,24 @@ const loadingGuardar = ref(false);
 const loadingDetalles = ref(false);
 const showModalAprobar = ref(false);
 const showModalRechazar = ref(false);
+
+function cerrarModales() {
+    showModalAprobar.value = false;
+    showModalRechazar.value = false;
+}
+
+useKeyboardShortcuts({
+    onSave: () => {
+        if (showModalAprobar.value) {
+            aprobarCita();
+        } else if (showModalRechazar.value) {
+            rechazarCita();
+        }
+    },
+    onEscape: cerrarModales,
+    isActive: () => showModalAprobar.value || showModalRechazar.value,
+    isLoading: loadingGuardar,
+});
 const filtro = ref({
     servicio_id: "",
     sede_id: "",
@@ -686,6 +742,14 @@ function abrirAprobar(cita) {
     detallesDisponibles.value = [];
     showModalAprobar.value = true;
     cargarProductosPorServicio();
+    nextTick(() => {
+        const select2Element = document.querySelector("#producto-parent .select2-selection");
+        if (select2Element) {
+            select2Element.focus();
+        } else {
+            document.querySelector("#modalAprobar select, #modalAprobar input")?.focus();
+        }
+    });
 }
 
 function cargarProductosPorServicio() {
@@ -793,6 +857,9 @@ function abrirRechazar(cita) {
         rechazo_observacion: "",
     };
     showModalRechazar.value = true;
+    nextTick(() => {
+        document.getElementById("modal_rechazo_motivo_id")?.focus();
+    });
 }
 
 async function rechazarCita() {
@@ -874,6 +941,14 @@ onBeforeUnmount(() => {
 });
 </script>
 <style scoped>
+.modal.show {
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    overflow-y: auto;
+}
+.modal-dialog {
+    margin-top: 50px;
+}
 .miniatura-archivo {
     max-width: 90px;
     max-height: 90px;

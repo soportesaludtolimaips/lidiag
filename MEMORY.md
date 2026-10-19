@@ -308,6 +308,12 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Modales Modernos con Backdrop Blur:** Modales con `style="display: block"`, backdrop desenfocado semitransparente, y cierre al hacer clic en el backdrop exterior (`@click.self`).
   - **Badges Visuales:** Badges descriptivos `Ctrl+S` y `Esc` en botones de acción y cierre.
   - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.79s ✅.
+- [x] **2026-10-19 — UI/UX Módulo Citas & Agenda: Atajos Clínicos, Foco Accesible y Modales en `citasRevisionComponent.vue`:**
+  - **Atajos de Teclado Asistenciales:** Integrado `useKeyboardShortcuts` con `Ctrl+S` contextual (aprobar cita en `#modalAprobar` o rechazar cita en `#modalRechazar`, ambos protegidos por `loadingGuardar`) y `Escape` para cerrar modales.
+  - **Foco Accesible (`a11y`):** Autofoco automático reactivo en el selector de producto en `abrirAprobar()`, y en el selector `#modal_rechazo_motivo_id` en `abrirRechazar()`.
+  - **Modales Modernos con Backdrop Blur:** Modales `#modalAprobar` y `#modalRechazar` con `style="display: block"`, cierre al clic exterior (`@click.self`), atributos `aria-label` y estilos con `backdrop-filter: blur(2px)`.
+  - **Badges Visuales y Microinteracciones:** Badges `Ctrl+S` y `Esc` en botones de confirmación y cancelación.
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 954ms ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.
