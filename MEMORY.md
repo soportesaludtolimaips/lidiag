@@ -147,7 +147,12 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - Botón selector y conmutador rápido en tabla de estudios y encabezado modal (`.rpanel-title`).
   - Paleta radiológica especializada de alto contraste y bajo brillo (`#181a20`, `#12141a`, `#222632`, `#3b4254`, `#e2e8f0`) optimizada para lectura diagnóstica en estaciones PACS.
   - Soporte scoped para wysihtml5 (`:deep(.wysihtml5-toolbar)`, `:deep(.wysihtml5-sandbox)`).
-  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.07s ✅.
+- [x] **2026-10-19 — UI/UX Categoría 1.1: Implementación de Modo Oscuro Global en toda la aplicación:**
+  - Hoja de estilo global `resources/css/dark-theme.css` con paleta Gris Carbón / Slate Clínico (`#0f1117`, `#181a20`, `#14171f`, `#222632`, `#2d3343`, `#e2e8f0`).
+  - Botón toggle de 1 clic en el Topbar dentro de `userProfileAndSearchComponent.vue` con sincronización reactiva instantánea mediante EventBus (`lidiagThemeChanged`) y sincronización multi-pestaña (`window.addEventListener('storage')`).
+  - Script anti-parpadeo (FOUC) en el `<head>` y `<body>` de `resources/views/layouts/app.blade.php`.
+  - Soporte integral de componentes: Topbar, Sidebar lateral, Cards, Tablas (DataTables), Formularios/Inputs, Dropdowns y Modales de Bootstrap.
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.02s ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.

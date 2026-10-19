@@ -61,9 +61,27 @@
 
     <script src="https://cdn.jsdelivr.net/npm/howler"></script>
     <script src="https://cdn.jsdelivr.net/npm/animejs"></script>
+    <script>
+        (function() {
+            try {
+                if (localStorage.getItem("lidiag_dark_mode") === "true") {
+                    document.documentElement.classList.add("theme-dark");
+                }
+            } catch (e) {}
+        })();
+    </script>
 </head>
 
 <body class="fix-header card-no-border fix-sidebar">
+    <script>
+        (function() {
+            try {
+                if (localStorage.getItem("lidiag_dark_mode") === "true") {
+                    document.body.classList.add("theme-dark");
+                }
+            } catch (e) {}
+        })();
+    </script>
 
     <!-- ============================================================== -->
     <!-- Preloader - style you can find in spinners.css -->

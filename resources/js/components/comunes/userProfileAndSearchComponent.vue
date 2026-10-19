@@ -136,6 +136,26 @@
                 </ul>
             </div>
         </li>
+
+        <!-- ============================================================== -->
+        <!-- Modo Oscuro / Claro Global -->
+        <!-- ============================================================== -->
+        <li class="nav-item d-flex align-items-center m-r-10">
+            <button
+                type="button"
+                class="btn btn-sm btn-rounded waves-effect waves-light"
+                :class="isDarkMode ? 'btn-warning' : 'btn-outline-secondary'"
+                @click="toggleGlobalDarkMode()"
+                :title="isDarkMode ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Oscuro'"
+                style="padding: 5px 12px; font-size: 13px; font-weight: 500"
+            >
+                <i :class="isDarkMode ? 'fa fa-sun-o' : 'fa fa-moon-o'"></i>
+                <span class="hidden-sm-down m-l-5">{{
+                    isDarkMode ? "Modo Claro" : "Modo Oscuro"
+                }}</span>
+            </button>
+        </li>
+
         <!-- ============================================================== -->
         <!-- Profile -->
         <!-- ============================================================== -->
@@ -219,6 +239,25 @@ const hdIntervalId = ref(null);
 const hdUnreadCount = computed(() => {
     return (hdItems.value || []).filter((x) => !x.read_at).length;
 });
+
+const isDarkMode = ref(localStorage.getItem("lidiag_dark_mode") === "true");
+
+function applyGlobalTheme(dark) {
+    if (dark) {
+        document.body.classList.add("theme-dark");
+        document.documentElement.classList.add("theme-dark");
+    } else {
+        document.body.classList.remove("theme-dark");
+        document.documentElement.classList.remove("theme-dark");
+    }
+}
+
+function toggleGlobalDarkMode() {
+    isDarkMode.value = !isDarkMode.value;
+    localStorage.setItem("lidiag_dark_mode", isDarkMode.value ? "true" : "false");
+    applyGlobalTheme(isDarkMode.value);
+    emitter.emit("lidiagThemeChanged", isDarkMode.value);
+}
 
 /**
  * Determina y almacena en sessionStorage el ID del módulo actual
@@ -503,6 +542,15 @@ onMounted(() => {
     }
     schedulePoll();
     document.addEventListener("visibilitychange", onVisibilityChange);
+
+    applyGlobalTheme(isDarkMode.value);
+
+    window.addEventListener("storage", (e) => {
+        if (e.key === "lidiag_dark_mode") {
+            isDarkMode.value = e.newValue === "true";
+            applyGlobalTheme(isDarkMode.value);
+        }
+    });
 
     const url = window.location.pathname;
     const rutasEcografias = [
