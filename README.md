@@ -241,8 +241,23 @@ php artisan lidiag:backup --destination="D:\Backups" --retention=60
 
 ### Sistema de Backups de Bases de Datos DCM / PACS por Sedes
 
+Para las bases de datos de imágenes de los hospitales remotos (bases de datos de gran tamaño, >47 GB combinados), se implementó una **arquitectura local descentralizada** para máxima velocidad y sincronización desatendida hacia el NAS QNAP:
+
+#### 1. Agente Local en cada Servidor Hospitalario (`scripts/dcm_agent/`):
+- **Script en Python 3 puro:** [`scripts/dcm_agent/backup_dcm_agent.py`](scripts/dcm_agent/backup_dcm_agent.py) (sin dependencias `pip`).
+- **Ruta de destino:** `C:\backups_dcm\` (sincronizada automáticamente por el cliente **Qsync de QNAP** hacia el almacenamiento NAS).
+- **Compresión in situ:** Vuelca `pacsdb` a velocidad de disco SSD local y comprime a `.zip` (`backup_dcm_sede_{id}_{nombre}_{timestamp}.zip`), reduciendo el tráfico de red en un ~95%.
+- **Purga de retención:** Elimina automáticamente de `C:\backups_dcm` los respaldos con más de **30 días**.
+- **Instalación en 1 clic:** Incluye [`scripts/dcm_agent/instalar_tarea_programada.bat`](scripts/dcm_agent/instalar_tarea_programada.bat) para registrar la tarea `LIDiag_Local_DCM_Backup` en el Programador de Tareas de Windows a las **02:00 AM** con permisos `SYSTEM`.
+
 ```bash
-# Respaldar todas las sedes activas con servidor DCM configurado
+# Ejecución manual del agente en el servidor DCM
+python backup_dcm_agent.py --config config.json
+```
+
+#### 2. Respaldo Central vía Red (Fallback):
+```bash
+# Respaldar todas las sedes activas vía TCP directo
 php artisan lidiag:backup-dcm
 
 # Respaldar una sede específica por su ID
@@ -252,13 +267,15 @@ php artisan lidiag:backup-dcm --sede=1
 php artisan lidiag:backup-dcm --timeout=600 --retention=45
 ```
 
-**Descripción:** Realiza volcados TCP seguros de las bases de datos de imágenes (`pacsdb`) de cada hospital o sede remota, empaquetándolos individualmente por sede en `C:\Backups_Lidiag\dcm_sedes\`.
-
 ### Automatización en Windows (Task Scheduler)
 
-El proyecto incluye el script por lotes [`scripts/programar_tarea_backup.bat`](scripts/programar_tarea_backup.bat) para registrar automáticamente en el Programador de Tareas de Windows las siguientes tareas desatendidas:
-1. `LIDiag_Daily_Backup`: Ejecuta diariamente a las **02:00 AM** el respaldo central de BD y Storage.
-2. `LIDiag_Daily_Backup_DCM`: Ejecuta diariamente a las **02:30 AM** el respaldo de bases de datos DCM por sede.
+El proyecto incluye scripts por lotes para programar tareas desatendidas:
+1. **En Servidor Central LIDiag ([`scripts/programar_tarea_backup.bat`](scripts/programar_tarea_backup.bat)):**
+   - `LIDiag_Daily_Backup`: Respaldo central de Base de Datos y Storage clínico a las **02:00 AM**.
+   - `LIDiag_Daily_Backup_DCM`: Tarea central programada a las **02:30 AM** como respaldo secundario.
+2. **En Servidores de Hospitales DCM ([`scripts/dcm_agent/instalar_tarea_programada.bat`](scripts/dcm_agent/instalar_tarea_programada.bat)):**
+   - `LIDiag_Local_DCM_Backup`: Ejecución local a las **02:00 AM** generando el `.zip` en `C:\backups_dcm` para sincronización con **QNAP Qsync**.
+
 
 ### Rate limiting (API / Login)
 
