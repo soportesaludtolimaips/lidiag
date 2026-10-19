@@ -473,7 +473,11 @@
                                     (sedeInterface && registro.estado_envio_sahi === 'ENVIANDO')
                                 "
                             >
-                                <i class="fa fa-check"></i> Guardar
+                                <i
+                                    class="fa"
+                                    :class="isGuardandoLectura ? 'fa-spinner fa-spin' : 'fa-check'"
+                                ></i>
+                                {{ isGuardandoLectura ? "Guardando..." : "Guardar" }}
                             </button>
 
                             <button

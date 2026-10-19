@@ -216,6 +216,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - Acciones de lectura interactiva: clic en notificación marca como leída y navega al detalle correspondiente, botón "Marcar todas como leídas" ejecutado concurrentemente con `Promise.allSettled`.
   - Polling inteligente cada 30 segundos con backoff progresivo al desenfocar o minimizar la pestaña (respetando `document.hidden`).
   - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.13s ✅.
+- [x] **2026-10-19 — UI/UX Categoría 4.3: Barras de Progreso y Feedback de Operaciones Asíncronas:**
+  - Implementado feedback reactivo en botones de guardado con envío a SAHI (`lecturaComponent.vue`), integrando spinner `fa-spinner fa-spin` y etiqueta dinámica ("Guardando...") durante la persistencia y transmisión hacia el HIS.
+  - Integrado soporte de estilo completo en Modo Oscuro (`resources/css/dark-theme.css`) para componentes de progreso y modales:
+    * Barras de progreso (`.progress`, `.burn-progress`, `.burn-detail`) con fondo atenuado, bordes de contraste y brillo sutil cian (`rgba(0, 188, 212, 0.3)`).
+    * Modales interactivos de confirmación `SweetAlert` (`.sweet-alert`, `.sweet-overlay`, `.sa-icon.sa-warning`, `.sa-icon.sa-error`, `.sa-icon.sa-success`, etc.) adaptados a la paleta Slate Clínico con backdrop blur.
+    * Preloader global (`.preloader`, `.loader__figure`, `.loader__label`) armonizado con el fondo carbón y acentos cian.
+  - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 1.12s ✅.
 - [x] **2026-10-19 — Sistema de Backups Automáticos Separados (MySQL y 16 carpetas de Storage):**
   - Creado `config/backup.php` parametrizado con `BACKUP_DESTINATION_PATH=C:\Backups_Lidiag`, `BACKUP_RETENTION_DAYS=30`, `MYSQLDUMP_PATH` y listado de las 16 carpetas seleccionadas de `storage/app/*`.
   - Agregado canal de logging `'backups'` en `config/logging.php` apuntando a `storage/logs/backups.log`.
