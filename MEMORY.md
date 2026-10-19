@@ -176,6 +176,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - Navegación accesible con flechas del teclado (`↑` / `↓`) y `Enter` para saltar inmediatamente a la ruta seleccionada.
   - Soporte nativo para Modo Claro y Modo Oscuro radiológico (`body.theme-dark`).
   - Verificación estricta: ESLint 0 errores/warnings ✅ | Vite `npm run build` en 948ms ✅.
+- [x] **2026-10-19 — UI/UX Categoría 2.3: Menú Lateral (Sidebar) Acordeón Inteligente y Rutas Activas:**
+  - `sidebar.blade.php`: Detección reactiva mediante `request()->routeIs(...)` en todos los módulos (Dashboard, Pacientes, Estudios, Tele-Radiología, Ecografías, Citas, Agenda, Reportes, Helpdesk, Contratación, Liquidación, Parametrización y Seguridad).
+  - Apertura automática del acordeón (`.collapse.in` y `aria-expanded="true"`) en la sección donde se encuentra el usuario navegando.
+  - Corrección de markup: enlaces agrupados incorrectamente en un solo `<li>` en Estudios y Ecografías ahora cuentan con su propio `<li>` semántico individual.
+  - Refinamiento tipográfico de encabezados `.nav-small-cap` (eliminación de guiones crudos `--- ` y estilo moderno con letter-spacing).
+  - Micro-transiciones y resaltado de enlaces activos (`.active`) para Modo Claro (`#0284c7`) y Modo Oscuro radiológico (`#38bdf8`) en `app.css` y `dark-theme.css`.
+  - Verificación estricta: `npm run build` en 2.24s ✅ | `php artisan view:clear` ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.

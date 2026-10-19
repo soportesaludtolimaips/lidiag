@@ -67,7 +67,14 @@ body.theme-dark .sidebar-nav ul li a {
 }
 
 body.theme-dark .sidebar-nav ul li a:hover,
-body.theme-dark .sidebar-nav ul li a.active {
+body.theme-dark .sidebar-nav ul li a.active,
+body.theme-dark .sidebar-nav ul li ul li.active > a,
+body.theme-dark .sidebar-nav ul li ul li a.active {
+    color: #38bdf8 !important;
+}
+
+body.theme-dark .sidebar-nav ul li ul li.active > a i,
+body.theme-dark .sidebar-nav ul li ul li a.active i {
     color: #38bdf8 !important;
 }
 
@@ -82,6 +89,12 @@ body.theme-dark .sidebar-nav > ul > li > a i {
 body.theme-dark .sidebar-nav > ul > li > a:hover i,
 body.theme-dark .sidebar-nav > ul > li.active > a i {
     color: #38bdf8 !important;
+}
+
+body.theme-dark .sidebar-nav > ul > li.active > a {
+    color: #38bdf8 !important;
+    background: rgba(56, 189, 248, 0.08) !important;
+    border-left: 3px solid #38bdf8 !important;
 }
 
 body.theme-dark .sidebar-nav #sidebarnav > li > ul {

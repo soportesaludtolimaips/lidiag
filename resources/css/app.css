@@ -1,1 +1,34 @@
 @import "./dark-theme.css";
+
+/* Sidebar Nav modern visual refinement */
+.sidebar-nav ul li.nav-small-cap {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #94a3b8;
+    padding: 16px 16px 6px 16px;
+    margin-top: 4px;
+}
+
+.sidebar-nav ul li ul li.active > a,
+.sidebar-nav ul li ul li a.active {
+    color: #0284c7 !important;
+    font-weight: 600;
+}
+
+.sidebar-nav ul li ul li.active > a i,
+.sidebar-nav ul li ul li a.active i {
+    color: #0284c7 !important;
+}
+
+.sidebar-nav > ul > li.active > a {
+    color: #0284c7;
+    font-weight: 600;
+    border-left: 3px solid #0284c7;
+    background: rgba(2, 132, 199, 0.05);
+}
+
+.sidebar-nav ul li a {
+    transition: all 0.15s ease-in-out;
+}
