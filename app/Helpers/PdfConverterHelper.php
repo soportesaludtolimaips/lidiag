@@ -17,6 +17,9 @@ class PdfConverterHelper
      */
     public static function convert(string $sourcePath, string $destinationPath): bool
     {
+        $sourcePath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $sourcePath);
+        $destinationPath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $destinationPath);
+
         if (! file_exists($sourcePath)) {
             \Log::error("DOCX no encontrado: {$sourcePath}");
 
@@ -29,7 +32,7 @@ class PdfConverterHelper
         }
 
         try {
-            $soffice = base_path('storage/app_lidiag/LibreOfficePortable/App/libreoffice/program/soffice.com');
+            $soffice = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, base_path('storage/app_lidiag/LibreOfficePortable/App/libreoffice/program/soffice.com'));
 
             $command = escapeshellarg($soffice).' --headless --norestore --convert-to pdf --outdir '.escapeshellarg($outDir).' '.escapeshellarg($sourcePath);
 
@@ -40,12 +43,16 @@ class PdfConverterHelper
             return false;
         }
 
-        if (! file_exists($destinationPath)) {
-            \Log::error('Error convirtiendo DOCX a PDF: '.$command);
-
-            return false;
+        for ($attempt = 0; $attempt < 15; $attempt++) {
+            clearstatcache(true, $destinationPath);
+            if (file_exists($destinationPath)) {
+                return true;
+            }
+            usleep(200000); // Esperar 200ms
         }
 
-        return true;
+        \Log::error('Error convirtiendo DOCX a PDF (archivo no generado): '.$command);
+
+        return false;
     }
 }

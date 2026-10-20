@@ -516,6 +516,11 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * En `AuthService.php`, se normalizó el payload de errores de sesión retornando exclusivamente `['email' => 'Estas credenciales no coinciden con nuestros registros.']`.
     * En `login.blade.php`, se migró el renderizado a `@if ($errors->any())` mostrando una única alerta dismissible de cabecera con `$errors->first()` y el icono de advertencia clínico.
   - **Verificación:** Laravel Pint passed ✅ | 30 tests PHPUnit pasando al 100% ✅.
+- [x] **2026-10-20 — Utilidad de Conversión PDF: Normalización de Rutas Windows y Espera de E/S:**
+  - **Diagnóstico y Hotfix en `PdfConverterHelper`:**
+    * Se normalizaron separadores de directorios (`DIRECTORY_SEPARATOR`) para rutas fuente, destino y binario de LibreOffice Portable en entornos Windows.
+    * Se añadió sondeo con `clearstatcache(true, $destinationPath)` y hasta 15 reintentos con intervalo de 200ms para evitar falsos negativos por demoras de escritura en disco asíncronas de LibreOffice.
+  - **Verificación:** Laravel Pint passed ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.
