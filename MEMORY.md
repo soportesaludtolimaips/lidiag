@@ -455,6 +455,16 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * Actualizado `database/factories/UserFactory.php` con `'password_changed_at' => now()` para prevenir bloqueos por el middleware `ForcePasswordChange` durante tests autenticados.
     * Inclusión de `/tests` en `.gitignore` para versionado de pruebas en el repositorio.
     * Verificación: 30 tests / 132 aserciones pasando al 100% en 2.89s ✅ | Laravel Pint pasado sin discrepancias ✅.
+- [x] **2026-10-20 — Base de Datos & Rendimiento: Auditoría y Optimización de Índices (Citas, HelpDesk, Audios):**
+  - **Auditoría de Planes de Ejecución (`EXPLAIN`):**
+    * La consulta de citas pendientes (`agenda_citas WHERE estado = 'solicitada' ORDER BY created_at DESC`) requería un table scan completo (`type: ALL`, `Using where; Using filesort`) al carecer de índice por estado y created_at.
+    * Las consultas combinadas de tickets de HelpDesk y relaciones de audios carecían de índices compuestos optimizados.
+  - **Migración de Optimización:**
+    * Creada migración `database/migrations/2026_10_20_000001_add_performance_indexes_to_citas_and_helpdesk.php`.
+    * `agenda_citas`: Índices `idx_agenda_citas_estado`, `idx_agenda_citas_fecha_hora_inicio`, `idx_agenda_citas_sede_estado`, `idx_agenda_citas_servicio_estado`, `idx_agenda_citas_created_at`.
+    * `help_desk_tickets`: Índices `idx_help_desk_tickets_sede_estado`, `idx_help_desk_tickets_prioridad_id`.
+    * `estudios_audios`: Índice `idx_estudios_audios_producto_id`.
+  - **Verificación:** Laravel Pint passed ✅ | 30 tests pasando ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.
