@@ -46,7 +46,8 @@ public/build/manifest.json
 /.cursor
 /.vscode
 
-/tests
+# /tests
+!/tests/
 
 # SSL certs (no comitear)
 ssl.crt

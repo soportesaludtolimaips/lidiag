@@ -437,6 +437,24 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Foco Accesible (`a11y`) y Ergonomía Clínica:** Autofoco automático reactivo (`nextTick`) en el primer campo de cada formulario (`#form_sede_id`, `#form_servicio_id`, `#form_wp_servicio`, `#categoria_nombre`, `#prioridad_nombre`), botones "Refrescar" asistenciales con spinner dinámico y badge `F2` en `page-titles`, badges `Ctrl+S` y `Esc`, y estandarización completa de la clase `.btn-action-clinical`.
   - **Conclusión de Hito 1 Frontend:** 100% de los módulos de la aplicación (Estudios, Ecografías, Citas, Agenda, HelpDesk, Seguridad, Reportes, Configuración, WhatsApp Bot) cuentan ahora con el sistema unificado de atajos de teclado clínicos, backdrops con desenfoque, transiciones suaves y ergonomía asistencial.
   - Verificación estricta: ESLint 0 errores/warnings en los 7 componentes ✅ | Vite `npm run build` en 1.04s ✅.
+- [x] **2026-10-20 — Backend: Suite de Pruebas Automatizadas Unit y Feature para Flujos Críticos (PHPUnit 12):**
+  - **Unit Tests (`tests/Unit/` - 12 tests):**
+    * `TelegramServiceTest.php`: Verificación de configuración de token, mock de peticiones `sendMessage` a Telegram Bot API, autorización estricta de Chat IDs e invocación de `getMe`.
+    * `EstudioLockServiceTest.php`: Resolución de claves canónicas (`ep:...`, `iuid:...`, `pk:...`), rechazo de claves malformadas y cálculo de minutos de expiración.
+    * `BackupServiceTest.php`: Detección de carpetas en storage, formateador de bytes a unidades legibles (B, KB, MB, GB) y política de retención automática purgando zips antiguos y hashes `.sha256`.
+  - **Feature Tests (`tests/Feature/` - 18 tests):**
+    * `EncryptionAtRestTest.php`: Cifrado transparente en reposo de datos clínicos sensibles.
+    * `PasswordChangeTest.php`: Forzado de cambio de contraseña periódico y actualización de credenciales.
+    * `RateLimitingTest.php`: Limitación de tasa de peticiones (throttling) en endpoints sensibles.
+    * `SessionTimeoutTest.php`: Expiración y cierre determinista de sesiones de usuario.
+    * `EstudioLockFeatureTest.php`: Concurrencia de bloqueo de estudios, renovación de lock, detección de conflicto HTTP 409 y liberación segura.
+    * `TelegramWebhookFeatureTest.php`: Rechazo con HTTP 403 ante secret tokens inválidos de Telegram, aceptación con secret tokens válidos y despacho a `TelegramBotHandlerService`.
+    * `BackupArtisanCommandTest.php`: Ejecución del comando Artisan `php artisan lidiag:backup` en modos `--only-db`, `--only-files` y control de fallos.
+    * `AgendaCitaFeatureTest.php`: Autenticación requerida para endpoints de citas, catálogo de servicios de agendamiento y consulta de citas pendientes.
+  - **Mantenimiento y Estilo:**
+    * Actualizado `database/factories/UserFactory.php` con `'password_changed_at' => now()` para prevenir bloqueos por el middleware `ForcePasswordChange` durante tests autenticados.
+    * Inclusión de `/tests` en `.gitignore` para versionado de pruebas en el repositorio.
+    * Verificación: 30 tests / 132 aserciones pasando al 100% en 2.89s ✅ | Laravel Pint pasado sin discrepancias ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.

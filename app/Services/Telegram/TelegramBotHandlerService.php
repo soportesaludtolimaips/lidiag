@@ -173,6 +173,40 @@ class TelegramBotHandlerService
                 $this->processProduccionCommand($chatId, $args);
                 break;
 
+            case "dd":
+            case "disco":
+            case "discos":
+                $this->telegramService->sendMessage(
+                    $chatId,
+                    "💾 <b>MONITOR DE DISCOS DUROS (PACS)</b>\n\n"
+                    ."Los repositorios DICOM son monitoreados por el agente autónomo en los servidores de cada hospital.\n\n"
+                    ."🔔 <i>Si un repositorio baja del 15% (advertencia) o del 5% (crítico), el bot te enviará una alerta automática inmediatamente.</i>\n\n"
+                    ."💡 Usa <code>/dd_alertas</code> para consultar los umbrales de riesgo."
+                );
+                break;
+
+            case "dd_alertas":
+            case "disco_alertas":
+                $this->telegramService->sendMessage(
+                    $chatId,
+                    "⚙️ <b>UMBRALES DE ALERTA DE DISCOS (PACS):</b>\n\n"
+                    ."🟡 <b>Advertencia:</b> Menor a 15% libre o menos de 50 GB.\n"
+                    ."🔴 <b>Crítico:</b> Menor a 5% libre o menos de 20 GB (riesgo de rechazo C-STORE en modalidades).\n"
+                    ."⏳ <b>Silenciador (Anti-spam):</b> 4 horas entre alertas repetidas.\n"
+                    ."☀️ <b>Reporte diario matutino:</b> 08:00 AM."
+                );
+                break;
+
+            case "dd_info":
+            case "disco_info":
+                $this->telegramService->sendMessage(
+                    $chatId,
+                    "🖥️ <b>AGENTE PACS — SALUD TOLIMA:</b>\n\n"
+                    ."El monitor de discos se ejecuta en Python nativo en el servidor de cada sede hospitalaria.\n"
+                    ."Paquete de instalación: <code>storage/app_lidiag/dcm_disk_monitor_telegram.zip</code>"
+                );
+                break;
+
             default:
                 $this->telegramService->sendMessage(
                     $chatId,
@@ -197,16 +231,23 @@ class TelegramBotHandlerService
      */
     protected function sendHelpMessage(string $chatId): void
     {
-        $text = "👋 <b>¡Bienvenido al Bot de Reportes — LIDiag!</b>\n\n"
+        $text = "👋 <b>¡Bienvenido al Asistente — Salud Tolima / LIDiag!</b>\n\n"
             ."🏥 <b>Sistema:</b> LIDiag Medical Imaging System\n"
-            ."👤 <b>Tu Chat ID:</b> <code>{$chatId}</code> (Autorizado ✅)\n\n"
-            ."📋 <b>COMANDOS DISPONIBLES:</b>\n"
-            ."🔹 <code>/produccion espinal</code> — Reporte de producción de hoy en Sede Espinal.\n"
-            ."🔹 <code>/produccion espinal ayer</code> — Producción de ayer.\n"
-            ."🔹 <code>/produccion espinal mes</code> — Producción del mes en curso.\n"
-            ."🔹 <code>/produccion espinal 2026-10-01 2026-10-15</code> — Rango de fechas.\n"
-            ."🔹 <code>/sedes</code> — Lista de sedes y sus identificadores.\n"
-            ."🔹 <code>/produccion</code> — Menú interactivo con botones de selección.";
+            ."👤 <b>Usuario:</b> <code>{$chatId}</code> (Autorizado ✅)\n\n"
+            ."📊 <b>MÓDULO DE PRODUCCIÓN Y ESTADÍSTICAS:</b>\n"
+            ."🔹 <code>/produccion [sede] [periodo]</code> — Resumen y Excel detallado.\n"
+            ."   • <code>/produccion 1 mes</code> — Producción mensual por ID (1 = Espinal).\n"
+            ."   • <code>/produccion 3 ayer</code> — Producción de ayer por ID (3 = Chaparral).\n"
+            ."   • <code>/produccion 6 mes</code> — Producción mensual de Honda (ID 6).\n"
+            ."   • <code>/produccion espinal mes</code> — Producción por nombre de sede.\n"
+            ."   • <code>/produccion 1 2026-10-01 2026-10-15</code> — Rango personalizado.\n"
+            ."   • <code>/produccion</code> — Selector interactivo con botones táctiles.\n"
+            ."🔹 <code>/sedes</code> — Lista todas las sedes activas y sus números de ID.\n\n"
+            ."💾 <b>MÓDULO DE DISCOS DUROS (PACS):</b>\n"
+            ."🔹 <code>/dd</code> o <code>/disco</code> — Estado de repositorios DICOM.\n"
+            ."🔹 <code>/dd_alertas</code> — Umbrales de advertencia y crítico configurados.\n"
+            ."🔹 <code>/dd_info</code> — Información técnica del servidor PACS.\n\n"
+            ."💡 <i>Tip: Puedes usar /sedes para conocer los códigos de cada hospital antes de consultar.</i>";
 
         $this->telegramService->sendMessage($chatId, $text);
     }
@@ -234,7 +275,7 @@ class TelegramBotHandlerService
             $lineas[] = "• <b>ID {$s->id}:</b> {$s->nom_sede}";
         }
 
-        $lineas[] = "\n💡 <i>Puedes pedir reportes con: /produccion [nombre_sede] [periodo]</i>";
+        $lineas[] = "\n💡 <i>Puedes pedir reportes con el ID o nombre:</i>\n<code>/produccion 1 mes</code> o <code>/produccion chaparral ayer</code>";
 
         $this->telegramService->sendMessage($chatId, implode("\n", $lineas));
     }
