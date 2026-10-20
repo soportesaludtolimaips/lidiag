@@ -525,6 +525,10 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Resolución de `Unauthenticated` por Valores Nulos en HMAC:**
     * En `lidiag-reportes` (`VerifyHmacSignature.php`), se normalizaron los campos nulos del payload a string vacío `""` antes de invocar `http_build_query`. El middleware `ConvertEmptyStringsToNull` de Laravel convertía campos vacíos como `fec_naci` a `null`, causando que PHP omitiera la clave en el hash del receptor y generara firmas discrepantes.
   - **Verificación:** Laravel Pint passed ✅ | Tests 257312, 257330, 257376, 257478, 257479, 257480 transferidos con éxito al 100% ✅.
+- [x] **2026-10-20 — Infraestructura & Repositorio: Actualización y Blindaje de `.gitignore`:**
+  - Exclusión integral de archivos comprimidos y backups locales (`*.zip`, `*.rar`, `*.7z`, `*.tar.gz`, `temp_backups/`).
+  - Exclusión de archivos temporales de Office (`~$*`, `**/~$*`) y directorios de herramientas locales (`/.superpowers`, `/.idea`).
+  - Blindaje en `storage/app_lidiag/`: exclusión de herramientas y binarios pesados (`LibreOfficePortable`, `microdicom`, entornos `venv`, uploads), runtime de LibreOffice (`lo_profile/`), y protección automática contra commit de credenciales (`config.json`), logs y cachés en los servicios auxiliares (`agente_backups_dcm`, `dcm_disk_monitor_telegram`).
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.
