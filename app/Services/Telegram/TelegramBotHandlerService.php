@@ -3,6 +3,7 @@
 namespace App\Services\Telegram;
 
 use App\Exports\ProduccionDetalladaExport;
+use App\Exports\ReportesEstudioPAC;
 use App\Models\Configuracion\ConfigSede;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -28,6 +29,33 @@ class TelegramBotHandlerService
     public function __construct(TelegramService $telegramService)
     {
         $this->telegramService = $telegramService;
+    }
+
+    /**
+     * Registra los comandos nativos del bot en la interfaz de Telegram para acceso rápido.
+     *
+     * Flujo del proceso:
+     * 1. Define la lista de comandos disponibles con descripciones concisas.
+     * 2. Despacha la configuración al endpoint setMyCommands mediante TelegramService.
+     *
+     * @return array Respuesta decodificada de Telegram API.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-20
+     */
+    public function registerBotCommands(): array
+    {
+        $commands = [
+            ["command" => "menu", "description" => "📋 Menú táctil interactivo de reportes"],
+            ["command" => "produccion", "description" => "📊 Reporte de producción (leídos/firmados)"],
+            ["command" => "tomados", "description" => "🏥 Reporte de estudios tomados en DCM/PACS"],
+            ["command" => "sedes", "description" => "🏥 Lista de sedes e identificadores"],
+            ["command" => "dd", "description" => "💾 Monitor de discos duros PACS"],
+            ["command" => "ayuda", "description" => "❓ Guía de uso y comandos disponibles"],
+        ];
+
+        return $this->telegramService->setMyCommands($commands);
     }
 
     /**
@@ -129,7 +157,7 @@ class TelegramBotHandlerService
      *
      * Flujo del proceso:
      * 1. Normaliza la instrucción quitando arrobas y barras iniciales.
-     * 2. Reconoce comandos /start, /ayuda, /help, /sedes, /produccion o /reporte.
+     * 2. Reconoce comandos /start, /ayuda, /help, /menu, /sedes, /produccion, /tomados o de discos.
      * 3. Ejecuta la lógica correspondiente.
      *
      * @param  string  $chatId  Identificador del chat destinatario.
@@ -158,9 +186,24 @@ class TelegramBotHandlerService
 
         switch ($cmd) {
             case "start":
+                $this->registerBotCommands();
+                $this->telegramService->sendMessage(
+                    $chatId,
+                    "👋 <b>¡Hola! Bienvenido al Asistente Oficial — Salud Tolima / LIDiag</b>\n\n"
+                    ."Puedes usar el menú táctil con botones interactivos a continuación o escribir /ayuda para ver todos los comandos."
+                );
+                $this->sendTipoReporteSelectionKeyboard($chatId);
+                break;
+
             case "help":
             case "ayuda":
                 $this->sendHelpMessage($chatId);
+                break;
+
+            case "menu":
+            case "reporte":
+            case "reportes":
+                $this->sendTipoReporteSelectionKeyboard($chatId);
                 break;
 
             case "sedes":
@@ -168,9 +211,15 @@ class TelegramBotHandlerService
                 break;
 
             case "produccion":
-            case "reporte":
             case "prod":
                 $this->processProduccionCommand($chatId, $args);
+                break;
+
+            case "tomados":
+            case "dcm":
+            case "pac":
+            case "pacs":
+                $this->processDcmCommand($chatId, $args);
                 break;
 
             case "dd":
@@ -210,7 +259,7 @@ class TelegramBotHandlerService
             default:
                 $this->telegramService->sendMessage(
                     $chatId,
-                    "❓ Comando no reconocido: <code>/{$cmd}</code>\nUsa /ayuda para ver los comandos disponibles."
+                    "❓ Comando no reconocido: <code>/{$cmd}</code>\nUsa /menu para el menú interactivo o /ayuda para ver todos los comandos."
                 );
                 break;
         }
@@ -220,7 +269,7 @@ class TelegramBotHandlerService
      * Envía el mensaje de bienvenida y catálogo de comandos disponibles.
      *
      * Flujo del proceso:
-     * 1. Estructura el mensaje con los comandos asistenciales y de producción.
+     * 1. Estructura el mensaje con los comandos asistenciales, de producción y de DCM.
      * 2. Despacha el mensaje mediante TelegramService.
      *
      * @param  string  $chatId  Identificador del chat.
@@ -234,30 +283,37 @@ class TelegramBotHandlerService
         $text = "👋 <b>¡Bienvenido al Asistente — Salud Tolima / LIDiag!</b>\n\n"
             ."🏥 <b>Sistema:</b> LIDiag Medical Imaging System\n"
             ."👤 <b>Usuario:</b> <code>{$chatId}</code> (Autorizado ✅)\n\n"
-            ."📊 <b>MÓDULO DE PRODUCCIÓN Y ESTADÍSTICAS:</b>\n"
+            ."📋 <b>MENÚ TÁCTIL INTERACTIVO:</b>\n"
+            ."🔹 <code>/menu</code> o <code>/reporte</code> — Asistente paso a paso con botones.\n\n"
+            ."📊 <b>1. PRODUCCIÓN (ESTUDIOS LEÍDOS Y FIRMADOS):</b>\n"
             ."🔹 <code>/produccion [sede] [periodo]</code> — Resumen y Excel detallado.\n"
             ."   • <code>/produccion 1 mes</code> — Producción mensual por ID (1 = Espinal).\n"
             ."   • <code>/produccion 3 ayer</code> — Producción de ayer por ID (3 = Chaparral).\n"
-            ."   • <code>/produccion 6 mes</code> — Producción mensual de Honda (ID 6).\n"
-            ."   • <code>/produccion espinal mes</code> — Producción por nombre de sede.\n"
-            ."   • <code>/produccion 1 2026-10-01 2026-10-15</code> — Rango personalizado.\n"
-            ."   • <code>/produccion</code> — Selector interactivo con botones táctiles.\n"
-            ."🔹 <code>/sedes</code> — Lista todas las sedes activas y sus números de ID.\n\n"
-            ."💾 <b>MÓDULO DE DISCOS DUROS (PACS):</b>\n"
+            ."   • <code>/produccion 6 hoy</code> — Producción de hoy por ID (6 = Honda).\n"
+            ."   • <code>/produccion espinal mes</code> — Búsqueda por nombre de sede.\n"
+            ."   • <code>/produccion 1 2026-10-01 2026-10-15</code> — Rango de fechas personalizado.\n\n"
+            ."🏥 <b>2. ESTUDIOS TOMADOS EN DCM / PACS:</b>\n"
+            ."🔹 <code>/tomados [sede] [periodo]</code> o <code>/dcm [sede] [periodo]</code>\n"
+            ."   • <code>/tomados 1 hoy</code> — Estudios tomados hoy en PACS Espinal.\n"
+            ."   • <code>/tomados 3 mes</code> — Estudios tomados este mes en Chaparral.\n"
+            ."   • <code>/tomados 6 semana</code> — Últimos 7 días en Honda.\n\n"
+            ."🏥 <b>INFORMACIÓN DE SEDES:</b>\n"
+            ."🔹 <code>/sedes</code> — Lista todas las sedes y sus números de ID.\n\n"
+            ."💾 <b>MONITOR DE DISCOS DUROS (PACS):</b>\n"
             ."🔹 <code>/dd</code> o <code>/disco</code> — Estado de repositorios DICOM.\n"
             ."🔹 <code>/dd_alertas</code> — Umbrales de advertencia y crítico configurados.\n"
             ."🔹 <code>/dd_info</code> — Información técnica del servidor PACS.\n\n"
-            ."💡 <i>Tip: Puedes usar /sedes para conocer los códigos de cada hospital antes de consultar.</i>";
+            ."💡 <i>Períodos aceptados: hoy, ayer, mes, semana o fechas YYYY-MM-DD.</i>";
 
         $this->telegramService->sendMessage($chatId, $text);
     }
 
     /**
-     * Envía el listado de sedes activas en el sistema con sus identificadores.
+     * Envía el listado de sedes activas en el sistema con sus identificadores y estado DCM.
      *
      * Flujo del proceso:
      * 1. Consulta las sedes activas en config_sedes.
-     * 2. Construye un mensaje estructurado con código y nombre.
+     * 2. Construye un mensaje estructurado con código, nombre y soporte DCM.
      * 3. Envía el mensaje al usuario.
      *
      * @param  string  $chatId  Identificador del chat.
@@ -268,23 +324,262 @@ class TelegramBotHandlerService
      */
     protected function sendSedesMessage(string $chatId): void
     {
-        $sedes = ConfigSede::where("estado", true)->orderBy("id")->get(["id", "nom_sede"]);
+        $sedes = ConfigSede::where("estado", true)->orderBy("id")->get(["id", "nom_sede", "ip_dcm"]);
 
         $lineas = ["🏥 <b>SEDES ACTIVAS EN LIDIAG:</b>\n"];
         foreach ($sedes as $s) {
-            $lineas[] = "• <b>ID {$s->id}:</b> {$s->nom_sede}";
+            $hasDcm = ! empty($s->ip_dcm) ? " 📡 (PACS Activo)" : "";
+            $lineas[] = "• <b>ID {$s->id}:</b> {$s->nom_sede}{$hasDcm}";
         }
 
-        $lineas[] = "\n💡 <i>Puedes pedir reportes con el ID o nombre:</i>\n<code>/produccion 1 mes</code> o <code>/produccion chaparral ayer</code>";
+        $lineas[] = "\n💡 <i>Comandos rápidos disponibles:</i>";
+        $lineas[] = "📊 <b>Producción:</b> <code>/produccion [id] [periodo]</code> (ej: <code>/produccion 1 mes</code>)";
+        $lineas[] = "🏥 <b>Estudios DCM:</b> <code>/tomados [id] [periodo]</code> (ej: <code>/tomados 1 mes</code>)";
+        $lineas[] = "📋 <b>Menú táctil:</b> <code>/menu</code> o <code>/reporte</code>";
 
         $this->telegramService->sendMessage($chatId, implode("\n", $lineas));
     }
 
     /**
-     * Procesa la solicitud del comando /produccion evaluando argumentos o mostrando teclado.
+     * Paso 1 del Asistente: Despliega botones para elegir el tipo de reporte.
      *
      * Flujo del proceso:
-     * 1. Si no hay argumentos, despliega teclado interactivo con las sedes disponibles.
+     * 1. Construye el teclado inline con las dos categorías de reportes (Producción vs Tomados DCM).
+     * 2. Si se suministró messageId edita el mensaje en sitio, o envía uno nuevo.
+     *
+     * @param  string  $chatId  Identificador del chat.
+     * @param  int|null  $messageId  Identificador opcional del mensaje a editar.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-20
+     */
+    public function sendTipoReporteSelectionKeyboard(string $chatId, ?int $messageId = null): void
+    {
+        $markup = [
+            "inline_keyboard" => [
+                [
+                    ["text" => "📊 1. Producción (Leídos / Firmados)", "callback_data" => "wiz:tipo:prod"],
+                ],
+                [
+                    ["text" => "🏥 2. Estudios Tomados en DCM (PACS)", "callback_data" => "wiz:tipo:dcm"],
+                ],
+            ],
+        ];
+
+        $text = "📋 <b>CENTRO DE REPORTES — LIDIAG</b>\n\n"
+            ."Seleccione el tipo de reporte que desea consultar:";
+
+        if ($messageId) {
+            $this->telegramService->editMessageText($chatId, $messageId, $text, "HTML", $markup);
+        } else {
+            $this->telegramService->sendMessage($chatId, $text, "HTML", $markup);
+        }
+    }
+
+    /**
+     * Paso 2 del Asistente: Despliega un teclado interactivo para seleccionar la sede.
+     *
+     * Flujo del proceso:
+     * 1. Consulta sedes activas en config_sedes.
+     * 2. Genera botones inline agrupados de a 2 por fila con callback wizard contextual.
+     * 3. Añade botón para volver al paso 1 (tipo de reporte).
+     * 4. Edita el mensaje existente o envía uno nuevo.
+     *
+     * @param  string  $chatId  Identificador del chat.
+     * @param  string  $tipo  Tipo de reporte ('prod' o 'dcm').
+     * @param  int|null  $messageId  Identificador opcional del mensaje a editar.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-19
+     */
+    public function sendSedeSelectionKeyboard(string $chatId, string $tipo = "prod", ?int $messageId = null): void
+    {
+        $sedes = ConfigSede::where("estado", true)->orderBy("id")->get();
+
+        $tipoEtiqueta = $tipo === "dcm" ? "Estudios Tomados en DCM (PACS)" : "Producción (Leídos)";
+        $keyboard = [];
+        $currentRow = [];
+
+        foreach ($sedes as $s) {
+            $nombreCorto = explode("-", $s->nom_sede)[0];
+            $nombreCorto = trim($nombreCorto);
+
+            $currentRow[] = [
+                "text" => "🏥 ".$nombreCorto,
+                "callback_data" => "wiz:sede:{$tipo}:{$s->id}",
+            ];
+
+            if (count($currentRow) === 2) {
+                $keyboard[] = $currentRow;
+                $currentRow = [];
+            }
+        }
+
+        if (! empty($currentRow)) {
+            $keyboard[] = $currentRow;
+        }
+
+        // Botón de retorno al Paso 1
+        $keyboard[] = [
+            ["text" => "🔙 Volver al Tipo de Reporte", "callback_data" => "wiz:menu"],
+        ];
+
+        $markup = ["inline_keyboard" => $keyboard];
+        $text = "🏥 <b>{$tipoEtiqueta}</b>\nSeleccione la sede a consultar:";
+
+        if ($messageId) {
+            $this->telegramService->editMessageText($chatId, $messageId, $text, "HTML", $markup);
+        } else {
+            $this->telegramService->sendMessage($chatId, $text, "HTML", $markup);
+        }
+    }
+
+    /**
+     * Paso 3 del Asistente: Despliega botones para seleccionar el período del reporte.
+     *
+     * Flujo del proceso:
+     * 1. Consulta la sede seleccionada para obtener su nombre.
+     * 2. Construye botones con períodos predefinidos (Hoy, Ayer, Mes actual, 7 Días).
+     * 3. Añade botón para volver al paso 2 (selección de sedes).
+     * 4. Edita el mensaje existente o envía uno nuevo.
+     *
+     * @param  string  $chatId  Identificador del chat.
+     * @param  string  $tipo  Tipo de reporte ('prod' o 'dcm').
+     * @param  int  $sedeId  Identificador de la sede.
+     * @param  int|null  $messageId  Identificador opcional del mensaje a editar.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-20
+     */
+    public function sendPeriodoSelectionKeyboard(string $chatId, string $tipo, int $sedeId, ?int $messageId = null): void
+    {
+        $sede = ConfigSede::find($sedeId);
+        $nombreSede = $sede ? $sede->nom_sede : "Sede #{$sedeId}";
+        $tipoEtiqueta = $tipo === "dcm" ? "Estudios Tomados DCM" : "Producción";
+
+        $markup = [
+            "inline_keyboard" => [
+                [
+                    ["text" => "📅 Hoy", "callback_data" => "wiz:gen:{$tipo}:{$sedeId}:hoy"],
+                    ["text" => "⏪ Ayer", "callback_data" => "wiz:gen:{$tipo}:{$sedeId}:ayer"],
+                ],
+                [
+                    ["text" => "🗓️ Este Mes", "callback_data" => "wiz:gen:{$tipo}:{$sedeId}:mes"],
+                    ["text" => "📆 Últimos 7 Días", "callback_data" => "wiz:gen:{$tipo}:{$sedeId}:semana"],
+                ],
+                [
+                    ["text" => "🔙 Volver a Sedes", "callback_data" => "wiz:tipo:{$tipo}"],
+                ],
+            ],
+        ];
+
+        $text = "🏥 <b>{$tipoEtiqueta} — {$nombreSede}</b>\n"
+            ."Seleccione el período a consultar:";
+
+        if ($messageId) {
+            $this->telegramService->editMessageText($chatId, $messageId, $text, "HTML", $markup);
+        } else {
+            $this->telegramService->sendMessage($chatId, $text, "HTML", $markup);
+        }
+    }
+
+    /**
+     * Procesa las interacciones con botones inline (callback_query).
+     *
+     * Flujo del proceso:
+     * 1. Extrae los datos del callback y responde inmediatamente para descartar el loading.
+     * 2. Enruta según la acción (wiz:menu, wiz:tipo, wiz:sede, wiz:gen o retrocompatibilidad).
+     * 3. Ejecuta la generación del reporte o actualiza la vista interactiva.
+     *
+     * @param  array  $callbackQuery  Datos del evento callback_query de Telegram.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-19
+     */
+    protected function handleCallbackQuery(array $callbackQuery): void
+    {
+        $callbackQueryId = (string) ($callbackQuery["id"] ?? "");
+        $message = $callbackQuery["message"] ?? [];
+        $chat = $message["chat"] ?? [];
+        $chatId = (string) ($chat["id"] ?? "");
+        $messageId = isset($message["message_id"]) ? (int) $message["message_id"] : null;
+        $data = $callbackQuery["data"] ?? "";
+
+        if ($callbackQueryId !== "") {
+            $this->telegramService->answerCallbackQuery($callbackQueryId);
+        }
+
+        if (! $chatId || ! $this->isChatAuthorized($chatId)) {
+            return;
+        }
+
+        // Navegación: Retorno al Paso 1 (Tipo de reporte)
+        if ($data === "wiz:menu") {
+            $this->sendTipoReporteSelectionKeyboard($chatId, $messageId);
+
+            return;
+        }
+
+        // Navegación: Paso 2 (Listado de sedes según tipo)
+        if (str_starts_with($data, "wiz:tipo:")) {
+            $tipo = substr($data, 9);
+            $this->sendSedeSelectionKeyboard($chatId, $tipo, $messageId);
+
+            return;
+        }
+
+        // Navegación: Paso 3 (Listado de períodos según sede y tipo)
+        if (str_starts_with($data, "wiz:sede:")) {
+            $parts = explode(":", $data);
+            $tipo = $parts[2] ?? "prod";
+            $sedeId = (int) ($parts[3] ?? 1);
+            $this->sendPeriodoSelectionKeyboard($chatId, $tipo, $sedeId, $messageId);
+
+            return;
+        }
+
+        // Ejecución de reporte desde el asistente
+        if (str_starts_with($data, "wiz:gen:")) {
+            $parts = explode(":", $data);
+            $tipo = $parts[2] ?? "prod";
+            $sedeId = (int) ($parts[3] ?? 1);
+            $periodo = $parts[4] ?? "hoy";
+
+            if ($tipo === "dcm") {
+                $this->generarYEnviarReporteDcm($chatId, $sedeId, $periodo);
+            } else {
+                $this->generarYEnviarReporte($chatId, $sedeId, $periodo);
+            }
+
+            return;
+        }
+
+        // Retrocompatibilidad con botones anteriores de producción
+        if (str_starts_with($data, "sede:")) {
+            $sedeId = (int) substr($data, 5);
+            $this->sendPeriodoSelectionKeyboard($chatId, "prod", $sedeId, $messageId);
+
+            return;
+        }
+
+        if (str_starts_with($data, "rep:")) {
+            $parts = explode(":", $data);
+            $sedeId = (int) ($parts[1] ?? 1);
+            $periodo = $parts[2] ?? "hoy";
+
+            $this->generarYEnviarReporte($chatId, $sedeId, $periodo);
+        }
+    }
+
+    /**
+     * Procesa la solicitud directa del comando /produccion evaluando argumentos o mostrando teclado.
+     *
+     * Flujo del proceso:
+     * 1. Si no hay argumentos, despliega teclado interactivo de sedes para producción.
      * 2. Si hay argumentos, resuelve la sede indicada y el rango de fechas.
      * 3. Dispara la generación del resumen y del archivo Excel.
      *
@@ -298,7 +593,7 @@ class TelegramBotHandlerService
     protected function processProduccionCommand(string $chatId, array $args): void
     {
         if (empty($args)) {
-            $this->sendSedeSelectionKeyboard($chatId);
+            $this->sendSedeSelectionKeyboard($chatId, "prod");
 
             return;
         }
@@ -309,7 +604,7 @@ class TelegramBotHandlerService
         if (! $sede) {
             $this->telegramService->sendMessage(
                 $chatId,
-                "⚠️ No se encontró ninguna sede que coincida con: <b>{$args[0]}</b>.\nUsa /sedes para ver las sedes disponibles o /produccion para seleccionarla con botones."
+                "⚠️ No se encontró ninguna sede que coincida con: <b>{$args[0]}</b>.\nUsa /sedes para ver las sedes disponibles o /menu para seleccionarla con botones."
             );
 
             return;
@@ -322,120 +617,44 @@ class TelegramBotHandlerService
     }
 
     /**
-     * Despliega un teclado interactivo en Telegram para seleccionar la sede a consultar.
+     * Procesa la solicitud directa del comando /tomados o /dcm evaluando argumentos o mostrando teclado.
      *
      * Flujo del proceso:
-     * 1. Consulta sedes activas en config_sedes.
-     * 2. Genera botones inline agrupados de a 2 por fila.
-     * 3. Envía el mensaje con reply_markup.
+     * 1. Si no hay argumentos, despliega teclado interactivo de sedes para DCM.
+     * 2. Si hay argumentos, resuelve la sede indicada y el rango de fechas.
+     * 3. Dispara la consulta al servidor PACS de la sede y el envío del reporte.
      *
      * @param  string  $chatId  Identificador del chat.
+     * @param  array  $args  Argumentos provistos en el comando.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-10-19
+     * @date 2026-10-20
      */
-    protected function sendSedeSelectionKeyboard(string $chatId): void
+    protected function processDcmCommand(string $chatId, array $args): void
     {
-        $sedes = ConfigSede::where("estado", true)->orderBy("id")->get(["id", "nom_sede"]);
+        if (empty($args)) {
+            $this->sendSedeSelectionKeyboard($chatId, "dcm");
 
-        $keyboard = [];
-        $currentRow = [];
-
-        foreach ($sedes as $s) {
-            // Nombre corto legible
-            $nombreCorto = explode("-", $s->nom_sede)[0];
-            $nombreCorto = trim($nombreCorto);
-
-            $currentRow[] = [
-                "text" => "🏥 ".$nombreCorto,
-                "callback_data" => "sede:{$s->id}",
-            ];
-
-            if (count($currentRow) === 2) {
-                $keyboard[] = $currentRow;
-                $currentRow = [];
-            }
-        }
-
-        if (! empty($currentRow)) {
-            $keyboard[] = $currentRow;
-        }
-
-        $markup = ["inline_keyboard" => $keyboard];
-
-        $this->telegramService->sendMessage(
-            $chatId,
-            "📊 <b>Seleccione la sede para el reporte de producción:</b>",
-            "HTML",
-            $markup
-        );
-    }
-
-    /**
-     * Procesa las interacciones con botones inline (callback_query).
-     *
-     * Flujo del proceso:
-     * 1. Extrae los datos del callback (sede seleccionada o período).
-     * 2. Si es selección de sede, presenta botones de período (Hoy, Ayer, Mes).
-     * 3. Si es selección de período, ejecuta la generación del reporte.
-     *
-     * @param  array  $callbackQuery  Datos del evento callback_query de Telegram.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-10-19
-     */
-    protected function handleCallbackQuery(array $callbackQuery): void
-    {
-        $chat = $callbackQuery["message"]["chat"] ?? [];
-        $chatId = (string) ($chat["id"] ?? "");
-        $data = $callbackQuery["data"] ?? "";
-
-        if (! $chatId || ! $this->isChatAuthorized($chatId)) {
             return;
         }
 
-        if (str_starts_with($data, "sede:")) {
-            $sedeId = (int) substr($data, 5);
-            $sede = ConfigSede::find($sedeId);
+        $sedeQuery = strtolower($args[0]);
+        $sede = $this->resolveSede($sedeQuery);
 
-            if (! $sede) {
-                $this->telegramService->sendMessage($chatId, "⚠️ Sede no encontrada.");
-
-                return;
-            }
-
-            $markup = [
-                "inline_keyboard" => [
-                    [
-                        ["text" => "📅 Hoy", "callback_data" => "rep:{$sedeId}:hoy"],
-                        ["text" => "⏪ Ayer", "callback_data" => "rep:{$sedeId}:ayer"],
-                    ],
-                    [
-                        ["text" => "🗓️ Este Mes", "callback_data" => "rep:{$sedeId}:mes"],
-                        ["text" => "📆 Últimos 7 Días", "callback_data" => "rep:{$sedeId}:semana"],
-                    ],
-                ],
-            ];
-
+        if (! $sede) {
             $this->telegramService->sendMessage(
                 $chatId,
-                "🏥 Sede seleccionada: <b>{$sede->nom_sede}</b>\nSeleccione el período a consultar:",
-                "HTML",
-                $markup
+                "⚠️ No se encontró ninguna sede que coincida con: <b>{$args[0]}</b>.\nUsa /sedes para ver las sedes disponibles o /tomados para seleccionarla con botones."
             );
 
             return;
         }
 
-        if (str_starts_with($data, "rep:")) {
-            $parts = explode(":", $data);
-            $sedeId = (int) ($parts[1] ?? 1);
-            $periodo = $parts[2] ?? "hoy";
+        $periodo = strtolower($args[1] ?? "hoy");
+        $fechaCustomFin = $args[2] ?? null;
 
-            $this->generarYEnviarReporte($chatId, $sedeId, $periodo);
-        }
+        $this->generarYEnviarReporteDcm($chatId, $sede->id, $periodo, $args[1] ?? null, $fechaCustomFin);
     }
 
     /**
@@ -595,6 +814,168 @@ class TelegramBotHandlerService
     }
 
     /**
+     * Genera y envía el reporte de estudios tomados directamente en la base de datos PACS/DCM de la sede.
+     *
+     * Flujo del proceso:
+     * 1. Valida configuración de conexión remota DCM (IP, puerto y base de datos).
+     * 2. Ejecuta pre-flight socket check de 2 segundos para no bloquear si la sede está offline.
+     * 3. Configura la conexión dinámica mysql_sucursal y consulta estudios y modalidades.
+     * 4. Envía resumen ejecutivo en HTML.
+     * 5. Genera y despacha el archivo Excel detallado usando ReportesEstudioPAC.
+     *
+     * @param  string  $chatId  Identificador del chat destinatario.
+     * @param  int  $sedeId  Identificador de la sede hospitalaria.
+     * @param  string  $periodo  Identificador de período ('hoy', 'ayer', 'mes', 'semana', o fecha).
+     * @param  string|null  $fechaIniCustom  Fecha inicial si se pasó rango manual.
+     * @param  string|null  $fechaFinCustom  Fecha final si se pasó rango manual.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-20
+     */
+    public function generarYEnviarReporteDcm(
+        string $chatId,
+        int $sedeId,
+        string $periodo = "hoy",
+        ?string $fechaIniCustom = null,
+        ?string $fechaFinCustom = null
+    ): void {
+        $this->telegramService->sendChatAction($chatId, "typing");
+
+        $sede = ConfigSede::find($sedeId);
+        if (! $sede) {
+            $this->telegramService->sendMessage($chatId, "⚠️ Sede ID {$sedeId} no encontrada.");
+
+            return;
+        }
+
+        if (empty($sede->ip_dcm) || empty($sede->bd_dcm)) {
+            $this->telegramService->sendMessage(
+                $chatId,
+                "⚠️ <b>Sede {$sede->nom_sede}</b>\nEsta sede no tiene configurada dirección IP o base de datos PACS/DCM en el catálogo de sedes."
+            );
+
+            return;
+        }
+
+        // Pre-flight check: prueba rápida de socket TCP (2 segundos)
+        $host = $sede->ip_dcm;
+        $port = (int) ($sede->puerto_dcm ?: 3306);
+        $socket = @fsockopen($host, $port, $errno, $errstr, 2.0);
+
+        if (! is_resource($socket)) {
+            $this->telegramService->sendMessage(
+                $chatId,
+                "⚠️ <b>Conexión Fallida con PACS — {$sede->nom_sede}</b>\n\n"
+                ."No fue posible conectar con el servidor MySQL DCM (<code>{$host}:{$port}</code>).\n"
+                ."<i>Causas posibles: servidor apagado, red/VPN desconectada o firewall bloqueando el puerto.</i>"
+            );
+
+            return;
+        }
+        fclose($socket);
+
+        // Configuración de conexión dinámica a la sucursal
+        config([
+            "database.connections.mysql_sucursal" => [
+                "driver" => "mysql",
+                "host" => env("DB_SUCURSAL_HOST", $sede->ip_dcm),
+                "port" => env("DB_SUCURSAL_PUERTO", $sede->puerto_dcm),
+                "database" => env("DB_SUCURSAL_DATABASE", $sede->bd_dcm),
+                "username" => env("DB_SUCURSAL_USERNAME", $sede->usuario_dcm),
+                "password" => env("DB_SUCURSAL_PASSWORD", $sede->password_dcm),
+                "charset" => env("DB_SUCURSAL_charset", "latin1"),
+                "collation" => env("DB_SUCURSAL_collation", "latin1_swedish_ci"),
+            ],
+        ]);
+        DB::purge("mysql_sucursal");
+
+        // Resolución de fechas
+        [$fechaInicio, $fechaFin, $etiquetaPeriodo] = $this->resolverRangoFechas($periodo, $fechaIniCustom, $fechaFinCustom);
+
+        try {
+            $queryBase = DB::connection("mysql_sucursal")
+                ->table("study")
+                ->join("patient", "patient.pk", "=", "study.patient_fk")
+                ->whereBetween("study.study_datetime", [
+                    "{$fechaInicio} 00:00:00",
+                    "{$fechaFin} 23:59:59",
+                ]);
+
+            $totalTomados = (clone $queryBase)->count();
+
+            $modalidades = (clone $queryBase)
+                ->selectRaw("COALESCE(NULLIF(study.mods_in_study, ''), 'OTRO') as mod_nombre, count(*) as cantidad")
+                ->groupBy("mod_nombre")
+                ->orderByDesc("cantidad")
+                ->get();
+        } catch (\Throwable $e) {
+            Log::error("Error consultando estudios DCM de {$sede->nom_sede}: ".$e->getMessage(), [
+                "sede_id" => $sedeId,
+                "error" => $e->getMessage(),
+            ]);
+
+            $this->telegramService->sendMessage(
+                $chatId,
+                "❌ <b>Error al consultar base de datos PACS ({$sede->nom_sede}):</b>\n<code>{$e->getMessage()}</code>"
+            );
+
+            return;
+        }
+
+        // Construir mensaje resumen
+        $nombreSede = $sede->nom_sede;
+        $resumenTexto = $this->buildResumenDcmMessage(
+            $nombreSede,
+            $etiquetaPeriodo,
+            $fechaInicio,
+            $fechaFin,
+            $totalTomados,
+            $modalidades
+        );
+
+        $this->telegramService->sendMessage($chatId, $resumenTexto);
+
+        if ($totalTomados === 0) {
+            return;
+        }
+
+        // Generar y enviar documento Excel vía ReportesEstudioPAC
+        $this->telegramService->sendChatAction($chatId, "upload_document");
+
+        try {
+            $slugSede = Str::slug(explode("-", $nombreSede)[0]);
+            $fileName = "estudios_tomados_dcm_{$slugSede}_{$fechaInicio}_{$fechaFin}.xlsx";
+            $tempRelPath = "temp_reports/{$fileName}";
+
+            $export = new ReportesEstudioPAC($fechaInicio, $fechaFin, $sedeId, $nombreSede, config("database.default"));
+            Excel::store($export, $tempRelPath, "local");
+
+            $fullPath = Storage::disk("local")->path($tempRelPath);
+
+            if (file_exists($fullPath)) {
+                $caption = "🏥 <b>Estudios Tomados en DCM / PACS</b>\n"
+                    ."🏥 {$nombreSede}\n"
+                    ."📅 {$fechaInicio} al {$fechaFin} ({$totalTomados} estudios)";
+
+                $this->telegramService->sendDocument($chatId, $fullPath, $caption);
+
+                @unlink($fullPath);
+            }
+        } catch (\Throwable $e) {
+            Log::error("Error generando Excel DCM para Telegram: ".$e->getMessage(), [
+                "sede_id" => $sedeId,
+                "error" => $e->getMessage(),
+            ]);
+
+            $this->telegramService->sendMessage(
+                $chatId,
+                "⚠️ <i>No fue posible generar el archivo Excel de estudios DCM: {$e->getMessage()}</i>"
+            );
+        }
+    }
+
+    /**
      * Resuelve los límites de fecha y etiqueta descriptiva según la expresión de período.
      *
      * Flujo del proceso:
@@ -644,7 +1025,7 @@ class TelegramBotHandlerService
     }
 
     /**
-     * Construye el texto en formato HTML del resumen ejecutivo para Telegram.
+     * Construye el texto en formato HTML del resumen ejecutivo de producción para Telegram.
      *
      * Flujo del proceso:
      * 1. Formatea encabezados de sede y período.
@@ -719,6 +1100,74 @@ class TelegramBotHandlerService
 
         $lineas[] = "────────────────────────";
         $lineas[] = "⏳ <b>Estudios Pendientes por Lectura en Sede:</b> <b>{$pendientes}</b>";
+
+        return implode("\n", $lineas);
+    }
+
+    /**
+     * Construye el texto en formato HTML del resumen ejecutivo de estudios tomados en DCM para Telegram.
+     *
+     * Flujo del proceso:
+     * 1. Formatea encabezados de sede y período.
+     * 2. Agrupa modalidades y asigna nombres legibles con iconos clínicos.
+     * 3. Concatena notas explicativas de consulta directa PACS.
+     *
+     * @param  string  $sedeNombre  Nombre completo de la sede.
+     * @param  string  $etiquetaPeriodo  Etiqueta amigable del período.
+     * @param  string  $fechaInicio  Fecha inicial YYYY-MM-DD.
+     * @param  string  $fechaFin  Fecha final YYYY-MM-DD.
+     * @param  int  $totalTomados  Cantidad total de estudios tomados en PACS.
+     * @param  mixed  $modalidades  Colección de modalidades y cantidades.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-20
+     */
+    protected function buildResumenDcmMessage(
+        string $sedeNombre,
+        string $etiquetaPeriodo,
+        string $fechaInicio,
+        string $fechaFin,
+        int $totalTomados,
+        $modalidades
+    ): string {
+        $lineas = [
+            "🏥 <b>ESTUDIOS TOMADOS EN DCM / PACS</b>",
+            "🏥 <b>Sede:</b> {$sedeNombre}",
+            "📅 <b>Período:</b> {$etiquetaPeriodo}",
+            "────────────────────────",
+            "📸 <b>Total Estudios Tomados:</b> <b>{$totalTomados}</b>",
+        ];
+
+        if ($totalTomados > 0) {
+            $lineas[] = "\n🔬 <b>Desglose por Modalidad:</b>";
+            foreach ($modalidades as $m) {
+                $icono = match ($m->mod_nombre) {
+                    "CR", "DX", "DR" => "🩻",
+                    "CT" => "🧠",
+                    "MR" => "🧲",
+                    "MG" => "🎀",
+                    "US" => "📡",
+                    default => "🔹",
+                };
+
+                $nombreMod = match ($m->mod_nombre) {
+                    "CR", "DX", "DR" => "Rayos X ({$m->mod_nombre})",
+                    "CT" => "Tomografía Computarizada (TAC)",
+                    "MR" => "Resonancia Magnética (RM)",
+                    "MG" => "Mamografía (MG)",
+                    "US" => "Ecografía (US)",
+                    default => $m->mod_nombre,
+                };
+
+                $lineas[] = "  {$icono} {$nombreMod}: <b>{$m->cantidad}</b>";
+            }
+        } else {
+            $lineas[] = "\nℹ️ <i>No se registraron estudios tomados en el PACS durante este período.</i>";
+        }
+
+        $lineas[] = "────────────────────────";
+        $lineas[] = "💡 <i>Consultado directamente en base de datos local PACS (MySQL).</i>";
 
         return implode("\n", $lineas);
     }

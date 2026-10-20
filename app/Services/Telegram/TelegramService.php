@@ -336,4 +336,118 @@ class TelegramService
             return ["ok" => false, "description" => $e->getMessage()];
         }
     }
+
+    /**
+     * Registra o actualiza el menú nativo de comandos del bot en la interfaz de Telegram.
+     *
+     * Flujo del proceso:
+     * 1. Valida presencia de token de Telegram.
+     * 2. Despacha lista de comandos con sus descripciones al endpoint setMyCommands.
+     *
+     * @param  array  $commands  Lista de comandos [{'command' => 'cmd', 'description' => 'desc'}].
+     * @return array Respuesta de Telegram.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-20
+     */
+    public function setMyCommands(array $commands): array
+    {
+        if (! $this->isConfigured()) {
+            return ["ok" => false, "description" => "TELEGRAM_BOT_TOKEN no configurado."];
+        }
+
+        try {
+            $response = $this->client(10)->post("{$this->baseUrl}/setMyCommands", [
+                "commands" => $commands,
+            ]);
+
+            return $response->json() ?? ["ok" => false];
+        } catch (\Throwable $e) {
+            return ["ok" => false, "description" => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Edita el texto y los botones inline de un mensaje existente en Telegram.
+     *
+     * Flujo del proceso:
+     * 1. Valida presencia de token y sanitiza texto a UTF-8.
+     * 2. Despacha la actualización al endpoint editMessageText.
+     *
+     * @param  string  $chatId  Identificador del chat destinatario.
+     * @param  int  $messageId  Identificador del mensaje a editar.
+     * @param  string  $text  Nuevo contenido de texto.
+     * @param  string  $parseMode  Modo de formateo (HTML por defecto).
+     * @param  array|null  $replyMarkup  Nuevo teclado interactivo opcional.
+     * @return array Respuesta de Telegram.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-20
+     */
+    public function editMessageText(string $chatId, int $messageId, string $text, string $parseMode = "HTML", ?array $replyMarkup = null): array
+    {
+        if (! $this->isConfigured()) {
+            return ["ok" => false, "description" => "TELEGRAM_BOT_TOKEN no configurado."];
+        }
+
+        $cleanText = mb_convert_encoding($text, "UTF-8", "UTF-8");
+
+        $payload = [
+            "chat_id" => $chatId,
+            "message_id" => $messageId,
+            "text" => $cleanText,
+            "parse_mode" => $parseMode,
+            "disable_web_page_preview" => true,
+        ];
+
+        if ($replyMarkup) {
+            $payload["reply_markup"] = $replyMarkup;
+        }
+
+        try {
+            $response = $this->client(10)->post("{$this->baseUrl}/editMessageText", $payload);
+
+            return $response->json() ?? ["ok" => false];
+        } catch (\Throwable $e) {
+            return ["ok" => false, "description" => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Responde a una interacción de botón inline (callback_query) para descartar el indicador de carga.
+     *
+     * Flujo del proceso:
+     * 1. Notifica a Telegram que la acción fue recibida mediante answerCallbackQuery.
+     *
+     * @param  string  $callbackQueryId  Identificador del callback_query entregado por Telegram.
+     * @param  string|null  $text  Texto opcional de notificación toast temporal.
+     * @param  bool  $showAlert  Si se presenta como alerta modal emergente.
+     * @return array Respuesta de Telegram.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-20
+     */
+    public function answerCallbackQuery(string $callbackQueryId, ?string $text = null, bool $showAlert = false): array
+    {
+        if (! $this->isConfigured()) {
+            return ["ok" => false];
+        }
+
+        $payload = ["callback_query_id" => $callbackQueryId];
+        if ($text) {
+            $payload["text"] = mb_convert_encoding($text, "UTF-8", "UTF-8");
+            $payload["show_alert"] = $showAlert;
+        }
+
+        try {
+            $response = $this->client(5)->post("{$this->baseUrl}/answerCallbackQuery", $payload);
+
+            return $response->json() ?? ["ok" => false];
+        } catch (\Throwable $e) {
+            return ["ok" => false, "description" => $e->getMessage()];
+        }
+    }
 }

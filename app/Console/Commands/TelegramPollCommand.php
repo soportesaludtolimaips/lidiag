@@ -95,6 +95,9 @@ class TelegramPollCommand extends Command
         $this->info("Presiona Ctrl+C para detener el servicio.");
         $this->info("==================================================================");
 
+        $this->info("Registrando menú de comandos nativos en Telegram...");
+        $botHandlerService->registerBotCommands();
+
         $offset = null;
         $runOnce = (bool) $this->option("once");
 

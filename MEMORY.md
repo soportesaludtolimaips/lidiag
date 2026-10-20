@@ -473,6 +473,15 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     2. Backend: Suite de 30 tests automatizados Unit y Feature (Commit `5632ce96e`).
     3. Base de Datos: Auditoría de planes de ejecución y migración de índices de rendimiento (Commit `120f36d43`).
     4. Infraestructura: Documentación viva de despliegue y controladores.
+- [x] **2026-10-20 — Bot de Telegram: Soporte de Reportes Clínicos (Producción vs Tomados DCM) y Menú Interactivo Táctil:**
+  - **Reportes de Estudios Tomados en DCM / PACS:** Integrado soporte para consultar directamente la base de datos MySQL PACS remota de cada hospital (`study` y `patient`) mediante `ReportesEstudioPAC`.
+  - **Pre-flight Socket Check Defensivo:** Prueba TCP de 2s (`fsockopen`) previa a la conexión para prevenir timeouts largos si una sede está fuera de línea o la VPN desconectada.
+  - **Menú Interactivo Táctil (Inline Keyboards):**
+    * Flujo guiado en 3 pasos: (1) Tipo de Reporte (Producción vs Tomados DCM) ➡️ (2) Sede Hospitalaria ➡️ (3) Período (Hoy, Ayer, Mes, 7 Días).
+    * Transición fluida en el mismo mensaje con `editMessageText` y confirmación instantánea con `answerCallbackQuery` para descartar spinners en Telegram.
+  - **Comandos Directos:** Soporte para `/tomados [sede] [periodo]` y `/dcm [sede] [periodo]`, manteniendo `/produccion [sede] [periodo]` (por ID o nombre).
+  - **Menú Nativo de Telegram:** Registro automático de comandos con `registerBotCommands()` y `setMyCommands` (`/menu`, `/produccion`, `/tomados`, `/sedes`, `/dd`, `/ayuda`).
+  - **Verificación:** Laravel Pint passed ✅ | 30 tests PHPUnit pasando ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.
