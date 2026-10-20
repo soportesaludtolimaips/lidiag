@@ -483,6 +483,15 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Menú Nativo de Telegram:** Registro automático de comandos con `registerBotCommands()` y `setMyCommands` (`/menu`, `/produccion`, `/tomados`, `/sedes`, `/dd`, `/ayuda`).
   - **Hotfix de Eventos CallbackQuery:** Configurado explícitamente `allowed_updates: ["message", "callback_query"]` en `TelegramService::getUpdates()` y `setWebhook()`, resolviendo el bloqueo de Telegram donde los clics táctiles en botones inline eran descartados por omisión de suscripción API.
   - **Verificación:** Laravel Pint passed ✅ | 30 tests PHPUnit pasando ✅ | Verificado en vivo en `@salud_tolima_bot` con reportes exitosos de Chaparral y Espinal.
+- [x] **2026-10-20 — Bot de Telegram: Suite Integral de Estadísticas Asistenciales y Visuales:**
+  - **Barras Visuales de Porcentaje Unicode (`generarBarraProgreso`):** Indicador visual en texto (`██████░░ 75%`) para modalidades, médicos con mayor volumen y ranking de sedes en Telegram.
+  - **Métricas de Oportunidad Clínica y Turnaround Time (TAT):** Cálculo automático del tiempo promedio de lectura médico-asistencial con semáforo de alerta (`🟢 Óptimo <12h`, `🟡 Aceptable <24h`, `🔴 Retrasado >24h`) y conteo de estudios con más de 24h sin informe.
+  - **Consolidado General de Toda la Red (`/red` o `/consolidado`):** Reporte ejecutivo multipropósito con totales globales, ranking de sedes y desglose de modalidades en toda la red hospitalaria.
+  - **Semáforo Asistencial de Estudios Represados (`/retrasados` o `/pendientes`):** Monitor en tiempo real de estudios con >24h sin lectura y estudios de urgencias/prioridad alta pendientes por sede.
+  - **Estadísticas de Citas WhatsApp (`/citas`):** Reporte de solicitudes recibidas, aprobadas, canceladas y pendientes en la bandeja de agendamiento.
+  - **Botones de Navegación Rápida Post-Reporte:** Inyección de inline keyboards interactivos al pie de cada reporte para saltar con 1 clic entre períodos (`Hoy`, `Ayer`, `Mes`) o cambiar a la red completa.
+  - **Comando Artisan y Tarea Matutina (`telegram:daily-digest`):** Creado comando `TelegramDailyDigestCommand` programado en `routes/console.php` a las `07:30 AM` para despacho automático del cierre del día anterior y semáforo asistencial matutino.
+  - **Verificación:** Laravel Pint passed ✅ | 30 tests PHPUnit pasando ✅ | Despacho de Daily Digest verificado en vivo.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.
