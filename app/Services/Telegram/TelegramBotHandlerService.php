@@ -35,7 +35,7 @@ class TelegramBotHandlerService
      * Registra los comandos nativos del bot en la interfaz de Telegram para acceso rápido.
      *
      * Flujo del proceso:
-     * 1. Define la lista de comandos disponibles con descripciones concisas.
+     * 1. Define la lista completa de comandos asistenciales, ejecutivos y de monitoreo.
      * 2. Despacha la configuración al endpoint setMyCommands mediante TelegramService.
      *
      * @return array Respuesta decodificada de Telegram API.
@@ -48,11 +48,14 @@ class TelegramBotHandlerService
     {
         $commands = [
             ["command" => "menu", "description" => "📋 Menú táctil interactivo de reportes"],
-            ["command" => "produccion", "description" => "📊 Reporte de producción (leídos/firmados)"],
+            ["command" => "red", "description" => "🌐 Consolidado de toda la red hospitalaria"],
+            ["command" => "produccion", "description" => "📊 Producción por sede (estudios leídos)"],
             ["command" => "tomados", "description" => "🏥 Reporte de estudios tomados en DCM/PACS"],
+            ["command" => "retrasados", "description" => "🚨 Semáforo de estudios represados (>24h)"],
+            ["command" => "citas", "description" => "💬 Estadísticas de citas WhatsApp"],
             ["command" => "sedes", "description" => "🏥 Lista de sedes e identificadores"],
             ["command" => "dd", "description" => "💾 Monitor de discos duros PACS"],
-            ["command" => "ayuda", "description" => "❓ Guía de uso y comandos disponibles"],
+            ["command" => "ayuda", "description" => "❓ Guía completa y comandos"],
         ];
 
         return $this->telegramService->setMyCommands($commands);
@@ -157,7 +160,7 @@ class TelegramBotHandlerService
      *
      * Flujo del proceso:
      * 1. Normaliza la instrucción quitando arrobas y barras iniciales.
-     * 2. Reconoce comandos /start, /ayuda, /help, /menu, /sedes, /produccion, /tomados o de discos.
+     * 2. Reconoce comandos /start, /ayuda, /help, /menu, /red, /sedes, /produccion, /tomados, /retrasados, /citas o de discos.
      * 3. Ejecuta la lógica correspondiente.
      *
      * @param  string  $chatId  Identificador del chat destinatario.
@@ -190,7 +193,7 @@ class TelegramBotHandlerService
                 $this->telegramService->sendMessage(
                     $chatId,
                     "👋 <b>¡Hola! Bienvenido al Asistente Oficial — Salud Tolima / LIDiag</b>\n\n"
-                    ."Puedes usar el menú táctil con botones interactivos a continuación o escribir /ayuda para ver todos los comandos."
+                    ."Puedes usar el menú táctil interactivo a continuación o escribir /ayuda para ver todos los comandos disponibles:"
                 );
                 $this->sendTipoReporteSelectionKeyboard($chatId);
                 break;
@@ -204,6 +207,25 @@ class TelegramBotHandlerService
             case "reporte":
             case "reportes":
                 $this->sendTipoReporteSelectionKeyboard($chatId);
+                break;
+
+            case "red":
+            case "consolidado":
+                $periodoRed = strtolower($args[0] ?? "hoy");
+                $this->generarYEnviarReporteRed($chatId, $periodoRed, $args[0] ?? null, $args[1] ?? null);
+                break;
+
+            case "retrasados":
+            case "represados":
+            case "sla":
+            case "pendientes":
+                $this->generarYEnviarReporteRetrasados($chatId);
+                break;
+
+            case "citas":
+            case "agenda":
+                $periodoCitas = strtolower($args[0] ?? "hoy");
+                $this->generarYEnviarReporteCitas($chatId, null, $periodoCitas);
                 break;
 
             case "sedes":
@@ -259,7 +281,7 @@ class TelegramBotHandlerService
             default:
                 $this->telegramService->sendMessage(
                     $chatId,
-                    "❓ Comando no reconocido: <code>/{$cmd}</code>\nUsa /menu para el menú interactivo o /ayuda para ver todos los comandos."
+                    "❓ Comando no reconocido: <code>/{$cmd}</code>\nUsa /menu para el menú táctil o /ayuda para ver todos los comandos."
                 );
                 break;
         }
@@ -269,7 +291,7 @@ class TelegramBotHandlerService
      * Envía el mensaje de bienvenida y catálogo de comandos disponibles.
      *
      * Flujo del proceso:
-     * 1. Estructura el mensaje con los comandos asistenciales, de producción y de DCM.
+     * 1. Estructura el mensaje con los comandos asistenciales, de producción, DCM y citas.
      * 2. Despacha el mensaje mediante TelegramService.
      *
      * @param  string  $chatId  Identificador del chat.
@@ -284,25 +306,27 @@ class TelegramBotHandlerService
             ."🏥 <b>Sistema:</b> LIDiag Medical Imaging System\n"
             ."👤 <b>Usuario:</b> <code>{$chatId}</code> (Autorizado ✅)\n\n"
             ."📋 <b>MENÚ TÁCTIL INTERACTIVO:</b>\n"
-            ."🔹 <code>/menu</code> o <code>/reporte</code> — Asistente paso a paso con botones.\n\n"
-            ."📊 <b>1. PRODUCCIÓN (ESTUDIOS LEÍDOS Y FIRMADOS):</b>\n"
-            ."🔹 <code>/produccion [sede] [periodo]</code> — Resumen y Excel detallado.\n"
+            ."🔹 <code>/menu</code> — Asistente guiado por botones paso a paso.\n\n"
+            ."🌐 <b>DASHBOARD Y CONSOLIDADO DE RED:</b>\n"
+            ."🔹 <code>/red [periodo]</code> — Producción de toda la red hospitalaria (Espinal, Chaparral, Honda, Líbano, etc.).\n"
+            ."🔹 <code>/retrasados</code> — Semáforo de estudios con más de 24h sin lectura y urgencias pendientes.\n"
+            ."🔹 <code>/citas [periodo]</code> — Resumen de citas WhatsApp (aprobadas, rechazadas, pendientes).\n\n"
+            ."📊 <b>1. PRODUCCIÓN POR SEDE (LEÍDOS Y FIRMADOS):</b>\n"
+            ."🔹 <code>/produccion [sede] [periodo]</code>\n"
             ."   • <code>/produccion 1 mes</code> — Producción mensual por ID (1 = Espinal).\n"
             ."   • <code>/produccion 3 ayer</code> — Producción de ayer por ID (3 = Chaparral).\n"
             ."   • <code>/produccion 6 hoy</code> — Producción de hoy por ID (6 = Honda).\n"
             ."   • <code>/produccion espinal mes</code> — Búsqueda por nombre de sede.\n"
-            ."   • <code>/produccion 1 2026-10-01 2026-10-15</code> — Rango de fechas personalizado.\n\n"
+            ."   • <code>/produccion 1 2026-10-01 2026-10-15</code> — Rango personalizado.\n\n"
             ."🏥 <b>2. ESTUDIOS TOMADOS EN DCM / PACS:</b>\n"
             ."🔹 <code>/tomados [sede] [periodo]</code> o <code>/dcm [sede] [periodo]</code>\n"
             ."   • <code>/tomados 1 hoy</code> — Estudios tomados hoy en PACS Espinal.\n"
             ."   • <code>/tomados 3 mes</code> — Estudios tomados este mes en Chaparral.\n"
             ."   • <code>/tomados 6 semana</code> — Últimos 7 días en Honda.\n\n"
-            ."🏥 <b>INFORMACIÓN DE SEDES:</b>\n"
-            ."🔹 <code>/sedes</code> — Lista todas las sedes y sus números de ID.\n\n"
-            ."💾 <b>MONITOR DE DISCOS DUROS (PACS):</b>\n"
+            ."🏥 <b>SEDES Y DISCOS DUROS:</b>\n"
+            ."🔹 <code>/sedes</code> — Lista todas las sedes y sus números de ID.\n"
             ."🔹 <code>/dd</code> o <code>/disco</code> — Estado de repositorios DICOM.\n"
-            ."🔹 <code>/dd_alertas</code> — Umbrales de advertencia y crítico configurados.\n"
-            ."🔹 <code>/dd_info</code> — Información técnica del servidor PACS.\n\n"
+            ."🔹 <code>/dd_alertas</code> — Umbrales de advertencia y crítico.\n\n"
             ."💡 <i>Períodos aceptados: hoy, ayer, mes, semana o fechas YYYY-MM-DD.</i>";
 
         $this->telegramService->sendMessage($chatId, $text);
@@ -335,7 +359,8 @@ class TelegramBotHandlerService
         $lineas[] = "\n💡 <i>Comandos rápidos disponibles:</i>";
         $lineas[] = "📊 <b>Producción:</b> <code>/produccion [id] [periodo]</code> (ej: <code>/produccion 1 mes</code>)";
         $lineas[] = "🏥 <b>Estudios DCM:</b> <code>/tomados [id] [periodo]</code> (ej: <code>/tomados 1 mes</code>)";
-        $lineas[] = "📋 <b>Menú táctil:</b> <code>/menu</code> o <code>/reporte</code>";
+        $lineas[] = "🌐 <b>Consolidado Red:</b> <code>/red mes</code> o <code>/red hoy</code>";
+        $lineas[] = "📋 <b>Menú táctil:</b> <code>/menu</code>";
 
         $this->telegramService->sendMessage($chatId, implode("\n", $lineas));
     }
@@ -344,7 +369,7 @@ class TelegramBotHandlerService
      * Paso 1 del Asistente: Despliega botones para elegir el tipo de reporte.
      *
      * Flujo del proceso:
-     * 1. Construye el teclado inline con las dos categorías de reportes (Producción vs Tomados DCM).
+     * 1. Construye el teclado inline con todas las categorías de reportes.
      * 2. Si se suministró messageId edita el mensaje en sitio, o envía uno nuevo.
      *
      * @param  string  $chatId  Identificador del chat.
@@ -364,11 +389,18 @@ class TelegramBotHandlerService
                 [
                     ["text" => "🏥 2. Estudios Tomados en DCM (PACS)", "callback_data" => "wiz:tipo:dcm"],
                 ],
+                [
+                    ["text" => "🌐 3. Consolidado de Toda la Red", "callback_data" => "wiz:red:hoy"],
+                ],
+                [
+                    ["text" => "🚨 4. Semáforo Represados (>24h)", "callback_data" => "wiz:retrasados"],
+                    ["text" => "💬 5. Citas WhatsApp", "callback_data" => "wiz:citas:hoy"],
+                ],
             ],
         ];
 
-        $text = "📋 <b>CENTRO DE REPORTES — LIDIAG</b>\n\n"
-            ."Seleccione el tipo de reporte que desea consultar:";
+        $text = "📋 <b>CENTRO DE REPORTES Y ESTADÍSTICAS — LIDIAG</b>\n\n"
+            ."Seleccione la consulta que desea realizar:";
 
         if ($messageId) {
             $this->telegramService->editMessageText($chatId, $messageId, $text, "HTML", $markup);
@@ -423,7 +455,7 @@ class TelegramBotHandlerService
 
         // Botón de retorno al Paso 1
         $keyboard[] = [
-            ["text" => "🔙 Volver al Tipo de Reporte", "callback_data" => "wiz:menu"],
+            ["text" => "🔙 Volver al Menú Principal", "callback_data" => "wiz:menu"],
         ];
 
         $markup = ["inline_keyboard" => $keyboard];
@@ -490,8 +522,8 @@ class TelegramBotHandlerService
      * Procesa las interacciones con botones inline (callback_query).
      *
      * Flujo del proceso:
-     * 1. Extrae los datos del callback y responde inmediatamente para descartar el loading.
-     * 2. Enruta según la acción (wiz:menu, wiz:tipo, wiz:sede, wiz:gen o retrocompatibilidad).
+     * 1. Extrae los datos del callback y responde con toast para descartar el loading.
+     * 2. Enruta según la acción (wiz:menu, wiz:tipo, wiz:sede, wiz:gen, wiz:red, wiz:retrasados, wiz:citas).
      * 3. Ejecuta la generación del reporte o actualiza la vista interactiva.
      *
      * @param  array  $callbackQuery  Datos del evento callback_query de Telegram.
@@ -517,12 +549,44 @@ class TelegramBotHandlerService
             return;
         }
 
-        // Navegación: Retorno al Paso 1 (Tipo de reporte)
+        // Navegación: Retorno al Menú Principal
         if ($data === "wiz:menu") {
             if ($callbackQueryId !== "") {
                 $this->telegramService->answerCallbackQuery($callbackQueryId);
             }
             $this->sendTipoReporteSelectionKeyboard($chatId, $messageId);
+
+            return;
+        }
+
+        // Navegación: Consolidado de Toda la Red
+        if (str_starts_with($data, "wiz:red:")) {
+            $periodo = substr($data, 8);
+            if ($callbackQueryId !== "") {
+                $this->telegramService->answerCallbackQuery($callbackQueryId, "⏳ Consultando red hospitalaria...", false);
+            }
+            $this->generarYEnviarReporteRed($chatId, $periodo);
+
+            return;
+        }
+
+        // Navegación: Semáforo de Retrasados
+        if ($data === "wiz:retrasados") {
+            if ($callbackQueryId !== "") {
+                $this->telegramService->answerCallbackQuery($callbackQueryId, "⏳ Evaluando estudios represados...", false);
+            }
+            $this->generarYEnviarReporteRetrasados($chatId);
+
+            return;
+        }
+
+        // Navegación: Citas WhatsApp
+        if (str_starts_with($data, "wiz:citas:")) {
+            $periodo = substr($data, 10);
+            if ($callbackQueryId !== "") {
+                $this->telegramService->answerCallbackQuery($callbackQueryId, "⏳ Consultando citas...", false);
+            }
+            $this->generarYEnviarReporteCitas($chatId, null, $periodo);
 
             return;
         }
@@ -694,16 +758,14 @@ class TelegramBotHandlerService
     }
 
     /**
-     * Genera y envía el reporte de producción completo (Resumen Ejecutivo + Documento Excel).
+     * Genera y envía el reporte de producción completo (Resumen Ejecutivo + Documento Excel + Botones Rápidos).
      *
      * Flujo del proceso:
      * 1. Envía señal de 'typing' a Telegram para indicar procesamiento activo.
      * 2. Resuelve fechas de inicio y fin según el período (hoy, ayer, mes, semana o custom).
-     * 3. Consulta métricas consolidadas en MySQL (totales, modalidades, médicos y pendientes).
-     * 4. Envía mensaje formateado en HTML con el resumen ejecutivo.
-     * 5. Envía señal de 'upload_document'.
-     * 6. Genera archivo Excel temporal utilizando ProduccionDetalladaExport.
-     * 7. Envía el archivo adjunto a Telegram y lo elimina del almacenamiento temporal.
+     * 3. Consulta métricas consolidadas en MySQL (totales, modalidades, médicos, TAT y pendientes).
+     * 4. Envía mensaje formateado en HTML con barras visuales y teclado de navegación rápida.
+     * 5. Envía señal de 'upload_document' y despacha el archivo Excel detallado.
      *
      * @param  string  $chatId  Identificador del chat destinatario.
      * @param  int  $sedeId  Identificador de la sede hospitalaria.
@@ -762,12 +824,42 @@ class TelegramBotHandlerService
             ->limit(5)
             ->get();
 
-        // 4. Métricas: Pendientes actuales por lectura en esa sede
+        // 4. Métricas: Tiempo Promedio de Respuesta (TAT en minutos)
+        $avgMinutos = (clone $queryBase)
+            ->whereNotNull("estudios.created_at")
+            ->selectRaw("AVG(TIMESTAMPDIFF(MINUTE, estudios.created_at, estudios_productos.fechor_lectura)) as avg_min")
+            ->value("avg_min");
+
+        $tatTexto = "N/D";
+        $tatIcono = "⚪";
+        if ($avgMinutos !== null && $avgMinutos > 0) {
+            $horas = (int) floor($avgMinutos / 60);
+            $mins = (int) round($avgMinutos % 60);
+            $tatTexto = $horas > 0 ? "{$horas}h {$mins}m" : "{$mins}m";
+            if ($avgMinutos <= 720) {
+                $tatIcono = "🟢 (Óptimo &lt;12h)";
+            } elseif ($avgMinutos <= 1440) {
+                $tatIcono = "🟡 (Aceptable &lt;24h)";
+            } else {
+                $tatIcono = "🔴 (Retrasado &gt;24h)";
+            }
+        }
+
+        // 5. Métricas: Pendientes actuales por lectura en esa sede
         $pendientes = DB::table("estudios_productos")
             ->join("estudios", "estudios_productos.estudio_id", "=", "estudios.id")
             ->where("estudios.sede_id", $sedeId)
             ->whereNull("estudios_productos.fechor_lectura")
             ->where("estudios_productos.activo", 1)
+            ->count();
+
+        // 6. Métricas: Pendientes represados con más de 24 horas sin informe
+        $represados24h = DB::table("estudios_productos")
+            ->join("estudios", "estudios_productos.estudio_id", "=", "estudios.id")
+            ->where("estudios.sede_id", $sedeId)
+            ->whereNull("estudios_productos.fechor_lectura")
+            ->where("estudios_productos.activo", 1)
+            ->whereRaw("TIMESTAMPDIFF(HOUR, estudios.created_at, NOW()) > 24")
             ->count();
 
         // Construir mensaje resumen
@@ -780,10 +872,29 @@ class TelegramBotHandlerService
             $totalLeidos,
             $modalidades,
             $medicos,
-            $pendientes
+            $pendientes,
+            $tatTexto,
+            $tatIcono,
+            $represados24h
         );
 
-        $this->telegramService->sendMessage($chatId, $resumenTexto);
+        // Teclado con botones de navegación rápida post-reporte
+        $navMarkup = [
+            "inline_keyboard" => [
+                [
+                    ["text" => "📅 Hoy", "callback_data" => "wiz:gen:prod:{$sedeId}:hoy"],
+                    ["text" => "⏪ Ayer", "callback_data" => "wiz:gen:prod:{$sedeId}:ayer"],
+                    ["text" => "🗓️ Mes", "callback_data" => "wiz:gen:prod:{$sedeId}:mes"],
+                ],
+                [
+                    ["text" => "🌐 Toda la Red", "callback_data" => "wiz:red:{$periodo}"],
+                    ["text" => "🏥 Otra Sede", "callback_data" => "wiz:tipo:prod"],
+                    ["text" => "📋 Menú", "callback_data" => "wiz:menu"],
+                ],
+            ],
+        ];
+
+        $this->telegramService->sendMessage($chatId, $resumenTexto, "HTML", $navMarkup);
 
         // Si no hay estudios leídos, evitamos generar un Excel vacío
         if ($totalLeidos === 0) {
@@ -826,13 +937,325 @@ class TelegramBotHandlerService
     }
 
     /**
+     * Genera y envía el reporte consolidado de producción de toda la red hospitalaria.
+     *
+     * Flujo del proceso:
+     * 1. Resuelve las fechas según el período (hoy, ayer, mes o rango).
+     * 2. Consulta la producción agregada de todas las sedes activas en MySQL.
+     * 3. Estructura el ranking de sedes con barras visuales y desglose de modalidades.
+     * 4. Despacha mensaje con botones de navegación rápida.
+     *
+     * @param  string  $chatId  Identificador del chat destinatario.
+     * @param  string  $periodo  Identificador de período.
+     * @param  string|null  $fechaIniCustom  Fecha inicial si se pasó rango.
+     * @param  string|null  $fechaFinCustom  Fecha final si se pasó rango.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-20
+     */
+    public function generarYEnviarReporteRed(
+        string $chatId,
+        string $periodo = "hoy",
+        ?string $fechaIniCustom = null,
+        ?string $fechaFinCustom = null
+    ): void {
+        $this->telegramService->sendChatAction($chatId, "typing");
+
+        [$fechaInicio, $fechaFin, $etiquetaPeriodo] = $this->resolverRangoFechas($periodo, $fechaIniCustom, $fechaFinCustom);
+
+        $queryBase = DB::table("estudios_productos")
+            ->join("estudios", "estudios_productos.estudio_id", "=", "estudios.id")
+            ->join("config_sedes", "estudios.sede_id", "=", "config_sedes.id")
+            ->where("config_sedes.estado", 1)
+            ->where("estudios_productos.activo", 1)
+            ->whereBetween("estudios_productos.fechor_lectura", [
+                "{$fechaInicio} 00:00:00",
+                "{$fechaFin} 23:59:59",
+            ]);
+
+        $totalRedLeidos = (clone $queryBase)->count();
+
+        // Producción por sede
+        $sedesData = (clone $queryBase)
+            ->selectRaw("config_sedes.id as sede_id, config_sedes.nom_sede, count(*) as cantidad")
+            ->groupBy("config_sedes.id", "config_sedes.nom_sede")
+            ->orderByDesc("cantidad")
+            ->get();
+
+        // Desglose de modalidades en toda la red
+        $modalidadesRed = (clone $queryBase)
+            ->selectRaw("COALESCE(NULLIF(estudios.mods_in_study, ''), 'OTRO') as mod_nombre, count(*) as cantidad")
+            ->groupBy("mod_nombre")
+            ->orderByDesc("cantidad")
+            ->get();
+
+        // Estudios pendientes acumulados en la red
+        $pendientesRed = DB::table("estudios_productos")
+            ->join("estudios", "estudios_productos.estudio_id", "=", "estudios.id")
+            ->join("config_sedes", "estudios.sede_id", "=", "config_sedes.id")
+            ->where("config_sedes.estado", 1)
+            ->whereNull("estudios_productos.fechor_lectura")
+            ->where("estudios_productos.activo", 1)
+            ->count();
+
+        // TAT promedio en la red
+        $avgMinutos = (clone $queryBase)
+            ->whereNotNull("estudios.created_at")
+            ->selectRaw("AVG(TIMESTAMPDIFF(MINUTE, estudios.created_at, estudios_productos.fechor_lectura)) as avg_min")
+            ->value("avg_min");
+
+        $tatTexto = "N/D";
+        if ($avgMinutos !== null && $avgMinutos > 0) {
+            $horas = (int) floor($avgMinutos / 60);
+            $mins = (int) round($avgMinutos % 60);
+            $tatTexto = $horas > 0 ? "{$horas}h {$mins}m" : "{$mins}m";
+        }
+
+        // Construcción del texto
+        $lineas = [
+            "🌐 <b>CONSOLIDADO RED HOSPITALARIA — LIDIAG</b>",
+            "📅 <b>Período:</b> {$etiquetaPeriodo}",
+            "────────────────────────",
+            "🏥 <b>Total Estudios Leídos (Red):</b> <b>{$totalRedLeidos}</b>",
+            "⏱️ <b>Tiempo Promedio Lectura (TAT):</b> <b>{$tatTexto}</b>",
+        ];
+
+        if ($totalRedLeidos > 0) {
+            $lineas[] = "\n🏆 <b>Ranking de Producción por Sede:</b>";
+            foreach ($sedesData as $s) {
+                $nomCorto = trim(explode("-", $s->nom_sede)[0]);
+                $barra = $this->generarBarraProgreso($s->cantidad, $totalRedLeidos, 7);
+                $lineas[] = "• <b>{$nomCorto}:</b>\n  <code>{$barra}</code> (<b>{$s->cantidad}</b>)";
+            }
+
+            $lineas[] = "\n🔬 <b>Modalidades en la Red:</b>";
+            foreach ($modalidadesRed as $m) {
+                $icono = match ($m->mod_nombre) {
+                    "CR", "DX", "DR" => "🩻",
+                    "CT" => "🧠",
+                    "MR" => "🧲",
+                    "MG" => "🎀",
+                    "US" => "📡",
+                    default => "🔹",
+                };
+                $nomMod = match ($m->mod_nombre) {
+                    "CR", "DX", "DR" => "Rayos X",
+                    "CT" => "TAC",
+                    "MR" => "Resonancia",
+                    "MG" => "Mamografía",
+                    "US" => "Ecografía",
+                    default => $m->mod_nombre,
+                };
+                $barraMod = $this->generarBarraProgreso($m->cantidad, $totalRedLeidos, 7);
+                $lineas[] = "  {$icono} {$nomMod}: <code>{$barraMod}</code> (<b>{$m->cantidad}</b>)";
+            }
+        } else {
+            $lineas[] = "\nℹ️ <i>No se registraron lecturas en la red durante este período.</i>";
+        }
+
+        $lineas[] = "────────────────────────";
+        $lineas[] = "⏳ <b>Estudios Pendientes en Toda la Red:</b> <b>{$pendientesRed}</b>";
+
+        $navMarkup = [
+            "inline_keyboard" => [
+                [
+                    ["text" => "📅 Hoy", "callback_data" => "wiz:red:hoy"],
+                    ["text" => "⏪ Ayer", "callback_data" => "wiz:red:ayer"],
+                    ["text" => "🗓️ Este Mes", "callback_data" => "wiz:red:mes"],
+                ],
+                [
+                    ["text" => "🚨 Semáforo Represados", "callback_data" => "wiz:retrasados"],
+                    ["text" => "📋 Menú Principal", "callback_data" => "wiz:menu"],
+                ],
+            ],
+        ];
+
+        $this->telegramService->sendMessage($chatId, implode("\n", $lineas), "HTML", $navMarkup);
+    }
+
+    /**
+     * Genera y envía el semáforo asistencial de estudios retrasados (>24h) y de urgencias.
+     *
+     * Flujo del proceso:
+     * 1. Consulta estudios pendientes con más de 24 horas transcurridas desde su creación.
+     * 2. Consulta estudios prioritarios pendientes (Alta / Urgencias).
+     * 3. Despacha mensaje formateado con alertas asistenciales.
+     *
+     * @param  string  $chatId  Identificador del chat destinatario.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-20
+     */
+    public function generarYEnviarReporteRetrasados(string $chatId): void
+    {
+        $this->telegramService->sendChatAction($chatId, "typing");
+
+        // Represados (>24h) por sede
+        $represadosPorSede = DB::table("estudios_productos")
+            ->join("estudios", "estudios_productos.estudio_id", "=", "estudios.id")
+            ->join("config_sedes", "estudios.sede_id", "=", "config_sedes.id")
+            ->where("config_sedes.estado", 1)
+            ->whereNull("estudios_productos.fechor_lectura")
+            ->where("estudios_productos.activo", 1)
+            ->whereRaw("TIMESTAMPDIFF(HOUR, estudios.created_at, NOW()) > 24")
+            ->selectRaw("config_sedes.id as sede_id, config_sedes.nom_sede, count(*) as cantidad")
+            ->groupBy("config_sedes.id", "config_sedes.nom_sede")
+            ->orderByDesc("cantidad")
+            ->get();
+
+        // Urgentes / Prioridad Alta pendientes
+        $urgentesPendientes = DB::table("estudios_productos")
+            ->join("estudios", "estudios_productos.estudio_id", "=", "estudios.id")
+            ->join("config_sedes", "estudios.sede_id", "=", "config_sedes.id")
+            ->where("config_sedes.estado", 1)
+            ->whereNull("estudios_productos.fechor_lectura")
+            ->where("estudios_productos.activo", 1)
+            ->where("estudios.prioridad_id", 1)
+            ->selectRaw("config_sedes.nom_sede, count(*) as cantidad")
+            ->groupBy("config_sedes.nom_sede")
+            ->orderByDesc("cantidad")
+            ->get();
+
+        $totalRepresados = $represadosPorSede->sum("cantidad");
+        $totalUrgentes = $urgentesPendientes->sum("cantidad");
+
+        $lineas = [
+            "🚨 <b>SEMÁFORO DE ESTUDIOS REPRESADOS — LIDIAG</b>",
+            "⏱️ <b>Corte en tiempo real:</b> ".Carbon::now()->format("d/m/Y H:i"),
+            "────────────────────────",
+            "⚠️ <b>Estudios Represados (&gt;24h sin lectura):</b> <b>{$totalRepresados}</b>",
+            "🔴 <b>Estudios Prioridad Alta / Urgencias:</b> <b>{$totalUrgentes}</b>",
+        ];
+
+        if ($totalRepresados > 0) {
+            $lineas[] = "\n🏥 <b>Represamiento por Sede (>24h):</b>";
+            foreach ($represadosPorSede as $rep) {
+                $nomCorto = trim(explode("-", $rep->nom_sede)[0]);
+                $barra = $this->generarBarraProgreso($rep->cantidad, $totalRepresados, 7);
+                $lineas[] = "• <b>{$nomCorto}:</b> <code>{$barra}</code> (<b>{$rep->cantidad}</b>)";
+            }
+        } else {
+            $lineas[] = "\n✅ <i>No hay estudios con retraso mayor a 24 horas en la red.</i>";
+        }
+
+        if ($totalUrgentes > 0) {
+            $lineas[] = "\n🚑 <b>Urgencias Pendientes por Sede:</b>";
+            foreach ($urgentesPendientes as $urg) {
+                $nomCorto = trim(explode("-", $urg->nom_sede)[0]);
+                $lineas[] = "  • {$nomCorto}: <b>{$urg->cantidad}</b> estudios";
+            }
+        }
+
+        $lineas[] = "────────────────────────";
+        $lineas[] = "💡 <i>Se recomienda priorizar la asignación a radiólogos de turno.</i>";
+
+        $navMarkup = [
+            "inline_keyboard" => [
+                [
+                    ["text" => "🔄 Actualizar Semáforo", "callback_data" => "wiz:retrasados"],
+                    ["text" => "🌐 Toda la Red", "callback_data" => "wiz:red:hoy"],
+                ],
+                [
+                    ["text" => "📋 Menú Principal", "callback_data" => "wiz:menu"],
+                ],
+            ],
+        ];
+
+        $this->telegramService->sendMessage($chatId, implode("\n", $lineas), "HTML", $navMarkup);
+    }
+
+    /**
+     * Genera y envía el reporte de estadísticas del módulo de Citas y Agendamiento WhatsApp.
+     *
+     * Flujo del proceso:
+     * 1. Consulta la tabla agenda_citas en el período indicado.
+     * 2. Agrupa por estados de gestión (solicitada, asignada, cancelada, etc.).
+     * 3. Despacha mensaje con botones de navegación rápida.
+     *
+     * @param  string  $chatId  Identificador del chat destinatario.
+     * @param  int|null  $sedeId  Identificador opcional de sede.
+     * @param  string  $periodo  Identificador de período.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-20
+     */
+    public function generarYEnviarReporteCitas(string $chatId, ?int $sedeId = null, string $periodo = "hoy"): void
+    {
+        $this->telegramService->sendChatAction($chatId, "typing");
+
+        [$fechaInicio, $fechaFin, $etiquetaPeriodo] = $this->resolverRangoFechas($periodo);
+
+        $query = DB::table("agenda_citas");
+        if ($sedeId) {
+            $query->where("sede_id", $sedeId);
+        }
+        $query->whereBetween("created_at", ["{$fechaInicio} 00:00:00", "{$fechaFin} 23:59:59"]);
+
+        $totalCitas = (clone $query)->count();
+        $estados = (clone $query)
+            ->selectRaw("estado, count(*) as cantidad")
+            ->groupBy("estado")
+            ->pluck("cantidad", "estado")
+            ->toArray();
+
+        // Solicitudes actualmente pendientes en bandeja de revisión
+        $pendientesRevision = DB::table("agenda_citas")
+            ->when($sedeId, fn ($q) => $q->where("sede_id", $sedeId))
+            ->where("estado", "solicitada")
+            ->count();
+
+        $aprobadas = $estados["asignada"] ?? $estados["confirmada"] ?? 0;
+        $canceladas = $estados["cancelada"] ?? $estados["rechazada"] ?? 0;
+
+        $lineas = [
+            "💬 <b>ESTADÍSTICAS CITAS (WHATSAPP) — LIDIAG</b>",
+            "📅 <b>Período:</b> {$etiquetaPeriodo}",
+            "────────────────────────",
+            "📲 <b>Total Solicitudes en el Período:</b> <b>{$totalCitas}</b>",
+        ];
+
+        if ($totalCitas > 0) {
+            $lineas[] = "\n📊 <b>Gestión de Citas:</b>";
+            $lineas[] = "  • ✅ Asignadas / Confirmadas: <b>{$aprobadas}</b>";
+            $lineas[] = "  • ❌ Canceladas / Rechazadas: <b>{$canceladas}</b>";
+            foreach ($estados as $est => $cant) {
+                if (! in_array($est, ["asignada", "confirmada", "cancelada", "rechazada"])) {
+                    $lineas[] = "  • 🔹 ".ucfirst($est).": <b>{$cant}</b>";
+                }
+            }
+        } else {
+            $lineas[] = "\nℹ️ <i>No se registraron solicitudes de cita en el período seleccionado.</i>";
+        }
+
+        $lineas[] = "────────────────────────";
+        $lineas[] = "⏳ <b>Solicitudes Pendientes en Bandeja WhatsApp:</b> <b>{$pendientesRevision}</b>";
+
+        $navMarkup = [
+            "inline_keyboard" => [
+                [
+                    ["text" => "📅 Hoy", "callback_data" => "wiz:citas:hoy"],
+                    ["text" => "🗓️ Este Mes", "callback_data" => "wiz:citas:mes"],
+                ],
+                [
+                    ["text" => "📋 Menú Principal", "callback_data" => "wiz:menu"],
+                ],
+            ],
+        ];
+
+        $this->telegramService->sendMessage($chatId, implode("\n", $lineas), "HTML", $navMarkup);
+    }
+
+    /**
      * Genera y envía el reporte de estudios tomados directamente en la base de datos PACS/DCM de la sede.
      *
      * Flujo del proceso:
      * 1. Valida configuración de conexión remota DCM (IP, puerto y base de datos).
      * 2. Ejecuta pre-flight socket check de 2 segundos para no bloquear si la sede está offline.
      * 3. Configura la conexión dinámica mysql_sucursal y consulta estudios y modalidades.
-     * 4. Envía resumen ejecutivo en HTML.
+     * 4. Envía resumen ejecutivo en HTML con barras visuales y botones rápidos.
      * 5. Genera y despacha el archivo Excel detallado usando ReportesEstudioPAC.
      *
      * @param  string  $chatId  Identificador del chat destinatario.
@@ -946,7 +1369,22 @@ class TelegramBotHandlerService
             $modalidades
         );
 
-        $this->telegramService->sendMessage($chatId, $resumenTexto);
+        // Teclado con botones de navegación rápida
+        $navMarkup = [
+            "inline_keyboard" => [
+                [
+                    ["text" => "📅 Hoy", "callback_data" => "wiz:gen:dcm:{$sedeId}:hoy"],
+                    ["text" => "⏪ Ayer", "callback_data" => "wiz:gen:dcm:{$sedeId}:ayer"],
+                    ["text" => "🗓️ Mes", "callback_data" => "wiz:gen:dcm:{$sedeId}:mes"],
+                ],
+                [
+                    ["text" => "🏥 Otra Sede", "callback_data" => "wiz:tipo:dcm"],
+                    ["text" => "📋 Menú Principal", "callback_data" => "wiz:menu"],
+                ],
+            ],
+        ];
+
+        $this->telegramService->sendMessage($chatId, $resumenTexto, "HTML", $navMarkup);
 
         if ($totalTomados === 0) {
             return;
@@ -1037,13 +1475,43 @@ class TelegramBotHandlerService
     }
 
     /**
+     * Genera una representación gráfica de barra de porcentaje utilizando caracteres Unicode.
+     *
+     * Flujo del proceso:
+     * 1. Calcula el porcentaje relativo entre actual y total.
+     * 2. Determina la cantidad proporcional de bloques llenos y vacíos.
+     * 3. Formatea la cadena compacta alineada.
+     *
+     * @param  int  $actual  Cantidad actual.
+     * @param  int  $total  Cantidad total de referencia.
+     * @param  int  $longitud  Cantidad de caracteres de la barra.
+     * @return string Ejemplo: "██████░░ 75%"
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-20
+     */
+    public function generarBarraProgreso(int $actual, int $total, int $longitud = 8): string
+    {
+        if ($total <= 0 || $actual <= 0) {
+            return str_repeat("░", $longitud)."  0%";
+        }
+
+        $porcentaje = min(100, (int) round(($actual / $total) * 100));
+        $llenos = min($longitud, (int) round(($porcentaje / 100) * $longitud));
+        $vacios = max(0, $longitud - $llenos);
+        $pctStr = str_pad((string) $porcentaje, 3, " ", STR_PAD_LEFT);
+
+        return str_repeat("█", $llenos).str_repeat("░", $vacios)." {$pctStr}%";
+    }
+
+    /**
      * Construye el texto en formato HTML del resumen ejecutivo de producción para Telegram.
      *
      * Flujo del proceso:
      * 1. Formatea encabezados de sede y período.
-     * 2. Agrupa modalidades y asigna nombres legibles con iconos clínicos.
-     * 3. Enumera los médicos lectores con mayores lecturas registradas.
-     * 4. Concatena el número de estudios pendientes por lectura.
+     * 2. Agrupa modalidades y doctores con barras visuales de porcentaje.
+     * 3. Agrega tiempo de respuesta TAT y semáforo asistencial de represamiento.
      *
      * @param  string  $sedeNombre  Nombre completo de la sede.
      * @param  string  $etiquetaPeriodo  Etiqueta amigable del período.
@@ -1053,6 +1521,9 @@ class TelegramBotHandlerService
      * @param  mixed  $modalidades  Colección de modalidades y cantidades.
      * @param  mixed  $medicos  Colección de médicos lectores y cantidades.
      * @param  int  $pendientes  Cantidad de estudios pendientes por lectura.
+     * @param  string  $tatTexto  Tiempo promedio en formato amigable (ej: 2h 15m).
+     * @param  string  $tatIcono  Semáforo textual.
+     * @param  int  $represados24h  Cantidad de estudios con >24h sin lectura.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -1066,7 +1537,10 @@ class TelegramBotHandlerService
         int $totalLeidos,
         $modalidades,
         $medicos,
-        int $pendientes
+        int $pendientes,
+        string $tatTexto = "N/D",
+        string $tatIcono = "⚪",
+        int $represados24h = 0
     ): string {
         $lineas = [
             "📊 <b>REPORTE DE PRODUCCIÓN — LIDIAG</b>",
@@ -1074,6 +1548,7 @@ class TelegramBotHandlerService
             "📅 <b>Período:</b> {$etiquetaPeriodo}",
             "────────────────────────",
             "✅ <b>Total Estudios Leídos:</b> <b>{$totalLeidos}</b>",
+            "⏱️ <b>Tiempo Promedio Lectura (TAT):</b> {$tatTexto} {$tatIcono}",
         ];
 
         if ($totalLeidos > 0) {
@@ -1090,20 +1565,22 @@ class TelegramBotHandlerService
 
                 $nombreMod = match ($m->mod_nombre) {
                     "CR", "DX", "DR" => "Rayos X ({$m->mod_nombre})",
-                    "CT" => "Tomografía Computarizada (TAC)",
-                    "MR" => "Resonancia Magnética (RM)",
+                    "CT" => "Tomografía (TAC)",
+                    "MR" => "Resonancia (RM)",
                     "MG" => "Mamografía (MG)",
                     "US" => "Ecografía (US)",
                     default => $m->mod_nombre,
                 };
 
-                $lineas[] = "  {$icono} {$nombreMod}: <b>{$m->cantidad}</b>";
+                $barra = $this->generarBarraProgreso($m->cantidad, $totalLeidos, 7);
+                $lineas[] = "  {$icono} {$nombreMod}:\n  <code>{$barra}</code> (<b>{$m->cantidad}</b>)";
             }
 
             if ($medicos->isNotEmpty()) {
-                $lineas[] = "\n👨‍⚕️ <b>Médicos Lectores:</b>";
+                $lineas[] = "\n👨‍⚕️ <b>Médicos con Mayor Volumen:</b>";
                 foreach ($medicos as $med) {
-                    $lineas[] = "  • {$med->medico_nombre}: <b>{$med->cantidad}</b>";
+                    $barraMed = $this->generarBarraProgreso($med->cantidad, $totalLeidos, 7);
+                    $lineas[] = "  • {$med->medico_nombre}:\n    <code>{$barraMed}</code> (<b>{$med->cantidad}</b>)";
                 }
             }
         } else {
@@ -1111,7 +1588,10 @@ class TelegramBotHandlerService
         }
 
         $lineas[] = "────────────────────────";
-        $lineas[] = "⏳ <b>Estudios Pendientes por Lectura en Sede:</b> <b>{$pendientes}</b>";
+        $lineas[] = "⏳ <b>Estudios Pendientes en Sede:</b> <b>{$pendientes}</b>";
+        if ($represados24h > 0) {
+            $lineas[] = "⚠️ <b>Estudios con >24h sin lectura:</b> <b>{$represados24h}</b>";
+        }
 
         return implode("\n", $lineas);
     }
@@ -1121,7 +1601,7 @@ class TelegramBotHandlerService
      *
      * Flujo del proceso:
      * 1. Formatea encabezados de sede y período.
-     * 2. Agrupa modalidades y asigna nombres legibles con iconos clínicos.
+     * 2. Agrupa modalidades con barras visuales de porcentaje.
      * 3. Concatena notas explicativas de consulta directa PACS.
      *
      * @param  string  $sedeNombre  Nombre completo de la sede.
@@ -1172,7 +1652,8 @@ class TelegramBotHandlerService
                     default => $m->mod_nombre,
                 };
 
-                $lineas[] = "  {$icono} {$nombreMod}: <b>{$m->cantidad}</b>";
+                $barra = $this->generarBarraProgreso($m->cantidad, $totalTomados, 7);
+                $lineas[] = "  {$icono} {$nombreMod}:\n  <code>{$barra}</code> (<b>{$m->cantidad}</b>)";
             }
         } else {
             $lineas[] = "\nℹ️ <i>No se registraron estudios tomados en el PACS durante este período.</i>";

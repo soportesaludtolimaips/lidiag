@@ -34,3 +34,7 @@ Schedule::command('lidiag:backup')
 Schedule::command('lidiag:backup-dcm')
     ->dailyAt('02:30')
     ->withoutOverlapping();
+
+Schedule::command('telegram:daily-digest')
+    ->dailyAt('07:30')
+    ->withoutOverlapping();

@@ -38,8 +38,8 @@
 | Ecografías | 8 | 8 | 0 | 0 | 0 | — |
 | Reportes | 3 | 0 | 0 | 0 | 3 | — |
 | Tele-radiología | 2 | 2 | 0 | 0 | 0 | — |
-| Liquidación | 7 | 7 | 0 | 0 | 0 | — |
-| **TOTAL** | **93** | **17** | **0** | **0** | **76** | **37/37** |
+| Liquidación | 7 | 2 | 0 | 0 | 5 | — |
+| **TOTAL** | **93** | **12** | **0** | **0** | **81** | **37/37** |
 
 ---
 
@@ -385,31 +385,32 @@
 | Suite | Resultado | Fecha | Notas |
 |---|---|---|---|
 | Verificación de implementación Fase 1: scripts PHP con rollback contra BD real (cálculo, API, guard D4, export), `pint`, `eslint`, `build` | ✅ PASS | 2026-09-30 / 2026-10-01 | Patrón Fase 0 (scripts en temp, no en repo); ejecutados al construir cada task |
-| QA formal del módulo (manuales/automatizadas en este tracker) | ⬜ Sin iniciar | — | Pendiente de programar |
+| QA backend formal: cálculo (fixtures 5 exclusiones + datos reales), 4×422 validaciones, guard D4 (403/422/409/200), congelamiento+idempotencia, productividad, export xlsx, integridad post-rollback | ✅ 48/48 PASS | 2026-10-13 | `qa_liq_backend.php` (temp, fixtures en rango 2027 aislado de datos reales); 0 residuos tras rollback |
+| QA frontend (navegador: `/liquidacion` y `/productividad`) | ⬜ Pendiente | — | Manual del dueño |
 
 ### Sub-Módulo: Cálculo de liquidación
 
 | # | Funcionalidad | Estado | Resultado | Fecha | Responsable | Evidencia | Notas |
 |---|---|---|---|---|---|---|---|
-| 1 | Calcular líneas, exclusiones y totales por sede+rango | ⬜ Sin iniciar | — | — | — | — | Implementado 2026-09-30 (`67171ef6f`); QA formal pendiente |
-| 2 | Filtros opcionales por contrato y médico | ⬜ Sin iniciar | — | — | — | — | Implementado 2026-10-01 (`7213adb1f`) |
-| 3 | Exclusiones visibles con conteo (sin contrato, sin tarifa, fuera de detalle, anulada, sin asignado) | ⬜ Sin iniciar | — | — | — | — | Nunca silenciosas (spec Fase 1 §6) |
-| 4 | Guard D4: solo el médico asignado puede registrar lectura (403); lectura sin asignado → 422 | ⬜ Sin iniciar | — | — | — | — | `EstudioService::leerEstudio()`; implementado 2026-09-30 |
+| 1 | Calcular líneas, exclusiones y totales por sede+rango | ✅ Terminado | ✅ PASS | 2026-10-13 | Ox | scripts rollback: 2 líneas (consulta 50k + urgencias 110k), gran_total 160000; datos reales 7 días: 0 líneas / 242 exclusiones sin_contrato (BD sin contratos) = suma coincide | `67171ef6f` |
+| 2 | Filtros opcionales por contrato y médico | ✅ Terminado | ✅ PASS | 2026-10-13 | Ox | scripts rollback: filtro medico_id aísla correctamente; contrato_id ok; contrato de otra sede → error 422 | `7213adb1f` |
+| 3 | Exclusiones visibles con conteo (sin contrato, sin tarifa, fuera de detalle, anulada, sin asignado) | ⬜ Sin iniciar | — | — | — | — | Backend OK (5 categorías con conteo=1 cada una en fixtures); falta verificación de render en UI (dueño) |
+| 4 | Guard D4: solo el médico asignado puede registrar lectura (403); lectura sin asignado → 422 | ✅ Terminado | ✅ PASS | 2026-10-13 | Ox | scripts rollback: 403 mensaje correcto, 422 sin médico, 200 asignado (fechor_lectura fijada), 409 relectura | `EstudioService::leerEstudio()` |
 
 ### Sub-Módulo: Corte de mes (productividad)
 
 | # | Funcionalidad | Estado | Resultado | Fecha | Responsable | Evidencia | Notas |
 |---|---|---|---|---|---|---|---|
-| 1 | Registro persistente por lectura en `liquidacion_lineas` (tarifa congelada) | ⬜ Sin iniciar | — | — | — | — | D6; implementado 2026-10-01 (`2e7bacdc1`); índices (sede_id, periodo) |
-| 2 | Vista de productividad por médico y periodo | ⬜ Sin iniciar | — | — | — | — | `productividadComponent.vue`; implementado 2026-10-01 (`1ec4ee339`) |
+| 1 | Registro persistente por lectura en `liquidacion_lineas` (tarifa congelada) | ✅ Terminado | ✅ PASS | 2026-10-13 | Ox | scripts rollback: línea creada por leerEstudio (valor 50000, clase consulta, periodo 2026-10); idempotente sin duplicar; tarifa congelada ignora cambio posterior 50000→99999 | D6; `2e7bacdc1` |
+| 2 | Vista de productividad por médico y periodo | ⬜ Sin iniciar | — | — | — | — | Backend OK (T5: gran_total 160000, medico 36 consulta/urgencias correctos, excluidas 2+1); falta verificación de `productividadComponent.vue` (dueño) |
 
 ### Sub-Módulo: Exportación
 
 | # | Funcionalidad | Estado | Resultado | Fecha | Responsable | Evidencia | Notas |
 |---|---|---|---|---|---|---|---|
-| 1 | Exportar la liquidación a Excel (reutiliza `calcular()`) | ⬜ Sin iniciar | — | — | — | — | Implementado 2026-10-01 (`67e54bfd5` + fix cast `8875a2267`) |
+| 1 | Exportar la liquidación a Excel (reutiliza `calcular()`) | ✅ Terminado | ✅ PASS | 2026-10-13 | Ox | script rollback: xlsx 6382 bytes no vacío, headers fila 1 = "Médico"/"CUPS"; botón UI pendiente manual del dueño | `67e54bfd5` + `8875a2267` |
 
-> **Nota:** el módulo fue implementado completo (Fase 1 contabilidad médicos) y verificado con scripts contra BD real durante su construcción. Las filas anteriores registran el QA formal estilo tracker (como Estudios/Contratación), aún no ejecutado. El cierre de periodo con hash SHA256 (Fase 3 del plan de mejoras) fue **descartado por el dueño** (2026-10-13); diseño mínimo en memoria `obs-468` si se revive.
+> **Nota:** el cierre de periodo con hash SHA256 (Fase 3 del plan de mejoras) fue **descartado por el dueño** (2026-10-13); diseño mínimo en memoria `obs-468` si se revive. Filas 3 (render exclusiones) y Vista de productividad quedan pendientes de la prueba manual del dueño en navegador.
 
 ---
 
@@ -452,6 +453,7 @@
 
 | Fecha | Suite | Resultado | Commit |
 |---|---|---|---|
+| 2026-10-13 | QA backend Liquidación (7 suites, scripts rollback) | ✅ 48/48 PASS | — (scripts temp) |
 | 2026-10-13 | ESLint global resources/js (267→0) + build | ✅ PASS | `b57ad1901` |
 | 2026-10-13 | Docblocks repo-wide app/ (664 funciones, escáner 0 + pint) | ✅ PASS | `c15b9369c` |
 | 2026-09-22 | Estudios Quemador + SAHI + Asignar (MAN-\*) | ✅ 9/9 PASS | `e98ed8a2d`, `ad1ebf799`, `c5c2e1fe1`, `a834b1463`, `caa41a779`, `08d3f3934` |
