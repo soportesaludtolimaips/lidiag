@@ -269,6 +269,32 @@ php artisan lidiag:backup-dcm --sede=1
 php artisan lidiag:backup-dcm --timeout=600 --retention=45
 ```
 
+### Sincronización de Estudios al Portal de Pacientes (`lidiag-reportes`)
+
+Permite la transmisión masiva o individual de estudios radiológicos transcritos hacia el microservicio externo del portal de pacientes (`lidiag-reportes`), emitiendo el PDF clínico oficial generado mediante la plantilla de la sede y firmando digitalmente la solicitud con HMAC SHA-256 (`/api/almacenarLectura`).
+
+```bash
+# Simular ejecución sin generar PDFs ni transferir (dry-run)
+php artisan lidiag:enviar-paciente --dry-run --limite=10
+
+# Filtrar por rango de fechas de transcripción
+php artisan lidiag:enviar-paciente --desde=2026-10-01 --hasta=2026-10-15
+
+# Filtrar por sede hospitalaria específica con límite
+php artisan lidiag:enviar-paciente --sede=1 --limite=50
+
+# Enviar un único estudio_producto por su ID (pruebas / reintentos puntuales)
+php artisan lidiag:enviar-paciente --id=257022
+```
+
+**Parámetros:**
+- `--desde=YYYY-MM-DD`: Fecha de transcripción inicial (`estudios_productos.fechor_trascrito`).
+- `--hasta=YYYY-MM-DD`: Fecha de transcripción final.
+- `--sede=ID`: Filtro por ID de la sede hospitalaria (`config_sedes.id`).
+- `--limite=N`: Límite máximo de estudios a procesar en el lote.
+- `--id=ID`: ID específico de `estudio_producto` a sincronizar.
+- `--dry-run`: Modo de simulación previa que valida la existencia de plantillas, sedes y formato sin invocar LibreOffice ni transferir por red.
+
 ### Automatización en Windows (Task Scheduler)
 
 El proyecto incluye scripts por lotes para programar tareas desatendidas:
