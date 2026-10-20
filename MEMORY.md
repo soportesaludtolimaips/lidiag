@@ -507,6 +507,15 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * Se identificó que `C:\laragon\www\lidiag-reportes\.env` tenía `API_HMAC_SECRET=` en blanco, causando HTTP 500 (`HMAC secret not configured.`). Se sincronizó la misma clave compartida de `lidiag`.
     * En `EstudioNotificacionService.php`, se mejoró la captura del mensaje de respuesta del endpoint remoto para reflejar el detalle exacto del fallo devuelto por el portal en lugar de un mensaje estático genérico.
     * Prueba real con `--id=257022` ejecutada y verificada: generación de PDF de 116 KB en `lidiag-reportes/storage/app/reporte_lecturas/` e inserción exitosa en la tabla `lecturas` con HTTP 200 ✅.
+- [x] **2026-10-20 — Autenticación Web: Corrección de Alertas Múltiples de Credenciales Inválidas:**
+  - **Diagnóstico del Fallo:**
+    * En `AuthService::login()`, al fallar la autenticación se retornaba un array `errors` anidado con 3 claves (`redirect`, `errors`, `old`).
+    * Al procesar `$result['errors']` en `LoginController` mediante `->withErrors($result['errors'])`, Laravel registraba las 3 entradas en el `MessageBag` de la sesión: la URL de redirect, el mensaje de error y el correo ingresado.
+    * En `login.blade.php`, el bucle `@foreach ($errors->all() as $error)` renderizaba un `<div class="alert alert-warning">` independiente por cada clave, mostrando 3 cajas de alerta visuales repetitivas en la interfaz.
+  - **Corrección Implementada:**
+    * En `AuthService.php`, se normalizó el payload de errores de sesión retornando exclusivamente `['email' => 'Estas credenciales no coinciden con nuestros registros.']`.
+    * En `login.blade.php`, se migró el renderizado a `@if ($errors->any())` mostrando una única alerta dismissible de cabecera con `$errors->first()` y el icono de advertencia clínico.
+  - **Verificación:** Laravel Pint passed ✅ | 30 tests PHPUnit pasando al 100% ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.

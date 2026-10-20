@@ -42,9 +42,7 @@ class AuthService extends BaseService
             }
 
             return $this->error($msg, 302, [
-                'redirect' => route('login'),
-                'errors' => ['email' => $msg],
-                'old' => ['email' => $email],
+                'email' => $msg,
             ]);
         }
 
@@ -70,9 +68,7 @@ class AuthService extends BaseService
             }
 
             return $this->error('Credenciales inválidas', 302, [
-                'redirect' => route('login'),
-                'errors' => ['email' => 'Credenciales inválidas'],
-                'old' => ['email' => $email],
+                'email' => 'Estas credenciales no coinciden con nuestros registros.',
             ]);
         }
 
