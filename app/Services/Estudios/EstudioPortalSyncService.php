@@ -87,6 +87,7 @@ class EstudioPortalSyncService extends BaseService
      *     hasta?: ?string,
      *     sede_id?: ?int,
      *     id?: ?int,
+     *     ids?: ?array<int>,
      *     limite?: ?int
      * }  $filtros
      *
@@ -139,6 +140,10 @@ class EstudioPortalSyncService extends BaseService
 
         if (! empty($filtros['id'])) {
             $query->where('estudios_productos.id', '=', (int) $filtros['id']);
+        }
+
+        if (! empty($filtros['ids']) && is_array($filtros['ids'])) {
+            $query->whereIn('estudios_productos.id', array_map('intval', $filtros['ids']));
         }
 
         if (! empty($filtros['sede_id'])) {
@@ -240,6 +245,7 @@ class EstudioPortalSyncService extends BaseService
      *     hasta?: ?string,
      *     sede_id?: ?int,
      *     id?: ?int,
+     *     ids?: ?array<int>,
      *     limite?: ?int,
      *     dry_run?: bool
      * }  $filtros

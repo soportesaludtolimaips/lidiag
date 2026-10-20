@@ -19,6 +19,7 @@ class LidiagEnviarPacienteCommand extends Command
         {--sede= : Filtrar por ID de sede}
         {--limite= : Limite maximo de estudios a procesar}
         {--id= : ID especifico de estudio_producto a enviar}
+        {--reintentar= : Ruta de archivo .txt con estudios fallidos a reintentar}
         {--dry-run : Simular la seleccion y validacion sin generar PDFs ni enviar}';
 
     /**
@@ -119,6 +120,46 @@ class LidiagEnviarPacienteCommand extends Command
             $filtros['limite'] = (int) $this->option('limite');
         }
 
+        if ($this->option('reintentar')) {
+            $rutaArchivo = (string) $this->option('reintentar');
+            if (! file_exists($rutaArchivo)) {
+                if (file_exists(base_path($rutaArchivo))) {
+                    $rutaArchivo = base_path($rutaArchivo);
+                } elseif (file_exists(storage_path($rutaArchivo))) {
+                    $rutaArchivo = storage_path($rutaArchivo);
+                } elseif (file_exists(storage_path('logs/'.$rutaArchivo))) {
+                    $rutaArchivo = storage_path('logs/'.$rutaArchivo);
+                } else {
+                    $this->error("El archivo especificado en --reintentar no existe: {$this->option('reintentar')}");
+
+                    return 1;
+                }
+            }
+
+            $lineas = file($rutaArchivo, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            $ids = [];
+            foreach ($lineas as $linea) {
+                $linea = trim($linea);
+                if ($linea === '' || str_starts_with($linea, '#')) {
+                    continue;
+                }
+                $partes = explode('|', $linea);
+                $idCandidato = trim($partes[0]);
+                if (is_numeric($idCandidato)) {
+                    $ids[] = (int) $idCandidato;
+                }
+            }
+
+            if (empty($ids)) {
+                $this->error("No se encontraron IDs de estudio válidos en el archivo: {$rutaArchivo}");
+
+                return 1;
+            }
+
+            $filtros['ids'] = array_values(array_unique($ids));
+            $this->info(' Cargados '.count($filtros['ids'])." estudios desde archivo de reintento: {$rutaArchivo}");
+        }
+
         $isDryRun = (bool) $this->option('dry-run');
         $filtros['dry_run'] = $isDryRun;
 
@@ -215,6 +256,14 @@ class LidiagEnviarPacienteCommand extends Command
             $this->error("Se detectaron {$resultado['fallidos']} fallo(s) durante el procesamiento:");
 
             $filasErrores = [];
+            $lineasArchivo = [
+                '# LIDiag - Registro de Estudios Fallidos en Sincronización',
+                '# Generado: '.Carbon::now()->format('Y-m-d H:i:s'),
+                '# Total fallidos: '.$resultado['fallidos'],
+                '# Comando para reintentar: php artisan lidiag:enviar-paciente --reintentar=<RUTA_ARCHIVO>',
+                '# Formato: ID_PRODUCTO | DOCUMENTO | PACIENTE | ESTUDIO | ERROR',
+            ];
+
             foreach ($resultado['detalles'] as $detalle) {
                 if ($detalle['estado'] === 'ERROR') {
                     $filasErrores[] = [
@@ -224,6 +273,15 @@ class LidiagEnviarPacienteCommand extends Command
                         mb_substr($detalle['estudio'], 0, 30),
                         $detalle['mensaje'],
                     ];
+
+                    $lineasArchivo[] = sprintf(
+                        '%s | %s | %s | %s | %s',
+                        $detalle['id'],
+                        $detalle['num_docu'],
+                        $detalle['paciente'],
+                        $detalle['estudio'],
+                        $detalle['mensaje']
+                    );
                 }
             }
 
@@ -236,6 +294,19 @@ class LidiagEnviarPacienteCommand extends Command
                 $restantes = count($filasErrores) - 25;
                 $this->comment("... y {$restantes} error(es) adicional(es). Consulte los logs en storage/logs/laravel.log.");
             }
+
+            // Generar archivo .txt de estudios fallidos para facilitar reintento
+            $desdeSufijo = ! empty($filtros['desde']) ? $filtros['desde'] : 'inicio';
+            $hastaSufijo = ! empty($filtros['hasta']) ? $filtros['hasta'] : Carbon::now()->format('Y-m-d');
+            $nombreArchivoTxt = 'sync_fallidos_'.$desdeSufijo.'_al_'.$hastaSufijo.'_'.date('His').'.txt';
+            $rutaArchivoTxt = storage_path('logs/'.$nombreArchivoTxt);
+
+            @file_put_contents($rutaArchivoTxt, implode(PHP_EOL, $lineasArchivo).PHP_EOL);
+
+            $this->newLine();
+            $this->warn("💾 Archivo de fallidos generado: storage/logs/{$nombreArchivoTxt}");
+            $this->line('👉 Para reintentar únicamente estos estudios una vez corregido el problema:');
+            $this->info("   php artisan lidiag:enviar-paciente --reintentar=storage/logs/{$nombreArchivoTxt}");
 
             return 1;
         }

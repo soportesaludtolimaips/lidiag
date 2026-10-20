@@ -258,6 +258,10 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 
 
 
+- [x] **2026-10-20 — Soporte de Trazabilidad y Reintento Automático de Fallidos en Sincronización:**
+  - `EstudioPortalSyncService.php`: Añadido soporte para filtro `ids` (`whereIn('estudios_productos.id', ...)`) en `construirConsulta()`.
+  - `LidiagEnviarPacienteCommand.php`: Añadida opción `{--reintentar=}` y guardado automático de estudios fallidos en archivo `.txt` (`storage/logs/sync_fallidos_...txt`) con cabeceras, formato `ID | DOC | PACIENTE | ESTUDIO | ERROR` y comando de reintento listo.
+  - Validación con Pint (`vendor\bin\pint.bat --test passed`) y verificación en ejecución de prueba.
 - [x] **2026-10-19 — UI/UX Categoría 3.3 (Extensión): Skeleton Loaders Shimmer & Empty States en todo el Módulo de Estudios:**
   - `AsignarEstudioComponent.vue` (`/estudios.asignar.listar`): Reemplazado spinner tradicional por `<table-skeleton-loader :visible="loadingBuscar" :rows="6" :columns="7" />` y añadido `<empty-state-component>` interactivo conectado a `btnLimpiar()`.
   - `leerEstudioComponent.vue` (`/estudios.lectura.listar`): Reemplazado spinner tradicional por `<table-skeleton-loader :visible="!tablaVisible" :rows="6" :columns="9" />` y `<empty-state-component>` con acción de refresco `listarPendiestePorLectura()`.
