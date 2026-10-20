@@ -470,6 +470,14 @@ Controlador de verificación de email (scaffolding de Laravel UI).
 
 ---
 
+## Módulo: Telegram & Notificaciones
+
+### `TelegramWebhookController.php`
+Receptor oficial de eventos y mensajes enviados por Telegram mediante Webhook.
+- **`webhook`**: Valida la cabecera `X-Telegram-Bot-Api-Secret-Token`, despacha el evento al procesador `TelegramBotHandlerService` y confirma a Telegram con HTTP 200 `{"ok": true}`.
+
+---
+
 ## Módulo: Archivos / Utilidades
 
 ### `FileAccessController.php`

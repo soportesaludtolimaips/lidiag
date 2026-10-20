@@ -465,6 +465,14 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * `help_desk_tickets`: Índices `idx_help_desk_tickets_sede_estado`, `idx_help_desk_tickets_prioridad_id`.
     * `estudios_audios`: Índice `idx_estudios_audios_producto_id`.
   - **Verificación:** Laravel Pint passed ✅ | 30 tests pasando ✅.
+- [x] **2026-10-20 — Infraestructura / Documentación Viva y Verificación de Despliegue:**
+  - **Documentación de Controladores Actualizada:** Incorporado `TelegramWebhookController` en `docs/CONTROLLERS.md` bajo la sección *Módulo: Telegram & Notificaciones*.
+  - **Guía de Despliegue y Verificación:** Creado `docs/DEPLOYMENT_VERIFICATION.md` con checklist integral de despliegue paso a paso (variables `.env`, permisos de storage, optimizaciones `config/route/view:cache`, build de frontend y smoke tests con PHPUnit, Telegram y backups).
+  - **Culminación de los 4 Pendientes:**
+    1. Frontend: Nivelación UI/UX, atajos clínicos, backdrop y ergonomía (Commit `044b05cd8`).
+    2. Backend: Suite de 30 tests automatizados Unit y Feature (Commit `5632ce96e`).
+    3. Base de Datos: Auditoría de planes de ejecución y migración de índices de rendimiento (Commit `120f36d43`).
+    4. Infraestructura: Documentación viva de despliegue y controladores.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.
