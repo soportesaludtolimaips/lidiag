@@ -170,9 +170,11 @@ class EstudioNotificacionService extends BaseService
                 ], 'El estudio se ha enviado al portal de pacientes correctamente.');
             }
 
+            $detalleError = $response->json('message') ?: ('HTTP '.$response->status().' - '.$response->body());
+
             return $this->error(
-                'Error al enviar el reporte al portal de pacientes.',
-                400
+                'Error al enviar el reporte al portal de pacientes: '.$detalleError,
+                $response->status() ?: 400
             );
         } catch (\Exception $e) {
             return $this->error('Error al enviar el reporte al portal de pacientes: '.$e->getMessage(), 400);

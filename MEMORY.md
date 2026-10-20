@@ -492,6 +492,21 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Botones de Navegación Rápida Post-Reporte:** Inyección de inline keyboards interactivos al pie de cada reporte para saltar con 1 clic entre períodos (`Hoy`, `Ayer`, `Mes`) o cambiar a la red completa.
   - **Comando Artisan y Tarea Matutina (`telegram:daily-digest`):** Creado comando `TelegramDailyDigestCommand` programado en `routes/console.php` a las `07:30 AM` para despacho automático del cierre del día anterior y semáforo asistencial matutino.
   - **Verificación:** Laravel Pint passed ✅ | 30 tests PHPUnit pasando ✅ | Despacho de Daily Digest verificado en vivo.
+- [x] **2026-10-20 — Comando de Sincronización de Estudios al Portal de Pacientes (`php artisan lidiag:enviar-paciente`):**
+  - **Arquitectura de Sincronización:** Creado `EstudioPortalSyncService` en `app/Services/Estudios/`:
+    * Consulta robusta de estudios transcritos (`estudios_productos.fechor_trascrito IS NOT NULL`, `lectura IS NOT NULL`, `activo = 1`).
+    * Pre-flight checks de configuración (`URL_API_REPORTES`, clave `API_HMAC_SECRET` y binario de LibreOffice Portable).
+    * Mapeo y normalización de payload requerido por el portal (`lidiag-reportes`) y la plantilla Word (`PlantillaEstudioService`).
+    * Manejo resiliente de errores por sede/plantilla sin abortar la ejecución masiva.
+    * Soporte para modo de simulación (`--dry-run`) que valida integridad y formato sin generar PDFs ni transferir por red.
+  - **Comando Artisan (`LidiagEnviarPacienteCommand`):**
+    * Registrado bajo el namespace `lidiag:enviar-paciente` con opciones `--desde=YYYY-MM-DD`, `--hasta=YYYY-MM-DD`, `--sede=ID`, `--limite=N`, `--id=ID` y `--dry-run`.
+    * Barra de progreso en tiempo real (`ProgressBar`), reporte estadístico en tabla (evaluados, enviados, simulados, fallidos) y desglose detallado de errores.
+  - **Verificación Estricta:** `vendor\bin\pint.bat --test` passed ✅ | Pruebas de simulación `--dry-run` con y sin fechas superadas con éxito ✅.
+  - **Diagnóstico y Hotfix de Ingesta en Portal (`lidiag-reportes`):**
+    * Se identificó que `C:\laragon\www\lidiag-reportes\.env` tenía `API_HMAC_SECRET=` en blanco, causando HTTP 500 (`HMAC secret not configured.`). Se sincronizó la misma clave compartida de `lidiag`.
+    * En `EstudioNotificacionService.php`, se mejoró la captura del mensaje de respuesta del endpoint remoto para reflejar el detalle exacto del fallo devuelto por el portal en lugar de un mensaje estático genérico.
+    * Prueba real con `--id=257022` ejecutada y verificada: generación de PDF de 116 KB en `lidiag-reportes/storage/app/reporte_lecturas/` e inserción exitosa en la tabla `lecturas` con HTTP 200 ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.
