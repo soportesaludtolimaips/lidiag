@@ -505,20 +505,23 @@ class TelegramBotHandlerService
         $callbackQueryId = (string) ($callbackQuery["id"] ?? "");
         $message = $callbackQuery["message"] ?? [];
         $chat = $message["chat"] ?? [];
-        $chatId = (string) ($chat["id"] ?? "");
+        $chatId = (string) ($chat["id"] ?? $callbackQuery["from"]["id"] ?? "");
         $messageId = isset($message["message_id"]) ? (int) $message["message_id"] : null;
         $data = $callbackQuery["data"] ?? "";
 
-        if ($callbackQueryId !== "") {
-            $this->telegramService->answerCallbackQuery($callbackQueryId);
-        }
-
         if (! $chatId || ! $this->isChatAuthorized($chatId)) {
+            if ($callbackQueryId !== "") {
+                $this->telegramService->answerCallbackQuery($callbackQueryId, "Acceso no autorizado", true);
+            }
+
             return;
         }
 
         // Navegación: Retorno al Paso 1 (Tipo de reporte)
         if ($data === "wiz:menu") {
+            if ($callbackQueryId !== "") {
+                $this->telegramService->answerCallbackQuery($callbackQueryId);
+            }
             $this->sendTipoReporteSelectionKeyboard($chatId, $messageId);
 
             return;
@@ -526,6 +529,9 @@ class TelegramBotHandlerService
 
         // Navegación: Paso 2 (Listado de sedes según tipo)
         if (str_starts_with($data, "wiz:tipo:")) {
+            if ($callbackQueryId !== "") {
+                $this->telegramService->answerCallbackQuery($callbackQueryId);
+            }
             $tipo = substr($data, 9);
             $this->sendSedeSelectionKeyboard($chatId, $tipo, $messageId);
 
@@ -534,6 +540,9 @@ class TelegramBotHandlerService
 
         // Navegación: Paso 3 (Listado de períodos según sede y tipo)
         if (str_starts_with($data, "wiz:sede:")) {
+            if ($callbackQueryId !== "") {
+                $this->telegramService->answerCallbackQuery($callbackQueryId);
+            }
             $parts = explode(":", $data);
             $tipo = $parts[2] ?? "prod";
             $sedeId = (int) ($parts[3] ?? 1);
@@ -544,6 +553,9 @@ class TelegramBotHandlerService
 
         // Ejecución de reporte desde el asistente
         if (str_starts_with($data, "wiz:gen:")) {
+            if ($callbackQueryId !== "") {
+                $this->telegramService->answerCallbackQuery($callbackQueryId, "⏳ Generando reporte...", false);
+            }
             $parts = explode(":", $data);
             $tipo = $parts[2] ?? "prod";
             $sedeId = (int) ($parts[3] ?? 1);

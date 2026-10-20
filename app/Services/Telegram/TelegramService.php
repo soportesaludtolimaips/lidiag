@@ -235,7 +235,10 @@ class TelegramService
             return ["ok" => false, "result" => []];
         }
 
-        $params = ["timeout" => $timeout];
+        $params = [
+            "timeout" => $timeout,
+            "allowed_updates" => json_encode(["message", "callback_query"]),
+        ];
         if ($offset !== null) {
             $params["offset"] = $offset;
         }
@@ -269,7 +272,10 @@ class TelegramService
             return ["ok" => false, "description" => "TELEGRAM_BOT_TOKEN no configurado."];
         }
 
-        $data = ["url" => $url];
+        $data = [
+            "url" => $url,
+            "allowed_updates" => json_encode(["message", "callback_query"]),
+        ];
         if ($secretToken) {
             $data["secret_token"] = $secretToken;
         }

@@ -481,7 +481,8 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * Transición fluida en el mismo mensaje con `editMessageText` y confirmación instantánea con `answerCallbackQuery` para descartar spinners en Telegram.
   - **Comandos Directos:** Soporte para `/tomados [sede] [periodo]` y `/dcm [sede] [periodo]`, manteniendo `/produccion [sede] [periodo]` (por ID o nombre).
   - **Menú Nativo de Telegram:** Registro automático de comandos con `registerBotCommands()` y `setMyCommands` (`/menu`, `/produccion`, `/tomados`, `/sedes`, `/dd`, `/ayuda`).
-  - **Verificación:** Laravel Pint passed ✅ | 30 tests PHPUnit pasando ✅.
+  - **Hotfix de Eventos CallbackQuery:** Configurado explícitamente `allowed_updates: ["message", "callback_query"]` en `TelegramService::getUpdates()` y `setWebhook()`, resolviendo el bloqueo de Telegram donde los clics táctiles en botones inline eran descartados por omisión de suscripción API.
+  - **Verificación:** Laravel Pint passed ✅ | 30 tests PHPUnit pasando ✅ | Verificado en vivo en `@salud_tolima_bot` con reportes exitosos de Chaparral y Espinal.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.
