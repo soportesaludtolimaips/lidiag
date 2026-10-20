@@ -145,7 +145,11 @@ class LidiagEnviarPacienteCommand extends Command
         if (! empty($filtros['limite'])) {
             $this->line(" Límite máximo: {$filtros['limite']}");
         }
+        $estPorEstudio = $isDryRun ? 0.01 : 1.85;
+        $tiempoEstInicial = $this->formatearSegundos($totalAProcesar * $estPorEstudio);
+
         $this->line(" Total estudios coincidentes: <comment>{$totalCoincidentes}</comment> (a procesar: <comment>{$totalAProcesar}</comment>)");
+        $this->line(" Tiempo estimado inicial: <comment>~{$tiempoEstInicial}</comment> (a ~{$estPorEstudio}s por estudio)");
         $this->newLine();
 
         if ($totalAProcesar === 0) {
@@ -154,30 +158,54 @@ class LidiagEnviarPacienteCommand extends Command
             return 0;
         }
 
+        $inicioTiempo = microtime(true);
+        $procesados = 0;
+
         $progressBar = $this->output->createProgressBar($totalAProcesar);
-        $progressBar->setFormat(' %current%/%max% [%bar%] %percent:3s%% -- %message%');
-        $progressBar->setMessage('Iniciando...');
+        $progressBar->setFormat(
+            " %current%/%max% [%bar%] %percent:3s%%\n".
+            " ⏱ Transcurrido: %elapsed% | Restante est. (ETA): <comment>%eta%</comment> | Prom: %promedio%/est\n".
+            " ➜ %status%"
+        );
+        $progressBar->setMessage('Iniciando...', 'status');
+        $progressBar->setMessage($tiempoEstInicial, 'eta');
+        $progressBar->setMessage(sprintf('%.2fs', $estPorEstudio), 'promedio');
         $progressBar->start();
 
-        $callback = function (string $tipo, string $mensaje, object $item) use ($progressBar) {
+        $callback = function (string $tipo, string $mensaje, object $item) use ($progressBar, &$procesados, $inicioTiempo, $totalAProcesar) {
+            $procesados++;
+            $tiempoActual = microtime(true) - $inicioTiempo;
+            $promedio = $procesados > 0 ? ($tiempoActual / $procesados) : 1.85;
+            $restantes = max(0, $totalAProcesar - $procesados);
+            $etaSegundos = $restantes * $promedio;
+
             $nombreCorto = mb_substr($item->nom_pacien, 0, 20);
-            $progressBar->setMessage("#{$item->estudio_producto_id} - {$nombreCorto}: {$mensaje}");
+            $progressBar->setMessage("#{$item->estudio_producto_id} - {$nombreCorto}: {$mensaje}", 'status');
+            $progressBar->setMessage($this->formatearSegundos($etaSegundos), 'eta');
+            $progressBar->setMessage(sprintf('%.2fs', $promedio), 'promedio');
             $progressBar->advance();
         };
 
         $resultado = $this->syncService->sincronizar($filtros, $callback);
 
+        $tiempoTotalSegundos = microtime(true) - $inicioTiempo;
+        $promedioFinal = $resultado['total'] > 0 ? ($tiempoTotalSegundos / $resultado['total']) : 0;
+        $estudiosPorMinuto = $promedioFinal > 0 ? round(60 / $promedioFinal, 1) : 0;
+
         $progressBar->finish();
         $this->newLine(2);
 
-        // Tabla de resumen estadístico
+        // Tabla de resumen estadístico con tiempos
         $this->table(
-            ['Métrica', 'Cantidad'],
+            ['Métrica', 'Valor'],
             [
                 ['Total evaluados', $resultado['total']],
                 ['Enviados con éxito', $resultado['enviados']],
                 ['Simulados (Dry-Run)', $resultado['simulados']],
                 ['Fallidos / Errores', $resultado['fallidos']],
+                ['Tiempo total de ejecución', $this->formatearSegundos($tiempoTotalSegundos)],
+                ['Promedio por estudio', sprintf('%.2f segundos / estudio', $promedioFinal)],
+                ['Rendimiento estimado', "{$estudiosPorMinuto} estudios / minuto"],
             ]
         );
 
@@ -215,5 +243,32 @@ class LidiagEnviarPacienteCommand extends Command
         $this->info($isDryRun ? 'Simulación completada con éxito.' : 'Todos los estudios fueron sincronizados correctamente.');
 
         return 0;
+    }
+
+    /**
+     * Formatea una cantidad de segundos a una cadena legible (ej: "1h 24m 30s", "3m 15s" o "45s").
+     *
+     * @param  float|int  $segundos  Total de segundos a formatear
+     * @return string Representación formateada en horas, minutos y segundos
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-20
+     */
+    protected function formatearSegundos(float|int $segundos): string
+    {
+        $segundos = max(0, (int) round($segundos));
+        $horas = intdiv($segundos, 3600);
+        $minutos = intdiv($segundos % 3600, 60);
+        $segs = $segundos % 60;
+
+        if ($horas > 0) {
+            return sprintf('%dh %02dm %02ds', $horas, $minutos, $segs);
+        }
+        if ($minutos > 0) {
+            return sprintf('%dm %02ds', $minutos, $segs);
+        }
+
+        return sprintf('%ds', $segs);
     }
 }

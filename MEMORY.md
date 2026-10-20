@@ -501,7 +501,8 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * Soporte para modo de simulación (`--dry-run`) que valida integridad y formato sin generar PDFs ni transferir por red.
   - **Comando Artisan (`LidiagEnviarPacienteCommand`):**
     * Registrado bajo el namespace `lidiag:enviar-paciente` con opciones `--desde=YYYY-MM-DD`, `--hasta=YYYY-MM-DD`, `--sede=ID`, `--limite=N`, `--id=ID` y `--dry-run`.
-    * Barra de progreso en tiempo real (`ProgressBar`), reporte estadístico en tabla (evaluados, enviados, simulados, fallidos) y desglose detallado de errores.
+    * Barra de progreso interactiva con telemetría en tiempo real: cálculo dinámico de tiempo transcurrido, tiempo restante estimado (ETA adaptativo), velocidad promedio en segundos por estudio y rendimiento proyectado (estudios/minuto).
+    * Estimación inicial antes de iniciar el lote y tabla final con desglose completo de métricas operativas y errores.
   - **Verificación Estricta:** `vendor\bin\pint.bat --test` passed ✅ | Pruebas de simulación `--dry-run` con y sin fechas superadas con éxito ✅.
   - **Diagnóstico y Hotfix de Ingesta en Portal (`lidiag-reportes`):**
     * Se identificó que `C:\laragon\www\lidiag-reportes\.env` tenía `API_HMAC_SECRET=` en blanco, causando HTTP 500 (`HMAC secret not configured.`). Se sincronizó la misma clave compartida de `lidiag`.
