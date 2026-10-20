@@ -519,8 +519,11 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 - [x] **2026-10-20 — Utilidad de Conversión PDF: Normalización de Rutas Windows y Espera de E/S:**
   - **Diagnóstico y Hotfix en `PdfConverterHelper`:**
     * Se normalizaron separadores de directorios (`DIRECTORY_SEPARATOR`) para rutas fuente, destino y binario de LibreOffice Portable en entornos Windows.
+    * Se aisló el perfil de usuario de LibreOffice con `-env:UserInstallation` apuntando a `storage/app_lidiag/lo_profile` para evitar bloqueos por concurrencia y errores `source file could not be loaded`.
     * Se añadió sondeo con `clearstatcache(true, $destinationPath)` y hasta 15 reintentos con intervalo de 200ms para evitar falsos negativos por demoras de escritura en disco asíncronas de LibreOffice.
-  - **Verificación:** Laravel Pint passed ✅.
+  - **Resolución de `Unauthenticated` por Valores Nulos en HMAC:**
+    * En `lidiag-reportes` (`VerifyHmacSignature.php`), se normalizaron los campos nulos del payload a string vacío `""` antes de invocar `http_build_query`. El middleware `ConvertEmptyStringsToNull` de Laravel convertía campos vacíos como `fec_naci` a `null`, causando que PHP omitiera la clave en el hash del receptor y generara firmas discrepantes.
+  - **Verificación:** Laravel Pint passed ✅ | Tests 257312, 257330, 257376, 257478, 257479, 257480 transferidos con éxito al 100% ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.

@@ -33,8 +33,9 @@ class PdfConverterHelper
 
         try {
             $soffice = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, base_path('storage/app_lidiag/LibreOfficePortable/App/libreoffice/program/soffice.com'));
+            $profileUri = 'file:///'.str_replace(['\\', ' '], ['/', '%20'], storage_path('app_lidiag/lo_profile'));
 
-            $command = escapeshellarg($soffice).' --headless --norestore --convert-to pdf --outdir '.escapeshellarg($outDir).' '.escapeshellarg($sourcePath);
+            $command = escapeshellarg($soffice)." \"-env:UserInstallation={$profileUri}\" --headless --norestore --convert-to pdf --outdir ".escapeshellarg($outDir).' '.escapeshellarg($sourcePath);
 
             shell_exec($command.' 2>&1');
         } catch (\Throwable $e) {
