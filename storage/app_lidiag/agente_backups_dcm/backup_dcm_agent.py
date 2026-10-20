@@ -1,0 +1,527 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+backup_dcm_agent.py — Agente de Backup Local DCM para LIDiag y Sincronización QNAP (Qsync)
+
+Este script se ejecuta localmente en el servidor de cada sede/hospital.
+Realiza el volcado local de MySQL con mysqldump a alta velocidad de disco (SSD/NVMe),
+lo comprime a formato ZIP en la carpeta destino local (C:\\backups_dcm) y purga los
+archivos antiguos que superen los días de retención (30 días).
+
+Funcionalidades de grado clínico:
+1. Control de espacio libre en disco (Pre-flight check).
+2. Volcado seguro con mysqldump (--hex-blob, --max_allowed_packet=512M, auto-detección MySQL 5.7 / 8.0+).
+3. Prueba de integridad CRC32 del ZIP antes de borrar el SQL crudo.
+4. Generación de checksum criptográfico SHA-256 (.sha256).
+5. Manifiesto de telemetría y salud centralizado (backup_status_sede_{id}.json) sincronizado por Qsync.
+6. Purga automática de backups y hashes antiguos.
+
+Requisitos:
+- Python 3.7+ (Solo bibliotecas estándar: no requiere pip install).
+- Acceso local a mysqldump (MySQL Server o MariaDB).
+
+Uso:
+  python backup_dcm_agent.py
+  python backup_dcm_agent.py --config config.json
+  python backup_dcm_agent.py --sede 1 --nombre espinal --destination-dir "C:\\backups_dcm"
+
+Autor: Jhon Javer Lozano Arce
+Fecha: 2026-10-19
+"""
+
+import argparse
+import datetime
+import glob
+import hashlib
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import time
+import zipfile
+
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(description="Agente de Backup Local DCM para LIDiag / QNAP Qsync")
+    parser.add_argument("--config", "-c", default="config.json", help="Ruta al archivo de configuración JSON (por defecto: config.json)")
+    parser.add_argument("--sede", type=int, help="ID de la sede (anula valor del config.json)")
+    parser.add_argument("--nombre", "--sede-nombre", dest="sede_nombre", help="Nombre o slug de la sede (ej. espinal, chaparral)")
+    parser.add_argument("--db-host", help="Host de MySQL (anula config)")
+    parser.add_argument("--db-port", type=int, help="Puerto de MySQL (anula config)")
+    parser.add_argument("--db-name", help="Nombre de la base de datos (anula config)")
+    parser.add_argument("--db-user", help="Usuario de MySQL (anula config)")
+    parser.add_argument("--db-password", help="Contraseña de MySQL (anula config)")
+    parser.add_argument("--mysqldump-path", "--mysqldump", dest="mysqldump_path", help="Ruta completa al ejecutable mysqldump")
+    parser.add_argument("--destination-dir", "--dest", dest="destination_dir", help="Carpeta destino local sincronizada por Qsync (ej. C:\\backups_dcm)")
+    parser.add_argument("--retention-days", type=int, dest="retention_days", help="Días de retención de backups locales (por defecto: 30)")
+    parser.add_argument("--min-free-gb", type=float, dest="min_free_space_gb", help="Espacio libre mínimo en disco en GB (por defecto: 5)")
+    return parser.parse_args()
+
+
+def parse_tolerant_json(content):
+    r"""
+    Parsea JSON con tolerancia a rutas de Windows con barras invertidas simples (\).
+    En Windows, al escribir 'C:\Program Files\...' o 'C:\backups_dcm' el parser estándar
+    falla con 'Invalid \escape' (\b es backspace, \P es escape inválido).
+    """
+    try:
+        return json.loads(content)
+    except Exception:
+        pass
+
+    def fix_string(match):
+        val = match.group(0)
+        inner = val[1:-1]
+        inner = inner.replace('\\"', "___ESCAPED_QUOTE___")
+        inner = inner.replace("\\", "/")
+        inner = inner.replace("___ESCAPED_QUOTE___", '\\"')
+        return f'"{inner}"'
+
+    fixed = re.sub(r'"(?:[^"\\]|\\.)*"', fix_string, content)
+    try:
+        return json.loads(fixed)
+    except Exception:
+        return json.loads(content.replace("\\", "/"))
+
+
+def load_config(config_path, args):
+    if not os.path.exists(config_path):
+        print("=========================================================")
+        print(f"[ERROR] No se encontró el archivo de configuración: {config_path}")
+        print("Copia 'config.json.example' a 'config.json' y ajusta las credenciales de esta sede.")
+        print("=========================================================")
+        sys.exit(1)
+
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        loaded = parse_tolerant_json(content)
+        if not isinstance(loaded, dict):
+            raise ValueError("El contenido del archivo no es un objeto JSON válido.")
+    except Exception as e:
+        print("=========================================================")
+        print(f"[ERROR] No se pudo leer o parsear el archivo '{config_path}': {e}")
+        print("Verifica la sintaxis del archivo JSON antes de continuar.")
+        print("=========================================================")
+        sys.exit(1)
+
+    # Compatibilidad de claves alternativas
+    if "mysqldump_bin" in loaded and not loaded.get("mysqldump_path"):
+        loaded["mysqldump_path"] = loaded["mysqldump_bin"]
+    if "sede_slug" in loaded and not loaded.get("sede_nombre"):
+        loaded["sede_nombre"] = loaded["sede_slug"]
+
+    # Validar campos obligatorios de la sede
+    required_fields = ["sede_id", "db_name", "db_user"]
+    missing = [field for field in required_fields if field not in loaded]
+    if missing:
+        print("=========================================================")
+        print(f"[ERROR] Faltan campos obligatorios en '{config_path}': {', '.join(missing)}")
+        print("Por favor especifícalos en el archivo de configuración.")
+        print("=========================================================")
+        sys.exit(1)
+
+    # Configuración base con valores operativos por defecto
+    config = {
+        "sede_id": loaded["sede_id"],
+        "sede_nombre": loaded.get("sede_nombre", ""),
+        "db_host": loaded.get("db_host", "127.0.0.1"),
+        "db_port": int(loaded.get("db_port", 3306)),
+        "db_name": loaded["db_name"],
+        "db_user": loaded["db_user"],
+        "db_password": loaded.get("db_password", ""),
+        "mysqldump_path": loaded.get("mysqldump_path", ""),
+        "destination_dir": loaded.get("destination_dir", "C:\\backups_dcm"),
+        "retention_days": int(loaded.get("retention_days", 30)),
+        "min_free_space_gb": float(loaded.get("min_free_space_gb", 5.0)),
+        "temp_dir": loaded.get("temp_dir", "./temp_backups"),
+    }
+
+    # Sobreescribir con argumentos de línea de comandos si fueron suministrados
+    if args.sede is not None:
+        config["sede_id"] = args.sede
+    if args.sede_nombre:
+        config["sede_nombre"] = args.sede_nombre
+    if args.db_host:
+        config["db_host"] = args.db_host
+    if args.db_port:
+        config["db_port"] = args.db_port
+    if args.db_name:
+        config["db_name"] = args.db_name
+    if args.db_user:
+        config["db_user"] = args.db_user
+    if args.db_password is not None:
+        config["db_password"] = args.db_password
+    if args.mysqldump_path:
+        config["mysqldump_path"] = args.mysqldump_path
+    if args.destination_dir:
+        config["destination_dir"] = args.destination_dir
+    if args.retention_days is not None:
+        config["retention_days"] = args.retention_days
+    if args.min_free_space_gb is not None:
+        config["min_free_space_gb"] = args.min_free_space_gb
+
+    return config
+
+
+def format_bytes(bytes_num):
+    for unit in ["B", "KB", "MB", "GB", "TB"]:
+        if bytes_num < 1024.0:
+            return f"{bytes_num:.2f} {unit}"
+        bytes_num /= 1024.0
+    return f"{bytes_num:.2f} PB"
+
+
+def sanitize_filename_part(text):
+    if not text:
+        return ""
+    cleaned = re.sub(r"[^a-zA-Z0-9_\-]+", "_", str(text).strip().lower())
+    return cleaned.strip("_")
+
+
+def calculate_sha256(filepath):
+    """Calcula el hash SHA-256 en bloques de 1MB para bajo consumo de memoria."""
+    h = hashlib.sha256()
+    with open(filepath, "rb") as f:
+        while chunk := f.read(1024 * 1024):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def check_disk_space(target_path, min_gb_required):
+    """Verifica si el disco donde reside la ruta tiene suficiente espacio disponible."""
+    try:
+        # Asegurar directorio o ruta padre existente para disk_usage
+        check_dir = target_path
+        while check_dir and not os.path.exists(check_dir):
+            parent = os.path.dirname(check_dir)
+            if parent == check_dir:
+                break
+            check_dir = parent
+        usage = shutil.disk_usage(check_dir if check_dir else ".")
+        free_gb = usage.free / (1024 ** 3)
+        return usage.free, free_gb, (free_gb >= min_gb_required)
+    except Exception as e:
+        print(f"[ADVERTENCIA] No se pudo consultar espacio en disco: {e}")
+        return 0, 999.0, True
+
+
+def find_mysqldump(custom_path):
+    """
+    Resuelve el ejecutable mysqldump según la ruta configurada en config.json
+    o buscándolo en el PATH del sistema.
+    """
+    if custom_path:
+        clean_path = custom_path.strip("\"' \t\r\n")
+        clean_path = os.path.expandvars(os.path.expanduser(clean_path))
+        if os.path.isfile(clean_path):
+            return clean_path
+        if shutil.which(clean_path):
+            return shutil.which(clean_path)
+        print("=========================================================")
+        print(f"[ERROR] La ruta 'mysqldump_path' configurada en config.json no existe: {custom_path}")
+        print("Verifica la ruta al ejecutable mysqldump.exe en el servidor.")
+        print("=========================================================")
+        sys.exit(1)
+
+    # Si no se configuró ruta, buscar en el PATH del sistema
+    which_path = shutil.which("mysqldump")
+    if which_path:
+        return which_path
+
+    print("=========================================================")
+    print("[ERROR] No se encontró el ejecutable 'mysqldump' en el PATH del sistema.")
+    print("Por favor especifica la ruta completa en el parámetro 'mysqldump_path' de config.json.")
+    print("=========================================================")
+    sys.exit(1)
+
+
+def check_column_statistics_supported(mysqldump_bin):
+    """
+    Verifica si mysqldump soporta la opción --column-statistics (introducida en MySQL 8.0+).
+    En MySQL 5.7 o MariaDB dicha opción no existe y provoca error fatal con código 7.
+    """
+    try:
+        proc = subprocess.run(
+            [mysqldump_bin, "--help"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=False,
+        )
+        return "column-statistics" in (proc.stdout or "")
+    except Exception:
+        return False
+
+
+def purge_old_backups(destination_dir, retention_days):
+    if retention_days <= 0:
+        return 0, 0
+
+    cutoff_time = time.time() - (retention_days * 86400)
+    purged_count = 0
+    purged_bytes = 0
+
+    pattern = os.path.join(destination_dir, "backup_dcm_*.zip")
+    for file_path in glob.glob(pattern):
+        try:
+            mtime = os.path.getmtime(file_path)
+            if mtime < cutoff_time:
+                file_size = os.path.getsize(file_path)
+                os.remove(file_path)
+                purged_count += 1
+                purged_bytes += file_size
+                print(f"      [PURGA] Eliminado por retención (> {retention_days} días): {os.path.basename(file_path)} ({format_bytes(file_size)})")
+
+                # Purgar archivo .sha256 gemelo si existe
+                sha_file = f"{file_path}.sha256"
+                if os.path.exists(sha_file):
+                    try:
+                        os.remove(sha_file)
+                    except Exception:
+                        pass
+        except Exception as e:
+            print(f"      [ADVERTENCIA] No se pudo purgar {file_path}: {e}")
+
+    return purged_count, purged_bytes
+
+
+def write_status_manifest(dest_dir, sede_id, status_data):
+    """Guarda el archivo de estado y telemetría para monitoreo en QNAP."""
+    try:
+        manifest_path = os.path.join(dest_dir, f"backup_status_sede_{sede_id}.json")
+        with open(manifest_path, "w", encoding="utf-8") as f:
+            json.dump(status_data, f, indent=2, ensure_ascii=False)
+        # También guardar alias genérico
+        alias_path = os.path.join(dest_dir, "backup_status.json")
+        with open(alias_path, "w", encoding="utf-8") as f:
+            json.dump(status_data, f, indent=2, ensure_ascii=False)
+        return manifest_path
+    except Exception as e:
+        print(f"[ADVERTENCIA] No se pudo guardar manifiesto de estado: {e}")
+        return None
+
+
+def main():
+    start_total_time = time.time()
+    args = parse_arguments()
+    config = load_config(args.config, args)
+
+    print("=========================================================")
+    print("      AGENTE LOCAL DE BACKUPS DCM — LIDiag / QNAP        ")
+    print("=========================================================")
+    print(f" Sede ID          : {config['sede_id']}" + (f" ({config['sede_nombre']})" if config.get("sede_nombre") else ""))
+    print(f" Base de Datos    : {config['db_name']} @ {config['db_host']}:{config['db_port']}")
+    print(f" Usuario MySQL    : {config['db_user']}")
+    if config.get("mysqldump_path"):
+        print(f" MySQLDump Path   : {config['mysqldump_path']}")
+    print(f" Carpeta Destino  : {config['destination_dir']} (Sincronizada por Qsync)")
+    print(f" Días Retención   : {config['retention_days']} días")
+    print("=========================================================")
+
+    # Asegurar existencia de directorios
+    dest_dir = os.path.abspath(config.get("destination_dir", "C:\\backups_dcm"))
+    temp_dir = os.path.abspath(config.get("temp_dir", "./temp_backups"))
+    os.makedirs(dest_dir, exist_ok=True)
+    os.makedirs(temp_dir, exist_ok=True)
+
+    # 1. Pre-flight check: Control de espacio libre en disco
+    min_gb = config.get("min_free_space_gb", 5.0)
+    free_bytes, free_gb, is_space_ok = check_disk_space(dest_dir, min_gb)
+    print(f"[1/5] Verificación previa de disco: {format_bytes(free_bytes)} libres ({free_gb:.2f} GB)")
+
+    if not is_space_ok:
+        err_msg = f"Espacio insuficiente en disco destino ({free_gb:.2f} GB disponibles < {min_gb:.2f} GB requeridos)."
+        print(f"[ERROR CRÍTICO] {err_msg}")
+        write_status_manifest(dest_dir, config["sede_id"], {
+            "sede_id": config["sede_id"],
+            "sede_nombre": config.get("sede_nombre", ""),
+            "fecha": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "estado": "ERROR",
+            "error": err_msg,
+            "espacio_libre_gb": round(free_gb, 2),
+        })
+        sys.exit(1)
+
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")
+    sede_tag = f"sede_{config['sede_id']}"
+    if config.get("sede_nombre"):
+        slug = sanitize_filename_part(config["sede_nombre"])
+        if slug:
+            sede_tag = f"sede_{config['sede_id']}_{slug}"
+
+    sql_filename = f"database_dcm_{sede_tag}_{config['db_name']}_{timestamp}.sql"
+    sql_path = os.path.join(temp_dir, sql_filename)
+    zip_filename = f"backup_dcm_{sede_tag}_{timestamp}.zip"
+    zip_path = os.path.join(dest_dir, zip_filename)
+
+    mysqldump_bin = find_mysqldump(config.get("mysqldump_path"))
+    supports_col_stats = check_column_statistics_supported(mysqldump_bin)
+    print(f"      Ejecutable mysqldump: {mysqldump_bin} (column-statistics: {'soportado' if supports_col_stats else 'no requerido/ignorado'})")
+
+    # 2. Paso 1: Dump local de MySQL
+    print(f"[2/5] Generando volcado MySQL en disco local ({sql_filename})...")
+    start_dump = time.time()
+
+    cmd = [
+        mysqldump_bin,
+        f"--host={config['db_host']}",
+        f"--port={config['db_port']}",
+        f"--user={config['db_user']}",
+        "--single-transaction",
+        "--quick",
+        "--routines",
+        "--triggers",
+        "--hex-blob",
+        "--max_allowed_packet=512M",
+    ]
+
+    if supports_col_stats:
+        cmd.append("--column-statistics=0")
+
+    cmd.extend([
+        f"--result-file={sql_path}",
+        config["db_name"],
+    ])
+
+    env = os.environ.copy()
+    if config.get("db_password"):
+        env["MYSQL_PWD"] = config["db_password"]
+
+    try:
+        proc = subprocess.run(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False)
+
+        # Reintento de contingencia si falló por unknown variable 'column-statistics=0'
+        if proc.returncode != 0 and "column-statistics" in proc.stderr:
+            print("      [AVISO] Reintentando volcado sin opción --column-statistics=0...")
+            cmd_retry = [arg for arg in cmd if not arg.startswith("--column-statistics")]
+            proc = subprocess.run(cmd_retry, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False)
+
+        if proc.returncode != 0:
+            err_msg = f"mysqldump falló con código {proc.returncode}: {proc.stderr.strip()}"
+            print(f"[ERROR] {err_msg}")
+            write_status_manifest(dest_dir, config["sede_id"], {
+                "sede_id": config["sede_id"],
+                "sede_nombre": config.get("sede_nombre", ""),
+                "fecha": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "estado": "ERROR",
+                "error": err_msg,
+            })
+            sys.exit(1)
+    except FileNotFoundError:
+        err_msg = f"No se pudo ejecutar mysqldump en '{mysqldump_bin}'. Verifica la ruta configurada."
+        print(f"[ERROR] {err_msg}")
+        sys.exit(1)
+
+    if not os.path.exists(sql_path) or os.path.getsize(sql_path) == 0:
+        print("[ERROR] El archivo .sql generado no existe o está vacío.")
+        sys.exit(1)
+
+    dump_size = os.path.getsize(sql_path)
+    dump_duration = round(time.time() - start_dump, 2)
+    print(f"      [OK] Dump completado en {dump_duration}s (Tamaño sin comprimir: {format_bytes(dump_size)})")
+
+    # 3. Paso 2: Compresión directa en carpeta destino
+    print(f"[3/5] Comprimiendo directamente en destino Qsync ({zip_filename})...")
+    start_zip = time.time()
+
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.write(sql_path, arcname=sql_filename)
+
+    zip_size = os.path.getsize(zip_path)
+    zip_duration = round(time.time() - start_zip, 2)
+    ratio = round(dump_size / zip_size, 1) if zip_size > 0 else 1
+    print(f"      [OK] Archivo ZIP generado en {zip_duration}s: {format_bytes(zip_size)} (Compresión {ratio}x)")
+
+    # 4. Paso 3: Verificación estricta de integridad del ZIP antes de borrar el SQL
+    print("[4/5] Verificando integridad interna del archivo ZIP (testzip)...")
+    try:
+        with zipfile.ZipFile(zip_path, "r") as zf_test:
+            bad_file = zf_test.testzip()
+            if bad_file:
+                raise zipfile.BadZipFile(f"Archivo corrupto en el archivo ZIP: {bad_file}")
+        print("      [OK] Integridad del archivo ZIP 100% verificada (CRC32 válido).")
+
+        # Eliminar archivo SQL crudo temporal solo tras confirmar la integridad del ZIP
+        try:
+            os.remove(sql_path)
+            print("      [OK] Dump temporal .sql eliminado de forma segura.")
+        except Exception:
+            pass
+
+    except Exception as e:
+        err_msg = f"Error de integridad en el archivo ZIP generado: {e}"
+        print(f"[ERROR CRÍTICO] {err_msg}")
+        print("      AVISO: El archivo SQL original se conserva intacto en: " + sql_path)
+        write_status_manifest(dest_dir, config["sede_id"], {
+            "sede_id": config["sede_id"],
+            "sede_nombre": config.get("sede_nombre", ""),
+            "fecha": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "estado": "ERROR",
+            "error": err_msg,
+            "sql_conservado": sql_path,
+        })
+        sys.exit(1)
+
+    # 5. Paso 4: Huella digital criptográfica SHA-256
+    print("[5/5] Calculando checksum criptográfico SHA-256...")
+    sha256_hash = calculate_sha256(zip_path)
+    sha256_file = f"{zip_path}.sha256"
+    try:
+        with open(sha256_file, "w", encoding="utf-8") as f:
+            f.write(f"{sha256_hash}  {zip_filename}\n")
+        print(f"      [OK] SHA-256: {sha256_hash}")
+        print(f"      Archivo hash generado: {os.path.basename(sha256_file)}")
+    except Exception as e:
+        print(f"      [ADVERTENCIA] No se pudo guardar archivo .sha256: {e}")
+
+    # Paso 6: Purga automática por retención
+    retention_days = int(config.get("retention_days", 30))
+    print(f"[Purga] Verificando backups mayores a {retention_days} días en {dest_dir}...")
+    purged_count, purged_bytes = purge_old_backups(dest_dir, retention_days)
+    if purged_count > 0:
+        print(f"      [OK] Purgados {purged_count} archivo(s) antiguo(s), liberados {format_bytes(purged_bytes)}.")
+    else:
+        print("      [OK] No hay archivos que superen los días de retención.")
+
+    # Paso 7: Escribir manifiesto de estado final para monitoreo en QNAP
+    total_duration = round(time.time() - start_total_time, 2)
+    end_free_bytes, end_free_gb, _ = check_disk_space(dest_dir, 0)
+
+    status_data = {
+        "sede_id": config["sede_id"],
+        "sede_nombre": config.get("sede_nombre", ""),
+        "db_name": config["db_name"],
+        "fecha_ejecucion": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "estado": "SUCCESS",
+        "archivo_zip": zip_filename,
+        "sha256": sha256_hash,
+        "tamano_db_bytes": dump_size,
+        "tamano_db_humano": format_bytes(dump_size),
+        "tamano_zip_bytes": zip_size,
+        "tamano_zip_humano": format_bytes(zip_size),
+        "ratio_compresion": f"{ratio}x",
+        "duracion_dump_segundos": dump_duration,
+        "duracion_zip_segundos": zip_duration,
+        "duracion_total_segundos": total_duration,
+        "espacio_libre_disco": format_bytes(end_free_bytes),
+        "espacio_libre_gb": round(end_free_gb, 2),
+        "archivos_purgados": purged_count,
+        "archivos_purgados_bytes": purged_bytes,
+    }
+    manifest_file = write_status_manifest(dest_dir, config["sede_id"], status_data)
+    if manifest_file:
+        print(f"[Telemetría] Manifiesto generado para QNAP: {os.path.basename(manifest_file)}")
+
+    print("=========================================================")
+    print(f" BACKUP DCM FINALIZADO CON ÉXITO EN {total_duration}s")
+    print(f" Destino: {zip_path}")
+    print(f" SHA-256: {sha256_hash}")
+    print(" Qsync sincronizará automáticamente el .zip, el .sha256 y el status con el QNAP.")
+    print("=========================================================")
+
+
+if __name__ == "__main__":
+    main()

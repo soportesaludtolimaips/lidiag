@@ -529,6 +529,9 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - Exclusión integral de archivos comprimidos y backups locales (`*.zip`, `*.rar`, `*.7z`, `*.tar.gz`, `temp_backups/`).
   - Exclusión de archivos temporales de Office (`~$*`, `**/~$*`) y directorios de herramientas locales (`/.superpowers`, `/.idea`).
   - Blindaje en `storage/app_lidiag/`: exclusión de herramientas y binarios pesados (`LibreOfficePortable`, `microdicom`, entornos `venv`, uploads), runtime de LibreOffice (`lo_profile/`), y protección automática contra commit de credenciales (`config.json`), logs y cachés en los servicios auxiliares (`agente_backups_dcm`, `dcm_disk_monitor_telegram`).
+- [x] **2026-10-20 — Versionamiento de Servicios Auxiliares (`storage/app_lidiag/`):**
+  - Incorporación a Git de los scripts y fuentes de `agente_backups_dcm/`, servicio STT `transcriptor/` (FastAPI + Whisper), `src-tauri/` y `microdicom/`.
+  - Exclusión confirmada de entornos virtuales (`venv/`), binarios pesados (`LibreOfficePortable/`), perfiles de ejecución (`lo_profile/`) y credenciales sensibles (`config.json`).
 ### Estado de módulos recientes (oct. 2026)
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.
