@@ -567,6 +567,15 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Pruebas Automatizadas y Calidad:**
     * Creado `tests/Feature/BackupMonitorFeatureTest.php` con 5 tests (autenticación 401, autorización 403, estructura de datos 200, autorización de disparo 403, ejecución con mock 200) pasando al 100%.
     * Verificación integral: ESLint 0 errores/warnings ✅ | Laravel Pint passed ✅ | PHPStan nivel 5 (0 errores) ✅ | PHPUnit 5/5 assertions pasando ✅ | Vite `npm run build` en 1.02s ✅.
+- [x] **2026-10-21 — Optimización del Módulo de Liquidación y Productividad Médica:**
+  - **Detalle Estructurado de Exclusiones:** Modificado `LiquidacionService::calcular` para cargar relaciones del estudio (`paciente:id,num_docu,nombres,pri_ape` y `medico:id,name`). El arreglo de exclusiones ahora retorna objetos enriquecidos con documento, paciente, médico, código CUPS, nombre del procedimiento y motivo clínico/contractual específico del rechazo de tarifa.
+  - **Modal Interactivo de Exclusiones en `liquidacionComponent.vue`:** Los ítems de exclusión ahora son interactivos (`cursor: pointer` con badge reactivo). Al hacer clic despliega un modal accesible con backdrop blur, búsqueda instantánea por paciente/CUPS/médico y tabla detallada para facilitar a contabilidad la identificación y corrección de contratos.
+  - **Exportación de Productividad a Excel (`ProductividadExport.php`):** Creada la clase de exportación con membrete institucional Salud Tolima, estilo corporativo (`#1A2274`), bordes, formato de moneda `$#,##0`, subtotales por médico y total general acumulado.
+  - **Endpoint y Botón de Descarga:** Creado `GET /api/liquidacion/productividad/exportar` en `api_liquidacion.php`, método `exportarProductividad` en `LiquidacionController` e integrado botón "Excel" en `productividadComponent.vue`.
+  - **Estilos Institucionales en `LiquidacionExport.php`:** Integrada cabecera corporativa, formato numérico de moneda y fila de Gran Total Liquidado con conteo de lecturas.
+  - **Pruebas Automatizadas y Calidad:**
+    * Creado `tests/Feature/LiquidacionFeatureTest.php` con 6 tests (autenticación 401, permisos Spatie 403, cálculo con estructura 200, exportación de liquidación a Excel 200, consulta de productividad 200 y exportación de productividad a Excel 200) pasando al 100%.
+    * Verificación integral: ESLint 0 errores/warnings ✅ | Laravel Pint passed ✅ | PHPStan nivel 5 (0 errores) ✅ | PHPUnit 6/6 assertions pasando ✅ | Vite `npm run build` en 1.03s ✅.
 ### Estado de módulos recientes (oct. 2026)
 - **BackupMonitorController** (2026-10-21): ✅ Permisos `seguridad.backups.index` y `seguridad.backups.ejecutar` creados y asignados a `Administrador` mediante `PermisionBackupMonitorSeeder`. Rutas en `api_seguridad.php` y `web.php`.
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.

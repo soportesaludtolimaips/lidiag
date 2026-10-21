@@ -243,11 +243,28 @@
                                 v-for="item in exclusiones"
                                 :key="item.categoria"
                                 class="list-group-item d-flex justify-content-between align-items-center"
+                                :class="{ 'cursor-pointer hover-item bg-light': item.conteo > 0 }"
+                                :style="item.conteo > 0 ? 'cursor: pointer;' : ''"
+                                :title="
+                                    item.conteo > 0
+                                        ? 'Haga clic para ver el detalle de los estudios excluidos'
+                                        : ''
+                                "
+                                @click="item.conteo > 0 ? abrirModalExclusion(item) : null"
                             >
-                                {{ etiquetaExclusion(item.categoria) }}
-                                <span class="badge badge-secondary badge-pill">{{
-                                    item.conteo
-                                }}</span>
+                                <span>
+                                    <i
+                                        v-if="item.conteo > 0"
+                                        class="fa fa-search m-r-5 text-info"
+                                    ></i>
+                                    {{ etiquetaExclusion(item.categoria) }}
+                                </span>
+                                <span
+                                    class="badge badge-pill"
+                                    :class="item.conteo > 0 ? 'badge-danger' : 'badge-secondary'"
+                                >
+                                    {{ item.conteo }}
+                                </span>
                             </li>
                             <li v-if="!exclusiones.length" class="list-group-item text-center">
                                 Sin exclusiones.
@@ -257,13 +274,135 @@
                 </div>
             </div>
         </div>
+
+        <!-- MODAL DETALLE DE EXCLUSIONES -->
+        <div
+            v-if="modalExclusionVisible"
+            class="modal show"
+            tabindex="-1"
+            role="dialog"
+            style="
+                display: block;
+                background: rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(2px);
+                z-index: 1050;
+            "
+            @click.self="cerrarModalExclusion"
+        >
+            <div class="modal-dialog modal-xl" role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h4 class="modal-title text-white">
+                            <i class="fa fa-exclamation-triangle m-r-5"></i>
+                            Detalle de Exclusión:
+                            {{ etiquetaExclusion(exclusionSeleccionada?.categoria) }}
+                            <span class="badge badge-light text-dark m-l-5">{{
+                                exclusionSeleccionada?.conteo
+                            }}</span>
+                        </h4>
+                        <button
+                            type="button"
+                            class="close text-white"
+                            aria-label="Cerrar modal"
+                            @click="cerrarModalExclusion"
+                        >
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row m-b-15">
+                            <div class="col-md-6">
+                                <p class="text-muted m-b-0">
+                                    A continuación se relacionan los estudios médicos excluidos del
+                                    cálculo. Verifique los motivos para ajustar el contrato o la
+                                    parametrización de tarifas.
+                                </p>
+                            </div>
+                            <div class="col-md-6 text-right">
+                                <input
+                                    v-model="busquedaExclusion"
+                                    type="text"
+                                    class="form-control"
+                                    placeholder="Buscar por paciente, documento, CUPS o médico..."
+                                />
+                            </div>
+                        </div>
+
+                        <div class="table-responsive" style="max-height: 480px; overflow-y: auto">
+                            <table class="table table-hover table-striped table-bordered">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Paciente</th>
+                                        <th>Médico Lector</th>
+                                        <th>CUPS</th>
+                                        <th>Procedimiento</th>
+                                        <th>Motivo del Rechazo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="(item, idx) in detalleExclusionesFiltrado"
+                                        :key="idx"
+                                    >
+                                        <td>{{ formatDate(item.fecha_lectura) }}</td>
+                                        <td>
+                                            <strong>{{ item.paciente_documento }}</strong
+                                            ><br />
+                                            <small>{{ item.paciente_nombre }}</small>
+                                        </td>
+                                        <td>{{ item.medico_name }}</td>
+                                        <td>
+                                            <span class="badge badge-secondary">{{
+                                                item.cod_cups
+                                            }}</span>
+                                        </td>
+                                        <td>{{ item.nom_produc }}</td>
+                                        <td class="text-danger font-weight-bold">
+                                            <i class="fa fa-info-circle m-r-5"></i>
+                                            {{ item.motivo }}
+                                        </td>
+                                    </tr>
+                                    <tr v-if="!detalleExclusionesFiltrado.length">
+                                        <td colspan="6" class="text-center text-muted py-3">
+                                            No se encontraron registros que coincidan con la
+                                            búsqueda.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <span class="text-muted mr-auto">
+                            Mostrando {{ detalleExclusionesFiltrado.length }} de
+                            {{ exclusionSeleccionada?.detalle?.length || 0 }} registros
+                        </span>
+                        <button
+                            type="button"
+                            class="btn btn-secondary"
+                            @click="cerrarModalExclusion"
+                        >
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, onBeforeUnmount, ref } from "vue";
 import axios from "axios";
 import { toastMessage } from "@/helpers/alerts.js";
+
+/**
+ * Control del modal interactivo de detalle de exclusiones.
+ */
+const modalExclusionVisible = ref(false);
+const exclusionSeleccionada = ref(null);
+const busquedaExclusion = ref("");
 
 /**
  * Etiquetas legibles para las categorías de exclusión del backend.
@@ -713,13 +852,92 @@ function exportar() {
 }
 
 /**
+ * Filtra los registros excluidos por documento, nombre, médico, CUPS o motivo.
+ *
+ * @type {import('vue').ComputedRef<Array<Object>>}
+ */
+const detalleExclusionesFiltrado = computed(() => {
+    const list = exclusionSeleccionada.value?.detalle || [];
+    const q = busquedaExclusion.value.trim().toLowerCase();
+    if (!q) return list;
+    return list.filter((item) => {
+        return (
+            String(item.paciente_documento || "")
+                .toLowerCase()
+                .includes(q) ||
+            String(item.paciente_nombre || "")
+                .toLowerCase()
+                .includes(q) ||
+            String(item.medico_name || "")
+                .toLowerCase()
+                .includes(q) ||
+            String(item.cod_cups || "")
+                .toLowerCase()
+                .includes(q) ||
+            String(item.nom_produc || "")
+                .toLowerCase()
+                .includes(q) ||
+            String(item.motivo || "")
+                .toLowerCase()
+                .includes(q)
+        );
+    });
+});
+
+/**
+ * Despliega el modal interactivo con el detalle de los estudios excluidos.
+ *
+ * @param {Object} item Objeto de la categoría de exclusión seleccionada.
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-10-21
+ */
+function abrirModalExclusion(item) {
+    exclusionSeleccionada.value = item;
+    busquedaExclusion.value = "";
+    modalExclusionVisible.value = true;
+}
+
+/**
+ * Cierra el modal de detalle de exclusiones y restablece los filtros.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-10-21
+ */
+function cerrarModalExclusion() {
+    modalExclusionVisible.value = false;
+    exclusionSeleccionada.value = null;
+    busquedaExclusion.value = "";
+}
+
+/**
+ * Manejador de teclado para cerrar el modal al presionar Escape.
+ *
+ * @param {KeyboardEvent} e
+ * @returns {void}
+ */
+function onKeyDown(e) {
+    if (e.key === "Escape" && modalExclusionVisible.value) {
+        cerrarModalExclusion();
+    }
+}
+
+/**
  * Lifecycle onMounted: carga sedes y médicos para los selects de filtros.
  *
  * @author Jhon Javer Lozano Arce
  * @date 2026-09-30
  */
 onMounted(() => {
+    window.addEventListener("keydown", onKeyDown);
     cargarSedes();
     cargarMedicos();
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener("keydown", onKeyDown);
 });
 </script>

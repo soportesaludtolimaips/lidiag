@@ -10,6 +10,11 @@ Route::middleware(["auth"])->group(function () {
         ->name("api.liquidacion.exportar")
         ->middleware(["permission:liquidacion.exportar"]);
 
+    // Descargar reporte de productividad médica en Excel
+    Route::get("/liquidacion/productividad/exportar", [LiquidacionController::class, "exportarProductividad"])
+        ->name("api.liquidacion.productividad.exportar")
+        ->middleware(["permission:liquidacion.exportar"]);
+
     // Productividad por médico para el corte de mes (lee lo congelado)
     Route::get("/liquidacion/productividad", [LiquidacionController::class, "productividad"])
         ->name("api.liquidacion.productividad")

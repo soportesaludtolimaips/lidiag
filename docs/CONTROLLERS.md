@@ -351,9 +351,10 @@ API REST completa del módulo de gestión de contratos médico-institución.
 
 ### `LiquidacionController.php`
 API de liquidación de pagos a médicos por sede y período.
-- **`calcular`**: Calcula la liquidación por sede y rango de fechas, delegando a `LiquidacionService::calcular()`. Devuelve líneas liquidables, exclusiones y totales por médico. Requiere permiso `liquidacion.index`.
-- **`exportar`**: Descarga la liquidación calculada en formato Excel (`.xlsx`) usando Maatwebsite Excel. Requiere permiso `liquidacion.exportar`.
+- **`calcular`**: Calcula la liquidación por sede y rango de fechas, delegando a `LiquidacionService::calcular()`. Devuelve líneas liquidables, exclusiones enriquecidas y totales por médico. Requiere permiso `liquidacion.index`.
+- **`exportar`**: Descarga la liquidación calculada en formato Excel (`.xlsx`) con diseño institucional Salud Tolima, formato de moneda y totales. Requiere permiso `liquidacion.exportar`.
 - **`productividad`**: Reporte de productividad por médico para un corte mensual (`periodo` en formato `YYYY-MM`). Lee los datos congelados del período. Requiere permiso `liquidacion.index`.
+- **`exportarProductividad`**: Descarga el reporte de productividad mensual por médico a Excel (`.xlsx`) con subtotales y detalle de lecturas. Requiere permiso `liquidacion.exportar`.
 
 ---
 

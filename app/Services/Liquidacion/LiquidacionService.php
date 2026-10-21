@@ -4,6 +4,8 @@ namespace App\Services\Liquidacion;
 
 use App\Models\Configuracion\ConfigPrioridad;
 use App\Models\Contratacion\Contrato;
+use App\Models\Contratacion\ContratoMedico;
+use App\Models\Contratacion\ContratoProducto;
 use App\Models\Estudio\EstudioProducto;
 use App\Models\Liquidacion\LiquidacionLinea;
 use App\Services\BaseService;
@@ -50,7 +52,7 @@ class LiquidacionService extends BaseService
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-09-30
+     * @date 2026-10-21
      */
     public function calcular(int $sedeId, string $fechaInicio, string $fechaFin, ?int $contratoId = null, ?int $medicoId = null): array
     {
@@ -63,7 +65,11 @@ class LiquidacionService extends BaseService
             ->whereDate("estudios_productos.fechor_lectura", "<=", $fechaFin)
             ->when($medicoId !== null, fn ($q) => $q->where("e.medico_id", $medicoId))
             ->select("estudios_productos.*", "e.medico_id as lector_id", "e.prioridad_id")
-            ->with(["producto:id,cod_cups,nom_produc"])
+            ->with([
+                "producto:id,cod_cups,nom_produc",
+                "estudio.paciente:id,num_docu,nombres,pri_ape",
+                "estudio.medico:id,name",
+            ])
             ->get();
 
         if ($contratoId !== null) {
@@ -90,6 +96,25 @@ class LiquidacionService extends BaseService
                 ->get();
         }
 
+        $armarExclusion = function ($l, string $fecha, string $motivo): array {
+            $paciente = $l->estudio->paciente ?? null;
+            $pacienteNom = trim(($paciente->nombres ?? "")." ".($paciente->pri_ape ?? ""));
+
+            return [
+                "id" => (int) $l->id,
+                "estudio_id" => (int) $l->estudio_id,
+                "fecha_lectura" => $fecha,
+                "paciente_documento" => $paciente->num_docu ?? "N/D",
+                "paciente_nombre" => $pacienteNom ?: "N/D",
+                "medico_id" => $l->lector_id ? (int) $l->lector_id : null,
+                "medico_name" => $l->estudio->medico->name ?? "Sin asignar",
+                "producto_id" => (int) $l->producto_id,
+                "cod_cups" => $l->producto->cod_cups ?? ($l->cod_cups ?? "N/D"),
+                "nom_produc" => $l->producto->nom_produc ?? ($l->nom_produc ?? "N/D"),
+                "motivo" => $motivo,
+            ];
+        };
+
         $lineas = [];
         $excluidos = ["sin_asignado" => [], "sin_contrato" => [], "producto_sin_tarifa" => [], "medico_fuera_detalle" => [], "anulada" => []];
 
@@ -97,13 +122,13 @@ class LiquidacionService extends BaseService
             $fecha = substr((string) $l->fechor_lectura, 0, 10);
 
             if (! $l->activo) {
-                $excluidos["anulada"][] = $l->id;
+                $excluidos["anulada"][] = $armarExclusion($l, $fecha, "Lectura o estudio marcado como inactivo o anulado.");
 
                 continue;
             }
 
             if ($l->lector_id === null) {
-                $excluidos["sin_asignado"][] = $l->id;
+                $excluidos["sin_asignado"][] = $armarExclusion($l, $fecha, "El estudio no cuenta con médico radiólogo asignado.");
 
                 continue;
             }
@@ -111,23 +136,28 @@ class LiquidacionService extends BaseService
             $contrato = $contratos->first(fn ($c) => $this->fecha($c->fecha_inicio) <= $fecha && $fecha <= $this->fecha($c->fecha_fin));
 
             if (! $contrato) {
-                $excluidos["sin_contrato"][] = $l->id;
+                $excluidos["sin_contrato"][] = $armarExclusion($l, $fecha, "No existe contrato activo para la sede en la fecha {$fecha}.");
 
                 continue;
             }
 
+            /** @var ContratoProducto|null $cp */
             $cp = $contrato->productos->firstWhere("producto_id", $l->producto_id);
 
             if (! $cp) {
-                $excluidos["producto_sin_tarifa"][] = $l->id;
+                $codCups = $l->producto->cod_cups ?? ($l->cod_cups ?? "N/D");
+                $excluidos["producto_sin_tarifa"][] = $armarExclusion($l, $fecha, "El código CUPS {$codCups} no está contratado en el contrato vigente #{$contrato->id}.");
 
                 continue;
             }
 
-            $cm = $contrato->medicos->first(fn ($m) => $m->medico_id == $l->lector_id && $m->contratos_productos_id == $cp->id);
+            /** @var ContratoMedico|null $cm */
+            $cm = $contrato->medicos->first(fn ($m) => $m instanceof ContratoMedico && $m->medico_id == $l->lector_id && $m->contratos_productos_id == $cp->id);
 
             if (! $cm) {
-                $excluidos["medico_fuera_detalle"][] = $l->id;
+                $medName = $l->estudio->medico->name ?? "El médico";
+                $codCups = $l->producto->cod_cups ?? ($l->cod_cups ?? "N/D");
+                $excluidos["medico_fuera_detalle"][] = $armarExclusion($l, $fecha, "{$medName} no tiene tarifa asignada para el CUPS {$codCups} en el contrato #{$contrato->id}.");
 
                 continue;
             }
@@ -168,8 +198,8 @@ class LiquidacionService extends BaseService
 
         $exclusiones = [];
 
-        foreach ($excluidos as $categoria => $ids) {
-            $exclusiones[] = ["categoria" => $categoria, "conteo" => count($ids), "detalle" => array_values($ids)];
+        foreach ($excluidos as $categoria => $items) {
+            $exclusiones[] = ["categoria" => $categoria, "conteo" => count($items), "detalle" => $items];
         }
 
         return $this->success([
@@ -209,6 +239,10 @@ class LiquidacionService extends BaseService
         }
 
         $estudio = $lectura->estudio;
+        if (! $estudio) {
+            return;
+        }
+
         $fecha = $this->fecha($lectura->fechor_lectura);
         $fila = [
             "estudio_producto_id" => $lectura->id,
@@ -227,7 +261,7 @@ class LiquidacionService extends BaseService
 
         if (! $lectura->activo) {
             $fila["exclusion"] = "anulada";
-        } elseif ($estudio->medico_id === null) {
+        } elseif (empty($estudio->medico_id)) {
             $fila["exclusion"] = "sin_asignado";
         } else {
             $contrato = Contrato::where("sede_id", $estudio->sede_id)
@@ -239,11 +273,13 @@ class LiquidacionService extends BaseService
                 $fila["exclusion"] = "sin_contrato";
             } else {
                 $fila["contrato_id"] = $contrato->id;
+                /** @var ContratoProducto|null $cp */
                 $cp = $contrato->productos->firstWhere("producto_id", $lectura->producto_id);
 
                 if (! $cp) {
                     $fila["exclusion"] = "producto_sin_tarifa";
                 } else {
+                    /** @var ContratoMedico|null $cm */
                     $cm = $contrato->medicos()
                         ->where("contratos_medicos.estado", 1)
                         ->where("medico_id", $estudio->medico_id)
@@ -254,7 +290,7 @@ class LiquidacionService extends BaseService
                     if (! $cm) {
                         $fila["exclusion"] = "medico_fuera_detalle";
                     } else {
-                        $esUrgencia = ConfigPrioridad::where("nom_priori", "Alta")->pluck("id")->contains((int) $estudio->prioridad_id);
+                        $esUrgencia = ConfigPrioridad::where("nom_priori", "Alta")->where("id", (int) $estudio->prioridad_id)->exists();
                         $fila["clase"] = $esUrgencia ? "urgencias" : "consulta";
                         $fila["valor"] = $esUrgencia ? $cm->valor_urgencias : $cm->valor_consulta;
                     }

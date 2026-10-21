@@ -17,6 +17,16 @@ use Illuminate\Database\Eloquent\Relations\HasOneThrough;
  * (`contratos_productos`), definiendo los valores por lectura de estudios
  * de imágenes: contrato, consulta externa y urgencias.
  *
+ * @property int $id
+ * @property int $contrato_id
+ * @property int $medico_id
+ * @property int $contratos_productos_id
+ * @property float|string $valor_contrato
+ * @property float|string $valor_consulta
+ * @property float|string $valor_urgencias
+ * @property int $estado
+ * @property-read User|null $medico
+ * @property-read ContratoProducto|null $contratoProducto
  *
  * @author Jhon Javer Lozano Arce
  *

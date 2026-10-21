@@ -6,7 +6,24 @@ use App\Models\Configuracion\ConfigProducto;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int $estudio_id
+ * @property int $producto_id
+ * @property int|null $lector_id
+ * @property int|null $prioridad_id
+ * @property int|null $transcriptor_id
+ * @property string|null $cod_cups
+ * @property string|null $nom_produc
+ * @property string|null $fechor_lectura
+ * @property string|null $lectura
+ * @property int $activo
+ * @property-read Estudio|null $estudio
+ * @property-read ConfigProducto|null $producto
+ */
 class EstudioProducto extends Model
 {
     use HasFactory;
@@ -27,13 +44,12 @@ class EstudioProducto extends Model
     /**
      * Estudio al que pertenece el producto.
      *
-     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-10-08
      */
-    public function estudio()
+    public function estudio(): BelongsTo
     {
         return $this->belongsTo(Estudio::class, 'estudio_id');
     }
@@ -41,13 +57,12 @@ class EstudioProducto extends Model
     /**
      * Usuario que transcribió el producto.
      *
-     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-10-08
      */
-    public function transcriptor()
+    public function transcriptor(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
@@ -55,13 +70,12 @@ class EstudioProducto extends Model
     /**
      * Adendums de lectura del producto.
      *
-     * @returns \Illuminate\Database\Eloquent\Relations\HasMany
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-10-08
      */
-    public function adendums()
+    public function adendums(): HasMany
     {
         return $this->hasMany(EstudioProductoAdendum::class);
     }
@@ -69,13 +83,12 @@ class EstudioProducto extends Model
     /**
      * Configuración del producto (catálogo CUPS).
      *
-     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-10-08
      */
-    public function producto()
+    public function producto(): BelongsTo
     {
         return $this->belongsTo(ConfigProducto::class, 'producto_id');
     }

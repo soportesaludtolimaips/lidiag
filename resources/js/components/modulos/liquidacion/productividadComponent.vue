@@ -59,13 +59,23 @@
                                     <div>
                                         <button
                                             type="button"
-                                            class="btn btn-info"
+                                            class="btn btn-info m-r-5"
                                             :disabled="loading"
                                             @click="cargar"
                                             title="Generar reporte"
                                         >
                                             <i class="fa fa-bar-chart m-r-5"></i>
                                             {{ loading ? "Generando..." : "Generar" }}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="btn btn-success"
+                                            :disabled="loading || !resultado || !medicos.length"
+                                            @click="exportar"
+                                            title="Exportar productividad a Excel"
+                                        >
+                                            <i class="fa fa-file-excel-o m-r-5"></i>
+                                            Excel
                                         </button>
                                     </div>
                                 </div>
@@ -332,6 +342,43 @@ async function cargar() {
     } finally {
         loading.value = false;
     }
+}
+
+/**
+ * Exporta el reporte de productividad a Excel en una nueva pestaña.
+ *
+ * Flujo del proceso:
+ * 1. Valida que los filtros de sede y periodo estén diligenciados.
+ * 2. Verifica que existan resultados calculados para exportar.
+ * 3. Abre la URL del endpoint en una nueva pestaña para descargar el archivo .xlsx.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-10-21
+ */
+function exportar() {
+    if (!filtros.value.sede_id) {
+        toastMessage({ heading: "Atención", text: "Seleccione una sede", icon: "warning" });
+        return;
+    }
+    if (!filtros.value.periodo) {
+        toastMessage({ heading: "Atención", text: "Seleccione un periodo", icon: "warning" });
+        return;
+    }
+    if (!resultado.value || !medicos.value.length) {
+        toastMessage({
+            heading: "Atención",
+            text: "Genere primero el reporte con resultados antes de exportar.",
+            icon: "warning",
+        });
+        return;
+    }
+    const params = new URLSearchParams({
+        sede_id: String(filtros.value.sede_id),
+        periodo: filtros.value.periodo,
+    });
+    window.open(`/api/liquidacion/productividad/exportar?${params.toString()}`, "_blank");
 }
 
 /**
