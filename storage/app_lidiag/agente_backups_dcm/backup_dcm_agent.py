@@ -114,7 +114,7 @@ def load_config(config_path, args):
         loaded["sede_nombre"] = loaded["sede_slug"]
 
     # Validar campos obligatorios de la sede
-    required_fields = ["sede_id", "db_name", "db_user"]
+    required_fields = ["db_name", "db_user"]
     missing = [field for field in required_fields if field not in loaded]
     if missing:
         print("=========================================================")
@@ -125,7 +125,7 @@ def load_config(config_path, args):
 
     # Configuración base con valores operativos por defecto
     config = {
-        "sede_id": loaded["sede_id"],
+        "sede_id": loaded.get("sede_id", 0),
         "sede_nombre": loaded.get("sede_nombre", ""),
         "db_host": loaded.get("db_host", "127.0.0.1"),
         "db_port": int(loaded.get("db_port", 3306)),
@@ -291,7 +291,9 @@ def purge_old_backups(destination_dir, retention_days):
 def write_status_manifest(dest_dir, sede_id, status_data):
     """Guarda el archivo de estado y telemetría para monitoreo en QNAP."""
     try:
-        manifest_path = os.path.join(dest_dir, f"backup_status_sede_{sede_id}.json")
+        slug = sanitize_filename_part(status_data.get("sede_nombre", "local"))
+        sede_tag = f"sede_{sede_id}" if sede_id else f"sede_{slug}"
+        manifest_path = os.path.join(dest_dir, f"backup_status_{sede_tag}.json")
         with open(manifest_path, "w", encoding="utf-8") as f:
             json.dump(status_data, f, indent=2, ensure_ascii=False)
         # También guardar alias genérico
@@ -346,11 +348,11 @@ def main():
         sys.exit(1)
 
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")
-    sede_tag = f"sede_{config['sede_id']}"
+    sede_tag = f"sede_{config['sede_id']}" if config.get("sede_id") else "sede"
     if config.get("sede_nombre"):
         slug = sanitize_filename_part(config["sede_nombre"])
         if slug:
-            sede_tag = f"sede_{config['sede_id']}_{slug}"
+            sede_tag = f"sede_{config['sede_id']}_{slug}" if config.get("sede_id") else f"sede_{slug}"
 
     sql_filename = f"database_dcm_{sede_tag}_{config['db_name']}_{timestamp}.sql"
     sql_path = os.path.join(temp_dir, sql_filename)

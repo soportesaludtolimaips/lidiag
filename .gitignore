@@ -83,10 +83,6 @@ storage/app_lidiag/lo_profile/
 storage/app_lidiag/**/lo_profile/
 storage/app_lidiag/src-tauri/target/
 
-# Agentes de sincronización y backups DCM locales en app_lidiag
-storage/app_lidiag/agente_backups_dcm/
-storage/app_lidiag/agente_sync_imagenes/
-
 # Credenciales y archivos de estado en app_lidiag
 storage/app_lidiag/**/config.json
 storage/app_lidiag/**/last_alert_state.json

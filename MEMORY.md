@@ -258,15 +258,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 
 
 
-- [x] **2026-10-21 — Agente de Sincronización Continua de Imágenes PACS / DICOM a QNAP (Modelo Dropbox/Drive):**
-  - Diseñado e implementado el agente autónomo `sync_imagenes_agent.py` en `storage/app_lidiag/agente_sync_imagenes/`:
-    * **Comportamiento continuo estilo Dropbox/Google Drive:** Bucle en segundo plano (cada 180s por defecto) con sincronización incremental multi-hilo nativa vía `robocopy` (`/E /XO /XN /XC /FFT /MT:8 /R:2 /W:3 /NP /NDL`).
-    * **Modo Backup Seguro:** Exclusión estricta de borrados en el QNAP (acumulativo e inmutable, el NAS conserva todo el repositorio histórico aunque la sede libere disco).
-    * **Autenticación SMB y Tolerancia de Red:** Prueba previa de puerto TCP 445 SMB hacia la IP local fija del QNAP y conexión autenticada con `net use` sin requerir mapeo manual de unidades en Windows.
-    * **Detección de locks:** Reintentos suaves ante archivos DICOM en adquisición activa por el PACS sin interrumpir el proceso clínico.
-    * **Telemetría JSON:** Emisión en tiempo real de `status_sync_imagenes.json` (local y en el NAS como `status_sync_sede_{id}.json`) registrando fecha/hora, archivos copiados, duración y espacio libre.
-    * **Instalador 24/7:** `instalar_servicio_tarea.bat` para registro de la tarea `LIDiag_Sync_Imagenes_DCM` con trigger `ONSTART` bajo `SYSTEM`.
-  - Empaquetado y listo para distribución en `storage/app_lidiag/agente_sync_imagenes.zip` y `.rar` (sin versionar, estándar del sistema).
+- [x] **2026-10-21 — Consolidación Unificada del Agente de Backups y Sincronización PACS DCM (`agente_backups_dcm`):**
+  - Unificados en un solo paquete integral los respaldos de bases de datos MySQL del PACS y la sincronización continua de imágenes DICOM hacia el QNAP:
+    * `backup_dcm_agent.py`: Volcado seguro MySQL con `mysqldump`, compresión ZIP de alta velocidad, prueba de integridad CRC32 y huella SHA-256.
+    * `sync_dcm_images.py`: Replicación multi-hilo incremental de imágenes con `robocopy` (`/E /XO /XN /XC /FFT /MT:8 /R:2 /W:3`), modo backup seguro y autenticación SMB contra QNAP.
+    * `config.json.example`: Archivo de configuración único para la sede, credenciales del QNAP, base de datos e imágenes.
+    * `instalar_tareas_sede.bat`: Instalador en 1 clic que registra ambas tareas en el Programador de Tareas de Windows bajo `SYSTEM` (`LIDiag_Backup_DB_DCM` a las 02:00 AM y `LIDiag_Sync_Imagenes_DCM` en `ONSTART`).
+    * Versionamiento en Git de los fuentes del agente en `storage/app_lidiag/agente_backups_dcm/`, manteniendo protegidas e ignoradas las credenciales reales (`config.json`), logs y archivos comprimidos (`.zip`, `.rar`).
 - [x] **2026-10-20 — Soporte de Trazabilidad y Reintento Automático de Fallidos en Sincronización:**
   - `EstudioPortalSyncService.php`: Añadido soporte para filtro `ids` (`whereIn('estudios_productos.id', ...)`) en `construirConsulta()`.
   - `LidiagEnviarPacienteCommand.php`: Añadida opción `{--reintentar=}` y guardado automático de estudios fallidos en archivo `.txt` (`storage/logs/sync_fallidos_...txt`) con cabeceras, formato `ID | DOC | PACIENTE | ESTUDIO | ERROR` y comando de reintento listo.

@@ -1,14 +1,22 @@
 {
-  "sede_id": 1,
-  "sede_nombre": "espinal_hospital_san_rafael",
-  "db_host": "127.0.0.1",
-  "db_port": 3306,
-  "db_name": "pacsdb",
-  "db_user": "root",
-  "db_password": "",
-  "mysqldump_path": "C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysqldump.exe",
-  "destination_dir": "C:\\backups_dcm",
-  "retention_days": 30,
-  "min_free_space_gb": 5,
-  "temp_dir": "./temp_backups"
+    "sede_nombre": "Chaparral",
+    "qnap_ip": "192.168.1.100",
+    "qnap_user": "sede_chaparral",
+    "qnap_password": "PASSWORD_AQUI",
+    "qnap_share_backups": "backups_chaparral",
+    "qnap_share_imagenes": "imagenes_chaparral",
+
+    "db_host": "127.0.0.1",
+    "db_port": 3306,
+    "db_name": "pacsdb",
+    "db_user": "root",
+    "db_password": "",
+    "mysqldump_path": "C:\\Program Files\\MySQL\\MySQL Server 5.7\\bin\\mysqldump.exe",
+    "destination_dir": "C:\\backups_dcm",
+    "retention_days": 30,
+
+    "local_images_dir": "D:\\imagenes_pacs",
+    "sync_interval_seconds": 180,
+    "threads": 8,
+    "min_free_space_gb": 10
 }

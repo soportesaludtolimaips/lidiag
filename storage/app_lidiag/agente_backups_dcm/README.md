@@ -1,89 +1,81 @@
-# Agente de Backups DCM para Sedes (LIDiag / QNAP Qsync)
+# LIDiag — Agente Unificado de Backups PACS DCM por Sede
 
-Este agente se instala y ejecuta localmente en el servidor PACS/Dcm4chee de cada sede u hospital.
-Genera el volcado local de MySQL comprimido en ZIP en la carpeta local sincronizada por el cliente **Qsync de QNAP** (por defecto `C:\backups_dcm`), y purga automáticamente los backups antiguos (> 30 días).
-
-## Ventajas y Características de Grado Clínico:
-1. **Velocidad y aislamiento:** El volcado `mysqldump` se realiza a velocidad de disco SSD local en cuestión de segundos o pocos minutos.
-2. **Sincronización desatendida:** El cliente **Qsync** detecta el archivo `.zip`, el hash `.sha256` y el manifiesto `backup_status_sede_{id}.json` en `C:\backups_dcm` y los sincroniza de manera incremental y segura hacia el NAS QNAP central.
-3. **Pre-flight Check de Disco:** Mide el espacio libre disponible en disco antes de iniciar, previniendo colapsos de disco o caídas de MySQL por falta de almacenamiento.
-4. **Verificación de Integridad CRC32 (testzip):** Valida la integridad interna del archivo ZIP antes de eliminar el volcado `.sql` temporal; si el ZIP está incompleto, no se borra el dump.
-5. **Huella Criptográfica SHA-256:** Genera un archivo gemelo `.sha256` para garantizar trazabilidad e inmutabilidad legal ante auditorías.
-6. **Manifiesto de Telemetría Centralizado:** Emite `backup_status_sede_{id}.json` con métricas de salud (fecha, duración, tamaño, espacio libre, purgas) para monitorear todas las sedes desde una sola vista en el QNAP.
-7. **Protección PACS en MySQL:** Incluye `--hex-blob` y `--max_allowed_packet=512M` para exportar metadatos DICOM masivos sin errores de paquete ni corrupción de caracteres.
-8. **Auto-limpieza (Purga):** Elimina automáticamente los backups locales y sus hashes `.sha256` que superen los días de retención configurados (30 días).
+Solución autónoma y de grado clínico para servidores hospitalarios de PACS / DCM.
+Combina en un solo paquete y con una sola configuración:
+1. **Respaldo de Base de Datos MySQL (PACS DB):** Volcado nocturno con `mysqldump`, compresión ZIP de alta velocidad, prueba de integridad CRC32, cálculo de huella criptográfica SHA-256 y purga automática por retención.
+2. **Sincronización Continua de Imágenes DICOM a QNAP (Modelo Dropbox / Google Drive):** Monitoreo continuo en segundo plano con motor nativo multi-hilo `robocopy` que solo transfiere archivos `.dcm` nuevos hacia el QNAP NAS, con modo backup seguro (nunca borra en el NAS).
 
 ---
 
-## 1. Requisitos
-- **Python 3.7 o superior** instalado en el servidor del hospital.
-- **mysqldump** disponible en el sistema (MySQL Server o MariaDB).
-- **Cliente Qsync de QNAP** instalado y configurado para sincronizar la carpeta `C:\backups_dcm` con el NAS.
+## Archivos del Paquete
 
-No requiere librerías adicionales con `pip` (utiliza únicamente la biblioteca estándar de Python).
-
----
-
-## 2. Configuración
-1. Copia la carpeta `dcm_agent` al servidor de la sede (ejemplo: `C:\lidiag_backup\` en Windows o `/opt/lidiag_backup/` en Linux).
-2. Copia el archivo `config.json.example` a `config.json`:
-   ```bash
-   copy config.json.example config.json
-   ```
-3. Edita `config.json` con los datos de la sede:
-   ```json
-   {
-     "sede_id": 1,
-     "sede_nombre": "espinal_hospital_san_rafael",
-     "db_host": "127.0.0.1",
-     "db_port": 3306,
-     "db_name": "pacsdb",
-     "db_user": "root",
-     "db_password": "tu_password",
-     "mysqldump_path": "C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysqldump.exe",
-     "destination_dir": "C:\\backups_dcm",
-     "retention_days": 30,
-     "temp_dir": "./temp_backups"
-   }
-   ```
-   > **Nota para servidores Windows:** Si tienes MySQL instalado en `Program Files`, especifica la ruta completa a `mysqldump.exe` en `mysqldump_path` usando doble barra invertida (`\\`). Si se deja vacío, el script buscará automáticamente en las rutas estándar.
+| Archivo | Descripción |
+| :--- | :--- |
+| `config.json.example` | Plantilla única de configuración (datos de la sede, QNAP, MySQL e imágenes). |
+| `backup_dcm_agent.py` | Script que realiza el volcado, compresión ZIP, CRC32 y SHA-256 de la BD. |
+| `sync_dcm_images.py` | Script que ejecuta la sincronización continua e incremental de imágenes DICOM. |
+| `ejecutar_backup_db.bat` | Lanzador del respaldo de base de datos MySQL. |
+| `ejecutar_sync_imagenes.bat` | Lanzador del servicio continuo de sincronización de imágenes. |
+| `instalar_tareas_sede.bat` | **Instalador de 1 Clic:** Registra ambas tareas en el Programador de Tareas de Windows bajo `SYSTEM`. |
+| `README.md` | Este manual técnico de instalación y operación. |
 
 ---
 
-## 3. Prueba Manual
-Ejecuta el script desde una consola CMD o PowerShell:
-```cmd
-python backup_dcm_agent.py --config config.json
+## Guía Rápida de Despliegue en el Servidor PACS de la Sede
+
+### 1. Copiar y Descomprimir
+Descomprime el archivo `agente_backups_dcm.zip` en una ruta fija del servidor del hospital (por ejemplo en `C:\agente_backups_dcm\`).
+
+### 2. Configurar `config.json`
+Copia `config.json.example` y renómbralo a `config.json`. Ajusta los parámetros de la sede:
+
+```json
+{
+    "sede_nombre": "Chaparral",
+    "qnap_ip": "192.168.1.100",
+    "qnap_user": "sede_chaparral",
+    "qnap_password": "PASSWORD_AQUI",
+    "qnap_share_backups": "backups_chaparral",
+    "qnap_share_imagenes": "imagenes_chaparral",
+
+    "db_host": "127.0.0.1",
+    "db_port": 3306,
+    "db_name": "pacsdb",
+    "db_user": "root",
+    "db_password": "",
+    "mysqldump_path": "C:\\Program Files\\MySQL\\MySQL Server 5.7\\bin\\mysqldump.exe",
+    "destination_dir": "C:\\backups_dcm",
+    "retention_days": 30,
+
+    "local_images_dir": "D:\\imagenes_pacs",
+    "sync_interval_seconds": 180,
+    "threads": 8,
+    "min_free_space_gb": 10
+}
 ```
-O simplemente haciendo doble clic en `ejecutar_backup.bat` y revisando `backup_agent.log`.
+
+### 3. Probar la Ejecución Manual
+Abre una consola de PowerShell o CMD en la carpeta del agente y prueba ambos procesos:
+
+* **Prueba de Base de Datos:**
+  ```powershell
+  python backup_dcm_agent.py
+  ```
+* **Prueba de Sincronización de Imágenes (Pasada única):**
+  ```powershell
+  python sync_dcm_images.py --once
+  ```
+
+### 4. Instalar Tareas Automáticas de Windows (1 Clic)
+Haz clic derecho sobre **`instalar_tareas_sede.bat`** y selecciona **"Ejecutar como administrador"**.
+Esto dejará configuradas automáticamente:
+* `LIDiag_Backup_DB_DCM`: Se ejecuta diariamente a las **02:00 AM**.
+* `LIDiag_Sync_Imagenes_DCM`: Arranca automáticamente al prender el servidor (**ONSTART**) y sincroniza continuamente cada 3 minutos en segundo plano bajo la cuenta `SYSTEM`.
 
 ---
 
-## 4. Programación Automática
+## Telemetría y Monitoreo en el QNAP
 
-### En Windows (Programador de Tareas):
-
-#### Opción A — Instalación automática en 1 clic (Recomendada):
-1. Copia toda la carpeta `dcm_agent` al servidor del hospital (ej: `C:\lidiag_backup\`).
-2. Configura tu `config.json`.
-3. Haz **clic derecho** sobre `instalar_tarea_programada.bat` y selecciona **"Ejecutar como administrador"**.
-4. ¡Listo! La tarea `LIDiag_Local_DCM_Backup` quedará programada para las **02:00 AM** con permisos de sistema (`SYSTEM`) para que corra incluso sin un usuario conectado.
-
-#### Opción B — Configuración manual en la interfaz gráfica (taskschd.msc):
-1. Presiona `Win + R`, escribe `taskschd.msc` y presiona Enter.
-2. En el panel derecho haz clic en **"Crear tarea..."**.
-3. **General:**
-   - Nombre: `LIDiag_Local_DCM_Backup`
-   - Seleccionar: *"Ejecutar tanto si el usuario inició sesión como si no"*
-   - Marcar: *"Ejecutar con los privilegios más altos"*
-4. **Desencadenadores (Triggers):**
-   - Nuevo desencadenador $\rightarrow$ *Diariamente* $\rightarrow$ Hora: `02:00:00 AM`.
-5. **Acciones (Actions):**
-   - Nueva acción $\rightarrow$ *Iniciar un programa*.
-   - **Programa o script:** `C:\lidiag_backup\ejecutar_backup.bat`
-   - O si usas `python.exe` directo:
-     - Argumentos: `backup_dcm_agent.py --config config.json`
-     - Iniciar en (Start in): `C:\lidiag_backup\`
-6. Guarda la tarea.
-
-> Los logs de cada ejecución automática se guardarán en `backup_agent.log` dentro de la misma carpeta.
+El agente emite de forma continua manifiestos de estado JSON tanto localmente como en el QNAP:
+* `status_sync_{sede}.json`: Estado de la sincronización de imágenes (último ciclo, archivos copiados, espacio en disco).
+* `backup_status_sede_{sede}.json`: Estado del último volcado de base de datos MySQL (hash SHA-256, duración, tamaño).
