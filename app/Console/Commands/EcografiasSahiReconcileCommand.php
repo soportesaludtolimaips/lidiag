@@ -25,9 +25,17 @@ class EcografiasSahiReconcileCommand extends Command
     /**
      * Ejecuta la reconciliación de envíos SAHI atascados en estado ENVIANDO.
      *
+     * Flujo del proceso:
+     * 1. Parsea opciones de minutos de corte y límite máximo de registros.
+     * 2. Consulta registros en estado ENVIANDO con tiempo mayor al umbral.
+     * 3. Si hay registros, realiza una comprobación de conectividad preventiva con SQL Server (SAHI).
+     * 4. Si SQL Server está caído o inalcanzable, aborta la ejecución con advertencia para evitar marcar errores falsos.
+     * 5. Para cada registro, verifica si ya existe el esquema 150 en SAHI y actualiza a ENVIADO o ERROR de forma idónea.
+     *
+     *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-10-13
+     * @date 2026-10-21
      */
     public function handle(): int
     {
@@ -49,6 +57,16 @@ class EcografiasSahiReconcileCommand extends Command
             $this->info("No hay registros ENVIANDO con más de {$minutes} min.");
 
             return self::SUCCESS;
+        }
+
+        // Verificación preventiva de conectividad con SQL Server antes de reconciliar
+        try {
+            DB::connection('sqlsrv')->getPdo();
+        } catch (\Throwable $e) {
+            $this->warn('No es posible conectar con SQL Server (SAHI): '.$e->getMessage().'. Abortando reconciliación para evitar falsos errores.');
+            Log::warning('EcografiasSahiReconcileCommand abortado: SQL Server inalcanzable.', ['error' => $e->getMessage()]);
+
+            return self::FAILURE;
         }
 
         $this->info("Procesando {$stuck->count()} ecografias_productos ENVIANDO (cutoff: {$cutoff}).");

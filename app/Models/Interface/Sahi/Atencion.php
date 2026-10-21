@@ -5,6 +5,13 @@ namespace App\Models\Interface\Sahi;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $IdAtencion
+ * @property int $IdCliente
+ * @property int $IdUbicacionActual
+ * @property string $FecIngreso
+ * @property-read Paciente|null $paciente
+ */
 class Atencion extends Model
 {
     use HasFactory;

@@ -576,7 +576,29 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Pruebas Automatizadas y Calidad:**
     * Creado `tests/Feature/LiquidacionFeatureTest.php` con 6 tests (autenticación 401, permisos Spatie 403, cálculo con estructura 200, exportación de liquidación a Excel 200, consulta de productividad 200 y exportación de productividad a Excel 200) pasando al 100%.
     * Verificación integral: ESLint 0 errores/warnings ✅ | Laravel Pint passed ✅ | PHPStan nivel 5 (0 errores) ✅ | PHPUnit 6/6 assertions pasando ✅ | Vite `npm run build` en 1.03s ✅.
+- [x] **2026-10-21 — Interoperabilidad HIS / SAHI (SQL Server): Blindaje Atómico, Timeouts y Diagnóstico:**
+  - **Timeouts Rápidos de Conexión (`config/database.php`):**
+    * Configurado `'connect_timeout' => (int) env('DB_SQLSRV_CONNECT_TIMEOUT', 5)` y `PDO::SQLSRV_ATTR_QUERY_TIMEOUT => (int) env('DB_SQLSRV_QUERY_TIMEOUT', 5)` para evitar que microcortes o caídas de red congelen los workers de PHP durante 30 segundos.
+  - **Manejo Defensivo de Excepciones (`SAHIService.php`):**
+    * Encapsulados `listarAtenciones`, `listarProductosDiagnosticos`, `buscarEpsPlanContrato` y `listarProductosAtencion` en bloques `try/catch (\Throwable)` retornando código HTTP 503 limpio con log detallado en lugar de errores 500 no capturados.
+    * Corregido fallo latente en `obtenerDatosLidiag` que omitía el campo `atencion_id` en la selección.
+    * Creado método `verificarConexion(): array` que mide latencia y valida conectividad activa con SQL Server.
+  - **Transaccionalidad Atómica en Transcripciones (`SAHITranscibirService.php`):**
+    * Agrupadas las 9 inserciones y actualizaciones de consecutivos hacia SAHI (`sisTabla`, `HceEsquema`, `hceEsquemaEncabeza`, `hceEsquemasdeAte`, `hceEsquemaDetMemo`, `hceEsquemaDetProc`) dentro de `DB::connection('sqlsrv')->transaction()`.
+    * Blindaje contra esquemas huérfanos o contadores desperdiciados ante fallos intermedios.
+    * Corregida inconsistencia en la asignación del encabezado padre (`$conseEsquemaEncavezadoPadre`).
+  - **Resiliencia en Reconciliación (`EcografiasSahiReconcileCommand.php`):**
+    * Integrado pre-chequeo de socket y PDO a SQL Server. Si el servidor remoto está apagado o en mantenimiento, el comando aborta limpiamente sin marcar falsos errores en los registros de ecografías en estado `ENVIANDO`.
+  - **Endpoint y Comando de Diagnóstico Integral:**
+    * Nuevo endpoint `GET /api/interface-sahi/test-conexion` en `api_interfaces.php` y `SAHIController::verificarConexion`.
+    * Nuevo comando Artisan `php artisan sahi:test` con comprobación de socket TCP (1433), autenticación PDO, metadatos del servidor (SQL Server 2022) y conteo sobre las 5 tablas maestras (`admAtencion`, `admCliente`, `proProducto`, `HceEsquema`, `sisTabla`).
+  - **Tipado Estricto de Modelos SAHI:**
+    * Declaradas anotaciones `@property` completas en `Atencion`, `ProProducto`, `facFacturaDet`, `sisTabla`, `HceEsquema`, `hceEsquemaEncabeza`, `hceEsquemasdeAte`, `hceEsquemaDetMemo`, `hceEsquemaDetProc` y `Ecografia`.
+  - **Pruebas Automatizadas y Calidad:**
+    * Creado `tests/Feature/SahiInteroperabilidadTest.php` con 8 pruebas (autenticación 401, autorización 403, diagnóstico estructurado 200, validación de parámetros 422, envío de estudios y ejecución segura de reconciliación) pasando al 100%.
+    * Verificación integral: Laravel Pint passed ✅ | PHPStan nivel 5 (0 errores) ✅ | PHPUnit 37/37 assertions pasando (196 assertions) ✅ | Vite `npm run build` en 1.51s ✅.
 ### Estado de módulos recientes (oct. 2026)
+- **SAHIController / SAHIService / SAHITranscibirService** (2026-10-21): ✅ Blindaje transaccional atómico, timeouts de 5s, captura 503 defensiva y herramienta de diagnóstico `sahi:test`.
 - **BackupMonitorController** (2026-10-21): ✅ Permisos `seguridad.backups.index` y `seguridad.backups.ejecutar` creados y asignados a `Administrador` mediante `PermisionBackupMonitorSeeder`. Rutas en `api_seguridad.php` y `web.php`.
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.

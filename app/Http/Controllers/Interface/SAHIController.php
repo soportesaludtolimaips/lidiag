@@ -71,4 +71,23 @@ class SAHIController extends Controller
 
         return response()->json($result, $result['status']);
     }
+
+    /**
+     * Verifica la conectividad directa y tiempo de respuesta con el servidor SAHI (SQL Server).
+     *
+     * Flujo del proceso:
+     * 1. Invoca el método verificarConexion del servicio SAHIService.
+     * 2. Retorna la respuesta en formato JSON con el código de estado correspondiente (200 o 503).
+     *
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-21
+     */
+    public function verificarConexion(): JsonResponse
+    {
+        $result = $this->sahiService->verificarConexion();
+
+        return response()->json($result, $result['status']);
+    }
 }

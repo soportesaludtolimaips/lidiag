@@ -53,4 +53,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/interface-sahi/listar/productos/atencion', [SAHIController::class, 'listarProductosAtencion'])
         ->name('api.sahi.estudios.listar.productos.atencion')
         ->middleware(['permission:ecografias.index|ecografias.admision,web']);
+
+    Route::get('/interface-sahi/test-conexion', [SAHIController::class, 'verificarConexion'])
+        ->name('api.sahi.test.conexion')
+        ->middleware(['permission:ecografias.index|ecografias.admision|estudio.index,web']);
 });

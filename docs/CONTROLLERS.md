@@ -303,10 +303,11 @@ Importación de estudios DICOM desde archivos externos al PACS.
 
 ### `SAHIController.php`
 Módulo core de interoperabilidad con el HIS hospitalario (SAHI) vía SQL Server.
-- **`listarAtenciones`**: Consulta ingresos de pacientes directamente en las tablas del HIS.
-- **`listarProductosDiagnosticos`**: Recupera el desglose de productos y diagnósticos facturados en una orden externa.
+- **`listarAtenciones`**: Consulta ingresos de pacientes directamente en las tablas del HIS. Incluye manejo defensivo de excepciones ante caídas de red retornando HTTP 503.
+- **`listarProductosDiagnosticos`**: Recupera el desglose de productos y diagnósticos facturados en una orden externa con captura de errores.
 - **`buscarEpsPlanContrato`**: Extrae datos contractuales y de aseguramiento del paciente desde el HIS.
 - **`listarProductosAtencion`**: Cruza la información de facturación con movimientos internos para validar el estado de los servicios.
+- **`verificarConexion`**: (2026-10-21) Verifica en tiempo real la conectividad y latencia TCP/PDO con el servidor SQL Server retornando métricas y diagnóstico de red.
 
 ### `SAHIEcografiasController.php`
 Capa de integración HIS especializada exclusivamente para el flujo de ecografías.
@@ -315,10 +316,14 @@ Capa de integración HIS especializada exclusivamente para el flujo de ecografí
 ### `SAHIEcografiasEnviarController.php`
 Envío de resultados de ecografías hacia el HIS externo.
 - **`enviar`**: Persiste el resultado de una ecografía en las tablas de historia clínica del HIS (SAHI) vía SQL Server.
+- **Reconciliación Automática**: `EcografiasSahiReconcileCommand` reconcilia registros en estado `ENVIANDO` con pre-chequeo de conectividad a SQL Server para evitar falsos errores durante desconexiones o mantenimientos.
 
 ### `SAHITranscibirController.php`
 Despacho y sincronización de informes clínicos hacia la Historia Clínica Electrónica externa.
-- **`enviarEstudio`**: Ejecuta la transacción de inserción de resultados finales directamente dentro de las tablas relacionales de la historia clínica de SAHI.
+- **`enviarEstudio`**: Ejecuta la transacción atómica de inserción de resultados finales directamente dentro de las tablas relacionales de la historia clínica de SAHI (`DB::connection('sqlsrv')->transaction()`), garantizando integridad en caso de microcortes de red.
+
+### Comandos de Diagnóstico SAHI
+- **`php artisan sahi:test`**: (2026-10-21) Herramienta de auditoría integral de interoperabilidad. Prueba socket TCP (puerto 1433), autenticación PDO, latencia de consulta y validación de lectura sobre las 5 tablas maestras (`admAtencion`, `admCliente`, `proProducto`, `HceEsquema`, `sisTabla`).
 
 ### `TeleRadiologiaController.php`
 Integración pasarela con plataformas de lectura externa vía webhook.

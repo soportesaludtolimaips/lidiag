@@ -10,6 +10,20 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $id
+ * @property int $medico_id
+ * @property int $paciente_id
+ * @property int $usua_regis_id
+ * @property int $admin_salud_id
+ * @property int $atencion_id
+ * @property string $fec_cita_sahi
+ * @property string $fec_regis_cita_sahi
+ * @property string $contrato
+ * @property string $plan
+ * @property string $quien_ordena
+ * @property string $estado
+ */
 class Ecografia extends Model
 {
     use HasFactory;
