@@ -401,7 +401,7 @@
                             </ul>
                         </li>
                     @endif
-                    @if (auth()->user()->hasAnyPermission(['seguridad.usuarios.index', 'seguridad.roles.index']))
+                    @if (auth()->user()->hasAnyPermission(['seguridad.usuarios.index', 'seguridad.roles.index', 'seguridad.auditoria.index', 'seguridad.backups.index']))
                         <li class="nav-small-cap"><span>Seguridad</span></li>
                         <li class="{{ request()->routeIs('seguridad.*') ? 'active' : '' }}">
                             <a class="has-arrow waves-effect waves-dark {{ request()->routeIs('seguridad.*') ? 'active' : '' }}" href="#" aria-expanded="{{ request()->routeIs('seguridad.*') ? 'true' : 'false' }}">
@@ -427,6 +427,13 @@
                                     <li class="{{ request()->routeIs('seguridad.auditoria') ? 'active' : '' }}">
                                         <a class="{{ request()->routeIs('seguridad.auditoria') ? 'active' : '' }}" href="{{ route('seguridad.auditoria') }}">
                                             <i class="fa fa-key text-info"></i> Auditoria
+                                        </a>
+                                    </li>
+                                @endcan
+                                @can('seguridad.backups.index')
+                                    <li class="{{ request()->routeIs('seguridad.backups') ? 'active' : '' }}">
+                                        <a class="{{ request()->routeIs('seguridad.backups') ? 'active' : '' }}" href="{{ route('seguridad.backups') }}">
+                                            <i class="fa fa-database text-info"></i> Monitoreo Backups
                                         </a>
                                     </li>
                                 @endcan

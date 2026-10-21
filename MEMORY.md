@@ -545,7 +545,32 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 - [x] **2026-10-20 — Versionamiento de Servicios Auxiliares (`storage/app_lidiag/`):**
   - Incorporación a Git de los scripts y fuentes de `agente_backups_dcm/`, servicio STT `transcriptor/` (FastAPI + Whisper), `src-tauri/` y `microdicom/`.
   - Exclusión confirmada de entornos virtuales (`venv/`), binarios pesados (`LibreOfficePortable/`), perfiles de ejecución (`lo_profile/`) y credenciales sensibles (`config.json`).
+- [x] **2026-10-21 — Panel de Monitoreo de Backups y Sincronización de Sedes en Tiempo Real:**
+  - **Permisos Spatie y Seeder:** Creado `database/seeders/PermisionBackupMonitorSeeder.php` con permisos `seguridad.backups.index` y `seguridad.backups.ejecutar` asignados al rol `Administrador`. Permisos aplicados en DB y caché Spatie reiniciada (`php artisan permissions:cache-reset`).
+  - **Servicio Backend de Monitoreo (`BackupMonitorService`):**
+    * Detección en tiempo real de espacio en disco (total, usado, libre, porcentaje y estado óptimo/advertencia/crítico).
+    * Auditoría de últimos respaldos centrales (MySQL y storage) con cálculo de antigüedad humana, tamaño y hash SHA-256 de integridad.
+    * Semáforo de salud de sincronización DCM de sedes hospitalarias (`🟢 Al día <24h`, `🟡 Advertencia 24-48h`, `🔴 Crítico >48h` o sin backups) analizando los archivos zip enviados por los agentes.
+    * Bitácora en vivo: parseo de las últimas 30 líneas de `storage/logs/backups.log`.
+  - **Controlador Backend (`BackupMonitorController`):**
+    * `GET /api/seguridad-backups/estado`: Consulta métricas y estado global de la red. Requiere `seguridad.backups.index`.
+    * `POST /api/seguridad-backups/ejecutar-db`: Dispara backup manual inmediato de MySQL delegando a `BackupService::ejecutar(['only_db' => true])` con política de retención automática. Requiere `seguridad.backups.ejecutar`.
+  - **Cableado del Módulo (5 Puntos Canónicos):**
+    1. API routes en `routes/api_seguridad.php`.
+    2. Web route en `routes/web.php` con middleware `['auth', 'permission:seguridad.backups.index']`.
+    3. Vista Blade `resources/views/modulos/seguridad/backups.blade.php` montando `<backup-monitor-component />`.
+    4. Componente Vue registrado en `resources/js/app.js`.
+    5. Menú lateral en `resources/views/comunes/sidebar.blade.php` bajo la sección "Seguridad" con directiva `@can('seguridad.backups.index')`.
+  - **Componente Vue 3 (`backupMonitorComponent.vue`):**
+    * Tarjetas de KPI: espacio en disco con barra de progreso, último backup de BD, tasa de sincronización de sedes hospitalarias y último backup de storage.
+    * Tabla detallada por sede: semáforo de sincronización, fecha del último respaldo, horas de retraso, tamaño y conteo de archivos.
+    * Visor de bitácora tipo consola oscura para eventos de respaldo.
+    * Botón de refresco manual con atajo accesible `F2` y disparador asistido de backup inmediato de MySQL con confirmación no invasiva.
+  - **Pruebas Automatizadas y Calidad:**
+    * Creado `tests/Feature/BackupMonitorFeatureTest.php` con 5 tests (autenticación 401, autorización 403, estructura de datos 200, autorización de disparo 403, ejecución con mock 200) pasando al 100%.
+    * Verificación integral: ESLint 0 errores/warnings ✅ | Laravel Pint passed ✅ | PHPStan nivel 5 (0 errores) ✅ | PHPUnit 5/5 assertions pasando ✅ | Vite `npm run build` en 1.02s ✅.
 ### Estado de módulos recientes (oct. 2026)
+- **BackupMonitorController** (2026-10-21): ✅ Permisos `seguridad.backups.index` y `seguridad.backups.ejecutar` creados y asignados a `Administrador` mediante `PermisionBackupMonitorSeeder`. Rutas en `api_seguridad.php` y `web.php`.
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.
 - **LiquidacionController** (2026-10-01): ✅ Seeder `PermisionLiquidacionSeeder` existente y registrado en `DatabaseSeeder`. Permisos `liquidacion.index` y `liquidacion.exportar` asignados al rol `Administrador`.
 

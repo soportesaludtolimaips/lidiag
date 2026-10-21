@@ -286,6 +286,10 @@ Route::view('/seguridad-auditoria', 'modulos.seguridad.auditoria')
     ->name('seguridad.auditoria')
     ->middleware(['auth', 'permission:seguridad.auditoria.index']);
 
+Route::view('/seguridad-backups', 'modulos.seguridad.backups')
+    ->name('seguridad.backups')
+    ->middleware(['auth', 'permission:seguridad.backups.index']);
+
 /**
  * Interface SAHI
  */

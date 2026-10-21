@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Seguridad\AuditLogController;
+use App\Http\Controllers\Seguridad\BackupMonitorController;
 use App\Http\Controllers\Seguridad\RolController;
 use App\Http\Controllers\Seguridad\UserController;
 use Illuminate\Support\Facades\Route;
@@ -88,4 +89,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/seguridad-auditoria/eventos', [AuditLogController::class, 'eventos'])
         ->name('api.seguridad.auditoria.eventos')
         ->middleware(['permission:seguridad.auditoria.index']);
+
+    // Monitoreo de Backups
+    Route::get('/seguridad-backups/estado', [BackupMonitorController::class, 'estado'])
+        ->name('api.seguridad.backups.estado')
+        ->middleware(['permission:seguridad.backups.index']);
+
+    Route::post('/seguridad-backups/ejecutar-db', [BackupMonitorController::class, 'ejecutarBackupDb'])
+        ->name('api.seguridad.backups.ejecutar-db')
+        ->middleware(['permission:seguridad.backups.ejecutar']);
 });

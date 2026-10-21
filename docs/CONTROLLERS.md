@@ -446,6 +446,11 @@ Consulta del log de auditoría de operaciones sensibles.
 - **`index`**: Lista registros de auditoría con filtros por evento, usuario, búsqueda libre y rango de fechas. Paginación de 50 por página. Requiere permiso `seguridad.auditoria.index`.
 - **`eventos`**: Retorna el catálogo de tipos de eventos registrables para poblar el filtro del frontend.
 
+### `BackupMonitorController.php`
+Controlador para el panel de monitoreo y gestión en tiempo real de copias de seguridad y sincronización de sedes hospitalarias.
+- **`estado`**: Retorna métricas consolidadas de almacenamiento en disco, estado de backups centrales (MySQL y storage) y semáforo de sincronización de imágenes DCM por sede. Requiere permiso `seguridad.backups.index`.
+- **`ejecutarBackupDb`**: Dispara la ejecución manual e inmediata de un respaldo de la base de datos principal MySQL con política de retención automática. Requiere permiso `seguridad.backups.ejecutar`.
+
 ---
 
 ## Módulo: Autenticación
