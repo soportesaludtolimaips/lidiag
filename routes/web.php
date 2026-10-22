@@ -88,6 +88,13 @@ Route::view('/helpdesk-notificaciones', 'modulos.help-desk.notificaciones')
     ->middleware(['auth', 'permission:helpdesk.notificaciones.index']);
 
 /**
+ * Gestión de Pacientes y Admisión
+ */
+Route::view('/pacientes/admision', 'modulos.pacientes.admision')
+    ->name('gestion.pacientes.admision')
+    ->middleware(['auth', 'permission:gestion.pacientes.index']);
+
+/**
  * Estudios radiologicos
  */
 Route::view('/estudios.asignar.listar', 'modulos.estudios.asignar-estudio')

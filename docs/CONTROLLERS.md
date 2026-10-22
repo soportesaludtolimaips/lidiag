@@ -498,3 +498,19 @@ Control de acceso a archivos protegidos del sistema.
 ### `HomeController.php`
 Controlador raíz de la SPA.
 - **`index`**: Retorna la vista blade principal que monta la aplicación Vue 3.
+
+---
+
+## Módulo: Pacientes y Modality Worklist (MWL)
+
+### `PacienteController.php`
+Controlador delgado (Thin Controller) para la administración del catálogo de pacientes y la emisión/cancelación de órdenes a la Modality Worklist DICOM de Dcm4chee.
+- **`listar`**: Consulta pacientes filtrados por documento, nombre o rango de fechas, adjuntando el estado de órdenes activas de Worklist del día para la sede seleccionada.
+- **`store`**: Registra un nuevo paciente validando unicidad de documento y formato.
+- **`show`**: Retorna la ficha demográfica del paciente.
+- **`update`**: Actualiza los datos del paciente asegurando que el documento no colisione con otro registro.
+- **`destroy`**: Elimina un paciente siempre que no posea estudios, ecografías ni órdenes previas.
+- **`obtenerCatalogos`**: Provee los tipos de documento y procedimientos CUPS de Rayos X activos para el modal de admisión.
+- **`obtenerAccessionSugerido`**: Genera un número de acceso único secuencial con prefijo `RX-YYYYMMDD-####`.
+- **`enviarWorklist`**: Inserta el paciente y la orden de Rayos X en la base de datos de Dcm4chee (`patient` y `mwl_item` con dataset binario DICOM `item_attrs`) y persiste la orden en LIDiag (`worklist_ordenes`).
+- **`cancelarWorklist`**: Retira la orden activa de la consola del equipo de Rayos X (eliminando el registro en Dcm4chee `mwl_item`) y marca el estado en LIDiag como `CANCELADO`.

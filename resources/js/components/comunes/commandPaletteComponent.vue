@@ -135,14 +135,14 @@ const todosLosModulos = [
     {
         titulo: "Admisionar Paciente",
         categoria: "Pacientes",
-        url: "/pacientes/admisionar",
+        url: "/pacientes/admision",
         icono: "fa fa-user-plus",
         permiso: "gestion.pacientes.create",
     },
     {
         titulo: "Listar Pacientes",
         categoria: "Pacientes",
-        url: "/pacientes/listar",
+        url: "/pacientes/admision",
         icono: "fa fa-users",
         permiso: "gestion.pacientes.index",
     },

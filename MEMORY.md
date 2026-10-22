@@ -37,6 +37,18 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-21 — Implementación del Módulo Pacientes ➔ Admisión y Modality Worklist (MWL) con DCM / Dcm4chee:**
+  - Creada tabla y migración `worklist_ordenes` (`2026_10_21_000001_create_worklist_ordenes_table.php`) para trazabilidad local de órdenes en LIDiag con claves foráneas e índices de rendimiento.
+  - Creado modelo `WorklistOrden` (`app/Models/Worklist/WorklistOrden.php`) y vinculada relación en `Paciente` (`worklistOrdenes`).
+  - Desarrollado `DicomDatasetBuilder` (`app/Helpers/DicomDatasetBuilder.php`) para codificación binaria de datasets DICOM estándar (Little Endian Explicit VR) para `mwl_item.item_attrs` y `patient.pat_attrs`.
+  - Desarrollado `WorklistService` (`app/Services/Dcm4chee/WorklistService.php`): conexión dinámica `mysql_sucursal` a Dcm4chee de la sede activa, generación de `accession_no` mixto (`RX-YYYYMMDD-####`), sincronización en `patient`, inserción en `mwl_item` con dataset completo y retiro/cancelación segura de órdenes.
+  - Desarrollado `PacienteService` (`app/Services/Pacientes/PacienteService.php`) con CRUD de pacientes, mapeo reactivo de órdenes activas de Worklist del día y catálogos auxiliares (tipos de documento y productos de Rayos X).
+  - Creados 5 FormRequests dedicados en `app/Http/Requests/Pacientes/`: `PacienteIndexRequest`, `PacienteStoreRequest`, `PacienteUpdateRequest`, `WorklistEnviarRequest`, `WorklistCancelarRequest`.
+  - Implementado `PacienteController` (`app/Http/Controllers/Pacientes/PacienteController.php`) como Thin Controller con middleware de permisos por método para Administrador y Transcriptor (`gestion.pacientes.index`, `gestion.pacientes.create`, `gestion.pacientes.update`, `gestion.pacientes.delete`).
+  - Cableado de 5 puntos completado: `routes/api_pacientes.php` registrado en `bootstrap/app.php`, ruta web `gestion.pacientes.admision` en `routes/web.php`, vista blade `resources/views/modulos/pacientes/admision.blade.php`, componente registrado en `resources/js/app.js`, y enlace activo en `resources/views/comunes/sidebar.blade.php`.
+  - Desarrollado componente Vue 3 `admisionComponent.vue` (`resources/js/components/modulos/pacientes/admisionComponent.vue`): filtros persistentes con `useFilterPersistence`, Table Skeleton Loader, Empty State, botón con `title="enviar para procedimiento"`, badge dinámico *"En espera de Rayos X"*, modal de envío a Worklist ágil, right-sidebar para crear/editar pacientes y soporte para Modo Claro/Modo Oscuro.
+  - Creada especificación técnica completa en `docs/WORKLIST_FLUJO_DCM.md` y documentado en `docs/CONTROLLERS.md`.
+  - Verificación estricta: `vendor\bin\pint.bat --test` passed ✅ | ESLint 0 errores/warnings ✅ | Vite `npm run build` en 985ms ✅.
 - [x] Corrección de discrepancias de versión en el entorno y definición de reglas del agente.
 - [x] **2026-10-13 — Análisis completo del repositorio:** Inventario de 65 controladores (organizados en 14 namespaces), 56 componentes Vue, 13 rutas API, 7 servicios, 13 comandos Artisan, ~100 migraciones.
 - [x] **2026-10-13 — `docs/CONTROLLERS.md` completamente reescrito:** Se añadieron 8 módulos faltantes (HelpDesk, Contratación, Liquidación, Tele-Radiología, Consentimientos, Seguridad, Reportes, Auth) con todos los métodos documentados extrayendo la información directamente del código fuente.
@@ -65,6 +77,26 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - Creados FormRequests tipados: `HelpDeskTicketIndexRequest` y `HelpDeskNotificacionIndexRequest`.
   - Refactorizados los 8 controladores de Help Desk (`HelpDeskTicketsController`, `HelpDeskNotificacionesController`, `HelpDeskCategoriasController`, `HelpDeskPrioridadesController`, `HelpDeskEstadosController`, `HelpDeskReportesController`, `HelpDeskAdjuntosController`, `HelpDeskUsuariosController`) eliminando lecturas sin tipar y estandarizando HTTP status `(int) $result["status"]` y comillas dobles.
   - Verificación estricta: `vendor\bin\pint.bat` passed y `npm run build` passed en 1.02s.
+- [x] **2026-10-22 — Módulo Admisión & Worklist Rayos X (Pacientes / MWL DICOM):**
+  - Implementado módulo completo de Admisión de Pacientes y vinculación a Modality Worklist DICOM (`/pacientes/admision`).
+  - Creación de tabla y modelo `WorklistOrden` con estado y tracking local de órdenes enviadas y retiradas de consola.
+  - Implementado `WorklistService` con generación de Accession Number consecutivo diario (`RX-YYYYMMDD-####`), sincronización en `pacsdb.patient` y publicación DICOM en `pacsdb.mwl_item` con codificación Little Endian Explicit VR vía `DicomDatasetBuilder`.
+  - Homologación 100% de la UI con `AsignarEstudioComponent.vue` (DataTables `#example23`, botones redondeados outline, drawer `right-sidebar`, modal Worklist).
+  - **Hotfix Sede Seleccionada:** Resuelto bug HTTP 422 (`La sede es obligatoria para verificar órdenes activas`) al recargar o seleccionar sede en `admisionComponent.vue`:
+    - En el frontend: Normalizador `parsearSedeId` capaz de procesar números, strings y objetos emitidos por el bus global `{ idSede, nomSede }`.
+    - En el backend: Incorporado `prepareForValidation` en `PacienteIndexRequest` y `WorklistEnviarRequest` con fallback automático a `session('sede_id')`, primer sede del usuario o sede activa por defecto.
+    - Sincronización reactiva bidireccional con `sessionStorage('ST-sede')` y `sessionStorage('ST-nomsede')`.
+  - **Paginación DataTables:** Homologada al 100% con `AsignarEstudioComponent.vue`:
+    - Incorporado `contadorRegistros` computado.
+    - Limpieza y destrucción de DataTables previa a la mutación de `registros` para evitar colisión con el Virtual DOM de Vue.
+    - Inicialización de DataTables con `dom: "Bfrtip"`, botones de exportación, `pageLength: 10`, y traducción completa de paginación (`Primero`, `Último`, `Siguiente`, `Anterior`, `Mostrando _START_ a _END_ de _TOTAL_ pacientes`).
+    - `btnLimpiar` alineado a `AsignarEstudioComponent.vue` reseteando filtros, vaciando registros y destruyendo tabla sin disparar petición innecesaria.
+  - **Integración DICOM MWL Dcm4chee & Arquitectura 100% Dinámica (Cero Hardcoding):**
+    - Deserialización binaria en Dcm4chee: adaptado `DicomDatasetBuilder` para empaquetar la cabecera File Meta Information estándar de Dcm4chee (`(0002,0000)` y Transfer Syntax UID `1.2.840.10008.1.2.1.99`) comprimiendo el payload con `gzdeflate` (*Deflated Explicit VR Little Endian*).
+    - Unicidad de Procedure Step en Dcm4chee: en `pacsdb.mwl_item` el índice único `mwl_sps_id` es compuesto `(sps_id, req_proc_id)`. Se asigna `$accessionNo` a `sps_id` garantizando que múltiples órdenes del mismo CUPS nunca colisionen en el PACS.
+    - Detección de modalidades y salas multisede dinámica: endpoint `GET /api/pacientes/worklist-estaciones?sede_id={id}` optimizado para consultar todas las modalidades de adquisición en `pacsdb.ae` (filtrando instancias de archivo `localhost`/`archive instance` sin restringir `installed = 1`, soportando modalidades como `RADMAX` en Rovira o `RXSala2` en Espinal).
+    - Reactividad al cambio de sede: `admisionComponent.vue` actualiza y precarga inmediatamente las estaciones al dispararse el evento `sedeSeleccionada`, con estado de carga `loadingEstaciones` y fallback asistido en caso de que una sede no tenga nodos configurados en su PACS.
+    - Verificación estricta: `vendor\bin\pint.bat --test` passed ✅ | `npx eslint` passed con 0 errores ✅ | `npm run build` en 992ms ✅.
 - [x] **2026-10-13 — Ejecución de Fase 6 (Seguridad & Configuración):**
   - Creados FormRequests: `UpdateUserProfileRequest`, `RolActualizarRequest`, `AuditLogIndexRequest`, `UserEstadoRequest`, `ConfigWhatsappBuscarRequest`, `ServicioProductoNoVinculadosRequest`, y ampliado `ConfigPrioridadRequest`.
   - Refactorizados controladores de Seguridad (`UserController`, `RolController`, `AuditLogController`) eliminando todas las validaciones inline `$request->validate()`.
