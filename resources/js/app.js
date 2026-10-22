@@ -38,6 +38,13 @@ import dashboardComponent from "./components/dashboard/dashboardComponent.vue";
 app.component("DashboardComponent", dashboardComponent);
 
 /**
+ * Pacientes y Admisión
+ */
+import admisionComponent from "./components/modulos/pacientes/admisionComponent.vue";
+app.component("AdmisionPacienteComponent", admisionComponent);
+app.component("AdmisionPacienteComponent", admisionComponent);
+
+/**
  * Cofiguración
  */
 import configAdminSaludComponent from "./components/modulos/configuracion/configAdminSaludComponent.vue";

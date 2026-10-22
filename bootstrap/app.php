@@ -62,6 +62,12 @@ return Application::configure(basePath: dirname(__DIR__))
                 'api_OHIF_visor.php',
                 'api_burn.php',
                 'api_contratacion.php',
+<<<<<<< HEAD
+=======
+                'api_liquidacion.php',
+                'api_telegram.php',
+                'api_pacientes.php',
+>>>>>>> 01b98816 (feat(worklist): modulo de admision y modality worklist (MWL DICOM) multisede dinamico)
             ];
             foreach ($apiFiles as $file) {
                 Route::middleware('api')

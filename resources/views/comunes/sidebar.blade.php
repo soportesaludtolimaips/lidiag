@@ -30,13 +30,13 @@
                             <ul aria-expanded="false" class="collapse">
 
                                 <li>
-                                    <a href="">
+                                    <a href="{{ route('gestion.pacientes.admision') }}" class="{{ request()->routeIs('gestion.pacientes.admision') ? 'active' : '' }}">
                                         <i class="fa fa-user-plus text-info"></i> Admisionar Paciente
                                     </a>
                                 </li>
 
                                 <li>
-                                    <a href="">
+                                    <a href="{{ route('gestion.pacientes.admision') }}" class="{{ request()->routeIs('gestion.pacientes.admision') ? 'active' : '' }}">
                                         <i class="fa fa-users text-info"></i> Listar Pacientes
                                     </a>
                                 </li>

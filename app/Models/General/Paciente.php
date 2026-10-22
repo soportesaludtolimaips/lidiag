@@ -2,8 +2,10 @@
 
 namespace App\Models\General;
 
+use App\Models\Configuracion\ConfigTipoDocumento;
 use App\Models\Ecografias\Ecografia;
 use App\Models\Estudio\Estudio;
+use App\Models\Worklist\WorklistOrden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -17,7 +19,7 @@ class Paciente extends Model
 
     public function tipoDocumento()
     {
-        return $this->belongsTo(TipoDocumento::class);
+        return $this->belongsTo(ConfigTipoDocumento::class, 'tipo_documento_id');
     }
 
     public function estudios()
@@ -28,5 +30,17 @@ class Paciente extends Model
     public function ecografias()
     {
         return $this->hasMany(Ecografia::class);
+    }
+
+    /**
+     * Órdenes de Worklist del paciente.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-21
+     */
+    public function worklistOrdenes()
+    {
+        return $this->hasMany(WorklistOrden::class, 'paciente_id');
     }
 }

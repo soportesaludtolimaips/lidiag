@@ -49,7 +49,8 @@ Esto genera una URL como `https://xxx.trycloudflare.com`. Úsala en la configura
 -   **Backend**: Laravel 10 (PHP >= 8.0.2), MySQL
 -   **Frontend**: Vue 3 + Vite (Laravel Vite Plugin), Bootstrap 5
 -   **Seguridad**: `spatie/laravel-permission` (roles/permisos)
--   **Integraciones**: HIS/SAHI (SQL Server), PACS Dcm4chee, Twilio (WhatsApp), generación de PDF/Excel (DomPDF / Maatwebsite Excel)
+-   **Integraciones**: HIS/SAHI (SQL Server), PACS Dcm4chee (MySQL multisede), Twilio (WhatsApp), generación de PDF/Excel (DomPDF / Maatwebsite Excel)
+-   **Estándares Médicos / DICOM**: Modality Worklist (MWL) DICOM nativo, codificación binaria Little Endian Explicit VR y compresión zlib *Deflated Explicit VR Little Endian* (`1.2.840.10008.1.2.1.99`)
 -   **Autenticación API**: `auth:sanctum` (Sanctum stateful para SPA)
 -   **Multimedia**: FFmpeg (conversión/compresión de audios a MP3)
 -   **Transcripción de voz a texto**: Whisper (OpenAI) + FastAPI (servicio Python local, puerto 8001)
@@ -61,12 +62,13 @@ El siguiente diagrama ilustra cómo interactúa LIDiag con los sistemas externos
 
 ```mermaid
 graph TD
-    HIS[HIS - SAHI] <-->|Pacientes, Órdenes, Resultados| Interface[Módulo Interface]
-    Interface <-->|Sincronización| LIDiag[LIDiag App]
-    LIDiag -->|Consulta Imágenes| PACS[Servidor PACS - Dcm4chee]
-    PACS -->|Visualización| Oviyam[Visor Oviyam]
-    LIDiag -->|Notificaciones| Twilio[WhatsApp/SMS]
-    LIDiag -->|Reportes| PDF_Excel[Archivos PDF/Excel]
+    HIS["HIS - SAHI (SQL Server)"] <-->|"Pacientes, Órdenes, Resultados"| Interface["Módulo Interface"]
+    Interface <-->|"Sincronización"| LIDiag["LIDiag App"]
+    LIDiag -->|"Publicación MWL / Consulta Imágenes"| PACS["Servidor PACS - Dcm4chee"]
+    PACS -->|"Visualización"| Oviyam["Visor Oviyam"]
+    PACS <-->|"DICOM C-FIND (MWL) / C-STORE"| Consolas["Consolas Rayos X (Allengers, Agfa, Carestream, etc.)"]
+    LIDiag -->|"Notificaciones"| Twilio["WhatsApp/SMS"]
+    LIDiag -->|"Reportes"| PDF_Excel["Archivos PDF/Excel"]
 ```
 
 ---
@@ -115,11 +117,12 @@ La aplicación está compuesta por los siguientes módulos especializados:
 
 ### 6. Dcm4chee (Integración PACS)
 
-**Propósito:** Comunicación con el servidor de almacenamiento de imágenes.
+**Propósito:** Comunicación con el servidor de almacenamiento de imágenes y orquestación de la lista de trabajo DICOM.
 
--   Realiza la integración directa con el servidor PACS (Picture Archiving and Communication System).
--   Permite la consulta de estudios radiológicos.
--   Facilita la visualización de imágenes mediante el visor **Oviyam**.
+-   Realiza la integración directa y dinámica con las bases de datos de los servidores PACS de cada sede (Picture Archiving and Communication System).
+-   **Modality Worklist (MWL):** Sincronización de pacientes (`patient`) e inserción de ítems programados (`mwl_item`) codificados en *Deflated Explicit VR Little Endian* para que las consolas de adquisición descarguen órdenes vía DICOM C-FIND.
+-   Permite la consulta de estudios radiológicos en tiempo real.
+-   Facilita la visualización de imágenes diagnósticas mediante el visor **Oviyam**.
 
 ### 7. Importar
 
@@ -143,6 +146,41 @@ La aplicación está compuesta por los siguientes módulos especializados:
 -   Gestión de usuarios, roles y permisos (basado en `spatie/laravel-permission`).
 -   Control de acceso y auditoría.
 
+<<<<<<< HEAD
+=======
+### 11. Contratación
+
+**Propósito:** Tarifas por sede como fuente para la liquidación de pagos a médicos.
+
+-   Contratos por sede con vigencia sin solapamientos y detalle médico-producto (`valor_consulta`, `valor_urgencias`, vigencia por médico).
+-   El detalle se sincroniza por diff no destructivo con preview y confirmación (nunca `DELETE`; retiros con `estado` + `fecha_retiro`, con reactivación al re-incluir).
+-   Cobertura: informa qué productos exigibles no tienen tarifa en el contrato.
+-   Plantilla e importación por Excel (productos y médicos-producto).
+-   API: `/api/contratos`, `/cobertura`, `/medicos/preview`, `/medicos` (sync), imports. UI: `/contratos`.
+
+### 12. Liquidación
+
+**Propósito:** Calcular y reportar cuánto se le debe a cada médico por periodo.
+
+-   Cálculo a demanda por sede + rango de fechas, con filtros opcionales de contrato y médico. Prioridad Alta → `valor_urgencias`, resto → `valor_consulta`.
+-   Cada lectura congela su línea en `liquidacion_lineas` (valor inmutable para el corte); lo no liquidable queda con su categoría de exclusión visible.
+-   Productividad por médico para el corte de mes, con detalle de producción y export a Excel. UI: `/liquidacion`, `/productividad`.
+-   Solo el médico asignado puede registrar la lectura (`leerEstudio`: 422 sin asignado, 403 otro médico).
+-   API: `/api/liquidacion`, `/api/liquidacion/productividad`, `/api/liquidacion/exportar` (permisos `liquidacion.index`, `liquidacion.exportar`).
+
+### 13. Admisión y Modality Worklist (MWL DICOM)
+
+**Propósito:** Gestión integral de pacientes admitidos y vinculación directa con la lista de trabajo DICOM (Modality Worklist) de las consolas de adquisición de imágenes (Rayos X, etc.).
+
+-   **Búsqueda y Admisión:** Búsqueda ágil de pacientes por documento o nombres, creación y edición de datos demográficos con integración a la tabla de pacientes local.
+-   **Envío a Worklist:** Sincronización en tiempo real del paciente (`patient`) y de la orden programada (`mwl_item`) en el PACS Dcm4chee de la sede activa.
+-   **Accession Number Secuencial:** Generación automática de consecutivo diario por sede con formato `RX-YYYYMMDD-####`.
+-   **Codificación DICOM Estándar:** Empaquetamiento binario con cabecera File Meta Information y compresión nativa *Deflated Explicit VR Little Endian* (`1.2.840.10008.1.2.1.99`) vía `DicomDatasetBuilder`, garantizando la deserialización por parte del servicio Java de Dcm4chee.
+-   **Multisede 100% Dinámica:** Detección en vivo de los equipos/salas de adquisición registrados en la tabla `ae` de la sede correspondiente (`GET /api/pacientes/worklist-estaciones`). Cero valores fijos o hardcodeados; si la sede agrega o renombra una consola, LIDiag la refleja de inmediato.
+-   **Trazabilidad y Cancelación:** Control de estado de órdenes (`PENDIENTE`, `CANCELADO`), prevención de duplicidad por `sps_id` único, y retiro de pacientes de la consola del equipo en caliente.
+-   **UI y Rutas:** Pantalla web en `/pacientes/admision`, API en `/api/pacientes/*` (permisos `gestion.pacientes.*`). Documentación técnica en `docs/WORKLIST_FLUJO_DCM.md`.
+
+>>>>>>> 01b98816 (feat(worklist): modulo de admision y modality worklist (MWL DICOM) multisede dinamico)
 ---
 
 ## Comandos Personalizados (Console Commands)
