@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 class UpdateConfigRecomendacionProductoRequest extends FormRequest
 {
     /**
-     * Autoriza la petición a usuarios autenticados con el permiso configuracion.recomendaciones.edit.
+     * Autoriza la petición a usuarios autenticados con el permiso config.recomendaciones.edit.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -16,7 +16,7 @@ class UpdateConfigRecomendacionProductoRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Auth::check() && Auth::user()->can('configuracion.recomendaciones.edit');
+        return Auth::check() && Auth::user()->can('config.recomendaciones.edit');
     }
 
     /**

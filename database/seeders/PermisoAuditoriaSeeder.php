@@ -9,7 +9,10 @@ class PermisoAuditoriaSeeder extends Seeder
 {
     public function run(): void
     {
-        Permission::create(['name' => 'seguridad.auditoria.index'])
-            ->assignRole('Administrador');
+        $perm = Permission::firstOrCreate(
+            ['name' => 'seguridad.auditoria.index', 'guard_name' => 'web'],
+            ['name' => 'seguridad.auditoria.index', 'guard_name' => 'web']
+        );
+        $perm->syncRoles(['Administrador']);
     }
 }

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 class StoreConfigRecomendacionProductoRequest extends FormRequest
 {
     /**
-     * Autoriza la petición a usuarios autenticados con el permiso configuracion.recomendaciones.create.
+     * Autoriza la petición a usuarios autenticados con el permiso config.recomendaciones.create.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -16,7 +16,7 @@ class StoreConfigRecomendacionProductoRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Auth::check() && Auth::user()->can('configuracion.recomendaciones.create');
+        return Auth::check() && Auth::user()->can('config.recomendaciones.create');
     }
 
     /**

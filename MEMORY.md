@@ -629,7 +629,31 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Pruebas Automatizadas y Calidad:**
     * Creado `tests/Feature/SahiInteroperabilidadTest.php` con 8 pruebas (autenticación 401, autorización 403, diagnóstico estructurado 200, validación de parámetros 422, envío de estudios y ejecución segura de reconciliación) pasando al 100%.
     * Verificación integral: Laravel Pint passed ✅ | PHPStan nivel 5 (0 errores) ✅ | PHPUnit 37/37 assertions pasando (196 assertions) ✅ | Vite `npm run build` en 1.51s ✅.
+- [x] **2026-10-22 — Normalización PSR-4 de Casing (Autoload Dump Limpio):**
+  - **Diagnóstico:** `composer dump-autoload -o` omitía 14 seeders de `Database\Seeders\Configuracion` y `EcografiaLecturaController` por discrepancia de mayúsculas/minúsculas entre el namespace/clase PHP y la ruta en el sistema de archivos Git.
+  - **Corrección de Casing:**
+    * Renombrado en Git de `app/Http/Controllers/Ecografias/ecografiaLecturaController.php` a `EcografiaLecturaController.php`.
+    * Renombrado en Git del directorio `database/seeders/configuracion/` a `database/seeders/Configuracion/` preservando el historial de sus 14 seeders.
+  - **Verificación:** `composer dump-autoload -o` completado sin omitir ninguna clase (9,415 clases mapeadas al 100% sin advertencias) ✅ | PHPUnit 8/8 assertions pasando ✅.
+- [x] **2026-10-22 — Auditoría y Normalización de Permisos en BD (`permissions:audit` al 100%):**
+  - **Diagnóstico:** El comando `php artisan permissions:audit` detectaba 42 permisos faltantes debido a:
+    1. Parseo de sintaxis Spatie con guard explícito (`permission:foo,web`) que concatenaba `,web` al nombre del permiso.
+    2. Seeders existentes pendientes de ejecución en base de datos (`PermisionContratacionSeeder`, `PermisionLiquidacionSeeder`, `PermisionServicioCitasSeeder`, `PermisionWhatsAppSeeder`).
+    3. Discrepancias tipográficas entre FormRequests y Controladores (`configuracion.tipos-documento.*` vs `config.tipo.documento.*`, `configuracion.consentimientos.*` vs `config.consentimiento_informado.*`, `configuracion.recomendaciones.*` vs `config.recomendaciones.*`).
+    4. Duplicado en minúsculas `estudio.leerestudio` en `routes/web.php`.
+    5. Falta de seeder idempotente para `config.recomendaciones.*` y permisos de tipos en `PlantillaSeeder`.
+  - **Correcciones Implementadas:**
+    * `AuditPermissions.php`: Separación de guard explícito en chunks del middleware para evaluar únicamente nombres válidos.
+    * FormRequests alineados con sus respectivos controladores y seeders: `StoreConfigTipoDocumentoRequest`, `UpdateConfigTipoDocumentoRequest`, `StoreConsentimientoInformadoRequest`, `UpdateConsentimientoInformadoRequest`, `StoreConfigRecomendacionProductoRequest`, `UpdateConfigRecomendacionProductoRequest`.
+    * `routes/web.php`: Limpieza de `estudio.leerestudio` en favor del canónico `estudio.leerEstudio`.
+    * `PlantillaSeeder`: Incorporados permisos `config.plantillas.tipos.*`.
+    * `PermisoAuditoriaSeeder`: Refactorizado con `firstOrCreate` y `syncRoles` para garantizar idempotencia.
+    * Creado seeder `PermisionRecomendacionesSeeder` idempotente para `config.recomendaciones.*`.
+    * Ejecución exitosa de seeders en BD (`php artisan db:seed --class=...`).
+  - **Verificación:** `php artisan permissions:audit` pasando con **0 faltantes** (119 permisos en código, 151 en BD) ✅ | Laravel Pint passed ✅ | `npm run build` passed en 2.26s ✅ | Autoload con 9,416 clases sin advertencias ✅.
 ### Estado de módulos recientes (oct. 2026)
+- **Auditoría de Permisos Spatie** (2026-10-22): ✅ 100% sincronizado (0 faltantes en BD, regex de guard corregida, seeders idempotentes ejecutados).
+- **EcografiaLecturaController / Seeders Configuracion** (2026-10-22): ✅ Casing normalizado conforme a PSR-4. Autoload optimizado limpio al 100%.
 - **SAHIController / SAHIService / SAHITranscibirService** (2026-10-21): ✅ Blindaje transaccional atómico, timeouts de 5s, captura 503 defensiva y herramienta de diagnóstico `sahi:test`.
 - **BackupMonitorController** (2026-10-21): ✅ Permisos `seguridad.backups.index` y `seguridad.backups.ejecutar` creados y asignados a `Administrador` mediante `PermisionBackupMonitorSeeder`. Rutas en `api_seguridad.php` y `web.php`.
 - **EstudioLockController** (2026-10-08): ✅ Sin permisos propios — usa solo `auth`. Las rutas `estudio-lock/tomar` y `estudio-lock/liberar` están registradas en `api_estudios.php`. No requiere seeder.

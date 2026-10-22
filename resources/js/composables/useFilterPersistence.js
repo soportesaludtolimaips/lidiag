@@ -112,11 +112,17 @@ export function useFilterPersistence(storageKey, defaultFilters = {}, ignoredCou
 
     return {
         filtros,
+        filters: filtros,
         filtrosVisible,
+        isFiltersExpanded: filtrosVisible,
         filtrosActivosCount,
+        activeFilterCount: filtrosActivosCount,
         hasRestoredFilters,
         guardarFiltros,
+        saveFiltersToStorage: guardarFiltros,
         toggleFiltros,
+        toggleFilters: toggleFiltros,
         limpiarFiltrosStorage,
+        clearFiltersStorage: limpiarFiltrosStorage,
     };
 }

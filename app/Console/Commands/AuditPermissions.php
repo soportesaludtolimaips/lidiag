@@ -226,11 +226,17 @@ class AuditPermissions extends Command
     {
         $perms = [];
 
-        // 1) Middleware "permission:foo|bar" (routes/web.php, controllers, etc)
+        // 1) Middleware "permission:foo|bar" o "permission:foo|bar,guard" (routes/web.php, controllers, etc)
         if (preg_match_all('/permission:([^\'"]+)/', $content, $m)) {
             foreach ($m[1] as $chunk) {
-                foreach (explode('|', (string) $chunk) as $p) {
-                    $perms[] = $p;
+                // Si incluye guard explícito ej: "permiso1|permiso2,web", separar los permisos del guard
+                $parts = explode(',', (string) $chunk);
+                $permString = $parts[0];
+                foreach (explode('|', $permString) as $p) {
+                    $clean = trim((string) $p);
+                    if ($clean !== '') {
+                        $perms[] = $clean;
+                    }
                 }
             }
         }

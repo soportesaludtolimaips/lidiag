@@ -109,7 +109,7 @@ Route::view('/estudios.notificar.index', 'modulos.estudios.notificar-estudio')
 
 Route::get('/descarga-soportes-hc/{nomArchivoEncriptadote}', [EstudioSoporteHCController::class, 'descargarSoporte'])
     ->name('study.descarga.soporte.hc')
-    ->middleware(['auth', 'permission:estudio.asignar|estudio.transcribir|estudio.leerestudio|estudio.leerEstudio']);
+    ->middleware(['auth', 'permission:estudio.asignar|estudio.transcribir|estudio.leerEstudio']);
 Route::get('/descargar.pdf.lectura/{nomArchivo}', [EstudioController::class, 'descargarPdfLectura'])
     ->name('descargar.pdf.lectura')
     ->middleware('auth');
@@ -117,12 +117,12 @@ Route::get('/descargar.pdf.lectura/{nomArchivo}', [EstudioController::class, 'de
 // Audios (fallback sin depender de symlink `public/audios`)
 Route::get('/audios/{filename}', [EstudioAudioController::class, 'stream'])
     ->name('audios.stream')
-    ->middleware(['auth', 'permission:estudio.transcribir|estudio.leerestudio|estudio.leerEstudio'])
+    ->middleware(['auth', 'permission:estudio.transcribir|estudio.leerEstudio'])
     ->where('filename', '(audio|cargado)_[A-Z0-9]{10,}\.mp3');
 
 Route::view('/estudios.leer.estudio.listar', 'modulos.estudios.leer-estudio')
     ->name('estudios.leer.estudio.listar')
-    ->middleware(['auth', 'permission:estudio.leerestudio|estudio.leerEstudio']);
+    ->middleware(['auth', 'permission:estudio.leerEstudio']);
 
 Route::view('/estudios.transcribir.listar', 'modulos.estudios.transcribir-estudio')
     ->name('estudios.transcribir.listar')

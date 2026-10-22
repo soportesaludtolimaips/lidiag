@@ -9,7 +9,7 @@ use Illuminate\Validation\Rule;
 class StoreConfigTipoDocumentoRequest extends FormRequest
 {
     /**
-     * Autoriza la petición a usuarios autenticados con el permiso configuracion.tipos-documento.create.
+     * Autoriza la petición a usuarios autenticados con el permiso config.tipo.documento.create.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -17,7 +17,7 @@ class StoreConfigTipoDocumentoRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Auth::check() && Auth::user()->can('configuracion.tipos-documento.create');
+        return Auth::check() && Auth::user()->can('config.tipo.documento.create');
     }
 
     /**

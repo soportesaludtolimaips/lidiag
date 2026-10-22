@@ -19,6 +19,9 @@ class PlantillaSeeder extends Seeder
             'config.plantillas.create',
             'config.plantillas.edit',
             'config.plantillas.delete',
+            'config.plantillas.tipos.create',
+            'config.plantillas.tipos.edit',
+            'config.plantillas.tipos.destroy',
         ];
 
         $roles = Role::query()

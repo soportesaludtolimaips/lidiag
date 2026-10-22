@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 class UpdateConsentimientoInformadoRequest extends FormRequest
 {
     /**
-     * Autoriza la petición a usuarios autenticados con el permiso configuracion.consentimientos.edit.
+     * Autoriza la petición a usuarios autenticados con el permiso config.consentimiento_informado.edit.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -16,7 +16,7 @@ class UpdateConsentimientoInformadoRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Auth::check() && Auth::user()->can('configuracion.consentimientos.edit');
+        return Auth::check() && Auth::user()->can('config.consentimiento_informado.edit');
     }
 
     /**

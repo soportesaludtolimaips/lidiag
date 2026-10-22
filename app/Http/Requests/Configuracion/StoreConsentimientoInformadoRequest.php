@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 class StoreConsentimientoInformadoRequest extends FormRequest
 {
     /**
-     * Autoriza la petición a usuarios autenticados con el permiso configuracion.consentimientos.create.
+     * Autoriza la petición a usuarios autenticados con el permiso config.consentimiento_informado.create.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -16,7 +16,7 @@ class StoreConsentimientoInformadoRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Auth::check() && Auth::user()->can('configuracion.consentimientos.create');
+        return Auth::check() && Auth::user()->can('config.consentimiento_informado.create');
     }
 
     /**

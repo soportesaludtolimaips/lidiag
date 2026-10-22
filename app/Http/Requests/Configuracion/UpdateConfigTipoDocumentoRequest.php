@@ -9,7 +9,7 @@ use Illuminate\Validation\Rule;
 class UpdateConfigTipoDocumentoRequest extends FormRequest
 {
     /**
-     * Autoriza la petición a usuarios autenticados con el permiso configuracion.tipos-documento.edit.
+     * Autoriza la petición a usuarios autenticados con el permiso config.tipo.documento.edit.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -17,7 +17,7 @@ class UpdateConfigTipoDocumentoRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Auth::check() && Auth::user()->can('configuracion.tipos-documento.edit');
+        return Auth::check() && Auth::user()->can('config.tipo.documento.edit');
     }
 
     /**
