@@ -62,9 +62,7 @@ except ImportError:
 
 # Directorios de trabajo
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-PARENT_BACKUP_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "..", "agente_backups_dcm"))
-DEFAULT_CONFIG_PATH = os.path.join(PARENT_BACKUP_DIR, "config.json")
-LOCAL_CONFIG_PATH = os.path.join(SCRIPT_DIR, "config.json")
+DEFAULT_CONFIG_PATH = os.path.join(SCRIPT_DIR, "config.json")
 LOG_FILE = os.path.join(SCRIPT_DIR, "dosimetria_agent.log")
 CACHE_PROCESADOS_FILE = os.path.join(SCRIPT_DIR, "estudios_procesados_cache.json")
 
@@ -110,36 +108,43 @@ def parse_tolerant_json(content: str) -> dict:
 
 
 def load_config(custom_path: Optional[str] = None) -> dict:
-    candidates = [
-        custom_path,
-        LOCAL_CONFIG_PATH,
-        DEFAULT_CONFIG_PATH,
-        os.path.join(SCRIPT_DIR, "config.json.example"),
-    ]
-    resolved_path = None
-    for p in candidates:
-        if p and os.path.isfile(p):
-            resolved_path = p
-            break
+    config_path = custom_path or DEFAULT_CONFIG_PATH
 
-    if not resolved_path:
-        logger.critical(f"No se encontró archivo de configuración en: {candidates}")
+    if not os.path.isfile(config_path):
+        logger.critical(f"No se encontró el archivo de configuración: {config_path}")
+        logger.critical("Copia 'config.json.example' a 'config.json' y configura las credenciales de esta sede.")
         sys.exit(1)
 
-    logger.info(f"Cargando configuración desde: {resolved_path}")
-    with open(resolved_path, "r", encoding="utf-8") as f:
-        config = parse_tolerant_json(f.read())
+    logger.info(f"Cargando configuración desde: {config_path}")
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            loaded = parse_tolerant_json(f.read())
+        if not isinstance(loaded, dict):
+            raise ValueError("El contenido del archivo no es un objeto JSON válido.")
+    except Exception as e:
+        logger.critical(f"Error al leer o parsear '{config_path}': {e}")
+        sys.exit(1)
 
-    # Valores por defecto
-    config.setdefault("db_host", "127.0.0.1")
-    config.setdefault("db_port", 3306)
-    config.setdefault("db_name", "pacsdb")
-    config.setdefault("db_user", "root")
-    config.setdefault("db_password", "")
-    config.setdefault("local_images_dir", "D:\\img_dcm")
-    config.setdefault("api_url", "https://lidiag.test/api/dosimetria/registros")
-    config.setdefault("api_token", "")
-    config.setdefault("sede_id", 1)
+    # Validar campos obligatorios estrictos en el JSON
+    required_fields = ["sede_id", "db_name", "db_user", "local_images_dir", "api_url", "api_token"]
+    missing = [f for f in required_fields if f not in loaded or loaded[f] is None or str(loaded[f]).strip() == ""]
+    if missing:
+        logger.critical(f"Faltan campos obligatorios en '{config_path}': {', '.join(missing)}")
+        logger.critical("Por favor configura estos parámetros en config.json antes de ejecutar el agente.")
+        sys.exit(1)
+
+    config = {
+        "sede_id": int(loaded["sede_id"]),
+        "sede_nombre": loaded.get("sede_nombre", ""),
+        "db_host": loaded.get("db_host", "127.0.0.1"),
+        "db_port": int(loaded.get("db_port", 3306)),
+        "db_name": loaded["db_name"],
+        "db_user": loaded["db_user"],
+        "db_password": loaded.get("db_password", ""),
+        "local_images_dir": loaded["local_images_dir"],
+        "api_url": loaded["api_url"],
+        "api_token": loaded["api_token"],
+    }
 
     return config
 
@@ -410,10 +415,10 @@ def main():
     if args.sede_id:
         config["sede_id"] = args.sede_id
 
-    sede_id = config.get("sede_id", 1)
-    api_url = config.get("api_url", "https://lidiag.test/api/dosimetria/registros")
-    api_token = config.get("api_token", "")
-    local_images_dir = config.get("local_images_dir", "D:\\img_dcm")
+    sede_id = config["sede_id"]
+    api_url = config["api_url"]
+    api_token = config["api_token"]
+    local_images_dir = config["local_images_dir"]
     dias = args.dias
     limit = args.limit
 
