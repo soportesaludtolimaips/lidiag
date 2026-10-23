@@ -2,6 +2,8 @@
 
 namespace App\Models\Configuracion;
 
+use App\Models\Dosimetria\EquipoEmisor;
+use App\Models\Dosimetria\RegistroDosisRadiacion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -75,5 +77,33 @@ class ConfigSede extends Model
     public function whatsappNumbers()
     {
         return $this->hasMany(ConfigSedeWhatsappNumber::class, 'sede_id');
+    }
+
+    /**
+     * Equipos emisores de radiación ionizante vinculados a la sede.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\HasMany
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-23
+     */
+    public function equiposEmisores()
+    {
+        return $this->hasMany(EquipoEmisor::class, 'sede_id');
+    }
+
+    /**
+     * Registros de dosis de radiación recibidos desde el agente Edge de la sede.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\HasMany
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-23
+     */
+    public function registrosDosis()
+    {
+        return $this->hasMany(RegistroDosisRadiacion::class, 'sede_id');
     }
 }

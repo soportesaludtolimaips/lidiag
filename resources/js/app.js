@@ -217,6 +217,12 @@ import Select2 from "./components/shared/Select2.vue";
 app.component("Select2", Select2);
 
 /**
+ * Dosimetría y Control de Radiación (Resolución 482)
+ */
+import dashboardDosimetria from "./components/modulos/dosimetria/DashboardDosimetria.vue";
+app.component("DashboardDosimetria", dashboardDosimetria);
+
+/**
  * The following block of code may be used to automatically register your
  * Vue components. It will recursively scan this directory for the Vue
  * components and automatically register them with their "basename".

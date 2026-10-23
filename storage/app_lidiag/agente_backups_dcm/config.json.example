@@ -1,7 +1,8 @@
 {
-    "sede_nombre": "Chaparral",
-    "qnap_ip": "192.168.1.100",
-    "qnap_user": "sede_chaparral",
+    "sede_id": 1,
+    "sede_nombre": "Espinal",
+    "qnap_ip": "10.35.47.21",
+    "qnap_user": "sede_espinal",
     "qnap_password": "PASSWORD_AQUI",
     "qnap_share_backups": "backups_chaparral",
     "qnap_share_imagenes": "imagenes_chaparral",
@@ -18,5 +19,8 @@
     "local_images_dir": "D:\\imagenes_pacs",
     "sync_interval_seconds": 180,
     "threads": 8,
-    "min_free_space_gb": 10
+    "min_free_space_gb": 10,
+
+    "api_url": "https://lidiag.test/api/dosimetria/registros",
+    "api_token": "TOKEN_BEARER_LIDIAG_AQUI"
 }

@@ -79,6 +79,25 @@
                         </li>
                     @endif
 
+                    @if (auth()->user()->hasAnyPermission(['dosimetria.dashboard', 'dosimetria.registros', 'dosimetria.configurar']))
+                        <li class="nav-small-cap"><span>Dosimetría</span></li>
+                        <li class="{{ request()->routeIs('dosimetria.*') ? 'active' : '' }}">
+                            <a class="has-arrow waves-effect waves-dark {{ request()->routeIs('dosimetria.*') ? 'active' : '' }}" href="#" aria-expanded="{{ request()->routeIs('dosimetria.*') ? 'true' : 'false' }}">
+                                <i class="fa fa-radiation text-warning"></i>
+                                <span class="hide-menu">Control Radiación</span>
+                            </a>
+                            <ul aria-expanded="{{ request()->routeIs('dosimetria.*') ? 'true' : 'false' }}" class="collapse {{ request()->routeIs('dosimetria.*') ? 'in' : '' }}">
+                                @can('dosimetria.dashboard')
+                                    <li class="{{ request()->routeIs('dosimetria.dashboard') ? 'active' : '' }}">
+                                        <a class="{{ request()->routeIs('dosimetria.dashboard') ? 'active' : '' }}" href="{{ route('dosimetria.dashboard') }}">
+                                            <i class="fa fa-tachometer text-info"></i> Dashboard NRD
+                                        </a>
+                                    </li>
+                                @endcan
+                            </ul>
+                        </li>
+                    @endif
+
                     @if (auth()->user()->hasAnyPermission(['tele.ragiologia.index', 'tele.ragiologia.enviar', 'tele.ragiologia.transcribir']))
                         <li class="nav-small-cap"><span>Tele Radiología</span></li>
                         <li class="{{ request()->routeIs('teleradiologia.*') || request()->routeIs('tele.ragiologia.*') ? 'active' : '' }}">
