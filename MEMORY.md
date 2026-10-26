@@ -37,6 +37,11 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-26 — Estandarización y Simplificación de Lanzadores Batch a Variables del Sistema:**
+  - Corregido error de parsing de cmd.exe provocado por interpolación de comillas y caracteres especiales en `ejecutar_dosimetria.bat`.
+  - Simplificados todos los scripts lanzadores (`ejecutar_dosimetria.bat`, `ejecutar_backup_db.bat`, `ejecutar_sync_imagenes.bat`, `ejecutar_restore_imagenes.bat`, `install.bat`) para invocar directamente `python` desde las variables del sistema (`%PATH%`).
+  - Auto-descubrimiento transparente de dependencias dentro del propio código Python para cargar `venv/Lib/site-packages` si está presente.
+  - Paquetes distribuibles `agente_backups_dcm.zip` y `agente_backups_dcm.rar` actualizados.
 - [x] **2026-10-26 — Instalador Automatizado de Entorno Virtual y Dependencias (`install.bat` + `requirements.txt`):**
   - Creado `requirements.txt` con las versiones estables de las librerías clínicas oficiales (`pydicom`, `requests`, `mysql-connector-python`, `urllib3`).
   - Perfeccionado `install.bat` con autodetección dinámica de Python en el servidor, creación/reutilización automática de entorno virtual dedicado (`venv`), actualización de `pip` y verificación de importación con feedback en consola.

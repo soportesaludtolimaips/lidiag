@@ -36,6 +36,12 @@ import sys
 import time
 from typing import Any, Dict, List, Optional, Tuple
 
+# Auto-detección transparente del entorno virtual local (venv)
+_script_dir = os.path.dirname(os.path.abspath(__file__))
+_venv_site = os.path.join(_script_dir, "venv", "Lib", "site-packages")
+if os.path.isdir(_venv_site) and _venv_site not in sys.path:
+    sys.path.insert(0, _venv_site)
+
 # Verificación de dependencias externas
 try:
     import pydicom

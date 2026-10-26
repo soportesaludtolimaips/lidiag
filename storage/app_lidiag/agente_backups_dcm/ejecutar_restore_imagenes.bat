@@ -1,11 +1,11 @@
 @echo off
 chcp 65001 >nul
-title LIDiag — Restauracion Cronologica de Imagenes PACS desde QNAP
+title LIDiag - Restauracion Cronologica de Imagenes PACS desde QNAP
 
 cd /d "%~dp0"
 
 echo =========================================================================
-echo    LIDiag — Restauracion de Emergencia de Imagenes PACS desde QNAP
+echo    LIDiag - Restauracion de Emergencia de Imagenes PACS desde QNAP
 echo =========================================================================
 echo  Herramienta de Recuperacion ante Desastres (Disaster Recovery)
 echo  Restaura los repositorios en orden cronologico descendente:
@@ -21,25 +21,10 @@ if not exist "config.json" (
     exit /b 1
 )
 
-:: Localizar ejecutable de Python (priorizando venv local)
-set "PYTHON_EXE="
-if exist "%~dp0venv\Scripts\python.exe" set "PYTHON_EXE=%~dp0venv\Scripts\python.exe"
-if "%PYTHON_EXE%"=="" where python >nul 2>&1 && set "PYTHON_EXE=python"
-if "%PYTHON_EXE%"=="" if exist "C:\laragon\bin\python\python.exe" set "PYTHON_EXE=C:\laragon\bin\python\python.exe"
-if "%PYTHON_EXE%"=="" if exist "C:\Python312\python.exe" set "PYTHON_EXE=C:\Python312\python.exe"
-if "%PYTHON_EXE%"=="" if exist "C:\Python311\python.exe" set "PYTHON_EXE=C:\Python311\python.exe"
-if "%PYTHON_EXE%"=="" if exist "C:\Python310\python.exe" set "PYTHON_EXE=C:\Python310\python.exe"
-
-if "%PYTHON_EXE%"=="" (
-    echo [ERROR] Python no fue encontrado en el PATH del sistema ni en rutas estandar.
-    pause
-    exit /b 1
-)
-
 echo Selecciona la modalidad de restauracion:
 echo.
 echo   [1] Restauracion COMPLETA (Mas reciente al mas antiguo: 2026 a historico)
-echo   [2] Restaurar SOLO el AÑO ACTUAL (Maxina prioridad para urgencias y consulta)
+echo   [2] Restaurar SOLO el AÑO ACTUAL (Maxima prioridad para urgencias y consulta)
 echo   [3] Ver orden y carpetas sin copiar (Simulacion Dry-run)
 echo   [4] Cancelar y salir
 echo.
@@ -48,16 +33,16 @@ set /p "OPCION=Ingresa tu opcion (1-4): "
 if "%OPCION%"=="1" (
     echo.
     echo Iniciando restauracion completa descendente...
-    "%PYTHON_EXE%" "%~dp0restore_dcm_images.py"
+    python "%~dp0restore_dcm_images.py"
 ) else if "%OPCION%"=="2" (
     set /p "ANIO_ACTUAL=Ingresa el año que deseas restaurar con urgencia (ej. 2026): "
     echo.
     echo Iniciando restauracion prioritaria para el año %ANIO_ACTUAL%...
-    "%PYTHON_EXE%" "%~dp0restore_dcm_images.py" --year=%ANIO_ACTUAL%
+    python "%~dp0restore_dcm_images.py" --year=%ANIO_ACTUAL%
 ) else if "%OPCION%"=="3" (
     echo.
     echo Ejecutando simulacion...
-    "%PYTHON_EXE%" "%~dp0restore_dcm_images.py" --dry-run
+    python "%~dp0restore_dcm_images.py" --dry-run
 ) else (
     echo Operacion cancelada por el usuario.
     exit /b 0

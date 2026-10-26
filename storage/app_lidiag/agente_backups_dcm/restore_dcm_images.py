@@ -35,6 +35,9 @@ import time
 from typing import Dict, List, Optional, Tuple
 
 AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
+_venv_site = os.path.join(AGENT_DIR, "venv", "Lib", "site-packages")
+if os.path.isdir(_venv_site) and _venv_site not in sys.path:
+    sys.path.insert(0, _venv_site)
 CONFIG_FILE = os.path.join(AGENT_DIR, "config.json")
 LOGS_DIR = os.path.join(AGENT_DIR, "logs")
 os.makedirs(LOGS_DIR, exist_ok=True)
