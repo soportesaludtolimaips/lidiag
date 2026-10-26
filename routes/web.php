@@ -95,8 +95,12 @@ Route::view('/pacientes/admision', 'modulos.pacientes.admision')
     ->middleware(['auth', 'permission:gestion.pacientes.index']);
 
 /**
- * Dosimetría y Control de Radiación (Resolución 482)
+ * Módulo Dosis y Control de Radiación (Resolución 482)
  */
+Route::view('/dosis/dashboard', 'modulos.dosimetria.dashboard')
+    ->name('dosis.dashboard')
+    ->middleware(['auth', 'permission:dosimetria.dashboard']);
+
 Route::view('/dosimetria/dashboard', 'modulos.dosimetria.dashboard')
     ->name('dosimetria.dashboard')
     ->middleware(['auth', 'permission:dosimetria.dashboard']);

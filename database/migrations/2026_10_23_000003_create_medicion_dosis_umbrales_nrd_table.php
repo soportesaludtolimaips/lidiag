@@ -10,7 +10,7 @@ return new class extends Migration
      * Run the migrations.
      *
      * Flujo del proceso:
-     * 1. Crea la tabla umbrales_nrd para almacenar los Niveles de Referencia para Diagnóstico (Resolución 482 de 2018).
+     * 1. Crea la tabla medicion_dosis_umbrales_nrd para almacenar los Niveles de Referencia para Diagnóstico (Resolución 482 de 2018).
      * 2. Permite parametrizar umbrales por modalidad y tipo de métrica, con soporte opcional para umbral específico por sede.
      * 3. Registra valor de advertencia (alerta preventiva) y valor máximo regulatorio NRD.
      *
@@ -20,7 +20,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('umbrales_nrd', function (Blueprint $table) {
+        Schema::create('medicion_dosis_umbrales_nrd', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('sede_id')->nullable();
             $table->enum('modalidad', ['CT', 'MG', 'DX', 'CR'])->index();
@@ -46,6 +46,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('umbrales_nrd');
+        Schema::dropIfExists('medicion_dosis_umbrales_nrd');
     }
 };

@@ -37,6 +37,17 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-26 — Estandarización Modular del Módulo Dosis (`medicion_dosis_*`) y Diagnóstico de Envío:**
+  - **Modularización y Tablas:** Refactorizadas las 3 migraciones y modelos según la convención modular del proyecto:
+    * `medicion_dosis_equipos_emisores` (anteriormente `equipos_emisores`)
+    * `medicion_dosis_radiacion` (anteriormente `registros_dosis_radiacion`)
+    * `medicion_dosis_umbrales_nrd` (anteriormente `umbrales_nrd`)
+  - **Modelos y Servicios:** Actualizados `EquipoEmisor`, `RegistroDosisRadiacion`, `UmbralNrd` y las consultas crudas en `DosimetriaService.php` (`obtenerDashboard()`).
+  - **Rutas Canónicas y Sidebar:** Registradas rutas canónicas `/dosis/dashboard` y `/api/dosis/registros` en `routes/web.php` y `routes/api_dosimetria.php` conservando alias de retrocompatibilidad. Actualizado el sidebar a `Dosis`.
+  - **Diagnóstico y Blindaje en Agente Edge (`agente_dosimetria.py`):**
+    * *Caché local:* Agregadas banderas `--forzar` (ignora caché local para retransmitir) y `--limpiar-cache` (elimina `logs/dosimetria_cache_procesados.json`). Esto solucionó la omisión de estudios cuando el agente se corre consecutivamente o tras cambiar de servidor.
+    * *Diagnóstico HTTP 404:* Diagnóstico automático en logs cuando un endpoint responde 404 advirtiendo sobre la necesidad de `/public/` en entornos Apache (`https://10.35.47.4/lidiag-update/public/api/dosis/registros`).
+  - **Empaquetado y Verificación:** Actualizado `README.md`, reempaquetado `agente_backups_dcm.zip`, y validación de estilo con Pint (`passed`).
 - [x] **2026-10-26 — Estimación Automática de DAP (IAEA TRS-457) para Rayos X Digitales en Agente:**
   - Implementado algoritmo de cálculo indirecto de Producto Dosis-Área (DAP en $Gy \cdot cm^2$) en `agente_dosimetria.py` para modalidades `DX` y `CR` cuando el hardware de RX carece de cámara física o emite `DAP: 0.000000`.
   - El cálculo combina los parámetros reales del disparo (`kVp`, `mAs`) con el área colimada del detector (`Rows`, `Columns`, `ImagerPixelSpacing`) y el rendimiento estándar del tubo según directrices del OIEA y Res. 482 de 2018.

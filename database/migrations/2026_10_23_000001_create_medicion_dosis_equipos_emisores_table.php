@@ -10,7 +10,7 @@ return new class extends Migration
      * Run the migrations.
      *
      * Flujo del proceso:
-     * 1. Crea la tabla equipos_emisores para el inventario de generadores de radiación ionizante por sede.
+     * 1. Crea la tabla medicion_dosis_equipos_emisores para el inventario de generadores de radiación ionizante por sede.
      * 2. Registra modalidad (CT, MG, DX, CR), marca, modelo y AET Title del equipo.
      * 3. Establece clave foránea vinculada a config_sedes (sede_id) e índices de búsqueda.
      *
@@ -20,7 +20,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('equipos_emisores', function (Blueprint $table) {
+        Schema::create('medicion_dosis_equipos_emisores', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('sede_id');
             $table->string('nombre', 150);
@@ -45,6 +45,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('equipos_emisores');
+        Schema::dropIfExists('medicion_dosis_equipos_emisores');
     }
 };

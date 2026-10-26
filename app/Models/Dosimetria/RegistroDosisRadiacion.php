@@ -11,7 +11,7 @@ class RegistroDosisRadiacion extends Model
 {
     use HasFactory;
 
-    protected $table = 'registros_dosis_radiacion';
+    protected $table = 'medicion_dosis_radiacion';
 
     protected $fillable = [
         'sede_id',

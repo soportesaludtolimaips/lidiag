@@ -180,6 +180,12 @@ A continuación se detalla la función clínica, arquitectura y todos los comand
   :: Filtrar por rango de fechas fijo (ideal para procesar meses históricos específicos)
   python agente_dosimetria.py --desde 2026-08-01 --hasta 2026-08-31 --limit 500
 
+  :: Forzar re-procesamiento (ignora la caché local y re-transmite estudios ya evaluados)
+  python agente_dosimetria.py --desde 2026-10-25 --hasta 2026-10-26 --limit 100 --forzar
+
+  :: Limpiar caché local de estudios procesados
+  python agente_dosimetria.py --limpiar-cache
+
   :: Auditoría profunda o escaneo histórico amplio (ej: últimos 90 días, hasta 500 estudios)
   python agente_dosimetria.py --dias 90 --limit 500
 

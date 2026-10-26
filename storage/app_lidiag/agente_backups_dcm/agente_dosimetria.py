@@ -190,6 +190,8 @@ def parse_arguments():
     parser.add_argument("--hasta", type=str, help="Fecha fin fija (formato YYYY-MM-DD)")
     parser.add_argument("--limit", type=int, default=200, help="Límite máximo de estudios a procesar por ciclo (default: 200)")
     parser.add_argument("--dry-run", action="store_true", help="Extrae métricas sin enviarlas a la API central")
+    parser.add_argument("--forzar", "--force", action="store_true", help="Fuerza el re-procesamiento ignorando la caché local de estudios ya transmitidos")
+    parser.add_argument("--limpiar-cache", action="store_true", help="Elimina el archivo de caché local de estudios procesados y sale")
     return parser.parse_args()
 
 
@@ -581,6 +583,8 @@ def enviar_lote_a_central(api_url: str, api_token: str, sede_id: int, registros:
                 logger.info(f"      [OK] Bloque {idx}/{len(chunks)}: {g} registro(s) procesados correctamente.")
             else:
                 logger.error(f"      [ERROR API] Bloque {idx}/{len(chunks)} HTTP {response.status_code}: {response.text[:300]}")
+                if response.status_code == 404:
+                    logger.error(f"      [DIAGNÓSTICO 404] El endpoint '{api_url}' no existe. Si el servidor corre bajo un alias de Apache/Laragon, asegúrese de incluir '/public/' (ej: https://.../public/api/dosis/registros).")
                 all_success = False
         except requests.RequestException as e:
             logger.error(f"      [ERROR RED] Fallo al enviar bloque {idx}/{len(chunks)} a Central: {e}")
@@ -595,6 +599,18 @@ def main():
         sys.exit(0)
 
     args = parse_arguments()
+
+    if args.limpiar_cache:
+        if os.path.isfile(CACHE_PROCESADOS_FILE):
+            try:
+                os.remove(CACHE_PROCESADOS_FILE)
+                logger.info(f"Caché de estudios procesados eliminada: {CACHE_PROCESADOS_FILE}")
+            except Exception as e:
+                logger.warning(f"No se pudo eliminar la caché: {e}")
+        else:
+            logger.info("No existe archivo de caché previo para eliminar.")
+        return
+
     config = load_config(args.config)
 
     if args.sede_id:
@@ -630,7 +646,9 @@ def main():
         sys.exit(1)
 
     # 2. Consultar estudios recientes
-    cache_procesados = cargar_cache_procesados()
+    cache_procesados = set() if args.forzar else cargar_cache_procesados()
+    if args.forzar:
+        logger.info("[FORZAR] Modo forzado activado: Se procesarán todos los estudios ignorando la caché local previa.")
     try:
         candidatos = buscar_estudios_candidatos(conn, dias=dias, limit=limit, desde=desde, hasta=hasta)
         logger.info(f"[2/4] Localizados {len(candidatos)} estudio(s) candidatos para dosimetría.")

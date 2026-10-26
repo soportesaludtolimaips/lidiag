@@ -12,7 +12,7 @@ class EquipoEmisor extends Model
 {
     use HasFactory;
 
-    protected $table = 'equipos_emisores';
+    protected $table = 'medicion_dosis_equipos_emisores';
 
     protected $fillable = [
         'sede_id',

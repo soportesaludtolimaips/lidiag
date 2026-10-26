@@ -143,9 +143,9 @@ class DosimetriaService extends BaseService
             });
 
             // 2. Consulta agrupada por Sede, Modalidad y Mes
-            $query = DB::table('registros_dosis_radiacion as r')
+            $query = DB::table('medicion_dosis_radiacion as r')
                 ->join('config_sedes as s', 's.id', '=', 'r.sede_id')
-                ->leftJoin('equipos_emisores as e', 'e.id', '=', 'r.equipo_emisor_id')
+                ->leftJoin('medicion_dosis_equipos_emisores as e', 'e.id', '=', 'r.equipo_emisor_id')
                 ->whereBetween('r.fecha_estudio', [$fechaDesde, $fechaHasta])
                 ->select(
                     'r.sede_id',
@@ -225,9 +225,9 @@ class DosimetriaService extends BaseService
             }
 
             // 4. Últimos registros individuales para la tabla detallada
-            $ultimosRegistrosQuery = DB::table('registros_dosis_radiacion as r')
+            $ultimosRegistrosQuery = DB::table('medicion_dosis_radiacion as r')
                 ->join('config_sedes as s', 's.id', '=', 'r.sede_id')
-                ->leftJoin('equipos_emisores as e', 'e.id', '=', 'r.equipo_emisor_id')
+                ->leftJoin('medicion_dosis_equipos_emisores as e', 'e.id', '=', 'r.equipo_emisor_id')
                 ->select(
                     'r.id',
                     'r.sede_id',
@@ -263,7 +263,7 @@ class DosimetriaService extends BaseService
             $sedesDisponibles = ConfigSede::select('id', 'nom_sede')->where('estado', true)->orderBy('nom_sede')->get();
 
             // 6. Resumen de KPIs
-            $totalEstudiosPeriodo = DB::table('registros_dosis_radiacion')
+            $totalEstudiosPeriodo = DB::table('medicion_dosis_radiacion')
                 ->whereBetween('fecha_estudio', [$fechaDesde, $fechaHasta])
                 ->when($sedeId, fn ($q) => $q->where('sede_id', $sedeId))
                 ->count();

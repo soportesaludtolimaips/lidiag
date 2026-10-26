@@ -11,7 +11,7 @@ class UmbralNrd extends Model
 {
     use HasFactory;
 
-    protected $table = 'umbrales_nrd';
+    protected $table = 'medicion_dosis_umbrales_nrd';
 
     protected $fillable = [
         'sede_id',
