@@ -68,6 +68,11 @@ class DosimetriaTokenCommand extends Command
             }
         }
 
+        if ($user->password_changed_at === null) {
+            $user->password_changed_at = now();
+            $user->save();
+        }
+
         // Crear nuevo Personal Access Token
         $tokenResult = $user->createToken($tokenName, ["*"]);
         $plainTextToken = $tokenResult->plainTextToken;

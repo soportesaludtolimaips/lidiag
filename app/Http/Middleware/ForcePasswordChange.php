@@ -32,6 +32,12 @@ class ForcePasswordChange
             return $next($request);
         }
 
+        // Si la petición está autenticada mediante Personal Access Token (Sanctum / Agentes Edge M2M),
+        // se omite la exigencia de cambio interactivo de contraseña.
+        if ($request->user() && method_exists($request->user(), 'currentAccessToken') && $request->user()->currentAccessToken()) {
+            return $next($request);
+        }
+
         if ($request->user() && $request->user()->password_changed_at === null) {
             if ($request->expectsJson()) {
                 return response()->json(['success' => false, 'message' => 'Debe cambiar su contraseña.'], 403);
