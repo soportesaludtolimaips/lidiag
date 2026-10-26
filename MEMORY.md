@@ -37,6 +37,10 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-26 — Compatibilidad MySQL ONLY_FULL_GROUP_BY en Agente de Dosimetría:**
+  - Corregido fallo de consulta SQL `1055 (42000): Expression #2 of SELECT list is not in GROUP BY clause... is incompatible with sql_mode=only_full_group_by`.
+  - Agregadas funciones de agregación ANSI SQL (`MAX`, `MIN`) en `buscar_estudios_candidatos()` de `agente_dosimetria.py`.
+  - Implementada desactivación dinámica de `ONLY_FULL_GROUP_BY` a nivel de sesión MySQL en `get_db_connection()`, garantizando compatibilidad multi-versión (MySQL 5.5, 5.7, 8.0, 8.4 y MariaDB).
 - [x] **2026-10-26 — Estandarización y Simplificación de Lanzadores Batch a Variables del Sistema:**
   - Corregido error de parsing de cmd.exe provocado por interpolación de comillas y caracteres especiales en `ejecutar_dosimetria.bat`.
   - Simplificados todos los scripts lanzadores (`ejecutar_dosimetria.bat`, `ejecutar_backup_db.bat`, `ejecutar_sync_imagenes.bat`, `ejecutar_restore_imagenes.bat`, `install.bat`) para invocar directamente `python` desde las variables del sistema (`%PATH%`).

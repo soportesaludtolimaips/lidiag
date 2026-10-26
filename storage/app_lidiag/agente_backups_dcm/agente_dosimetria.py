@@ -76,7 +76,7 @@ LOGS_DIR = os.path.join(SCRIPT_DIR, "logs")
 os.makedirs(LOGS_DIR, exist_ok=True)
 LOG_FILE = os.path.join(LOGS_DIR, "dosimetria_agent.log")
 LOCK_FILE = os.path.join(LOGS_DIR, "dosimetria.lock")
-CACHE_PROCESADOS_FILE = os.path.join(SCRIPT_DIR, "estudios_procesados_cache.json")
+CACHE_PROCESADOS_FILE = os.path.join(LOGS_DIR, "dosimetria_cache_procesados.json")
 
 # Configurar logging con rotación automática (Máx 10 MB, 3 copias)
 logging.basicConfig(
@@ -265,7 +265,7 @@ def get_db_connection(config: dict):
     database = config["db_name"]
 
     if DB_CONNECTOR == "mysql.connector":
-        return mysql.connector.connect(
+        conn = mysql.connector.connect(
             host=host,
             port=port,
             user=user,
@@ -275,7 +275,7 @@ def get_db_connection(config: dict):
             connect_timeout=15,
         )
     else:
-        return pymysql.connect(
+        conn = pymysql.connect(
             host=host,
             port=port,
             user=user,
@@ -284,6 +284,22 @@ def get_db_connection(config: dict):
             charset="utf8",
             connect_timeout=15,
         )
+
+    # Ajustar sql_mode en la sesión para compatibilidad con ONLY_FULL_GROUP_BY en cualquier versión de MySQL
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT @@sql_mode")
+        row = cur.fetchone()
+        raw_mode = row[0] if isinstance(row, tuple) else (row.get("@@sql_mode") if isinstance(row, dict) else "")
+        if raw_mode:
+            modes = [m.strip() for m in str(raw_mode).split(",") if m.strip() and m.strip().upper() != "ONLY_FULL_GROUP_BY"]
+            new_mode = ",".join(modes)
+            cur.execute(f"SET SESSION sql_mode='{new_mode}'")
+        cur.close()
+    except Exception as e:
+        logger.warning(f"No se pudo ajustar sql_mode de sesión en MySQL: {e}")
+
+    return conn
 
 
 def cargar_cache_procesados() -> set:
@@ -325,14 +341,15 @@ def buscar_estudios_candidatos(conn, dias: int, limit: int) -> List[Dict[str, An
     query = """
         SELECT 
             st.study_iuid,
-            st.study_datetime,
-            st.accession_no,
-            st.study_desc,
+            MAX(st.study_datetime) AS study_datetime,
+            MAX(st.accession_no) AS accession_no,
+            MAX(st.study_desc) AS study_desc,
             s.modality,
-            s.station_name,
-            s.src_aet,
-            f.filepath,
-            fs.dirpath
+            MAX(s.station_name) AS station_name,
+            MAX(s.src_aet) AS src_aet,
+            MIN(f.filepath) AS filepath,
+            MIN(fs.dirpath) AS dirpath,
+            MAX(st.created_time) AS created_time
         FROM study st
         JOIN series s ON s.study_fk = st.pk
         JOIN instance i ON i.series_fk = s.pk
@@ -341,7 +358,7 @@ def buscar_estudios_candidatos(conn, dias: int, limit: int) -> List[Dict[str, An
         WHERE s.modality IN ('CT', 'MG', 'DX', 'CR')
           AND (st.created_time >= %s OR st.study_datetime >= %s)
         GROUP BY st.study_iuid, s.modality
-        ORDER BY st.created_time DESC
+        ORDER BY created_time DESC
         LIMIT %s
     """
 
@@ -355,38 +372,40 @@ def buscar_estudios_candidatos(conn, dias: int, limit: int) -> List[Dict[str, An
 
 
 def resolver_ruta_archivo(dirpath_bd: str, filepath_bd: str, local_images_dir: str) -> str:
-    """Resuelve la ruta absoluta del archivo DICOM en disco."""
-    # En Windows, dirpath_bd puede ser D:\img_dcm o similar
-    # Si dirpath_bd existe en el host, se usa; si no, se usa local_images_dir
-    ruta_candidata = os.path.join(dirpath_bd, filepath_bd)
-    if os.path.isfile(ruta_candidata):
-        return ruta_candidata
+    """Resuelve la ruta absoluta del archivo DICOM en disco con normalización de rutas."""
+    # 1. Probar con dirpath de la base de datos
+    if dirpath_bd and filepath_bd:
+        ruta_bd = os.path.normpath(os.path.join(dirpath_bd, filepath_bd))
+        if os.path.isfile(ruta_bd):
+            return ruta_bd
 
-    ruta_con_override = os.path.join(local_images_dir, filepath_bd)
-    if os.path.isfile(ruta_con_override):
-        return ruta_con_override
+    # 2. Probar con directorio local configurado (override)
+    if local_images_dir and filepath_bd:
+        ruta_local = os.path.normpath(os.path.join(local_images_dir, filepath_bd))
+        if os.path.isfile(ruta_local):
+            return ruta_local
 
-    # Normalizar separadores
-    ruta_norm = os.path.normpath(ruta_candidata)
-    if os.path.isfile(ruta_norm):
-        return ruta_norm
-
-    return ruta_con_override
+    # 3. Retornar ruta normalizada por defecto para logging claro
+    base = local_images_dir if local_images_dir else (dirpath_bd or "")
+    return os.path.normpath(os.path.join(base, filepath_bd or ""))
 
 
-def extraer_metricas_dosis(dcm_path: str, modalidad: str) -> List[Dict[str, Any]]:
+def extraer_metricas_dosis(dcm_path: str, modalidad: str) -> Optional[List[Dict[str, Any]]]:
     """
     Lee los tags DICOM de la imagen o RDSR y extrae las métricas numéricas.
+    Retorna None si el archivo no existe o no se pudo leer del disco.
+    Retorna [] si el archivo se leyó pero no contiene métricas de radiación.
+    Retorna lista con métricas si se extrajo información de dosis.
     """
     if not os.path.isfile(dcm_path):
         logger.warning(f"Archivo no encontrado en disco: {dcm_path}")
-        return []
+        return None
 
     try:
         ds = pydicom.dcmread(dcm_path, stop_before_pixels=True, force=True)
     except Exception as e:
         logger.warning(f"Error al leer cabecera DICOM de {dcm_path}: {e}")
-        return []
+        return None
 
     metricas = []
     mod = modalidad.upper()
@@ -584,11 +603,16 @@ def main():
         if cache_key in cache_procesados:
             continue
 
-        dcm_path = resolver_ruta_archivo(item["dirpath"], item["filepath"], local_images_dir)
+        dcm_path = resolver_ruta_archivo(item.get("dirpath") or "", item.get("filepath") or "", local_images_dir)
         metricas = extraer_metricas_dosis(dcm_path, modality)
 
+        if metricas is None:
+            # El archivo no se encuentra en disco o está inaccesible por el momento.
+            # NO marcar en caché para permitir que sea procesado cuando el archivo exista.
+            continue
+
         if not metricas:
-            # Marcar en caché para evitar reintentar archivos sin tags de dosis
+            # Archivo leído exitosamente en disco pero sin tags de radiación ionizante (o dosis = 0)
             procesados_nuevos.append(cache_key)
             continue
 

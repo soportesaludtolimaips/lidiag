@@ -88,3 +88,5 @@ storage/app_lidiag/**/config.json
 storage/app_lidiag/**/last_alert_state.json
 storage/app_lidiag/**/*.log*
 storage/app_lidiag/**/*.bak*
+storage/app_lidiag/**/*.lock
+storage/app_lidiag/**/logs/
