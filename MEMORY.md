@@ -37,6 +37,11 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-26 — Instalador Automatizado de Entorno Virtual y Dependencias (`install.bat` + `requirements.txt`):**
+  - Creado `requirements.txt` con las versiones estables de las librerías clínicas oficiales (`pydicom`, `requests`, `mysql-connector-python`, `urllib3`).
+  - Perfeccionado `install.bat` con autodetección dinámica de Python en el servidor, creación/reutilización automática de entorno virtual dedicado (`venv`), actualización de `pip` y verificación de importación con feedback en consola.
+  - Actualizados todos los scripts lanzadores (`ejecutar_dosimetria.bat`, `ejecutar_backup_db.bat`, `ejecutar_sync_imagenes.bat`, `ejecutar_restore_imagenes.bat`) para priorizar de forma transparente el intérprete aislado de `%~dp0venv\Scripts\python.exe`.
+  - Regeneración de paquetes distribuibles `agente_backups_dcm.zip` y `agente_backups_dcm.rar`.
 - [x] **2026-10-26 — Automatización de Recuperación ante Desastres (Disaster Recovery) de Imágenes PACS (`restore_dcm_images.py`):**
   - Implementado `restore_dcm_images.py` para la restauración automatizada del repositorio de 18 TB desde la QNAP hacia el disco local `D:\img_dcm` en orden estrictamente cronológico descendente (`2026` -> `2025` -> `2024` -> ...).
   - Garantiza la continuidad asistencial inmediata: al completarse el año actual (`2026`), los médicos de urgencias y consulta externa pueden visualizar estudios recientes en Oviyam/OHIF mientras los años históricos continúan restaurándose en segundo plano.

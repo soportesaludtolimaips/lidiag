@@ -14,6 +14,8 @@ Combina en un solo paquete y bajo un único archivo de configuración (`config.j
 | Archivo | Descripción |
 | :--- | :--- |
 | `config.json.example` | Plantilla unificada de configuración (sede, QNAP, credenciales MySQL, storage DICOM y API Central). |
+| `install.bat` | **Instalador de Entorno:** Autodetecta Python, crea entorno virtual aislado (`venv`) e instala dependencias clínicas. |
+| `requirements.txt` | Lista oficial de paquetes requeridos (`pydicom`, `requests`, `mysql-connector-python`, `urllib3`). |
 | `backup_dcm_agent.py` | Script que realiza el volcado, compresión ZIP, CRC32 y SHA-256 de la BD. |
 | `sync_dcm_images.py` | Script que ejecuta la sincronización continua e incremental de imágenes DICOM hacia el QNAP. |
 | `agente_dosimetria.py` | Script que extrae las métricas de radiación ionizante, anonimiza y transmite a LIDiag Central. |
@@ -29,12 +31,9 @@ Combina en un solo paquete y bajo un único archivo de configuración (`config.j
 
 ## Guía Rápida de Despliegue en el Servidor PACS de la Sede
 
-### 1. Requisitos Previos en el Servidor
-- Python 3.8+ instalado en Windows.
-- Dependencias de Python para dosimetría:
-  ```powershell
-  pip install pydicom requests mysql-connector-python
-  ```
+### 1. Preparación del Entorno (1 Clic)
+- Asegúrate de tener Python 3.10+ instalado en el servidor.
+- Ejecuta **`install.bat`**: Detectará Python, creará el entorno virtual aislado (`venv`) e instalará automáticamente `pydicom`, `requests`, `mysql-connector-python` y `urllib3` desde `requirements.txt`.
 
 ### 2. Copiar y Descomprimir
 Descomprime el paquete en una ruta fija del servidor del hospital (por ejemplo en `C:\agente_backups_dcm\`).

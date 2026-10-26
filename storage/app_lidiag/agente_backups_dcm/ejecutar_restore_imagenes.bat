@@ -21,9 +21,10 @@ if not exist "config.json" (
     exit /b 1
 )
 
-:: Localizar ejecutable de Python
+:: Localizar ejecutable de Python (priorizando venv local)
 set "PYTHON_EXE="
-where python >nul 2>&1 && set "PYTHON_EXE=python"
+if exist "%~dp0venv\Scripts\python.exe" set "PYTHON_EXE=%~dp0venv\Scripts\python.exe"
+if "%PYTHON_EXE%"=="" where python >nul 2>&1 && set "PYTHON_EXE=python"
 if "%PYTHON_EXE%"=="" if exist "C:\laragon\bin\python\python.exe" set "PYTHON_EXE=C:\laragon\bin\python\python.exe"
 if "%PYTHON_EXE%"=="" if exist "C:\Python312\python.exe" set "PYTHON_EXE=C:\Python312\python.exe"
 if "%PYTHON_EXE%"=="" if exist "C:\Python311\python.exe" set "PYTHON_EXE=C:\Python311\python.exe"

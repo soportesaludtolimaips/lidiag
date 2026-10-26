@@ -1,0 +1,13 @@
+# =============================================================================
+# LIDiag — Dependencias del Agente Unificado PACS DCM y Dosimetría
+# =============================================================================
+
+# Extracción y decodificación de metadatos y cabeceras DICOM (Dosis radiológica)
+pydicom>=2.4.0
+
+# Cliente HTTP con soporte de reintentos y sesiones para API Central de LIDiag
+requests>=2.28.0
+urllib3>=1.26.0
+
+# Conector MySQL oficial para consulta de metadatos en dcm4chee (pacsdb)
+mysql-connector-python>=8.0.30
