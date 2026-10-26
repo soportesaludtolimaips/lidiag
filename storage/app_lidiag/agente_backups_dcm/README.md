@@ -21,6 +21,8 @@ Combina en un solo paquete y bajo un único archivo de configuración (`config.j
 | `ejecutar_sync_imagenes.bat` | Lanzador del servicio continuo de sincronización de imágenes. |
 | `ejecutar_dosimetria.bat` | Lanzador del ciclo horario de extracción de dosimetría radiológica. |
 | `instalar_tareas_sede.bat` | **Instalador de 1 Clic:** Registra las 3 tareas en el Programador de Tareas de Windows bajo `SYSTEM`. |
+| `restore_dcm_images.py` | Script de **Recuperación ante Desastres**: Restaura imágenes desde la NAS en orden cronológico descendente (año actual primero). |
+| `ejecutar_restore_imagenes.bat` | Lanzador interactivo de restauración de emergencia ante reemplazo o reinstalación del servidor PACS. |
 | `README.md` | Este manual técnico de instalación y operación. |
 
 ---
@@ -108,3 +110,16 @@ Además, el agente emite de forma continua manifiestos de estado JSON tanto loca
 * `healthcheck_agente.json`: Manifiesto consolidado en tiempo real con el estado de salud de los 3 servicios (Base de Datos, Imágenes y Dosimetría).
 * `estudios_procesados_cache.json`: Caché local de estudios de dosimetría ya procesados.
 * `POST /api/dosimetria/registros`: Transmisión HTTPS de métricas de radiación agrupadas en micro-lotes de 50 registros con validación de Niveles de Referencia para Diagnóstico (NRD).
+
+---
+
+## Recuperación ante Desastres (Disaster Recovery de Imágenes)
+
+Cuando sea necesario reinstalar el servidor PACS o migrar a un nuevo hardware:
+
+1. **Restaurar la Base de Datos:** Restaurar el archivo `.sql` contenido en el último `backup_dcm_sede_*.zip` respaldado en la QNAP en MySQL (`pacsdb`).
+2. **Restaurar las Imágenes Cronológicamente:**
+   * Haz doble clic en **`ejecutar_restore_imagenes.bat`**.
+   * El asistente descargará las imágenes en **orden cronológico descendente** (`2026` -> `2025` -> `2024` -> ...).
+   * **Continuidad Asistencial Inmediata:** Tan pronto finalice el año actual (`2026`), los médicos de urgencias y consulta externa pueden empezar a visualizar estudios recientes de inmediato en el visor DICOM (Oviyam/OHIF) mientras los años históricos continúan restaurándose en segundo plano.
+   * **Reanudable al 100%:** Si la red se desconecta o el servidor se reinicia, al volver a ejecutar el script este reanuda automáticamente sin re-descargar archivos ya copiados.

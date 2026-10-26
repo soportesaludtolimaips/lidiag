@@ -37,6 +37,12 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-26 — Automatización de Recuperación ante Desastres (Disaster Recovery) de Imágenes PACS (`restore_dcm_images.py`):**
+  - Implementado `restore_dcm_images.py` para la restauración automatizada del repositorio de 18 TB desde la QNAP hacia el disco local `D:\img_dcm` en orden estrictamente cronológico descendente (`2026` -> `2025` -> `2024` -> ...).
+  - Garantiza la continuidad asistencial inmediata: al completarse el año actual (`2026`), los médicos de urgencias y consulta externa pueden visualizar estudios recientes en Oviyam/OHIF mientras los años históricos continúan restaurándose en segundo plano.
+  - Motor de alta velocidad con Robocopy multi-hilo (`/MT:16` a `/MT:32`), exclusión de archivos temporales (`/XF`, `/XD`) y capacidad de reanudación al 100% sin re-descargar (`/XO /XN /XC`).
+  - Creado lanzador interactivo `ejecutar_restore_imagenes.bat` con opciones de restauración total, año prioritario urgente (`--year=YYYY`) y modo simulación (`--dry-run`).
+  - Actualización de manual en `README.md` y paquetes distribuibles `agente_backups_dcm.zip` y `agente_backups_dcm.rar`.
 - [x] **2026-10-26 — Blindaje Integral de Grado Clínico y Telemetría Unificada en los 3 Agentes PACS:**
   - **`sync_dcm_images.py`:** Exclusión nativa de archivos basura (`/XF desktop.ini Thumbs.db *.tmp *.syncrootid`) y carpetas del NAS (`/XD @Recycle .syncing_db .qsyncclient "$RECYCLE.BIN"`), control de concurrencia con lockfile (`logs/sync_dcm.lock`), terminación limpia de Robocopy ante `Ctrl+C` y rotación automática de logs a 20 MB con `RotatingFileHandler`.
   - **`backup_dcm_agent.py`:** Pre-chequeo TCP a MySQL (puerto 3306), control de concurrencia con lockfile (`logs/backup_db.lock`), purga defensiva de archivos `.sql` temporales ante fallos y verificación estricta de integridad post-transferencia en la NAS QNAP (`tam_remoto == tam_local`).
