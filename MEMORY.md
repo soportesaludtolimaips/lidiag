@@ -37,6 +37,10 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-26 — Corrección Crítica de TrustHosts para Servidores en Intranet e IPs Privadas (HTTP 400):**
+  - Identificada la causa raíz del error HTTP 400 (`Untrusted Host "10.35.47.4"`) en producción: `TrustHosts` de Laravel se activa automáticamente cuando `APP_ENV=production` y por defecto solo confía en `allSubdomainsOfApplicationUrl()`. Las peticiones realizadas por IP directa a la API eran bloqueadas de raíz por Symfony arrojando `BadRequestHttpException` (400) y enmascaradas como `Error interno del servidor.` en respuestas JSON.
+  - Actualizado `app/Http/Middleware/TrustHosts.php` para confiar explícitamente en rangos de IP privadas de intranet hospitalaria (`10.x`, `192.168.x`, `172.16-31.x`), `localhost`, `127.0.0.1` y soporte para variable `TRUSTED_HOSTS` en `.env`.
+  - Verificado con test unitario en entorno simulado de producción. Pint passed ✅.
 - [x] **2026-10-26 — Estandarización Modular del Módulo Dosis (`medicion_dosis_*`) y Diagnóstico de Envío:**
   - **Modularización y Tablas:** Refactorizadas las 3 migraciones y modelos según la convención modular del proyecto:
     * `medicion_dosis_equipos_emisores` (anteriormente `equipos_emisores`)
