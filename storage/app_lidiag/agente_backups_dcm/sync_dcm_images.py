@@ -25,7 +25,10 @@ import json
 import time
 import socket
 import shutil
+import signal
+import atexit
 import logging
+from logging.handlers import RotatingFileHandler
 import argparse
 import subprocess
 from datetime import datetime
@@ -37,17 +40,107 @@ os.makedirs(LOGS_DIR, exist_ok=True)
 LOG_FILE = os.path.join(LOGS_DIR, "sync_imagenes.log")
 ROBOCOPY_LOG_FILE = os.path.join(LOGS_DIR, "robocopy_scan.log")
 STATUS_FILE = os.path.join(AGENT_DIR, "status_sync_imagenes.json")
+LOCK_FILE = os.path.join(LOGS_DIR, "sync_dcm.lock")
 
-# Configuración de Logging
+# Proceso hijo activo de Robocopy para cierre limpio
+CURRENT_ROBOCOPY_PROC = None
+
+# Configuración de Logging con Rotación Automática (Máx 20 MB, 3 respaldos)
 logging.basicConfig(
     level=logging.INFO,
     format="[%(asctime)s] [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler(LOG_FILE, encoding="utf-8"),
+        RotatingFileHandler(LOG_FILE, maxBytes=20 * 1024 * 1024, backupCount=3, encoding="utf-8"),
         logging.StreamHandler(sys.stdout),
     ],
 )
 logger = logging.getLogger("LIDiag_SyncDCM")
+
+
+def is_pid_running(pid: int) -> bool:
+    """Verifica si un PID de Windows se encuentra actualmente en ejecución."""
+    if pid <= 0:
+        return False
+    if sys.platform == "win32":
+        try:
+            res = subprocess.run(
+                ["tasklist", "/FI", f"PID eq {pid}", "/NH"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=False,
+            )
+            return str(pid) in (res.stdout or "")
+        except Exception:
+            return False
+    else:
+        try:
+            os.kill(pid, 0)
+            return True
+        except OSError:
+            return False
+
+
+def acquire_process_lock() -> bool:
+    """Asegura que sólo una instancia del agente de sincronización se ejecute a la vez."""
+    if os.path.isfile(LOCK_FILE):
+        try:
+            with open(LOCK_FILE, "r", encoding="utf-8") as f:
+                content = f.read().strip()
+                if content.isdigit():
+                    prev_pid = int(content)
+                    if is_pid_running(prev_pid):
+                        logger.warning(
+                            f"Ya existe una instancia de sync_dcm_images activa (PID {prev_pid}). "
+                            "Se omite la nueva ejecución para no competir por I/O ni bloquear el PACS."
+                        )
+                        return False
+        except Exception:
+            pass
+
+    try:
+        with open(LOCK_FILE, "w", encoding="utf-8") as f:
+            f.write(str(os.getpid()))
+        return True
+    except Exception as e:
+        logger.error(f"No se pudo crear archivo de bloqueo {LOCK_FILE}: {e}")
+        return True
+
+
+def release_process_lock():
+    """Libera el archivo de bloqueo al salir."""
+    try:
+        if os.path.isfile(LOCK_FILE):
+            os.remove(LOCK_FILE)
+    except Exception:
+        pass
+
+
+atexit.register(release_process_lock)
+
+
+def handle_exit_signal(signum, frame):
+    """Manejo de señales (Ctrl+C / SIGTERM) para finalizar Robocopy y no dejarlo huérfano."""
+    global CURRENT_ROBOCOPY_PROC
+    logger.info("Detención solicitada. Finalizando procesos en curso limpiamente...")
+    if CURRENT_ROBOCOPY_PROC and CURRENT_ROBOCOPY_PROC.poll() is None:
+        try:
+            CURRENT_ROBOCOPY_PROC.terminate()
+            CURRENT_ROBOCOPY_PROC.wait(timeout=3)
+        except Exception:
+            try:
+                CURRENT_ROBOCOPY_PROC.kill()
+            except Exception:
+                pass
+    release_process_lock()
+    sys.exit(0)
+
+
+try:
+    signal.signal(signal.SIGINT, handle_exit_signal)
+    signal.signal(signal.SIGTERM, handle_exit_signal)
+except Exception:
+    pass
 
 
 def parse_tolerant_json(file_path: str) -> dict:
@@ -240,6 +333,8 @@ def sync_cycle(config: dict) -> bool:
     #   /NP      : Sin porcentaje de progreso
     #   /V       : VERBOSE — Obliga a registrar CADA directorio y CADA imagen analizada
     #   /FP      : Incluye la ruta completa del archivo local
+    #   /XF      : Excluye archivos basura del SO y metadatos de sincronizadores
+    #   /XD      : Excluye papeleras y directorios de control de la NAS
     cmd = [
         "robocopy",
         local_dir,
@@ -255,8 +350,22 @@ def sync_cycle(config: dict) -> bool:
         "/NP",
         "/V",
         "/FP",
+        "/XF",
+        "desktop.ini",
+        "Thumbs.db",
+        "*.tmp",
+        "*.syncrootid",
+        "*.part",
+        "*.crdownload",
+        "/XD",
+        "@Recycle",
+        ".syncing_db",
+        ".qsyncclient",
+        "$RECYCLE.BIN",
+        "System Volume Information",
     ]
 
+    global CURRENT_ROBOCOPY_PROC
     try:
         # Ejecución con captura de flujo continuo sin búfer (bufsize=0)
         proc = subprocess.Popen(
@@ -266,6 +375,7 @@ def sync_cycle(config: dict) -> bool:
             text=False,
             bufsize=0,
         )
+        CURRENT_ROBOCOPY_PROC = proc
 
         pending_prefixes = []
         with open(ROBOCOPY_LOG_FILE, "w", encoding="utf-8", errors="replace") as log_file:
@@ -325,6 +435,8 @@ def sync_cycle(config: dict) -> bool:
         logger.error(f"Excepción en ciclo de sincronización: {e}", exc_info=True)
         emit_status(config, status="ERROR", msg=str(e))
         return False
+    finally:
+        CURRENT_ROBOCOPY_PROC = None
 
 
 def emit_status(config: dict, status: str, msg: str, copiados: int = 0, duration: float = 0.0, free_gb: float = 0.0, unc_dest: str = ""):
@@ -359,11 +471,63 @@ def emit_status(config: dict, status: str, msg: str, copiados: int = 0, duration
         except Exception:
             pass
 
+    # Manifiesto unificado de salud (healthcheck)
+    update_unified_healthcheck(
+        sede_id=config.get("sede_id", 0),
+        sede_nombre=sede_nombre,
+        service="sync_imagenes",
+        info={
+            "estado": status,
+            "mensaje": msg,
+            "fecha": payload["timestamp"],
+            "archivos_copiados": copiados,
+            "duracion_segundos": duration,
+            "espacio_libre_gb": free_gb,
+        },
+        unc_dest=unc_dest,
+    )
+
+
+HEALTHCHECK_FILE = os.path.join(LOGS_DIR, "healthcheck_agente.json")
+
+
+def update_unified_healthcheck(sede_id: int, sede_nombre: str, service: str, info: dict, unc_dest: str = ""):
+    """Actualiza el estado consolidado de los servicios en logs/healthcheck_agente.json."""
+    data = {"sede_id": sede_id, "sede_nombre": sede_nombre, "servicios": {}}
+    if os.path.isfile(HEALTHCHECK_FILE):
+        try:
+            with open(HEALTHCHECK_FILE, "r", encoding="utf-8") as f:
+                existing = json.load(f)
+                if isinstance(existing, dict):
+                    data = existing
+        except Exception:
+            pass
+
+    data["sede_id"] = sede_id
+    data["sede_nombre"] = sede_nombre
+    data["ultima_actualizacion"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    if "servicios" not in data or not isinstance(data["servicios"], dict):
+        data["servicios"] = {}
+    data["servicios"][service] = info
+
+    try:
+        with open(HEALTHCHECK_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        if unc_dest and os.path.isdir(unc_dest):
+            with open(os.path.join(unc_dest, "healthcheck_agente.json"), "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+    except Exception:
+        pass
+
 
 def main():
     parser = argparse.ArgumentParser(description="LIDiag Agente de Sincronización Continua de Imágenes PACS")
     parser.add_argument("--once", action="store_true", help="Ejecuta una sola pasada y finaliza (sin bucle continuo)")
     args = parser.parse_args()
+
+    # Prevenir múltiples instancias simultáneas compitiendo por disco y red
+    if not acquire_process_lock():
+        sys.exit(0)
 
     if not os.path.isfile(CONFIG_FILE):
         logger.critical(f"Archivo de configuración no encontrado: {CONFIG_FILE}")

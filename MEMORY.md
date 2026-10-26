@@ -37,6 +37,12 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-26 — Blindaje Integral de Grado Clínico y Telemetría Unificada en los 3 Agentes PACS:**
+  - **`sync_dcm_images.py`:** Exclusión nativa de archivos basura (`/XF desktop.ini Thumbs.db *.tmp *.syncrootid`) y carpetas del NAS (`/XD @Recycle .syncing_db .qsyncclient "$RECYCLE.BIN"`), control de concurrencia con lockfile (`logs/sync_dcm.lock`), terminación limpia de Robocopy ante `Ctrl+C` y rotación automática de logs a 20 MB con `RotatingFileHandler`.
+  - **`backup_dcm_agent.py`:** Pre-chequeo TCP a MySQL (puerto 3306), control de concurrencia con lockfile (`logs/backup_db.lock`), purga defensiva de archivos `.sql` temporales ante fallos y verificación estricta de integridad post-transferencia en la NAS QNAP (`tam_remoto == tam_local`).
+  - **`agente_dosimetria.py`:** Transmisión HTTPS en micro-lotes de 50 registros (`chunking`), control de concurrencia con lockfile (`logs/dosimetria.lock`) y rotación de logs a 10 MB con `RotatingFileHandler`.
+  - **Manifiesto de Salud Unificado (`healthcheck_agente.json`):** Emisión continua en `logs/` y réplica en la raíz de la QNAP consolidando el estado en vivo de Base de Datos, Imágenes y Dosimetría en un único JSON.
+  - Paquetes de despliegue hospitalario `agente_backups_dcm.zip` y `agente_backups_dcm.rar` actualizados.
 - [x] **2026-10-26 — Corrección y Desacople de Líneas Colisionadas de Robocopy Multihilo (`sync_dcm_images.py`):**
   - Identificada y solucionada la condición de carrera inherente de Robocopy en modo multihilo (`/MT`), donde los hilos concurrentes escriben fragmentos de texto en la misma línea sin bloqueo de sincronización (`mutex`).
   - Desarrollada la función de normalización `normalize_robocopy_output_line()` que detecta rutas pegadas, separa estados y reconecta prefijos huérfanos con sus respectivas rutas completas de archivos.

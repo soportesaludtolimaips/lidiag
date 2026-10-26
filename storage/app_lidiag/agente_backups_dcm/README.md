@@ -105,5 +105,6 @@ Todas las bitácoras operativas de los servicios del agente se almacenan de form
 Además, el agente emite de forma continua manifiestos de estado JSON tanto localmente como en el QNAP:
 * `status_sync_{sede}.json`: Estado de la sincronización de imágenes (último ciclo, archivos copiados, espacio en disco).
 * `backup_status_sede_{sede}.json`: Estado del último volcado de base de datos MySQL (hash SHA-256, duración, tamaño).
+* `healthcheck_agente.json`: Manifiesto consolidado en tiempo real con el estado de salud de los 3 servicios (Base de Datos, Imágenes y Dosimetría).
 * `estudios_procesados_cache.json`: Caché local de estudios de dosimetría ya procesados.
-* `POST /api/dosimetria/registros`: Transmisión HTTPS de métricas de radiación agrupadas con validación de Niveles de Referencia para Diagnóstico (NRD).
+* `POST /api/dosimetria/registros`: Transmisión HTTPS de métricas de radiación agrupadas en micro-lotes de 50 registros con validación de Niveles de Referencia para Diagnóstico (NRD).

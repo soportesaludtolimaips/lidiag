@@ -30,6 +30,7 @@ Fecha: 2026-10-19
 """
 
 import argparse
+import atexit
 import datetime
 import glob
 import hashlib
@@ -48,6 +49,107 @@ AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
 LOGS_DIR = os.path.join(AGENT_DIR, "logs")
 os.makedirs(LOGS_DIR, exist_ok=True)
 LOG_FILE = os.path.join(LOGS_DIR, "backup_db.log")
+LOCK_FILE = os.path.join(LOGS_DIR, "backup_db.lock")
+
+
+def is_pid_running(pid: int) -> bool:
+    """Verifica si un PID de Windows se encuentra actualmente en ejecución."""
+    if pid <= 0:
+        return False
+    if sys.platform == "win32":
+        try:
+            res = subprocess.run(
+                ["tasklist", "/FI", f"PID eq {pid}", "/NH"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=False,
+            )
+            return str(pid) in (res.stdout or "")
+        except Exception:
+            return False
+    else:
+        try:
+            os.kill(pid, 0)
+            return True
+        except OSError:
+            return False
+
+
+def acquire_process_lock() -> bool:
+    """Asegura que sólo un respaldo de base de datos se ejecute a la vez."""
+    if os.path.isfile(LOCK_FILE):
+        try:
+            with open(LOCK_FILE, "r", encoding="utf-8") as f:
+                content = f.read().strip()
+                if content.isdigit():
+                    prev_pid = int(content)
+                    if is_pid_running(prev_pid):
+                        print(f"[AVISO] Ya existe un respaldo de MySQL en ejecución (PID {prev_pid}). Se omite nueva ejecución.")
+                        return False
+        except Exception:
+            pass
+
+    try:
+        with open(LOCK_FILE, "w", encoding="utf-8") as f:
+            f.write(str(os.getpid()))
+        return True
+    except Exception as e:
+        print(f"[ADVERTENCIA] No se pudo crear archivo de bloqueo {LOCK_FILE}: {e}")
+        return True
+
+
+def release_process_lock():
+    """Libera el archivo de bloqueo al salir."""
+    try:
+        if os.path.isfile(LOCK_FILE):
+            os.remove(LOCK_FILE)
+    except Exception:
+        pass
+
+
+atexit.register(release_process_lock)
+
+
+def check_mysql_socket(host: str, port: int = 3306, timeout: float = 3.0) -> bool:
+    """Verifica conectividad TCP al puerto de MySQL antes de invocar mysqldump."""
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except (socket.timeout, socket.error, OSError):
+        return False
+
+
+HEALTHCHECK_FILE = os.path.join(LOGS_DIR, "healthcheck_agente.json")
+
+
+def update_unified_healthcheck(sede_id: int, sede_nombre: str, service: str, info: dict, unc_dest: str = ""):
+    """Actualiza el estado consolidado de los servicios en logs/healthcheck_agente.json."""
+    data = {"sede_id": sede_id, "sede_nombre": sede_nombre, "servicios": {}}
+    if os.path.isfile(HEALTHCHECK_FILE):
+        try:
+            with open(HEALTHCHECK_FILE, "r", encoding="utf-8") as f:
+                existing = json.load(f)
+                if isinstance(existing, dict):
+                    data = existing
+        except Exception:
+            pass
+
+    data["sede_id"] = sede_id
+    data["sede_nombre"] = sede_nombre
+    data["ultima_actualizacion"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    if "servicios" not in data or not isinstance(data["servicios"], dict):
+        data["servicios"] = {}
+    data["servicios"][service] = info
+
+    try:
+        with open(HEALTHCHECK_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        if unc_dest and os.path.isdir(unc_dest):
+            with open(os.path.join(unc_dest, "healthcheck_agente.json"), "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+    except Exception:
+        pass
 
 
 class TeeLogger:
@@ -401,6 +503,15 @@ def transfer_backup_to_qnap(config: dict, files_to_transfer: list, retention_day
             fsize = os.path.getsize(local_file)
             print(f"      Copiando {fname} ({format_bytes(fsize)})...")
             shutil.copy2(local_file, remote_file)
+            # Verificación de integridad post-transferencia en la NAS
+            if os.path.isfile(remote_file):
+                remote_size = os.path.getsize(remote_file)
+                if remote_size != fsize:
+                    print(f"      [REINTENTO] Diferencia de tamaño ({remote_size} != {fsize}). Reintentando copia...")
+                    shutil.copy2(local_file, remote_file)
+                    remote_size = os.path.getsize(remote_file)
+                    if remote_size != fsize:
+                        raise IOError(f"Copia corrupta de {fname} en QNAP ({remote_size} bytes recibidos vs {fsize} esperados)")
             total_bytes += fsize
 
         upload_time = round(time.time() - t_start, 2)
@@ -431,6 +542,10 @@ def main():
     except Exception:
         pass
 
+    # Control de concurrencia: asegurar una sola ejecución simultánea
+    if not acquire_process_lock():
+        sys.exit(0)
+
     start_total_time = time.time()
     args = parse_arguments()
     config = load_config(args.config, args)
@@ -455,7 +570,22 @@ def main():
     os.makedirs(dest_dir, exist_ok=True)
     os.makedirs(temp_dir, exist_ok=True)
 
-    # 1. Pre-flight check: Control de espacio libre en disco
+    # 1. Pre-flight check: Conectividad TCP a MySQL PACS
+    db_host = config.get("db_host", "127.0.0.1")
+    db_port = int(config.get("db_port", 3306))
+    if not check_mysql_socket(db_host, db_port):
+        err_msg = f"No hay conexión con el servidor MySQL en {db_host}:{db_port}. Verifica que el servicio MySQL PACS esté en ejecución."
+        print(f"[ERROR CRÍTICO] {err_msg}")
+        write_status_manifest(dest_dir, config["sede_id"], {
+            "sede_id": config["sede_id"],
+            "sede_nombre": config.get("sede_nombre", ""),
+            "fecha": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "estado": "MYSQL_OFFLINE",
+            "error": err_msg,
+        })
+        sys.exit(1)
+
+    # 2. Pre-flight check: Control de espacio libre en disco
     min_gb = config.get("min_free_space_gb", 5.0)
     free_bytes, free_gb, is_space_ok = check_disk_space(dest_dir, min_gb)
     print(f"[1/5] Verificación previa de disco: {format_bytes(free_bytes)} libres ({free_gb:.2f} GB)")
@@ -528,6 +658,11 @@ def main():
             proc = subprocess.run(cmd_retry, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False)
 
         if proc.returncode != 0:
+            if os.path.exists(sql_path):
+                try:
+                    os.remove(sql_path)
+                except Exception:
+                    pass
             err_msg = f"mysqldump falló con código {proc.returncode}: {proc.stderr.strip()}"
             print(f"[ERROR] {err_msg}")
             write_status_manifest(dest_dir, config["sede_id"], {
@@ -539,11 +674,21 @@ def main():
             })
             sys.exit(1)
     except FileNotFoundError:
+        if os.path.exists(sql_path):
+            try:
+                os.remove(sql_path)
+            except Exception:
+                pass
         err_msg = f"No se pudo ejecutar mysqldump en '{mysqldump_bin}'. Verifica la ruta configurada."
         print(f"[ERROR] {err_msg}")
         sys.exit(1)
 
     if not os.path.exists(sql_path) or os.path.getsize(sql_path) == 0:
+        if os.path.exists(sql_path):
+            try:
+                os.remove(sql_path)
+            except Exception:
+                pass
         print("[ERROR] El archivo .sql generado no existe o está vacío.")
         sys.exit(1)
 
@@ -651,6 +796,22 @@ def main():
     if qnap_res.get("estado") == "SUCCESS":
         status_data["qnap_transfer"] = qnap_res
         write_status_manifest(dest_dir, config["sede_id"], status_data)
+
+    # Actualizar manifiesto unificado de salud (healthcheck)
+    update_unified_healthcheck(
+        sede_id=config["sede_id"],
+        sede_nombre=config.get("sede_nombre", ""),
+        service="backup_db",
+        info={
+            "estado": status_data["estado"],
+            "fecha": status_data["fecha_ejecucion"],
+            "archivo_zip": status_data.get("archivo_zip", ""),
+            "tamano_zip": status_data.get("tamano_zip_humano", ""),
+            "sha256": status_data.get("sha256", ""),
+            "duracion_segundos": status_data.get("duracion_total_segundos", 0),
+        },
+        unc_dest=qnap_res.get("qnap_destino", ""),
+    )
 
     print("=========================================================")
     print(f" BACKUP DCM FINALIZADO CON ÉXITO EN {total_duration}s")

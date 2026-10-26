@@ -23,12 +23,15 @@ Fecha: 2026-10-23
 """
 
 import argparse
+import atexit
 import datetime
 import hashlib
 import json
 import logging
+from logging.handlers import RotatingFileHandler
 import os
 import re
+import subprocess
 import sys
 import time
 from typing import Any, Dict, List, Optional, Tuple
@@ -66,18 +69,110 @@ DEFAULT_CONFIG_PATH = os.path.join(SCRIPT_DIR, "config.json")
 LOGS_DIR = os.path.join(SCRIPT_DIR, "logs")
 os.makedirs(LOGS_DIR, exist_ok=True)
 LOG_FILE = os.path.join(LOGS_DIR, "dosimetria_agent.log")
+LOCK_FILE = os.path.join(LOGS_DIR, "dosimetria.lock")
 CACHE_PROCESADOS_FILE = os.path.join(SCRIPT_DIR, "estudios_procesados_cache.json")
 
-# Configurar logging
+# Configurar logging con rotación automática (Máx 10 MB, 3 copias)
 logging.basicConfig(
     level=logging.INFO,
     format="[%(asctime)s] [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler(LOG_FILE, encoding="utf-8"),
+        RotatingFileHandler(LOG_FILE, maxBytes=10 * 1024 * 1024, backupCount=3, encoding="utf-8"),
         logging.StreamHandler(sys.stdout),
     ],
 )
 logger = logging.getLogger("LIDiag_DosimetriaAgent")
+
+
+HEALTHCHECK_FILE = os.path.join(LOGS_DIR, "healthcheck_agente.json")
+
+
+def update_unified_healthcheck(sede_id: int, sede_nombre: str, service: str, info: dict):
+    """Actualiza el estado consolidado de los servicios en logs/healthcheck_agente.json."""
+    data = {"sede_id": sede_id, "sede_nombre": sede_nombre, "servicios": {}}
+    if os.path.isfile(HEALTHCHECK_FILE):
+        try:
+            with open(HEALTHCHECK_FILE, "r", encoding="utf-8") as f:
+                existing = json.load(f)
+                if isinstance(existing, dict):
+                    data = existing
+        except Exception:
+            pass
+
+    data["sede_id"] = sede_id
+    data["sede_nombre"] = sede_nombre
+    data["ultima_actualizacion"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    if "servicios" not in data or not isinstance(data["servicios"], dict):
+        data["servicios"] = {}
+    data["servicios"][service] = info
+
+    try:
+        with open(HEALTHCHECK_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+    except Exception:
+        pass
+
+
+def is_pid_running(pid: int) -> bool:
+    """Verifica si un PID de Windows se encuentra actualmente en ejecución."""
+    if pid <= 0:
+        return False
+    if sys.platform == "win32":
+        try:
+            res = subprocess.run(
+                ["tasklist", "/FI", f"PID eq {pid}", "/NH"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=False,
+            )
+            return str(pid) in (res.stdout or "")
+        except Exception:
+            return False
+    else:
+        try:
+            os.kill(pid, 0)
+            return True
+        except OSError:
+            return False
+
+
+def acquire_process_lock() -> bool:
+    """Asegura que sólo una ejecución de dosimetría se ejecute a la vez."""
+    if os.path.isfile(LOCK_FILE):
+        try:
+            with open(LOCK_FILE, "r", encoding="utf-8") as f:
+                content = f.read().strip()
+                if content.isdigit():
+                    prev_pid = int(content)
+                    if is_pid_running(prev_pid):
+                        logger.warning(
+                            f"Ya existe una ejecución de agente_dosimetria activa (PID {prev_pid}). "
+                            "Se omite la nueva ejecución para evitar duplicidad de consultas."
+                        )
+                        return False
+        except Exception:
+            pass
+
+    try:
+        with open(LOCK_FILE, "w", encoding="utf-8") as f:
+            f.write(str(os.getpid()))
+        return True
+    except Exception as e:
+        logger.error(f"No se pudo crear archivo de bloqueo {LOCK_FILE}: {e}")
+        return True
+
+
+def release_process_lock():
+    """Libera el archivo de bloqueo al salir."""
+    try:
+        if os.path.isfile(LOCK_FILE):
+            os.remove(LOCK_FILE)
+    except Exception:
+        pass
+
+
+atexit.register(release_process_lock)
 
 
 def parse_arguments():
@@ -394,23 +489,39 @@ def enviar_lote_a_central(api_url: str, api_token: str, sede_id: int, registros:
     session.mount("https://", adapter)
     session.mount("http://", adapter)
 
-    logger.info(f"Transmitiendo {len(registros)} registro(s) de dosimetría hacia {api_url}...")
-    try:
-        response = session.post(api_url, json=payload, headers=headers, timeout=30, verify=False)
-        if response.status_code in (200, 201):
-            res_json = response.json()
-            guardados = res_json.get("guardados", len(registros))
-            logger.info(f"[ÉXITO] Central confirmó {guardados} registro(s) procesados correctamente.")
-            return True
-        else:
-            logger.error(f"[ERROR API] Respuesta HTTP {response.status_code}: {response.text[:300]}")
-            return False
-    except requests.RequestException as e:
-        logger.error(f"[ERROR RED] No se pudo conectar con el servidor central LIDiag: {e}")
-        return False
+    chunk_size = 50
+    chunks = [registros[i:i + chunk_size] for i in range(0, len(registros), chunk_size)]
+    total_guardados = 0
+    all_success = True
+
+    logger.info(f"Transmitiendo {len(registros)} registro(s) de dosimetría hacia {api_url} en {len(chunks)} bloque(s)...")
+    for idx, chunk in enumerate(chunks, 1):
+        payload = {
+            "sede_id": sede_id,
+            "registros": chunk,
+        }
+        try:
+            response = session.post(api_url, json=payload, headers=headers, timeout=35, verify=False)
+            if response.status_code in (200, 201):
+                res_json = response.json()
+                g = res_json.get("guardados", len(chunk))
+                total_guardados += g
+                logger.info(f"      [OK] Bloque {idx}/{len(chunks)}: {g} registro(s) procesados correctamente.")
+            else:
+                logger.error(f"      [ERROR API] Bloque {idx}/{len(chunks)} HTTP {response.status_code}: {response.text[:300]}")
+                all_success = False
+        except requests.RequestException as e:
+            logger.error(f"      [ERROR RED] Fallo al enviar bloque {idx}/{len(chunks)} a Central: {e}")
+            all_success = False
+
+    logger.info(f"[TOTAL TRANSMISIÓN] Central procesó exitosamente {total_guardados} de {len(registros)} registro(s).")
+    return all_success
 
 
 def main():
+    if not acquire_process_lock():
+        sys.exit(0)
+
     args = parse_arguments()
     config = load_config(args.config)
 
@@ -526,6 +637,18 @@ def main():
         guardar_cache_procesados(cache_procesados)
 
     logger.info("Ciclo de extracción de dosimetría finalizado.")
+
+    update_unified_healthcheck(
+        sede_id=sede_id,
+        sede_nombre=config.get("sede_nombre", ""),
+        service="dosimetria",
+        info={
+            "estado": "OK",
+            "fecha": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "estudios_candidatos": len(candidatos),
+            "metricas_extraidas": len(registros_para_envio),
+        },
+    )
 
 
 if __name__ == "__main__":
