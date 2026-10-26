@@ -12,7 +12,8 @@ echo [%date% %time%] Iniciando ciclo de extracción de dosimetría radiológica.
 python agente_dosimetria.py --dias 1 --limit 200
 
 if %ERRORLEVEL% NEQ 0 (
-    echo [%date% %time%] [ERROR] El agente de dosimetría finalizó con código %ERRORLEVEL% >> dosimetria_agent.log
+    if not exist "logs" mkdir logs
+    echo [%date% %time%] [ERROR] El agente de dosimetría finalizó con código %ERRORLEVEL% >> logs\dosimetria_agent.log
     exit /b %ERRORLEVEL%
 )
 

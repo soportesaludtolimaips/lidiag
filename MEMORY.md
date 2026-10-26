@@ -37,6 +37,18 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-26 — Corrección y Desacople de Líneas Colisionadas de Robocopy Multihilo (`sync_dcm_images.py`):**
+  - Identificada y solucionada la condición de carrera inherente de Robocopy en modo multihilo (`/MT`), donde los hilos concurrentes escriben fragmentos de texto en la misma línea sin bloqueo de sincronización (`mutex`).
+  - Desarrollada la función de normalización `normalize_robocopy_output_line()` que detecta rutas pegadas, separa estados y reconecta prefijos huérfanos con sus respectivas rutas completas de archivos.
+  - Captura continua mediante `subprocess.Popen(bufsize=0)` escribiendo cada entrada limpia en una línea independiente en `logs/robocopy_scan.log` e imprimiendo en vivo en CMD.
+- [x] **2026-10-26 — Centralización y Ordenamiento de Logs en Subdirectorio `logs/` del Agente Hospitalario:**
+  - Redireccionadas todas las bitácoras operativas hacia `logs/`:
+    * `logs/sync_imagenes.log`: Bitácora del agente continuo de sincronización de imágenes PACS.
+    * `logs/robocopy_scan.log`: Registro detallado del escaneo multi-hilo de Robocopy en vivo.
+    * `logs/backup_db.log`: Bitácora y telemetría de respaldo local de MySQL y subida a QNAP vía `TeeLogger`.
+    * `logs/dosimetria_agent.log`: Registro de extracción de radiación ionizante y transmisión a LIDiag Central.
+  - Creación automática y resiliente del directorio `logs/` en `sync_dcm_images.py`, `backup_dcm_agent.py`, `agente_dosimetria.py` y `ejecutar_dosimetria.bat`.
+  - Regeneración de paquetes distribuibles `agente_backups_dcm.zip` y `agente_backups_dcm.rar`.
 - [x] **2026-10-26 — Transmisión Inmediata de Backups MySQL a NAS QNAP (`backup_dcm_agent.py`):**
   - Refactorizado `backup_dcm_agent.py` para que inmediatamente después de terminar el volcado local de MySQL, compresión ZIP, prueba de integridad CRC32 y cálculo de huella SHA-256, transmita de forma autónoma los archivos (`.zip`, `.sha256` y manifiesto JSON de telemetría) hacia la NAS QNAP vía SMB (`\\<qnap_ip>\<qnap_share_backups>`).
   - Pre-chequeo de conectividad TCP en puerto 445 del QNAP antes de iniciar transmisión, autenticación por sesión con `net use` y cálculo en vivo de tasa de transferencia en MB/s.

@@ -63,7 +63,9 @@ except ImportError:
 # Directorios de trabajo
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_CONFIG_PATH = os.path.join(SCRIPT_DIR, "config.json")
-LOG_FILE = os.path.join(SCRIPT_DIR, "dosimetria_agent.log")
+LOGS_DIR = os.path.join(SCRIPT_DIR, "logs")
+os.makedirs(LOGS_DIR, exist_ok=True)
+LOG_FILE = os.path.join(LOGS_DIR, "dosimetria_agent.log")
 CACHE_PROCESADOS_FILE = os.path.join(SCRIPT_DIR, "estudios_procesados_cache.json")
 
 # Configurar logging

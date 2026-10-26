@@ -94,10 +94,16 @@ Esto dejará configuradas automáticamente las 3 tareas del sistema bajo la cuen
 
 ---
 
-## Telemetría y Monitoreo Central
+## Telemetría y Bitácoras Centralizadas (`logs/`)
 
-El agente emite de forma continua manifiestos de estado JSON tanto localmente como en el QNAP y el servidor central:
+Todas las bitácoras operativas de los servicios del agente se almacenan de forma ordenada en la carpeta dedicada **`logs/`**:
+* **`logs/sync_imagenes.log`**: Registro del ciclo continuo del agente de sincronización de imágenes PACS.
+* **`logs/robocopy_scan.log`**: Registro en vivo y detallado del escaneo e indexación multi-hilo de Robocopy.
+* **`logs/backup_db.log`**: Bitácora de volcado MySQL, prueba CRC32, cálculo SHA-256 y transferencia a QNAP.
+* **`logs/dosimetria_agent.log`**: Registro de extracción de radiación ionizante y transmisión a LIDiag Central.
+
+Además, el agente emite de forma continua manifiestos de estado JSON tanto localmente como en el QNAP:
 * `status_sync_{sede}.json`: Estado de la sincronización de imágenes (último ciclo, archivos copiados, espacio en disco).
 * `backup_status_sede_{sede}.json`: Estado del último volcado de base de datos MySQL (hash SHA-256, duración, tamaño).
-* `dosimetria_agent.log` y `estudios_procesados_cache.json`: Registro de auditoría local de extracción de radiación.
+* `estudios_procesados_cache.json`: Caché local de estudios de dosimetría ya procesados.
 * `POST /api/dosimetria/registros`: Transmisión HTTPS de métricas de radiación agrupadas con validación de Niveles de Referencia para Diagnóstico (NRD).

@@ -20,6 +20,7 @@ Fecha: 2026-10-21
 
 import os
 import sys
+import re
 import json
 import time
 import socket
@@ -31,8 +32,10 @@ from datetime import datetime
 
 AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(AGENT_DIR, "config.json")
-LOG_FILE = os.path.join(AGENT_DIR, "sync_imagenes.log")
-ROBOCOPY_LOG_FILE = os.path.join(AGENT_DIR, "robocopy_scan.log")
+LOGS_DIR = os.path.join(AGENT_DIR, "logs")
+os.makedirs(LOGS_DIR, exist_ok=True)
+LOG_FILE = os.path.join(LOGS_DIR, "sync_imagenes.log")
+ROBOCOPY_LOG_FILE = os.path.join(LOGS_DIR, "robocopy_scan.log")
 STATUS_FILE = os.path.join(AGENT_DIR, "status_sync_imagenes.json")
 
 # Configuración de Logging
@@ -130,7 +133,7 @@ def read_robocopy_log_tail(log_path: str, max_lines: int = 40) -> str:
     """Lee las últimas líneas del log de Robocopy tolerando codificaciones UTF-16 y UTF-8."""
     if not os.path.isfile(log_path):
         return ""
-    for enc in ["utf-16", "utf-8", "cp1252"]:
+    for enc in ["utf-8", "cp1252", "utf-16"]:
         try:
             with open(log_path, "r", encoding=enc, errors="ignore") as f:
                 lines = f.readlines()
@@ -138,6 +141,45 @@ def read_robocopy_log_tail(log_path: str, max_lines: int = 40) -> str:
         except Exception:
             continue
     return ""
+
+
+KEYWORDS_ROBOCOPY = r"(?:modificado|Nuevo arch|igual|mismo|Omitido|Más reciente|Mas reciente|Más antiguo|Mas antiguo|Idéntico|Identico|Erróneo|Erroneo|\*Directorio|\*EXTRA|\*Adicional)"
+
+
+def normalize_robocopy_output_line(raw_line: str, base_dir: str, pending_prefixes: list) -> list:
+    """
+    Descompone y reordena líneas multihilo de Robocopy (/MT) colisionadas o pegadas en una sola línea.
+    Garantiza que cada directorio e imagen escaneada se registre en su propia línea individual.
+    """
+    if not raw_line or not raw_line.strip():
+        return [raw_line]
+
+    # Separar si la ruta local aparece pegada inmediatamente a otro texto (sin salto de línea)
+    text = re.sub(r"([^\r\n\t\s])(" + re.escape(base_dir) + r")", r"\1\n\t\2", raw_line)
+
+    # Separar si una palabra clave de estado aparece tras un texto en la misma línea
+    text = re.sub(r"([^\r\n])(\t+\s*" + KEYWORDS_ROBOCOPY + r")", r"\1\n\2", text)
+
+    result_lines = []
+    for segment in text.splitlines():
+        seg = segment.rstrip()
+        if not seg:
+            continue
+
+        has_path = (base_dir in seg) or (r"\\" in seg)
+        has_kw = bool(re.search(KEYWORDS_ROBOCOPY, seg))
+
+        # Prefijo huérfano (hilo interrumpido antes de escribir la ruta del archivo)
+        if has_kw and not has_path:
+            pending_prefixes.append(seg)
+        # Ruta huérfana perteneciente a un prefijo previo
+        elif has_path and not has_kw and pending_prefixes:
+            prefix = pending_prefixes.pop(0)
+            result_lines.append(f"{prefix}\t{seg.strip()}")
+        else:
+            result_lines.append(seg)
+
+    return result_lines
 
 
 def sync_cycle(config: dict) -> bool:
@@ -198,8 +240,6 @@ def sync_cycle(config: dict) -> bool:
     #   /NP      : Sin porcentaje de progreso
     #   /V       : VERBOSE — Obliga a registrar CADA directorio y CADA imagen analizada
     #   /FP      : Incluye la ruta completa del archivo local
-    #   /LOG     : Escribe directamente en robocopy_scan.log sin búfer intermedio
-    #   /TEE     : Muestra la salida en la pantalla del CMD en tiempo real
     cmd = [
         "robocopy",
         local_dir,
@@ -215,13 +255,32 @@ def sync_cycle(config: dict) -> bool:
         "/NP",
         "/V",
         "/FP",
-        f"/LOG:{ROBOCOPY_LOG_FILE}",
-        "/TEE",
     ]
 
     try:
-        # timeout=None permite sincronizaciones masivas de terabytes (18 TB) sin interrupciones
-        res = subprocess.run(cmd, timeout=None)
+        # Ejecución con captura de flujo continuo sin búfer (bufsize=0)
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=False,
+            bufsize=0,
+        )
+
+        pending_prefixes = []
+        with open(ROBOCOPY_LOG_FILE, "w", encoding="utf-8", errors="replace") as log_file:
+            for raw_bytes in iter(proc.stdout.readline, b""):
+                line = raw_bytes.decode("cp1252", errors="replace").rstrip("\r\n")
+                clean_lines = normalize_robocopy_output_line(line, local_dir, pending_prefixes)
+                for clean_line in clean_lines:
+                    log_file.write(clean_line + "\n")
+                    # Mostrar en consola únicamente rutas del repositorio local (omitiendo extras del QNAP)
+                    if local_dir in clean_line and not clean_line.strip().lower().startswith("*directorio extra"):
+                        print(f"[Escaneando] {clean_line.strip()}", flush=True)
+                log_file.flush()
+
+        proc.wait()
+        returncode = proc.returncode
         duration = round(time.time() - start_time, 2)
 
         # Extraer estadísticas desde el log de Robocopy en disco
@@ -231,7 +290,7 @@ def sync_cycle(config: dict) -> bool:
         # Códigos de salida de Robocopy:
         # < 8 = Éxito / Operación normal (0=sin cambios, 1=copiados, 2=extra, 3=copiados+extra)
         # >= 8 = Error de copia
-        if res.returncode < 8:
+        if returncode < 8:
             copiados = stats.get("copiados", 0)
             omitidos = stats.get("omitidos", 0)
             fallidos = stats.get("fallidos", 0)
@@ -254,8 +313,8 @@ def sync_cycle(config: dict) -> bool:
             )
             return True
         else:
-            logger.error(f"Robocopy reportó error (código {res.returncode}). Revisa '{ROBOCOPY_LOG_FILE}' para detalles.")
-            emit_status(config, status="ROBOCOPY_ERROR", msg=f"Error código {res.returncode}", duration=duration)
+            logger.error(f"Robocopy reportó error (código {returncode}). Revisa '{ROBOCOPY_LOG_FILE}' para detalles.")
+            emit_status(config, status="ROBOCOPY_ERROR", msg=f"Error código {returncode}", duration=duration)
             return False
 
     except subprocess.TimeoutExpired:

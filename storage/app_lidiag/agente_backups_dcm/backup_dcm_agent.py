@@ -44,6 +44,28 @@ import time
 import zipfile
 
 
+AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
+LOGS_DIR = os.path.join(AGENT_DIR, "logs")
+os.makedirs(LOGS_DIR, exist_ok=True)
+LOG_FILE = os.path.join(LOGS_DIR, "backup_db.log")
+
+
+class TeeLogger:
+    """Duplica toda la salida de consola hacia logs/backup_db.log de forma segura."""
+    def __init__(self, log_path, stream):
+        self.stream = stream
+        self.log_file = open(log_path, "a", encoding="utf-8")
+
+    def write(self, message):
+        self.stream.write(message)
+        self.log_file.write(message)
+        self.log_file.flush()
+
+    def flush(self):
+        self.stream.flush()
+        self.log_file.flush()
+
+
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Agente de Backup Local DCM para LIDiag / QNAP Qsync")
     parser.add_argument("--config", "-c", default="config.json", help="Ruta al archivo de configuración JSON (por defecto: config.json)")
@@ -403,6 +425,12 @@ def transfer_backup_to_qnap(config: dict, files_to_transfer: list, retention_day
 
 
 def main():
+    try:
+        sys.stdout = TeeLogger(LOG_FILE, sys.stdout)
+        sys.stderr = TeeLogger(LOG_FILE, sys.stderr)
+    except Exception:
+        pass
+
     start_total_time = time.time()
     args = parse_arguments()
     config = load_config(args.config, args)
