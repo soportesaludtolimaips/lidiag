@@ -37,6 +37,16 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-26 — Informe Técnico de Dosimetría para Proveedores y Biomédica:**
+  - Creado documento formal `INFORME_TECNICO_DOSIMETRIA_PROVEEDORES.md` detallando la auditoría de cabeceras DICOM en equipos RX/CT según Resolución 482 de 2018.
+  - Documentadas evidencias de tags nulos (`DAP: 0.000000`) en Rayos X digitales convencionales frente a Tomografía activa (`CTDIvol: 4.3 a 47.6 mGy`).
+  - Formuladas preguntas técnicas para proveedores de equipos y planteada alternativa de cálculo indirecto de Dosis en Superficie de Entrada (ESD) a partir de `KVP` y `mAs`.
+- [x] **2026-10-26 — Soporte de Rango de Fechas Fijo (`--desde` / `--hasta`) en Agente de Dosimetría:**
+  - Incorporados parámetros CLI `--desde YYYY-MM-DD` y `--hasta YYYY-MM-DD` en `agente_dosimetria.py` para permitir auditorías y escaneos históricos específicos sin depender de una ventana relativa fija.
+  - Verificada extracción exitosa de 15 tomografías reales con dosis `CTDIvol` (4.3 mGy a 47.6 mGy) en el mes de agosto y transmisión a Central.
+- [x] **2026-10-26 — Documentación Completa y Catálogo de Comandos en README del Agente PACS:**
+  - Enriquecido `README.md` del paquete `agente_backups_dcm` con la descripción técnica y clínica de cada script (`backup_dcm_agent.py`, `sync_dcm_images.py`, `agente_dosimetria.py`, `restore_dcm_images.py`, `install.bat`, `instalar_tareas_sede.bat`).
+  - Catalogados todos los comandos CLI con sus banderas (`--once`, `--threads`, `--dias`, `--limit`, `--dry-run`, `--year`, `--from-year`, etc.) y sus correspondientes lanzadores `.bat`.
 - [x] **2026-10-26 — Compatibilidad MySQL ONLY_FULL_GROUP_BY en Agente de Dosimetría:**
   - Corregido fallo de consulta SQL `1055 (42000): Expression #2 of SELECT list is not in GROUP BY clause... is incompatible with sql_mode=only_full_group_by`.
   - Agregadas funciones de agregación ANSI SQL (`MAX`, `MIN`) en `buscar_estudios_candidatos()` de `agente_dosimetria.py`.

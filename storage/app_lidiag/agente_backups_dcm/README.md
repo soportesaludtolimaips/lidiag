@@ -86,6 +86,157 @@ Abre una consola de PowerShell o CMD en la carpeta del agente y prueba los proce
   python agente_dosimetria.py --dry-run
   ```
 
+---
+
+## Catálogo Detallado de Agentes y Comandos
+
+A continuación se detalla la función clínica, arquitectura y todos los comandos y argumentos disponibles para cada componente:
+
+### 1. Respaldo de Base de Datos MySQL (`backup_dcm_agent.py`)
+
+* **Lanzador rápido:** `ejecutar_backup_db.bat` (Diseñado para tareas desatendidas nocturnas).
+* **Descripción técnica y clínica:**
+  - Realiza un pre-chequeo por socket TCP (puerto 3306) para verificar disponibilidad de MySQL antes de iniciar.
+  - Ejecuta el volcado consistente de la base de datos `pacsdb` de dcm4chee mediante `mysqldump.exe`.
+  - Comprime el archivo `.sql` en tiempo real a formato ZIP para ahorrar hasta un 85% de espacio.
+  - Valida la integridad del archivo comprimido mediante algoritmo CRC32.
+  - Calcula la huella criptográfica SHA-256 para trazabilidad y auditoría forense (ISO 27001).
+  - Gestiona la retención local purgando respaldos que superen los días configurados (`retention_days`).
+  - Autentica y transfiere el ZIP directamente a la carpeta compartida SMB del QNAP NAS (`\\<qnap_ip>\<qnap_share_backups>`).
+  - Verifica la integridad remota comparando byte a byte el tamaño del archivo transferido contra el local (`remote_size == local_size`).
+  - Aplica la política de retención remota en el QNAP eliminando volcados viejos de esa sede.
+  - Emite estado en `logs/backup_db.log`, `backup_status_sede_{sede}.json` y el manifiesto unificado `healthcheck_agente.json`.
+* **Comandos disponibles:**
+  ```cmd
+  :: Ejecución estándar con config.json por defecto
+  python backup_dcm_agent.py
+
+  :: Especificar un archivo de configuración alternativo
+  python backup_dcm_agent.py --config C:\ruta\otro_config.json
+
+  :: Modo simulación (Dry-Run): valida conexión y rutas sin volcar datos ni transferir
+  python backup_dcm_agent.py --dry-run
+  ```
+
+---
+
+### 2. Sincronización Continua de Imágenes DICOM (`sync_dcm_images.py`)
+
+* **Lanzador rápido:** `ejecutar_sync_imagenes.bat` (Inicia el servicio persistente en bucle infinito).
+* **Descripción técnica y clínica:**
+  - Servicio demonio continuo que replica el comportamiento de Dropbox / Google Drive para el repositorio de 18 TB de imágenes DICOM (`D:\img_dcm` hacia `\\<qnap_ip>\<qnap_share_imagenes>`).
+  - Escanea e indexa cambios en intervalos definidos (`sync_interval_seconds`, ej: cada 3 minutos).
+  - Utiliza el motor nativo de alta velocidad `robocopy.exe` con multi-threading (`/MT:8` a `/MT:32`).
+  - **Exclusión de archivos temporales e índices del sistema operativo:** Omite automáticamente archivos basura (`desktop.ini`, `Thumbs.db`, `*.tmp`, `*.syncrootid`, `*.part`) y carpetas del NAS (`@Recycle`, `.syncing_db`, `.qsyncclient`, `$RECYCLE.BIN`, `System Volume Information`).
+  - **Normalizador de stream multi-hilo:** Desacopla fragmentos colisionados en stdout para que `logs/robocopy_scan.log` muestre limpiamente cada directorio y archivo procesado sin truncamiento.
+  - **Control de concurrencia:** Implementa lockfile (`logs/sync_dcm.lock`) con validación activa de PID de Windows para impedir instancias duplicadas.
+  - **Terminación limpia:** Captura señales `SIGINT` (Ctrl+C) y `SIGTERM` para finalizar ordenadamente los procesos hijos de Robocopy sin dejar procesos huérfanos.
+  - **Chequeo de espacio:** Verifica que el almacenamiento cuente con al menos `min_free_space_gb` libres antes de transferir.
+* **Comandos disponibles:**
+  ```cmd
+  :: Servicio continuo (bucle cada sync_interval_seconds)
+  python sync_dcm_images.py
+
+  :: Ejecutar un solo ciclo de sincronización y terminar inmediatamente
+  python sync_dcm_images.py --once
+
+  :: Sobrescribir el número de hilos de Robocopy para mayor velocidad (ej: 16 hilos)
+  python sync_dcm_images.py --threads 16
+
+  :: Sobrescribir el intervalo de espera entre ciclos en segundos (ej: cada 60 segundos)
+  python sync_dcm_images.py --interval 60
+
+  :: Modo prueba (simula el escaneo con /L de Robocopy sin transferir archivos)
+  python sync_dcm_images.py --dry-run
+
+  :: Usar archivo de configuración específico
+  python sync_dcm_images.py --config config.json --once
+  ```
+
+---
+
+### 3. Agente Edge de Dosimetría Radiológica (`agente_dosimetria.py`)
+
+* **Lanzador rápido:** `ejecutar_dosimetria.bat` (Diseñado para ejecutarse periódicamente cada 1 hora).
+* **Descripción técnica y clínica:**
+  - Cumplimiento normativo estricto de la **Resolución 482 de 2018** (Colombia) para el control de dosis de radiación en pacientes.
+  - Conecta a MySQL `pacsdb` y consulta estudios recientes de modalidades con radiación ionizante:
+    - **CT (Tomografía Computarizada):** Extrae `CTDIvol` (mGy) y `DLP` (mGy*cm).
+    - **MG (Mamografía):** Extrae Dosis Glandular Media `DGM` / Organ Dose (mGy).
+    - **DX / CR (Radiografía Digital):** Extrae Producto Dosis-Área `DAP` (Gy*cm²).
+  - **Doble compatibilidad SQL:** Emplea funciones de agregación ANSI (`MAX`, `MIN`) y neutraliza dinámicamente `ONLY_FULL_GROUP_BY` a nivel de sesión, soportando MySQL 5.5, 5.7, 8.0, 8.4 y MariaDB.
+  - **Lectura ultra-rápida de cabeceras:** Utiliza `pydicom` con `stop_before_pixels=True` para leer únicamente los metadatos clínicos sin cargar las matrices pesadas de imagen, procesando estudios en milisegundos.
+  - **Anonimización Criptográfica (ISO/IEC 27001):** El `PatientID` se convierte en un hash SHA-256 irreversible con salt antes de salir del servidor local. Jamás viajan datos de identificación sensible por la red.
+  - **Memoria de Estado y Caché Anti-Duplicados:** Almacena los estudios leídos en `logs/dosimetria_cache_procesados.json`. Si un estudio ya fue evaluado, se omite de inmediato. Si el archivo DICOM aún no existe en disco, **no** se guarda en caché, permitiendo su reintento automático cuando el archivo esté disponible.
+  - **Transmisión Segura y Resiliente (Chunking):** Empaqueta los registros en micro-lotes de 50 elementos y los envía por HTTPS a la API central de LIDiag (`POST /api/dosimetria/registros`) con política de reintentos exponenciales (backoff de 2s, 4s, 8s, 16s) ante micro-cortes de red.
+* **Comandos disponibles:**
+  ```cmd
+  :: Ejecución estándar (procesa las últimas 24 horas, límite 200 estudios)
+  python agente_dosimetria.py
+
+  :: Extender la ventana temporal a los últimos N días (ej: últimos 7 días)
+  python agente_dosimetria.py --dias 7
+
+  :: Filtrar por rango de fechas fijo (ideal para procesar meses históricos específicos)
+  python agente_dosimetria.py --desde 2026-08-01 --hasta 2026-08-31 --limit 500
+
+  :: Auditoría profunda o escaneo histórico amplio (ej: últimos 90 días, hasta 500 estudios)
+  python agente_dosimetria.py --dias 90 --limit 500
+
+  :: Modo simulación (Dry-Run): extrae las métricas en consola sin enviarlas a la API Central
+  python agente_dosimetria.py --dry-run --dias 30
+
+  :: Sobrescribir temporalmente el ID de sede
+  python agente_dosimetria.py --sede-id 1 --dias 1
+
+  :: Especificar configuración personalizada
+  python agente_dosimetria.py --config config.json
+  ```
+
+---
+
+### 4. Recuperación ante Desastres de Imágenes (`restore_dcm_images.py`)
+
+* **Lanzador rápido:** `ejecutar_restore_imagenes.bat` (Menú interactivo con opciones guiadas de restauración).
+* **Descripción técnica y clínica:**
+  - Diseñado para emergencias críticas: reemplazo de servidor dañado, fallo de discos o reinstalación del sistema operativo del PACS.
+  - Restaura el volumen completo de 18 TB de imágenes desde la NAS QNAP hacia el disco local `D:\img_dcm`.
+  - **Orden Cronológico Descendente Estricto:** Descarga primero el año en curso (`2026`), seguido de los años inmediatamente anteriores (`2025`, `2024`, `2023`...).
+  - **Continuidad Asistencial en Menos de 3 Horas:** Al completarse el año actual, los médicos de urgencias, UCI y consulta externa pueden consultar estudios recientes en los visores DICOM (Oviyam/OHIF) mientras la data histórica continúa descargándose en segundo plano.
+  - **Reanudación Inteligente (Zero Re-download):** Aplica flags `/XO /XN /XC` de Robocopy para saltar archivos que ya existan con igual tamaño y fecha. Si se suspende la red o se reinicia la máquina, continúa exactamente donde iba.
+  - **Pre-vuelo de Almacenamiento:** Valida espacio suficiente en el disco destino antes de transferir cada bloque anual.
+* **Comandos disponibles:**
+  ```cmd
+  :: Menú interactivo asistido para administradores de TI
+  ejecutar_restore_imagenes.bat
+
+  :: Restauración completa de todos los años en orden cronológico descendente
+  python restore_dcm_images.py
+
+  :: Restaurar con urgencia máxima únicamente un año específico (ej: solo 2026)
+  python restore_dcm_images.py --year 2026
+
+  :: Restaurar desde el año actual descendiendo hasta un límite (ej: 2026 hasta 2024)
+  python restore_dcm_images.py --from-year 2024
+
+  :: Acelerar restauración en enlaces de fibra de 10 GbE forzando 32 hilos
+  python restore_dcm_images.py --threads 32
+
+  :: Simulación (Dry-Run): escanea directorios en el NAS y calcula tamaño sin copiar
+  python restore_dcm_images.py --dry-run
+  ```
+
+---
+
+### 5. Scripts de Soporte e Infraestructura
+
+| Script | Propósito | Cómo se ejecuta |
+| :--- | :--- | :--- |
+| **`install.bat`** | Autodetecta Python en Windows, crea el entorno virtual aislado `venv\`, actualiza `pip`, instala las librerías de `requirements.txt` y prueba la importación de cada una. | Doble clic o `install.bat` en CMD. |
+| **`instalar_tareas_sede.bat`** | Registra de forma desatendida las 3 tareas en el Programador de Tareas de Windows (`schtasks`) bajo la cuenta del sistema `SYSTEM` (`NT AUTHORITY\SYSTEM`). | Clic derecho -> **Ejecutar como Administrador**. |
+
+---
+
 ### 5. Instalar Tareas Automáticas de Windows (1 Clic)
 Haz clic derecho sobre **`instalar_tareas_sede.bat`** y selecciona **"Ejecutar como administrador"**.
 Esto dejará configuradas automáticamente las 3 tareas del sistema bajo la cuenta `SYSTEM`:

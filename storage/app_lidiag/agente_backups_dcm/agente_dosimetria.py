@@ -186,6 +186,8 @@ def parse_arguments():
     parser.add_argument("--config", "-c", help="Ruta al archivo config.json")
     parser.add_argument("--sede-id", type=int, help="ID de la sede (anula valor de config.json)")
     parser.add_argument("--dias", type=int, default=1, help="Ventana de días hacia atrás para consultar (default: 1)")
+    parser.add_argument("--desde", type=str, help="Fecha inicio fija (formato YYYY-MM-DD)")
+    parser.add_argument("--hasta", type=str, help="Fecha fin fija (formato YYYY-MM-DD)")
     parser.add_argument("--limit", type=int, default=200, help="Límite máximo de estudios a procesar por ciclo (default: 200)")
     parser.add_argument("--dry-run", action="store_true", help="Extrae métricas sin enviarlas a la API central")
     return parser.parse_args()
@@ -331,14 +333,22 @@ def hash_patient_id(raw_patient_id: Optional[str]) -> str:
     return hashlib.sha256(f"{salt}_{str(raw_patient_id).strip()}".encode("utf-8")).hexdigest()
 
 
-def buscar_estudios_candidatos(conn, dias: int, limit: int) -> List[Dict[str, Any]]:
+def buscar_estudios_candidatos(conn, dias: int = 1, limit: int = 200, desde: Optional[str] = None, hasta: Optional[str] = None) -> List[Dict[str, Any]]:
     """
     Localiza una instancia representativa por cada estudio reciente de modalidades
     que emiten radiación ionizante (CT, MG, DX, CR).
     """
-    fecha_limite = (datetime.datetime.now() - datetime.timedelta(days=dias)).strftime("%Y-%m-%d %H:%M:%S")
+    if desde:
+        fecha_desde = f"{desde} 00:00:00"
+        fecha_hasta = f"{hasta} 23:59:59" if hasta else datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        where_fecha = "(st.study_datetime BETWEEN %s AND %s OR st.created_time BETWEEN %s AND %s)"
+        params = (fecha_desde, fecha_hasta, fecha_desde, fecha_hasta, limit)
+    else:
+        fecha_limite = (datetime.datetime.now() - datetime.timedelta(days=dias)).strftime("%Y-%m-%d %H:%M:%S")
+        where_fecha = "(st.created_time >= %s OR st.study_datetime >= %s)"
+        params = (fecha_limite, fecha_limite, limit)
 
-    query = """
+    query = f"""
         SELECT 
             st.study_iuid,
             MAX(st.study_datetime) AS study_datetime,
@@ -356,7 +366,7 @@ def buscar_estudios_candidatos(conn, dias: int, limit: int) -> List[Dict[str, An
         JOIN files f ON f.instance_fk = i.pk
         JOIN filesystem fs ON fs.pk = f.filesystem_fk
         WHERE s.modality IN ('CT', 'MG', 'DX', 'CR')
-          AND (st.created_time >= %s OR st.study_datetime >= %s)
+          AND {where_fecha}
         GROUP BY st.study_iuid, s.modality
         ORDER BY created_time DESC
         LIMIT %s
@@ -364,7 +374,7 @@ def buscar_estudios_candidatos(conn, dias: int, limit: int) -> List[Dict[str, An
 
     cursor = conn.cursor(dictionary=True) if DB_CONNECTOR == "mysql.connector" else conn.cursor(pymysql.cursors.DictCursor)
     try:
-        cursor.execute(query, (fecha_limite, fecha_limite, limit))
+        cursor.execute(query, params)
         filas = cursor.fetchall()
         return filas
     finally:
@@ -558,7 +568,11 @@ def main():
     api_token = config["api_token"]
     local_images_dir = config["local_images_dir"]
     dias = args.dias
+    desde = args.desde
+    hasta = args.hasta
     limit = args.limit
+
+    ventana_desc = f"Desde {desde} hasta {hasta or 'ahora'}" if desde else f"Últimos {dias} día(s)"
 
     logger.info("=================================================================")
     logger.info("      AGENTE EDGE DE DOSIMETRÍA RADIOLÓGICA — LIDiag            ")
@@ -567,7 +581,7 @@ def main():
     logger.info(f" Base de Datos    : {config['db_name']} @ {config['db_host']}:{config['db_port']}")
     logger.info(f" Directorio DICOM : {local_images_dir}")
     logger.info(f" Endpoint API     : {api_url}")
-    logger.info(f" Ventana Temporal : Últimos {dias} día(s)")
+    logger.info(f" Ventana Temporal : {ventana_desc} (Límite: {limit})")
     logger.info("=================================================================")
 
     # 1. Conexión a la base de datos de dcm4chee
@@ -581,7 +595,7 @@ def main():
     # 2. Consultar estudios recientes
     cache_procesados = cargar_cache_procesados()
     try:
-        candidatos = buscar_estudios_candidatos(conn, dias=dias, limit=limit)
+        candidatos = buscar_estudios_candidatos(conn, dias=dias, limit=limit, desde=desde, hasta=hasta)
         logger.info(f"[2/4] Localizados {len(candidatos)} estudio(s) candidatos para dosimetría.")
     finally:
         conn.close()
