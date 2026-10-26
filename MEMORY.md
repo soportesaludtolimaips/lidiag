@@ -37,6 +37,9 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-26 — Verificación en Vivo y Transmisión Exitosa a Producción (10.35.47.4):**
+  - Culminada exitosamente la prueba integral de extremo a extremo (E2E): 79 de 79 registros de dosimetría extraídos de imágenes DICOM locales fueron transmitidos y persistidos al 100% en el servidor de producción `10.35.47.4` (`medicion_dosis_radiacion` y `medicion_dosis_equipos_emisores`).
+  - El pipeline completo opera de forma desatendida, resiliente y en cumplimiento con la Resolución 482 de 2018.
 - [x] **2026-10-26 — Exención de ForcePasswordChange para Tokens Sanctum M2M (HTTP 403):**
   - Solucionado bloqueo HTTP 403 (`{"success":false,"message":"Debe cambiar su contraseña."}`) en peticiones de API automatizadas del Agente Edge.
   - Actualizado `ForcePasswordChange.php` para omitir la exigencia de cambio de contraseña interactivo cuando la solicitud proviene de un Personal Access Token de Sanctum (`$request->user()->currentAccessToken()`).
