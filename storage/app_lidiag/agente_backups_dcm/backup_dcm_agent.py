@@ -37,6 +37,7 @@ import json
 import os
 import re
 import shutil
+import socket
 import subprocess
 import sys
 import time
@@ -57,6 +58,8 @@ def parse_arguments():
     parser.add_argument("--destination-dir", "--dest", dest="destination_dir", help="Carpeta destino local sincronizada por Qsync (ej. C:\\backups_dcm)")
     parser.add_argument("--retention-days", type=int, dest="retention_days", help="Días de retención de backups locales (por defecto: 30)")
     parser.add_argument("--min-free-gb", type=float, dest="min_free_space_gb", help="Espacio libre mínimo en disco en GB (por defecto: 5)")
+    parser.add_argument("--qnap-ip", dest="qnap_ip", help="IP del servidor QNAP (ej. 10.35.47.21)")
+    parser.add_argument("--qnap-share", dest="qnap_share_backups", help="Recurso compartido en QNAP para backups (ej. backups_espinal)")
     return parser.parse_args()
 
 
@@ -137,6 +140,10 @@ def load_config(config_path, args):
         "retention_days": int(loaded.get("retention_days", 30)),
         "min_free_space_gb": float(loaded.get("min_free_space_gb", 5.0)),
         "temp_dir": loaded.get("temp_dir", "./temp_backups"),
+        "qnap_ip": loaded.get("qnap_ip", "").strip(),
+        "qnap_user": loaded.get("qnap_user", "").strip(),
+        "qnap_password": loaded.get("qnap_password", ""),
+        "qnap_share_backups": (loaded.get("qnap_share_backups") or loaded.get("qnap_share", "")).strip(),
     }
 
     # Sobreescribir con argumentos de línea de comandos si fueron suministrados
@@ -162,6 +169,10 @@ def load_config(config_path, args):
         config["retention_days"] = args.retention_days
     if args.min_free_space_gb is not None:
         config["min_free_space_gb"] = args.min_free_space_gb
+    if getattr(args, "qnap_ip", None):
+        config["qnap_ip"] = args.qnap_ip
+    if getattr(args, "qnap_share_backups", None):
+        config["qnap_share_backups"] = args.qnap_share_backups
 
     return config
 
@@ -306,6 +317,91 @@ def write_status_manifest(dest_dir, sede_id, status_data):
         return None
 
 
+def check_qnap_port(ip: str, port: int = 445, timeout: float = 3.0) -> bool:
+    """Verifica si el puerto SMB (445) del QNAP responde dentro del timeout."""
+    try:
+        with socket.create_connection((ip, port), timeout=timeout):
+            return True
+    except (socket.timeout, socket.error, OSError):
+        return False
+
+
+def authenticate_smb(qnap_ip: str, share: str, user: str, password: str) -> bool:
+    """Autentica la sesión SMB contra el recurso compartido del QNAP con net use."""
+    unc_path = f"\\\\{qnap_ip}\\{share}"
+    cmd = ["net", "use", unc_path, password, f"/user:{user}", "/persistent:no"]
+    try:
+        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=15)
+        if res.returncode == 0 or "Ya está conectado" in res.stderr or "already" in res.stderr.lower():
+            return True
+        return os.path.isdir(unc_path)
+    except Exception:
+        return os.path.isdir(unc_path)
+
+
+def transfer_backup_to_qnap(config: dict, files_to_transfer: list, retention_days: int) -> dict:
+    """Transmite inmediatamente los archivos del backup (.zip, .sha256, status.json) al QNAP."""
+    qnap_ip = config.get("qnap_ip", "").strip()
+    share = config.get("qnap_share_backups", "").strip()
+    user = config.get("qnap_user", "").strip()
+    password = config.get("qnap_password", "")
+
+    if not qnap_ip or not share:
+        print("\n[QNAP] Sin IP o recurso compartido 'qnap_share_backups' en config.json. El backup se conserva localmente.")
+        return {"estado": "SKIPPED", "motivo": "No configurado"}
+
+    unc_dest = f"\\\\{qnap_ip}\\{share}"
+    print(f"\n[QNAP] Transmitiendo backup inmediatamente al NAS ({unc_dest})...")
+
+    # 1. Probar puerto 445
+    if not check_qnap_port(qnap_ip, port=445):
+        err = f"QNAP {qnap_ip}:445 no responde. Se conserva el backup local intacto."
+        print(f"      [ADVERTENCIA] {err}")
+        return {"estado": "OFFLINE", "error": err}
+
+    # 2. Autenticar SMB
+    if not authenticate_smb(qnap_ip, share, user, password):
+        if not os.path.isdir(unc_dest):
+            err = f"No se pudo acceder al recurso compartido {unc_dest}"
+            print(f"      [ERROR QNAP] {err}")
+            return {"estado": "AUTH_ERROR", "error": err}
+
+    t_start = time.time()
+    total_bytes = 0
+
+    try:
+        os.makedirs(unc_dest, exist_ok=True)
+        for local_file in files_to_transfer:
+            if not local_file or not os.path.isfile(local_file):
+                continue
+            fname = os.path.basename(local_file)
+            remote_file = os.path.join(unc_dest, fname)
+            fsize = os.path.getsize(local_file)
+            print(f"      Copiando {fname} ({format_bytes(fsize)})...")
+            shutil.copy2(local_file, remote_file)
+            total_bytes += fsize
+
+        upload_time = round(time.time() - t_start, 2)
+        mb_rate = round((total_bytes / (1024 * 1024)) / upload_time, 2) if upload_time > 0 else 0.0
+        print(f"      [OK] Backup transferido exitosamente al QNAP en {upload_time}s (~{mb_rate} MB/s).")
+
+        # 3. Purga remota en la carpeta del QNAP
+        purged_qnap, bytes_qnap = purge_old_backups(unc_dest, retention_days)
+        if purged_qnap > 0:
+            print(f"      [OK] Purga remota en QNAP: {purged_qnap} backup(s) antiguos eliminados ({format_bytes(bytes_qnap)} liberados).")
+
+        return {
+            "estado": "SUCCESS",
+            "qnap_destino": unc_dest,
+            "segundos": upload_time,
+            "bytes_transferidos": total_bytes,
+        }
+    except Exception as e:
+        err = f"Error durante la copia hacia el QNAP: {e}"
+        print(f"      [ERROR QNAP] {err}")
+        return {"estado": "ERROR", "error": err}
+
+
 def main():
     start_total_time = time.time()
     args = parse_arguments()
@@ -319,7 +415,9 @@ def main():
     print(f" Usuario MySQL    : {config['db_user']}")
     if config.get("mysqldump_path"):
         print(f" MySQLDump Path   : {config['mysqldump_path']}")
-    print(f" Carpeta Destino  : {config['destination_dir']} (Sincronizada por Qsync)")
+    print(f" Carpeta Destino  : {config['destination_dir']}")
+    if config.get("qnap_ip") and config.get("qnap_share_backups"):
+        print(f" Destino QNAP NAS : \\\\{config['qnap_ip']}\\{config['qnap_share_backups']}")
     print(f" Días Retención   : {config['retention_days']} días")
     print("=========================================================")
 
@@ -515,13 +613,29 @@ def main():
     }
     manifest_file = write_status_manifest(dest_dir, config["sede_id"], status_data)
     if manifest_file:
-        print(f"[Telemetría] Manifiesto generado para QNAP: {os.path.basename(manifest_file)}")
+        print(f"[Telemetría] Manifiesto generado localmente: {os.path.basename(manifest_file)}")
+
+    # Paso 8: Envío inmediato a la NAS QNAP (si está configurada)
+    print("\n[Paso 8/8] Transmitiendo backup inmediatamente a la NAS QNAP...")
+    files_to_transfer = [zip_path, sha256_file, manifest_file, os.path.join(dest_dir, "backup_status.json")]
+    qnap_res = transfer_backup_to_qnap(config, files_to_transfer, retention_days)
+
+    if qnap_res.get("estado") == "SUCCESS":
+        status_data["qnap_transfer"] = qnap_res
+        write_status_manifest(dest_dir, config["sede_id"], status_data)
 
     print("=========================================================")
     print(f" BACKUP DCM FINALIZADO CON ÉXITO EN {total_duration}s")
-    print(f" Destino: {zip_path}")
-    print(f" SHA-256: {sha256_hash}")
-    print(" Qsync sincronizará automáticamente el .zip, el .sha256 y el status con el QNAP.")
+    print(f" Destino local : {zip_path}")
+    print(f" SHA-256       : {sha256_hash}")
+    if qnap_res.get("estado") == "SUCCESS":
+        print(f" Destino QNAP  : {qnap_res.get('qnap_destino')}")
+        print(f" Tasa envío    : {qnap_res.get('segundos')}s ({format_bytes(qnap_res.get('bytes_transferidos', 0))})")
+    elif qnap_res.get("estado") == "SKIPPED":
+        print(" Destino QNAP  : No configurado (backup conservado localmente)")
+    else:
+        print(f" Estado QNAP   : {qnap_res.get('estado')} ({qnap_res.get('error', '')})")
+        print("                 (El backup local se encuentra a salvo e íntegro)")
     print("=========================================================")
 
 

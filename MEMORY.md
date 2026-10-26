@@ -37,6 +37,16 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-26 — Transmisión Inmediata de Backups MySQL a NAS QNAP (`backup_dcm_agent.py`):**
+  - Refactorizado `backup_dcm_agent.py` para que inmediatamente después de terminar el volcado local de MySQL, compresión ZIP, prueba de integridad CRC32 y cálculo de huella SHA-256, transmita de forma autónoma los archivos (`.zip`, `.sha256` y manifiesto JSON de telemetría) hacia la NAS QNAP vía SMB (`\\<qnap_ip>\<qnap_share_backups>`).
+  - Pre-chequeo de conectividad TCP en puerto 445 del QNAP antes de iniciar transmisión, autenticación por sesión con `net use` y cálculo en vivo de tasa de transferencia en MB/s.
+  - Purga automática por retención remota (`retention_days`) en la carpeta de la NAS para evitar saturación del almacenamiento central.
+  - Fallback defensivo: si la NAS o la red están inaccesibles, el backup local se preserva intacto sin interrumpir el ciclo operativo.
+  - Actualización y compilación de paquetes de distribución hospitalaria `agente_backups_dcm.zip` y `agente_backups_dcm.rar`.
+- [x] **2026-10-26 — Streaming en Vivo de Escaneo Robocopy para Repositorios Masivos (~18 TB) (`sync_dcm_images.py`):**
+  - Implementación de logging detallado en vivo con Robocopy agregando banderas `/V` (verbose/escaneo de cada archivo), `/FP` (rutas completas), `/LOG:{ROBOCOPY_LOG_FILE}` y `/TEE` para volcado directo a disco en `robocopy_scan.log`.
+  - Desactivación de buffering en el pipeline de Python (`bufsize=1`, decodificación incremental) permitiendo monitoreo en tiempo real del progreso de indexación.
+  - Filtrado del log en consola para visibilizar únicamente rutas locales de origen (`D:\img_dcm`), suprimiendo avisos de carpetas remotas `*EXTRA Dir` de la QNAP.
 - [x] **2026-10-26 — Comando Artisan de Emisión de Token Sanctum para Dosimetría (`dosimetria:token`):**
   - Implementado `DosimetriaTokenCommand.php` (`php artisan dosimetria:token`) para emisión y revocación ágil de tokens Bearer de Laravel Sanctum destinados al Agente Edge hospitalario (`agente_dosimetria.py`).
   - Soporte de banderas `--user=`, `--name=` y `--revoke` (purga de tokens previos) con impresión formateada del token plano y del snippet JSON listo para `config.json`.

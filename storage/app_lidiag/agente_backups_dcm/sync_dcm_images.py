@@ -32,6 +32,7 @@ from datetime import datetime
 AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(AGENT_DIR, "config.json")
 LOG_FILE = os.path.join(AGENT_DIR, "sync_imagenes.log")
+ROBOCOPY_LOG_FILE = os.path.join(AGENT_DIR, "robocopy_scan.log")
 STATUS_FILE = os.path.join(AGENT_DIR, "status_sync_imagenes.json")
 
 # Configuración de Logging
@@ -125,6 +126,20 @@ def parse_robocopy_summary(output: str) -> dict:
     return stats
 
 
+def read_robocopy_log_tail(log_path: str, max_lines: int = 40) -> str:
+    """Lee las últimas líneas del log de Robocopy tolerando codificaciones UTF-16 y UTF-8."""
+    if not os.path.isfile(log_path):
+        return ""
+    for enc in ["utf-16", "utf-8", "cp1252"]:
+        try:
+            with open(log_path, "r", encoding=enc, errors="ignore") as f:
+                lines = f.readlines()
+                return "".join(lines[-max_lines:])
+        except Exception:
+            continue
+    return ""
+
+
 def sync_cycle(config: dict) -> bool:
     """
     Ejecuta un ciclo de sincronización incremental desde local hacia el QNAP.
@@ -166,18 +181,25 @@ def sync_cycle(config: dict) -> bool:
             emit_status(config, status="AUTH_ERROR", msg=f"No se pudo acceder al recurso {unc_dest}")
             return False
 
-    # 5. Ejecutar Robocopy nativo multi-thread
-    # Flags:
-    #   /E   : Copia subcarpetas (series, estudios)
-    #   /XO  : Exclude older (no toca lo que ya está igual o más reciente)
-    #   /XN  : Exclude newer (no reemplaza nada más nuevo en el destino)
-    #   /XC  : Exclude changed (no altera archivos existentes -> Modo Backup Seguro)
-    #   /FFT : Tolerancia de 2s en timestamps FAT/SMB
-    #   /MT  : Hilos paralelos (por defecto 8)
-    #   /R:2 : 2 reintentos ante archivos en escritura activa por el PACS
-    #   /W:3 : 3 segundos entre reintentos
-    #   /NP  : Sin porcentaje de progreso en logs
-    #   /NDL : Sin listar carpetas en stdout (solo archivos copiados)
+    # 5. Ejecutar Robocopy nativo con /LOG directo, /TEE y /V (Verbose)
+    logger.info(f"[1/2] Iniciando escaneo e indexación en vivo del repositorio en '{local_dir}'...")
+    logger.info(f"      Destino QNAP : {unc_dest} | Hilos: {threads}")
+    logger.info(f"      Log detallado: {ROBOCOPY_LOG_FILE}")
+
+    # Flags de alto rendimiento para escaneo y registro en tiempo real:
+    #   /E       : Copia subcarpetas (series, estudios)
+    #   /XO      : Exclude older (no toca lo que ya está igual o más reciente)
+    #   /XN      : Exclude newer (no reemplaza nada más nuevo en el destino)
+    #   /XC      : Exclude changed (no altera archivos existentes -> Modo Backup Seguro)
+    #   /FFT     : Tolerancia de 2s en timestamps FAT/SMB
+    #   /MT      : Hilos paralelos (16 o 32 para cargas masivas)
+    #   /R:2     : 2 reintentos ante archivos en escritura activa por el PACS
+    #   /W:3     : 3 segundos entre reintentos
+    #   /NP      : Sin porcentaje de progreso
+    #   /V       : VERBOSE — Obliga a registrar CADA directorio y CADA imagen analizada
+    #   /FP      : Incluye la ruta completa del archivo local
+    #   /LOG     : Escribe directamente en robocopy_scan.log sin búfer intermedio
+    #   /TEE     : Muestra la salida en la pantalla del CMD en tiempo real
     cmd = [
         "robocopy",
         local_dir,
@@ -191,27 +213,35 @@ def sync_cycle(config: dict) -> bool:
         "/R:2",
         "/W:3",
         "/NP",
-        "/NDL",
+        "/V",
+        "/FP",
+        f"/LOG:{ROBOCOPY_LOG_FILE}",
+        "/TEE",
     ]
 
     try:
-        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=1800)
-        # Códigos de salida de Robocopy:
-        # 0 = Sin cambios
-        # 1 = Uno o más archivos copiados
-        # 2 = Archivos adicionales detectados
-        # 3 = Archivos copiados + adicionales
-        # < 8 = Éxito / Operación normal
-        # >= 8 = Error de copia
+        # timeout=None permite sincronizaciones masivas de terabytes (18 TB) sin interrupciones
+        res = subprocess.run(cmd, timeout=None)
         duration = round(time.time() - start_time, 2)
-        stats = parse_robocopy_summary(res.stdout)
 
+        # Extraer estadísticas desde el log de Robocopy en disco
+        log_tail = read_robocopy_log_tail(ROBOCOPY_LOG_FILE, max_lines=50)
+        stats = parse_robocopy_summary(log_tail)
+
+        # Códigos de salida de Robocopy:
+        # < 8 = Éxito / Operación normal (0=sin cambios, 1=copiados, 2=extra, 3=copiados+extra)
+        # >= 8 = Error de copia
         if res.returncode < 8:
             copiados = stats.get("copiados", 0)
-            if copiados > 0:
-                logger.info(f"Sincronización exitosa: {copiados} archivo(s) nuevos subidos al QNAP en {duration}s.")
-            else:
-                logger.info(f"Sede sincronizada (al día). Sin nuevos archivos pendientes. Chequeo en {duration}s.")
+            omitidos = stats.get("omitidos", 0)
+            fallidos = stats.get("fallidos", 0)
+            bytes_cop = stats.get("bytes_copiados", "0")
+
+            logger.info(f"[2/2] Escaneo y sincronización completados en {duration}s.")
+            logger.info(f"      Archivos copiados   : {copiados}")
+            logger.info(f"      Archivos omitidos   : {omitidos}")
+            logger.info(f"      Archivos fallidos   : {fallidos}")
+            logger.info(f"      Volumen transferido : {bytes_cop}")
 
             emit_status(
                 config,
@@ -224,7 +254,7 @@ def sync_cycle(config: dict) -> bool:
             )
             return True
         else:
-            logger.error(f"Robocopy reportó error (código {res.returncode}):\n{res.stderr.strip() or res.stdout[-400:]}")
+            logger.error(f"Robocopy reportó error (código {res.returncode}). Revisa '{ROBOCOPY_LOG_FILE}' para detalles.")
             emit_status(config, status="ROBOCOPY_ERROR", msg=f"Error código {res.returncode}", duration=duration)
             return False
 

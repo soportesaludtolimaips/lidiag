@@ -3,8 +3,8 @@
 Solución autónoma y de grado clínico para servidores hospitalarios de PACS / DCM (dcm4chee).
 Combina en un solo paquete y bajo un único archivo de configuración (`config.json`):
 
-1. **Respaldo de Base de Datos MySQL (PACS DB):** Volcado nocturno con `mysqldump`, compresión ZIP de alta velocidad, prueba de integridad CRC32, cálculo de huella criptográfica SHA-256 y purga automática por retención.
-2. **Sincronización Continua de Imágenes DICOM a QNAP (Modelo Dropbox / Google Drive):** Monitoreo continuo en segundo plano con motor nativo multi-hilo `robocopy` que solo transfiere archivos `.dcm` nuevos hacia el QNAP NAS, con modo backup seguro (nunca borra en el NAS).
+1. **Respaldo de Base de Datos MySQL (PACS DB):** Volcado nocturno con `mysqldump`, compresión ZIP de alta velocidad, prueba de integridad CRC32, cálculo de huella criptográfica SHA-256, purga automática por retención local y **transmisión inmediata directa a la NAS QNAP vía SMB (`\\<qnap_ip>\<qnap_share_backups>`) con purga remota automática**.
+2. **Sincronización Continua de Imágenes DICOM a QNAP (Modelo Dropbox / Google Drive):** Monitoreo continuo en segundo plano con motor nativo multi-hilo `robocopy` que solo transfiere archivos `.dcm` nuevos hacia el QNAP NAS, con modo backup seguro (nunca borra en el NAS) y registro detallado en vivo del escaneo en `robocopy_scan.log`.
 3. **Módulo de Dosimetría y Control de Radiación (Resolución 482 de 2018 / ISO 27001):** Extracción Edge desatendida de dosis ionizantes (`CTDIvol`, `DLP`, `DGM`, `DAP`) directamente de cabeceras DICOM locales, anonimización criptográfica SHA-256 de identificadores de pacientes y reporte centralizado hacia la API de LIDiag.
 
 ---
