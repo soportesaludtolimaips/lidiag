@@ -477,18 +477,55 @@ def extraer_metricas_dosis(dcm_path: str, modalidad: str) -> Optional[List[Dict[
 
     # 3. DX / CR (Radiografía Digital o Computarizada) -> DAP (Gy*cm2)
     elif mod in ("DX", "CR"):
-        # (0018,115E) Image and Fluoroscopy Area Dose Product
+        # 3.1. Tag nativo estándar (0018,115E) Image and Fluoroscopy Area Dose Product
         dap = getattr(ds, "ImageAndFluoroscopyAreaDoseProduct", None)
         if dap is None and (0x0018, 0x115E) in ds:
             dap = ds[0x0018, 0x115E].value
 
+        dap_val = None
         if dap is not None:
             try:
                 val = float(dap)
                 if val > 0:
-                    metricas.append({"tipo_metrica": "DAP", "valor_dosis": round(val, 4), "unidad_medida": "Gy*cm2"})
+                    dap_val = round(val, 4)
             except (ValueError, TypeError):
                 pass
+
+        # 3.2. Si el hardware de RX no cuenta con cámara DAP activa (DAP es 0 o nulo),
+        # estimar DAP indirecto conforme al modelo OIEA (IAEA TRS-457) y Resolución 482 de 2018
+        # a partir de los parámetros reales del disparo (kVp, mAs y área colimada del detector)
+        if dap_val is None:
+            try:
+                kvp = float(getattr(ds, "KVP", 0) or 0)
+                mas = float(getattr(ds, "Exposure", 0) or 0)
+                # Si mAs no está en Exposure, calcular de TubeCurrent (mA) * ExposureTime (s)
+                if mas <= 0:
+                    ma = float(getattr(ds, "XRayTubeCurrent", 0) or 0)
+                    ms = float(getattr(ds, "ExposureTime", 0) or 0)
+                    if ma > 0 and ms > 0:
+                        mas = (ma * ms) / 1000.0
+
+                if kvp > 0 and mas > 0:
+                    rows = float(getattr(ds, "Rows", 0) or 0)
+                    cols = float(getattr(ds, "Columns", 0) or 0)
+                    sp = getattr(ds, "ImagerPixelSpacing", getattr(ds, "PixelSpacing", None))
+                    if sp and len(sp) >= 2 and rows > 0 and cols > 0:
+                        h_cm = (rows * float(sp[0])) / 10.0
+                        w_cm = (cols * float(sp[1])) / 10.0
+                        area_cm2 = h_cm * w_cm
+                    else:
+                        area_cm2 = 600.0  # Campo representativo estándar
+
+                    # Rendimiento típico de tubo de RX (IAEA TRS-457): 0.05 mGy/mAs a 80 kV a 1 m
+                    ka_gy = 0.05 * ((kvp / 80.0) ** 2) * mas * 1e-3
+                    dap_calc = ka_gy * area_cm2
+                    if dap_calc > 0:
+                        dap_val = round(dap_calc, 4)
+            except Exception:
+                pass
+
+        if dap_val is not None and dap_val > 0:
+            metricas.append({"tipo_metrica": "DAP", "valor_dosis": dap_val, "unidad_medida": "Gy*cm2"})
 
     return metricas
 

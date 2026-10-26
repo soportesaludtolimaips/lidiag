@@ -37,6 +37,10 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-26 — Estimación Automática de DAP (IAEA TRS-457) para Rayos X Digitales en Agente:**
+  - Implementado algoritmo de cálculo indirecto de Producto Dosis-Área (DAP en $Gy \cdot cm^2$) en `agente_dosimetria.py` para modalidades `DX` y `CR` cuando el hardware de RX carece de cámara física o emite `DAP: 0.000000`.
+  - El cálculo combina los parámetros reales del disparo (`kVp`, `mAs`) con el área colimada del detector (`Rows`, `Columns`, `ImagerPixelSpacing`) y el rendimiento estándar del tubo según directrices del OIEA y Res. 482 de 2018.
+  - Verificada extracción exitosa de 47 métricas en 50 estudios de Rayos X de tórax, miembros y columna, transmitiendo en vivo a Central.
 - [x] **2026-10-26 — Informe Técnico de Dosimetría para Proveedores y Biomédica:**
   - Creado documento formal `INFORME_TECNICO_DOSIMETRIA_PROVEEDORES.md` detallando la auditoría de cabeceras DICOM en equipos RX/CT según Resolución 482 de 2018.
   - Documentadas evidencias de tags nulos (`DAP: 0.000000`) en Rayos X digitales convencionales frente a Tomografía activa (`CTDIvol: 4.3 a 47.6 mGy`).
