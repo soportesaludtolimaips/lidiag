@@ -64,7 +64,7 @@ Copia `config.json.example` y renómbralo a `config.json`. Ajusta los parámetro
     "threads": 8,
     "min_free_space_gb": 10,
 
-    "api_url": "https://lidiag.test/api/dosimetria/registros",
+    "api_url": "https://10.35.47.4/lidiag-update/public/api/dosimetria/registros",
     "api_token": "TOKEN_BEARER_LIDIAG_AQUI"
 }
 ```

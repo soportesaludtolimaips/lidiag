@@ -37,6 +37,11 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-26 — Comando Artisan de Emisión de Token Sanctum para Dosimetría (`dosimetria:token`):**
+  - Implementado `DosimetriaTokenCommand.php` (`php artisan dosimetria:token`) para emisión y revocación ágil de tokens Bearer de Laravel Sanctum destinados al Agente Edge hospitalario (`agente_dosimetria.py`).
+  - Soporte de banderas `--user=`, `--name=` y `--revoke` (purga de tokens previos) con impresión formateada del token plano y del snippet JSON listo para `config.json`.
+  - Configuración y validación de transmisión por IP directa (`https://10.35.47.4/lidiag-update/public/api/dosimetria/registros`) tolerante a SSL auto-firmado mediante `verify=False` en el cliente Python.
+  - Actualización de `config.json.example` y `README.md` en el paquete hospitalario `storage/app_lidiag/agente_backups_dcm/`.
 - [x] **2026-10-23 — Implementación del Módulo de Dosimetría y Control de Radiación (Resolución 482 de 2018 / ISO 27001):**
   - **Base de Datos y Modelos:** Creadas 3 migraciones en plural estricto y en español (`equipos_emisores`, `registros_dosis_radiacion`, `umbrales_nrd`). Modelos Eloquent `EquipoEmisor`, `RegistroDosisRadiacion` y `UmbralNrd` en `app/Models/Dosimetria/` con relaciones `belongsTo(ConfigSede::class, 'sede_id')`. Actualizado el modelo existente `ConfigSede` con `equiposEmisores()` y `registrosDosis()`.
   - **Agente Edge en Python 3 (`storage/app_lidiag/agente_backups_dcm/`):** Desarrollado `agente_dosimetria.py` integrado directamente en el paquete unificado del agente de backups hospitalario. Anonimización irreversible de PHI mediante SHA-256 (`patient_id_hashed`), extracción de métricas según modalidad (`CTDIvol`, `DLP`, `DGM`, `DAP`) con `pydicom`, transmisión en lotes vía HTTPS con Bearer Token y reintentos automáticos (Backoff exponencial de 4 intentos con `requests.adapters.HTTPAdapter`). Scripts de automatización `ejecutar_dosimetria.bat`, instalador unificado `instalar_tareas_sede.bat` (Windows Task Scheduler con 3 tareas: DB, Imágenes y Dosimetría) y manual técnico actualizado en `README.md`.
