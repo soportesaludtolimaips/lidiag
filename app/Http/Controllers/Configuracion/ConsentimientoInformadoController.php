@@ -25,7 +25,8 @@ class ConsentimientoInformadoController extends Controller
         private readonly ConsentimientoInformadoService $consentimientoInformadoService,
     ) {
         $this->middleware('auth:sanctum')->except(['index', 'listarActivos']);
-        $this->middleware('permission:config.consentimiento_informado.index')->only(['index', 'listarActivos', 'show']);
+        // Catálogo público/lectura: index/listarActivos/show quedan abiertos a usuarios autenticados
+        // $this->middleware('permission:config.consentimiento_informado.index')->only(['index', 'listarActivos', 'show']);
         $this->middleware('permission:config.consentimiento_informado.create')->only(['store']);
         $this->middleware('permission:config.consentimiento_informado.edit')->only(['update']);
         $this->middleware('permission:config.consentimiento_informado.destroy')->only(['destroy']);

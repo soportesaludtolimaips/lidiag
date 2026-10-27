@@ -143,13 +143,9 @@
                                     :disabled="loading || selectedIds.length < 2"
                                     title="Descargar archivo ZIP con los consentimientos seleccionados (mínimo 2)"
                                 >
-                                    <i class="fa fa-file-archive-o m-r-5"></i> Descargar ZIP
-                                    <span
-                                        v-if="selectedIds.length >= 2"
-                                        class="badge badge-light text-dark m-l-5 font-weight-bold"
-                                    >
-                                        {{ selectedIds.length }}
-                                    </span>
+                                    <i class="fa fa-file-archive-o m-r-5"></i> Descargar ZIP ({{
+                                        selectedIds.length
+                                    }})
                                 </button>
                             </div>
                         </div>

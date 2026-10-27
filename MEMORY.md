@@ -37,6 +37,14 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Homologación Global de Permisos en Todo el Módulo de Configuración:**
+  - **Alcance Completo:** Siguiendo la homologación de `ConfigDiagnosticoController`, `ConfigPrioridadController` y `ConfigProductoController`, se revisaron y blindaron sistemáticamente los 15 controladores del módulo de Configuración (`app/Http/Controllers/Configuracion/` y `routes/api_configuracion.php`):
+    * `ConfigAdminSaludController`: Se liberó `index()` de `permission:config.admin.salud.index`, permitiendo a usuarios asistenciales consultar EPS/Administradoras en admisiones y citas.
+    * `ConfigRecomendacionProductoController`: Se liberó `index()` de `permission:config.recomendaciones.index`, permitiendo a citas y revisión consultar preparaciones sin 403.
+    * `ConsentimientoInformadoController`: Se liberaron `index()`, `listarActivos()` y `show()` de `permission:config.consentimiento_informado.index`, permitiendo la carga y firma en módulos clínicos.
+    * `routes/api_configuracion.php` (`/config-whatsapp` y `/config-whatsapp/{id}`): Se liberó el middleware de lectura directa `permission:config.whatsapp.saludo.index`, manteniéndolo bajo `auth`.
+  - **Seguridad Preservada:** Todas las mutaciones de base de datos (`store`, `update`, `destroy`) continúan protegidas al 100% con sus permisos Spatie correspondientes (`config.*.create`, `edit`, `destroy`), y las vistas Blade de administración en `routes/web.php` mantienen su middleware estricto.
+  - **Verificaciones:** Laravel Pint passed (`{"tool":"pint","result":"passed"}`) ✅.
 - [x] **2026-10-27 — Desbloqueo de Catálogos Clínicos y Selectores para Médicos y Transcriptores (Error 403 Forbidden):**
   - **Diagnóstico:** Al abrir vistas de asignación de estudios o ecografías con el rol *Transcriptor* (`andres19982016@outlook.com`), el navegador registraba cuatro errores `403 Forbidden` en:
     * `GET /api/user.listarUsuarios/Medico/{modulo}` y `GET /api/user.listarUsuarios/Transcriptor/{modulo}`
@@ -53,11 +61,10 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 - [x] **2026-10-27 — Visibilidad y Estilo Nativo del Botón 'Descargar ZIP' en Consentimientos de Ecografías (`ecografiasConsentimientosComponent.vue`):**
   - **Diagnóstico:** El botón "Descargar ZIP" no resultaba visible en la cabecera de la tabla de consentimientos. La combinación de la clase `.btn-outline-warning` con el estado inactivo inicial (`:disabled="loading || selectedIds.length < 2"`) producía una opacidad reducida (`opacity: 0.65`) de texto y borde amarillos sobre fondo blanco, volviéndolo imperceptible. Adicionalmente, el contenedor flex requería alineación explícita (`ml-auto`) y una guarda de permisos tolerante para sesiones activas.
   - **Solución Implementada:**
-    * Se cambió a botón sólido estándar de AdminWrap: `class="btn btn-warning waves-effect waves-light"` con texto de alto contraste e icono `fa-file-archive-o`.
+    * Se utiliza estrictamente el botón sólido nativo de AdminWrap: `class="btn btn-warning waves-effect waves-light"` con icono estándar `<i class="fa fa-file-archive-o m-r-5"></i>` y texto directo `Descargar ZIP ({{ selectedIds.length }})` sin etiquetas personalizadas ni badges foráneos.
     * Se alineó a la derecha usando `ml-auto` en el contenedor flex de cabecera de la tarjeta.
     * Se flexibilizó la condición de renderizado a `v-if="can('ecografias.consentimientos.zip.generar') || can('ecografias.consentimientos.index')"` para asegurar su visualización independientemente de variantes de permisos en la sesión.
-    * Se incorporó badge reactivo con estilo `badge badge-light text-dark m-l-5 font-weight-bold` cuando hay 2 o más registros seleccionados.
-  - **Verificaciones:** ESLint 0 errores/advertencias (`npx eslint` passed) ✅ | Vite build exitoso en 1.33s (`npm run build`) ✅.
+  - **Verificaciones:** ESLint 0 errores/advertencias (`npx eslint` passed) ✅ | Vite build exitoso en 1.19s (`npm run build`) ✅.
 - [x] **2026-10-27 — Corrección de Permisos en Listado de Usuarios para Selectores Médicos/Transcriptores (`routes/api_seguridad.php`):**
   - **Diagnóstico:** El usuario con rol *Transcriptor* (`andres19982016@outlook.com`) recibía un error `403 Forbidden` al consultar `GET https://lidiag.com/api/user.listarUsuarios/Medico/2`.
   - **Causa Raíz:** En `routes/api_seguridad.php`, las rutas `/user.listarUsuarios/{tipo_user}/{modulo}` y `/usuario-por-modulo/{modulo_id}` tenían asignado el middleware `permission:seguridad.usuarios.index`. Dicho permiso es exclusivamente administrativo de gestión de usuarios, mientras que estas dos rutas son utilitarias de sólo lectura (`id`, `name`) consumidas por cualquier usuario autenticado en vistas clínicas (Ecografías, Citas, Asignaciones) para poblar los selectores de médicos y transcriptores (como explícitamente documenta el constructor de `UserController`).

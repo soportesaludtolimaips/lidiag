@@ -178,12 +178,10 @@ Route::middleware(['auth'])->group(function () {
         ->name('api.config.whatsapp.destroy')
         ->middleware('permission:config.whatsapp.saludo.destroy');
 
-    // Index y show son de lectura (permiso index)
+    // Index y show son de lectura (abierto a usuarios autenticados)
     Route::get('/config-whatsapp', [ConfigWhatsappController::class, 'index'])
-        ->name('api.config.whatsapp.index')
-        ->middleware('permission:config.whatsapp.saludo.index');
+        ->name('api.config.whatsapp.index');
 
     Route::get('/config-whatsapp/{id}', [ConfigWhatsappController::class, 'show'])
-        ->name('api.config.whatsapp.show')
-        ->middleware('permission:config.whatsapp.saludo.index');
+        ->name('api.config.whatsapp.show');
 });
