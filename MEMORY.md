@@ -37,6 +37,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Comando Inteligente de Siembra e Idempotencia Total (`seed:faltantes`):**
+  - **Objetivo:** Ejecutar de forma segura, discriminada y automatizada únicamente los seeders que no hayan sido aplicados en bases de datos restauradas o actualizadas, sin violar claves primarias/únicas ni fallar por restricciones de llaves foráneas.
+  - **Verificación Previa (`isApplied`):** Cada uno de los 29 seeders registrados cuenta con una función de inspección contextual en base de datos (`isApplied()`) que verifica previamente si sus permisos, catálogos o registros ya existen. Si ya están aplicados, se omite (`⏭ Ya aplicado`). Se incluye la opción `--force` para re-ejecución forzada y `--audit` para auditoría comparativa de permisos entre código y BD.
+  - **Blindaje de Seeders contra Duplicados y Foreign Keys:**
+    * *Permisos Spatie:* Refactorizados a `Permission::firstOrCreate(['name' => $name, 'guard_name' => 'web'])` en `PermisosAgendamientoSeeder`, `RoleSeederAgenda`, `PermisionConfigTipoDocumentoSeeder`, `PermisionConsentimientoInformadoSeeder`, `RoleSeederReporteLectura` y `PlantillaTipoSeeder`.
+    * *WhatsApp Ecografías:* `ConfigWhatsappEcografiasRequerimientos` y `ConfigWhatsappEcografiasRecomendaciones` ahora resuelven el `servicio_id` dinámicamente y verifican que el `producto_id` exista en `config_productos` antes de insertar para respetar restricciones de integridad referencial.
+  - **Verificación:** `php artisan seed:faltantes --audit` ejecutado exitosamente (0 errores, 0 fallidos, 100% permisos en código cubiertos en BD). Laravel Pint passed ✅.
 - [x] **2026-10-27 — Comando Artisan de Siembra Segura de Seeders Faltantes (`seed:faltantes`):**
   - **Objetivo:** Evitar fallos de clave duplicada (1062) en bases de datos restauradas donde ya existen usuarios y sedes pero faltan permisos nuevos, umbrales regulatorios y catálogos.
   - **Comando Creado (`SeedFaltantesCommand.php`):** Registrado `php artisan seed:faltantes [--audit]`. Ejecuta secuencialmente y de forma estrictamente idempotente los 22 seeders de módulos nuevos (Dosimetría Res. 482, Backups, Contratación, Liquidación, Citas/WhatsApp, Auditoría, Consentimientos, HelpDesk), resetea la caché de Spatie e invoca auditoría. Pint passed ✅.

@@ -12,10 +12,20 @@ class RoleSeederAgenda extends Seeder
      */
     public function run(): void
     {
-        Permission::create(['name' => 'agenda.index'])->syncRoles(['Administrador', 'Administrativo']);
-        Permission::create(['name' => 'agenda.create'])->syncRoles(['Administrador', 'Administrativo']);
-        Permission::create(['name' => 'agenda.edit'])->syncRoles(['Administrador', 'Administrativo']);
-        Permission::create(['name' => 'agenda.show'])->syncRoles(['Administrador', 'Administrativo']);
-        Permission::create(['name' => 'agenda.destroy'])->syncRoles(['Administrador', 'Administrativo']);
+        $permisos = [
+            'agenda.index',
+            'agenda.create',
+            'agenda.edit',
+            'agenda.show',
+            'agenda.destroy',
+        ];
+
+        foreach ($permisos as $nombre) {
+            $permiso = Permission::firstOrCreate([
+                'name' => $nombre,
+                'guard_name' => 'web',
+            ]);
+            $permiso->syncRoles(['Administrador', 'Administrativo']);
+        }
     }
 }

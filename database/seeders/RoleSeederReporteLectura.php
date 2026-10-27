@@ -12,6 +12,10 @@ class RoleSeederReporteLectura extends Seeder
      */
     public function run(): void
     {
-        Permission::create(['name' => 'estudios.reporteLectura.index'])->syncRoles(['Administrador', 'Administrativo', 'Estadistico']);
+        $permiso = Permission::firstOrCreate([
+            'name' => 'estudios.reporteLectura.index',
+            'guard_name' => 'web',
+        ]);
+        $permiso->syncRoles(['Administrador', 'Administrativo', 'Estadistico']);
     }
 }

@@ -2,6 +2,8 @@
 
 namespace Database\Seeders\Configuracion;
 
+use App\Models\Configuracion\ConfigProducto;
+use App\Models\Configuracion\ConfigServicio;
 use App\Models\Configuracion\ConfigWhatsappRecomendaciones;
 use Illuminate\Database\Seeder;
 
@@ -216,8 +218,28 @@ class ConfigWhatsappEcografiasRecomendaciones extends Seeder
             ],
         ];
 
+        $servicioId = ConfigServicio::where('sede_id', 1)->where('nombre', 'like', '%Ecografia%')->value('id')
+            ?? (ConfigServicio::find(5)?->id ?? ConfigServicio::where('sede_id', 1)->value('id'));
+
         foreach ($recomendaciones as $recomendacion) {
-            ConfigWhatsappRecomendaciones::create($recomendacion);
+            if ($servicioId) {
+                $recomendacion['servicio_id'] = $servicioId;
+            }
+
+            if (! ConfigProducto::where('id', $recomendacion['producto_id'])->exists()) {
+                continue;
+            }
+
+            ConfigWhatsappRecomendaciones::firstOrCreate(
+                [
+                    'sede_id' => $recomendacion['sede_id'],
+                    'servicio_id' => $recomendacion['servicio_id'],
+                    'producto_id' => $recomendacion['producto_id'],
+                ],
+                [
+                    'recomendacion' => $recomendacion['recomendacion'],
+                ]
+            );
         }
     }
 }

@@ -12,9 +12,18 @@ class PermisionConsentimientoInformadoSeeder extends Seeder
      */
     public function run(): void
     {
-        Permission::create(['name' => 'config.consentimiento_informado.index']);
-        Permission::create(['name' => 'config.consentimiento_informado.create']);
-        Permission::create(['name' => 'config.consentimiento_informado.edit']);
-        Permission::create(['name' => 'config.consentimiento_informado.destroy']);
+        $permisos = [
+            'config.consentimiento_informado.index',
+            'config.consentimiento_informado.create',
+            'config.consentimiento_informado.edit',
+            'config.consentimiento_informado.destroy',
+        ];
+
+        foreach ($permisos as $nombre) {
+            Permission::firstOrCreate([
+                'name' => $nombre,
+                'guard_name' => 'web',
+            ]);
+        }
     }
 }
