@@ -37,6 +37,17 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Corrección de Nombres de Rutas PSR-4 (Case Sensitivity en Windows/Git):**
+  - **Diagnóstico:** Al ejecutar `composer dump-autoload` en el servidor o tras sincronizar, Composer advertía: `Class Database\Seeders\Configuracion\... does not comply with psr-4 autoloading standard... Skipping.` y `Class App\Http\Controllers\Ecografias\EcografiaLecturaController located in .../ecografiaLecturaController.php... Skipping.`.
+  - **Causa Raíz:** En Windows Git con `core.ignorecase=true`, el índice de Git preservaba históricamente las rutas en minúscula (`database/seeders/configuracion` y `ecografiaLecturaController.php`), mientras que los namespaces y clases de PHP declaran `Configuracion` y `EcografiaLecturaController`.
+  - **Solución:** Renombradas forzosamente en Git mediante paso intermedio (`git mv`) para registrar la mayúscula canónica (`database/seeders/Configuracion/` y `EcografiaLecturaController.php`). Normalizados saltos a LF. Verificado con `composer dump-autoload` con 0 advertencias.
+- [x] **2026-10-27 — Blindaje Arquitectónico y Resiliencia en Dosimetría (Res. 482 de 2018 / ISO 27001):**
+  - **Seguridad Criptográfica (Anti-Rainbow Table):** Reemplazado hash SHA-256 directo sobre PatientID por HMAC-SHA256 con salt dinámico de 32 bytes generado criptográficamente (`secrets.token_hex(32)`) y persistido por sede en `config.json`.
+  - **Desacoplamiento de Base de Datos PACS (`pacsdb`):** Inyección de `SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;` en cada conexión del agente Python a la base de datos de Dcm4chee, garantizando cero bloqueos (locks) de lectura sobre la recepción de imágenes en tiempo real.
+  - **Cola Persistente Local Edge (SQLite `cola_dosimetria.db`):** Implementada base de datos SQLite embebida en el agente edge con estados `PENDING`, `SYNCED`, `FAILED` y política de auto-purga a 30 días. Garantiza cero pérdida de datos durante reinicios o cortes de energía prolongados.
+  - **Idempotencia Robusta en API Laravel (`/api/dosimetria/registros`):** Cálculo de `batch_hash` SHA-256 por cada bloque de registros. Laravel almacena el hash en caché durante 24 horas (`dosimetria_batch_{sedeId}_{batchHash}`); si la red falla en el ACK y el agente reintenta, el endpoint responde HTTP 200 inmediatamente sin recargar MySQL ni ejecutar upserts redundantes.
+  - **Monitor de Latidos / Dead Man's Switch (`/api/dosimetria/heartbeat`):** Endpoints `POST /api/dosimetria/heartbeat` y `/api/dosis/heartbeat` recibiendo telemetría del agente (versión, uptime, pendientes). Integrado semáforo de conectividad en tiempo real en Vue 3 (`DashboardDosimetria.vue`): 🟢 Online (≤15 min), 🟡 Retrasado (16-30 min), 🔴 Offline (>30 min o sin contacto).
+  - **Verificaciones Estrictas:** Laravel Pint passed ✅ | `npx eslint` 0 errores ✅ | `npm run build` en 1.30s ✅ | Python 3.13 py_compile passed ✅.
 - [x] **2026-10-27 — Blindaje, Corrección de Concurrencia y Resiliencia en Agentes Edge y Transcriptor:**
   - **Servicio Transcriptor Whisper (`storage/app_lidiag/transcriptor/main.py`):**
     * *Anti-Colisión de Audios:* Eliminado riesgo crítico de sobreescritura entre médicos concurrentes (`temp_{filename}`). Se asignan prefijos criptográficos únicos con `uuid.uuid4().hex[:12]`.

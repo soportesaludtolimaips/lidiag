@@ -1,2 +1,6 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Ensure patch files always preserve LF line endings across all platforms
+*.patch text eol=lf
+patches/* text eol=lf
