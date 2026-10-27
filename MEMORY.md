@@ -37,6 +37,11 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Reestructuración y Orden Lógico del Informe de Actualizaciones para Gerencia:**
+  - **Objetivo:** Organizar las 14 secciones del informe ejecutivo siguiendo el ciclo de vida natural del paciente y el flujo de trabajo hospitalario: *Ingreso y Citas → Admisión y Trabajo DICOM → Lectura y Diagnóstico → Dosimetría → Entrega de Resultados → SAHI → Facturación → Reportes → Monitoreo Telegram → Respaldo e Infraestructura → Seguridad ISO 27001 → Ergonomía UI/UX → Arquitectura Limpia → Rendimiento Técnico*.
+  - **Archivos actualizados:**
+    * [INFORME_ACTUALIZACIONES_GERENCIA.md](file:///c:/laragon/www/lidiag/docs/INFORME_ACTUALIZACIONES_GERENCIA.md)
+    * [INFORME_ACTUALIZACIONES_GERENCIA.pdf](file:///c:/laragon/www/lidiag/docs/INFORME_ACTUALIZACIONES_GERENCIA.pdf) (184.8 KB).
 - [x] **2026-10-27 — Incorporación de la Nueva Arquitectura Limpia en el Informe de Gerencia:**
   - **Objetivo:** Documentar formalmente ante la Dirección y Gerencia General la evolución de la arquitectura de software de LIDiag (migración de controladores monolíticos hacia Arquitectura Limpia desacoplada con capas de `Requests`, `Services` y `Resources`).
   - **Sección agregada:** `15. Modernización Arquitectural: Adopción de Arquitectura Limpia (Clean Architecture)` detallando estructura técnica, justificación y retorno de inversión en mantenibilidad, escalabilidad, testabilidad y seguridad.
