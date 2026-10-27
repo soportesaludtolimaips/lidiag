@@ -85,12 +85,24 @@ export function useEstudioHelpers() {
 
             const res = await axios.post("/api/edit-word", estudio);
 
-            window.open(
-                `/descargar.pdf.lectura/${res.data.data.plantilla}`,
-                "_blank",
-                "noopener,noreferrer"
-            );
-        } catch {
+            const archivo =
+                res?.data?.data?.plantilla || res?.data?.data?.output_name || res?.data?.plantilla;
+
+            if (res?.data?.success && archivo) {
+                window.open(`/descargar.pdf.lectura/${archivo}`, "_blank", "noopener,noreferrer");
+            } else {
+                toastMessage({
+                    heading: "Upss!!!",
+                    text: res?.data?.message || "No fue posible generar el reporte en PDF.",
+                    icon: "warning",
+                });
+            }
+        } catch (error) {
+            toastMessage({
+                heading: "Error",
+                text: error?.response?.data?.message || "No fue posible generar el reporte en PDF.",
+                icon: "error",
+            });
         } finally {
             loadingImprimir.value = null;
         }

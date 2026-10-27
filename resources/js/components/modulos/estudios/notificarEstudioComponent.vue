@@ -195,8 +195,6 @@
                                         <th>Sede</th>
                                         <th># Documento</th>
                                         <th>Paciente</th>
-                                        <th>Telefono</th>
-                                        <th>Email</th>
                                         <th>Producto</th>
                                         <th></th>
                                     </tr>
@@ -213,8 +211,6 @@
                                         </td>
                                         <td>{{ item.num_docu }}</td>
                                         <td>{{ item.nom_pacien }}</td>
-                                        <td>{{ item.tel }}</td>
-                                        <td>{{ item.email }}</td>
                                         <td>{{ item.nom_produc }}</td>
                                         <td class="text-nowrap">
                                             <button

@@ -40,6 +40,8 @@ class PlantillaEstudioService extends BaseService
         $template = new TemplateProcessor($filePath);
 
         $nombrePaciente = str_replace(['^^^', ' ^', '^'], ['', '', ' '], $data['nom_pacien'] ?? '');
+        $safePaciente = trim(preg_replace('/[\\\\\\/\\:\\*\\?\\"\\<\\>\\|]+/', '', $nombrePaciente));
+        $safePaciente = preg_replace('/\\s+/', ' ', $safePaciente);
 
         $template->setValue('nombre_paciente', $nombrePaciente);
         $template->setValue('num_docu', $data['num_docu'] ?? '');
@@ -92,7 +94,7 @@ class PlantillaEstudioService extends BaseService
             }
         }
 
-        $nomArchivo = ($data['estudio_producto_id'] ?? 'temp').'-'.($data['num_docu'] ?? '0').'-'.$nombrePaciente;
+        $nomArchivo = trim(($data['estudio_producto_id'] ?? 'temp').'-'.($data['num_docu'] ?? '0').'-'.$safePaciente);
         $outputDocx = storage_path('app/reporte_lecturas/'.$nomArchivo.'.docx');
         $template->saveAs($outputDocx);
 
@@ -110,6 +112,7 @@ class PlantillaEstudioService extends BaseService
 
         return $this->success([
             'output_name' => $nomArchivo.'.pdf',
+            'plantilla' => $nomArchivo.'.pdf',
         ], 'Plantilla creada correctamente');
     }
 
