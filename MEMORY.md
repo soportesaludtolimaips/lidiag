@@ -37,6 +37,22 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Incorporación del Reporte de Salud y Telemetría de Agentes Hospitalarios:**
+  - **Módulo Central de Reportes (`reporteProduccionComponent.vue`):** Incorporada tarjeta nativa de AdminWrap "Agentes y Telemetría" con icono `fa-server`, modal interactivo con selector de sedes, enlace directo a `/seguridad-backups` y shortcuts (`Esc`, `Ctrl+S`).
+  - **Exportador Excel Institucional (`ReporteAgentesTelemetriaExport.php`):**
+    * Consolida por cada sede hospitalaria activa:
+      1. *Agente de Respaldo DB (`backup_dcm_agent.py`):* nombre de archivo, timestamp de último backup recibido, tamaño formateado, antigüedad en horas y semáforo semántico (Al día, Advertencia >24h, Crítico >48h, Sin registros).
+      2. *Agente Edge de Dosimetría (`agente_dosimetria.py`):* versión instalada, timestamp de último latido (Heartbeat), estado de conexión en vivo (🟢 Online <=15m, 🟡 Retrasado 16-30m, 🔴 Offline >30m) y cola de registros pendientes.
+      3. *Equipos Emisores:* total de equipos de radiación activos mapeados por sede (`medicion_dosis_equipos_emisores`).
+    * Estilos institucionales de cabecera Salud Tolima y anchos de columna optimizados.
+  - **Backend y Routing:**
+    * Creado `ReporteAgentesRequest.php` para validación de filtros.
+    * Métodos `generateReporteAgentes()` en `ReporteProduccionService.php` y `reporteAgentes()` en `ReporteProduccion.php`.
+    * Registrada ruta web `/descarga-reportes-agentes` protegida con middleware de permisos dual `reportes.detallados|reportes.indicadores|seguridad.backups.index`.
+  - **Verificaciones Estrictas:**
+    * Laravel Pint passed (`{"tool":"pint","result":"passed"}`) ✅.
+    * ESLint: 0 errores / 0 advertencias (`npx eslint` passed) ✅.
+    * Vite build: Compilación exitosa en 1.24s (`npm run build`) ✅.
 - [x] **2026-10-27 — Blindaje Arquitectónico y Resiliencia en Dosimetría (Res. 482 de 2018 / ISO 27001):**
   - **Seguridad Criptográfica (Anti-Rainbow Table):** Reemplazado hash SHA-256 plano por HMAC-SHA256 con salt dinámico de 32 bytes (`secrets.token_hex(32)`) generado y persistido automáticamente por sede en `config.json`.
   - **Desacoplamiento de Base de Datos PACS (`pacsdb`):** Inyección de `SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;` en cada consulta de extracción del agente Python a MySQL/MariaDB, eliminando bloqueos de lectura concurrentes sobre la adquisición clínica de imágenes.

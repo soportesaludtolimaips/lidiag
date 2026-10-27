@@ -230,6 +230,9 @@ Route::get('descarga-reportes-productividad', [LiquidacionController::class, 'ex
 Route::get('descarga-reportes-tat', [ReporteProduccion::class, 'reporteTAT'])
     ->name('descarga.reportes.tat')
     ->middleware(['auth', 'permission:reportes.detallados|reportes.indicadores']);
+Route::get('descarga-reportes-agentes', [ReporteProduccion::class, 'reporteAgentes'])
+    ->name('descarga.reportes.agentes')
+    ->middleware(['auth', 'permission:reportes.detallados|reportes.indicadores|seguridad.backups.index']);
 
 /**
  * Configuración

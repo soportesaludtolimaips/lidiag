@@ -175,7 +175,13 @@ La aplicación está compuesta por los siguientes módulos especializados:
 -   **Accession Number Secuencial:** Generación automática de consecutivo diario por sede con formato `RX-YYYYMMDD-####`.
 -   **Codificación DICOM Estándar:** Empaquetamiento binario con cabecera File Meta Information y compresión nativa *Deflated Explicit VR Little Endian* (`1.2.840.10008.1.2.1.99`) vía `DicomDatasetBuilder`, garantizando la deserialización por parte del servicio Java de Dcm4chee.
 -   **Multisede 100% Dinámica:** Detección en vivo de los equipos/salas de adquisición registrados en la tabla `ae` de la sede correspondiente (`GET /api/pacientes/worklist-estaciones`). Cero valores fijos o hardcodeados; si la sede agrega o renombra una consola, LIDiag la refleja de inmediato.
--   **Trazabilidad y Cancelación:** Control de estado de órdenes (`PENDIENTE`, `CANCELADO`), prevención de duplicidad por `sps_id` único, y retiro de pacientes de la consola del equipo en caliente.
+-   **Auto-Reconciliación PACS Dcm4chee (Ciclo Cerrado):**
+    -   **Detección de Adquisición:** Monitoreo automatizado que cruza las órdenes pendientes con la tabla `study` del PACS de la sede. Al detectar las imágenes tomadas por el tecnólogo, transiciona la orden automáticamente a `ADQUIRIDO` (*Imágenes en PACS / Listo para Asignar*) y actualiza `sps_status = 1` (COMPLETED) en `pacsdb.mwl_item` para limpiar la consola del equipo.
+    -   **Auto-Cierre en Asignación:** Al asignar formalmente el estudio a un radiólogo en `/estudios/asignar`, la orden pasa a `COMPLETADO`.
+    -   **Feedback Visual Tricolor:** Badges semánticos en la tabla de pacientes (`🟡 En espera de Rayos X`, `🔵 Imágenes en PACS`, `🟢 Asignado a Lectura`).
+    -   **Acción Rápida:** Botón directo para navegar a Asignación de Estudios con 1 clic cuando las imágenes ya ingresaron al PACS.
+    -   **Botón Asistencial:** Botón *"Reconciliar PACS"* en cabecera para verificación manual bajo demanda (`POST /api/pacientes/worklist-reconciliar`).
+-   **Trazabilidad y Cancelación:** Control de estado de órdenes (`PENDIENTE`, `ADQUIRIDO`, `COMPLETADO`, `CANCELADO`), prevención de duplicidad por `sps_id` único, y retiro de pacientes de la consola del equipo en caliente.
 -   **UI y Rutas:** Pantalla web en `/pacientes/admision`, API en `/api/pacientes/*` (permisos `gestion.pacientes.*`). Documentación técnica en `docs/WORKLIST_FLUJO_DCM.md`.
 
 ### 14. Dosimetría y Control de Radiación (Resolución 482 de 2018 / ISO/IEC 27001)
@@ -318,6 +324,9 @@ php artisan lidiag:enviar-paciente --sede=1 --limite=50
 
 # Enviar un único estudio_producto por su ID (pruebas / reintentos puntuales)
 php artisan lidiag:enviar-paciente --id=257022
+
+# Reintentar únicamente los estudios fallidos desde archivo .txt generado automáticamente
+php artisan lidiag:enviar-paciente --reintentar="storage/logs/sync_fallidos_2026-09-01_al_2026-09-07_154500.txt"
 ```
 
 **Parámetros:**
@@ -326,7 +335,23 @@ php artisan lidiag:enviar-paciente --id=257022
 - `--sede=ID`: Filtro por ID de la sede hospitalaria (`config_sedes.id`).
 - `--limite=N`: Límite máximo de estudios a procesar en el lote.
 - `--id=ID`: ID específico de `estudio_producto` a sincronizar.
+- `--reintentar=RUTA`: Ruta del archivo `.txt` con los estudios fallidos para reintentar únicamente dichos IDs tras corregir contingencias (plantillas, red, etc.).
 - `--dry-run`: Modo de simulación previa que valida la existencia de plantillas, sedes y formato sin invocar LibreOffice ni transferir por red.
+
+### Reconciliación de Órdenes Modality Worklist (MWL vs PACS Dcm4chee)
+
+Cruza automáticamente las órdenes activas en LIDiag con la tabla `study` de Dcm4chee para detectar cuándo las imágenes tomadas por el equipo de Rayos X han ingresado al PACS, actualizando el estado de la orden a `ADQUIRIDO` y marcándola como completada en `mwl_item` de la consola de la sala.
+
+```bash
+# Reconciliar todas las órdenes pendientes en todas las sedes con PACS
+php artisan worklist:reconcile
+
+# Reconciliar una sede hospitalaria específica por su ID
+php artisan worklist:reconcile --sede=1
+```
+
+**Parámetros:**
+- `--sede=ID`: Filtro opcional por ID de la sede hospitalaria (`config_sedes.id`). Si se omite, evalúa todas las sedes activas con parámetros de conexión PACS válidos.
 
 ### Automatización en Windows (Task Scheduler)
 
@@ -801,8 +826,10 @@ En Laragon, normalmente accederás por tu vhost, por ejemplo `https://lidiag.tes
 
 | Frecuencia | Comando | Propósito |
 |------------|---------|-----------|
+| **Cada 5 min** | `worklist:reconcile` | Auto-reconciliación de órdenes Modality Worklist (MWL) contra tabla `study` en Dcm4chee |
 | **Cada 10 min** | `ecografias:sahi-reconcile --minutes=10 --limit=200` | Reconciliación bidireccional de estados de ecografías con SAHI |
 | **Cada 10 min** | `citas:notificar-2h` | Recordatorios automáticos de citas próximas (2h antes) vía WhatsApp |
+| **Diario 07:30 AM** | `telegram:daily-digest` | Despacho ejecutivo matutino de resumen y semáforo asistencial a Telegram |
 | **Diario 08:00 AM** | `citas:notificar` | Notificaciones matutinas de citas del día vía WhatsApp |
 | **Diario 02:00 AM** | `lidiag:backup` | Respaldo automático de Base de Datos MySQL y las 16 carpetas de Storage clínico |
 | **Diario 02:30 AM** | `lidiag:backup-dcm` | Respaldo automático de bases de datos DCM/PACS por sede |

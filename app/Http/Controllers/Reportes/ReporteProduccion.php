@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Reportes;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Reportes\ReporteAgentesRequest;
 use App\Http\Requests\Reportes\ReporteAusentismoCitasRequest;
 use App\Http\Requests\Reportes\ReporteEstudiosPACRequest;
 use App\Http\Requests\Reportes\ReporteProduccionRequest;
@@ -142,6 +143,33 @@ class ReporteProduccion extends Controller
     public function reporteTAT(ReporteTATRequest $request): BinaryFileResponse|JsonResponse
     {
         $result = $this->service->generateReporteTAT($request->validated());
+
+        if ($result instanceof BinaryFileResponse) {
+            return $result;
+        }
+
+        return response()->json($result['message'], $result['status']);
+    }
+
+    /**
+     * Descarga el reporte de Salud y Telemetría de Agentes Periféricos en formato Excel.
+     *
+     * Flujo del proceso:
+     * 1. Valida los filtros (sede opcional) con ReporteAgentesRequest.
+     * 2. Delega al servicio la generación del consolidado de backups y telemetría de agentes.
+     * 3. Devuelve la descarga binaria o error JSON.
+     *
+     * @param  ReporteAgentesRequest  $request  Petición validada con sede opcional.
+     *
+     * @returns BinaryFileResponse|JsonResponse Descarga directa del archivo Excel o error.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-27
+     */
+    public function reporteAgentes(ReporteAgentesRequest $request): BinaryFileResponse|JsonResponse
+    {
+        $result = $this->service->generateReporteAgentes($request->validated());
 
         if ($result instanceof BinaryFileResponse) {
             return $result;

@@ -279,6 +279,33 @@
                     </div>
                 </div>
             </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title text-themecolor">
+                            <i class="fa fa-server"></i> Agentes y Telemetría
+                        </h4>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <a href="javascript:void(0)" @click="abrirModalAgentes()">
+                                    <i class="fa fa-check text-info"></i>
+                                    Salud y telemetría de agentes hospitalarios
+                                </a>
+                            </div>
+                            <div
+                                class="col-12"
+                                v-if="can('seguridad.backups.index') || can('reportes.detallados')"
+                            >
+                                <a href="/seguridad-backups" target="_blank">
+                                    <i class="fa fa-external-link text-info"></i>
+                                    Monitor central de backups y sedes
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Modal Producción Detallada -->
@@ -1230,6 +1257,98 @@
                 </div>
             </div>
         </div>
+
+        <!-- Modal Salud y Telemetría de Agentes Hospitalarios -->
+        <div
+            v-if="modalAgentesVisible"
+            class="modal fade show d-block"
+            tabindex="-1"
+            role="dialog"
+            aria-modal="true"
+            aria-hidden="false"
+            style="background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px); z-index: 1050"
+            @click.self="
+                resetearFormularioAgentes();
+                modalAgentesVisible = false;
+            "
+        >
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title font-bold">
+                            Filtro de Telemetría y Agentes Hospitalarios
+                        </h4>
+                        <button
+                            type="button"
+                            class="close"
+                            aria-label="Cerrar modal"
+                            title="Cerrar (Esc)"
+                            @click="
+                                resetearFormularioAgentes();
+                                modalAgentesVisible = false;
+                            "
+                        >
+                            &times;
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="form-group">
+                                <label class="control-label font-weight-bold"
+                                    >Sede Hospitalaria</label
+                                >
+                                <select
+                                    class="form-control custom-select"
+                                    style="width: 100%; height: 36px"
+                                    v-model="datosAgentes.sedeId"
+                                    id="agentes-sede"
+                                >
+                                    <option value="0">...::: Todas las sedes :::...</option>
+                                    <option v-for="sede in sedes" :key="sede.id" :value="sede.id">
+                                        {{ sede.nom_sede }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="alert alert-info py-2 px-3 small mb-0">
+                                <i class="fa fa-info-circle mr-1"></i>
+                                Consolida el estado operativo de los agentes de base de datos,
+                                replicación de imágenes PACS, telemetría de dosimetría y equipos
+                                emisores.
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-inverse btn-action-clinical waves-effect"
+                            title="Cerrar (Esc)"
+                            @click="
+                                resetearFormularioAgentes();
+                                modalAgentesVisible = false;
+                            "
+                        >
+                            Cerrar
+                            <span class="badge badge-secondary ml-1">Esc</span>
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-info btn-action-clinical waves-effect waves-light"
+                            title="Descargar reporte en Excel (Ctrl+S)"
+                            @click="descargarReporteAgentes()"
+                            :disabled="loadingDescargarAgentes"
+                        >
+                            <i
+                                v-if="loadingDescargarAgentes"
+                                class="fa fa-spinner fa-spin mr-1"
+                            ></i>
+                            <i v-else class="fa fa-download mr-1"></i>
+                            Descargar reporte
+                            <span class="badge badge-light text-dark ml-1">Ctrl+S</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -1260,6 +1379,7 @@ const datosAusentismo = ref({ sedeId: 0, fechaIni: "", fechaFin: "", estado: "to
 const datosLiquidacion = ref({ sedeId: 0, fechaIni: "", fechaFin: "" });
 const datosProductividad = ref({ sedeId: 0, periodo: "" });
 const datosTAT = ref({ sedeId: 0, fechaIni: "", fechaFin: "", modalidad: "todas" });
+const datosAgentes = ref({ sedeId: 0 });
 const quienes_asignaron = ref([]);
 const medicos = ref([]);
 const tipoReporte = ref("Rx");
@@ -1273,6 +1393,7 @@ const loadingDescargarAusentismo = ref(false);
 const loadingDescargarLiquidacion = ref(false);
 const loadingDescargarProductividad = ref(false);
 const loadingDescargarTAT = ref(false);
+const loadingDescargarAgentes = ref(false);
 const modalProduccionVisible = ref(false);
 const modalPACVisible = ref(false);
 const modalDosimetriaVisible = ref(false);
@@ -1281,6 +1402,7 @@ const modalAusentismoVisible = ref(false);
 const modalLiquidacionVisible = ref(false);
 const modalProductividadVisible = ref(false);
 const modalTATVisible = ref(false);
+const modalAgentesVisible = ref(false);
 
 const indicadores = ref({
     estudiosAsignados: 0,
@@ -1322,6 +1444,10 @@ function resetearFormularioProductividad() {
 
 function resetearFormularioTAT() {
     datosTAT.value = { sedeId: 0, fechaIni: "", fechaFin: "", modalidad: "todas" };
+}
+
+function resetearFormularioAgentes() {
+    datosAgentes.value = { sedeId: 0 };
 }
 
 function validarFechas(fechaIni, fechaFin) {
@@ -1740,6 +1866,40 @@ async function descargarReporteTAT() {
 }
 
 /**
+ * Descarga el reporte de salud y telemetría de agentes hospitalarios en Excel.
+ */
+async function descargarReporteAgentes() {
+    if (loadingDescargarAgentes.value) return;
+    loadingDescargarAgentes.value = true;
+    try {
+        const params = new URLSearchParams({
+            sedeId: String(datosAgentes.value.sedeId ?? 0),
+        });
+
+        const url = `/descarga-reportes-agentes?${params.toString()}`;
+        const newWindow = window.open(url, "_blank", "noopener,noreferrer");
+
+        if (!newWindow) {
+            toastMessage({
+                heading: "Atención",
+                text: "El navegador bloqueó la apertura de la ventana. Permita pop-ups para este sitio.",
+                icon: "warning",
+            });
+        }
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible generar el reporte de agentes y telemetría.",
+            icon: "error",
+        });
+    } finally {
+        setTimeout(() => {
+            loadingDescargarAgentes.value = false;
+        }, 700);
+    }
+}
+
+/**
  * Carga indicadores asistenciales en tiempo real desde el servicio de Dashboard.
  */
 async function cargarIndicadores() {
@@ -1830,6 +1990,14 @@ function abrirModalTAT() {
     });
 }
 
+function abrirModalAgentes() {
+    modalAgentesVisible.value = true;
+    nextTick(() => {
+        const el = document.getElementById("agentes-sede");
+        if (el) el.focus();
+    });
+}
+
 onMounted(() => {
     listarSedes();
     cargarIndicadores();
@@ -1846,6 +2014,7 @@ useKeyboardShortcuts({
             !modalLiquidacionVisible.value &&
             !modalProductividadVisible.value &&
             !modalTATVisible.value &&
+            !modalAgentesVisible.value &&
             !loadingSedes.value
         ) {
             refrescarTodo();
@@ -1868,6 +2037,8 @@ useKeyboardShortcuts({
             descargarReporteProductividad();
         } else if (modalTATVisible.value && !loadingDescargarTAT.value) {
             descargarReporteTAT();
+        } else if (modalAgentesVisible.value && !loadingDescargarAgentes.value) {
+            descargarReporteAgentes();
         }
     },
     onEscape: () => {
@@ -1895,6 +2066,9 @@ useKeyboardShortcuts({
         } else if (modalTATVisible.value) {
             resetearFormularioTAT();
             modalTATVisible.value = false;
+        } else if (modalAgentesVisible.value) {
+            resetearFormularioAgentes();
+            modalAgentesVisible.value = false;
         }
     },
 });

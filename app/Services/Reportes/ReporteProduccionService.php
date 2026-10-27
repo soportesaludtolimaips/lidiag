@@ -4,6 +4,7 @@ namespace App\Services\Reportes;
 
 use App\Exports\ProduccionDetalladaEcografiasExport;
 use App\Exports\ProduccionDetalladaExport;
+use App\Exports\ReporteAgentesTelemetriaExport;
 use App\Exports\ReporteAusentismoCitasExport;
 use App\Exports\ReportesEstudioPAC;
 use App\Exports\ReporteTATExport;
@@ -227,6 +228,36 @@ class ReporteProduccionService extends BaseService
             ]);
 
             return ['message' => 'Error al generar el reporte de oportunidad TAT: '.$e->getMessage(), 'status' => 500];
+        }
+    }
+
+    /**
+     * Genera el reporte de salud y telemetría de agentes hospitalarios en Excel.
+     *
+     * @param  array  $data  Datos filtrados: sedeId opcional.
+     *
+     * @returns BinaryFileResponse|array Archivo Excel o array con mensaje de error.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-27
+     */
+    public function generateReporteAgentes(array $data): BinaryFileResponse|array
+    {
+        $sedeId = $this->normalizeNullable($data['sedeId'] ?? null);
+
+        try {
+            return Excel::download(
+                new ReporteAgentesTelemetriaExport($sedeId),
+                'reporte_agentes_telemetria.xlsx'
+            );
+        } catch (\Throwable $e) {
+            Log::error('ReporteProduccionService.generateReporteAgentes failed', [
+                'sede_id' => $sedeId,
+                'error' => $e->getMessage(),
+            ]);
+
+            return ['message' => 'Error al generar el reporte de agentes: '.$e->getMessage(), 'status' => 500];
         }
     }
 }
