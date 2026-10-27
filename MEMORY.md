@@ -37,6 +37,34 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Blindaje, Corrección de Concurrencia y Resiliencia en Agentes Edge y Transcriptor:**
+  - **Servicio Transcriptor Whisper (`storage/app_lidiag/transcriptor/main.py`):**
+    * *Anti-Colisión de Audios:* Eliminado riesgo crítico de sobreescritura entre médicos concurrentes (`temp_{filename}`). Se asignan prefijos criptográficos únicos con `uuid.uuid4().hex[:12]`.
+    * *Desbloqueo de Event Loop (FastAPI):* Envuelto `whisper_service.transcribe()` en `asyncio.to_thread()`, evitando que la inferencia CPU-bound de Whisper congele las rutas `/health`, `/debug` y peticiones concurrentes.
+  - **Agente de Dosimetría Edge (`storage/app_lidiag/agente_backups_dcm/agente_dosimetria.py`):**
+    * *Anti-Deadlock por Reciclaje de PIDs en Windows:* `is_pid_running()` ahora valida estrictamente contra procesos `IMAGENAME eq python*`, evitando que un PID reutilizado por Windows (`svchost.exe`, etc.) bloquee indefinidamente el agente.
+    * *Caché Cronológica FIFO:* Reemplazado `list(set)[-5000:]` (que descartaba elementos aleatorios) por almacenamiento ordenado por timestamp con migración automática de retrocompatibilidad.
+    * *Resiliencia de Transmisión Parcial:* `enviar_lote_a_central()` ahora retorna los `exitosos_keys` por bloque enviado. Si el bloque 2 falla por red, los 50 registros del bloque 1 se guardan en caché para no reenviarse en el siguiente ciclo.
+    * *Optimización de Series CT:* Filtro inteligente en consulta SQL para ignorar series `SCOUT`, `TOPOGRAM` y `LOCALIZER` (que carecen de `CTDIvol`), asegurando que `MIN(filepath)` tome siempre instancias axiales o de informe de dosis.
+    * *Silenciado de Warnings TLS:* Agregado `urllib3.disable_warnings(InsecureRequestWarning)` para mantener logs limpios.
+  - **Agentes de Backup y Sincronización PACS (`backup_dcm_agent.py`, `sync_dcm_images.py`, `restore_dcm_images.py`):**
+    * Actualizada la función `is_pid_running()` con filtrado de imagen de proceso para prevenir bloqueos fantasma en servidores Windows.
+    * Regenerado el paquete distribuible `storage/app_lidiag/agente_backups_dcm.zip` (51.6 KB).
+- [x] **2026-10-27 — Normalización LF Obligatoria para Parches de Composer (`.gitattributes`):**
+  - **Diagnóstico:** En el servidor de producción `10.35.47.4`, al ejecutar `composer update` o `composer install`, el plugin `cweagans/composer-patches` fallaba con `Hash mismatch for patch downloaded from patches/messagebag-arraypush-fix.patch. Got e5421859...; expected 70c4f3de...`.
+  - **Causa Raíz:** `patches.lock.json` almacena el hash SHA-256 (`70c4f3de...`) del parche con saltos de línea estrictos en **LF**. Al descargarse en Windows con `core.autocrlf`, Git convertía el parche a **CRLF** alterando su hash a `e5421859...`.
+  - **Solución:** Configurado `.gitattributes` forzando `*.patch text eol=lf` y `patches/* text eol=lf`. Normalizado `patches/messagebag-arraypush-fix.patch` a LF en el servidor.
+- [x] **2026-10-27 — Implementación Paso 2: Módulo Citas (Reporte de Ausentismo y Cancelaciones No-Show):**
+  - **Nuevo Reporte de Ausentismo y Cancelaciones (`ReporteAusentismoCitasExport.php`):**
+    * Generación de archivo Excel institucional (`reporte_ausentismo_citas.xlsx`) cruzando las citas de la tabla `citas` en estados `no_asistio`, `cancelada` o `rechazada`.
+    * Vinculación relacional con catálogo de motivos de rechazo (`config_cita_rechazo_motivos`), servicios (`config_servicios`), productos CUPS (`config_productos`) y pacientes (`pacientes`).
+    * Columnas: ID Cita, Sede Hospitalaria, Fecha/Hora Programada, Doc. Paciente, Nombre Paciente, Teléfono Contacto, Servicio / Especialidad, Código CUPS, Procedimiento, Estado de la Cita, Motivo de Inasistencia / Rechazo, Observaciones del Motivo y Estado Notificación WhatsApp.
+    * Backend: Creado `ReporteAusentismoCitasRequest` con validación de fechas, sede y filtro opcional de estado. Métodos `generateReporteAusentismoCitas()` en `ReporteProduccionService` y `reporteAusentismoCitas()` en `ReporteProduccion`. Registrada ruta web `/descarga-reportes-ausentismo-citas`.
+    * Frontend: Incorporada tarjeta nativa con icono `fa-calendar-check-o` y modal interactivo con filtros de sede, estado y rango de fechas.
+  - **Verificaciones Estrictas:**
+    * Laravel Pint passed (`{"tool":"pint","result":"passed"}`) ✅.
+    * ESLint: 0 errores / 0 advertencias (`npx eslint` passed) ✅.
+    * Vite build: Compilación exitosa en 1.34s (`npm run build`) ✅.
 - [x] **2026-10-27 — Implementación Paso 1: Módulo Asistencial (Indicadores Nativos + Reporte Tele-radiología):**
   - **Indicadores Nativos AdminWrap (`reporteProduccionComponent.vue`):** Integrado bloque superior de 4 tarjetas `info-box` estándar de AdminWrap (`icon-Target-Market`, `icon-Inbox-Forward`, `icon-File-HorizontalText`, `icon-Yes` / Font Awesome) mostrando en tiempo real: Estudios Asignados (30 días), Estudios Leídos, Pendientes de Transcripción y Finalizados Hoy, consumiendo `/api/reportes.dashboard`.
   - **Nuevo Reporte de Tele-radiología (`ReporteTeleRadiologiaExport.php`):**

@@ -56,19 +56,20 @@ LOCK_FILE = os.path.join(LOGS_DIR, "backup_db.lock")
 
 
 def is_pid_running(pid: int) -> bool:
-    """Verifica si un PID de Windows se encuentra actualmente en ejecución."""
+    """Verifica si un proceso Python con ese PID se encuentra actualmente en ejecución."""
     if pid <= 0:
         return False
     if sys.platform == "win32":
         try:
             res = subprocess.run(
-                ["tasklist", "/FI", f"PID eq {pid}", "/NH"],
+                ["tasklist", "/FI", f"PID eq {pid}", "/FI", "IMAGENAME eq python*", "/NH"],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
                 check=False,
             )
-            return str(pid) in (res.stdout or "")
+            out = (res.stdout or "").strip()
+            return bool(out and str(pid) in out and "no hay tareas" not in out.lower() and "info:" not in out.lower())
         except Exception:
             return False
     else:

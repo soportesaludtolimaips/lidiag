@@ -26,11 +26,14 @@ import argparse
 import atexit
 import datetime
 import hashlib
+import hmac
 import json
 import logging
 from logging.handlers import RotatingFileHandler
 import os
 import re
+import secrets
+import sqlite3
 import subprocess
 import sys
 import time
@@ -52,7 +55,9 @@ except ImportError:
 try:
     import requests
     from requests.adapters import HTTPAdapter
+    import urllib3
     from urllib3.util.retry import Retry
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 except ImportError:
     print("[ERROR CRÍTICO] La librería 'requests' no está instalada. Ejecute: pip install requests")
     sys.exit(1)
@@ -77,6 +82,7 @@ os.makedirs(LOGS_DIR, exist_ok=True)
 LOG_FILE = os.path.join(LOGS_DIR, "dosimetria_agent.log")
 LOCK_FILE = os.path.join(LOGS_DIR, "dosimetria.lock")
 CACHE_PROCESADOS_FILE = os.path.join(LOGS_DIR, "dosimetria_cache_procesados.json")
+SQLITE_COLA_FILE = os.path.join(LOGS_DIR, "cola_dosimetria.db")
 
 # Configurar logging con rotación automática (Máx 10 MB, 3 copias)
 logging.basicConfig(
@@ -120,19 +126,20 @@ def update_unified_healthcheck(sede_id: int, sede_nombre: str, service: str, inf
 
 
 def is_pid_running(pid: int) -> bool:
-    """Verifica si un PID de Windows se encuentra actualmente en ejecución."""
+    """Verifica si un proceso Python con ese PID se encuentra actualmente en ejecución."""
     if pid <= 0:
         return False
     if sys.platform == "win32":
         try:
             res = subprocess.run(
-                ["tasklist", "/FI", f"PID eq {pid}", "/NH"],
+                ["tasklist", "/FI", f"PID eq {pid}", "/FI", "IMAGENAME eq python*", "/NH"],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
                 check=False,
             )
-            return str(pid) in (res.stdout or "")
+            out = (res.stdout or "").strip()
+            return bool(out and str(pid) in out and "no hay tareas" not in out.lower() and "info:" not in out.lower())
         except Exception:
             return False
     else:
@@ -240,6 +247,18 @@ def load_config(custom_path: Optional[str] = None) -> dict:
         logger.critical("Por favor configura estos parámetros en config.json antes de ejecutar el agente.")
         sys.exit(1)
 
+    # Salt criptográfico único por sede (HMAC-SHA256 para evitar ataques de diccionario/Rainbow Tables)
+    salt = loaded.get("dosimetria_salt")
+    if not salt or str(salt).strip() == "":
+        salt = secrets.token_hex(32)
+        loaded["dosimetria_salt"] = salt
+        try:
+            with open(config_path, "w", encoding="utf-8") as f:
+                json.dump(loaded, f, indent=4)
+            logger.info("Generado y persistido nuevo 'dosimetria_salt' criptográfico único para esta sede.")
+        except Exception as e:
+            logger.warning(f"No se pudo guardar automáticamente dosimetria_salt en config.json: {e}")
+
     config = {
         "sede_id": int(loaded["sede_id"]),
         "sede_nombre": loaded.get("sede_nombre", ""),
@@ -251,13 +270,14 @@ def load_config(custom_path: Optional[str] = None) -> dict:
         "local_images_dir": loaded["local_images_dir"],
         "api_url": loaded["api_url"],
         "api_token": loaded["api_token"],
+        "dosimetria_salt": str(salt).strip(),
     }
 
     return config
 
 
 def get_db_connection(config: dict):
-    """Establece conexión a MySQL pacsdb usando el conector disponible."""
+    """Establece conexión a MySQL pacsdb usando el conector disponible con aislamiento READ UNCOMMITTED (Cero locks)."""
     if not DB_CONNECTOR:
         logger.critical("No se encontró ningún conector MySQL de Python. Instale: pip install mysql-connector-python o pymysql")
         sys.exit(1)
@@ -289,7 +309,15 @@ def get_db_connection(config: dict):
             connect_timeout=15,
         )
 
-    # Ajustar sql_mode en la sesión para compatibilidad con ONLY_FULL_GROUP_BY en cualquier versión de MySQL
+    # 1. Aislamiento READ UNCOMMITTED para evitar shared locks sobre las tablas maestras de Dcm4chee durante C-STORE
+    try:
+        cur = conn.cursor()
+        cur.execute("SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED")
+        cur.close()
+    except Exception as e:
+        logger.warning(f"No se pudo ajustar aislamiento READ UNCOMMITTED en MySQL: {e}")
+
+    # 2. Ajustar sql_mode en la sesión para compatibilidad con ONLY_FULL_GROUP_BY en cualquier versión de MySQL
     try:
         cur = conn.cursor()
         cur.execute("SELECT @@sql_mode")
@@ -306,33 +334,179 @@ def get_db_connection(config: dict):
     return conn
 
 
-def cargar_cache_procesados() -> set:
-    if os.path.isfile(CACHE_PROCESADOS_FILE):
-        try:
-            with open(CACHE_PROCESADOS_FILE, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                return set(data)
-        except Exception as e:
-            logger.warning(f"No se pudo leer caché de procesados: {e}")
-    return set()
-
-
-def guardar_cache_procesados(cache: set):
-    try:
-        # Mantener solo los últimos 5000 estudios en caché
-        lista = list(cache)[-5000:]
-        with open(CACHE_PROCESADOS_FILE, "w", encoding="utf-8") as f:
-            json.dump(lista, f)
-    except Exception as e:
-        logger.warning(f"No se pudo guardar caché de procesados: {e}")
-
-
-def hash_patient_id(raw_patient_id: Optional[str]) -> str:
-    """Anonimiza el identificador del paciente con SHA-256 (ISO/IEC 27001)."""
+def hash_patient_id(raw_patient_id: Optional[str], salt: str = "LIDIAG_DOSIMETRIA_SALT_2026") -> str:
+    """Anonimiza irreversiblemente el PatientID mediante HMAC-SHA256 con salt dinámico por sede (ISO/IEC 27001)."""
     if not raw_patient_id:
         raw_patient_id = "ANONYMOUS"
-    salt = "LIDIAG_DOSIMETRIA_SALT_2026"
-    return hashlib.sha256(f"{salt}_{str(raw_patient_id).strip()}".encode("utf-8")).hexdigest()
+    clean_id = str(raw_patient_id).strip()
+    return hmac.new(salt.encode("utf-8"), clean_id.encode("utf-8"), hashlib.sha256).hexdigest()
+
+
+# =============================================================================
+# COLA PERSISTENTE LOCAL EN SQLITE (Cero pérdida de datos ante cortes eléctricos)
+# =============================================================================
+
+def init_sqlite_cola(db_path: str = SQLITE_COLA_FILE):
+    """Inicializa la base de datos SQLite embebida para garantizar cero pérdida de datos."""
+    with sqlite3.connect(db_path) as conn:
+        conn.execute("PRAGMA journal_mode = WAL;")
+        conn.execute("PRAGMA synchronous = NORMAL;")
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS cola_dosimetria (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                study_uid TEXT NOT NULL,
+                patient_id_hashed TEXT NOT NULL,
+                modalidad TEXT NOT NULL,
+                aet_title TEXT,
+                tipo_metrica TEXT NOT NULL,
+                valor_dosis REAL NOT NULL,
+                unidad_medida TEXT NOT NULL,
+                fecha_estudio TEXT NOT NULL,
+                accession_no TEXT,
+                study_desc TEXT,
+                estado TEXT NOT NULL DEFAULT 'PENDING',
+                intentos INTEGER NOT NULL DEFAULT 0,
+                ultimo_error TEXT,
+                created_at TEXT NOT NULL,
+                synced_at TEXT,
+                UNIQUE(study_uid, tipo_metrica)
+            );
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_cola_estado ON cola_dosimetria(estado, intentos);")
+        conn.commit()
+
+
+def encolar_estudios_sqlite(registros: List[Dict[str, Any]], db_path: str = SQLITE_COLA_FILE) -> int:
+    """Inserta de forma idempotente las mediciones de dosis en la cola SQLite local."""
+    if not registros:
+        return 0
+    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    insertados = 0
+    with sqlite3.connect(db_path) as conn:
+        cur = conn.cursor()
+        for r in registros:
+            cur.execute("""
+                INSERT OR IGNORE INTO cola_dosimetria (
+                    study_uid, patient_id_hashed, modalidad, aet_title,
+                    tipo_metrica, valor_dosis, unidad_medida, fecha_estudio,
+                    accession_no, study_desc, estado, intentos, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', 0, ?)
+            """, (
+                r["study_uid"],
+                r["patient_id_hashed"],
+                r["modalidad"],
+                r.get("aet_title"),
+                r["tipo_metrica"],
+                r["valor_dosis"],
+                r.get("unidad_medida", "mGy"),
+                r["fecha_estudio"],
+                r.get("accession_no"),
+                r.get("study_desc"),
+                now_str,
+            ))
+            if cur.rowcount > 0:
+                insertados += 1
+        conn.commit()
+    return insertados
+
+
+def obtener_pendientes_sqlite(limit: int = 200, db_path: str = SQLITE_COLA_FILE) -> List[Dict[str, Any]]:
+    """Obtiene los registros pendientes de sincronización (o fallidos con < 5 intentos)."""
+    with sqlite3.connect(db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT id, study_uid, patient_id_hashed, modalidad, aet_title,
+                   tipo_metrica, valor_dosis, unidad_medida, fecha_estudio,
+                   accession_no, study_desc, intentos
+            FROM cola_dosimetria
+            WHERE estado = 'PENDING' OR (estado = 'FAILED' AND intentos < 5)
+            ORDER BY id ASC
+            LIMIT ?
+        """, (limit,))
+        filas = cur.fetchall()
+        return [dict(f) for f in filas]
+
+
+def marcar_sincronizados_sqlite(ids: List[int], db_path: str = SQLITE_COLA_FILE):
+    if not ids:
+        return
+    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with sqlite3.connect(db_path) as conn:
+        cur = conn.cursor()
+        placeholders = ",".join(["?"] * len(ids))
+        cur.execute(f"""
+            UPDATE cola_dosimetria
+            SET estado = 'SYNCED', synced_at = ?
+            WHERE id IN ({placeholders})
+        """, [now_str] + ids)
+        conn.commit()
+
+
+def marcar_fallidos_sqlite(ids: List[int], error_msg: str, db_path: str = SQLITE_COLA_FILE):
+    if not ids:
+        return
+    with sqlite3.connect(db_path) as conn:
+        cur = conn.cursor()
+        placeholders = ",".join(["?"] * len(ids))
+        cur.execute(f"""
+            UPDATE cola_dosimetria
+            SET estado = 'FAILED', intentos = intentos + 1, ultimo_error = ?
+            WHERE id IN ({placeholders})
+        """, [error_msg[:255]] + ids)
+        conn.commit()
+
+
+def contar_pendientes_sqlite(db_path: str = SQLITE_COLA_FILE) -> int:
+    try:
+        with sqlite3.connect(db_path) as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT COUNT(*) FROM cola_dosimetria WHERE estado != 'SYNCED'")
+            row = cur.fetchone()
+            return int(row[0]) if row else 0
+    except Exception:
+        return 0
+
+
+def purgar_antiguos_sqlite(dias: int = 30, db_path: str = SQLITE_COLA_FILE):
+    try:
+        limite = (datetime.datetime.now() - datetime.timedelta(days=dias)).strftime("%Y-%m-%d %H:%M:%S")
+        with sqlite3.connect(db_path) as conn:
+            cur = conn.cursor()
+            cur.execute("DELETE FROM cola_dosimetria WHERE estado = 'SYNCED' AND synced_at < ?", (limite,))
+            conn.commit()
+    except Exception:
+        pass
+
+
+def enviar_heartbeat(api_url: str, api_token: str, sede_id: int, pendientes: int, version: str = "1.3.0"):
+    """Emite un latido (Heartbeat / Dead Man's Switch) hacia la API Central."""
+    hb_url = api_url.rstrip("/")
+    if hb_url.endswith("/registros"):
+        hb_url = hb_url[:-10] + "/heartbeat"
+    else:
+        hb_url = hb_url + "/heartbeat"
+
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": f"Bearer {api_token}",
+        "X-Requested-With": "XMLHttpRequest",
+    }
+    payload = {
+        "sede_id": sede_id,
+        "version": version,
+        "pendientes": pendientes,
+        "estado_cola": "OK" if pendientes == 0 else f"PENDIENTES_{pendientes}",
+    }
+    try:
+        res = requests.post(hb_url, json=payload, headers=headers, timeout=12, verify=False)
+        if res.status_code == 200:
+            logger.info(f"[HEARTBEAT] Latido emitido con éxito a Central ({hb_url}). Pendientes en cola: {pendientes}.")
+        else:
+            logger.warning(f"[HEARTBEAT] Central respondió con HTTP {res.status_code} al latido.")
+    except Exception as e:
+        logger.warning(f"[HEARTBEAT] No se pudo emitir latido a Central: {e}")
 
 
 def buscar_estudios_candidatos(conn, dias: int = 1, limit: int = 200, desde: Optional[str] = None, hasta: Optional[str] = None) -> List[Dict[str, Any]]:
@@ -369,6 +543,14 @@ def buscar_estudios_candidatos(conn, dias: int = 1, limit: int = 200, desde: Opt
         JOIN filesystem fs ON fs.pk = f.filesystem_fk
         WHERE s.modality IN ('CT', 'MG', 'DX', 'CR')
           AND {where_fecha}
+          AND (
+            s.modality != 'CT'
+            OR (
+                COALESCE(s.series_desc, '') NOT LIKE '%%SCOUT%%'
+                AND COALESCE(s.series_desc, '') NOT LIKE '%%TOPOGRAM%%'
+                AND COALESCE(s.series_desc, '') NOT LIKE '%%LOCALIZER%%'
+            )
+          )
         GROUP BY st.study_iuid, s.modality
         ORDER BY created_time DESC
         LIMIT %s
@@ -532,24 +714,21 @@ def extraer_metricas_dosis(dcm_path: str, modalidad: str) -> Optional[List[Dict[
     return metricas
 
 
-def enviar_lote_a_central(api_url: str, api_token: str, sede_id: int, registros: List[Dict[str, Any]]) -> bool:
+def enviar_lote_a_central(api_url: str, api_token: str, sede_id: int, registros_con_id: List[Dict[str, Any]]) -> Tuple[bool, List[int], List[str]]:
     """
     Envía los registros a la API central de LIDiag vía HTTPS con política de reintentos
     y backoff exponencial en caso de fallos transitorios de red.
+    Implementa Idempotencia mediante batch_hash (SHA-256) del contenido de cada bloque.
+    Retorna una tupla (all_success, lista_ids_sincronizados, lista_cache_keys).
     """
-    if not registros:
-        return True
+    if not registros_con_id:
+        return True, [], []
 
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
         "Authorization": f"Bearer {api_token}",
         "X-Requested-With": "XMLHttpRequest",
-    }
-
-    payload = {
-        "sede_id": sede_id,
-        "registros": registros,
     }
 
     session = requests.Session()
@@ -564,34 +743,53 @@ def enviar_lote_a_central(api_url: str, api_token: str, sede_id: int, registros:
     session.mount("http://", adapter)
 
     chunk_size = 50
-    chunks = [registros[i:i + chunk_size] for i in range(0, len(registros), chunk_size)]
+    chunks = [registros_con_id[i:i + chunk_size] for i in range(0, len(registros_con_id), chunk_size)]
     total_guardados = 0
     all_success = True
+    ids_sincronizados = []
+    exitosos_keys = []
 
-    logger.info(f"Transmitiendo {len(registros)} registro(s) de dosimetría hacia {api_url} en {len(chunks)} bloque(s)...")
+    logger.info(f"Transmitiendo {len(registros_con_id)} registro(s) de dosimetría hacia {api_url} en {len(chunks)} bloque(s)...")
     for idx, chunk in enumerate(chunks, 1):
+        # Limpiar clave 'id' interna de SQLite antes de enviar a la API
+        chunk_limpio = [{k: v for k, v in r.items() if k != "id"} for r in chunk]
+        chunk_ids = [r["id"] for r in chunk if "id" in r]
+
+        # Calcular hash criptográfico de idempotencia (SHA-256 del contenido canónico del lote)
+        batch_repr = json.dumps(chunk_limpio, sort_keys=True, ensure_ascii=True)
+        batch_hash = hashlib.sha256(batch_repr.encode("utf-8")).hexdigest()
+
         payload = {
             "sede_id": sede_id,
-            "registros": chunk,
+            "batch_hash": batch_hash,
+            "registros": chunk_limpio,
         }
+        chunk_keys = list({f"{r['study_uid']}_{r['modalidad']}" for r in chunk_limpio})
         try:
             response = session.post(api_url, json=payload, headers=headers, timeout=35, verify=False)
             if response.status_code in (200, 201):
                 res_json = response.json()
                 g = res_json.get("guardados", len(chunk))
                 total_guardados += g
-                logger.info(f"      [OK] Bloque {idx}/{len(chunks)}: {g} registro(s) procesados correctamente.")
+                exitosos_keys.extend(chunk_keys)
+                ids_sincronizados.extend(chunk_ids)
+                marcar_sincronizados_sqlite(chunk_ids)
+                logger.info(f"      [OK] Bloque {idx}/{len(chunks)}: {g} registro(s) confirmados por Central (Hash: {batch_hash[:10]}...).")
             else:
-                logger.error(f"      [ERROR API] Bloque {idx}/{len(chunks)} HTTP {response.status_code}: {response.text[:300]}")
+                err_text = response.text[:300]
+                logger.error(f"      [ERROR API] Bloque {idx}/{len(chunks)} HTTP {response.status_code}: {err_text}")
                 if response.status_code == 404:
                     logger.error(f"      [DIAGNÓSTICO 404] El endpoint '{api_url}' no existe. Si el servidor corre bajo un alias de Apache/Laragon, asegúrese de incluir '/public/' (ej: https://.../public/api/dosis/registros).")
+                marcar_fallidos_sqlite(chunk_ids, f"HTTP {response.status_code}: {err_text}")
                 all_success = False
         except requests.RequestException as e:
-            logger.error(f"      [ERROR RED] Fallo al enviar bloque {idx}/{len(chunks)} a Central: {e}")
+            err_msg = str(e)
+            logger.error(f"      [ERROR RED] Fallo al enviar bloque {idx}/{len(chunks)} a Central: {err_msg}")
+            marcar_fallidos_sqlite(chunk_ids, f"Error red: {err_msg}")
             all_success = False
 
-    logger.info(f"[TOTAL TRANSMISIÓN] Central procesó exitosamente {total_guardados} de {len(registros)} registro(s).")
-    return all_success
+    logger.info(f"[TOTAL TRANSMISIÓN] Central procesó exitosamente {total_guardados} de {len(registros_con_id)} registro(s).")
+    return all_success, ids_sincronizados, exitosos_keys
 
 
 def main():
@@ -611,6 +809,10 @@ def main():
             logger.info("No existe archivo de caché previo para eliminar.")
         return
 
+    # Inicializar base de datos SQLite embebida de cola persistente
+    init_sqlite_cola()
+    purgar_antiguos_sqlite(dias=30)
+
     config = load_config(args.config)
 
     if args.sede_id:
@@ -619,6 +821,7 @@ def main():
     sede_id = config["sede_id"]
     api_url = config["api_url"]
     api_token = config["api_token"]
+    dosimetria_salt = config.get("dosimetria_salt", "LIDIAG_DOSIMETRIA_SALT_2026")
     local_images_dir = config["local_images_dir"]
     dias = args.dias
     desde = args.desde
@@ -631,10 +834,11 @@ def main():
     logger.info("      AGENTE EDGE DE DOSIMETRÍA RADIOLÓGICA — LIDiag            ")
     logger.info("=================================================================")
     logger.info(f" Sede ID          : {sede_id}")
-    logger.info(f" Base de Datos    : {config['db_name']} @ {config['db_host']}:{config['db_port']}")
+    logger.info(f" Base de Datos    : {config['db_name']} @ {config['db_host']}:{config['db_port']} (READ UNCOMMITTED)")
     logger.info(f" Directorio DICOM : {local_images_dir}")
     logger.info(f" Endpoint API     : {api_url}")
     logger.info(f" Ventana Temporal : {ventana_desc} (Límite: {limit})")
+    logger.info(f" Cola SQLite      : {SQLITE_COLA_FILE}")
     logger.info("=================================================================")
 
     # 1. Conexión a la base de datos de dcm4chee
@@ -646,7 +850,7 @@ def main():
         sys.exit(1)
 
     # 2. Consultar estudios recientes
-    cache_procesados = set() if args.forzar else cargar_cache_procesados()
+    cache_procesados = {} if args.forzar else cargar_cache_procesados()
     if args.forzar:
         logger.info("[FORZAR] Modo forzado activado: Se procesarán todos los estudios ignorando la caché local previa.")
     try:
@@ -655,87 +859,91 @@ def main():
     finally:
         conn.close()
 
-    if not candidatos:
-        logger.info("No hay estudios nuevos para procesar en la ventana seleccionada.")
-        return
-
     # 3. Procesar y extraer métricas DICOM
-    logger.info("[3/4] Extrayendo métricas de radiación ionizante...")
-    registros_para_envio = []
-    procesados_nuevos = []
+    registros_extraidos = []
+    sin_metricas = []
 
-    for item in candidatos:
-        study_uid = item["study_iuid"]
-        modality = item["modality"]
-        cache_key = f"{study_uid}_{modality}"
+    if candidatos:
+        logger.info("[3/4] Extrayendo métricas de radiación ionizante...")
+        for item in candidatos:
+            study_uid = item["study_iuid"]
+            modality = item["modality"]
+            cache_key = f"{study_uid}_{modality}"
 
-        if cache_key in cache_procesados:
-            continue
+            if cache_key in cache_procesados:
+                continue
 
-        dcm_path = resolver_ruta_archivo(item.get("dirpath") or "", item.get("filepath") or "", local_images_dir)
-        metricas = extraer_metricas_dosis(dcm_path, modality)
+            dcm_path = resolver_ruta_archivo(item.get("dirpath") or "", item.get("filepath") or "", local_images_dir)
+            metricas = extraer_metricas_dosis(dcm_path, modality)
 
-        if metricas is None:
-            # El archivo no se encuentra en disco o está inaccesible por el momento.
-            # NO marcar en caché para permitir que sea procesado cuando el archivo exista.
-            continue
+            if metricas is None:
+                continue
 
-        if not metricas:
-            # Archivo leído exitosamente en disco pero sin tags de radiación ionizante (o dosis = 0)
-            procesados_nuevos.append(cache_key)
-            continue
+            if not metricas:
+                sin_metricas.append(cache_key)
+                continue
 
-        # Anonimización criptográfica del Patient ID
-        try:
-            ds_pat = pydicom.dcmread(dcm_path, stop_before_pixels=True, specific_tags=["PatientID"])
-            raw_patient_id = getattr(ds_pat, "PatientID", "ANONYMOUS")
-        except Exception:
-            raw_patient_id = "ANONYMOUS"
+            # Anonimización criptográfica estricta con HMAC-SHA256 y salt dinámico por sede
+            try:
+                ds_pat = pydicom.dcmread(dcm_path, stop_before_pixels=True, specific_tags=["PatientID"])
+                raw_patient_id = getattr(ds_pat, "PatientID", "ANONYMOUS")
+            except Exception:
+                raw_patient_id = "ANONYMOUS"
 
-        patient_hashed = hash_patient_id(raw_patient_id)
-        fecha_estudio = item["study_datetime"]
-        if isinstance(fecha_estudio, datetime.datetime):
-            fecha_str = fecha_estudio.strftime("%Y-%m-%d %H:%M:%S")
-        else:
-            fecha_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-        for m in metricas:
-            registros_para_envio.append({
-                "study_uid": study_uid,
-                "patient_id_hashed": patient_hashed,
-                "modalidad": modality,
-                "aet_title": item.get("src_aet") or item.get("station_name") or "EQUIPO_LOCAL",
-                "tipo_metrica": m["tipo_metrica"],
-                "valor_dosis": m["valor_dosis"],
-                "unidad_medida": m["unidad_medida"],
-                "fecha_estudio": fecha_str,
-                "accession_no": item.get("accession_no"),
-                "study_desc": item.get("study_desc"),
-            })
-
-        procesados_nuevos.append(cache_key)
-
-    logger.info(f"Total métricas de dosis extraídas: {len(registros_para_envio)}")
-
-    # 4. Enviar a la API Central LIDiag
-    if registros_para_envio:
-        if args.dry_run:
-            logger.info(f"[DRY-RUN] Modo prueba: Se omitió el POST. Registros:\n{json.dumps(registros_para_envio[:2], indent=2)}")
-        else:
-            exito = enviar_lote_a_central(api_url, api_token, sede_id, registros_para_envio)
-            if exito:
-                for k in procesados_nuevos:
-                    cache_procesados.add(k)
-                guardar_cache_procesados(cache_procesados)
+            patient_hashed = hash_patient_id(raw_patient_id, salt=dosimetria_salt)
+            fecha_estudio = item["study_datetime"]
+            if isinstance(fecha_estudio, datetime.datetime):
+                fecha_str = fecha_estudio.strftime("%Y-%m-%d %H:%M:%S")
             else:
-                logger.warning("Fallo en la transmisión a la central. Los registros se reintentarán en el siguiente ciclo.")
-    else:
-        logger.info("Sin métricas nuevas por transmitir.")
-        for k in procesados_nuevos:
-            cache_procesados.add(k)
-        guardar_cache_procesados(cache_procesados)
+                fecha_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    logger.info("Ciclo de extracción de dosimetría finalizado.")
+            for m in metricas:
+                registros_extraidos.append({
+                    "study_uid": study_uid,
+                    "patient_id_hashed": patient_hashed,
+                    "modalidad": modality,
+                    "aet_title": item.get("src_aet") or item.get("station_name") or "EQUIPO_LOCAL",
+                    "tipo_metrica": m["tipo_metrica"],
+                    "valor_dosis": m["valor_dosis"],
+                    "unidad_medida": m["unidad_medida"],
+                    "fecha_estudio": fecha_str,
+                    "accession_no": item.get("accession_no"),
+                    "study_desc": item.get("study_desc"),
+                })
+
+        # Encolar en la base de datos persistente SQLite local
+        if registros_extraidos:
+            nuevos_encolados = encolar_estudios_sqlite(registros_extraidos)
+            logger.info(f"Encolados en SQLite {nuevos_encolados} nuevo(s) registro(s) de dosimetría para transmisión.")
+
+    # 4. Despachar registros pendientes desde SQLite hacia la API Central
+    now_ts = int(time.time())
+    for k in sin_metricas:
+        cache_procesados[k] = now_ts
+    guardar_cache_procesados(cache_procesados)
+
+    pendientes_en_cola = obtener_pendientes_sqlite(limit=limit)
+    logger.info(f"[4/4] Registros listos en cola persistente SQLite para enviar: {len(pendientes_en_cola)}")
+
+    if pendientes_en_cola:
+        if args.dry_run:
+            logger.info(f"[DRY-RUN] Modo prueba: Se omitió el POST. Registros:\n{json.dumps(pendientes_en_cola[:2], indent=2)}")
+        else:
+            exito, ids_sincronizados, exitosos_keys = enviar_lote_a_central(api_url, api_token, sede_id, pendientes_en_cola)
+            for k in exitosos_keys:
+                cache_procesados[k] = now_ts
+            guardar_cache_procesados(cache_procesados)
+
+            if not exito:
+                logger.warning("Fallo parcial en la transmisión. Los registros permanecen en SQLite y se reintentarán automáticamente.")
+    else:
+        logger.info("Cola persistente al día. Sin registros pendientes por transmitir.")
+
+    # 5. Emitir latido (Heartbeat / Dead Man's Switch) hacia Central
+    total_pendientes_final = contar_pendientes_sqlite()
+    enviar_heartbeat(api_url, api_token, sede_id, pendientes=total_pendientes_final)
+
+    logger.info("Ciclo de dosimetría finalizado.")
 
     update_unified_healthcheck(
         sede_id=sede_id,
@@ -744,8 +952,9 @@ def main():
         info={
             "estado": "OK",
             "fecha": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "estudios_candidatos": len(candidatos),
-            "metricas_extraidas": len(registros_para_envio),
+            "estudios_candidatos": len(candidatos) if candidatos else 0,
+            "metricas_extraidas": len(registros_extraidos),
+            "cola_pendientes": total_pendientes_final,
         },
     )
 

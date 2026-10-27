@@ -12,10 +12,12 @@ Endpoints:
     GET /health - Verifica que el servicio esta activo
 """
 
-import os
+import asyncio
 import logging
-import shutil
+import os
 from pathlib import Path
+import shutil
+import uuid
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -133,16 +135,17 @@ async def transcribir_audio(file: UploadFile = File(...)):
             detail=f"Archivo demasiado grande. Maximo: 100MB",
         )
 
-    # Guardar temporalmente
-    temp_path = UPLOAD_DIR / f"temp_{file.filename}"
+    # Guardar temporalmente con nombre unico para evitar colisiones entre solicitudes concurrentes
+    unique_suffix = f"{uuid.uuid4().hex[:12]}_{Path(file.filename or 'audio.mp3').name}"
+    temp_path = UPLOAD_DIR / f"temp_{unique_suffix}"
     try:
         with open(temp_path, "wb") as f:
             f.write(content)
 
-        logger.info(f"Transcribiendo: {file.filename} ({len(content)} bytes)")
+        logger.info(f"Transcribiendo: {file.filename} ({len(content)} bytes) [id={unique_suffix}]")
 
-        # Transcribir
-        result = whisper_service.transcribe(temp_path, language="es")
+        # Transcribir en threadpool para no bloquear el event loop de FastAPI
+        result = await asyncio.to_thread(whisper_service.transcribe, temp_path, language="es")
 
         logger.info(f"Transcripcion completada: {len(result['texto'])} caracteres")
 
