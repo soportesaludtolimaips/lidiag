@@ -132,6 +132,7 @@ class UserService extends BaseService
             $user = new User;
             $this->fillUserData($user, $data);
             $user->password = Hash::make($data['password']);
+            $user->password_changed_at = null;
             $user->estado = filter_var($data['estado'] ?? true, FILTER_VALIDATE_BOOLEAN);
 
             if ($firma) {
@@ -174,6 +175,14 @@ class UserService extends BaseService
 
             if (! empty($data['password'])) {
                 $user->password = Hash::make($data['password']);
+                if (! empty($data['forzar_cambio_password'])) {
+                    $user->password_changed_at = null;
+                    DB::table('sessions')
+                        ->where('user_id', $user->id)
+                        ->where('id', '!=', session()->getId())
+                        ->delete();
+                    $user->tokens()->delete();
+                }
             }
 
             if ($firma) {
@@ -217,6 +226,58 @@ class UserService extends BaseService
         $user->save();
 
         return $this->updated(null, 'Estado actualizado correctamente.');
+    }
+
+    /**
+     * Restablece la contraseña de un usuario por parte de un administrador,
+     * invalidando sesiones previas y forzando el cambio de contraseña al iniciar sesión.
+     *
+     * Flujo del proceso:
+     * 1. Localiza al usuario objetivo en la base de datos o lanza excepción 404.
+     * 2. Actualiza el hash de la contraseña y asigna password_changed_at a null si forzarCambio es verdadero.
+     * 3. Revoca todas las sesiones web activas y tokens Sanctum del usuario para exigir nuevo inicio de sesión.
+     * 4. Registra el evento en la bitácora de auditoría ISO 27001.
+     * 5. Retorna respuesta estructurada con los datos del usuario.
+     *
+     * @param  int  $id  Identificador del usuario cuya contraseña se restablece
+     * @param  string  $newPassword  Nueva contraseña temporal
+     * @param  bool  $forzarCambio  Indica si se obliga al usuario a cambiarla en el siguiente inicio de sesión
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-27
+     */
+    public function resetPassword(int $id, string $newPassword, bool $forzarCambio = true): array
+    {
+        return $this->transaction(function () use ($id, $newPassword, $forzarCambio) {
+            $user = User::findOrFail($id);
+
+            $user->password = Hash::make($newPassword);
+            $user->password_changed_at = $forzarCambio ? null : now();
+            $user->save();
+
+            DB::table('sessions')
+                ->where('user_id', $user->id)
+                ->delete();
+
+            $user->tokens()->delete();
+
+            AuditLogger::actualizar(
+                $user,
+                ['password_changed_at' => $user->getOriginal('password_changed_at')],
+                'Contraseña restablecida por administrador para el usuario: '.$user->name
+            );
+
+            return $this->updated(
+                [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'forzar_cambio' => $forzarCambio,
+                ],
+                'Contraseña restablecida correctamente. El usuario deberá cambiarla al iniciar sesión.'
+            );
+        });
     }
 
     /**

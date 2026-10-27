@@ -161,6 +161,13 @@
                                             <span class="label label-danger" v-if="item.estado == 0"
                                                 >Inactivo</span
                                             >
+                                            <span
+                                                v-if="!item.password_changed_at"
+                                                class="badge badge-warning m-t-5 d-block"
+                                                title="El usuario debe cambiar la contraseña en su próximo inicio de sesión"
+                                            >
+                                                <i class="fa fa-clock-o"></i> Cambio pendiente
+                                            </span>
                                         </td>
                                         <td class="text-nowrap">
                                             <!-- <router-link
@@ -179,6 +186,14 @@
                                                 "
                                             >
                                                 <i class="fa fa-pencil"></i>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                title="Restablecer contraseña (obliga cambio al iniciar sesión)"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
+                                                @click="abrirModalReset(item)"
+                                            >
+                                                <i class="fa fa-key"></i>
                                             </button>
                                             <button
                                                 type="button"
@@ -411,6 +426,26 @@
                                             v-if="errores.confirmarPassword"
                                             >{{ errores.confirmarPassword[0] }}</span
                                         >
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row" v-if="actualizar && registro.password">
+                                <div class="col-md-12">
+                                    <div class="custom-control custom-checkbox mt-1 mb-2">
+                                        <input
+                                            type="checkbox"
+                                            class="custom-control-input"
+                                            id="forzar_cambio_password"
+                                            v-model="registro.forzar_cambio_password"
+                                        />
+                                        <label
+                                            class="custom-control-label"
+                                            for="forzar_cambio_password"
+                                        >
+                                            Obligar al usuario a cambiar la contraseña en el próximo
+                                            inicio de sesión
+                                        </label>
                                     </div>
                                 </div>
                             </div>
@@ -703,11 +738,178 @@
                 </div>
             </div>
         </div>
+
+        <!-- ============================================================== -->
+        <!-- Modal Restablecer Contraseña -->
+        <!-- ============================================================== -->
+        <div
+            class="modal fade"
+            :class="{ show: modalResetVisible }"
+            :style="{ display: modalResetVisible ? 'block' : 'none' }"
+            tabindex="-1"
+            role="dialog"
+            aria-labelledby="modalResetTitle"
+            aria-hidden="true"
+            @click.self="cerrarModalReset"
+        >
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="modalResetTitle">
+                            <i class="fa fa-key text-info m-r-5"></i> Restablecer Contraseña
+                        </h4>
+                        <button
+                            type="button"
+                            class="close"
+                            aria-label="Cerrar modal"
+                            title="Cerrar (Esc)"
+                            @click="cerrarModalReset"
+                        >
+                            &times;
+                        </button>
+                    </div>
+                    <div class="modal-body" v-if="usuarioParaReset">
+                        <div class="alert alert-info">
+                            <i class="fa fa-info-circle mr-1"></i>
+                            Se asignará una contraseña temporal para
+                            <strong>{{ usuarioParaReset.name }}</strong> ({{
+                                usuarioParaReset.email
+                            }}). Al iniciar sesión con esta contraseña, el sistema
+                            <strong>obligará al usuario a cambiarla</strong> por su contraseña
+                            personal.
+                        </div>
+
+                        <div class="form-group">
+                            <label class="control-label"
+                                >Nueva contraseña temporal <span class="text-danger">*</span></label
+                            >
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="ti-lock"></i></span>
+                                </div>
+                                <input
+                                    :type="mostrarPasswordReset ? 'text' : 'password'"
+                                    class="form-control"
+                                    placeholder="Ingrese o genere la contraseña temporal"
+                                    v-model="resetForm.password"
+                                    autocomplete="new-password"
+                                />
+                                <div class="input-group-append">
+                                    <button
+                                        type="button"
+                                        class="btn btn-secondary waves-effect"
+                                        title="Mostrar u ocultar contraseña"
+                                        @click="mostrarPasswordReset = !mostrarPasswordReset"
+                                    >
+                                        <i
+                                            :class="
+                                                mostrarPasswordReset
+                                                    ? 'fa fa-eye-slash'
+                                                    : 'fa fa-eye'
+                                            "
+                                        ></i>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="btn btn-info waves-effect waves-light"
+                                        title="Generar automáticamente contraseña segura que cumpla las políticas"
+                                        @click="generarPasswordTemporal()"
+                                    >
+                                        <i class="fa fa-magic mr-1"></i> Generar
+                                    </button>
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mt-1">
+                                Mínimo 8 caracteres, con mayúscula, minúscula, número y símbolo.
+                            </small>
+                            <span class="text-danger" v-if="erroresReset.password">
+                                {{ erroresReset.password[0] }}
+                            </span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="control-label"
+                                >Confirmar contraseña temporal
+                                <span class="text-danger">*</span></label
+                            >
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="ti-lock"></i></span>
+                                </div>
+                                <input
+                                    :type="mostrarPasswordReset ? 'text' : 'password'"
+                                    class="form-control"
+                                    placeholder="Confirme la contraseña temporal"
+                                    v-model="resetForm.confirmarPassword"
+                                    autocomplete="new-password"
+                                />
+                            </div>
+                            <span class="text-danger" v-if="erroresReset.confirmarPassword">
+                                {{ erroresReset.confirmarPassword[0] }}
+                            </span>
+                        </div>
+
+                        <div class="custom-control custom-checkbox mt-2">
+                            <input
+                                type="checkbox"
+                                class="custom-control-input"
+                                id="chk_forzar_cambio"
+                                v-model="resetForm.forzar_cambio"
+                            />
+                            <label class="custom-control-label" for="chk_forzar_cambio">
+                                Obligar al usuario a cambiar la contraseña en su próximo inicio de
+                                sesión
+                            </label>
+                        </div>
+
+                        <div v-if="passwordCopiada" class="alert alert-success mt-3 mb-0">
+                            <i class="fa fa-check mr-1"></i> ¡Contraseña copiada al portapapeles!
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-outline-secondary waves-effect"
+                            v-if="resetForm.password"
+                            @click="copiarPasswordAlPortapapeles()"
+                            title="Copiar contraseña generada al portapapeles"
+                        >
+                            <i class="fa fa-copy mr-1"></i> Copiar contraseña
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-default waves-effect"
+                            @click="cerrarModalReset"
+                            :disabled="loadingReset"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-info waves-effect waves-light"
+                            @click="ejecutarResetPassword()"
+                            :disabled="loadingReset"
+                            title="Restablecer contraseña (Ctrl+S)"
+                        >
+                            <i v-if="loadingReset" class="fa fa-spinner fa-spin mr-1"></i>
+                            <i v-else class="fa fa-check mr-1"></i> Restablecer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-if="modalResetVisible" class="modal-backdrop fade show"></div>
     </div>
 </template>
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
-import { confirmAction, alertError, alertSuccess, toastMessage } from "@/helpers/alerts";
+import {
+    confirmAction,
+    alertError,
+    alertSuccess,
+    swalSuccess,
+    toastMessage,
+} from "@/helpers/alerts";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 import axios from "axios";
@@ -716,6 +918,17 @@ defineProps({ usuarioactual: { type: Object, default: () => ({}) } });
 
 const dt = ref(null);
 const modalFirmaVisible = ref(false);
+const modalResetVisible = ref(false);
+const usuarioParaReset = ref(null);
+const loadingReset = ref(false);
+const mostrarPasswordReset = ref(false);
+const passwordCopiada = ref(false);
+const erroresReset = ref({});
+const resetForm = ref({
+    password: "",
+    confirmarPassword: "",
+    forzar_cambio: true,
+});
 
 const registros = ref([]);
 const roles = ref([]);
@@ -727,6 +940,7 @@ const registro = ref({
     email: "",
     password: "",
     confirmarPassword: "",
+    forzar_cambio_password: true,
     estado: false,
     imagen_perfil: "",
     rolesUsuario: [],
@@ -976,6 +1190,7 @@ function mostrarRegistro(data = {}) {
     errores.value = {};
     registro.value.password = "";
     registro.value.confirmarPassword = "";
+    registro.value.forzar_cambio_password = true;
 
     if (actualizar.value) {
         tituloModal.value = "Actualizar el registro: " + data.name;
@@ -1083,6 +1298,187 @@ function ampliarFirma(firmaPath, nombre) {
 function cerrarModalFirma() {
     modalFirmaVisible.value = false;
 }
+
+/**
+ * Abre el modal para restablecer la contraseña del usuario seleccionado
+ * generando una contraseña temporal inicial y preparando el estado reactivo.
+ *
+ * @param {Object} item Datos del usuario
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-10-27
+ */
+function abrirModalReset(item) {
+    usuarioParaReset.value = item;
+    resetForm.value = {
+        password: "",
+        confirmarPassword: "",
+        forzar_cambio: true,
+    };
+    erroresReset.value = {};
+    mostrarPasswordReset.value = false;
+    passwordCopiada.value = false;
+    modalResetVisible.value = true;
+    generarPasswordTemporal();
+}
+
+/**
+ * Cierra el modal de restablecimiento de contraseña.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-10-27
+ */
+function cerrarModalReset() {
+    if (loadingReset.value) return;
+    modalResetVisible.value = false;
+    usuarioParaReset.value = null;
+    erroresReset.value = {};
+    passwordCopiada.value = false;
+}
+
+/**
+ * Genera de forma pseudoaleatoria una contraseña temporal segura que cumple
+ * estrictamente las políticas institucionales (longitud 10+, mayúscula, minúscula,
+ * número y símbolo) excluyendo caracteres ambiguos.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-10-27
+ */
+function generarPasswordTemporal() {
+    const mayusculas = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+    const minusculas = "abcdefghijkmnpqrstuvwxyz";
+    const numeros = "23456789";
+    const simbolos = "!@#$%&*_-";
+
+    let pwd = "";
+    pwd += mayusculas.charAt(Math.floor(Math.random() * mayusculas.length));
+    pwd += minusculas.charAt(Math.floor(Math.random() * minusculas.length));
+    pwd += numeros.charAt(Math.floor(Math.random() * numeros.length));
+    pwd += simbolos.charAt(Math.floor(Math.random() * simbolos.length));
+
+    const todo = mayusculas + minusculas + numeros + simbolos;
+    for (let i = 0; i < 6; i++) {
+        pwd += todo.charAt(Math.floor(Math.random() * todo.length));
+    }
+
+    const arr = pwd.split("");
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    const finalPwd = arr.join("");
+
+    resetForm.value.password = finalPwd;
+    resetForm.value.confirmarPassword = finalPwd;
+    mostrarPasswordReset.value = true;
+    erroresReset.value = {};
+}
+
+/**
+ * Copia la contraseña temporal al portapapeles del navegador para que el
+ * administrador pueda suministrársela de inmediato al usuario solicitante.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-10-27
+ */
+async function copiarPasswordAlPortapapeles() {
+    if (!resetForm.value.password) return;
+    try {
+        if (navigator?.clipboard?.writeText) {
+            await navigator.clipboard.writeText(resetForm.value.password);
+        } else {
+            const ta = document.createElement("textarea");
+            ta.value = resetForm.value.password;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand("copy");
+            document.body.removeChild(ta);
+        }
+        passwordCopiada.value = true;
+        setTimeout(() => {
+            passwordCopiada.value = false;
+        }, 3000);
+        toastMessage({
+            heading: "Copiado",
+            text: "Contraseña temporal copiada al portapapeles.",
+            icon: "info",
+            position: "top-right",
+            hideAfter: 2500,
+        });
+    } catch (_err) {
+        // Fallback sin interrupción
+    }
+}
+
+/**
+ * Envía la petición POST al backend para restablecer la contraseña del usuario,
+ * revocando sesiones previas y forzando el cambio en el próximo inicio de sesión.
+ *
+ * Flujo del proceso:
+ * 1. Valida presencia y coincidencia de contraseña temporal.
+ * 2. Emite la petición a /api/seguridad-usuarios/{id}/restablecer-password.
+ * 3. En caso de éxito, cierra el modal, refresca la tabla y notifica mediante SweetAlert modal.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-10-27
+ */
+async function ejecutarResetPassword() {
+    if (!usuarioParaReset.value || loadingReset.value) return;
+    erroresReset.value = {};
+
+    if (!resetForm.value.password) {
+        erroresReset.value = { password: ["La contraseña temporal es obligatoria."] };
+        return;
+    }
+    if (resetForm.value.password !== resetForm.value.confirmarPassword) {
+        erroresReset.value = {
+            confirmarPassword: ["La confirmación de la contraseña no coincide."],
+        };
+        return;
+    }
+
+    loadingReset.value = true;
+    try {
+        const payload = {
+            password: resetForm.value.password,
+            confirmarPassword: resetForm.value.confirmarPassword,
+            forzar_cambio: resetForm.value.forzar_cambio,
+        };
+
+        await axios.post(
+            `/api/seguridad-usuarios/${usuarioParaReset.value.id}/restablecer-password`,
+            payload
+        );
+
+        const passwordUsada = resetForm.value.password;
+        const nombreUsuario = usuarioParaReset.value.name;
+
+        cerrarModalReset();
+        await ListarDatos();
+
+        swalSuccess(
+            "¡Contraseña Restablecida!",
+            `Se ha asignado la contraseña temporal (${passwordUsada}) a ${nombreUsuario}. Al iniciar sesión, el sistema le obligará a crear una nueva contraseña.`
+        );
+    } catch (err) {
+        erroresReset.value = err?.response?.data?.errors || {};
+        if (err?.response?.status !== 422) {
+            alertError(
+                "Error",
+                err?.response?.data?.message || "No fue posible restablecer la contraseña.",
+                "error"
+            );
+        }
+    } finally {
+        loadingReset.value = false;
+    }
+}
+
 function btnCerrarModalForm() {
     sidebarOpen.value = false;
 }
@@ -1096,6 +1492,7 @@ function limpiarFormulario() {
     registro.value.email = "";
     registro.value.password = "";
     registro.value.confirmarPassword = "";
+    registro.value.forzar_cambio_password = true;
     registro.value.estado = false;
     errores.value = {};
 }
@@ -1113,17 +1510,26 @@ onBeforeUnmount(() => {
 
 useKeyboardShortcuts({
     onSearch: () => {
-        if (!sidebarOpen.value && !modalFirmaVisible.value && !loadingListar.value) {
+        if (
+            !sidebarOpen.value &&
+            !modalFirmaVisible.value &&
+            !modalResetVisible.value &&
+            !loadingListar.value
+        ) {
             ListarDatos();
         }
     },
     onSave: () => {
-        if (sidebarOpen.value && !loadingGuardar.value) {
+        if (modalResetVisible.value && !loadingReset.value) {
+            ejecutarResetPassword();
+        } else if (sidebarOpen.value && !loadingGuardar.value) {
             guardarRegistro();
         }
     },
     onEscape: () => {
-        if (modalFirmaVisible.value) {
+        if (modalResetVisible.value) {
+            cerrarModalReset();
+        } else if (modalFirmaVisible.value) {
             cerrarModalFirma();
         } else if (sidebarOpen.value) {
             btnCerrarModalForm();

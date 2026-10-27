@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Seguridad;
 
 use App\Helpers\PasswordRules;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Seguridad\ResetPasswordUserRequest;
 use App\Http\Requests\Seguridad\StoreUserRequest;
 use App\Http\Requests\Seguridad\UpdateUserProfileRequest;
 use App\Http\Requests\Seguridad\UpdateUserRequest;
@@ -30,7 +31,7 @@ class UserController extends Controller
         // selectores globales del header (médicos/asignadores) para cualquier perfil autenticado.
         $this->middleware('permission:seguridad.usuarios.index')->only(['index']);
         $this->middleware('permission:seguridad.usuarios.create')->only(['store']);
-        $this->middleware('permission:seguridad.usuarios.edit')->only(['update', 'estadoUsuario']);
+        $this->middleware('permission:seguridad.usuarios.edit')->only(['update', 'estadoUsuario', 'restablecerPassword']);
         $this->middleware('permission:seguridad.usuarios.destroy')->only(['destroy']);
     }
 
@@ -171,6 +172,34 @@ class UserController extends Controller
         $result = $this->userService->toggleStatus(
             (int) $validated["id"],
             (bool) $validated["estado"],
+        );
+
+        return response()->json($result, (int) $result["status"]);
+    }
+
+    /**
+     * Restablece la contraseña de un usuario a solicitud de un administrador y
+     * fuerza el cambio en su próximo inicio de sesión.
+     *
+     * Flujo del proceso:
+     * 1. Valida la contraseña temporal bajo la política institucional (longitud 8+, mayúscula, minúscula, número y símbolo).
+     * 2. Delega al servicio la actualización del hash, revocación de sesiones/tokens y asignación de password_changed_at a null.
+     * 3. Retorna respuesta estructurada JSON con código HTTP correspondiente.
+     *
+     * @param  ResetPasswordUserRequest  $request  Solicitud validada con la contraseña temporal y confirmación.
+     * @param  int  $id  Identificador del usuario.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-27
+     */
+    public function restablecerPassword(ResetPasswordUserRequest $request, int $id): JsonResponse
+    {
+        $validated = $request->validated();
+        $result = $this->userService->resetPassword(
+            $id,
+            $validated["password"],
+            (bool) ($validated["forzar_cambio"] ?? true),
         );
 
         return response()->json($result, (int) $result["status"]);

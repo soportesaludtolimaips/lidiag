@@ -37,6 +37,23 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Funcionalidad de Restablecimiento de Contraseña para Administradores con Cambio Obligatorio al Iniciar Sesión (`usuarioComponent.vue`):**
+  - **Objetivo:** Permitir a los administradores restablecer la contraseña de cualquier usuario cuando éste lo solicite, asignando una clave temporal segura y obligándolo a cambiarla en su próximo inicio de sesión.
+  - **Componentes y Cambios Implementados:**
+    * *Frontend (`usuarioComponent.vue`):*
+      - Agregado botón de acción "Restablecer contraseña" (`fa-key`, `btn-outline-info btn-sm`) en cada fila del listado de usuarios.
+      - Badge visual informativo en la columna de estado para usuarios con `!item.password_changed_at` indicando `<i class="fa fa-clock-o"></i> Cambio pendiente`.
+      - Modal nativo AdminWrap/Bootstrap 4 de restablecimiento de contraseña con generación automática de contraseñas temporales seguras (longitud 10, mayúsculas, minúsculas, números y símbolos sin caracteres ambiguos), botón de visualización (mostrar/ocultar), botón de copia al portapapeles y checkbox de cambio obligatorio en el próximo login.
+      - Integrado atajo de teclado (`Esc` para cerrar y `Ctrl+S` para enviar).
+      - En el cajón lateral de edición de usuario (`actualizar`), se agregó el checkbox reactivo para exigir cambio de contraseña si el administrador escribe una nueva clave.
+    * *Backend (`UserController.php` y `UserService.php`):*
+      - Creado `ResetPasswordUserRequest` validando contraseña temporal bajo la política institucional `PasswordRules::nueva()` y confirmación coincidente.
+      - Implementado método `UserController::restablecerPassword()` protegido con el middleware `permission:seguridad.usuarios.edit`.
+      - En `UserService::resetPassword()`, se actualiza el hash de la contraseña, se asigna `password_changed_at = null` (activando el middleware nativo `ForcePasswordChange` al iniciar sesión), se purgan todas las sesiones web activas en `sessions` y se revocan los tokens Sanctum del usuario, registrando la auditoría ISO 27001 con `AuditLogger`.
+      - En `UserService::update()`, se soporta la bandera `forzar_cambio_password` cuando se actualiza la clave desde el drawer.
+      - Registrada ruta API `POST /api/seguridad-usuarios/{id}/restablecer-password` en `routes/api_seguridad.php`.
+  - **Verificaciones:** Laravel Pint passed (`{"tool":"pint","result":"passed"}`) ✅ | ESLint passed (0 errores) ✅ | Compilación Vite completada en 1.11s (`npm run build`) ✅ | Prueba transaccional en PHP ejecutada con rollback seguro ✅.
+
 - [x] **2026-10-27 — Reestructuración y Orden Lógico del Informe de Actualizaciones para Gerencia:**
   - **Objetivo:** Organizar las 14 secciones del informe ejecutivo siguiendo el ciclo de vida natural del paciente y el flujo de trabajo hospitalario: *Ingreso y Citas → Admisión y Trabajo DICOM → Lectura y Diagnóstico → Dosimetría → Entrega de Resultados → SAHI → Facturación → Reportes → Monitoreo Telegram → Respaldo e Infraestructura → Seguridad ISO 27001 → Ergonomía UI/UX → Arquitectura Limpia → Rendimiento Técnico*.
   - **Archivos actualizados:**
