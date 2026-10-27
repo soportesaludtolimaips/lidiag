@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exports\Dosimetria\DosimetriaExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Dosimetria\DosimetriaFiltroRequest;
 use App\Http\Requests\Dosimetria\DosimetriaStoreRequest;
 use App\Services\Dosimetria\DosimetriaService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class DosimetriaController extends Controller
 {
@@ -30,7 +34,7 @@ class DosimetriaController extends Controller
     {
         $this->dosimetriaService = $dosimetriaService;
 
-        $this->middleware('permission:dosimetria.dashboard')->only(['index']);
+        $this->middleware('permission:dosimetria.dashboard')->only(['index', 'exportar']);
     }
 
     /**
@@ -78,5 +82,29 @@ class DosimetriaController extends Controller
         $result = $this->dosimetriaService->guardarLote($sedeId, $registros);
 
         return response()->json($result, (int) $result['status']);
+    }
+
+    /**
+     * Exporta el informe consolidado y detallado de dosimetría a un archivo Excel multi-hoja.
+     *
+     * Flujo del proceso:
+     * 1. Valida los filtros opcionales de sede, modalidad, métrica y fechas mediante DosimetriaFiltroRequest.
+     * 2. Genera el nombre del archivo con timestamp para auditoría técnica.
+     * 3. Descarga el archivo Excel mediante Maatwebsite Excel (DosimetriaExport).
+     *
+     * @param  DosimetriaFiltroRequest  $request  Filtros de consulta clínica
+     * @return BinaryFileResponse Descarga del libro Excel estructurado
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-26
+     */
+    public function exportar(DosimetriaFiltroRequest $request): BinaryFileResponse
+    {
+        $filtros = $request->validated();
+        $timestamp = Carbon::now()->format('Ymd_His');
+        $nombreArchivo = "Reporte_Dosimetria_Radiologica_{$timestamp}.xlsx";
+
+        return Excel::download(new DosimetriaExport($filtros), $nombreArchivo);
     }
 }

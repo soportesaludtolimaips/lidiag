@@ -37,6 +37,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-26 — Generación de Reporte Excel Multi-Hoja de Dosimetría con Estadísticas y Detalle Clínico:**
+  - **Arquitectura de Exportación (`app/Exports/Dosimetria/`):** Implementado `DosimetriaExport` (`WithMultipleSheets`) compuesto por dos hojas profesionales de auditoría técnica y biomédica:
+    * *Hoja 1 — Estadísticas y NRD (`DosimetriaEstadisticasSheet`):* Encabezado institucional Salud Tolima, bloque de KPIs ejecutivos, tabla analítica mensual agrupada por sede, modalidad y tipo de métrica, contraste contra límites regulatorios NRD (Resolución 482 de 2018) y semáforo semántico condicional de alerta.
+    * *Hoja 2 — Registros Detallados (`DosimetriaDetalleSheet`):* Trazabilidad completa disparo por disparo con equipo emisor, AET Title, Study UID, descripción del procedimiento, magnitud de radiación medida y hash SHA-256 anonimizado del paciente conforme a la norma ISO/IEC 27001.
+  - **Backend y Servicio:** Desarrollado `DosimetriaService::obtenerDatosExportacion()`, endpoint `DosimetriaController::exportar()` y rutas `/api/dosis/exportar` y `/api/dosimetria/exportar` con guardia dual `auth:sanctum,web` permitiendo descarga directa desde la interfaz web y por API.
+  - **Frontend Vue 3 (`DashboardDosimetria.vue`):** Incorporado botón *"Exportar Excel"* en el encabezado del dashboard con enlace dinámico respetando los filtros de sede, modalidad, métrica y rango de fechas seleccionados.
+  - **Verificación Estricta:** Laravel Pint passed ✅ | ESLint 0 errores/advertencias ✅ | Vite `npm run build` en 2.24s ✅ | Prueba binaria Maatwebsite validada con generación exitosa de 22.8 KB ✅.
 - [x] **2026-10-26 — Verificación en Vivo y Transmisión Exitosa a Producción (10.35.47.4):**
   - Culminada exitosamente la prueba integral de extremo a extremo (E2E): 79 de 79 registros de dosimetría extraídos de imágenes DICOM locales fueron transmitidos y persistidos al 100% en el servidor de producción `10.35.47.4` (`medicion_dosis_radiacion` y `medicion_dosis_equipos_emisores`).
   - El pipeline completo opera de forma desatendida, resiliente y en cumplimiento con la Resolución 482 de 2018.

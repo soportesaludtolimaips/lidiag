@@ -20,6 +20,14 @@
             <div class="col-md-5 text-md-end mt-2 mt-md-0">
                 <button
                     type="button"
+                    class="btn btn-sm btn-outline-success me-2"
+                    :disabled="loading || exportando"
+                    @click="exportarExcel"
+                >
+                    <i class="fa fa-file-excel-o me-1"></i> Exportar Excel
+                </button>
+                <button
+                    type="button"
                     class="btn btn-sm btn-outline-secondary me-2"
                     :disabled="loading"
                     @click="cargarDatos"
@@ -516,6 +524,7 @@ const emitter = appContext?.config?.globalProperties?.emitter;
 
 // Estado reactivo
 const loading = ref(false);
+const exportando = ref(false);
 const mostrarModalUmbrales = ref(false);
 
 const filtros = reactive({
@@ -762,6 +771,29 @@ function limpiarFiltros() {
     filtros.fecha_desde = "";
     filtros.fecha_hasta = "";
     cargarDatos();
+}
+
+/**
+ * Exporta el informe analítico de dosimetría y registros individuales a Excel (.xlsx).
+ *
+ * Flujo del proceso:
+ * 1. Empaqueta los filtros activos (sede, modalidad, métrica, rango de fechas).
+ * 2. Abre en pestaña nueva la ruta /api/dosis/exportar para streaming de descarga.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-10-26
+ */
+function exportarExcel() {
+    const params = new URLSearchParams();
+    if (filtros.sede_id) params.append("sede_id", filtros.sede_id);
+    if (filtros.modalidad && filtros.modalidad !== "TODAS")
+        params.append("modalidad", filtros.modalidad);
+    if (filtros.tipo_metrica && filtros.tipo_metrica !== "TODAS")
+        params.append("tipo_metrica", filtros.tipo_metrica);
+    if (filtros.fecha_desde) params.append("fecha_desde", filtros.fecha_desde);
+    if (filtros.fecha_hasta) params.append("fecha_hasta", filtros.fecha_hasta);
+
+    window.open(`/api/dosis/exportar?${params.toString()}`, "_blank");
 }
 
 // Sincronización reactiva con EventBus global

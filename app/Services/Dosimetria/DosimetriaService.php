@@ -297,4 +297,196 @@ class DosimetriaService extends BaseService
             return $this->error('No se pudo generar el consolidado de dosimetría: '.$e->getMessage(), 500);
         }
     }
+
+    /**
+     * Obtiene y estructura los datos consolidados y registros detallados para la exportación a Excel.
+     *
+     * Flujo del proceso:
+     * 1. Resuelve filtros de sede, modalidad, métrica y ventana temporal.
+     * 2. Consulta los umbrales NRD regulatorios activos (Resolución 482 de 2018).
+     * 3. Calcula las métricas estadísticas agrupadas por sede, mes, modalidad y métrica.
+     * 4. Obtiene el histórico detallado de mediciones con trazabilidad de equipo emisor y hash de paciente.
+     * 5. Clasifica cada registro frente a los umbrales NRD (Conforme, Alerta preventiva, Supera NRD).
+     * 6. Retorna estructura lista para las dos hojas del libro Excel.
+     *
+     * @param  array  $filtros  Criterios de filtrado seleccionados por el usuario
+     * @return array Conjunto de datos estadísticos y registros individuales para Excel
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-26
+     */
+    public function obtenerDatosExportacion(array $filtros): array
+    {
+        $sedeId = ! empty($filtros['sede_id']) ? (int) $filtros['sede_id'] : null;
+        $modalidad = ! empty($filtros['modalidad']) && $filtros['modalidad'] !== 'TODAS' ? $filtros['modalidad'] : null;
+        $tipoMetrica = ! empty($filtros['tipo_metrica']) && $filtros['tipo_metrica'] !== 'TODAS' ? $filtros['tipo_metrica'] : null;
+        $fechaDesde = ! empty($filtros['fecha_desde']) ? Carbon::parse($filtros['fecha_desde'])->startOfDay() : Carbon::now()->subMonths(6)->startOfMonth();
+        $fechaHasta = ! empty($filtros['fecha_hasta']) ? Carbon::parse($filtros['fecha_hasta'])->endOfDay() : Carbon::now()->endOfDay();
+
+        // 1. Resolver nombre de sede para encabezados
+        $nomSede = 'Todas las Sedes Hospitalarias';
+        if ($sedeId) {
+            $sede = ConfigSede::find($sedeId);
+            $nomSede = $sede ? $sede->nom_sede : "Sede #{$sedeId}";
+        }
+
+        // 2. Cargar catálogo de umbrales NRD activos
+        $umbrales = UmbralNrd::where('estado', true)->get()->keyBy(function ($item) {
+            return "{$item->modalidad}_{$item->tipo_metrica}";
+        });
+
+        // 3. Consulta de Estadísticas Agrupadas por Sede, Mes, Modalidad y Métrica
+        $queryEstadisticas = DB::table('medicion_dosis_radiacion as r')
+            ->join('config_sedes as s', 's.id', '=', 'r.sede_id')
+            ->leftJoin('medicion_dosis_equipos_emisores as e', 'e.id', '=', 'r.equipo_emisor_id')
+            ->whereBetween('r.fecha_estudio', [$fechaDesde, $fechaHasta])
+            ->select(
+                'r.sede_id',
+                's.nom_sede',
+                DB::raw("COALESCE(e.modalidad, 'OTRA') as modalidad"),
+                'r.tipo_metrica',
+                DB::raw("DATE_FORMAT(r.fecha_estudio, '%Y-%m') as mes_periodo"),
+                DB::raw('COUNT(*) as total_estudios'),
+                DB::raw('ROUND(AVG(r.valor_dosis), 2) as dosis_promedio'),
+                DB::raw('ROUND(MIN(r.valor_dosis), 2) as dosis_minima'),
+                DB::raw('ROUND(MAX(r.valor_dosis), 2) as dosis_maxima'),
+                'r.unidad_medida'
+            )
+            ->groupBy('r.sede_id', 's.nom_sede', 'modalidad', 'r.tipo_metrica', 'mes_periodo', 'r.unidad_medida')
+            ->orderBy('s.nom_sede', 'ASC')
+            ->orderBy('mes_periodo', 'DESC')
+            ->orderBy('modalidad', 'ASC');
+
+        if ($sedeId) {
+            $queryEstadisticas->where('r.sede_id', $sedeId);
+        }
+        if ($modalidad) {
+            $queryEstadisticas->where('e.modalidad', $modalidad);
+        }
+        if ($tipoMetrica) {
+            $queryEstadisticas->where('r.tipo_metrica', $tipoMetrica);
+        }
+
+        $filasEstadisticas = $queryEstadisticas->get();
+
+        // 4. Mapeo y contraste de estadísticas contra NRD
+        $totalSuperaciones = 0;
+        $totalAlertas = 0;
+        $totalConformes = 0;
+
+        $estadisticasProcesadas = $filasEstadisticas->map(function ($fila) use ($umbrales, &$totalSuperaciones, &$totalAlertas, &$totalConformes) {
+            $nrdKey = "{$fila->modalidad}_{$fila->tipo_metrica}";
+            $umbral = $umbrales->get($nrdKey);
+
+            $limiteNrd = $umbral ? (float) $umbral->valor_limite_nrd : null;
+            $valorAlerta = $umbral ? (float) $umbral->valor_alerta : null;
+
+            $estadoRegulatorio = 'CONFORME (SEGURO)';
+            if ($limiteNrd !== null && (float) $fila->dosis_promedio >= $limiteNrd) {
+                $estadoRegulatorio = 'SUPERA NRD (CRÍTICO)';
+                $totalSuperaciones++;
+            } elseif ($valorAlerta !== null && (float) $fila->dosis_promedio >= $valorAlerta) {
+                $estadoRegulatorio = 'ALERTA PREVENTIVA';
+                $totalAlertas++;
+            } else {
+                $totalConformes++;
+            }
+
+            $fila->limite_nrd = $limiteNrd;
+            $fila->valor_alerta = $valorAlerta;
+            $fila->estado_regulatorio = $estadoRegulatorio;
+
+            return $fila;
+        });
+
+        // 5. Consulta de Histórico Detallado de Exposición Individual
+        $queryDetalles = DB::table('medicion_dosis_radiacion as r')
+            ->join('config_sedes as s', 's.id', '=', 'r.sede_id')
+            ->leftJoin('medicion_dosis_equipos_emisores as e', 'e.id', '=', 'r.equipo_emisor_id')
+            ->whereBetween('r.fecha_estudio', [$fechaDesde, $fechaHasta])
+            ->select(
+                'r.id',
+                's.nom_sede',
+                DB::raw("COALESCE(e.modalidad, 'OTRA') as modalidad"),
+                DB::raw("COALESCE(e.nombre, 'Equipo Emisor') as equipo_nombre"),
+                DB::raw("COALESCE(e.aet_title, 'N/A') as aet_title"),
+                'r.fecha_estudio',
+                'r.accession_no',
+                'r.study_desc',
+                'r.tipo_metrica',
+                'r.valor_dosis',
+                'r.unidad_medida',
+                'r.patient_id_hashed',
+                'r.study_uid'
+            )
+            ->orderBy('r.fecha_estudio', 'DESC');
+
+        if ($sedeId) {
+            $queryDetalles->where('r.sede_id', $sedeId);
+        }
+        if ($modalidad) {
+            $queryDetalles->where('e.modalidad', $modalidad);
+        }
+        if ($tipoMetrica) {
+            $queryDetalles->where('r.tipo_metrica', $tipoMetrica);
+        }
+
+        $filasDetalles = $queryDetalles->get();
+
+        // 6. Mapeo y contraste de registros individuales
+        $detallesProcesados = $filasDetalles->map(function ($reg) use ($umbrales) {
+            $nrdKey = "{$reg->modalidad}_{$reg->tipo_metrica}";
+            $umbral = $umbrales->get($nrdKey);
+
+            $limiteNrd = $umbral ? (float) $umbral->valor_limite_nrd : null;
+            $valorAlerta = $umbral ? (float) $umbral->valor_alerta : null;
+
+            $estadoIndividual = 'CONFORME';
+            if ($limiteNrd !== null && (float) $reg->valor_dosis >= $limiteNrd) {
+                $estadoIndividual = 'SUPERA NRD';
+            } elseif ($valorAlerta !== null && (float) $reg->valor_dosis >= $valorAlerta) {
+                $estadoIndividual = 'ALERTA';
+            }
+
+            $reg->limite_nrd = $limiteNrd;
+            $reg->valor_alerta = $valorAlerta;
+            $reg->estado_evaluacion = $estadoIndividual;
+
+            return $reg;
+        });
+
+        // 7. KPIs consolidados
+        $totalGrupos = count($estadisticasProcesadas);
+        $totalEstudios = count($detallesProcesados);
+        $totalEquipos = EquipoEmisor::where('estado', true)
+            ->when($sedeId, fn ($q) => $q->where('sede_id', $sedeId))
+            ->count();
+
+        $cumplimientoPct = $totalGrupos > 0
+            ? round(($totalConformes / $totalGrupos) * 100, 1)
+            : 100.0;
+
+        return [
+            'filtros' => [
+                'nom_sede' => $nomSede,
+                'modalidad' => $modalidad ?: 'Todas las Modalidades',
+                'tipo_metrica' => $tipoMetrica ?: 'Todas las Métricas',
+                'fecha_desde' => $fechaDesde->format('d/m/Y'),
+                'fecha_hasta' => $fechaHasta->format('d/m/Y'),
+                'fecha_generacion' => Carbon::now()->format('d/m/Y H:i:s'),
+            ],
+            'kpis' => [
+                'total_estudios' => $totalEstudios,
+                'total_equipos' => $totalEquipos,
+                'total_grupos' => $totalGrupos,
+                'total_conformes' => $totalConformes,
+                'total_alertas' => $totalAlertas,
+                'total_superaciones' => $totalSuperaciones,
+                'cumplimiento_pct' => $cumplimientoPct,
+            ],
+            'estadisticas' => $estadisticasProcesadas,
+            'detalles' => $detallesProcesados,
+        ];
+    }
 }
