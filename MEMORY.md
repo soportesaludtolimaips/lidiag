@@ -37,6 +37,20 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Corrección de Permisos en Interface SAHI para Asignación de Estudios y Ecografías (`routes/api_interfaces.php`):**
+  - **Diagnóstico:** El usuario con rol *Transcriptor* (`andres19982016@outlook.com`) recibía un error `403 Forbidden` al consultar `GET https://lidiag.com/api/interface-sahi-listar-atenciones/{numDocu}`.
+  - **Causa Raíz:** En `routes/api_interfaces.php`, las rutas de consulta del HIS/SAHI (`/interface-sahi-listar-atenciones`, `/interface-sahi-listar-productos-diagnosticos`, `/interface-sahi/listar/productos/atencion` y `/interface-sahi/test-conexion`) exigían únicamente los permisos `permission:ecografias.index|ecografias.admision,web`. Los transcriptores y médicos asignan estudios clínicos con los permisos `estudio.asignar`, `estudio.transcribir` y `tele.ragiologia.enviar`, por lo que Spatie denegaba el acceso.
+  - **Solución Implementada:** Se incorporaron los permisos `estudio.asignar|estudio.transcribir|tele.ragiologia.enviar` a las rutas de la interface SAHI y se retiró el parámetro redundante `,web` conforme a los estándares de la API. Verificado con prueba HTTP simulada retornando `HTTP 200 OK` con atenciones reales del paciente. Laravel Pint passed ✅.
+- [x] **2026-10-27 — Blindaje Resiliente contra Error 500 en Listado de Sedes Activas (`/api/config-sedes/listar/sedes/activas`):**
+  - **Diagnóstico:** En producción (`lidiag.com`), la petición `GET https://lidiag.com/api/config-sedes/listar/sedes/activas` devolvía `HTTP 500 Internal Server Error`.
+  - **Causa Raíz:**
+    1. `ConfigSedeService::listarActivas()` ejecutaba un `ConfigSede::where('estado', 1)->get()` (`SELECT *`), serializando pesadas plantillas HTML/RTF (`plantilla_rx`, `plantilla_ecografia`) y cadenas con codificación potencialmente mixta/corrupta, provocando fallos de serialización JSON (`JsonException: Malformed UTF-8 characters`).
+    2. En `routes/api_configuracion.php`, la ruta comodín `Route::resource('/config-sedes', ...)` estaba registrada antes de las rutas estáticas específicas (`/listar/sedes/activas`) y `ConfigSedeController` carecía del método `show()`.
+  - **Solución Implementada:**
+    * En `ConfigSedeService::listarActivas()`, se limitó la consulta exclusivamente a los campos requeridos por los selectores (`id`, `nom_sede`, `estado`), sanitizando cada cadena con `mb_convert_encoding(..., 'UTF-8', 'UTF-8')` y agregando bloque `try/catch` con fallback directo a `DB::table('config_sedes')`.
+    * En `ConfigSedeController`, se blindó `listarSedesActivas()` con manejo defensivo de excepciones y se implementó el método `show($id)` delegando en `buscarPorId($id)`.
+    * En `routes/api_configuracion.php`, se eliminó la definición duplicada de `buscarPorId` y se reordenaron las rutas específicas antes del resource.
+  - **Verificaciones:** Laravel Pint passed (`{"tool":"pint","result":"passed"}`) ✅.
 - [x] **2026-10-27 — Homologación Global de Permisos en Todo el Módulo de Configuración:**
   - **Alcance Completo:** Siguiendo la homologación de `ConfigDiagnosticoController`, `ConfigPrioridadController` y `ConfigProductoController`, se revisaron y blindaron sistemáticamente los 15 controladores del módulo de Configuración (`app/Http/Controllers/Configuracion/` y `routes/api_configuracion.php`):
     * `ConfigAdminSaludController`: Se liberó `index()` de `permission:config.admin.salud.index`, permitiendo a usuarios asistenciales consultar EPS/Administradoras en admisiones y citas.

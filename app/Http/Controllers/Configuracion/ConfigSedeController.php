@@ -7,6 +7,7 @@ use App\Http\Requests\Configuracion\StoreConfigSedeRequest;
 use App\Http\Requests\Configuracion\UpdateConfigSedeRequest;
 use App\Services\Configuracion\ConfigSedeService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 class ConfigSedeController extends Controller
 {
@@ -68,6 +69,22 @@ class ConfigSedeController extends Controller
     }
 
     /**
+     * Muestra una sede específica por su identificador (delegado a buscarPorId).
+     *
+     * @param  mixed  $id  Identificador de la sede a buscar.
+     *
+     * @returns JsonResponse
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-27
+     */
+    public function show($id): JsonResponse
+    {
+        return $this->buscarPorId($id);
+    }
+
+    /**
      * Lista únicamente las sedes que se encuentran activas.
      *
      * @returns JsonResponse Respuesta JSON con la lista de sedes activas.
@@ -78,9 +95,22 @@ class ConfigSedeController extends Controller
      */
     public function listarSedesActivas(): JsonResponse
     {
-        $result = $this->configSedeService->listarActivas();
+        try {
+            $result = $this->configSedeService->listarActivas();
 
-        return response()->json($result, (int) $result["status"]);
+            return response()->json($result, (int) ($result["status"] ?? 200));
+        } catch (\Throwable $e) {
+            Log::error("Error en ConfigSedeController::listarSedesActivas: ".$e->getMessage(), [
+                "exception" => $e,
+            ]);
+
+            return response()->json([
+                "success" => false,
+                "data" => [],
+                "message" => "Error al obtener sedes activas: ".$e->getMessage(),
+                "status" => 500,
+            ], 500);
+        }
     }
 
     /**

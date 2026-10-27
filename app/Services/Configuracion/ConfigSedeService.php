@@ -6,6 +6,7 @@ use App\Models\Configuracion\ConfigSede;
 use App\Services\BaseService;
 use App\Services\Contracts\FileServiceInterface;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class ConfigSedeService extends BaseService
@@ -101,17 +102,64 @@ class ConfigSedeService extends BaseService
     }
 
     /**
-     * Lista Ãºnicamente las sedes que se encuentran activas.
+     * Lista únicamente las sedes que se encuentran activas.
      *
-     * @returns array Respuesta con la lista de sedes activas y el estado de la operaciÃ³n.
+     * Flujo del proceso:
+     * 1. Consulta las sedes activas limitando los campos estrictamente necesarios para selectores (id, nom_sede, cod_sede, estado).
+     * 2. Sanitiza la codificación UTF-8 de los nombres de sede para evitar fallos de serialización JSON.
+     * 3. Cuenta con fallback automático ante cualquier inconsistencia en columnas de base de datos.
+     *
+     * @returns array Respuesta con la lista de sedes activas y el estado de la operación.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-07-14
+     * @date 2026-10-27
      */
     public function listarActivas(): array
     {
-        return $this->success(ConfigSede::where('estado', 1)->get());
+        try {
+            $sedes = ConfigSede::query()
+                ->select(['id', 'nom_sede', 'estado'])
+                ->where(function ($q) {
+                    $q->where('estado', 1)->orWhere('estado', true);
+                })
+                ->orderBy('nom_sede')
+                ->get()
+                ->map(function ($sede) {
+                    return [
+                        'id' => (int) $sede->id,
+                        'nom_sede' => mb_convert_encoding((string) $sede->nom_sede, 'UTF-8', 'UTF-8'),
+                        'estado' => (bool) $sede->estado,
+                    ];
+                });
+
+            return $this->success($sedes);
+        } catch (\Throwable $e) {
+            Log::error('Error en ConfigSedeService::listarActivas: '.$e->getMessage(), [
+                'exception' => $e,
+            ]);
+
+            try {
+                $rawSedes = DB::table('config_sedes')
+                    ->select(['id', 'nom_sede'])
+                    ->where(function ($q) {
+                        $q->where('estado', 1)->orWhere('estado', true);
+                    })
+                    ->orderBy('nom_sede')
+                    ->get()
+                    ->map(fn ($s) => [
+                        'id' => (int) $s->id,
+                        'nom_sede' => mb_convert_encoding((string) $s->nom_sede, 'UTF-8', 'UTF-8'),
+                        'estado' => true,
+                    ]);
+
+                return $this->success($rawSedes);
+            } catch (\Throwable $e2) {
+                Log::error('Error en fallback de ConfigSedeService::listarActivas: '.$e2->getMessage());
+
+                return $this->error('No fue posible cargar las sedes: '.$e->getMessage(), 500);
+            }
+        }
     }
 
     /**

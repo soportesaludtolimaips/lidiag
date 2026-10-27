@@ -31,11 +31,6 @@ use Illuminate\Support\Facades\Route;
 // Rutas protegidas (requieren autenticación)
 // Nota: en API usamos Sanctum (stateful) para que funcione con sesión/cookies.
 Route::middleware(['auth'])->group(function () {
-
-    // Sedes - buscarPorId (requiere permiso config.sedes.index)
-    Route::get('/config-sedes/{configsede}/buscarPorId', [ConfigSedeController::class, 'buscarPorId'])
-        ->name('api.config.sedes.buscarPorId');
-
     // Diagnosticos
     Route::resource('/config-diagnosticos', ConfigDiagnosticoController::class)
         ->names('api.config.diagnosticos')
@@ -77,15 +72,15 @@ Route::middleware(['auth'])->group(function () {
         ->except(['create', 'show']);
 
     // Sedes
-    Route::resource('/config-sedes', ConfigSedeController::class)
-        ->names('api.config.sedes')
-        ->except(['create', 'edit']);
-
     Route::get('/config-sedes/listar/sedes/activas', [ConfigSedeController::class, 'listarSedesActivas'])
         ->name('api.config.sedes.listarSedesActivas');
 
     Route::get('/config-sedes/{configsede}/buscarPorId', [ConfigSedeController::class, 'buscarPorId'])
         ->name('api.config.sedes.buscarPorId');
+
+    Route::resource('/config-sedes', ConfigSedeController::class)
+        ->names('api.config.sedes')
+        ->except(['create', 'edit']);
 
     // Plantillas
     Route::resource('/config-plantillas', ConfigPlantillaController::class)

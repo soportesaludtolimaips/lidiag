@@ -29,32 +29,32 @@ Route::middleware(['auth'])->group(function () {
      */
     Route::post('/tele-radiologia-enviar-estudio', [TeleRadiologiaController::class, 'enviarEstudio'])
         ->name('api.tele.radiologia.enviar.estudio')
-        ->middleware(['permission:tele.ragiologia.enviar|estudio.asignar,web']);
+        ->middleware(['permission:tele.ragiologia.enviar|estudio.asignar']);
 
     Route::post('/tele-radiologia-listar-estudios', [TeleRadiologiaController::class, 'listarEstudios'])
         ->name('api.tele.radiologia.listar.estudios')
-        ->middleware(['permission:tele.ragiologia.index|estudio.asignar,web']);
+        ->middleware(['permission:tele.ragiologia.index|estudio.asignar']);
 
     Route::post('/tele-radiologia-enviar-orden', [TeleRadiologiaController::class, 'enviarOrdenTeleRadiologia'])
         ->name('api.tele.radiologia.enviar.orden')
-        ->middleware(['permission:tele.ragiologia.enviar|estudio.asignar,web']);
+        ->middleware(['permission:tele.ragiologia.enviar|estudio.asignar']);
 
     /*
      * Interface SAHI API Endpoints
      */
     Route::get('/interface-sahi-listar-atenciones/{numDocu}', [SAHIController::class, 'listarAtenciones'])
         ->name('api.sahi.listar.atenciones')
-        ->middleware(['permission:ecografias.index|ecografias.admision,web']);
+        ->middleware(['permission:ecografias.index|ecografias.admision|estudio.asignar|estudio.transcribir|tele.ragiologia.enviar']);
 
     Route::get('/interface-sahi-listar-productos-diagnosticos/{idAtencion}', [SAHIController::class, 'listarProductosDiagnosticos'])
         ->name('api.sahi.listar.productos.diagnosticos')
-        ->middleware(['permission:ecografias.index|ecografias.admision,web']);
+        ->middleware(['permission:ecografias.index|ecografias.admision|estudio.asignar|estudio.transcribir|tele.ragiologia.enviar']);
 
     Route::post('/interface-sahi/listar/productos/atencion', [SAHIController::class, 'listarProductosAtencion'])
         ->name('api.sahi.estudios.listar.productos.atencion')
-        ->middleware(['permission:ecografias.index|ecografias.admision,web']);
+        ->middleware(['permission:ecografias.index|ecografias.admision|estudio.asignar|estudio.transcribir|tele.ragiologia.enviar']);
 
     Route::get('/interface-sahi/test-conexion', [SAHIController::class, 'verificarConexion'])
         ->name('api.sahi.test.conexion')
-        ->middleware(['permission:ecografias.index|ecografias.admision|estudio.index,web']);
+        ->middleware(['permission:ecografias.index|ecografias.admision|estudio.asignar|estudio.transcribir|tele.ragiologia.enviar']);
 });
