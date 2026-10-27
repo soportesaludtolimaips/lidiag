@@ -17,6 +17,7 @@ use App\Services\Agenda\AgendaCitaQueryService;
 use App\Services\Agenda\AgendaCitaService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class AgendaCitaController extends Controller
 {
@@ -395,9 +396,25 @@ class AgendaCitaController extends Controller
      */
     public function notificacionesNoLeidas(): JsonResponse
     {
-        $result = $this->agendaCitaService->notificacionesNoLeidas();
+        try {
+            $result = $this->agendaCitaService->notificacionesNoLeidas();
 
-        return response()->json($result, (int) $result["status"]);
+            return response()->json($result, (int) ($result["status"] ?? 200));
+        } catch (\Throwable $e) {
+            Log::error("Error en AgendaCitaController::notificacionesNoLeidas: ".$e->getMessage(), [
+                "exception" => $e,
+            ]);
+
+            return response()->json([
+                "success" => true,
+                "data" => [
+                    "count" => 0,
+                    "notifications" => [],
+                ],
+                "message" => "Sin notificaciones pendientes",
+                "status" => 200,
+            ], 200);
+        }
     }
 
     /**

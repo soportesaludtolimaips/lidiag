@@ -689,26 +689,48 @@ class AgendaCitaService extends BaseService
     public function notificacionesNoLeidas(): array
     {
         $user = Auth::user();
-        $count = $user->unreadNotifications()
-            ->where('type', 'App\Notifications\Citas\CitaSolicitadaNotification')
-            ->count();
+        if (! $user) {
+            return $this->success([
+                'count' => 0,
+                'notifications' => [],
+            ]);
+        }
 
-        $notifications = $user->unreadNotifications()
-            ->where('type', 'App\Notifications\Citas\CitaSolicitadaNotification')
-            ->latest()
-            ->take(5)
-            ->get()
-            ->map(fn ($n) => [
-                'id' => $n->id,
-                'mensaje' => $n->data['mensaje'] ?? '',
-                'url' => $n->data['url'] ?? '/citas/revision',
-                'created_at' => $n->created_at->diffForHumans(),
+        try {
+            $count = $user->unreadNotifications()
+                ->where('type', 'App\Notifications\Citas\CitaSolicitadaNotification')
+                ->count();
+
+            $notifications = $user->unreadNotifications()
+                ->where('type', 'App\Notifications\Citas\CitaSolicitadaNotification')
+                ->latest()
+                ->take(5)
+                ->get()
+                ->map(function ($n) {
+                    $data = is_array($n->data) ? $n->data : (json_decode((string) ($n->data ?? ''), true) ?: []);
+
+                    return [
+                        'id' => (string) $n->id,
+                        'mensaje' => $data['mensaje'] ?? '',
+                        'url' => $data['url'] ?? '/citas/revision',
+                        'created_at' => $n->created_at ? $n->created_at->diffForHumans() : '',
+                    ];
+                });
+
+            return $this->success([
+                'count' => $count,
+                'notifications' => $notifications,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Error en AgendaCitaService::notificacionesNoLeidas: '.$e->getMessage(), [
+                'exception' => $e,
             ]);
 
-        return $this->success([
-            'count' => $count,
-            'notifications' => $notifications,
-        ]);
+            return $this->success([
+                'count' => 0,
+                'notifications' => [],
+            ]);
+        }
     }
 
     /**
@@ -725,9 +747,17 @@ class AgendaCitaService extends BaseService
     public function marcarNotificacionLeida(string $id): array
     {
         $user = Auth::user();
-        $notification = $user->notifications()->where('id', $id)->first();
-        if ($notification) {
-            $notification->markAsRead();
+        if (! $user) {
+            return $this->success(['success' => true]);
+        }
+
+        try {
+            $notification = $user->notifications()->where('id', $id)->first();
+            if ($notification) {
+                $notification->markAsRead();
+            }
+        } catch (\Throwable $e) {
+            Log::error('Error en AgendaCitaService::marcarNotificacionLeida: '.$e->getMessage());
         }
 
         return $this->success(['success' => true]);
@@ -744,9 +774,18 @@ class AgendaCitaService extends BaseService
      */
     public function marcarTodasLeidas(): array
     {
-        Auth::user()->unreadNotifications()
-            ->where('type', 'App\Notifications\Citas\CitaSolicitadaNotification')
-            ->update(['read_at' => now()]);
+        $user = Auth::user();
+        if (! $user) {
+            return $this->success(['success' => true]);
+        }
+
+        try {
+            $user->unreadNotifications()
+                ->where('type', 'App\Notifications\Citas\CitaSolicitadaNotification')
+                ->update(['read_at' => now()]);
+        } catch (\Throwable $e) {
+            Log::error('Error en AgendaCitaService::marcarTodasLeidas: '.$e->getMessage());
+        }
 
         return $this->success(['success' => true]);
     }

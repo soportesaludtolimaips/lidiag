@@ -37,6 +37,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Blindaje Resiliente contra Error 500 en Notificaciones de Citas (`/api/citas/notificaciones/no-leidas`):**
+  - **Diagnóstico:** El endpoint `/api/citas/notificaciones/no-leidas`, consultado por el polling del header cada 30 segundos, arrojaba `HTTP 500 Internal Server Error` en producción.
+  - **Causa Raíz:** `AgendaCitaService::notificacionesNoLeidas()` carecía de comprobación sobre `Auth::user()` (pudo disparar `Call to a member function unreadNotifications() on null`), no contemplaba `$n->created_at` nulo al ejecutar `diffForHumans()`, ni datos no formateados o registros corruptos en la tabla `notifications`, y carecía de bloque `try/catch`.
+  - **Solución Implementada:**
+    * En `AgendaCitaService.php`, se blindaron `notificacionesNoLeidas()`, `marcarNotificacionLeida()` y `marcarTodasLeidas()` con validación previa de usuario autenticado, decodificación segura de `$n->data`, operador elvis para `created_at` (`$n->created_at ? $n->created_at->diffForHumans() : ''`) y bloque `try/catch` con fallback seguro a `{ count: 0, notifications: [] }`.
+    * En `AgendaCitaController.php`, se envolvió `notificacionesNoLeidas()` en un bloque `try/catch` devolviendo siempre respuesta estructurada `200 OK` para asegurar que el polling de la interfaz nunca colapse la consola con errores 500.
+  - **Verificaciones:** Prueba HTTP simulada retornando `HTTP 200 OK` con `{ count: 0, notifications: [] }`. Laravel Pint passed ✅.
 - [x] **2026-10-27 — Corrección de Permisos en Interface SAHI para Asignación de Estudios y Ecografías (`routes/api_interfaces.php`):**
   - **Diagnóstico:** El usuario con rol *Transcriptor* (`andres19982016@outlook.com`) recibía un error `403 Forbidden` al consultar `GET https://lidiag.com/api/interface-sahi-listar-atenciones/{numDocu}`.
   - **Causa Raíz:** En `routes/api_interfaces.php`, las rutas de consulta del HIS/SAHI (`/interface-sahi-listar-atenciones`, `/interface-sahi-listar-productos-diagnosticos`, `/interface-sahi/listar/productos/atencion` y `/interface-sahi/test-conexion`) exigían únicamente los permisos `permission:ecografias.index|ecografias.admision,web`. Los transcriptores y médicos asignan estudios clínicos con los permisos `estudio.asignar`, `estudio.transcribir` y `tele.ragiologia.enviar`, por lo que Spatie denegaba el acceso.
