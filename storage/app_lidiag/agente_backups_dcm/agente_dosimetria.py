@@ -25,6 +25,7 @@ Fecha: 2026-10-23
 import argparse
 import atexit
 import datetime
+import gzip
 import hashlib
 import hmac
 import json
@@ -584,6 +585,29 @@ def resolver_ruta_archivo(dirpath_bd: str, filepath_bd: str, local_images_dir: s
     return os.path.normpath(os.path.join(base, filepath_bd or ""))
 
 
+def clasificar_region_anatomica(study_desc: Optional[str], modalidad: str = "CT") -> str:
+    """Clasifica semánticamente la región anatómica según taxonomía Res. 482 / RadLex Playbook."""
+    desc = (study_desc or "").upper()
+    mod = (modalidad or "").upper()
+    if mod == "MG":
+        return "MAMA"
+    if re.search(r"CRANEO|CEREBRO|ENCEFALO|SILLA TURCA|SENOS PARANASALES|FACIAL|MACIZO|OIDO|ORBITAS|CUELLO", desc):
+        return "CRANEO"
+    if re.search(r"TORAX|PULMON|MEDIASTINO|REJA COSTAL|CARDIO|CORONARI|ANGIOTAC TORACICO", desc):
+        return "TORAX"
+    if re.search(r"ABDOMEN|HIGADO|HEPATIC|PANCREAS|VIAS BILIARES|RENAL|URO|ENTEROTOMOGRAFIA|COLONOSCOPIA", desc):
+        return "ABDOMEN"
+    if re.search(r"PELVIS|PELVIC|PROSTATA|VEJIGA|UTERO|CADERA|SACRO", desc):
+        return "PELVIS"
+    if re.search(r"COLUMNA|CERVICAL|DORSAL|LUMBAR|SACROILIACA|LUMBOSACRA", desc):
+        return "COLUMNA"
+    if re.search(r"RODILLA|HOMBRO|CODO|MU[NÑ]ECA|TOBILLO|PIE|MANO|FEMUR|TIBIA|HUMERO|RADIO|ANTEBRAZO|PIERNA|EXTREMID", desc):
+        return "EXTREMIDADES"
+    if re.search(r"MAMA|SENOS", desc):
+        return "MAMA"
+    return "GENERAL"
+
+
 def extraer_metricas_dosis(dcm_path: str, modalidad: str) -> Optional[List[Dict[str, Any]]]:
     """
     Lee los tags DICOM de la imagen o RDSR y extrae las métricas numéricas.
@@ -603,6 +627,53 @@ def extraer_metricas_dosis(dcm_path: str, modalidad: str) -> Optional[List[Dict[
 
     metricas = []
     mod = modalidad.upper()
+
+    # 0. Inspección de objetos DICOM Structured Report (RDSR - TID 10011 / TID 10001)
+    sop_uid = str(getattr(ds, "SOPClassUID", ""))
+    if sop_uid in ("1.2.840.10008.5.1.4.1.1.88.67", "1.2.840.10008.5.1.4.1.1.88.22", "1.2.840.10008.5.1.4.1.1.88.33") or hasattr(ds, "ContentSequence"):
+        def buscar_conceptos_sr(seq):
+            encontrados = {}
+            for item in seq:
+                concept_name = getattr(item, "ConceptNameCodeSequence", None)
+                meaning = ""
+                if concept_name and len(concept_name) > 0:
+                    meaning = str(getattr(concept_name[0], "CodeMeaning", "")).lower()
+
+                val = None
+                if hasattr(item, "MeasuredValueSequence") and len(item.MeasuredValueSequence) > 0:
+                    val = getattr(item.MeasuredValueSequence[0], "NumericValue", None)
+                elif hasattr(item, "NumericValue"):
+                    val = item.NumericValue
+
+                if val is not None:
+                    try:
+                        val_f = float(val)
+                        if "dose length product total" in meaning or "dlp total" in meaning:
+                            encontrados["DLP"] = val_f
+                        elif "mean ctdivol" in meaning or "ctdivol" in meaning:
+                            encontrados["CTDIvol"] = val_f
+                        elif "dose area product total" in meaning or "dap total" in meaning:
+                            encontrados["DAP"] = val_f
+                        elif "entrance dose" in meaning or "glandular dose" in meaning:
+                            encontrados["DGM"] = val_f
+                    except (ValueError, TypeError):
+                        pass
+
+                if hasattr(item, "ContentSequence"):
+                    sub = buscar_conceptos_sr(item.ContentSequence)
+                    encontrados.update(sub)
+            return encontrados
+
+        try:
+            content_seq = getattr(ds, "ContentSequence", [])
+            sr_vals = buscar_conceptos_sr(content_seq)
+            for k, v in sr_vals.items():
+                u = "mGy*cm" if k == "DLP" else ("Gy*cm2" if k == "DAP" else "mGy")
+                metricas.append({"tipo_metrica": k, "valor_dosis": round(v, 4), "unidad_medida": u, "es_rdsr": True})
+            if metricas:
+                return metricas
+        except Exception:
+            pass
 
     # 1. CT (Tomografía Computarizada) -> CTDIvol (mGy) y DLP (mGy*cm)
     if mod == "CT":
@@ -765,8 +836,19 @@ def enviar_lote_a_central(api_url: str, api_token: str, sede_id: int, registros_
             "registros": chunk_limpio,
         }
         chunk_keys = list({f"{r['study_uid']}_{r['modalidad']}" for r in chunk_limpio})
+
+        payload_bytes = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        post_headers = dict(headers)
+        if len(payload_bytes) > 1024:
+            body = gzip.compress(payload_bytes)
+            post_headers["Content-Encoding"] = "gzip"
+            post_headers["Content-Type"] = "application/json"
+        else:
+            body = payload_bytes
+            post_headers["Content-Type"] = "application/json"
+
         try:
-            response = session.post(api_url, json=payload, headers=headers, timeout=35, verify=False)
+            response = session.post(api_url, data=body, headers=post_headers, timeout=35, verify=False)
             if response.status_code in (200, 201):
                 res_json = response.json()
                 g = res_json.get("guardados", len(chunk))
@@ -897,7 +979,13 @@ def main():
             else:
                 fecha_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+            region = clasificar_region_anatomica(item.get("study_desc"), modality)
             for m in metricas:
+                es_rdsr_val = bool(m.get("es_rdsr", False))
+                prefix_rdsr = "[RDSR] " if es_rdsr_val else ""
+                desc_orig = item.get("study_desc") or ""
+                desc_final = f"{prefix_rdsr}[{region}] {desc_orig}".strip()[:250] if desc_orig else f"{prefix_rdsr}[{region}]".strip()
+
                 registros_extraidos.append({
                     "study_uid": study_uid,
                     "patient_id_hashed": patient_hashed,
@@ -908,7 +996,9 @@ def main():
                     "unidad_medida": m["unidad_medida"],
                     "fecha_estudio": fecha_str,
                     "accession_no": item.get("accession_no"),
-                    "study_desc": item.get("study_desc"),
+                    "study_desc": desc_final,
+                    "region_anatomica": region,
+                    "es_rdsr": es_rdsr_val,
                 })
 
         # Encolar en la base de datos persistente SQLite local

@@ -15,12 +15,31 @@ class DosimetriaStoreRequest extends FormRequest
     }
 
     /**
+     * Descomprime de forma transparente cargas útiles codificadas con GZIP enviadas por el Agente Edge.
+     */
+    protected function prepareForValidation(): void
+    {
+        $contentEncoding = strtolower($this->header('Content-Encoding', ''));
+        if ($contentEncoding === 'gzip') {
+            $raw = $this->getContent();
+            $decoded = @gzdecode($raw);
+            if ($decoded !== false) {
+                $json = json_decode($decoded, true);
+                if (is_array($json)) {
+                    $this->merge($json);
+                }
+            }
+        }
+    }
+
+    /**
      * Reglas de validación para la recepción en lote (bulk) de telemetría de dosimetría.
      *
      * Flujo del proceso:
      * 1. Valida que el sede_id exista en la tabla config_sedes.
      * 2. Exige un arreglo de registros con al menos un elemento.
      * 3. Valida estrictamente cada estudio: study_uid, patient_id_hashed, modalidad, tipo_metrica y valor_dosis.
+     * 4. Acepta atributos enriquecidos opcionales (región anatómica y bandera de objeto RDSR).
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -42,6 +61,8 @@ class DosimetriaStoreRequest extends FormRequest
             'registros.*.fecha_estudio' => 'required|date',
             'registros.*.accession_no' => 'sometimes|nullable|string|max:50',
             'registros.*.study_desc' => 'sometimes|nullable|string|max:255',
+            'registros.*.region_anatomica' => 'sometimes|nullable|string|max:50',
+            'registros.*.es_rdsr' => 'sometimes|nullable|boolean',
         ];
     }
 

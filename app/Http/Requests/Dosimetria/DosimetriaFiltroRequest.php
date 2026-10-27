@@ -57,6 +57,7 @@ class DosimetriaFiltroRequest extends FormRequest
             'sede_id' => 'sometimes|nullable|integer|exists:config_sedes,id',
             'modalidad' => 'sometimes|nullable|string|in:CT,MG,DX,CR,TODAS',
             'tipo_metrica' => 'sometimes|nullable|string|in:CTDIvol,DLP,DGM,DAP,TODAS',
+            'region_anatomica' => 'sometimes|nullable|string|in:CRANEO,TORAX,ABDOMEN,PELVIS,COLUMNA,EXTREMIDADES,MAMA,GENERAL,TODAS',
             'fecha_desde' => 'sometimes|nullable|date',
             'fecha_hasta' => 'sometimes|nullable|date|after_or_equal:fecha_desde',
             'limit' => 'sometimes|nullable|integer|min:10|max:1000',

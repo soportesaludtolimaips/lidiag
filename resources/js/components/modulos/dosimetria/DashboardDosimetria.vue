@@ -207,11 +207,45 @@
             </div>
         </div>
 
+        <!-- 3.5 Panel de Alertas Predictivas de Deriva Técnica (Machine Drift) -->
+        <div
+            v-if="alertasDeriva && alertasDeriva.length > 0"
+            class="alert alert-warning shadow-sm border-warning mb-3 p-3"
+        >
+            <div class="d-flex align-items-start">
+                <i class="fa fa-wrench fa-2x me-3 text-warning mt-1"></i>
+                <div class="flex-grow-1">
+                    <h5 class="alert-heading fw-bold mb-1">
+                        <i class="fa fa-line-chart me-1"></i>Alerta Predictiva de Deriva Técnica
+                        (Machine Drift Detection)
+                    </h5>
+                    <p class="small mb-2 text-warning-emphasis">
+                        Se detectaron equipos emisores con un incremento atípico persistente (+20%
+                        sobre la línea base del periodo), lo que sugiere posible descalibración
+                        física o fatiga del tubo de rayos X:
+                    </p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span
+                            v-for="(ad, idx) in alertasDeriva"
+                            :key="'drift-' + idx"
+                            class="badge bg-warning text-dark p-2 border border-warning"
+                        >
+                            <strong>{{ ad.equipo_nombre }}</strong> ({{ ad.nom_sede }}) |
+                            {{ ad.tipo_metrica }}: +{{ ad.cambio_porcentaje }}% ({{
+                                ad.media_inicial
+                            }}
+                            &rarr; {{ ad.media_reciente }} {{ ad.unidad_medida }})
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- 4. Filtros Interactivos -->
         <div class="card shadow-sm border-0 mb-3 filter-card">
             <div class="card-body py-2 px-3">
                 <div class="row g-2 align-items-end">
-                    <div class="col-md-3">
+                    <div class="col-md-3 col-lg-2">
                         <label class="form-label small text-muted mb-1">Sede Hospitalaria</label>
                         <select
                             v-model="filtros.sede_id"
@@ -225,7 +259,7 @@
                         </select>
                     </div>
 
-                    <div class="col-md-2">
+                    <div class="col-md-3 col-lg-2">
                         <label class="form-label small text-muted mb-1">Modalidad</label>
                         <select
                             v-model="filtros.modalidad"
@@ -240,7 +274,26 @@
                         </select>
                     </div>
 
-                    <div class="col-md-2">
+                    <div class="col-md-3 col-lg-2">
+                        <label class="form-label small text-muted mb-1">Región Anatómica</label>
+                        <select
+                            v-model="filtros.region_anatomica"
+                            class="form-select form-select-sm"
+                            @change="cargarDatos"
+                        >
+                            <option value="TODAS">Todas las Regiones</option>
+                            <option value="CRANEO">Cráneo / Encéfalo</option>
+                            <option value="TORAX">Tórax / Cardio</option>
+                            <option value="ABDOMEN">Abdomen / Hepático</option>
+                            <option value="PELVIS">Pelvis / Urología</option>
+                            <option value="COLUMNA">Columna Vertebral</option>
+                            <option value="EXTREMIDADES">Extremidades</option>
+                            <option value="MAMA">Mama / Senos</option>
+                            <option value="GENERAL">General / Otras</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3 col-lg-2">
                         <label class="form-label small text-muted mb-1">Métrica Dosis</label>
                         <select
                             v-model="filtros.tipo_metrica"
@@ -255,7 +308,7 @@
                         </select>
                     </div>
 
-                    <div class="col-md-2">
+                    <div class="col-md-3 col-lg-1">
                         <label class="form-label small text-muted mb-1">Desde</label>
                         <input
                             v-model="filtros.fecha_desde"
@@ -265,7 +318,7 @@
                         />
                     </div>
 
-                    <div class="col-md-2">
+                    <div class="col-md-3 col-lg-2">
                         <label class="form-label small text-muted mb-1">Hasta</label>
                         <input
                             v-model="filtros.fecha_hasta"
@@ -459,6 +512,7 @@
                                 <th>Sede</th>
                                 <th>Equipo / AET</th>
                                 <th>Modalidad</th>
+                                <th>Región</th>
                                 <th>Métrica</th>
                                 <th>Valor Dosis</th>
                                 <th>Patient ID (Hash)</th>
@@ -484,6 +538,21 @@
                                         :class="getModalidadBadgeClass(reg.modalidad)"
                                     >
                                         {{ reg.modalidad }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span
+                                        class="badge"
+                                        :class="getRegionBadgeClass(reg.region_anatomica)"
+                                    >
+                                        {{ reg.region_anatomica || "GENERAL" }}
+                                    </span>
+                                    <span
+                                        v-if="reg.es_rdsr"
+                                        class="badge bg-info-subtle text-info border border-info ms-1"
+                                        title="Objeto DICOM Radiation Dose Structured Report (RDSR PS3.16)"
+                                    >
+                                        <i class="fa fa-certificate me-1"></i>RDSR
                                     </span>
                                 </td>
                                 <td>
@@ -643,6 +712,7 @@ const filtros = reactive({
     sede_id: "",
     modalidad: "TODAS",
     tipo_metrica: "TODAS",
+    region_anatomica: "TODAS",
     fecha_desde: "",
     fecha_hasta: "",
 });
@@ -651,10 +721,13 @@ const kpis = ref({
     total_estudios: 0,
     total_equipos: 0,
     total_alertas: 0,
+    total_derivas: 0,
 });
 
 const consolidado = ref([]);
 const alertas = ref([]);
+const alertasDeriva = ref([]);
+const distribucionRegiones = ref({});
 const ultimosRegistros = ref([]);
 const umbralesNrd = ref([]);
 const sedes = ref([]);
@@ -705,6 +778,28 @@ function getModalidadBadgeClass(mod) {
             return "bg-info text-dark";
         default:
             return "bg-secondary text-white";
+    }
+}
+
+// Helper de clases de región anatómica
+function getRegionBadgeClass(region) {
+    switch (region) {
+        case "CRANEO":
+            return "bg-primary-subtle text-primary border border-primary";
+        case "TORAX":
+            return "bg-info-subtle text-info border border-info";
+        case "ABDOMEN":
+            return "bg-success-subtle text-success border border-success";
+        case "PELVIS":
+            return "bg-warning-subtle text-warning border border-warning";
+        case "COLUMNA":
+            return "bg-secondary-subtle text-secondary border border-secondary";
+        case "EXTREMIDADES":
+            return "bg-dark-subtle text-dark border border-dark";
+        case "MAMA":
+            return "bg-danger-subtle text-danger border border-danger";
+        default:
+            return "bg-light text-muted border";
     }
 }
 
@@ -1026,6 +1121,8 @@ async function cargarDatos() {
             params.modalidad = filtros.modalidad;
         if (filtros.tipo_metrica && filtros.tipo_metrica !== "TODAS")
             params.tipo_metrica = filtros.tipo_metrica;
+        if (filtros.region_anatomica && filtros.region_anatomica !== "TODAS")
+            params.region_anatomica = filtros.region_anatomica;
         if (filtros.fecha_desde) params.fecha_desde = filtros.fecha_desde;
         if (filtros.fecha_hasta) params.fecha_hasta = filtros.fecha_hasta;
 
@@ -1034,10 +1131,17 @@ async function cargarDatos() {
 
         consolidado.value = resData.consolidado || [];
         alertas.value = resData.alertas || [];
+        alertasDeriva.value = resData.alertas_deriva || [];
+        distribucionRegiones.value = resData.distribucion_regiones || {};
         ultimosRegistros.value = resData.ultimos_registros || [];
         umbralesNrd.value = resData.umbrales_nrd || [];
         sedes.value = resData.sedes || [];
-        kpis.value = resData.kpis || { total_estudios: 0, total_equipos: 0, total_alertas: 0 };
+        kpis.value = resData.kpis || {
+            total_estudios: 0,
+            total_equipos: 0,
+            total_alertas: 0,
+            total_derivas: 0,
+        };
     } catch (error) {
         console.error("Error al cargar telemetría de dosimetría:", error);
     } finally {
@@ -1049,6 +1153,7 @@ function limpiarFiltros() {
     filtros.sede_id = "";
     filtros.modalidad = "TODAS";
     filtros.tipo_metrica = "TODAS";
+    filtros.region_anatomica = "TODAS";
     filtros.fecha_desde = "";
     filtros.fecha_hasta = "";
     cargarDatos();
@@ -1071,6 +1176,8 @@ function exportarExcel() {
         params.append("modalidad", filtros.modalidad);
     if (filtros.tipo_metrica && filtros.tipo_metrica !== "TODAS")
         params.append("tipo_metrica", filtros.tipo_metrica);
+    if (filtros.region_anatomica && filtros.region_anatomica !== "TODAS")
+        params.append("region_anatomica", filtros.region_anatomica);
     if (filtros.fecha_desde) params.append("fecha_desde", filtros.fecha_desde);
     if (filtros.fecha_hasta) params.append("fecha_hasta", filtros.fecha_hasta);
 

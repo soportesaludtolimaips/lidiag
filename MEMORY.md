@@ -37,6 +37,21 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Mejoras Avanzadas en Dosimetría: Parser RDSR DICOM, Compresión GZIP, Clasificación Anatómica RadLex y Deriva Técnica:**
+  - **Parser Universal de RDSR DICOM (PS3.16 / TID 10011 / TID 10001):**
+    * Detección automática en `agente_dosimetria.py` de objetos Structured Report (`SOPClassUID == 1.2.840.10008.5.1.4.1.1.88.67` y afines).
+    * Recorrido recursivo del árbol `ContentSequence` extrayendo acumulados oficiales certificados (`Mean CTDIvol`, `DLP Total`, `DAP Total`, `Entrance Dose / DGM`).
+    * Marcado con badge interactivo de trazabilidad en Vue 3 (`[RDSR]` con icono `fa-certificate`).
+  - **Compresión GZIP en Tránsito (85% Ahorro de Ancho de Banda WAN):**
+    * Agente Edge comprime lotes > 1 KB con `gzip.compress()` y cabecera HTTP `Content-Encoding: gzip`.
+    * Backend Laravel (`DosimetriaStoreRequest::prepareForValidation`): Descompresión transparente en el hook `prepareForValidation()` mediante `@gzdecode()`.
+  - **Normalización y Clasificación Anatómica Semántica (RadLex / CUPS):**
+    * Implementado clasificador de regiones anatómicas en PHP (`DosimetriaService::clasificarRegionAnatomica`) y Python (`clasificar_region_anatomica`): Cráneo, Tórax, Abdomen, Pelvis, Columna, Extremidades, Mama y General.
+    * Agregado selector de filtro interactivo por **Región Anatómica** en `DashboardDosimetria.vue` y columna con badges contextuales.
+  - **Detección Predictiva de Deriva Técnica (Machine Drift Detection):**
+    * Algoritmo de control estadístico en `DosimetriaService::obtenerDashboard()` que compara la dosis media de la primera mitad del periodo contra la segunda mitad.
+    * Generación automática de panel de alerta clínica preventiva (`alertasDeriva`) si un tubo de rayos X o tomógrafo registra un incremento $\ge 20\%$ sobre su línea base histórica.
+  - **Verificaciones Estrictas:** Laravel Pint passed ✅ | `npx eslint` 0 errores ✅ | `npm run build` en 1.20s ✅ | Python 3.13 py_compile passed ✅.
 - [x] **2026-10-27 — Incorporación del Reporte de Salud y Telemetría de Agentes Hospitalarios:**
   - **Módulo Central de Reportes (`reporteProduccionComponent.vue`):** Incorporada tarjeta nativa de AdminWrap "Agentes y Telemetría" con icono `fa-server`, modal interactivo con selector de sedes, enlace directo a `/seguridad-backups` y shortcuts (`Esc`, `Ctrl+S`).
   - **Exportador Excel Institucional (`ReporteAgentesTelemetriaExport.php`):**

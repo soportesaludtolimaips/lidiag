@@ -73,6 +73,17 @@ class DosimetriaService extends BaseService
                     $equiposCache[$keyEquipo] = $equipo->id;
                 }
 
+                $descRaw = $reg['study_desc'] ?? null;
+                $region = $reg['region_anatomica'] ?? self::clasificarRegionAnatomica($descRaw, $modalidad);
+                $prefixRdsr = ! empty($reg['es_rdsr']) ? '[RDSR]' : '';
+                $descFinal = $descRaw;
+                if ($descFinal && ! str_contains($descFinal, "[{$region}]")) {
+                    $tags = trim("{$prefixRdsr} [{$region}]");
+                    $descFinal = substr("{$tags} {$descFinal}", 0, 255);
+                } elseif (! empty($prefixRdsr) && ! str_contains($descFinal ?? '', '[RDSR]')) {
+                    $descFinal = substr("[RDSR] {$descFinal}", 0, 255);
+                }
+
                 $filasParaUpsert[] = [
                     'sede_id' => $sedeId,
                     'equipo_emisor_id' => $equiposCache[$keyEquipo],
@@ -83,7 +94,7 @@ class DosimetriaService extends BaseService
                     'unidad_medida' => $reg['unidad_medida'] ?? 'mGy',
                     'fecha_estudio' => Carbon::parse($reg['fecha_estudio'])->format('Y-m-d H:i:s'),
                     'accession_no' => $reg['accession_no'] ?? null,
-                    'study_desc' => $reg['study_desc'] ?? null,
+                    'study_desc' => $descFinal,
                     'created_at' => $now,
                     'updated_at' => $now,
                 ];
@@ -155,6 +166,7 @@ class DosimetriaService extends BaseService
             $sedeId = ! empty($filtros['sede_id']) ? (int) $filtros['sede_id'] : null;
             $modalidad = ! empty($filtros['modalidad']) && $filtros['modalidad'] !== 'TODAS' ? $filtros['modalidad'] : null;
             $tipoMetrica = ! empty($filtros['tipo_metrica']) && $filtros['tipo_metrica'] !== 'TODAS' ? $filtros['tipo_metrica'] : null;
+            $regionAnatomica = ! empty($filtros['region_anatomica']) && $filtros['region_anatomica'] !== 'TODAS' ? $filtros['region_anatomica'] : null;
             $fechaDesde = ! empty($filtros['fecha_desde']) ? Carbon::parse($filtros['fecha_desde'])->startOfDay() : Carbon::now()->subMonths(6)->startOfMonth();
             $fechaHasta = ! empty($filtros['fecha_hasta']) ? Carbon::parse($filtros['fecha_hasta'])->endOfDay() : Carbon::now()->endOfDay();
 
@@ -280,7 +292,81 @@ class DosimetriaService extends BaseService
 
             $ultimosRegistros = $ultimosRegistrosQuery->get();
 
-            // 5. Sedes disponibles enriquecidas con su monitor de latidos (Heartbeat / Dead Man's Switch)
+            // 5. Clasificación anatómica y enriquecimiento de registros
+            $conteoRegiones = [
+                'CRANEO' => 0,
+                'TORAX' => 0,
+                'ABDOMEN' => 0,
+                'PELVIS' => 0,
+                'COLUMNA' => 0,
+                'EXTREMIDADES' => 0,
+                'MAMA' => 0,
+                'GENERAL' => 0,
+            ];
+
+            foreach ($ultimosRegistros as $reg) {
+                $region = self::clasificarRegionAnatomica($reg->study_desc, $reg->modalidad);
+                $reg->region_anatomica = $region;
+                $reg->es_rdsr = str_contains($reg->study_desc ?? '', '[RDSR]') || str_contains($reg->equipo_nombre ?? '', 'RDSR');
+                if (isset($conteoRegiones[$region])) {
+                    $conteoRegiones[$region]++;
+                } else {
+                    $conteoRegiones['GENERAL']++;
+                }
+            }
+
+            if ($regionAnatomica) {
+                $ultimosRegistros = $ultimosRegistros->filter(fn ($r) => $r->region_anatomica === $regionAnatomica)->values();
+            }
+
+            // 6. Detección heurística de Deriva Técnica (Drift) en Equipos Emisores
+            $alertasDeriva = [];
+            $diasPeriodo = $fechaDesde->diffInDays($fechaHasta);
+            if ($diasPeriodo >= 14) {
+                $puntoCorte = $fechaDesde->copy()->addDays((int) ($diasPeriodo / 2));
+
+                $equiposDosis = DB::table('medicion_dosis_radiacion as r')
+                    ->join('medicion_dosis_equipos_emisores as e', 'e.id', '=', 'r.equipo_emisor_id')
+                    ->join('config_sedes as s', 's.id', '=', 'r.sede_id')
+                    ->whereBetween('r.fecha_estudio', [$fechaDesde, $fechaHasta])
+                    ->when($sedeId, fn ($q) => $q->where('r.sede_id', $sedeId))
+                    ->when($modalidad, fn ($q) => $q->where('e.modalidad', $modalidad))
+                    ->select(
+                        'r.equipo_emisor_id',
+                        'e.nombre as equipo_nombre',
+                        'e.modalidad',
+                        's.nom_sede',
+                        'r.tipo_metrica',
+                        DB::raw("ROUND(AVG(CASE WHEN r.fecha_estudio < '{$puntoCorte->format('Y-m-d H:i:s')}' THEN r.valor_dosis ELSE NULL END), 2) as media_inicial"),
+                        DB::raw("ROUND(AVG(CASE WHEN r.fecha_estudio >= '{$puntoCorte->format('Y-m-d H:i:s')}' THEN r.valor_dosis ELSE NULL END), 2) as media_reciente"),
+                        DB::raw('COUNT(*) as total_disparos'),
+                        'r.unidad_medida'
+                    )
+                    ->groupBy('r.equipo_emisor_id', 'e.nombre', 'e.modalidad', 's.nom_sede', 'r.tipo_metrica', 'r.unidad_medida')
+                    ->having('total_disparos', '>=', 5)
+                    ->get();
+
+                foreach ($equiposDosis as $eq) {
+                    if ($eq->media_inicial && $eq->media_reciente && (float) $eq->media_inicial > 0) {
+                        $porcentajeCambio = round((((float) $eq->media_reciente - (float) $eq->media_inicial) / (float) $eq->media_inicial) * 100, 1);
+                        if ($porcentajeCambio >= 20.0) {
+                            $alertasDeriva[] = [
+                                'equipo_nombre' => $eq->equipo_nombre,
+                                'nom_sede' => $eq->nom_sede,
+                                'modalidad' => $eq->modalidad,
+                                'tipo_metrica' => $eq->tipo_metrica,
+                                'media_inicial' => (float) $eq->media_inicial,
+                                'media_reciente' => (float) $eq->media_reciente,
+                                'cambio_porcentaje' => $porcentajeCambio,
+                                'unidad_medida' => $eq->unidad_medida,
+                                'mensaje' => "El equipo {$eq->equipo_nombre} ({$eq->nom_sede}) registra un incremento del {$porcentajeCambio}% en {$eq->tipo_metrica} (de {$eq->media_inicial} a {$eq->media_reciente} {$eq->unidad_medida}), lo que sugiere posible descalibración o fatiga del tubo.",
+                            ];
+                        }
+                    }
+                }
+            }
+
+            // 7. Sedes disponibles enriquecidas con su monitor de latidos (Heartbeat / Dead Man's Switch)
             $sedesDisponibles = ConfigSede::select('id', 'nom_sede')->where('estado', true)->orderBy('nom_sede')->get();
             $sedesConEstado = $sedesDisponibles->map(function ($s) {
                 $hb = Cache::get("dosimetria_heartbeat_{$s->id}");
@@ -308,7 +394,7 @@ class DosimetriaService extends BaseService
                 ];
             });
 
-            // 6. Resumen de KPIs
+            // 8. Resumen de KPIs
             $totalEstudiosPeriodo = DB::table('medicion_dosis_radiacion')
                 ->whereBetween('fecha_estudio', [$fechaDesde, $fechaHasta])
                 ->when($sedeId, fn ($q) => $q->where('sede_id', $sedeId))
@@ -323,6 +409,8 @@ class DosimetriaService extends BaseService
             return $this->success([
                 'consolidado' => $filas,
                 'alertas' => $alertas,
+                'alertas_deriva' => $alertasDeriva,
+                'distribucion_regiones' => $conteoRegiones,
                 'ultimos_registros' => $ultimosRegistros,
                 'umbrales_nrd' => $umbrales->values(),
                 'sedes' => $sedesConEstado,
@@ -335,6 +423,7 @@ class DosimetriaService extends BaseService
                     'total_estudios' => $totalEstudiosPeriodo,
                     'total_equipos' => $totalEquiposActivos,
                     'total_alertas' => count($alertas),
+                    'total_derivas' => count($alertasDeriva),
                     'sedes_online' => $sedesOnline,
                     'sedes_total' => $sedesConEstado->count(),
                 ],
@@ -572,5 +661,51 @@ class DosimetriaService extends BaseService
         Cache::put($cacheKey, $payload, now()->addDays(7));
 
         return $this->success($payload, 'Heartbeat registrado exitosamente', 200);
+    }
+
+    /**
+     * Clasifica semánticamente la región anatómica del estudio a partir de su descripción DICOM.
+     * Basado en la taxonomía de la Resolución 482 de 2018 y el RadLex Playbook.
+     *
+     * @param  string|null  $studyDesc  Descripción clínica del estudio DICOM
+     * @param  string  $modalidad  Modalidad de imagen (CT, MG, DX, CR)
+     * @return string Región anatómica normalizada (CRANEO, TORAX, ABDOMEN, PELVIS, COLUMNA, EXTREMIDADES, MAMA, GENERAL)
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-27
+     */
+    public static function clasificarRegionAnatomica(?string $studyDesc, string $modalidad = 'CT'): string
+    {
+        $desc = mb_strtoupper($studyDesc ?? '');
+        $mod = strtoupper($modalidad);
+
+        if ($mod === 'MG') {
+            return 'MAMA';
+        }
+
+        if (preg_match('/CRANEO|CEREBRO|ENCEFALO|SILLA TURCA|SENOS PARANASALES|FACIAL|MACIZO|OIDO|ORBITAS|CUELLO/', $desc)) {
+            return 'CRANEO';
+        }
+        if (preg_match('/TORAX|PULMON|MEDIASTINO|REJA COSTAL|CARDIO|CORONARI|ANGIOTAC TORACICO/', $desc)) {
+            return 'TORAX';
+        }
+        if (preg_match('/ABDOMEN|HIGADO|HEPATIC|PANCREAS|VIAS BILIARES|RENAL|URO|ENTEROTOMOGRAFIA|COLONOSCOPIA/', $desc)) {
+            return 'ABDOMEN';
+        }
+        if (preg_match('/PELVIS|PELVIC|PROSTATA|VEJIGA|UTERO|CADERA|SACRO/', $desc)) {
+            return 'PELVIS';
+        }
+        if (preg_match('/COLUMNA|CERVICAL|DORSAL|LUMBAR|SACROILIACA|LUMBOSACRA/', $desc)) {
+            return 'COLUMNA';
+        }
+        if (preg_match('/RODILLA|HOMBRO|CODO|MU[NÑ]ECA|TOBILLO|PIE|MANO|FEMUR|TIBIA|HUMERO|RADIO|ANTEBRAZO|PIERNA|EXTREMID/', $desc)) {
+            return 'EXTREMIDADES';
+        }
+        if (preg_match('/MAMA|SENOS/', $desc)) {
+            return 'MAMA';
+        }
+
+        return 'GENERAL';
     }
 }
