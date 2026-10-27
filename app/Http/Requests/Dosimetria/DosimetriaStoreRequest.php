@@ -30,6 +30,7 @@ class DosimetriaStoreRequest extends FormRequest
     {
         return [
             'sede_id' => 'required|integer|exists:config_sedes,id',
+            'batch_hash' => 'sometimes|nullable|string|max:64',
             'registros' => 'required|array|min:1',
             'registros.*.study_uid' => 'required|string|max:128',
             'registros.*.patient_id_hashed' => 'required|string|max:64',

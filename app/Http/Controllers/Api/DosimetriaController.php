@@ -9,6 +9,7 @@ use App\Http\Requests\Dosimetria\DosimetriaStoreRequest;
 use App\Services\Dosimetria\DosimetriaService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -78,8 +79,39 @@ class DosimetriaController extends Controller
     {
         $sedeId = (int) $request->input('sede_id');
         $registros = (array) $request->input('registros');
+        $batchHash = $request->input('batch_hash');
 
-        $result = $this->dosimetriaService->guardarLote($sedeId, $registros);
+        $result = $this->dosimetriaService->guardarLote($sedeId, $registros, $batchHash);
+
+        return response()->json($result, (int) $result['status']);
+    }
+
+    /**
+     * Registra el latido periódico (Heartbeat) de conectividad y estado del agente Edge de la sede.
+     *
+     * Flujo del proceso:
+     * 1. Valida el identificador de sede entrante.
+     * 2. Guarda el último timestamp de reporte en memoria de alta velocidad.
+     * 3. Devuelve confirmación de recepción con código HTTP 200.
+     *
+     * @param  Request  $request  Petición HTTP con telemetría de latido
+     * @return JsonResponse Confirmación de recepción
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-27
+     */
+    public function heartbeat(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'sede_id' => 'required|integer|exists:config_sedes,id',
+            'version' => 'sometimes|nullable|string|max:20',
+            'pendientes' => 'sometimes|nullable|integer|min:0',
+            'estado_cola' => 'sometimes|nullable|string|max:50',
+            'detalles' => 'sometimes|nullable|array',
+        ]);
+
+        $result = $this->dosimetriaService->registrarHeartbeat((int) $validated['sede_id'], $validated);
 
         return response()->json($result, (int) $result['status']);
     }

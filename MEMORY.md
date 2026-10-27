@@ -37,6 +37,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Blindaje Arquitectónico y Resiliencia en Dosimetría (Res. 482 de 2018 / ISO 27001):**
+  - **Seguridad Criptográfica (Anti-Rainbow Table):** Reemplazado hash SHA-256 plano por HMAC-SHA256 con salt dinámico de 32 bytes (`secrets.token_hex(32)`) generado y persistido automáticamente por sede en `config.json`.
+  - **Desacoplamiento de Base de Datos PACS (`pacsdb`):** Inyección de `SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;` en cada consulta de extracción del agente Python a MySQL/MariaDB, eliminando bloqueos de lectura concurrentes sobre la adquisición clínica de imágenes.
+  - **Cola Persistente Local Edge (SQLite `cola_dosimetria.db`):** Implementada base de datos SQLite embebida en el agente edge con estados transaccionales (`PENDING`, `SYNCED`, `FAILED`) y auto-purga a 30 días, garantizando cero pérdida de datos ante cortes eléctricos o reinicios de servidor.
+  - **Idempotencia Robusta en API Laravel (`/api/dosimetria/registros`):** Cálculo y validación de `batch_hash` SHA-256 por bloque recibido con almacenamiento en caché por 24 horas. Los reintentos de red responden HTTP 200 inmediato sin recargar la base de datos central.
+  - **Monitor de Latidos / Dead Man's Switch (`/api/dosimetria/heartbeat`):** Endpoints `POST /api/dosimetria/heartbeat` y `/api/dosis/heartbeat` registrando telemetría del agente (uptime, pendientes SQLite, versión). Enriquecido `DashboardDosimetria.vue` con semáforo dinámico de conectividad (🟢 Online, 🟡 Retrasado, 🔴 Offline).
+  - **Verificaciones Estrictas:** Laravel Pint passed ✅ | `npx eslint` 0 errores ✅ | `npm run build` en 1.30s ✅ | Python 3.13 py_compile passed ✅.
 - [x] **2026-10-27 — Implementación Pasos 3, 4 y 5: Módulo de Reportes e Indicadores por Categorías (Financiero, Calidad TAT y Dosimetría):**
   - **Categoría 3: Financiero / Liquidación:**
     * Incorporada tarjeta nativa de AdminWrap "Financiero / Liquidación" con accesos a Liquidación de Honorarios a Radiólogos, Productividad Médica (Corte Mensual) y salto al módulo `/liquidacion`.

@@ -8,6 +8,7 @@ use App\Models\Dosimetria\RegistroDosisRadiacion;
 use App\Models\Dosimetria\UmbralNrd;
 use App\Services\BaseService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -17,22 +18,35 @@ class DosimetriaService extends BaseService
      * Procesa y persiste un lote masivo de mediciones dosimétricas proveniente del Agente Edge.
      *
      * Flujo del proceso:
-     * 1. Inicia transacción de base de datos con reintentos defensivos.
-     * 2. Resuelve o auto-registra los equipos emisores asociados según AET Title y modalidad.
-     * 3. Ejecuta un upsert eficiente para evitar duplicados en study_uid y tipo_metrica.
-     * 4. Registra auditoría clínica del volumen de dosis recibido.
+     * 1. Valida si el lote ya fue procesado mediante batch_hash (Idempotencia). Si existe, retorna 200 sin tocar BD.
+     * 2. Inicia transacción de base de datos con reintentos defensivos.
+     * 3. Resuelve o auto-registra los equipos emisores asociados según AET Title y modalidad.
+     * 4. Ejecuta un upsert eficiente para evitar duplicados en study_uid y tipo_metrica.
+     * 5. Guarda la huella del lote en caché por 24 horas para garantizar idempotencia futura.
+     * 6. Registra auditoría clínica del volumen de dosis recibido.
      *
      * @param  int  $sedeId  Identificador de la sede hospitalaria
      * @param  array  $registros  Arreglo de mediciones dosimétricas anonimizadas
+     * @param  string|null  $batchHash  Hash SHA-256 único del lote para idempotencia
      * @return array Respuesta estructurada con resultado del guardado
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-10-23
      */
-    public function guardarLote(int $sedeId, array $registros): array
+    public function guardarLote(int $sedeId, array $registros, ?string $batchHash = null): array
     {
-        return $this->transaction(function () use ($sedeId, $registros) {
+        if (! empty($batchHash)) {
+            $cacheKey = "dosimetria_batch_{$sedeId}_{$batchHash}";
+            $cached = Cache::get($cacheKey);
+            if ($cached) {
+                Log::info("Dosimetría: Lote {$batchHash} de sede {$sedeId} ya procesado previamente. Respuesta idempotente despachada sin tocar MySQL.");
+
+                return $this->success($cached, 'Lote ya procesado previamente (idempotente)', 200);
+            }
+        }
+
+        return $this->transaction(function () use ($sedeId, $registros, $batchHash) {
             $now = Carbon::now();
             $equiposCache = [];
             $filasParaUpsert = [];
@@ -100,12 +114,19 @@ class DosimetriaService extends BaseService
 
             Log::info("Dosimetría: Procesados {$totalProcesados} registros para sede {$sedeId}.");
 
+            $resultadoData = [
+                'sede_id' => $sedeId,
+                'guardados' => $totalProcesados,
+                'equipos_identificados' => count($equiposCache),
+                'batch_hash' => $batchHash,
+            ];
+
+            if (! empty($batchHash)) {
+                Cache::put("dosimetria_batch_{$sedeId}_{$batchHash}", $resultadoData, now()->addHours(24));
+            }
+
             return $this->success(
-                [
-                    'sede_id' => $sedeId,
-                    'guardados' => $totalProcesados,
-                    'equipos_identificados' => count($equiposCache),
-                ],
+                $resultadoData,
                 "Se procesaron {$totalProcesados} mediciones de dosis exitosamente.",
                 201
             );
@@ -259,8 +280,33 @@ class DosimetriaService extends BaseService
 
             $ultimosRegistros = $ultimosRegistrosQuery->get();
 
-            // 5. Sedes disponibles para el filtro
+            // 5. Sedes disponibles enriquecidas con su monitor de latidos (Heartbeat / Dead Man's Switch)
             $sedesDisponibles = ConfigSede::select('id', 'nom_sede')->where('estado', true)->orderBy('nom_sede')->get();
+            $sedesConEstado = $sedesDisponibles->map(function ($s) {
+                $hb = Cache::get("dosimetria_heartbeat_{$s->id}");
+                $estadoConexion = 'OFFLINE'; // OFFLINE, DELAYED, ONLINE
+                $minutosSinContacto = null;
+
+                if ($hb && ! empty($hb['ultimo_contacto'])) {
+                    $ultimo = Carbon::parse($hb['ultimo_contacto']);
+                    $minutosSinContacto = (int) $ultimo->diffInMinutes(Carbon::now());
+                    if ($minutosSinContacto <= 15) {
+                        $estadoConexion = 'ONLINE';
+                    } elseif ($minutosSinContacto <= 60) {
+                        $estadoConexion = 'DELAYED';
+                    } else {
+                        $estadoConexion = 'OFFLINE';
+                    }
+                }
+
+                return [
+                    'id' => $s->id,
+                    'nom_sede' => $s->nom_sede,
+                    'estado_conexion' => $estadoConexion,
+                    'minutos_sin_contacto' => $minutosSinContacto,
+                    'heartbeat' => $hb,
+                ];
+            });
 
             // 6. Resumen de KPIs
             $totalEstudiosPeriodo = DB::table('medicion_dosis_radiacion')
@@ -272,12 +318,14 @@ class DosimetriaService extends BaseService
                 ->when($sedeId, fn ($q) => $q->where('sede_id', $sedeId))
                 ->count();
 
+            $sedesOnline = $sedesConEstado->where('estado_conexion', 'ONLINE')->count();
+
             return $this->success([
                 'consolidado' => $filas,
                 'alertas' => $alertas,
                 'ultimos_registros' => $ultimosRegistros,
                 'umbrales_nrd' => $umbrales->values(),
-                'sedes' => $sedesDisponibles,
+                'sedes' => $sedesConEstado,
                 'periodo' => [
                     'desde' => $fechaDesde->format('Y-m-d'),
                     'hasta' => $fechaHasta->format('Y-m-d'),
@@ -287,6 +335,8 @@ class DosimetriaService extends BaseService
                     'total_estudios' => $totalEstudiosPeriodo,
                     'total_equipos' => $totalEquiposActivos,
                     'total_alertas' => count($alertas),
+                    'sedes_online' => $sedesOnline,
+                    'sedes_total' => $sedesConEstado->count(),
                 ],
             ]);
         } catch (\Throwable $e) {
@@ -488,5 +538,39 @@ class DosimetriaService extends BaseService
             'estadisticas' => $estadisticasProcesadas,
             'detalles' => $detallesProcesados,
         ];
+    }
+
+    /**
+     * Registra el latido periódico (Heartbeat / Dead Man's Switch) emitido por el agente Edge.
+     *
+     * Flujo del proceso:
+     * 1. Valida el identificador de la sede.
+     * 2. Almacena en memoria de alta velocidad (Cache) el timestamp, versión del agente y estado de la cola local.
+     * 3. Permite al Dashboard en Vue 3 mostrar un semáforo de disponibilidad por sede en tiempo real.
+     *
+     * @param  int  $sedeId  Identificador de la sede hospitalaria
+     * @param  array  $datos  Metadatos del latido (versión, cola pendiente, etc.)
+     * @return array Confirmación estructurada de recepción
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-27
+     */
+    public function registrarHeartbeat(int $sedeId, array $datos): array
+    {
+        $cacheKey = "dosimetria_heartbeat_{$sedeId}";
+        $payload = [
+            'sede_id' => $sedeId,
+            'timestamp' => Carbon::now()->toIso8601String(),
+            'ultimo_contacto' => Carbon::now()->format('Y-m-d H:i:s'),
+            'version' => $datos['version'] ?? '1.2.0',
+            'pendientes' => (int) ($datos['pendientes'] ?? 0),
+            'estado_cola' => $datos['estado_cola'] ?? 'OK',
+            'detalles' => $datos['detalles'] ?? [],
+        ];
+
+        Cache::put($cacheKey, $payload, now()->addDays(7));
+
+        return $this->success($payload, 'Heartbeat registrado exitosamente', 200);
     }
 }

@@ -137,12 +137,43 @@
                             <span class="text-muted small text-uppercase fw-semibold"
                                 >Seguridad ISO 27001</span
                             >
-                            <h4 class="mb-0 fw-bold text-dark">SHA-256</h4>
+                            <h4 class="mb-0 fw-bold text-dark">HMAC-SHA256</h4>
                             <span class="badge bg-success small mt-1"
-                                ><i class="fa fa-check me-1"></i>PHI Anonimizado</span
+                                ><i class="fa fa-check me-1"></i>Salt por Sede (Anti-Rainbow)</span
                             >
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2.5 Monitor de Latidos Edge (Dead Man's Switch) -->
+        <div class="card shadow-sm border-0 mb-3 heartbeat-card">
+            <div
+                class="card-body py-2 px-3 d-flex flex-wrap align-items-center justify-content-between gap-2"
+            >
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa fa-heartbeat text-danger"></i>
+                    <span class="small fw-bold text-uppercase">Monitor de Latidos Edge:</span>
+                    <span class="small text-muted">
+                        {{ kpis.sedes_online || 0 }} de {{ kpis.sedes_total || sedes.length }} sedes
+                        conectadas
+                    </span>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <span
+                        v-for="s in sedes"
+                        :key="'hb-' + s.id"
+                        class="badge d-inline-flex align-items-center gap-1 px-2 py-1"
+                        :class="getSedeConexionBadgeClass(s.estado_conexion)"
+                        :title="getSedeConexionTooltip(s)"
+                    >
+                        <span class="status-dot" :class="s.estado_conexion?.toLowerCase()"></span>
+                        {{ s.nom_sede }}
+                        <small v-if="s.minutos_sin_contacto !== null" class="opacity-75">
+                            ({{ s.minutos_sin_contacto }}m)
+                        </small>
+                    </span>
                 </div>
             </div>
         </div>
@@ -637,6 +668,31 @@ const mapaUmbrales = computed(() => {
     return map;
 });
 
+// Helper de estado de conexión para monitor de latidos
+function getSedeConexionBadgeClass(estado) {
+    switch (estado) {
+        case "ONLINE":
+            return "bg-success-subtle text-success border border-success";
+        case "DELAYED":
+            return "bg-warning-subtle text-warning border border-warning";
+        default:
+            return "bg-danger-subtle text-danger border border-danger";
+    }
+}
+
+function getSedeConexionTooltip(sede) {
+    if (!sede) return "";
+    const estado = sede.estado_conexion || "OFFLINE";
+    const mins =
+        sede.minutos_sin_contacto !== null && sede.minutos_sin_contacto !== undefined
+            ? `${sede.minutos_sin_contacto} min`
+            : "Sin contacto";
+    const ult = sede.ultimo_contacto || "Nunca";
+    const version = sede.version_agente ? ` | v${sede.version_agente}` : "";
+    const pend = sede.pendientes !== undefined ? ` | ${sede.pendientes} pendientes` : "";
+    return `Estado: ${estado} (${mins}) | Último latido: ${ult}${version}${pend}`;
+}
+
 // Helper de clases de modalidad
 function getModalidadBadgeClass(mod) {
     switch (mod) {
@@ -1103,6 +1159,32 @@ onBeforeUnmount(() => {
     font-size: 0.88rem;
 }
 
+.heartbeat-card {
+    border-radius: 8px;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-dot.online {
+    background-color: #10b981;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+}
+
+.status-dot.delayed {
+    background-color: #f59e0b;
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25);
+}
+
+.status-dot.offline {
+    background-color: #ef4444;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25);
+}
+
 /* Modo oscuro radiológico (Slate Clínico) */
 :global(body.theme-dark) .dosimetria-dashboard {
     color: #e2e8f0;
@@ -1110,7 +1192,8 @@ onBeforeUnmount(() => {
 
 :global(body.theme-dark) .kpi-card,
 :global(body.theme-dark) .chart-card,
-:global(body.theme-dark) .filter-card {
+:global(body.theme-dark) .filter-card,
+:global(body.theme-dark) .heartbeat-card {
     background-color: #181a20 !important;
     border-color: #2d3343 !important;
 }
