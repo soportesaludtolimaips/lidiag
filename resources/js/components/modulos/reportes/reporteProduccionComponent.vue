@@ -655,9 +655,7 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title font-bold">
-                            Filtro de Tele-radiología y Lecturas Externas
-                        </h4>
+                        <h4 class="modal-title">Filtro de Tele-radiología y Lecturas Externas</h4>
                         <button
                             type="button"
                             class="close"
@@ -673,9 +671,7 @@
                     <div class="modal-body">
                         <form>
                             <div class="form-group">
-                                <label class="control-label font-weight-bold"
-                                    >Sede Hospitalaria</label
-                                >
+                                <label class="control-label">Sede Hospitalaria</label>
                                 <select
                                     class="form-control custom-select"
                                     style="width: 100%; height: 36px"
@@ -764,9 +760,7 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title font-bold">
-                            Filtro de Ausentismo y Cancelaciones (No-Show)
-                        </h4>
+                        <h4 class="modal-title">Filtro de Ausentismo y Cancelaciones (No-Show)</h4>
                         <button
                             type="button"
                             class="close"
@@ -782,9 +776,7 @@
                     <div class="modal-body">
                         <form>
                             <div class="form-group">
-                                <label class="control-label font-weight-bold"
-                                    >Sede Hospitalaria</label
-                                >
+                                <label class="control-label">Sede Hospitalaria</label>
                                 <select
                                     class="form-control custom-select"
                                     style="width: 100%; height: 36px"
@@ -798,7 +790,7 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label class="control-label font-weight-bold"
+                                <label class="control-label"
                                     >Estado de Inasistencia / Cancelación</label
                                 >
                                 <select
@@ -890,7 +882,7 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title font-bold">Filtro de Liquidación de Honorarios</h4>
+                        <h4 class="modal-title">Filtro de Liquidación de Honorarios</h4>
                         <button
                             type="button"
                             class="close"
@@ -906,9 +898,7 @@
                     <div class="modal-body">
                         <form>
                             <div class="form-group">
-                                <label class="control-label font-weight-bold"
-                                    >Sede Hospitalaria</label
-                                >
+                                <label class="control-label">Sede Hospitalaria</label>
                                 <select
                                     class="form-control custom-select"
                                     style="width: 100%; height: 36px"
@@ -994,9 +984,7 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title font-bold">
-                            Filtro de Productividad Médica Mensual
-                        </h4>
+                        <h4 class="modal-title">Filtro de Productividad Médica Mensual</h4>
                         <button
                             type="button"
                             class="close"
@@ -1012,9 +1000,7 @@
                     <div class="modal-body">
                         <form>
                             <div class="form-group">
-                                <label class="control-label font-weight-bold"
-                                    >Sede Hospitalaria</label
-                                >
+                                <label class="control-label">Sede Hospitalaria</label>
                                 <select
                                     class="form-control custom-select"
                                     style="width: 100%; height: 36px"
@@ -1028,9 +1014,7 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label class="control-label font-weight-bold"
-                                    >Periodo de Corte (Mes)</label
-                                >
+                                <label class="control-label">Periodo de Corte (Mes)</label>
                                 <input
                                     class="form-control"
                                     type="month"
@@ -1086,7 +1070,7 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title font-bold">Filtro de Calidad y Oportunidad (TAT)</h4>
+                        <h4 class="modal-title">Filtro de Calidad y Oportunidad (TAT)</h4>
                         <button
                             type="button"
                             class="close"
@@ -1102,9 +1086,7 @@
                     <div class="modal-body">
                         <form>
                             <div class="form-group">
-                                <label class="control-label font-weight-bold"
-                                    >Sede Hospitalaria</label
-                                >
+                                <label class="control-label">Sede Hospitalaria</label>
                                 <select
                                     class="form-control custom-select"
                                     style="width: 100%; height: 36px"
@@ -1118,9 +1100,7 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label class="control-label font-weight-bold"
-                                    >Modalidad Técnica</label
-                                >
+                                <label class="control-label">Modalidad Técnica</label>
                                 <select
                                     class="form-control custom-select"
                                     style="width: 100%; height: 36px"
@@ -1210,9 +1190,7 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title font-bold">
-                            Filtro de Telemetría y Agentes Hospitalarios
-                        </h4>
+                        <h4 class="modal-title">Filtro de Telemetría y Agentes Hospitalarios</h4>
                         <button
                             type="button"
                             class="close"
@@ -1228,9 +1206,7 @@
                     <div class="modal-body">
                         <form>
                             <div class="form-group">
-                                <label class="control-label font-weight-bold"
-                                    >Sede Hospitalaria</label
-                                >
+                                <label class="control-label">Sede Hospitalaria</label>
                                 <select
                                     class="form-control custom-select"
                                     style="width: 100%; height: 36px"

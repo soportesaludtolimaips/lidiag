@@ -55,8 +55,9 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * Eliminados estilos inline de modales (`background: rgba(...)`, `backdrop-filter: blur(...)`).
     * Restaurada la estructura nativa estándar de Bootstrap/AdminWrap en todos los modales (`class="modal fade" :class="{ show: ... }" :style="{ display: ... }"` y `<div v-if="..." class="modal-backdrop fade show"></div>`).
     * Restaurados los botones de modales al estándar clásico original del sistema: `btn btn-default waves-effect` (Cerrar) y `btn btn-info waves-effect waves-light` (Descargar) con sus iconos tradicionales (`<i class="fa fa-download"></i>`), sin badges de teclado ni efectos ajenos.
+    * Eliminada la negrita de los encabezados de modales (`h4.modal-title` sin `font-bold`) y de sus etiquetas (`label.control-label` sin `font-weight-bold`), homologándolos 100% al modal de referencia *Producción Detallada*.
     * Breadcrumb restaurado al diseño limpio original.
-  - **Verificaciones Estrictas:** `npx eslint` 0 errores ✅ | `npm run build` en 1.16s ✅.
+  - **Verificaciones Estrictas:** `npx eslint` 0 errores ✅ | `npm run build` en 1.09s ✅.
 - [x] **2026-10-27 — Mejoras Avanzadas en Dosimetría: Parser RDSR DICOM, Compresión GZIP, Clasificación Anatómica RadLex y Deriva Técnica:**
   - **Parser Universal de RDSR DICOM (PS3.16 / TID 10011 / TID 10001):**
     * Detección automática en `agente_dosimetria.py` de objetos Structured Report (`SOPClassUID == 1.2.840.10008.5.1.4.1.1.88.67` y afines).
