@@ -37,6 +37,12 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Incorporación de la Nueva Arquitectura Limpia en el Informe de Gerencia:**
+  - **Objetivo:** Documentar formalmente ante la Dirección y Gerencia General la evolución de la arquitectura de software de LIDiag (migración de controladores monolíticos hacia Arquitectura Limpia desacoplada con capas de `Requests`, `Services` y `Resources`).
+  - **Sección agregada:** `15. Modernización Arquitectural: Adopción de Arquitectura Limpia (Clean Architecture)` detallando estructura técnica, justificación y retorno de inversión en mantenibilidad, escalabilidad, testabilidad y seguridad.
+  - **Archivos actualizados:**
+    * [INFORME_ACTUALIZACIONES_GERENCIA.md](file:///c:/laragon/www/lidiag/docs/INFORME_ACTUALIZACIONES_GERENCIA.md)
+    * [INFORME_ACTUALIZACIONES_GERENCIA.pdf](file:///c:/laragon/www/lidiag/docs/INFORME_ACTUALIZACIONES_GERENCIA.pdf) (184.4 KB).
 - [x] **2026-10-27 — Actualización del Informe Consolidado para Gerencia (MD y PDF):**
   - **Objetivo:** Incorporar las últimas mejoras críticas implementadas en la jornada al informe ejecutivo institucional para la Dirección y Gerencia General.
   - **Mejoras agregadas:**

@@ -283,4 +283,21 @@
 
 ---
 
+## 15. Modernización Arquitectural: Adopción de Arquitectura Limpia (Clean Architecture)
+
+### Mejora: Transición a Arquitectura por Capas Desacopladas (Services, Requests y Resources)
+**Descripción:** Reestructuración integral del núcleo de software de LIDiag migrando de controladores monolíticos sobrecargados hacia un modelo de Arquitectura Limpia modular y desacoplada, estructurada en tres capas de alta responsabilidad:
+1. **Capa de Validación y Autorización (Form Requests):** Se crearon clases de validación independientes (`app/Http/Requests/`) que filtran, autorizan y limpian estrictamente los datos de entrada antes de que toquen la lógica médica, impidiendo peticiones incompletas o maliciosas.
+2. **Capa de Dominio y Lógica Asistencial (Services):** Se independizó la lógica de negocio en más de 35 servicios especializados (`app/Services/`), separando las reglas de agendamiento, lectura, dosimetría, liquidación y auditoría de la capa web.
+3. **Capa de Presentación y Transformación (API Resources & DTOs):** Se estandarizó la serialización de respuestas mediante recursos dedicados (`app/Http/Resources/`), garantizando contratos de datos uniformes, estructurados y optimizados hacia la interfaz de usuario en Vue 3 y sistemas externos.
+
+### Mejora: Beneficios Estratégicos y Retorno de Inversión Tecnológica (Por qué es Recomendable)
+**Descripción:** La adopción de esta arquitectura limpia aporta ventajas corporativas determinantes para la operación institucional:
+* **Mantenibilidad y Agilidad Evolutiva:** Los cambios en normativas de salud o reglas de facturación se implementan de forma aislada en el servicio correspondiente sin riesgo de alterar otras áreas de la aplicación.
+* **Escalabilidad y Rendimiento Hospitalario:** Al separar la validación y transformación de datos, el consumo de memoria del servidor se reduce y la base de datos se protege mediante consultas atómicas y transaccionales bien delimitadas.
+* **Trazabilidad y Testabilidad Automatizada:** Facilita la creación de pruebas unitarias y de integración sobre la lógica de negocio pura, garantizando cero regresiones ante futuras actualizaciones del sistema.
+* **Seguridad y Blindaje de Datos:** Elimina vulnerabilidades de inyección y sobreescritura accidental, asegurando que solo los parámetros validados por los `Requests` alcancen los registros clínicos de los pacientes.
+
+---
+
 *Documento consolidado semestral para la Dirección y Gerencia General de Salud Tolima — LIDiag v3.2.*
