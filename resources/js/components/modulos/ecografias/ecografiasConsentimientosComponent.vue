@@ -1,260 +1,303 @@
 <template>
     <div>
+        <!-- ============================================================== -->
+        <!-- Bread crumb and right sidebar toggle -->
+        <!-- ============================================================== -->
         <div class="row page-titles">
-            <div class="col-md-6 align-self-center">
+            <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Ecografías</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <button type="button" class="btn btn-link p-0 breadcrumb-btn">
-                            Inicio
-                        </button>
+                        <a href="javascript:void(0)">Inicio</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <button type="button" class="btn btn-link p-0 breadcrumb-btn">
-                            Ecografías
-                        </button>
+                        <a href="javascript:void(0)">Ecografías</a>
                     </li>
                     <li class="breadcrumb-item active">Consentimientos</li>
                 </ol>
             </div>
-            <div class="col-md-6 align-self-center text-right d-none d-md-block">
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-sm btn-outline-secondary"
+                    class="btn btn-info waves-effect waves-light"
                     :disabled="loading"
-                    title="Actualizar listado de consentimientos (F2)"
+                    title="Actualizar listado de consentimientos"
                     @click="buscar"
                 >
-                    <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loading }"></i>
-                    Refrescar <span class="badge badge-light border ml-1">F2</span>
+                    <i class="fa" :class="loading ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                    Refrescar
                 </button>
             </div>
         </div>
+        <!-- ============================================================== -->
+        <!-- End Bread crumb and right sidebar toggle -->
+        <!-- ============================================================== -->
 
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title">Buscar consentimientos</h4>
-                <div class="row">
-                    <div class="col-md-4">
-                        <label for="filtros_q">Paciente / Documento</label>
-                        <input
-                            id="filtros_q"
-                            class="form-control"
-                            v-model="filtros.q"
-                            placeholder="Nombre o documento"
-                            @keyup.enter="buscar"
-                        />
+        <!-- ============================================================== -->
+        <!-- Start Page Content -->
+        <!-- ============================================================== -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title text-themecolor">
+                            <i class="fa fa-filter"></i> Filtros para búsqueda de consentimientos
+                        </h4>
+                        <form action="#" @submit.prevent="buscar">
+                            <div class="form-body">
+                                <div class="row p-t-2">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="control-label" for="filtros_q">
+                                                Paciente / Documento
+                                            </label>
+                                            <input
+                                                id="filtros_q"
+                                                type="text"
+                                                class="form-control"
+                                                v-model="filtros.q"
+                                                placeholder="Nombre o documento de paciente"
+                                                @keyup.enter="buscar"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label class="control-label" for="filtros_desde">
+                                                Fecha inicio
+                                            </label>
+                                            <input
+                                                id="filtros_desde"
+                                                type="date"
+                                                class="form-control"
+                                                v-model="filtros.desde"
+                                                @change="buscar"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label class="control-label" for="filtros_hasta">
+                                                Fecha fin
+                                            </label>
+                                            <input
+                                                id="filtros_hasta"
+                                                type="date"
+                                                class="form-control"
+                                                v-model="filtros.hasta"
+                                                @change="buscar"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button
+                                        type="button"
+                                        class="btn btn-success waves-effect waves-light m-r-5"
+                                        @click="buscar"
+                                        :disabled="loading"
+                                    >
+                                        <i
+                                            class="fa"
+                                            :class="loading ? 'fa-spinner fa-spin' : 'fa-search'"
+                                        ></i>
+                                        {{ loading ? "Buscando..." : "Buscar" }}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="btn btn-inverse waves-effect waves-light"
+                                        @click="limpiarFiltros"
+                                    >
+                                        <i class="fa fa-refresh"></i> Limpiar
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
                     </div>
-                    <div class="col-md-3">
-                        <label for="filtros_desde">Fecha inicio</label>
-                        <input
-                            id="filtros_desde"
-                            type="date"
-                            class="form-control"
-                            v-model="filtros.desde"
-                            @change="buscar"
-                        />
-                    </div>
-                    <div class="col-md-3">
-                        <label for="filtros_hasta">Fecha fin</label>
-                        <input
-                            id="filtros_hasta"
-                            type="date"
-                            class="form-control"
-                            v-model="filtros.hasta"
-                            @change="buscar"
-                        />
-                    </div>
-                </div>
-
-                <div class="mt-3 d-flex flex-wrap gap-2">
-                    <button
-                        class="btn btn-success btn-action-clinical"
-                        type="button"
-                        @click="buscar"
-                        :disabled="loading"
-                    >
-                        <i
-                            class="fa mr-1"
-                            :class="loading ? 'fa-spinner fa-spin' : 'fa-search'"
-                        ></i>
-                        Buscar <span class="badge badge-light border ml-1">F2</span>
-                    </button>
-
-                    <button
-                        v-if="can('ecografias.consentimientos.pdf.generar')"
-                        class="btn btn-info btn-action-clinical"
-                        type="button"
-                        @click="generarPdfSeleccionado"
-                        :disabled="loading || selectedIds.length !== 1"
-                    >
-                        <i class="fa fa-file-pdf-o mr-1"></i>
-                        Generar PDF
-                    </button>
-
-                    <button
-                        v-if="can('ecografias.consentimientos.pdf.descargar')"
-                        class="btn btn-primary btn-action-clinical"
-                        type="button"
-                        @click="descargarPdfSeleccionado"
-                        :disabled="
-                            loading || selectedIds.length !== 1 || !selectedConsentimiento?.pdf_path
-                        "
-                    >
-                        <i class="fa fa-download mr-1"></i>
-                        Descargar PDF
-                    </button>
-
-                    <button
-                        v-if="can('ecografias.consentimientos.zip.generar')"
-                        class="btn btn-warning btn-action-clinical"
-                        type="button"
-                        @click="generarZip"
-                        :disabled="loading || selectedIds.length < 2"
-                    >
-                        <i class="fa fa-file-archive-o mr-1"></i>
-                        Descargar ZIP ({{ selectedIds.length }})
-                    </button>
-
-                    <button
-                        v-if="can('ecografias.consentimientos.anular')"
-                        class="btn btn-danger btn-action-clinical"
-                        type="button"
-                        @click="abrirModalAnular"
-                        :disabled="loading || selectedIds.length !== 1"
-                    >
-                        <i class="fa fa-ban mr-1"></i>
-                        Anular
-                    </button>
                 </div>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title">Resultados</h4>
-                <div class="table-responsive">
-                    <table class="table table-bordered table-striped">
-                        <thead>
-                            <tr>
-                                <th width="40" class="text-center">
-                                    <input
-                                        type="checkbox"
-                                        :checked="allSelectableSelected"
-                                        @change="toggleSelectAll"
-                                        aria-label="Seleccionar todos"
-                                    />
-                                </th>
-                                <th>Paciente</th>
-                                <th>Documento</th>
-                                <th>Examen</th>
-                                <th width="130" class="text-center">Estado</th>
-                                <th width="120" class="text-center">PDF</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-if="loading">
-                                <td colspan="6" class="text-center py-4 text-muted">
-                                    <i
-                                        class="fa fa-circle-o-notch fa-spin fa-2x mb-2 text-primary"
-                                    ></i>
-                                    <div>Cargando consentimientos...</div>
-                                </td>
-                            </tr>
-                            <template v-else>
-                                <tr
-                                    v-for="c in registros"
-                                    :key="c.id"
-                                    :class="{ 'table-active': selectedMap[c.id] }"
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div
+                            class="d-flex justify-content-between align-items-center m-b-20 flex-wrap"
+                        >
+                            <div>
+                                <h4 class="card-title">Listado de consentimientos</h4>
+                                <h6 class="card-subtitle text-info">
+                                    Gestión y descarga de consentimientos informados de ecografías.
+                                </h6>
+                            </div>
+                            <div class="text-right">
+                                <button
+                                    v-if="can('ecografias.consentimientos.pdf.generar')"
+                                    class="btn btn-info waves-effect waves-light m-r-5 m-b-5"
+                                    type="button"
+                                    @click="generarPdfSeleccionado"
+                                    :disabled="loading || selectedIds.length !== 1"
                                 >
-                                    <td class="text-center">
-                                        <input
-                                            type="checkbox"
-                                            :disabled="!esSeleccionable(c)"
-                                            :checked="selectedMap[c.id] === true"
-                                            @change="toggleSelect(c)"
-                                            aria-label="Seleccionar consentimiento"
-                                        />
-                                    </td>
-                                    <td>{{ pacienteNombre(c) }}</td>
-                                    <td>
-                                        {{
-                                            c.ecografia_producto?.ecografia?.paciente?.num_docu ||
-                                            "—"
-                                        }}
-                                    </td>
-                                    <td>{{ c.producto?.nom_produc || "—" }}</td>
-                                    <td class="text-center">
-                                        <span
-                                            v-if="c.estado === 'COMPLETO'"
-                                            class="badge badge-success"
+                                    <i class="fa fa-file-pdf-o"></i> Generar PDF
+                                </button>
+
+                                <button
+                                    v-if="can('ecografias.consentimientos.pdf.descargar')"
+                                    class="btn btn-primary waves-effect waves-light m-r-5 m-b-5"
+                                    type="button"
+                                    @click="descargarPdfSeleccionado"
+                                    :disabled="
+                                        loading ||
+                                        selectedIds.length !== 1 ||
+                                        !selectedConsentimiento?.pdf_path
+                                    "
+                                >
+                                    <i class="fa fa-download"></i> Descargar PDF
+                                </button>
+
+                                <button
+                                    v-if="can('ecografias.consentimientos.zip.generar')"
+                                    class="btn btn-warning waves-effect waves-light m-r-5 m-b-5"
+                                    type="button"
+                                    @click="generarZip"
+                                    :disabled="loading || selectedIds.length < 2"
+                                >
+                                    <i class="fa fa-file-archive-o"></i> Descargar ZIP ({{
+                                        selectedIds.length
+                                    }})
+                                </button>
+
+                                <button
+                                    v-if="can('ecografias.consentimientos.anular')"
+                                    class="btn btn-danger waves-effect waves-light m-b-5"
+                                    type="button"
+                                    @click="abrirModalAnular"
+                                    :disabled="loading || selectedIds.length !== 1"
+                                >
+                                    <i class="fa fa-ban"></i> Anular
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th width="40" class="text-center">
+                                            <input
+                                                type="checkbox"
+                                                :checked="allSelectableSelected"
+                                                @change="toggleSelectAll"
+                                                aria-label="Seleccionar todos"
+                                            />
+                                        </th>
+                                        <th>Paciente</th>
+                                        <th>Documento</th>
+                                        <th>Examen</th>
+                                        <th width="130" class="text-center">Estado</th>
+                                        <th width="120" class="text-center">PDF</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-if="loading">
+                                        <td colspan="6" class="text-center py-4 text-muted">
+                                            <i
+                                                class="fa fa-spinner fa-spin fa-2x mb-2 text-primary"
+                                            ></i>
+                                            <div>Cargando consentimientos...</div>
+                                        </td>
+                                    </tr>
+                                    <template v-else>
+                                        <tr
+                                            v-for="c in registros"
+                                            :key="c.id"
+                                            :class="{ 'table-active': selectedMap[c.id] }"
                                         >
-                                            <i class="fa fa-check mr-1"></i>COMPLETO
-                                        </span>
-                                        <span
-                                            v-else-if="c.estado === 'ANULADO'"
-                                            class="badge badge-danger"
-                                        >
-                                            <i class="fa fa-ban mr-1"></i>ANULADO
-                                        </span>
-                                        <span v-else class="badge badge-secondary">
-                                            {{ c.estado }}
-                                        </span>
-                                    </td>
-                                    <td class="text-center">
-                                        <span v-if="c.pdf_path" class="badge badge-info">
-                                            <i class="fa fa-file-pdf-o mr-1"></i>Generado
-                                        </span>
-                                        <span v-else class="text-muted">—</span>
-                                    </td>
-                                </tr>
-                                <tr v-if="registros.length === 0">
-                                    <td colspan="6" class="text-center text-muted py-4">
-                                        <i class="fa fa-info-circle mr-1"></i>Sin resultados
-                                        encontrados.
-                                    </td>
-                                </tr>
-                            </template>
-                        </tbody>
-                    </table>
+                                            <td class="text-center">
+                                                <input
+                                                    type="checkbox"
+                                                    :disabled="!esSeleccionable(c)"
+                                                    :checked="selectedMap[c.id] === true"
+                                                    @change="toggleSelect(c)"
+                                                    aria-label="Seleccionar consentimiento"
+                                                />
+                                            </td>
+                                            <td>{{ pacienteNombre(c) }}</td>
+                                            <td>
+                                                {{
+                                                    c.ecografia_producto?.ecografia?.paciente
+                                                        ?.num_docu || "—"
+                                                }}
+                                            </td>
+                                            <td>{{ c.producto?.nom_produc || "—" }}</td>
+                                            <td class="text-center">
+                                                <span
+                                                    v-if="c.estado === 'COMPLETO'"
+                                                    class="badge badge-success"
+                                                >
+                                                    <i class="fa fa-check mr-1"></i>COMPLETO
+                                                </span>
+                                                <span
+                                                    v-else-if="c.estado === 'ANULADO'"
+                                                    class="badge badge-danger"
+                                                >
+                                                    <i class="fa fa-ban mr-1"></i>ANULADO
+                                                </span>
+                                                <span v-else class="badge badge-secondary">
+                                                    {{ c.estado }}
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <span v-if="c.pdf_path" class="badge badge-info">
+                                                    <i class="fa fa-file-pdf-o mr-1"></i>Generado
+                                                </span>
+                                                <span v-else class="text-muted">—</span>
+                                            </td>
+                                        </tr>
+                                        <tr v-if="registros.length === 0">
+                                            <td colspan="6" class="text-center text-muted py-4">
+                                                <i class="fa fa-info-circle mr-1"></i>Sin resultados
+                                                encontrados.
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Modal Reactivo de Anulación -->
+        <!-- Modal de Anulación -->
         <div
-            v-if="modalAnularVisible"
-            class="modal fade show d-block"
+            class="modal fade"
+            :class="{ show: modalAnularVisible }"
+            :style="{ display: modalAnularVisible ? 'block' : 'none' }"
             tabindex="-1"
             role="dialog"
             aria-labelledby="modalAnularTitle"
-            aria-modal="true"
-            style="
-                background: rgba(15, 23, 42, 0.45);
-                backdrop-filter: blur(2px);
-                -webkit-backdrop-filter: blur(2px);
-            "
+            aria-hidden="true"
             @click.self="cerrarModalAnular"
         >
-            <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content shadow-lg border-0">
-                    <div class="modal-header bg-danger text-white py-2">
-                        <h5 class="modal-title font-weight-bold" id="modalAnularTitle">
-                            <i class="fa fa-ban mr-1"></i> Anular Consentimiento
-                        </h5>
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="modalAnularTitle">Anular Consentimiento</h4>
                         <button
                             type="button"
-                            class="close text-white"
+                            class="close"
                             aria-label="Cerrar modal"
                             @click="cerrarModalAnular"
                         >
-                            <span aria-hidden="true">&times;</span>
+                            ×
                         </button>
                     </div>
                     <div class="modal-body">
-                        <div v-if="selectedConsentimiento" class="alert alert-warning py-2 mb-3">
-                            <div class="font-weight-bold">
-                                {{ pacienteNombre(selectedConsentimiento) }}
+                        <div v-if="selectedConsentimiento" class="alert alert-warning">
+                            <div>
+                                <strong>{{ pacienteNombre(selectedConsentimiento) }}</strong>
                             </div>
                             <small class="text-muted d-block">
                                 Documento:
@@ -268,8 +311,8 @@
                                 {{ selectedConsentimiento.producto?.nom_produc || "—" }}
                             </small>
                         </div>
-                        <div class="form-group mb-0">
-                            <label for="anulacion_observacion" class="font-weight-bold">
+                        <div class="form-group">
+                            <label class="control-label" for="anulacion_observacion">
                                 Observación de anulación <span class="text-danger">*</span>
                             </label>
                             <textarea
@@ -286,33 +329,30 @@
                             </small>
                         </div>
                     </div>
-                    <div class="modal-footer py-2 bg-light">
+                    <div class="modal-footer">
                         <button
                             type="button"
-                            class="btn btn-secondary btn-action-clinical"
+                            class="btn btn-default waves-effect"
                             @click="cerrarModalAnular"
                             :disabled="anulando"
                         >
-                            <i class="fa fa-times mr-1"></i> Cancelar
-                            <span class="badge badge-light border ml-1">Esc</span>
+                            Cancelar
                         </button>
                         <button
                             type="button"
-                            class="btn btn-danger btn-action-clinical"
+                            class="btn btn-danger waves-effect waves-light"
                             @click="confirmarAnulacion"
                             :disabled="anulando || !anulacionObservacion.trim()"
                         >
-                            <i
-                                class="fa mr-1"
-                                :class="anulando ? 'fa-spinner fa-spin' : 'fa-check'"
-                            ></i>
-                            {{ anulando ? "Anulando..." : "Confirmar Anulación" }}
-                            <span class="badge badge-light border ml-1">Ctrl+S</span>
+                            <i v-if="anulando" class="fa fa-spinner fa-spin"></i>
+                            <i v-else class="fa fa-ban"></i>
+                            {{ anulando ? "Anulando..." : "Confirmar anulación" }}
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+        <div v-if="modalAnularVisible" class="modal-backdrop fade show"></div>
     </div>
 </template>
 <script setup>
@@ -484,6 +524,26 @@ async function buscar() {
     } finally {
         loading.value = false;
     }
+}
+
+/**
+ * Limpia los filtros de búsqueda y restablece el listado de consentimientos.
+ *
+ * Flujo del proceso:
+ * 1. Restablece los campos de búsqueda de paciente y rango de fechas a vacío.
+ * 2. Invoca el método buscar para actualizar los registros en pantalla.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-10-27
+ */
+function limpiarFiltros() {
+    filtros.value.q = "";
+    filtros.value.desde = "";
+    filtros.value.hasta = "";
+    buscar();
 }
 
 /**
@@ -687,20 +747,3 @@ onBeforeUnmount(() => {
     emitter.off("sedeSeleccionada", onSedeSeleccionada);
 });
 </script>
-<style scoped>
-.breadcrumb-btn {
-    vertical-align: baseline;
-}
-.btn-action-clinical {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease-in-out;
-}
-.btn-action-clinical:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow:
-        0 4px 6px -1px rgba(0, 0, 0, 0.1),
-        0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-</style>
