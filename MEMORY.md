@@ -37,6 +37,9 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Despliegue en Producción Real (lidiag.com) y Blindaje de Redirección Post-Cambio de Contraseña:**
+  - **TrustHosts y Proxies:** Incorporado el patrón `^(.+\.)?lidiag\.com$` en `TrustHosts.php` y configurado `protected $proxies = '*'` en `TrustProxies.php` para delegar adecuadamente la terminación SSL (HTTPS) de balanceadores y Cloudflare.
+  - **Redirección Defensiva (`PasswordChangeController.php`):** Descartado `url.intended` si apunta a la ruta de `login`, garantizando que tras un cambio exitoso de contraseña el usuario sea redirigido siempre al `dashboard` y nunca expulsado al login.
 - [x] **2026-10-27 — Optimización y Reorganización Estructural del Menú Sidebar (`sidebar.blade.php`):**
   - **Reorganización Semántica y Jerárquica (`nav-small-cap`):** Reducción de 14 encabezados redundantes a 4 grupos de trabajo clínicos y administrativos coherentes: *Principal*, *Gestión Clínica*, *Citas y Agenda*, *Gestión y Reportes*, y *Administración*.
   - **Corrección de Enlaces y Bugs de Enrutamiento:**

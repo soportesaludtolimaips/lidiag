@@ -65,8 +65,9 @@ class PasswordChangeController extends Controller
         $intended = session()->pull('url.intended');
         $intendedPath = $intended !== null ? trim((string) parse_url($intended, PHP_URL_PATH), '/') : null;
         $formPath = trim((string) parse_url(route('password.cambiar'), PHP_URL_PATH), '/');
+        $loginPath = trim((string) parse_url(route('login'), PHP_URL_PATH), '/');
 
-        if ($intendedPath === null || $intendedPath === '' || $intendedPath === $formPath) {
+        if ($intendedPath === null || $intendedPath === '' || $intendedPath === $formPath || $intendedPath === $loginPath) {
             $intended = null;
         }
 
