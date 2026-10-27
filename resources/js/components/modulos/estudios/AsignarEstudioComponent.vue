@@ -444,8 +444,7 @@
                                         <div class="col-md-12">
                                             <div class="form-group">
                                                 <label class="control-label" for="email_reportar"
-                                                    >Reportar al Email
-                                                    <span class="text-danger">*</span></label
+                                                    >Reportar al Email</label
                                                 >
                                                 <input
                                                     type="email"
@@ -1147,7 +1146,7 @@ const statusEmailReportar = computed(() =>
     getFieldStatus(
         "email_reportar",
         registro.value.email_reportar,
-        [validators.required, validators.email],
+        [validators.email],
         errores.value
     )
 );

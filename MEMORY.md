@@ -37,6 +37,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Flexibilización de Campo Obligatorio en Asignación de Estudios (`email_reportar` opcional):**
+  - **Diagnóstico:** En el componente [AsignarEstudioComponent.vue](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/AsignarEstudioComponent.vue), el campo "Reportar al Email" (`email_reportar`) figuraba con asterisco rojo de obligatorio (`<span class="text-danger">*</span>`) y regla `validators.required`, bloqueando el guardado si el paciente o usuario no suministraba correo.
+  - **Causa Raíz:** El formulario en frontend validaba estrictamente `[validators.required, validators.email]` y requería un valor para habilitar `guardarRegistro()`, aun cuando la base de datos y `EstudioService` lo admiten como nullable (`'email_reportar' => $registro['email_reportar'] ?? null`).
+  - **Solución Implementada:**
+    * En [AsignarEstudioComponent.vue](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/AsignarEstudioComponent.vue), se retiró `<span class="text-danger">*</span>` de la etiqueta.
+    * Se ajustó la validación computada `statusEmailReportar` para evaluar únicamente `[validators.email]`. De este modo, si el campo está vacío se procesa como válido (`null`), pero si el usuario escribe un correo, se valida su sintaxis correctamente.
+  - **Verificaciones:** ESLint passed sin errores (`npx eslint`), build Vite exitoso (`npm run build`).
 - [x] **2026-10-27 — Blindaje Resiliente contra Error 500 en Notificaciones de Citas (`/api/citas/notificaciones/no-leidas`):**
   - **Diagnóstico:** El endpoint `/api/citas/notificaciones/no-leidas`, consultado por el polling del header cada 30 segundos, arrojaba `HTTP 500 Internal Server Error` en producción.
   - **Causa Raíz:** `AgendaCitaService::notificacionesNoLeidas()` carecía de comprobación sobre `Auth::user()` (pudo disparar `Call to a member function unreadNotifications() on null`), no contemplaba `$n->created_at` nulo al ejecutar `diffForHumans()`, ni datos no formateados o registros corruptos en la tabla `notifications`, y carecía de bloque `try/catch`.
