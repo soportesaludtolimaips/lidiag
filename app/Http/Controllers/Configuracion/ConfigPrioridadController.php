@@ -26,7 +26,8 @@ class ConfigPrioridadController extends Controller
         private readonly ConfigPrioridadService $configPrioridadService,
     ) {
         $this->middleware("auth:sanctum")->except(["index"]);
-        $this->middleware("permission:config.prioridades.index")->only(["index"]);
+        // Catálogo público/lectura: index queda abierto a usuarios autenticados para asignación de estudios
+        // $this->middleware("permission:config.prioridades.index")->only(["index"]);
         $this->middleware("permission:config.prioridades.create")->only(["store"]);
         $this->middleware("permission:config.prioridades.edit")->only(["update"]);
         $this->middleware("permission:config.prioridades.destroy")->only(["destroy"]);

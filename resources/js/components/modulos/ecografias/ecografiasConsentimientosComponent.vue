@@ -131,51 +131,25 @@
                                     Gestión y descarga de consentimientos informados de ecografías.
                                 </h6>
                             </div>
-                            <div class="text-right">
+                            <div class="ml-auto">
                                 <button
-                                    v-if="can('ecografias.consentimientos.pdf.generar')"
-                                    class="btn btn-info waves-effect waves-light m-r-5 m-b-5"
-                                    type="button"
-                                    @click="generarPdfSeleccionado"
-                                    :disabled="loading || selectedIds.length !== 1"
-                                >
-                                    <i class="fa fa-file-pdf-o"></i> Generar PDF
-                                </button>
-
-                                <button
-                                    v-if="can('ecografias.consentimientos.pdf.descargar')"
-                                    class="btn btn-primary waves-effect waves-light m-r-5 m-b-5"
-                                    type="button"
-                                    @click="descargarPdfSeleccionado"
-                                    :disabled="
-                                        loading ||
-                                        selectedIds.length !== 1 ||
-                                        !selectedConsentimiento?.pdf_path
+                                    v-if="
+                                        can('ecografias.consentimientos.zip.generar') ||
+                                        can('ecografias.consentimientos.index')
                                     "
-                                >
-                                    <i class="fa fa-download"></i> Descargar PDF
-                                </button>
-
-                                <button
-                                    v-if="can('ecografias.consentimientos.zip.generar')"
-                                    class="btn btn-warning waves-effect waves-light m-r-5 m-b-5"
+                                    class="btn btn-warning waves-effect waves-light"
                                     type="button"
                                     @click="generarZip"
                                     :disabled="loading || selectedIds.length < 2"
+                                    title="Descargar archivo ZIP con los consentimientos seleccionados (mínimo 2)"
                                 >
-                                    <i class="fa fa-file-archive-o"></i> Descargar ZIP ({{
-                                        selectedIds.length
-                                    }})
-                                </button>
-
-                                <button
-                                    v-if="can('ecografias.consentimientos.anular')"
-                                    class="btn btn-danger waves-effect waves-light m-b-5"
-                                    type="button"
-                                    @click="abrirModalAnular"
-                                    :disabled="loading || selectedIds.length !== 1"
-                                >
-                                    <i class="fa fa-ban"></i> Anular
+                                    <i class="fa fa-file-archive-o m-r-5"></i> Descargar ZIP
+                                    <span
+                                        v-if="selectedIds.length >= 2"
+                                        class="badge badge-light text-dark m-l-5 font-weight-bold"
+                                    >
+                                        {{ selectedIds.length }}
+                                    </span>
                                 </button>
                             </div>
                         </div>
@@ -197,11 +171,12 @@
                                         <th>Examen</th>
                                         <th width="130" class="text-center">Estado</th>
                                         <th width="120" class="text-center">PDF</th>
+                                        <th width="140" class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr v-if="loading">
-                                        <td colspan="6" class="text-center py-4 text-muted">
+                                        <td colspan="7" class="text-center py-4 text-muted">
                                             <i
                                                 class="fa fa-spinner fa-spin fa-2x mb-2 text-primary"
                                             ></i>
@@ -254,9 +229,62 @@
                                                 </span>
                                                 <span v-else class="text-muted">—</span>
                                             </td>
+                                            <td class="text-nowrap text-center">
+                                                <button
+                                                    v-if="
+                                                        can(
+                                                            'ecografias.consentimientos.pdf.generar'
+                                                        ) && c.estado === 'COMPLETO'
+                                                    "
+                                                    type="button"
+                                                    class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
+                                                    @click="generarPdf(c)"
+                                                    :disabled="loadingPdfId === c.id"
+                                                    title="Generar PDF"
+                                                    aria-label="Generar PDF"
+                                                >
+                                                    <i
+                                                        class="fa"
+                                                        :class="
+                                                            loadingPdfId === c.id
+                                                                ? 'fa-spinner fa-spin'
+                                                                : 'fa-file-pdf-o'
+                                                        "
+                                                    ></i>
+                                                </button>
+
+                                                <button
+                                                    v-if="
+                                                        can(
+                                                            'ecografias.consentimientos.pdf.descargar'
+                                                        ) && c.pdf_path
+                                                    "
+                                                    type="button"
+                                                    class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
+                                                    @click="descargarPdf(c)"
+                                                    title="Descargar PDF"
+                                                    aria-label="Descargar PDF"
+                                                >
+                                                    <i class="fa fa-download"></i>
+                                                </button>
+
+                                                <button
+                                                    v-if="
+                                                        can('ecografias.consentimientos.anular') &&
+                                                        c.estado === 'COMPLETO'
+                                                    "
+                                                    type="button"
+                                                    class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
+                                                    @click="abrirModalAnular(c)"
+                                                    title="Anular consentimiento"
+                                                    aria-label="Anular consentimiento"
+                                                >
+                                                    <i class="fa fa-ban"></i>
+                                                </button>
+                                            </td>
                                         </tr>
                                         <tr v-if="registros.length === 0">
-                                            <td colspan="6" class="text-center text-muted py-4">
+                                            <td colspan="7" class="text-center text-muted py-4">
                                                 <i class="fa fa-info-circle mr-1"></i>Sin resultados
                                                 encontrados.
                                             </td>
@@ -295,20 +323,20 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <div v-if="selectedConsentimiento" class="alert alert-warning">
+                        <div v-if="consentimientoParaAnular" class="alert alert-warning">
                             <div>
-                                <strong>{{ pacienteNombre(selectedConsentimiento) }}</strong>
+                                <strong>{{ pacienteNombre(consentimientoParaAnular) }}</strong>
                             </div>
                             <small class="text-muted d-block">
                                 Documento:
                                 {{
-                                    selectedConsentimiento.ecografia_producto?.ecografia?.paciente
+                                    consentimientoParaAnular.ecografia_producto?.ecografia?.paciente
                                         ?.num_docu || "—"
                                 }}
                             </small>
                             <small class="text-muted d-block">
                                 Examen:
-                                {{ selectedConsentimiento.producto?.nom_produc || "—" }}
+                                {{ consentimientoParaAnular.producto?.nom_produc || "—" }}
                             </small>
                         </div>
                         <div class="form-group">
@@ -386,6 +414,8 @@ const modalAnularVisible = ref(false);
 const anulacionObservacion = ref("");
 const anulando = ref(false);
 const motivoAnulaRef = ref(null);
+const consentimientoParaAnular = ref(null);
+const loadingPdfId = ref(null);
 
 /**
  * Obtiene la lista de identificadores de consentimientos actualmente seleccionados.
@@ -400,21 +430,6 @@ const selectedIds = computed(() => {
     return Object.keys(selectedMap.value)
         .filter((k) => selectedMap.value[k])
         .map((k) => Number(k));
-});
-
-/**
- * Devuelve el consentimiento seleccionado cuando exactamente uno está marcado, o null en caso contrario.
- *
- * @returns {Object|null}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-02-13
- */
-const selectedConsentimiento = computed(() => {
-    if (selectedIds.value.length !== 1) return null;
-    const id = selectedIds.value[0];
-    return registros.value.find((r) => Number(r.id) === Number(id)) || null;
 });
 
 /**
@@ -547,20 +562,31 @@ function limpiarFiltros() {
 }
 
 /**
- * Genera el PDF del consentimiento seleccionado (cuando hay exactamente uno) y refresca la lista.
+ * Genera el PDF del consentimiento individual y actualiza la lista.
+ *
+ * Flujo del proceso:
+ * 1. Asigna el id del registro al estado reactivo de carga para mostrar el spinner.
+ * 2. Emite la solicitud POST al endpoint de generación de PDF de consentimientos.
+ * 3. Muestra alerta de éxito y refresca la lista de consentimientos.
+ *
+ * @param {Object} c Registro de consentimiento a generar.
  *
  * @returns {Promise<void>}
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-02-13
+ * @date 2026-10-27
  */
-async function generarPdfSeleccionado() {
-    if (selectedIds.value.length !== 1) return;
-    const id = selectedIds.value[0];
-    loading.value = true;
+async function generarPdf(c) {
+    if (!c?.id) return;
+    loadingPdfId.value = c.id;
     try {
-        await axios.post(`/api/ecografias-consentimientos/${id}/pdf`);
+        await axios.post(`/api/ecografias-consentimientos/${c.id}/pdf`);
+        toastMessage({
+            heading: "Éxito",
+            text: "PDF generado correctamente.",
+            icon: "success",
+        });
         await buscar();
     } catch (error) {
         toastMessage({
@@ -569,21 +595,22 @@ async function generarPdfSeleccionado() {
             icon: "error",
         });
     } finally {
-        loading.value = false;
+        loadingPdfId.value = null;
     }
 }
 
 /**
- * Abre en una nueva pestaña la descarga del PDF del consentimiento seleccionado.
+ * Abre en una nueva pestaña la descarga del PDF del consentimiento individual.
+ *
+ * @param {Object} c Registro de consentimiento a descargar.
  *
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-02-13
+ * @date 2026-10-27
  */
-function descargarPdfSeleccionado() {
-    const c = selectedConsentimiento.value;
+function descargarPdf(c) {
     if (!c?.id || !c?.pdf_path) return;
     window.open(
         `/api/ecografias-consentimientos/${c.id}/pdf/download`,
@@ -631,16 +658,18 @@ async function generarZip() {
 }
 
 /**
- * Abre el modal clínico de anulación para el consentimiento seleccionado.
+ * Abre el modal clínico de anulación para el consentimiento indicado.
+ *
+ * @param {Object} c Registro de consentimiento a anular.
  *
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-10-19
+ * @date 2026-10-27
  */
-function abrirModalAnular() {
-    if (selectedIds.value.length !== 1) return;
+function abrirModalAnular(c) {
+    consentimientoParaAnular.value = c;
     anulacionObservacion.value = "";
     modalAnularVisible.value = true;
     nextTick(() => {
@@ -651,32 +680,38 @@ function abrirModalAnular() {
 }
 
 /**
- * Cierra el modal reactivo de anulación.
+ * Cierra el modal reactivo de anulación y reinicia el consentimiento seleccionado.
  *
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-10-19
+ * @date 2026-10-27
  */
 function cerrarModalAnular() {
     if (anulando.value) return;
     modalAnularVisible.value = false;
     anulacionObservacion.value = "";
+    consentimientoParaAnular.value = null;
 }
 
 /**
  * Confirma y procesa la anulación del consentimiento seleccionado.
  *
+ * Flujo del proceso:
+ * 1. Valida existencia de consentimiento seleccionado y observación obligatoria.
+ * 2. Emite la solicitud POST de anulación clínica al backend.
+ * 3. Muestra toast de confirmación, cierra el modal y refresca el listado.
+ *
  * @returns {Promise<void>}
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-10-19
+ * @date 2026-10-27
  */
 async function confirmarAnulacion() {
-    if (selectedIds.value.length !== 1 || !anulacionObservacion.value.trim()) return;
-    const id = selectedIds.value[0];
+    if (!consentimientoParaAnular.value?.id || !anulacionObservacion.value.trim()) return;
+    const id = consentimientoParaAnular.value.id;
     anulando.value = true;
     try {
         await axios.post(`/api/ecografias-consentimientos/${id}/anular`, {

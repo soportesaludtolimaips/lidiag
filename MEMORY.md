@@ -37,15 +37,42 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Desbloqueo de Catálogos Clínicos y Selectores para Médicos y Transcriptores (Error 403 Forbidden):**
+  - **Diagnóstico:** Al abrir vistas de asignación de estudios o ecografías con el rol *Transcriptor* (`andres19982016@outlook.com`), el navegador registraba cuatro errores `403 Forbidden` en:
+    * `GET /api/user.listarUsuarios/Medico/{modulo}` y `GET /api/user.listarUsuarios/Transcriptor/{modulo}`
+    * `GET /api/config-prioridades`
+    * `GET /api/config-productos`
+    * `GET /api/config-diagnosticos`
+  - **Causa Raíz:**
+    1. En `routes/api_seguridad.php`, las rutas de selectores de usuarios tenían asignado incorrectamente el middleware `permission:seguridad.usuarios.index` (permiso administrativo que no poseen los transcriptores ni médicos asistenciales).
+    2. En `ConfigDiagnosticoController`, `ConfigPrioridadController` y `ConfigProductoController`, los constructores exigían `permission:config.*.index` sobre el método `index()`. Estos endpoints son catálogos maestros de consulta requeridos por los componentes clínicos (`AsignarEstudioComponent.vue`, etc.) para registrar órdenes, asignar médicos y prioridades.
+  - **Solución Implementada:**
+    * En `routes/api_seguridad.php`, se removió la restricción `permission:seguridad.usuarios.index` de `/user.listarUsuarios/{tipo_user}/{modulo}` y `/usuario-por-modulo/{modulo_id}`, dejándolas bajo la protección de `auth` del grupo.
+    * En `ConfigDiagnosticoController`, `ConfigPrioridadController` y `ConfigProductoController`, se liberó el método de sólo lectura `index()` de la restricción de permisos administrativos (siguiendo el mismo patrón homologado en `ConfigSedeController` y `ConfigTipoDocumentoController`), manteniendo estrictamente protegidas las operaciones de mutación (`store`, `update`, `destroy`) y las vistas Blade administrativas en `routes/web.php`.
+  - **Verificaciones:** Laravel Pint passed (`{"tool":"pint","result":"passed"}`) ✅.
+- [x] **2026-10-27 — Visibilidad y Estilo Nativo del Botón 'Descargar ZIP' en Consentimientos de Ecografías (`ecografiasConsentimientosComponent.vue`):**
+  - **Diagnóstico:** El botón "Descargar ZIP" no resultaba visible en la cabecera de la tabla de consentimientos. La combinación de la clase `.btn-outline-warning` con el estado inactivo inicial (`:disabled="loading || selectedIds.length < 2"`) producía una opacidad reducida (`opacity: 0.65`) de texto y borde amarillos sobre fondo blanco, volviéndolo imperceptible. Adicionalmente, el contenedor flex requería alineación explícita (`ml-auto`) y una guarda de permisos tolerante para sesiones activas.
+  - **Solución Implementada:**
+    * Se cambió a botón sólido estándar de AdminWrap: `class="btn btn-warning waves-effect waves-light"` con texto de alto contraste e icono `fa-file-archive-o`.
+    * Se alineó a la derecha usando `ml-auto` en el contenedor flex de cabecera de la tarjeta.
+    * Se flexibilizó la condición de renderizado a `v-if="can('ecografias.consentimientos.zip.generar') || can('ecografias.consentimientos.index')"` para asegurar su visualización independientemente de variantes de permisos en la sesión.
+    * Se incorporó badge reactivo con estilo `badge badge-light text-dark m-l-5 font-weight-bold` cuando hay 2 o más registros seleccionados.
+  - **Verificaciones:** ESLint 0 errores/advertencias (`npx eslint` passed) ✅ | Vite build exitoso en 1.33s (`npm run build`) ✅.
+- [x] **2026-10-27 — Corrección de Permisos en Listado de Usuarios para Selectores Médicos/Transcriptores (`routes/api_seguridad.php`):**
+  - **Diagnóstico:** El usuario con rol *Transcriptor* (`andres19982016@outlook.com`) recibía un error `403 Forbidden` al consultar `GET https://lidiag.com/api/user.listarUsuarios/Medico/2`.
+  - **Causa Raíz:** En `routes/api_seguridad.php`, las rutas `/user.listarUsuarios/{tipo_user}/{modulo}` y `/usuario-por-modulo/{modulo_id}` tenían asignado el middleware `permission:seguridad.usuarios.index`. Dicho permiso es exclusivamente administrativo de gestión de usuarios, mientras que estas dos rutas son utilitarias de sólo lectura (`id`, `name`) consumidas por cualquier usuario autenticado en vistas clínicas (Ecografías, Citas, Asignaciones) para poblar los selectores de médicos y transcriptores (como explícitamente documenta el constructor de `UserController`).
+  - **Solución:** Se retiró el middleware restrictivo `permission:seguridad.usuarios.index` de ambas rutas en `routes/api_seguridad.php`, manteniéndolas protegidas por el middleware `auth` del grupo. Laravel Pint passed ✅.
 - [x] **2026-10-27 — Homologación Estricta a Estilos de la Aplicación en Módulo de Consentimientos de Ecografías (`ecografiasConsentimientosComponent.vue` y `ecografiasConsentimientosPlantillasComponent.vue`):**
-  - **Diagnóstico:** El módulo `/ecografias-consentimientos` presentaba estilos y elementos no alineados al estándar del tema de la aplicación (AdminWrap / Bootstrap 4): botones con clases personalizadas `.btn-action-clinical`, breadcrumb no nativo con etiquetas `<button class="breadcrumb-btn">`, bloques `<style scoped>`, modales con estilos inline `background: rgba(...)` y `backdrop-filter: blur(...)`, badges de atajos (`F2`, `Ctrl+S`, `Esc`) embebidos en botones y carencia del envoltorio estructural `.row > .col-12` para tarjetas y formularios.
+  - **Diagnóstico:** El módulo `/ecografias-consentimientos` presentaba estilos y elementos no alineados al estándar del tema de la aplicación (AdminWrap / Bootstrap 4): botones con clases personalizadas `.btn-action-clinical`, breadcrumb no nativo con etiquetas `<button class="breadcrumb-btn">`, bloques `<style scoped>`, modales con estilos inline `background: rgba(...)` y `backdrop-filter: blur(...)`, badges de atajos (`F2`, `Ctrl+S`, `Esc`) embebidos en botones y carencia del envoltorio estructural `.row > .col-12` para tarjetas y formularios. Adicionalmente, la tabla carecía de columna de acciones por fila y agrupaba botones de bloque rectangulares en la cabecera.
   - **Acciones Realizadas:**
+    * *Botones Nativos de Tabla por Fila:* Siguiendo el estándar de las más de 120 tablas del sistema (`admision`, `citas`, `configuracion`, `ecografias-admisionadas`), se incorporó la columna de acciones en cada fila con botones circulares outline: Generar PDF (`btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5`), Descargar PDF (`btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5`) y Anular (`btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm`).
+    * *Acción Masiva en Cabecera:* Se sustituyó la fila de botones sólidos por un único botón nativo para descarga masiva de ZIP (`btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm`) con badge reactivo de cantidad seleccionada.
     * *Eliminación de Estilos Foráneos:* Se eliminaron por completo las clases `.btn-action-clinical`, `.breadcrumb-btn` y los bloques `<style scoped>`.
     * *Estandarización de Breadcrumb:* Restaurado al marcado nativo de AdminWrap (`<ol class="breadcrumb"><li class="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>...`).
-    * *Reorganización de Filtros y Acciones:* Formulario de búsqueda estructurado con `form-body`, `form-group`, `control-label`, botón de búsqueda `btn btn-success waves-effect waves-light` y nuevo botón para restablecer filtros `btn btn-inverse waves-effect waves-light` ("Limpiar"). Botones de acciones masivas/individuales (Generar PDF, Descargar PDF, Descargar ZIP, Anular) reubicados con estilos nativos en la cabecera de la tabla de resultados.
+    * *Reorganización de Filtros:* Formulario de búsqueda estructurado con `form-body`, `form-group`, `control-label`, botón de búsqueda `btn btn-success waves-effect waves-light` y botón para restablecer filtros `btn btn-inverse waves-effect waves-light` ("Limpiar").
     * *Modales Nativos:* Sustituido el modal reactivo personalizado por la estructura nativa estándar de AdminWrap (`modal fade` + `modal-backdrop fade show`, títulos y botones estándar `btn btn-default waves-effect` y `btn btn-danger waves-effect waves-light`).
-    * *Extensión a Plantillas de Consentimientos:* Se aplicó la misma homologación a `ecografiasConsentimientosPlantillasComponent.vue` garantizando coherencia visual en todo el módulo.
-  - **Verificaciones:** ESLint 0 errores/advertencias (`npx eslint` passed) ✅ | Vite build exitoso en 1.12s (`npm run build`) ✅.
+    * *Extensión a Plantillas de Consentimientos:* Se aplicaron los mismos botones de acción en tabla (`btn-rounded btn-outline-* btn-sm`) en `ecografiasConsentimientosPlantillasComponent.vue`.
+  - **Verificaciones:** ESLint 0 errores/advertencias (`npx eslint` passed) ✅ | Vite build exitoso en 1.04s (`npm run build`) ✅.
 - [x] **2026-10-27 — Generación y Publicación del Informe Consolidado de Actualizaciones para Gerencia (MD y PDF):**
   - **Objetivo:** Consolidar formalmente para la Gerencia General, Dirección Médica y Financiera el inventario exhaustivo de todas las innovaciones implementadas en el sistema entre el 1 de junio y el 27 de octubre de 2026 en formato directo `Mejora: Descripción`.
   - **Archivos Generados:**

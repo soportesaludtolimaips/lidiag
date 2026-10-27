@@ -45,8 +45,7 @@ Route::middleware(['auth'])->group(function () {
         ->middleware(['permission:seguridad.usuarios.edit']);
 
     Route::get('/user.listarUsuarios/{tipo_user}/{modulo}', [UserController::class, 'listarUsuarios'])
-        ->name('api.user.listarUsuarios')
-        ->middleware(['permission:seguridad.usuarios.index']);
+        ->name('api.user.listarUsuarios');
 
     // Roles — rutas por método con permisos individuales
     Route::get('/seguridad-roles', [RolController::class, 'index'])
@@ -74,8 +73,7 @@ Route::middleware(['auth'])->group(function () {
         ->middleware(['permission:seguridad.roles.edit']);
 
     Route::get('/usuario-por-modulo/{modulo_id}', [UserController::class, 'usuariosPorModulo'])
-        ->name('api.usuarios.por.modulo')
-        ->middleware(['permission:seguridad.usuarios.index']);
+        ->name('api.usuarios.por.modulo');
 
     Route::get('/seguridad-listarPermisosUsuario/{id}', [UserController::class, 'listarPermisosUsuario'])
         ->name('api.seguridad.listarPermisosUsuario')

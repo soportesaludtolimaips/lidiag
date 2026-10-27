@@ -20,7 +20,8 @@ class ConfigProductoController extends Controller
         private readonly ConfigProductoService $configProductoService,
     ) {
         $this->middleware('auth:sanctum')->except(['index', 'show']);
-        $this->middleware('permission:config.productos.index')->only(['index']);
+        // Catálogo público/lectura: index/show quedan abiertos a usuarios autenticados para asignación de estudios
+        // $this->middleware('permission:config.productos.index')->only(['index']);
         $this->middleware('permission:config.productos.create')->only(['store']);
         $this->middleware('permission:config.productos.edit')->only(['update']);
         $this->middleware('permission:config.productos.destroy')->only(['destroy']);

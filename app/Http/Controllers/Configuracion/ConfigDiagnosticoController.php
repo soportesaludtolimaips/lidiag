@@ -20,7 +20,8 @@ class ConfigDiagnosticoController extends Controller
         private readonly ConfigDiagnosticoService $configDiagnosticoService,
     ) {
         $this->middleware('auth:sanctum')->except(['index']);
-        $this->middleware('permission:config.diagnosticos.index')->only(['index']);
+        // Catálogo público/lectura: index queda abierto a usuarios autenticados para asignación de estudios
+        // $this->middleware('permission:config.diagnosticos.index')->only(['index']);
         $this->middleware('permission:config.diagnosticos.create')->only(['store']);
         $this->middleware('permission:config.diagnosticos.edit')->only(['update']);
         $this->middleware('permission:config.diagnosticos.destroy')->only(['destroy']);

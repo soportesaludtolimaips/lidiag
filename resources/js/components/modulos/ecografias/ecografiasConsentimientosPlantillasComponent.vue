@@ -145,7 +145,7 @@
                                         </td>
                                         <td class="text-nowrap">
                                             <button
-                                                class="btn btn-sm btn-info m-r-5"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
                                                 type="button"
                                                 @click="previewPdf(p)"
                                                 :disabled="loadingPreviewId === p.id"
@@ -168,7 +168,7 @@
                                                         'ecografias.consentimientos.plantillas.edit'
                                                     )
                                                 "
-                                                class="btn btn-sm btn-warning m-r-5"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
                                                 type="button"
                                                 @click="editar(p)"
                                                 title="Editar plantilla"
@@ -183,7 +183,7 @@
                                                         'ecografias.consentimientos.plantillas.index'
                                                     )
                                                 "
-                                                class="btn btn-sm btn-secondary m-r-5"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-secondary btn-sm m-r-5"
                                                 type="button"
                                                 @click="verVersiones(p)"
                                                 title="Histórico de versiones"
@@ -198,7 +198,7 @@
                                                         'ecografias.consentimientos.plantillas.destroy'
                                                     )
                                                 "
-                                                class="btn btn-sm btn-danger"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
                                                 type="button"
                                                 @click="desactivar(p)"
                                                 title="Desactivar plantilla"
@@ -365,7 +365,7 @@
                                         <td>{{ v.created_at }}</td>
                                         <td class="text-nowrap">
                                             <button
-                                                class="btn btn-sm btn-info m-r-5"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
                                                 type="button"
                                                 @click="previewPdf(v)"
                                                 title="Vista previa PDF"
@@ -380,7 +380,7 @@
                                                         'ecografias.consentimientos.plantillas.edit'
                                                     )
                                                 "
-                                                class="btn btn-sm btn-success"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-success btn-sm"
                                                 type="button"
                                                 @click="activarVersion(v)"
                                                 title="Activar como versión vigente"
