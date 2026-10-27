@@ -37,6 +37,10 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Inclusión de 'unsafe-eval' en Content-Security-Policy (CSP) para Vue 3 y DataTables:**
+  - **Diagnóstico:** En producción (`lidiag.com`), la directiva CSP estricta en `SecurityHeaders.php` bloqueaba la ejecución de JavaScript en tiempo de ejecución con `Uncaught EvalError: Evaluating a string as JavaScript violates the following Content Security Policy directive because 'unsafe-eval' is not an allowed source of script`.
+  - **Causa Raíz:** Vue 3 y DataTables requieren evaluar expresiones de plantillas dinámicamente (`new Function`). Al carecer de `'unsafe-eval'` en `script-src`, el navegador bloqueaba la inicialización de los componentes.
+  - **Solución:** Incorporado `'unsafe-eval'` en `$scriptSrc` dentro de `app/Http/Middleware/SecurityHeaders.php`. Laravel Pint passed ✅.
 - [x] **2026-10-27 — Despliegue en Producción Real (lidiag.com) y Blindaje de Redirección Post-Cambio de Contraseña:**
   - **TrustHosts y Proxies:** Incorporado el patrón `^(.+\.)?lidiag\.com$` en `TrustHosts.php` y configurado `protected $proxies = '*'` en `TrustProxies.php` para delegar adecuadamente la terminación SSL (HTTPS) de balanceadores y Cloudflare.
   - **Redirección Defensiva (`PasswordChangeController.php`):** Descartado `url.intended` si apunta a la ruta de `login`, garantizando que tras un cambio exitoso de contraseña el usuario sea redirigido siempre al `dashboard` y nunca expulsado al login.

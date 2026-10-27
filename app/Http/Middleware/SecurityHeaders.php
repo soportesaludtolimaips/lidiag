@@ -100,6 +100,7 @@ class SecurityHeaders
             $scriptSrc = array_merge([
                 "'self'",
                 "'unsafe-inline'",
+                "'unsafe-eval'",
                 'https://cdn.jsdelivr.net',
                 'https://cdn.datatables.net',
                 'https://cdnjs.cloudflare.com',
