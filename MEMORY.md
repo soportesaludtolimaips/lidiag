@@ -37,6 +37,26 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Optimización y Reorganización Estructural del Menú Sidebar (`sidebar.blade.php`):**
+  - **Reorganización Semántica y Jerárquica (`nav-small-cap`):** Reducción de 14 encabezados redundantes a 4 grupos de trabajo clínicos y administrativos coherentes: *Principal*, *Gestión Clínica*, *Citas y Agenda*, *Gestión y Reportes*, y *Administración*.
+  - **Corrección de Enlaces y Bugs de Enrutamiento:**
+    * *Pacientes:* Eliminada duplicidad de enlaces que apuntaban a la misma vista de admisión.
+    * *Agenda:* Corregida la ruta errónea de *Asignación* que apuntaba a `citas.index`, enlazándola a `agendamiento.index` (`/agenda`), y reubicada *Disponibilidad* (`agenda.disponibilidad.index`) dentro del módulo de Agenda.
+    * *Reportes:* Incorporado acceso al reporte de *Estudios PACS* (`reportes.estudios.pac`).
+    * *Ecografías:* Integrados accesos directos a *Consentimientos (Firmas/PDF)* y *Plantillas* facilitando la operación asistencial.
+  - **Homogeneización Visual e Iconografía:**
+    * Sustituido el logo comercial `fa-etsy` por el icono clínico `fa-stethoscope` en el módulo de Ecografías.
+    * Incorporados iconos temáticos con clase `text-info` a todos los sub-elementos de Parametrización y Helpdesk (eliminando el `nav-small-cap` anidado que rompía el DOM).
+  - **Consistencia de Directivas Blade:** Estandarizado el uso de `@canany` y `@can` en lugar de llamadas manuales dispersas a `auth()->user()->hasAnyPermission()`.
+  - **Respeto Estricto de Estilos:** Cero modificación de clases o reglas CSS; 100% compatible con el diseño nativo de AdminWrap. LF UTF-8 no-BOM verificado.
+- [x] **2026-10-27 — Homologación Estricta a Estilos Originales AdminWrap en Reportes (`reporteProduccionComponent.vue`):**
+  - **Eliminación Total de Estilos y Clases Personalizadas:**
+    * Eliminado el bloque `<style scoped>` y la clase `.btn-action-clinical`.
+    * Eliminados estilos inline de modales (`background: rgba(...)`, `backdrop-filter: blur(...)`).
+    * Restaurada la estructura nativa estándar de Bootstrap/AdminWrap en todos los modales (`class="modal fade" :class="{ show: ... }" :style="{ display: ... }"` y `<div v-if="..." class="modal-backdrop fade show"></div>`).
+    * Restaurados los botones de modales al estándar clásico original del sistema: `btn btn-default waves-effect` (Cerrar) y `btn btn-info waves-effect waves-light` (Descargar) con sus iconos tradicionales (`<i class="fa fa-download"></i>`), sin badges de teclado ni efectos ajenos.
+    * Breadcrumb restaurado al diseño limpio original.
+  - **Verificaciones Estrictas:** `npx eslint` 0 errores ✅ | `npm run build` en 1.16s ✅.
 - [x] **2026-10-27 — Mejoras Avanzadas en Dosimetría: Parser RDSR DICOM, Compresión GZIP, Clasificación Anatómica RadLex y Deriva Técnica:**
   - **Parser Universal de RDSR DICOM (PS3.16 / TID 10011 / TID 10001):**
     * Detección automática en `agente_dosimetria.py` de objetos Structured Report (`SOPClassUID == 1.2.840.10008.5.1.4.1.1.88.67` y afines).

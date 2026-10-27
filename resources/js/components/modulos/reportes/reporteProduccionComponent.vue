@@ -14,18 +14,6 @@
                     <li class="breadcrumb-item active">Producción</li>
                 </ol>
             </div>
-            <div class="col-md-7 align-self-center text-right d-none d-md-block">
-                <button
-                    type="button"
-                    class="btn btn-sm btn-outline-secondary btn-action-clinical m-r-5"
-                    :disabled="loadingSedes"
-                    title="Actualizar sedes y catálogos asistenciales (F2)"
-                    @click="listarSedes()"
-                >
-                    <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loadingSedes }"></i>
-                    Refrescar <span class="badge badge-light border ml-1">F2</span>
-                </button>
-            </div>
         </div>
 
         <!-- Indicadores Asistenciales (Nativos AdminWrap) -->
@@ -310,13 +298,12 @@
 
         <!-- Modal Producción Detallada -->
         <div
-            v-if="modalProduccionVisible"
-            class="modal fade show d-block"
+            class="modal fade"
+            :class="{ show: modalProduccionVisible }"
+            :style="{ display: modalProduccionVisible ? 'block' : 'none' }"
             tabindex="-1"
             role="dialog"
-            aria-modal="true"
-            aria-hidden="false"
-            style="background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px); z-index: 1050"
+            aria-hidden="true"
             @click.self="
                 resetearFormulario();
                 modalProduccionVisible = false;
@@ -330,13 +317,12 @@
                             type="button"
                             class="close"
                             aria-label="Cerrar modal"
-                            title="Cerrar (Esc)"
                             @click="
                                 resetearFormulario();
                                 modalProduccionVisible = false;
                             "
                         >
-                            &times;
+                            ×
                         </button>
                     </div>
                     <div class="modal-body">
@@ -423,45 +409,38 @@
                     <div class="modal-footer">
                         <button
                             type="button"
-                            class="btn btn-inverse btn-action-clinical waves-effect"
-                            title="Cerrar (Esc)"
+                            class="btn btn-default waves-effect"
                             @click="
                                 resetearFormulario();
                                 modalProduccionVisible = false;
                             "
                         >
                             Cerrar
-                            <span class="badge badge-secondary ml-1">Esc</span>
                         </button>
                         <button
                             type="button"
-                            class="btn btn-info btn-action-clinical waves-effect waves-light"
-                            title="Descargar reporte en Excel (Ctrl+S)"
+                            class="btn btn-info waves-effect waves-light"
                             @click="descargarReporte()"
                             :disabled="loadingDescargarProduccion"
                         >
-                            <i
-                                v-if="loadingDescargarProduccion"
-                                class="fa fa-spinner fa-spin mr-1"
-                            ></i>
-                            <i v-else class="fa fa-download mr-1"></i>
+                            <i v-if="loadingDescargarProduccion" class="fa fa-spinner fa-spin"></i>
+                            <i v-else class="fa fa-download"></i>
                             Descargar reportes
-                            <span class="badge badge-light text-dark ml-1">Ctrl+S</span>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+        <div v-if="modalProduccionVisible" class="modal-backdrop fade show"></div>
 
         <!-- Modal PAC -->
         <div
-            v-if="modalPACVisible"
-            class="modal fade show d-block"
+            class="modal fade"
+            :class="{ show: modalPACVisible }"
+            :style="{ display: modalPACVisible ? 'block' : 'none' }"
             tabindex="-1"
             role="dialog"
-            aria-modal="true"
-            aria-hidden="false"
-            style="background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px); z-index: 1050"
+            aria-hidden="true"
             @click.self="
                 resetearFormularioPAC();
                 modalPACVisible = false;
@@ -475,13 +454,12 @@
                             type="button"
                             class="close"
                             aria-label="Cerrar modal"
-                            title="Cerrar (Esc)"
                             @click="
                                 resetearFormularioPAC();
                                 modalPACVisible = false;
                             "
                         >
-                            &times;
+                            ×
                         </button>
                     </div>
                     <div class="modal-body">
@@ -533,42 +511,38 @@
                     <div class="modal-footer">
                         <button
                             type="button"
-                            class="btn btn-inverse btn-action-clinical waves-effect"
-                            title="Cerrar (Esc)"
+                            class="btn btn-default waves-effect"
                             @click="
                                 resetearFormularioPAC();
                                 modalPACVisible = false;
                             "
                         >
                             Cerrar
-                            <span class="badge badge-secondary ml-1">Esc</span>
                         </button>
                         <button
                             type="button"
-                            class="btn btn-info btn-action-clinical waves-effect waves-light"
-                            title="Descargar reporte en Excel (Ctrl+S)"
+                            class="btn btn-info waves-effect waves-light"
                             @click="descargarReporteEstudiosPAC()"
                             :disabled="loadingDescargarPAC"
                         >
-                            <i v-if="loadingDescargarPAC" class="fa fa-spinner fa-spin mr-1"></i>
-                            <i v-else class="fa fa-download mr-1"></i>
+                            <i v-if="loadingDescargarPAC" class="fa fa-spinner fa-spin"></i>
+                            <i v-else class="fa fa-download"></i>
                             Descargar reporte
-                            <span class="badge badge-light text-dark ml-1">Ctrl+S</span>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+        <div v-if="modalPACVisible" class="modal-backdrop fade show"></div>
 
         <!-- Modal Dosimetría / Control de Radiación -->
         <div
-            v-if="modalDosimetriaVisible"
-            class="modal fade show d-block"
+            class="modal fade"
+            :class="{ show: modalDosimetriaVisible }"
+            :style="{ display: modalDosimetriaVisible ? 'block' : 'none' }"
             tabindex="-1"
             role="dialog"
-            aria-modal="true"
-            aria-hidden="false"
-            style="background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px); z-index: 1050"
+            aria-hidden="true"
             @click.self="
                 resetearFormularioDosimetria();
                 modalDosimetriaVisible = false;
@@ -584,13 +558,12 @@
                             type="button"
                             class="close"
                             aria-label="Cerrar modal"
-                            title="Cerrar (Esc)"
                             @click="
                                 resetearFormularioDosimetria();
                                 modalDosimetriaVisible = false;
                             "
                         >
-                            &times;
+                            ×
                         </button>
                     </div>
                     <div class="modal-body">
@@ -642,45 +615,38 @@
                     <div class="modal-footer">
                         <button
                             type="button"
-                            class="btn btn-inverse btn-action-clinical waves-effect"
-                            title="Cerrar (Esc)"
+                            class="btn btn-default waves-effect"
                             @click="
                                 resetearFormularioDosimetria();
                                 modalDosimetriaVisible = false;
                             "
                         >
                             Cerrar
-                            <span class="badge badge-secondary ml-1">Esc</span>
                         </button>
                         <button
                             type="button"
-                            class="btn btn-info btn-action-clinical waves-effect waves-light"
-                            title="Descargar reporte en Excel (Ctrl+S)"
+                            class="btn btn-info waves-effect waves-light"
                             @click="descargarReporteDosimetria()"
                             :disabled="loadingDescargarDosimetria"
                         >
-                            <i
-                                v-if="loadingDescargarDosimetria"
-                                class="fa fa-spinner fa-spin mr-1"
-                            ></i>
-                            <i v-else class="fa fa-download mr-1"></i>
+                            <i v-if="loadingDescargarDosimetria" class="fa fa-spinner fa-spin"></i>
+                            <i v-else class="fa fa-download"></i>
                             Descargar reporte
-                            <span class="badge badge-light text-dark ml-1">Ctrl+S</span>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+        <div v-if="modalDosimetriaVisible" class="modal-backdrop fade show"></div>
 
         <!-- Modal Tele-radiología -->
         <div
-            v-if="modalTeleRadiologiaVisible"
-            class="modal fade show d-block"
+            class="modal fade"
+            :class="{ show: modalTeleRadiologiaVisible }"
+            :style="{ display: modalTeleRadiologiaVisible ? 'block' : 'none' }"
             tabindex="-1"
             role="dialog"
-            aria-modal="true"
-            aria-hidden="false"
-            style="background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px); z-index: 1050"
+            aria-hidden="true"
             @click.self="
                 resetearFormularioTeleRadiologia();
                 modalTeleRadiologiaVisible = false;
@@ -696,13 +662,12 @@
                             type="button"
                             class="close"
                             aria-label="Cerrar modal"
-                            title="Cerrar (Esc)"
                             @click="
                                 resetearFormularioTeleRadiologia();
                                 modalTeleRadiologiaVisible = false;
                             "
                         >
-                            &times;
+                            ×
                         </button>
                     </div>
                     <div class="modal-body">
@@ -756,45 +721,41 @@
                     <div class="modal-footer">
                         <button
                             type="button"
-                            class="btn btn-inverse btn-action-clinical waves-effect"
-                            title="Cerrar (Esc)"
+                            class="btn btn-default waves-effect"
                             @click="
                                 resetearFormularioTeleRadiologia();
                                 modalTeleRadiologiaVisible = false;
                             "
                         >
                             Cerrar
-                            <span class="badge badge-secondary ml-1">Esc</span>
                         </button>
                         <button
                             type="button"
-                            class="btn btn-info btn-action-clinical waves-effect waves-light"
-                            title="Descargar reporte en Excel (Ctrl+S)"
+                            class="btn btn-info waves-effect waves-light"
                             @click="descargarReporteTeleRadiologia()"
                             :disabled="loadingDescargarTeleRadiologia"
                         >
                             <i
                                 v-if="loadingDescargarTeleRadiologia"
-                                class="fa fa-spinner fa-spin mr-1"
+                                class="fa fa-spinner fa-spin"
                             ></i>
-                            <i v-else class="fa fa-download mr-1"></i>
+                            <i v-else class="fa fa-download"></i>
                             Descargar reporte
-                            <span class="badge badge-light text-dark ml-1">Ctrl+S</span>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+        <div v-if="modalTeleRadiologiaVisible" class="modal-backdrop fade show"></div>
 
         <!-- Modal Ausentismo y Cancelaciones de Citas -->
         <div
-            v-if="modalAusentismoVisible"
-            class="modal fade show d-block"
+            class="modal fade"
+            :class="{ show: modalAusentismoVisible }"
+            :style="{ display: modalAusentismoVisible ? 'block' : 'none' }"
             tabindex="-1"
             role="dialog"
-            aria-modal="true"
-            aria-hidden="false"
-            style="background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px); z-index: 1050"
+            aria-hidden="true"
             @click.self="
                 resetearFormularioAusentismo();
                 modalAusentismoVisible = false;
@@ -810,13 +771,12 @@
                             type="button"
                             class="close"
                             aria-label="Cerrar modal"
-                            title="Cerrar (Esc)"
                             @click="
                                 resetearFormularioAusentismo();
                                 modalAusentismoVisible = false;
                             "
                         >
-                            &times;
+                            ×
                         </button>
                     </div>
                     <div class="modal-body">
@@ -890,45 +850,38 @@
                     <div class="modal-footer">
                         <button
                             type="button"
-                            class="btn btn-inverse btn-action-clinical waves-effect"
-                            title="Cerrar (Esc)"
+                            class="btn btn-default waves-effect"
                             @click="
                                 resetearFormularioAusentismo();
                                 modalAusentismoVisible = false;
                             "
                         >
                             Cerrar
-                            <span class="badge badge-secondary ml-1">Esc</span>
                         </button>
                         <button
                             type="button"
-                            class="btn btn-info btn-action-clinical waves-effect waves-light"
-                            title="Descargar reporte en Excel (Ctrl+S)"
+                            class="btn btn-info waves-effect waves-light"
                             @click="descargarReporteAusentismo()"
                             :disabled="loadingDescargarAusentismo"
                         >
-                            <i
-                                v-if="loadingDescargarAusentismo"
-                                class="fa fa-spinner fa-spin mr-1"
-                            ></i>
-                            <i v-else class="fa fa-download mr-1"></i>
+                            <i v-if="loadingDescargarAusentismo" class="fa fa-spinner fa-spin"></i>
+                            <i v-else class="fa fa-download"></i>
                             Descargar reporte
-                            <span class="badge badge-light text-dark ml-1">Ctrl+S</span>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+        <div v-if="modalAusentismoVisible" class="modal-backdrop fade show"></div>
 
         <!-- Modal Liquidación de Honorarios -->
         <div
-            v-if="modalLiquidacionVisible"
-            class="modal fade show d-block"
+            class="modal fade"
+            :class="{ show: modalLiquidacionVisible }"
+            :style="{ display: modalLiquidacionVisible ? 'block' : 'none' }"
             tabindex="-1"
             role="dialog"
-            aria-modal="true"
-            aria-hidden="false"
-            style="background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px); z-index: 1050"
+            aria-hidden="true"
             @click.self="
                 resetearFormularioLiquidacion();
                 modalLiquidacionVisible = false;
@@ -942,13 +895,12 @@
                             type="button"
                             class="close"
                             aria-label="Cerrar modal"
-                            title="Cerrar (Esc)"
                             @click="
                                 resetearFormularioLiquidacion();
                                 modalLiquidacionVisible = false;
                             "
                         >
-                            &times;
+                            ×
                         </button>
                     </div>
                     <div class="modal-body">
@@ -1002,45 +954,38 @@
                     <div class="modal-footer">
                         <button
                             type="button"
-                            class="btn btn-inverse btn-action-clinical waves-effect"
-                            title="Cerrar (Esc)"
+                            class="btn btn-default waves-effect"
                             @click="
                                 resetearFormularioLiquidacion();
                                 modalLiquidacionVisible = false;
                             "
                         >
                             Cerrar
-                            <span class="badge badge-secondary ml-1">Esc</span>
                         </button>
                         <button
                             type="button"
-                            class="btn btn-info btn-action-clinical waves-effect waves-light"
-                            title="Descargar reporte en Excel (Ctrl+S)"
+                            class="btn btn-info waves-effect waves-light"
                             @click="descargarReporteLiquidacion()"
                             :disabled="loadingDescargarLiquidacion"
                         >
-                            <i
-                                v-if="loadingDescargarLiquidacion"
-                                class="fa fa-spinner fa-spin mr-1"
-                            ></i>
-                            <i v-else class="fa fa-download mr-1"></i>
+                            <i v-if="loadingDescargarLiquidacion" class="fa fa-spinner fa-spin"></i>
+                            <i v-else class="fa fa-download"></i>
                             Descargar reporte
-                            <span class="badge badge-light text-dark ml-1">Ctrl+S</span>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+        <div v-if="modalLiquidacionVisible" class="modal-backdrop fade show"></div>
 
         <!-- Modal Productividad Médica (Corte Mensual) -->
         <div
-            v-if="modalProductividadVisible"
-            class="modal fade show d-block"
+            class="modal fade"
+            :class="{ show: modalProductividadVisible }"
+            :style="{ display: modalProductividadVisible ? 'block' : 'none' }"
             tabindex="-1"
             role="dialog"
-            aria-modal="true"
-            aria-hidden="false"
-            style="background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px); z-index: 1050"
+            aria-hidden="true"
             @click.self="
                 resetearFormularioProductividad();
                 modalProductividadVisible = false;
@@ -1056,13 +1001,12 @@
                             type="button"
                             class="close"
                             aria-label="Cerrar modal"
-                            title="Cerrar (Esc)"
                             @click="
                                 resetearFormularioProductividad();
                                 modalProductividadVisible = false;
                             "
                         >
-                            &times;
+                            ×
                         </button>
                     </div>
                     <div class="modal-body">
@@ -1099,45 +1043,41 @@
                     <div class="modal-footer">
                         <button
                             type="button"
-                            class="btn btn-inverse btn-action-clinical waves-effect"
-                            title="Cerrar (Esc)"
+                            class="btn btn-default waves-effect"
                             @click="
                                 resetearFormularioProductividad();
                                 modalProductividadVisible = false;
                             "
                         >
                             Cerrar
-                            <span class="badge badge-secondary ml-1">Esc</span>
                         </button>
                         <button
                             type="button"
-                            class="btn btn-info btn-action-clinical waves-effect waves-light"
-                            title="Descargar reporte en Excel (Ctrl+S)"
+                            class="btn btn-info waves-effect waves-light"
                             @click="descargarReporteProductividad()"
                             :disabled="loadingDescargarProductividad"
                         >
                             <i
                                 v-if="loadingDescargarProductividad"
-                                class="fa fa-spinner fa-spin mr-1"
+                                class="fa fa-spinner fa-spin"
                             ></i>
-                            <i v-else class="fa fa-download mr-1"></i>
+                            <i v-else class="fa fa-download"></i>
                             Descargar reporte
-                            <span class="badge badge-light text-dark ml-1">Ctrl+S</span>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+        <div v-if="modalProductividadVisible" class="modal-backdrop fade show"></div>
 
         <!-- Modal Calidad y Oportunidad (Turnaround Time - TAT) -->
         <div
-            v-if="modalTATVisible"
-            class="modal fade show d-block"
+            class="modal fade"
+            :class="{ show: modalTATVisible }"
+            :style="{ display: modalTATVisible ? 'block' : 'none' }"
             tabindex="-1"
             role="dialog"
-            aria-modal="true"
-            aria-hidden="false"
-            style="background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px); z-index: 1050"
+            aria-hidden="true"
             @click.self="
                 resetearFormularioTAT();
                 modalTATVisible = false;
@@ -1151,13 +1091,12 @@
                             type="button"
                             class="close"
                             aria-label="Cerrar modal"
-                            title="Cerrar (Esc)"
                             @click="
                                 resetearFormularioTAT();
                                 modalTATVisible = false;
                             "
                         >
-                            &times;
+                            ×
                         </button>
                     </div>
                     <div class="modal-body">
@@ -1231,42 +1170,38 @@
                     <div class="modal-footer">
                         <button
                             type="button"
-                            class="btn btn-inverse btn-action-clinical waves-effect"
-                            title="Cerrar (Esc)"
+                            class="btn btn-default waves-effect"
                             @click="
                                 resetearFormularioTAT();
                                 modalTATVisible = false;
                             "
                         >
                             Cerrar
-                            <span class="badge badge-secondary ml-1">Esc</span>
                         </button>
                         <button
                             type="button"
-                            class="btn btn-info btn-action-clinical waves-effect waves-light"
-                            title="Descargar reporte en Excel (Ctrl+S)"
+                            class="btn btn-info waves-effect waves-light"
                             @click="descargarReporteTAT()"
                             :disabled="loadingDescargarTAT"
                         >
-                            <i v-if="loadingDescargarTAT" class="fa fa-spinner fa-spin mr-1"></i>
-                            <i v-else class="fa fa-download mr-1"></i>
+                            <i v-if="loadingDescargarTAT" class="fa fa-spinner fa-spin"></i>
+                            <i v-else class="fa fa-download"></i>
                             Descargar reporte
-                            <span class="badge badge-light text-dark ml-1">Ctrl+S</span>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+        <div v-if="modalTATVisible" class="modal-backdrop fade show"></div>
 
         <!-- Modal Salud y Telemetría de Agentes Hospitalarios -->
         <div
-            v-if="modalAgentesVisible"
-            class="modal fade show d-block"
+            class="modal fade"
+            :class="{ show: modalAgentesVisible }"
+            :style="{ display: modalAgentesVisible ? 'block' : 'none' }"
             tabindex="-1"
             role="dialog"
-            aria-modal="true"
-            aria-hidden="false"
-            style="background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px); z-index: 1050"
+            aria-hidden="true"
             @click.self="
                 resetearFormularioAgentes();
                 modalAgentesVisible = false;
@@ -1282,13 +1217,12 @@
                             type="button"
                             class="close"
                             aria-label="Cerrar modal"
-                            title="Cerrar (Esc)"
                             @click="
                                 resetearFormularioAgentes();
                                 modalAgentesVisible = false;
                             "
                         >
-                            &times;
+                            ×
                         </button>
                     </div>
                     <div class="modal-body">
@@ -1320,35 +1254,29 @@
                     <div class="modal-footer">
                         <button
                             type="button"
-                            class="btn btn-inverse btn-action-clinical waves-effect"
-                            title="Cerrar (Esc)"
+                            class="btn btn-default waves-effect"
                             @click="
                                 resetearFormularioAgentes();
                                 modalAgentesVisible = false;
                             "
                         >
                             Cerrar
-                            <span class="badge badge-secondary ml-1">Esc</span>
                         </button>
                         <button
                             type="button"
-                            class="btn btn-info btn-action-clinical waves-effect waves-light"
-                            title="Descargar reporte en Excel (Ctrl+S)"
+                            class="btn btn-info waves-effect waves-light"
                             @click="descargarReporteAgentes()"
                             :disabled="loadingDescargarAgentes"
                         >
-                            <i
-                                v-if="loadingDescargarAgentes"
-                                class="fa fa-spinner fa-spin mr-1"
-                            ></i>
-                            <i v-else class="fa fa-download mr-1"></i>
+                            <i v-if="loadingDescargarAgentes" class="fa fa-spinner fa-spin"></i>
+                            <i v-else class="fa fa-download"></i>
                             Descargar reporte
-                            <span class="badge badge-light text-dark ml-1">Ctrl+S</span>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+        <div v-if="modalAgentesVisible" class="modal-backdrop fade show"></div>
     </div>
 </template>
 
@@ -2073,18 +2001,3 @@ useKeyboardShortcuts({
     },
 });
 </script>
-
-<style scoped>
-.btn-action-clinical {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.btn-action-clinical:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow:
-        0 4px 6px -1px rgba(0, 0, 0, 0.1),
-        0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-</style>
