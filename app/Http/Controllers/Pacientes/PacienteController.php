@@ -179,4 +179,19 @@ class PacienteController extends Controller
 
         return response()->json($result, (int) $result['status'], [], JSON_INVALID_UTF8_SUBSTITUTE);
     }
+
+    /**
+     * Reconcilia las órdenes de Worklist con los estudios recibidos en el PACS Dcm4chee.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-27
+     */
+    public function reconciliarWorklist(Request $request): JsonResponse
+    {
+        $sedeId = $request->input('sede_id') ? (int) $request->input('sede_id') : null;
+        $result = $this->worklistService->reconciliarOrdenes($sedeId);
+
+        return response()->json($result, (int) $result['status'], [], JSON_INVALID_UTF8_SUBSTITUTE);
+    }
 }

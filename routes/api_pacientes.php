@@ -25,6 +25,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/pacientes/cancelar-worklist', [PacienteController::class, 'cancelarWorklist'])
         ->name('api.pacientes.cancelar-worklist');
 
+    Route::post('/pacientes/worklist-reconciliar', [PacienteController::class, 'reconciliarWorklist'])
+        ->name('api.pacientes.worklist-reconciliar');
+
     Route::get('/pacientes/{id}', [PacienteController::class, 'show'])
         ->name('api.pacientes.show');
 

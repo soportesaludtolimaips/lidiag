@@ -11,6 +11,7 @@ use App\Models\Estudio\EstudioSoportesHC;
 use App\Models\General\Paciente;
 use App\Models\Liquidacion\LiquidacionLinea;
 use App\Models\User;
+use App\Models\Worklist\WorklistOrden;
 use App\Services\BaseService;
 use App\Services\Liquidacion\LiquidacionService;
 use Illuminate\Http\UploadedFile;
@@ -136,6 +137,7 @@ class EstudioService extends BaseService
                 $this->syncStudyProducts($estudio->id, $productosMarcados);
                 $this->syncStudyDiagnostics($estudio->id, $registro['diagnosticosEstudio'] ?? []);
                 $this->processSoportes($estudio->id, $archivo1, $archivo2, $archivo3);
+                $this->autoReconciliarWorklistOrden($estudio, $registro);
 
                 // Asignación registrada: se libera la reserva (si la transacción revierte, vuelve a existir).
                 if ($claveAsignacion !== null) {
@@ -747,6 +749,56 @@ class EstudioService extends BaseService
                 'estudio_id' => $estudioId,
                 'archivo_original' => $archivo->getClientOriginalName(),
                 'archivo_encrip' => $nombreEncrip,
+            ]);
+        }
+    }
+
+    /**
+     * Auto-reconcilia órdenes de Modality Worklist marcándolas como COMPLETADO al asignar el estudio.
+     *
+     * Flujo del proceso:
+     * 1. Extrae el Accession Number o Study Instance UID del registro.
+     * 2. Localiza órdenes de worklist en estado PENDIENTE o ADQUIRIDO coincidentes.
+     * 3. Actualiza el estado a COMPLETADO y asocia el ID del estudio generado.
+     *
+     * @param  Estudio  $estudio  Modelo del estudio persistido
+     * @param  array  $registro  Datos enviados desde el formulario de asignación
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-27
+     */
+    private function autoReconciliarWorklistOrden(Estudio $estudio, array $registro): void
+    {
+        $accessionNo = trim($registro['accession_no'] ?? '');
+        $studyIuid = trim($registro['study_iuid'] ?? '');
+
+        if (empty($accessionNo) && empty($studyIuid)) {
+            return;
+        }
+
+        try {
+            WorklistOrden::query()
+                ->where('sede_id', $estudio->sede_id)
+                ->whereIn('estado', ['PENDIENTE', 'ADQUIRIDO'])
+                ->where(function ($q) use ($accessionNo, $studyIuid) {
+                    if (! empty($accessionNo)) {
+                        $q->where('accession_no', $accessionNo);
+                    }
+                    if (! empty($studyIuid)) {
+                        $q->orWhere('study_iuid', $studyIuid);
+                    }
+                })
+                ->update([
+                    'estado' => 'COMPLETADO',
+                    'estudio_id' => $estudio->id,
+                    'study_pk' => ! empty($registro['study_pk']) ? (int) $registro['study_pk'] : null,
+                    'updated_at' => now(),
+                ]);
+        } catch (\Throwable $e) {
+            Log::warning('No fue posible auto-reconciliar WorklistOrden al crear estudio: '.$e->getMessage(), [
+                'estudio_id' => $estudio->id,
+                'accession_no' => $accessionNo,
             ]);
         }
     }

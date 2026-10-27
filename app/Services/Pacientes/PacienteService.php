@@ -63,7 +63,7 @@ class PacienteService extends BaseService
 
         $pacientes = $query->orderBy('id', 'desc')->limit(300)->get();
 
-        // Mapear órdenes de Worklist activas para la sede en la fecha de hoy
+        // Mapear órdenes de Worklist para la sede en la fecha de hoy
         $pacienteIds = $pacientes->pluck('id')->all();
         $ordenesActivas = [];
 
@@ -71,19 +71,26 @@ class PacienteService extends BaseService
             $ordenes = WorklistOrden::with('producto:id,cod_cups,nom_produc')
                 ->where('sede_id', $sedeId)
                 ->whereIn('paciente_id', $pacienteIds)
-                ->where('estado', 'PENDIENTE')
+                ->whereIn('estado', ['PENDIENTE', 'ADQUIRIDO', 'COMPLETADO'])
                 ->whereDate('created_at', Carbon::today())
+                ->orderBy('id', 'desc')
                 ->get();
 
             foreach ($ordenes as $ord) {
-                $ordenesActivas[$ord->paciente_id] = [
-                    'id' => $ord->id,
-                    'accession_no' => $ord->accession_no,
-                    'modality' => $ord->modality,
-                    'station_aet' => $ord->station_aet,
-                    'producto' => $ord->producto ? $ord->producto->nom_produc : null,
-                    'created_at' => $ord->created_at ? $ord->created_at->format('H:i') : null,
-                ];
+                if (! isset($ordenesActivas[$ord->paciente_id])) {
+                    $ordenesActivas[$ord->paciente_id] = [
+                        'id' => $ord->id,
+                        'accession_no' => $ord->accession_no,
+                        'modality' => $ord->modality,
+                        'station_aet' => $ord->station_aet,
+                        'estado' => $ord->estado,
+                        'producto' => $ord->producto ? $ord->producto->nom_produc : null,
+                        'study_pk' => $ord->study_pk,
+                        'estudio_id' => $ord->estudio_id,
+                        'adquirido_at' => $ord->adquirido_at ? $ord->adquirido_at->format('H:i') : null,
+                        'created_at' => $ord->created_at ? $ord->created_at->format('H:i') : null,
+                    ];
+                }
             }
         }
 

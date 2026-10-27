@@ -29,6 +29,19 @@
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-outline-info m-r-5"
+                    :disabled="isReconciliandoPacs || loadingBuscar"
+                    @click="reconciliarConPacs()"
+                    title="Verificar y reconciliar órdenes con el PACS Dcm4chee"
+                >
+                    <i
+                        :class="isReconciliandoPacs ? 'fa fa-spinner fa-spin' : 'fa fa-refresh'"
+                        class="m-r-5"
+                    ></i>
+                    {{ isReconciliandoPacs ? "Verificando PACS..." : "Reconciliar PACS" }}
+                </button>
                 <button type="button" class="btn btn-info" @click="nuevoRegistro()">
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
@@ -206,14 +219,53 @@
                                         <td>{{ item.cel || item.tel || "—" }}</td>
                                         <td>
                                             <div v-if="item.orden_worklist_activa">
-                                                <span class="badge badge-warning text-dark m-r-5">
+                                                <span
+                                                    v-if="
+                                                        item.orden_worklist_activa.estado ===
+                                                        'ADQUIRIDO'
+                                                    "
+                                                    class="badge badge-info m-r-5"
+                                                    title="Imágenes recibidas en el PACS - Listo para Asignar"
+                                                >
+                                                    <i class="fa fa-check-circle"></i> Imágenes en
+                                                    PACS
+                                                </span>
+                                                <span
+                                                    v-else-if="
+                                                        item.orden_worklist_activa.estado ===
+                                                        'COMPLETADO'
+                                                    "
+                                                    class="badge badge-success m-r-5"
+                                                    title="Estudio asignado formalmente en el sistema"
+                                                >
+                                                    <i class="fa fa-user-md"></i> Asignado a Lectura
+                                                </span>
+                                                <span
+                                                    v-else
+                                                    class="badge badge-warning text-dark m-r-5"
+                                                    title="En espera de adquisición en la sala de Rayos X"
+                                                >
                                                     <i class="fa fa-clock-o"></i> En espera de Rayos
                                                     X
                                                 </span>
                                                 <small class="text-muted d-block">
                                                     Acc:
                                                     {{ item.orden_worklist_activa.accession_no }}
-                                                    ({{ item.orden_worklist_activa.created_at }})
+                                                    <span
+                                                        v-if="
+                                                            item.orden_worklist_activa.adquirido_at
+                                                        "
+                                                    >
+                                                        | Toma:
+                                                        {{
+                                                            item.orden_worklist_activa.adquirido_at
+                                                        }}
+                                                    </span>
+                                                    <span v-else>
+                                                        ({{
+                                                            item.orden_worklist_activa.created_at
+                                                        }})
+                                                    </span>
                                                 </small>
                                             </div>
                                             <span v-else class="badge badge-light text-muted"
@@ -239,8 +291,25 @@
                                             >
                                                 <i class="fa fa-pencil"></i>
                                             </button>
+                                            <a
+                                                v-if="
+                                                    item.orden_worklist_activa &&
+                                                    item.orden_worklist_activa.estado ===
+                                                        'ADQUIRIDO'
+                                                "
+                                                href="/estudios.asignar.listar"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
+                                                title="Ir a Asignar Estudio (Imágenes listas en PACS)"
+                                                aria-label="Ir a Asignar Estudio"
+                                            >
+                                                <i class="fa fa-arrow-circle-right"></i>
+                                            </a>
                                             <button
-                                                v-if="item.orden_worklist_activa"
+                                                v-if="
+                                                    item.orden_worklist_activa &&
+                                                    item.orden_worklist_activa.estado ===
+                                                        'PENDIENTE'
+                                                "
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
                                                 @click="cancelarOrdenWorklist(item)"
@@ -534,7 +603,13 @@ import { ref, computed, onMounted, onBeforeUnmount, getCurrentInstance, nextTick
 import axios from "axios";
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { toastMessage, confirmAction, alertError } from "@/helpers/alerts";
+import {
+    toastMessage,
+    confirmAction,
+    alertError,
+    alertSuccess,
+    getUserSafeError,
+} from "@/helpers/alerts";
 import { calcularEdad } from "@/helpers/dateUtils";
 
 const props = defineProps({
@@ -579,6 +654,7 @@ const sedeNombre = ref(sessionStorage.getItem("ST-nomsede") || "Principal");
 
 // Estado de carga y datos
 const loadingBuscar = ref(false);
+const isReconciliandoPacs = ref(false);
 const registros = ref([]);
 const tiposDocumento = ref([]);
 const productosRayosX = ref([]);
@@ -994,6 +1070,44 @@ async function cancelarOrdenWorklist(item) {
     } catch (err) {
         const msg = err.response?.data?.message || "Error retirando la orden de la Worklist.";
         alertError("Error", msg);
+    }
+}
+
+async function reconciliarConPacs() {
+    if (isReconciliandoPacs.value) return;
+    isReconciliandoPacs.value = true;
+    try {
+        const res = await axios.post("/api/pacientes/worklist-reconciliar", {
+            sede_id: sedeId.value,
+        });
+
+        if (res.data?.status === 200) {
+            const data = res.data.data;
+            if (data?.adquiridas > 0 || data?.completadas > 0) {
+                alertSuccess(
+                    "Reconciliación PACS exitosa",
+                    `Se detectaron ${data.adquiridas} estudio(s) con imágenes en PACS y ${data.completadas} completado(s).`
+                );
+            } else {
+                toastMessage({
+                    heading: "PACS al día",
+                    text: "No se detectaron nuevas órdenes adquiridas en este momento.",
+                    icon: "info",
+                });
+            }
+            buscar();
+        } else {
+            toastMessage({
+                heading: "Atención",
+                text: res.data?.message || "No se pudo reconciliar con el PACS.",
+                icon: "warning",
+            });
+        }
+    } catch (err) {
+        const msg = getUserSafeError(err, "Error al reconciliar órdenes con el PACS.");
+        alertError("Error de Reconciliación", msg);
+    } finally {
+        isReconciliandoPacs.value = false;
     }
 }
 

@@ -514,6 +514,7 @@ Controlador delgado (Thin Controller) para la administración del catálogo de p
 - **`obtenerAccessionSugerido`**: Genera un número de acceso único secuencial con prefijo `RX-YYYYMMDD-####`.
 - **`enviarWorklist`**: Inserta el paciente y la orden de Rayos X en la base de datos de Dcm4chee (`patient` y `mwl_item` con dataset binario DICOM `item_attrs`) y persiste la orden en LIDiag (`worklist_ordenes`).
 - **`cancelarWorklist`**: Retira la orden activa de la consola del equipo de Rayos X (eliminando el registro en Dcm4chee `mwl_item`) y marca el estado en LIDiag como `CANCELADO`.
+- **`reconciliarWorklist`**: Reconcilia las órdenes de Worklist contra la tabla `study` del PACS Dcm4chee, transicionando a `ADQUIRIDO` al recibir imágenes o a `COMPLETADO` si ya fue asignado en LIDiag.
 
 ---
 

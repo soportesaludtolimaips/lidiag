@@ -37,6 +37,28 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Implementación Paso 1: Módulo Asistencial (Indicadores Nativos + Reporte Tele-radiología):**
+  - **Indicadores Nativos AdminWrap (`reporteProduccionComponent.vue`):** Integrado bloque superior de 4 tarjetas `info-box` estándar de AdminWrap (`icon-Target-Market`, `icon-Inbox-Forward`, `icon-File-HorizontalText`, `icon-Yes` / Font Awesome) mostrando en tiempo real: Estudios Asignados (30 días), Estudios Leídos, Pendientes de Transcripción y Finalizados Hoy, consumiendo `/api/reportes.dashboard`.
+  - **Nuevo Reporte de Tele-radiología (`ReporteTeleRadiologiaExport.php`):**
+    * Generación de archivo Excel institucional (`reporte_tele_radiologia.xlsx`) con trazabilidad completa de órdenes derivadas a lectura externa (`destino_estudio = 'Tele Radiologia'` o radiólogos `TL %`).
+    * Columnas: ID Estudio, Sede Hospitalaria, Fecha/Hora Envío, Study Instance UID, Accession Number, Modalidad, Doc. Paciente, Nombre Paciente, Código CUPS, Procedimiento, Médico Tele-radiólogo, Fecha/Hora Lectura, Estado Lectura y Tiempo de Respuesta (horas).
+    * Backend: Creado `ReporteTeleRadiologiaRequest` con validación de fechas y sede. Implementado `ReporteProduccionService::generateReporteTeleRadiologia()` y `ReporteProduccion::reporteTeleRadiologia()`. Registrada ruta web `/descarga-reportes-teleradiologia`.
+    * Frontend: Incorporada tarjeta nativa con icono `fa-globe` y modal interactivo de filtro por sede y rango de fechas.
+  - **Verificaciones Estrictas:**
+    * Laravel Pint passed (`{"tool":"pint","result":"passed"}`) ✅.
+    * ESLint: 0 errores / 0 advertencias (`npx eslint` passed) ✅.
+    * Vite build: Compilación exitosa en 1.20s (`npm run build`) ✅.
+- [x] **2026-10-27 — Auto-Reconciliación PACS y Modality Worklist (MWL Dcm4chee):**
+  - **Ampliación de Esquema (`worklist_ordenes`):** Creada migración `2026_10_27_000001_add_adquirido_and_reconciliation_to_worklist_ordenes.php` agregando estado `ADQUIRIDO` al ENUM, columnas `study_pk`, `estudio_id` y timestamp `adquirido_at`. Actualizado modelo `WorklistOrden` con casts y relación `estudio()`.
+  - **Servicio de Reconciliación (`WorklistService::reconciliarOrdenes`):** Cruce automático entre órdenes `PENDIENTE` de LIDiag y la tabla `study` de Dcm4chee mediante `accession_no` y `study_iuid`. Al detectar imágenes adquiridas, actualiza estado a `ADQUIRIDO` y marca `sps_status = 1` (COMPLETED) en `pacsdb.mwl_item` para limpiar la consola del equipo. Si el estudio ya fue asignado en LIDiag, transiciona a `COMPLETADO`.
+  - **Auto-Cierre en Asignación (`EstudioService::create`):** Método `autoReconciliarWorklistOrden()` que transiciona automáticamente órdenes coincidentes a `COMPLETADO` al registrar formalmente la lectura del estudio.
+  - **Mapeo Integral de Estados (`PacienteService::listar`):** Mapeo de órdenes del día para pacientes con estados `PENDIENTE`, `ADQUIRIDO` y `COMPLETADO`.
+  - **Feedback en Tiempo Real en Frontend (`admisionComponent.vue`):**
+    * Badges tricolor dinámicos en la tabla de pacientes: 🟡 `badge-warning` (*En espera de Rayos X*), 🔵 `badge-info` (*Imágenes en PACS / Listo para Asignar*), 🟢 `badge-success` (*Asignado a Lectura*).
+    * Botón de acción rápida con icono `fa-arrow-circle-right` para saltar directamente a Asignación (`/estudios.asignar.listar`) cuando las imágenes están en PACS.
+    * Botón asistencial en cabecera *"Reconciliar PACS"* con spinner y toast defensivo (`POST /api/pacientes/worklist-reconciliar`).
+  - **Comando Artisan y Tarea Programada:** Creado `WorklistReconcileCommand` (`php artisan worklist:reconcile {--sede=}`) y registrado en Laravel Scheduler (`routes/console.php`) ejecutándose `everyFiveMinutes()->withoutOverlapping()`.
+  - **Verificaciones Estrictas:** Laravel Pint passed ✅ | `npx eslint` 0 errores ✅ | `npm run build` en 1.23s ✅ | `php artisan worklist:reconcile` probado y ejecutado exitosamente con 0 fallos ✅.
 - [x] **2026-10-27 — Enriquecimiento y Rediseño Modular de Reportes e Indicadores por Categorías Temáticas:**
   - **Reestructuración de UI en Vue 3 (`reporteProduccionComponent.vue`):**
     * Segmentación completa en **5 categorías temáticas**: *1. Asistencial*, *2. Citas*, *3. Financiero / Liquidación*, *4. Calidad* y *5. Dosimetría*.

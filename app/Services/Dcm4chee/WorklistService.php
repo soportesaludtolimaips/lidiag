@@ -5,6 +5,7 @@ namespace App\Services\Dcm4chee;
 use App\Helpers\DicomDatasetBuilder;
 use App\Models\Configuracion\ConfigProducto;
 use App\Models\Configuracion\ConfigSede;
+use App\Models\Estudio\Estudio;
 use App\Models\General\Paciente;
 use App\Models\Worklist\WorklistOrden;
 use App\Services\BaseService;
@@ -426,5 +427,188 @@ class WorklistService extends BaseService
         $orden->save();
 
         return $this->success($orden, "Orden '{$orden->accession_no}' retirada de la Worklist exitosamente.");
+    }
+
+    /**
+     * Reconcilia automáticamente las órdenes de Worklist con los estudios recibidos en el PACS Dcm4chee.
+     *
+     * Flujo del proceso:
+     * 1. Determina las sedes a evaluar (una puntual o todas las sedes con PACS configurado).
+     * 2. Consulta las órdenes en estado 'PENDIENTE' o 'ADQUIRIDO' de la sede.
+     * 3. Conecta a la base de datos MySQL de Dcm4chee de cada sede y consulta la tabla 'study'.
+     * 4. Si el estudio ya ingresó al PACS (coincidencia por accession_no o study_iuid):
+     *    - Actualiza el estado en LIDiag a 'ADQUIRIDO' con timestamp y study_pk.
+     *    - Actualiza 'sps_status = 1' (COMPLETED) en 'mwl_item' de Dcm4chee para limpiar la consola del equipo.
+     * 5. Verifica si el estudio ya fue asignado en LIDiag para pasarlo directamente a 'COMPLETADO'.
+     * 6. Retorna resumen cuantitativo de la reconciliación (evaluadas, adquiridas, completadas).
+     *
+     * @param  int|null  $sedeId  ID opcional de sede específica a reconciliar
+     * @return array{
+     *     status: int,
+     *     message: string,
+     *     data: array{
+     *         total_evaluadas: int,
+     *         adquiridas: int,
+     *         completadas: int,
+     *         detalles: array<int, array{orden_id: int, accession_no: string, sede: string, nuevo_estado: string, motivo: string}>
+     *     }
+     * }
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-27
+     */
+    public function reconciliarOrdenes(?int $sedeId = null): array
+    {
+        $sedesQuery = ConfigSede::query()
+            ->whereNotNull('ip_dcm')
+            ->where('ip_dcm', '!=', '')
+            ->whereNotNull('bd_dcm')
+            ->where('bd_dcm', '!=', '');
+
+        if ($sedeId !== null && $sedeId > 0) {
+            $sedesQuery->where('id', $sedeId);
+        }
+
+        $sedes = $sedesQuery->get();
+        if ($sedes->isEmpty()) {
+            return $this->error('No hay sedes con PACS Dcm4chee configurado para reconciliar.', 404);
+        }
+
+        $resumen = [
+            'total_evaluadas' => 0,
+            'adquiridas' => 0,
+            'completadas' => 0,
+            'detalles' => [],
+        ];
+
+        $conexionOriginal = Config::get('database.default');
+
+        foreach ($sedes as $sede) {
+            $ordenesPendientes = WorklistOrden::where('sede_id', $sede->id)
+                ->whereIn('estado', ['PENDIENTE', 'ADQUIRIDO'])
+                ->get();
+
+            if ($ordenesPendientes->isEmpty()) {
+                continue;
+            }
+
+            try {
+                Config::set('database.connections.mysql_sucursal', [
+                    'driver' => 'mysql',
+                    'host' => $sede->ip_dcm,
+                    'port' => $sede->puerto_dcm ?: 3306,
+                    'database' => $sede->bd_dcm,
+                    'username' => $sede->usuario_dcm,
+                    'password' => $sede->password_dcm,
+                    'charset' => 'latin1',
+                    'collation' => 'latin1_swedish_ci',
+                    'options' => [
+                        \PDO::ATTR_TIMEOUT => 4,
+                        \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                    ],
+                ]);
+
+                DB::purge('mysql_sucursal');
+                $pacsConn = DB::connection('mysql_sucursal');
+
+                foreach ($ordenesPendientes as $orden) {
+                    $resumen['total_evaluadas']++;
+
+                    // 1. Verificar si ya fue asignado en LIDiag
+                    $estudioLidiag = Estudio::where('sede_id', $sede->id)
+                        ->where(function ($q) use ($orden) {
+                            if (! empty($orden->accession_no)) {
+                                $q->where('accession_no', $orden->accession_no);
+                            }
+                            if (! empty($orden->study_iuid)) {
+                                $q->orWhere('study_iuid', $orden->study_iuid);
+                            }
+                        })
+                        ->first(['id', 'study_pk', 'created_at']);
+
+                    if ($estudioLidiag) {
+                        if ($orden->estado !== 'COMPLETADO') {
+                            $orden->estado = 'COMPLETADO';
+                            $orden->estudio_id = $estudioLidiag->id;
+                            if ($estudioLidiag->study_pk) {
+                                $orden->study_pk = (int) $estudioLidiag->study_pk;
+                            }
+                            $orden->save();
+                            $resumen['completadas']++;
+                            $resumen['detalles'][] = [
+                                'orden_id' => $orden->id,
+                                'accession_no' => $orden->accession_no,
+                                'sede' => $sede->nom_sede,
+                                'nuevo_estado' => 'COMPLETADO',
+                                'motivo' => "Estudio #{$estudioLidiag->id} ya asignado en LIDiag.",
+                            ];
+                        }
+
+                        continue;
+                    }
+
+                    // 2. Si sigue pendiente, buscar en tabla study de Dcm4chee
+                    if ($orden->estado === 'PENDIENTE') {
+                        $estudioPacs = null;
+                        try {
+                            $estudioPacs = $pacsConn->table('study')
+                                ->where(function ($q) use ($orden) {
+                                    if (! empty($orden->accession_no)) {
+                                        $q->where('accession_no', $orden->accession_no);
+                                    }
+                                    if (! empty($orden->study_iuid)) {
+                                        $q->orWhere('study_iuid', $orden->study_iuid);
+                                    }
+                                })
+                                ->first(['pk', 'study_iuid', 'accession_no', 'study_datetime', 'num_instances']);
+                        } catch (\Throwable $e) {
+                            Log::warning("Error consultando tabla study en PACS sede {$sede->id}: {$e->getMessage()}");
+                        }
+
+                        if ($estudioPacs) {
+                            $orden->estado = 'ADQUIRIDO';
+                            $orden->study_pk = (int) $estudioPacs->pk;
+                            $orden->adquirido_at = $estudioPacs->study_datetime ?: now();
+                            $orden->save();
+
+                            // Actualizar status en mwl_item de Dcm4chee para limpiar la consola de la sala
+                            try {
+                                if ($orden->mwl_item_pk) {
+                                    $pacsConn->table('mwl_item')->where('pk', $orden->mwl_item_pk)->update([
+                                        'sps_status' => 1, // 1 = COMPLETED
+                                        'updated_time' => now(),
+                                    ]);
+                                } else {
+                                    $pacsConn->table('mwl_item')->where('accession_no', $orden->accession_no)->update([
+                                        'sps_status' => 1,
+                                        'updated_time' => now(),
+                                    ]);
+                                }
+                            } catch (\Throwable $e) {
+                                Log::warning("No se pudo actualizar sps_status en mwl_item Dcm4chee: {$e->getMessage()}");
+                            }
+
+                            $resumen['adquiridas']++;
+                            $resumen['detalles'][] = [
+                                'orden_id' => $orden->id,
+                                'accession_no' => $orden->accession_no,
+                                'sede' => $sede->nom_sede,
+                                'nuevo_estado' => 'ADQUIRIDO',
+                                'motivo' => "Imágenes detectadas en PACS ({$estudioPacs->num_instances} instancias)",
+                            ];
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::warning("Error conectando a PACS de sede {$sede->id} durante reconciliación: {$e->getMessage()}");
+            } finally {
+                Config::set('database.default', $conexionOriginal);
+            }
+        }
+
+        $mensaje = "Reconciliación completada: {$resumen['adquiridas']} orden(es) detectada(s) en PACS, {$resumen['completadas']} completada(s) por asignación.";
+
+        return $this->success($resumen, $mensaje);
     }
 }

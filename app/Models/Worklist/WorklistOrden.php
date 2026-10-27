@@ -4,6 +4,7 @@ namespace App\Models\Worklist;
 
 use App\Models\Configuracion\ConfigProducto;
 use App\Models\Configuracion\ConfigSede;
+use App\Models\Estudio\Estudio;
 use App\Models\General\Paciente;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -32,7 +33,10 @@ class WorklistOrden extends Model
         'modality',
         'station_aet',
         'mwl_item_pk',
+        'study_pk',
+        'estudio_id',
         'estado',
+        'adquirido_at',
         'usuario_id',
         'observaciones',
     ];
@@ -42,7 +46,10 @@ class WorklistOrden extends Model
         'sede_id' => 'integer',
         'producto_id' => 'integer',
         'mwl_item_pk' => 'integer',
+        'study_pk' => 'integer',
+        'estudio_id' => 'integer',
         'usuario_id' => 'integer',
+        'adquirido_at' => 'datetime',
     ];
 
     /**
@@ -79,6 +86,18 @@ class WorklistOrden extends Model
     public function producto(): BelongsTo
     {
         return $this->belongsTo(ConfigProducto::class, 'producto_id');
+    }
+
+    /**
+     * Estudio formal registrado en LIDiag cuando la orden es asignada a un radiólogo.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-27
+     */
+    public function estudio(): BelongsTo
+    {
+        return $this->belongsTo(Estudio::class, 'estudio_id');
     }
 
     /**
