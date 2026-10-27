@@ -37,6 +37,15 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Homologación Estricta a Estilos de la Aplicación en Módulo de Consentimientos de Ecografías (`ecografiasConsentimientosComponent.vue` y `ecografiasConsentimientosPlantillasComponent.vue`):**
+  - **Diagnóstico:** El módulo `/ecografias-consentimientos` presentaba estilos y elementos no alineados al estándar del tema de la aplicación (AdminWrap / Bootstrap 4): botones con clases personalizadas `.btn-action-clinical`, breadcrumb no nativo con etiquetas `<button class="breadcrumb-btn">`, bloques `<style scoped>`, modales con estilos inline `background: rgba(...)` y `backdrop-filter: blur(...)`, badges de atajos (`F2`, `Ctrl+S`, `Esc`) embebidos en botones y carencia del envoltorio estructural `.row > .col-12` para tarjetas y formularios.
+  - **Acciones Realizadas:**
+    * *Eliminación de Estilos Foráneos:* Se eliminaron por completo las clases `.btn-action-clinical`, `.breadcrumb-btn` y los bloques `<style scoped>`.
+    * *Estandarización de Breadcrumb:* Restaurado al marcado nativo de AdminWrap (`<ol class="breadcrumb"><li class="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>...`).
+    * *Reorganización de Filtros y Acciones:* Formulario de búsqueda estructurado con `form-body`, `form-group`, `control-label`, botón de búsqueda `btn btn-success waves-effect waves-light` y nuevo botón para restablecer filtros `btn btn-inverse waves-effect waves-light` ("Limpiar"). Botones de acciones masivas/individuales (Generar PDF, Descargar PDF, Descargar ZIP, Anular) reubicados con estilos nativos en la cabecera de la tabla de resultados.
+    * *Modales Nativos:* Sustituido el modal reactivo personalizado por la estructura nativa estándar de AdminWrap (`modal fade` + `modal-backdrop fade show`, títulos y botones estándar `btn btn-default waves-effect` y `btn btn-danger waves-effect waves-light`).
+    * *Extensión a Plantillas de Consentimientos:* Se aplicó la misma homologación a `ecografiasConsentimientosPlantillasComponent.vue` garantizando coherencia visual en todo el módulo.
+  - **Verificaciones:** ESLint 0 errores/advertencias (`npx eslint` passed) ✅ | Vite build exitoso en 1.12s (`npm run build`) ✅.
 - [x] **2026-10-27 — Generación y Publicación del Informe Consolidado de Actualizaciones para Gerencia (MD y PDF):**
   - **Objetivo:** Consolidar formalmente para la Gerencia General, Dirección Médica y Financiera el inventario exhaustivo de todas las innovaciones implementadas en el sistema entre el 1 de junio y el 27 de octubre de 2026 en formato directo `Mejora: Descripción`.
   - **Archivos Generados:**

@@ -1,190 +1,236 @@
 <template>
     <div>
+        <!-- ============================================================== -->
+        <!-- Bread crumb and right sidebar toggle -->
+        <!-- ============================================================== -->
         <div class="row page-titles">
-            <div class="col-md-6 align-self-center">
+            <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Ecografías</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <button type="button" class="btn btn-link p-0 breadcrumb-btn">
-                            Inicio
-                        </button>
+                        <a href="javascript:void(0)">Inicio</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <button type="button" class="btn btn-link p-0 breadcrumb-btn">
-                            Ecografías
-                        </button>
+                        <a href="javascript:void(0)">Ecografías</a>
                     </li>
                     <li class="breadcrumb-item active">Plantillas Consentimientos</li>
                 </ol>
             </div>
-            <div class="col-md-6 align-self-center text-right d-none d-md-block">
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-info btn-action-clinical"
+                    class="btn btn-info waves-effect waves-light"
                     @click="listar"
                     :disabled="loading"
-                    title="Actualizar listado de plantillas (Refrescar)"
+                    title="Actualizar listado de plantillas"
                 >
                     <i class="fa" :class="loading ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
                     Refrescar
                 </button>
             </div>
         </div>
+        <!-- ============================================================== -->
+        <!-- End Bread crumb and right sidebar toggle -->
+        <!-- ============================================================== -->
 
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title">Plantillas (WYSIWYG)</h4>
-
-                <div class="row">
-                    <div class="col-md-4">
-                        <label for="config_modulo_id">Módulo</label>
-                        <select
-                            class="form-control"
-                            id="config_modulo_id"
-                            v-model="filtros.config_modulo_id"
-                        >
-                            <option value="">—</option>
-                            <option v-for="m in modulos" :key="m.id" :value="m.id">
-                                {{ m.modulo }}
-                            </option>
-                        </select>
+        <!-- ============================================================== -->
+        <!-- Start Page Content -->
+        <!-- ============================================================== -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h4 class="card-title text-themecolor mb-0">
+                                <i class="fa fa-filter"></i> Filtros para búsqueda de plantillas
+                            </h4>
+                            <button
+                                v-if="can('ecografias.consentimientos.plantillas.create')"
+                                class="btn btn-info waves-effect waves-light"
+                                type="button"
+                                @click="nuevo()"
+                            >
+                                <i class="fa fa-plus"></i> Nueva plantilla
+                            </button>
+                        </div>
+                        <form action="#" @submit.prevent="listar">
+                            <div class="form-body">
+                                <div class="row p-t-2">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="control-label" for="config_modulo_id">
+                                                Módulo
+                                            </label>
+                                            <select
+                                                class="form-control"
+                                                id="config_modulo_id"
+                                                v-model="filtros.config_modulo_id"
+                                            >
+                                                <option value="">—</option>
+                                                <option
+                                                    v-for="m in modulos"
+                                                    :key="m.id"
+                                                    :value="m.id"
+                                                >
+                                                    {{ m.modulo }}
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="control-label" for="busqueda_q">
+                                                Buscar
+                                            </label>
+                                            <input
+                                                id="busqueda_q"
+                                                class="form-control"
+                                                v-model="q"
+                                                placeholder="CUPS / Producto / Nombre"
+                                                @keyup.enter="listar"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button
+                                        class="btn btn-success waves-effect waves-light m-r-5"
+                                        type="button"
+                                        @click="listar"
+                                        :disabled="loading"
+                                    >
+                                        <i
+                                            class="fa"
+                                            :class="loading ? 'fa-spinner fa-spin' : 'fa-search'"
+                                        ></i>
+                                        {{ loading ? "Buscando..." : "Buscar" }}
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
                     </div>
-                    <div class="col-md-4">
-                        <label for="busqueda_q">Buscar</label>
-                        <input
-                            id="busqueda_q"
-                            class="form-control"
-                            v-model="q"
-                            placeholder="CUPS / Producto / Nombre"
-                        />
-                    </div>
-                    <div class="col-md-4 text-right">
-                        <button
-                            v-if="can('ecografias.consentimientos.plantillas.create')"
-                            class="btn btn-info mt-4 btn-action-clinical"
-                            type="button"
-                            @click="nuevo()"
-                        >
-                            <i class="fa fa-plus"></i> Nueva plantilla
-                        </button>
-                    </div>
-                </div>
-
-                <div class="mt-3">
-                    <button
-                        class="btn btn-success"
-                        type="button"
-                        @click="listar"
-                        :disabled="loading"
-                    >
-                        <i class="fa" :class="loading ? 'fa-spinner fa-spin' : 'fa-search'"></i>
-                        Listar
-                    </button>
                 </div>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered table-striped">
-                        <thead>
-                            <tr>
-                                <th>Producto</th>
-                                <th>CUPS</th>
-                                <th>Nombre</th>
-                                <th>Versión</th>
-                                <th>Vigente</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="p in registros" :key="p.id">
-                                <td>{{ p.producto?.nom_produc || "—" }}</td>
-                                <td>{{ p.producto?.cod_cups || "—" }}</td>
-                                <td>{{ p.nombre }}</td>
-                                <td>{{ p.version }}</td>
-                                <td>
-                                    <span v-if="p.vigente" class="text-success">Sí</span>
-                                    <span v-else class="text-muted">No</span>
-                                </td>
-                                <td class="text-nowrap">
-                                    <button
-                                        class="btn btn-sm btn-info m-r-5"
-                                        type="button"
-                                        @click="previewPdf(p)"
-                                        :disabled="loadingPreviewId === p.id"
-                                        title="Vista previa PDF"
-                                        aria-label="Vista previa PDF"
-                                    >
-                                        <i
-                                            class="fa"
-                                            :class="
-                                                loadingPreviewId === p.id
-                                                    ? 'fa-spinner fa-spin'
-                                                    : 'fa-file-pdf-o'
-                                            "
-                                        ></i>
-                                    </button>
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">Listado de plantillas</h4>
+                        <h6 class="card-subtitle text-info">
+                            Gestión y versionado de plantillas de consentimientos.
+                        </h6>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>CUPS</th>
+                                        <th>Nombre</th>
+                                        <th>Versión</th>
+                                        <th>Vigente</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="p in registros" :key="p.id">
+                                        <td>{{ p.producto?.nom_produc || "—" }}</td>
+                                        <td>{{ p.producto?.cod_cups || "—" }}</td>
+                                        <td>{{ p.nombre }}</td>
+                                        <td>{{ p.version }}</td>
+                                        <td>
+                                            <span v-if="p.vigente" class="text-success">Sí</span>
+                                            <span v-else class="text-muted">No</span>
+                                        </td>
+                                        <td class="text-nowrap">
+                                            <button
+                                                class="btn btn-sm btn-info m-r-5"
+                                                type="button"
+                                                @click="previewPdf(p)"
+                                                :disabled="loadingPreviewId === p.id"
+                                                title="Vista previa PDF"
+                                                aria-label="Vista previa PDF"
+                                            >
+                                                <i
+                                                    class="fa"
+                                                    :class="
+                                                        loadingPreviewId === p.id
+                                                            ? 'fa-spinner fa-spin'
+                                                            : 'fa-file-pdf-o'
+                                                    "
+                                                ></i>
+                                            </button>
 
-                                    <button
-                                        v-if="can('ecografias.consentimientos.plantillas.edit')"
-                                        class="btn btn-sm btn-warning m-r-5 btn-action-clinical"
-                                        type="button"
-                                        @click="editar(p)"
-                                        title="Editar plantilla"
-                                        aria-label="Editar plantilla"
-                                    >
-                                        <i class="fa fa-pencil"></i>
-                                    </button>
+                                            <button
+                                                v-if="
+                                                    can(
+                                                        'ecografias.consentimientos.plantillas.edit'
+                                                    )
+                                                "
+                                                class="btn btn-sm btn-warning m-r-5"
+                                                type="button"
+                                                @click="editar(p)"
+                                                title="Editar plantilla"
+                                                aria-label="Editar plantilla"
+                                            >
+                                                <i class="fa fa-pencil"></i>
+                                            </button>
 
-                                    <button
-                                        v-if="can('ecografias.consentimientos.plantillas.index')"
-                                        class="btn btn-sm btn-secondary m-r-5"
-                                        type="button"
-                                        @click="verVersiones(p)"
-                                        title="Histórico de versiones"
-                                        aria-label="Histórico de versiones"
-                                    >
-                                        <i class="fa fa-history"></i>
-                                    </button>
+                                            <button
+                                                v-if="
+                                                    can(
+                                                        'ecografias.consentimientos.plantillas.index'
+                                                    )
+                                                "
+                                                class="btn btn-sm btn-secondary m-r-5"
+                                                type="button"
+                                                @click="verVersiones(p)"
+                                                title="Histórico de versiones"
+                                                aria-label="Histórico de versiones"
+                                            >
+                                                <i class="fa fa-history"></i>
+                                            </button>
 
-                                    <button
-                                        v-if="can('ecografias.consentimientos.plantillas.destroy')"
-                                        class="btn btn-sm btn-danger"
-                                        type="button"
-                                        @click="desactivar(p)"
-                                        title="Desactivar plantilla"
-                                        aria-label="Desactivar plantilla"
-                                    >
-                                        <i class="fa fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr v-if="registros.length === 0">
-                                <td colspan="6" class="text-center text-muted">Sin registros.</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                                            <button
+                                                v-if="
+                                                    can(
+                                                        'ecografias.consentimientos.plantillas.destroy'
+                                                    )
+                                                "
+                                                class="btn btn-sm btn-danger"
+                                                type="button"
+                                                @click="desactivar(p)"
+                                                title="Desactivar plantilla"
+                                                aria-label="Desactivar plantilla"
+                                            >
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr v-if="registros.length === 0">
+                                        <td colspan="6" class="text-center text-muted">
+                                            Sin registros.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Modal Plantilla -->
         <div
-            v-if="modalPlantillaVisible"
+            class="modal fade"
+            :class="{ show: modalPlantillaVisible }"
+            :style="{ display: modalPlantillaVisible ? 'block' : 'none' }"
             id="modal-plantilla"
-            class="modal show"
             tabindex="-1"
             role="dialog"
             aria-labelledby="modal-plantilla-title"
             aria-hidden="true"
-            style="
-                display: block;
-                background: rgba(15, 23, 42, 0.45);
-                backdrop-filter: blur(2px);
-                -webkit-backdrop-filter: blur(2px);
-            "
             @click.self="cerrarModalPlantilla()"
         >
             <div class="modal-dialog modal-lg">
@@ -205,86 +251,76 @@
                     <div class="modal-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <label for="form_producto_id">Producto</label>
-                                <select
-                                    class="form-control"
-                                    id="form_producto_id"
-                                    v-model="form.producto_id"
-                                    :disabled="!!form.id"
-                                >
-                                    <option value="">—</option>
-                                    <option v-for="p in productos" :key="p.id" :value="p.id">
-                                        {{ p.cod_cups }} - {{ p.nom_produc }}
-                                    </option>
-                                </select>
+                                <div class="form-group">
+                                    <label class="control-label" for="form_producto_id">
+                                        Producto
+                                    </label>
+                                    <select
+                                        class="form-control"
+                                        id="form_producto_id"
+                                        v-model="form.producto_id"
+                                        :disabled="!!form.id"
+                                    >
+                                        <option value="">—</option>
+                                        <option v-for="p in productos" :key="p.id" :value="p.id">
+                                            {{ p.cod_cups }} - {{ p.nom_produc }}
+                                        </option>
+                                    </select>
+                                </div>
                             </div>
                             <div class="col-md-6">
-                                <label for="form_nombre">Nombre</label>
-                                <input
-                                    id="form_nombre"
-                                    class="form-control"
-                                    v-model="form.nombre"
-                                />
+                                <div class="form-group">
+                                    <label class="control-label" for="form_nombre">Nombre</label>
+                                    <input
+                                        id="form_nombre"
+                                        class="form-control"
+                                        v-model="form.nombre"
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        <div class="mt-3">
-                            <label for="form_html">Contenido</label>
+                        <div class="form-group m-t-10">
+                            <label class="control-label" for="form_html">Contenido</label>
                             <WysiwygEditor v-model="form.html" :rows="10" />
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button
-                            class="btn btn-default btn-action-clinical"
+                            class="btn btn-default waves-effect"
                             type="button"
                             @click="cerrarModalPlantilla()"
-                            title="Cancelar y cerrar modal (Esc)"
                         >
                             Cancelar
-                            <span
-                                class="badge badge-secondary ml-1 d-none d-md-inline"
-                                style="font-size: 10px; opacity: 0.9"
-                                >Esc</span
-                            >
                         </button>
                         <button
-                            class="btn btn-success btn-action-clinical"
+                            class="btn btn-success waves-effect waves-light"
                             type="button"
                             @click="guardar"
                             :disabled="loadingGuardar || !form.producto_id"
-                            title="Guardar plantilla (Ctrl+S / Cmd+S)"
                         >
                             <i
                                 class="fa"
                                 :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"
                             ></i>
                             {{ loadingGuardar ? "Guardando…" : "Guardar" }}
-                            <span
-                                class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                                style="font-size: 10px; opacity: 0.9"
-                                >Ctrl+S</span
-                            >
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+        <div v-if="modalPlantillaVisible" class="modal-backdrop fade show"></div>
 
         <!-- Modal Versiones -->
         <div
-            v-if="modalVersionesVisible"
+            class="modal fade"
+            :class="{ show: modalVersionesVisible }"
+            :style="{ display: modalVersionesVisible ? 'block' : 'none' }"
             id="modal-versiones"
-            class="modal show"
             tabindex="-1"
             role="dialog"
             aria-labelledby="modal-versiones-title"
             aria-hidden="true"
-            style="
-                display: block;
-                background: rgba(15, 23, 42, 0.45);
-                backdrop-filter: blur(2px);
-                -webkit-backdrop-filter: blur(2px);
-            "
             @click.self="cerrarModalVersiones()"
         >
             <div class="modal-dialog modal-lg">
@@ -329,7 +365,7 @@
                                         <td>{{ v.created_at }}</td>
                                         <td class="text-nowrap">
                                             <button
-                                                class="btn btn-sm btn-info m-r-5 btn-action-clinical"
+                                                class="btn btn-sm btn-info m-r-5"
                                                 type="button"
                                                 @click="previewPdf(v)"
                                                 title="Vista previa PDF"
@@ -344,7 +380,7 @@
                                                         'ecografias.consentimientos.plantillas.edit'
                                                     )
                                                 "
-                                                class="btn btn-sm btn-success btn-action-clinical"
+                                                class="btn btn-sm btn-success"
                                                 type="button"
                                                 @click="activarVersion(v)"
                                                 title="Activar como versión vigente"
@@ -364,22 +400,17 @@
                     </div>
                     <div class="modal-footer">
                         <button
-                            class="btn btn-default btn-action-clinical"
+                            class="btn btn-default waves-effect"
                             type="button"
                             @click="cerrarModalVersiones()"
-                            title="Cerrar modal (Esc)"
                         >
                             Cerrar
-                            <span
-                                class="badge badge-secondary ml-1 d-none d-md-inline"
-                                style="font-size: 10px; opacity: 0.9"
-                                >Esc</span
-                            >
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+        <div v-if="modalVersionesVisible" class="modal-backdrop fade show"></div>
     </div>
 </template>
 <script setup>
@@ -725,8 +756,3 @@ onMounted(async () => {
     await listar();
 });
 </script>
-<style scoped>
-.breadcrumb-btn {
-    vertical-align: baseline;
-}
-</style>
