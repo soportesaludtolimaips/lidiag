@@ -37,6 +37,31 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Actualización del Informe Consolidado para Gerencia (MD y PDF):**
+  - **Objetivo:** Incorporar las últimas mejoras críticas implementadas en la jornada al informe ejecutivo institucional para la Dirección y Gerencia General.
+  - **Mejoras agregadas:**
+    1. *Flexibilidad Operativa en Asignación de Estudios:* `email_reportar` opcional para agilizar la atención de pacientes de urgencias o adultos mayores sin correo.
+    2. *Conversión Resiliente y Descarga Directa de Informes en PDF:* Optimización de `PdfConverterHelper` con ventana de 20s y protección frontend en `useEstudioHelpers`.
+    3. *Blindaje de Alta Disponibilidad en Notificaciones de Citas:* Manejo seguro de sesiones y polling defensivo en `AgendaCitaService`.
+    4. *Homologación de Catálogos Clínicos:* Apertura de consultas maestras (CIE-10, productos, prioridades, EPS y médicos) para todo el personal asistencial y transcriptores sin error 403.
+  - **Archivos actualizados:**
+    * [INFORME_ACTUALIZACIONES_GERENCIA.md](file:///c:/laragon/www/lidiag/docs/INFORME_ACTUALIZACIONES_GERENCIA.md)
+    * [INFORME_ACTUALIZACIONES_GERENCIA.pdf](file:///c:/laragon/www/lidiag/docs/INFORME_ACTUALIZACIONES_GERENCIA.pdf) (178.6 KB compilado con Dompdf).
+- [x] **2026-10-27 — Notificación Modal SweetAlert de Éxito al Finalizar Quemado de CD/DVD (`AsignarEstudioComponent.vue` y `alerts.js`):**
+  - **Objetivo:** Sustituir el toast superior discreto por una alerta modal emergente interactiva de SweetAlert (`swal`) con confirmación visual (checkmark verde) cuando el proceso de grabación en la unidad finaliza satisfactoriamente.
+  - **Solución Implementada:**
+    * En [alerts.js](file:///c:/laragon/www/lidiag/resources/js/helpers/alerts.js), se implementó la función exportada `swalSuccess(title, text)` que invoca directamente a `swal` modal con tipo `success` y botón `#26c6da` ("Aceptar") sin desviarse a `$.toast`.
+    * En [AsignarEstudioComponent.vue](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/AsignarEstudioComponent.vue), en los callbacks `onQuemadoCompletado()` (individual) y `onQuemadoMultiplesCompletado()` (masivo), se cierra el drawer correspondiente y se invoca `swalSuccess("¡Disco Quemado!", "El disco ha sido quemado exitosamente en la unidad de CD/DVD.")`.
+  - **Verificaciones:** ESLint passed (`npx eslint` 0 errores) ✅ | Compilación Vite completada en 1.23s (`npm run build`) ✅.
+- [x] **2026-10-27 — Refactorización y Apertura de Drawer para Quemado de CD/DVD Individual (`AsignarEstudioComponent.vue`):**
+  - **Diagnóstico:** En `/estudios.asignar.listar`, al hacer clic en el botón "Quemar CD" (`abrirQuemador(item)`), la petición `GET /api/dicom/list-drives` se ejecutaba correctamente retornando las unidades disponibles, pero el panel de quemado no se abría ni se mostraba al usuario.
+  - **Causa Raíz:** En [AsignarEstudioComponent.vue](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/AsignarEstudioComponent.vue), el quemador individual estaba maquetado bajo una estructura estática `<div class="modal fade" id="quemadorCdModal">` sin clases ni estilos reactivos (`show`, `display: block`), sin backdrop asociado y en divergencia con el estándar de la vista, donde los paneles laterales son cajones deslizables (*drawers* con clase `.right-sidebar.sidebar-scroll` y `.shw-rside`).
+  - **Solución Implementada:**
+    * Se refactorizó la sección del quemador individual a un cajón lateral nativo (*drawer*) con clase `right-sidebar sidebar-scroll` y clase reactiva `:class="{ 'shw-rside': quemadorModalVisible }"`, con su encabezado `rpanel-title` y botón de cierre `right-side-toggle`.
+    * Se actualizó la máscara de fondo (`sidebar-backdrop`) para responder a `quemadorModalVisible` y cerrar cualquiera de los paneles laterales activos mediante `cerrarCualquierSidebar()`.
+    * Se armonizaron las funciones de apertura (`abrirQuemador`, `abrirSidebarQuemarMultiples`, `abrirModal`) para asegurar exclusión mutua de paneles y se integró el cierre con la tecla `Escape` en `useKeyboardShortcuts`.
+    * Se corrigió la visualización del modal de descarga ZIP agregando `show`, `display: block` y cierre por clic exterior.
+  - **Verificaciones:** ESLint passed (`npx eslint` 0 errores) ✅ | Compilación Vite completada en 1.15s (`npm run build`) ✅.
 - [x] **2026-10-27 — Eliminación de Columnas 'Telefono' y 'Email' en Tabla de Notificación de Estudios (`notificarEstudioComponent.vue`):**
   - **Diagnóstico:** En la vista `/estudios.notificar.index`, la tabla de resultados presentaba columnas directas para "Telefono" y "Email" que sobrecargaban la visualización horizontal de los estudios, dado que los datos de contacto se gestionan e ingresan de manera interactiva a través del modal/sidebar lateral de notificación por correo.
   - **Solución Implementada:** Se retiraron las cabeceras `<th>Telefono</th>` y `<th>Email</th>` y sus celdas correspondientes `<td>{{ item.tel }}</td>` y `<td>{{ item.email }}</td>` en [notificarEstudioComponent.vue](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/notificarEstudioComponent.vue), optimizando el ancho de columna para Fecha, Sede, Documento, Paciente, Producto y Acciones.

@@ -64,6 +64,32 @@ export function alertSuccess(title = "Ok", text = "", icon = "success") {
 }
 
 /**
+ * Muestra una alerta modal interactiva de SweetAlert obligatoriamente (sin redirigir a toast).
+ *
+ * @param {string} title Titulo de la alerta.
+ * @param {string} text Texto descriptivo de la alerta.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-10-27
+ */
+export function swalSuccess(title = "¡Completado!", text = "") {
+    const swal = getSwal();
+    if (swal) {
+        return swal({
+            title,
+            text,
+            type: "success",
+            confirmButtonColor: "#26c6da",
+            confirmButtonText: "Aceptar",
+        });
+    }
+    window.alert([title, text].filter(Boolean).join("\n"));
+}
+
+/**
  * Muestra una alerta de error utilizando SweetAlert si esta disponible; de lo contrario usa alert().
  *
  * @param string $title Titulo de la alerta.

@@ -304,9 +304,9 @@
         <!-- Backdrop para cerrar al hacer clic y atenuar fondo -->
         <transition name="fade">
             <div
-                v-if="sidebarVisible || sidebarQuemarMultiplesVisible"
+                v-if="sidebarVisible || sidebarQuemarMultiplesVisible || quemadorModalVisible"
                 class="sidebar-backdrop"
-                @click="sidebarVisible ? cerrarModal() : cerrarSidebarQuemarMultiples()"
+                @click="cerrarCualquierSidebar()"
                 aria-hidden="true"
             ></div>
         </transition>
@@ -916,41 +916,29 @@
         </div>
 
         <!-- ============================================================== -->
-        <!-- Modal Quemador CD -->
+        <!-- Sidebar Quemador CD Individual -->
         <!-- ============================================================== -->
-        <div
-            v-if="quemadorModalVisible"
-            class="modal fade"
-            id="quemadorCdModal"
-            tabindex="-1"
-            role="dialog"
-            aria-labelledby="quemadorCdModalLabel"
-            aria-hidden="true"
-        >
-            <div class="modal-dialog modal-lg" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="quemadorCdModalLabel">
-                            <i class="fa fa-compact-disc"></i> Quemador de CD/DVD
-                        </h5>
-                        <button
-                            type="button"
-                            class="close"
-                            @click="cerrarQuemador()"
-                            aria-label="Close"
-                        >
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <quemador-cd-component
-                            v-if="estudioParaQuemar !== null"
-                            :estudio="estudioParaQuemar"
-                            :usuarioactual="usuarioactual"
-                            @cerrar="cerrarQuemador"
-                            @completado="onQuemadoCompletado"
-                        />
-                    </div>
+        <div class="right-sidebar sidebar-scroll" :class="{ 'shw-rside': quemadorModalVisible }">
+            <div class="slimscrollright">
+                <div class="rpanel-title">
+                    <i class="fa fa-compact-disc text-danger mr-1"></i> Quemador de CD/DVD
+                    <button
+                        type="button"
+                        class="right-side-toggle"
+                        @click="cerrarQuemador"
+                        aria-label="Cerrar panel"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
+                </div>
+                <div class="r-panel-body">
+                    <quemador-cd-component
+                        v-if="quemadorModalVisible && estudioParaQuemar !== null"
+                        :estudio="estudioParaQuemar"
+                        :usuarioactual="usuarioactual"
+                        @cerrar="cerrarQuemador"
+                        @completado="onQuemadoCompletado"
+                    />
                 </div>
             </div>
         </div>
@@ -960,12 +948,14 @@
         <!-- ============================================================== -->
         <div
             v-if="descargaModalVisible"
-            class="modal fade"
+            class="modal fade show"
             id="descargarZipModal"
             tabindex="-1"
             role="dialog"
             aria-labelledby="descargarZipModalLabel"
             aria-hidden="true"
+            style="display: block; background: rgba(0, 0, 0, 0.5)"
+            @click.self="cerrarDescargaZip()"
         >
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
@@ -1002,7 +992,7 @@ import axios from "axios";
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { confirmAction, toastMessage, getUserSafeError } from "@/helpers/alerts";
+import { confirmAction, toastMessage, getUserSafeError, swalSuccess } from "@/helpers/alerts";
 import { normalizarFecha } from "@/helpers/dateUtils.js";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
 import QuemadorCdComponent from "@/components/modulos/estudios/QuemadorCdComponent.vue";
@@ -1162,8 +1152,17 @@ const statusPrioridadId = computed(() =>
 
 useKeyboardShortcuts({
     onSave: guardarRegistro,
-    onEscape: cerrarModal,
-    isActive: () => sidebarVisible.value,
+    onEscape: () => {
+        if (quemadorModalVisible.value) {
+            cerrarQuemador();
+        } else if (sidebarQuemarMultiplesVisible.value) {
+            cerrarSidebarQuemarMultiples();
+        } else if (sidebarVisible.value) {
+            cerrarModal();
+        }
+    },
+    isActive: () =>
+        sidebarVisible.value || sidebarQuemarMultiplesVisible.value || quemadorModalVisible.value,
     isLoading: loadingGuardar,
 });
 
@@ -1763,6 +1762,7 @@ function establecerSede() {
  */
 function abrirModal() {
     sidebarQuemarMultiplesVisible.value = false;
+    quemadorModalVisible.value = false;
     sidebarVisible.value = true;
     nextTick(() => {
         primerInput.value?.focus();
@@ -2104,8 +2104,26 @@ async function quitarDiagnosticoEstudio(indexEliminar) {
  * @date 2026-09-29
  */
 function abrirQuemador(estudio) {
+    if (sidebarVisible.value) {
+        cerrarModal();
+    }
+    if (sidebarQuemarMultiplesVisible.value) {
+        cerrarSidebarQuemarMultiples();
+    }
     estudioParaQuemar.value = estudio;
     quemadorModalVisible.value = true;
+}
+
+function cerrarCualquierSidebar() {
+    if (sidebarVisible.value) {
+        cerrarModal();
+    }
+    if (sidebarQuemarMultiplesVisible.value) {
+        cerrarSidebarQuemarMultiples();
+    }
+    if (quemadorModalVisible.value) {
+        cerrarQuemador();
+    }
 }
 
 /**
@@ -2132,12 +2150,8 @@ function cerrarQuemador() {
  * @date 2026-09-29
  */
 function onQuemadoCompletado() {
-    toastMessage({
-        heading: "Completado",
-        text: "El disco ha sido quemado exitosamente.",
-        icon: "success",
-    });
     cerrarQuemador();
+    swalSuccess("¡Disco Quemado!", "El disco ha sido quemado exitosamente en la unidad de CD/DVD.");
 }
 
 /**
@@ -2201,6 +2215,9 @@ function abrirSidebarQuemarMultiples() {
     if (sidebarVisible.value) {
         cerrarModal();
     }
+    if (quemadorModalVisible.value) {
+        cerrarQuemador();
+    }
     sidebarQuemarMultiplesVisible.value = true;
 }
 
@@ -2228,13 +2245,12 @@ function cerrarSidebarQuemarMultiples() {
  * @date 2026-09-29
  */
 function onQuemadoMultiplesCompletado() {
-    toastMessage({
-        heading: "Completado",
-        text: "El disco ha sido quemado exitosamente.",
-        icon: "success",
-    });
     cerrarSidebarQuemarMultiples();
     estudiosSeleccionados.value = [];
+    swalSuccess(
+        "¡Discos Quemados!",
+        "Los estudios han sido quemados exitosamente en la unidad de CD/DVD."
+    );
 }
 
 /**

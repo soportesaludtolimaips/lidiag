@@ -60,6 +60,12 @@
 ### Mejora: Consentimientos Informados Digitales con Firma Biométrica
 **Descripción:** Módulo digital para procedimientos especiales y ecografías intervencionistas (biopsias) que permite capturar la firma táctil/biométrica del paciente o acudiente en pantallas táctiles o tabletas, generando el documento legal en PDF cifrado e integrándolo automáticamente al expediente del estudio.
 
+### Mejora: Flexibilidad Operativa en la Asignación de Estudios (Correo Electrónico Opcional)
+**Descripción:** Se optimizó el formulario de asignación y enrutamiento de estudios (`AsignarEstudioComponent.vue`), haciendo voluntario el registro de correo electrónico (`email_reportar`). Esto agiliza la admisión y despacho inmediato de pacientes de urgencias, zonas rurales o personas de la tercera edad que no disponen de cuenta de correo propia, manteniendo la validación de formato solo en caso de ser diligenciado.
+
+### Mejora: Conversión Resiliente y Descarga Directa de Informes Médicos en PDF
+**Descripción:** Optimización del motor de conversión de documentos Word a PDF (`PdfConverterHelper` y `PlantillaEstudioService`) ampliando la ventana de espera para generación de reportes complejos con imágenes y firmas, integrando saneamiento preventivo de nombres de archivos y protegiendo el frontend contra aperturas de enlaces fallidos o rutas indefinidas en el módulo de notificación de resultados.
+
 ---
 
 ## 4. Entrega de Medios Diagnósticos al Paciente (CD/DVD y Digital)
@@ -171,6 +177,9 @@
 ### Mejora: Bitácora de Conversaciones Integrada en la Cita
 **Descripción:** Registro y visualización del historial de mensajes intercambiados con el paciente dentro del módulo de citas para resolver aclaraciones o auditorías de servicio al cliente.
 
+### Mejora: Blindaje de Alta Disponibilidad en el Polling de Notificaciones de Citas
+**Descripción:** Fortalecimiento defensivo del canal de notificaciones en tiempo real del sistema de agendamiento (`AgendaCitaService` y `AgendaCitaController`), blindando las consultas periódicas de cabecera contra caídas de sesión, estados nulos o pérdidas momentáneas de conectividad, asegurando estabilidad continua de la interfaz web institucional.
+
 ---
 
 ## 10. Módulo de Liquidación y Productividad Médica
@@ -205,6 +214,9 @@
 
 ### Mejora: Saneamiento y Auditoría Total de Permisos Spatie (`permissions:audit`)
 **Descripción:** Normalización completa de la matriz de permisos de seguridad en base de datos. Se eliminaron inconsistencias en las rutas y se aseguró que cada rol (Administrador, Radiólogo, Transcriptor, Facturación, Recepción) tenga acceso exclusivo y verificado a sus funciones correspondientes, alcanzando un estado de **0 permisos faltantes** en toda la plataforma.
+
+### Mejora: Homologación de Catálogos Clínicos y Selectores para Médicos y Asistenciales
+**Descripción:** Desbloqueo y apertura estandarizada de catálogos maestros de consulta (diagnósticos CIE-10, productos diagnósticos, prioridades clínicas, EPS/administradoras y listados de médicos especialistas) para todo el personal asistencial y de transcripción debidamente autenticado en la plataforma. Esto garantiza fluidez en la carga de selectores sin presentar bloqueos innecesarios (`HTTP 403 Forbidden`) durante la atención clínica y la lectura diagnóstica, manteniendo protegidas al 100% las funciones administrativas de creación o modificación.
 
 ### Mejora: Cifrado en Reposo de Información Sensible de Pacientes (*Encryption at Rest*)
 **Descripción:** Implementación de cifrado criptográfico transparente (AES-256) en la base de datos para datos personales, números de contacto y soportes clínicos, garantizando el cumplimiento de la normativa de protección de datos de salud (Habeas Data).
