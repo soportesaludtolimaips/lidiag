@@ -34,6 +34,7 @@
     "dependencies": {
         "@ffmpeg/core": "^0.12.10",
         "@ffmpeg/ffmpeg": "^0.12.15",
+        "@fortawesome/fontawesome-free": "^7.3.1",
         "@fullcalendar/core": "^6.1.14",
         "@fullcalendar/daygrid": "^6.1.14",
         "@fullcalendar/interaction": "^6.1.14",

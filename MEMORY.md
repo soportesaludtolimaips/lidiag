@@ -37,6 +37,17 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Actualización de Font Awesome a Versión Moderna (FA 7.3.1 / Free) con Compatibilidad v4-shims:**
+  - **Actualización de Dependencia:** Incorporado `@fortawesome/fontawesome-free` (^7.3.1) en `package.json` y `package-lock.json`.
+  - **Integración con Vite (`resources/css/app.css`):** Añadidos imports de `@fortawesome/fontawesome-free/css/all.min.css` y `@fortawesome/fontawesome-free/css/v4-shims.min.css`. Vite empaqueta automáticamente las fuentes web modernas (`fa-solid-900.woff2`, `fa-regular-400.woff2`, `fa-brands-400.woff2`, `fa-v4compatibility.woff2`) en los bundles de producción de Vue y estilos generales.
+  - **Actualización de Plantillas AdminWrap (`admin-wrap` y `admin-wrap-login`):**
+    * Actualizados `public/admin-wrap/scss/icons/font-awesome/css/font-awesome.min.css` y `font-awesome.css` con la compilación unificada de Font Awesome moderno y sus `v4-shims`.
+    * Actualizados `public/admin-wrap-login/scss/icons/font-awesome/css/font-awesome.min.css` y `font-awesome.css`.
+    * Copiados los archivos de fuentes WOFF2 en `public/admin-wrap/scss/icons/font-awesome/webfonts/` y `public/admin-wrap-login/scss/icons/font-awesome/webfonts/`.
+  - **Compatibilidad y Nuevos Iconos:**
+    * Conservada compatibilidad total al 100% con iconos heredados de Font Awesome 4 (`fa fa-envelope-o`, `fa fa-dashboard`, `fa fa-user-circle-o`, `fa fa-file-text-o`, etc.) mediante los shims.
+    * Habilitada compatibilidad nativa para nuevos iconos médicos, regulatorios y modernos como `fa fa-radiation` (utilizado en el menú de Dosis / Dosimetría en `sidebar.blade.php`), `fa fa-brain`, `fa fa-hospital`, etc.
+  - **Verificaciones:** Prettier verificado en `resources/css/app.css` ✅ | Vite build completado exitosamente en 1.14s (`npm run build`) ✅.
 - [x] **2026-10-27 — Integración del Reporte de Dosimetría en el Módulo Central de Reportes:**
   - **Componente Vue (`reporteProduccionComponent.vue`):** Incorporada tarjeta de *"Dosimetría y Radiación"* en el módulo general de reportes (`/reportes-produccion`). Añadido modal interactivo (`modalDosimetriaVisible`) con selector de sedes (`...::: Todas las sedes :::...` con valor `0`), inputs de rango de fechas ("Desde" / "Hasta"), atajos de teclado (`Esc`, `Ctrl+S`) y botón de descarga con feedback de carga.
   - **Backend y Routing:** Registrada ruta web `/descarga-reportes-dosimetria` en `routes/web.php` delegando a `DosimetriaController::exportar()`. Actualizado `DosimetriaFiltroRequest` con método `prepareForValidation()` para normalizar dinámicamente alias de parámetros (`sedeId` -> `sede_id`, `fechaIni` -> `fecha_desde`, `fechaFin` -> `fecha_hasta`, y valor `0` a `null`), permitiendo interoperabilidad transparente.
