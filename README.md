@@ -47,10 +47,10 @@ Esto genera una URL como `https://xxx.trycloudflare.com`. Úsala en la configura
 ## Stack Tecnológico (resumen)
 
 -   **Backend**: Laravel 13 (PHP ^8.3), MySQL
--   **Frontend**: Vue 3 + Vite (Laravel Vite Plugin), Bootstrap 5
--   **Seguridad**: `spatie/laravel-permission` (roles/permisos)
+-   **Frontend**: Vue 3 + Vite (Laravel Vite Plugin), Bootstrap 5, Chart.js + vue-chartjs (analítica clínica)
+-   **Seguridad**: `spatie/laravel-permission` (roles/permisos), anonimización criptográfica SHA-256 de identificadores de pacientes (ISO/IEC 27001)
 -   **Integraciones**: HIS/SAHI (SQL Server), PACS Dcm4chee (MySQL multisede), Twilio (WhatsApp), generación de PDF/Excel (DomPDF / Maatwebsite Excel)
--   **Estándares Médicos / DICOM**: Modality Worklist (MWL) DICOM nativo, codificación binaria Little Endian Explicit VR y compresión zlib *Deflated Explicit VR Little Endian* (`1.2.840.10008.1.2.1.99`)
+-   **Estándares Médicos / DICOM**: Modality Worklist (MWL) DICOM nativo, codificación binaria Little Endian Explicit VR, compresión zlib *Deflated Explicit VR Little Endian* (`1.2.840.10008.1.2.1.99`), telemetría Edge de dosimetría radiológica (`pydicom`) con extracción de `CTDIvol`, `DLP`, `DGM` y `DAP` conforme a la Resolución 482 de 2018 (Colombia)
 -   **Autenticación API**: `auth:sanctum` (Sanctum stateful para SPA)
 -   **Multimedia**: FFmpeg (conversión/compresión de audios a MP3)
 -   **Transcripción de voz a texto**: Whisper (OpenAI) + FastAPI (servicio Python local, puerto 8001)
@@ -177,6 +177,24 @@ La aplicación está compuesta por los siguientes módulos especializados:
 -   **Multisede 100% Dinámica:** Detección en vivo de los equipos/salas de adquisición registrados en la tabla `ae` de la sede correspondiente (`GET /api/pacientes/worklist-estaciones`). Cero valores fijos o hardcodeados; si la sede agrega o renombra una consola, LIDiag la refleja de inmediato.
 -   **Trazabilidad y Cancelación:** Control de estado de órdenes (`PENDIENTE`, `CANCELADO`), prevención de duplicidad por `sps_id` único, y retiro de pacientes de la consola del equipo en caliente.
 -   **UI y Rutas:** Pantalla web en `/pacientes/admision`, API en `/api/pacientes/*` (permisos `gestion.pacientes.*`). Documentación técnica en `docs/WORKLIST_FLUJO_DCM.md`.
+
+### 14. Dosimetría y Control de Radiación (Resolución 482 de 2018 / ISO/IEC 27001)
+
+**Propósito:** Monitoreo automatizado Edge-to-Cloud de dosis de radiación ionizante y cumplimiento normativo de Niveles de Referencia para Diagnóstico (NRD) por sede hospitalaria.
+
+-   **Modelo Edge-to-Cloud:** Agente desatendido en Python 3 (`agente_dosimetria.py`) que se ejecuta localmente en cada sede, consulta `pacsdb` de Dcm4chee y extrae los metadatos dosimétricos directamente desde las cabeceras DICOM sin saturar la red ni exponer puertos entrantes.
+-   **Seguridad de Grado Clínico (ISO 27001):** Anonimización irreversible del `PatientID` con hash SHA-256 antes de transmitir; ninguna Información de Salud Protegida (PHI) viaja por la red ni se almacena en el servidor central.
+-   **Métricas Multimodales:**
+    -   **Tomografía Computarizada (CT):** `CTDIvol` (mGy) y `DLP` (mGy·cm).
+    -   **Mamografía (MG):** `DGM` (mGy).
+    -   **Radiografía Digital / Computarizada (DX / CR):** `DAP` (Gy·cm²).
+-   **Resiliencia y Lotes:** Transmisión HTTPS autenticada mediante Bearer Token (`/api/dosimetria/registros`) con política de reintentos (`HTTPAdapter` con backoff exponencial) y upsert masivo en bloques de 200 para evitar duplicidad de `study_uid`.
+-   **Dashboard Analítico (Vue 3 + Chart.js):**
+    -   Barras comparativas de dosis promedio institucional frente a los límites NRD regulatorios.
+    -   Líneas de tendencia temporal mensual para evaluación de optimización de dosis (ALARA).
+    -   Alertas visuales semánticas (badges `.bg-danger` y paneles de advertencia) ante superación de umbrales.
+    -   Soporte nativo para Modo Oscuro Radiológico (Slate Clínico) y `TableSkeletonLoader` (CLS = 0).
+-   **UI y Rutas:** Pantalla web en `/dosimetria/dashboard`, API en `/api/dosimetria/*` (permisos `dosimetria.*`). Agente local en `storage/app_lidiag/agente_backups_dcm/`.
 
 ---
 

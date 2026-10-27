@@ -514,3 +514,12 @@ Controlador delgado (Thin Controller) para la administración del catálogo de p
 - **`obtenerAccessionSugerido`**: Genera un número de acceso único secuencial con prefijo `RX-YYYYMMDD-####`.
 - **`enviarWorklist`**: Inserta el paciente y la orden de Rayos X en la base de datos de Dcm4chee (`patient` y `mwl_item` con dataset binario DICOM `item_attrs`) y persiste la orden en LIDiag (`worklist_ordenes`).
 - **`cancelarWorklist`**: Retira la orden activa de la consola del equipo de Rayos X (eliminando el registro en Dcm4chee `mwl_item`) y marca el estado en LIDiag como `CANCELADO`.
+
+---
+
+## Módulo: Dosimetría y Control de Radiación
+
+### `Api\DosimetriaController.php`
+Controlador delgado (Thin Controller) para la recepción automatizada de telemetría dosimétrica Edge y la consulta analítica del dashboard regulatorio (Resolución 482 de 2018 / ISO/IEC 27001).
+- **`index`**: Retorna el consolidado analítico de dosis agrupado por sede, modalidad y mes, calculando promedios institucionales frente a los límites NRD regulatorios, listado de alertas semánticas y últimas 50 telemetrías recibidas.
+- **`store`**: Recibe paquetes masivos (bulk) de mediciones enviadas por el agente Edge local de cada hospital, ejecuta validación estricta de esquema y ejecuta un upsert transaccional por chunks evitando duplicados de `study_uid`.
