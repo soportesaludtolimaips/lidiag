@@ -37,6 +37,21 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Enriquecimiento y Rediseño Modular de Reportes e Indicadores por Categorías Temáticas:**
+  - **Reestructuración de UI en Vue 3 (`reporteProduccionComponent.vue`):**
+    * Segmentación completa en **5 categorías temáticas**: *1. Asistencial*, *2. Citas*, *3. Financiero / Liquidación*, *4. Calidad* y *5. Dosimetría*.
+    * Pestañas clínicas dinámicas (`custom-clinical-pills`) con iconos temáticos y badges descriptivos.
+    * Incorporación de **Tarjetas de KPIs** por categoría: métricas en tiempo real consumiendo `/api/reportes.dashboard` (estudios asignados, informados, pendientes de transcripción, tiempo promedio TAT, tasa de ausentismo, efectividad de confirmaciones WhatsApp, estado de interoperabilidad SAHI y conformidad NRD Res. 482).
+    * Catálogo de tarjetas de reportes interactivos con descripciones clínicas, badges de alcance y modales de parametrización rápida.
+    * Enlaces directos a módulos operativos complementarios (`/liquidacion`, `/productividad`, `/dosis/dashboard`).
+  - **Verificaciones Estrictas:**
+    * ESLint: 0 errores / 0 advertencias (`npx eslint` passed) ✅.
+    * Vite build: Compilación exitosa en 1.20s (`npm run build`) ✅.
+- [x] **2026-10-27 — Soporte para Dominios Virtuales Laragon (.test) en TrustHosts (HTTP 400 en Producción):**
+  - **Diagnóstico:** En el servidor de producción `10.35.47.4`, al acceder a la instancia `lidiag-update` mediante el dominio virtual `https://lidiag-update.test/`, Symfony arrojaba `BadRequestHttpException` (HTTP 400 Bad Request: *"Oops! An Error Occurred. The server returned a 400 Bad Request... Untrusted Host"*). Esto ocurre porque `TrustHosts` de Laravel se activa en `APP_ENV=production` y por defecto solo confía en `allSubdomainsOfApplicationUrl()` e IPs privadas, rechazando dominios `.test` no declarados explícitamente.
+  - **Solución en Código:** Actualizado `app/Http/Middleware/TrustHosts.php` agregando el patrón de regex `"^.*\\.test$"` para confiar de forma transparente en todos los dominios y vhosts de Laragon (`lidiag-update.test`, `lidiag.test`, etc.).
+  - **Solución Rápida en `.env` Servidor:** Para la instancia activa en `10.35.47.4`, también se puede definir en su `.env`: `TRUSTED_HOSTS=lidiag-update.test,lidiag.test,10.35.47.4` o `APP_URL=https://lidiag-update.test` y ejecutar `php artisan config:clear`.
+  - **Verificación Estricta:** Validado con script en entorno Laravel simulando petición HTTP a `https://lidiag-update.test/` (aprobado con éxito y bloqueando hosts no confiables externos) | Laravel Pint passed ✅.
 - [x] **2026-10-27 — Actualización de Font Awesome a Versión Moderna (FA 7.3.1 / Free) con Compatibilidad v4-shims:**
   - **Actualización de Dependencia:** Incorporado `@fortawesome/fontawesome-free` (^7.3.1) en `package.json` y `package-lock.json`.
   - **Integración con Vite (`resources/css/app.css`):** Añadidos imports de `@fortawesome/fontawesome-free/css/all.min.css` y `@fortawesome/fontawesome-free/css/v4-shims.min.css`. Vite empaqueta automáticamente las fuentes web modernas (`fa-solid-900.woff2`, `fa-regular-400.woff2`, `fa-brands-400.woff2`, `fa-v4compatibility.woff2`) en los bundles de producción de Vue y estilos generales.
