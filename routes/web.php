@@ -45,6 +45,7 @@ use App\Http\Controllers\Api\DosimetriaController;
 use App\Http\Controllers\Auth\PasswordChangeController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Configuracion\ConfigSedeController;
+use App\Http\Controllers\Liquidacion\LiquidacionController;
 
 Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])
     ->name('password.reset')
@@ -214,6 +215,21 @@ Route::get('descarga-reportes-estudios-pac', [ReporteProduccion::class, 'reporte
 Route::get('descarga-reportes-dosimetria', [DosimetriaController::class, 'exportar'])
     ->name('descarga.reportes.dosimetria')
     ->middleware(['auth', 'permission:reportes.detallados|reportes.indicadores|dosimetria.dashboard|dosimetria.registros']);
+Route::get('descarga-reportes-teleradiologia', [ReporteProduccion::class, 'reporteTeleRadiologia'])
+    ->name('descarga.reportes.teleradiologia')
+    ->middleware(['auth', 'permission:reportes.detallados|reportes.indicadores']);
+Route::get('descarga-reportes-ausentismo-citas', [ReporteProduccion::class, 'reporteAusentismoCitas'])
+    ->name('descarga.reportes.ausentismo.citas')
+    ->middleware(['auth', 'permission:reportes.detallados|reportes.indicadores']);
+Route::get('descarga-reportes-liquidacion', [LiquidacionController::class, 'exportar'])
+    ->name('descarga.reportes.liquidacion')
+    ->middleware(['auth', 'permission:reportes.detallados|reportes.indicadores|liquidacion.exportar']);
+Route::get('descarga-reportes-productividad', [LiquidacionController::class, 'exportarProductividad'])
+    ->name('descarga.reportes.productividad')
+    ->middleware(['auth', 'permission:reportes.detallados|reportes.indicadores|liquidacion.exportar']);
+Route::get('descarga-reportes-tat', [ReporteProduccion::class, 'reporteTAT'])
+    ->name('descarga.reportes.tat')
+    ->middleware(['auth', 'permission:reportes.detallados|reportes.indicadores']);
 
 /**
  * Configuración

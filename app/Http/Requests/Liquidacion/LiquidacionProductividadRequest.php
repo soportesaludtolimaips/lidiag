@@ -28,6 +28,20 @@ class LiquidacionProductividadRequest extends FormRequest
     }
 
     /**
+     * Normaliza los alias de parámetros de productividad.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-27
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has("sedeId") && ! $this->has("sede_id")) {
+            $this->merge(["sede_id" => $this->input("sedeId")]);
+        }
+    }
+
+    /**
      * Define las reglas de validación para productividad.
      *
      * @returns array reglas de validación: sede_id, periodo (YYYY-MM).

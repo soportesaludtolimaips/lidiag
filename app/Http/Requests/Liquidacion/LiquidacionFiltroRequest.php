@@ -28,6 +28,30 @@ class LiquidacionFiltroRequest extends FormRequest
     }
 
     /**
+     * Normaliza los alias de parámetros de filtros de liquidación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-27
+     */
+    protected function prepareForValidation(): void
+    {
+        $merge = [];
+        if ($this->has("sedeId") && ! $this->has("sede_id")) {
+            $merge["sede_id"] = $this->input("sedeId");
+        }
+        if ($this->has("fechaIni") && ! $this->has("fecha_inicio")) {
+            $merge["fecha_inicio"] = $this->input("fechaIni");
+        }
+        if ($this->has("fechaFin") && ! $this->has("fecha_fin")) {
+            $merge["fecha_fin"] = $this->input("fechaFin");
+        }
+        if (! empty($merge)) {
+            $this->merge($merge);
+        }
+    }
+
+    /**
      * Define las reglas de validación para los filtros de liquidación.
      *
      * @returns array reglas de validación: sede_id, fecha_inicio, fecha_fin, contrato_id, medico_id.

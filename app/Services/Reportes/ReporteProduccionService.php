@@ -4,7 +4,10 @@ namespace App\Services\Reportes;
 
 use App\Exports\ProduccionDetalladaEcografiasExport;
 use App\Exports\ProduccionDetalladaExport;
+use App\Exports\ReporteAusentismoCitasExport;
 use App\Exports\ReportesEstudioPAC;
+use App\Exports\ReporteTATExport;
+use App\Exports\ReporteTeleRadiologiaExport;
 use App\Services\BaseService;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
@@ -119,6 +122,111 @@ class ReporteProduccionService extends BaseService
             ]);
 
             return ['message' => 'Error al generar el reporte PAC: '.$e->getMessage(), 'status' => 500];
+        }
+    }
+
+    /**
+     * Genera el reporte de estudios derivados a tele-radiología en formato Excel.
+     *
+     * @param  array  $data  Datos filtrados: sedeId, fechaIni, fechaFin.
+     *
+     * @returns BinaryFileResponse|array Archivo Excel o array con mensaje de error.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-27
+     */
+    public function generateReporteTeleRadiologia(array $data): BinaryFileResponse|array
+    {
+        $sedeId = $this->normalizeNullable($data['sedeId'] ?? null);
+        $fechaInicio = $data['fechaIni'] ?? null;
+        $fechaFin = $data['fechaFin'] ?? null;
+
+        try {
+            return Excel::download(
+                new ReporteTeleRadiologiaExport($fechaInicio, $fechaFin, $sedeId),
+                'reporte_tele_radiologia.xlsx'
+            );
+        } catch (\Throwable $e) {
+            Log::error('ReporteProduccionService.generateReporteTeleRadiologia failed', [
+                'sede_id' => $sedeId,
+                'fechaInicio' => $fechaInicio,
+                'fechaFin' => $fechaFin,
+                'error' => $e->getMessage(),
+            ]);
+
+            return ['message' => 'Error al generar el reporte de tele-radiología: '.$e->getMessage(), 'status' => 500];
+        }
+    }
+
+    /**
+     * Genera el reporte de ausentismo y cancelaciones de citas en formato Excel.
+     *
+     * @param  array  $data  Datos filtrados: sedeId, fechaIni, fechaFin, estado.
+     *
+     * @returns BinaryFileResponse|array Archivo Excel o array con mensaje de error.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-27
+     */
+    public function generateReporteAusentismoCitas(array $data): BinaryFileResponse|array
+    {
+        $sedeId = $this->normalizeNullable($data['sedeId'] ?? null);
+        $fechaInicio = $data['fechaIni'] ?? null;
+        $fechaFin = $data['fechaFin'] ?? null;
+        $estado = $data['estado'] ?? null;
+
+        try {
+            return Excel::download(
+                new ReporteAusentismoCitasExport($fechaInicio, $fechaFin, $sedeId, $estado),
+                'reporte_ausentismo_citas.xlsx'
+            );
+        } catch (\Throwable $e) {
+            Log::error('ReporteProduccionService.generateReporteAusentismoCitas failed', [
+                'sede_id' => $sedeId,
+                'fechaInicio' => $fechaInicio,
+                'fechaFin' => $fechaFin,
+                'error' => $e->getMessage(),
+            ]);
+
+            return ['message' => 'Error al generar el reporte de ausentismo: '.$e->getMessage(), 'status' => 500];
+        }
+    }
+
+    /**
+     * Genera el reporte de Calidad y Oportunidad (Turnaround Time - TAT) en formato Excel.
+     *
+     * @param  array  $data  Datos filtrados: sedeId, fechaIni, fechaFin, modalidad.
+     *
+     * @returns BinaryFileResponse|array Archivo Excel o array con mensaje de error.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-27
+     */
+    public function generateReporteTAT(array $data): BinaryFileResponse|array
+    {
+        $sedeId = $this->normalizeNullable($data['sedeId'] ?? null);
+        $fechaInicio = $data['fechaIni'] ?? null;
+        $fechaFin = $data['fechaFin'] ?? null;
+        $modalidad = $this->normalizeNullable($data['modalidad'] ?? null);
+
+        try {
+            return Excel::download(
+                new ReporteTATExport($fechaInicio, $fechaFin, $sedeId, $modalidad),
+                'reporte_oportunidad_tat.xlsx'
+            );
+        } catch (\Throwable $e) {
+            Log::error('ReporteProduccionService.generateReporteTAT failed', [
+                'sede_id' => $sedeId,
+                'fechaInicio' => $fechaInicio,
+                'fechaFin' => $fechaFin,
+                'modalidad' => $modalidad,
+                'error' => $e->getMessage(),
+            ]);
+
+            return ['message' => 'Error al generar el reporte de oportunidad TAT: '.$e->getMessage(), 'status' => 500];
         }
     }
 }

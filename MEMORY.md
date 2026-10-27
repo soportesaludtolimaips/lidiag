@@ -37,6 +37,23 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Implementación Pasos 3, 4 y 5: Módulo de Reportes e Indicadores por Categorías (Financiero, Calidad TAT y Dosimetría):**
+  - **Categoría 3: Financiero / Liquidación:**
+    * Incorporada tarjeta nativa de AdminWrap "Financiero / Liquidación" con accesos a Liquidación de Honorarios a Radiólogos, Productividad Médica (Corte Mensual) y salto al módulo `/liquidacion`.
+    * Backend: Normalización de alias en `LiquidacionFiltroRequest` y `LiquidacionProductividadRequest`. Creadas rutas web `/descarga-reportes-liquidacion` y `/descarga-reportes-productividad` delegando a `LiquidacionController::exportar` y `exportarProductividad`.
+    * Frontend: Modales nativos interactivos de Liquidación y Productividad con selector de sedes, rango de fechas y periodos mensuales.
+  - **Categoría 4: Calidad y Oportunidad (Turnaround Time - TAT):**
+    * Creado `ReporteTATRequest.php` para validación estricta de filtros asistenciales (fechas, sede y modalidad).
+    * Desarrollado `ReporteTATExport.php`: Excel institucional de tiempos de oportunidad y entrega (cálculo de tiempos disparo/ingreso -> dictado médico -> transcripción final), horas de respuesta y clasificación semafórica de oportunidad (Conforme <=24h, Alerta 24-48h, Extemporáneo >48h).
+    * Backend: Creado `ReporteProduccionService::generateReporteTAT()`, Thin Controller `ReporteProduccion::reporteTAT()` y registrada ruta web `/descarga-reportes-tat`.
+    * Frontend: Tarjeta nativa AdminWrap "Calidad y Oportunidad" con icono `fa-tachometer`, modal interactivo con filtros de modalidad técnica (`RX`, `CT`, `MR`, `MG`, `US`) y atajos de teclado (`Esc`, `Ctrl+S`).
+  - **Categoría 5: Dosimetría y Radiación:**
+    * Tarjeta nativa AdminWrap con descarga de Excel multi-hoja con gráficos (Res. 482 de 2018) y enlace directo integrado al tablero interactivo `/dosis/dashboard`.
+  - **Diseño Estricto:** Se mantuvo el 100% de los estilos y diseño nativo existente de AdminWrap (`info-box`, `card`, `card-title text-themecolor`, `a href`) sin inventar CSS ni componentes ajenos.
+  - **Verificaciones Estrictas:**
+    * Laravel Pint passed (`{"tool":"pint","result":"passed"}`) ✅.
+    * ESLint: 0 errores / 0 advertencias (`npx eslint` passed) ✅.
+    * Vite build: Compilación exitosa en 1.21s (`npm run build`) ✅.
 - [x] **2026-10-27 — Corrección de Nombres de Rutas PSR-4 (Case Sensitivity en Windows/Git):**
   - **Diagnóstico:** Al ejecutar `composer dump-autoload` en el servidor o tras sincronizar, Composer advertía: `Class Database\Seeders\Configuracion\... does not comply with psr-4 autoloading standard... Skipping.` y `Class App\Http\Controllers\Ecografias\EcografiaLecturaController located in .../ecografiaLecturaController.php... Skipping.`.
   - **Causa Raíz:** En Windows Git con `core.ignorecase=true`, el índice de Git preservaba históricamente las rutas en minúscula (`database/seeders/configuracion` y `ecografiaLecturaController.php`), mientras que los namespaces y clases de PHP declaran `Configuracion` y `EcografiaLecturaController`.
