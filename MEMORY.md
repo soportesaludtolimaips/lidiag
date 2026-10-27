@@ -37,6 +37,12 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Generación y Publicación del Informe Consolidado de Actualizaciones para Gerencia (MD y PDF):**
+  - **Objetivo:** Consolidar formalmente para la Gerencia General, Dirección Médica y Financiera el inventario exhaustivo de todas las innovaciones implementadas en el sistema entre el 1 de junio y el 27 de octubre de 2026 en formato directo `Mejora: Descripción`.
+  - **Archivos Generados:**
+    * `docs/INFORME_ACTUALIZACIONES_GERENCIA.md`: Documento Markdown exhaustivo estructurado en 14 secciones temáticas (Dosimetría Res. 482, MWL DICOM, Estación de Lectura Whisper, Medios CD/DVD y ZIP, Portal de Pacientes, HIS/SAHI, Dashboard de Backups, Telegram Bot, WhatsApp Bot, Liquidación, Seguridad ISO 27001, Reportes, UI/UX y Arquitectura PSR-4).
+    * `docs/INFORME_ACTUALIZACIONES_GERENCIA.pdf`: Documento PDF institucional de 236 KB renderizado mediante Dompdf con tipografía ejecutiva, formato de fichas visuales por mejora, cortes de página limpios y paginación institucional numerada.
+  - **Commit:** `22589c3a8`. Pint & ESLint passed ✅.
 - [x] **2026-10-27 — Comando Inteligente de Siembra e Idempotencia Total (`seed:faltantes`):**
   - **Objetivo:** Ejecutar de forma segura, discriminada y automatizada únicamente los seeders que no hayan sido aplicados en bases de datos restauradas o actualizadas, sin violar claves primarias/únicas ni fallar por restricciones de llaves foráneas.
   - **Verificación Previa (`isApplied`):** Cada uno de los 29 seeders registrados cuenta con una función de inspección contextual en base de datos (`isApplied()`) que verifica previamente si sus permisos, catálogos o registros ya existen. Si ya están aplicados, se omite (`⏭ Ya aplicado`). Se incluye la opción `--force` para re-ejecución forzada y `--audit` para auditoría comparativa de permisos entre código y BD.
