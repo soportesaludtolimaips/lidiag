@@ -4,16 +4,16 @@ namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
-use Database\Seeders\configuracion\ConfigAdminSaludSeeder;
-use Database\Seeders\configuracion\ConfigDiagnosticoSeeder;
-use Database\Seeders\configuracion\ConfigPrioridadeSeeder;
+use Database\Seeders\Configuracion\ConfigAdminSaludSeeder;
+use Database\Seeders\Configuracion\ConfigDiagnosticoSeeder;
+use Database\Seeders\Configuracion\ConfigPrioridadeSeeder;
 use Database\Seeders\Configuracion\ConfigProductosDedupeSeeder;
-use Database\Seeders\configuracion\ConfigProductosEcografias1Seeder;
-use Database\Seeders\configuracion\ConfigProductosEcografias2Seeder;
-use Database\Seeders\configuracion\ConfigProductosEcografias3Seeder;
+use Database\Seeders\Configuracion\ConfigProductosEcografias1Seeder;
+use Database\Seeders\Configuracion\ConfigProductosEcografias2Seeder;
+use Database\Seeders\Configuracion\ConfigProductosEcografias3Seeder;
 use Database\Seeders\Configuracion\ConfigProductosEcografias4Seeder;
 use Database\Seeders\Configuracion\ConfigProductoSeeder;
-use Database\Seeders\configuracion\ConfigSedeSeeder;
+use Database\Seeders\Configuracion\ConfigSedeSeeder;
 use Database\Seeders\Configuracion\ConfigWhatsappEcografiasRecomendaciones;
 use Database\Seeders\Configuracion\ConfigWhatsappEcografiasRequerimientos;
 use Database\Seeders\Configuracion\ConfigWhatsappSedeNumberSeeder;

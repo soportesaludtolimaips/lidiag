@@ -37,6 +37,9 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Comando Artisan de Siembra Segura de Seeders Faltantes (`seed:faltantes`):**
+  - **Objetivo:** Evitar fallos de clave duplicada (1062) en bases de datos restauradas donde ya existen usuarios y sedes pero faltan permisos nuevos, umbrales regulatorios y catálogos.
+  - **Comando Creado (`SeedFaltantesCommand.php`):** Registrado `php artisan seed:faltantes [--audit]`. Ejecuta secuencialmente y de forma estrictamente idempotente los 22 seeders de módulos nuevos (Dosimetría Res. 482, Backups, Contratación, Liquidación, Citas/WhatsApp, Auditoría, Consentimientos, HelpDesk), resetea la caché de Spatie e invoca auditoría. Pint passed ✅.
 - [x] **2026-10-27 — Inclusión de 'unsafe-eval' en Content-Security-Policy (CSP) para Vue 3 y DataTables:**
   - **Diagnóstico:** En producción (`lidiag.com`), la directiva CSP estricta en `SecurityHeaders.php` bloqueaba la ejecución de JavaScript en tiempo de ejecución con `Uncaught EvalError: Evaluating a string as JavaScript violates the following Content Security Policy directive because 'unsafe-eval' is not an allowed source of script`.
   - **Causa Raíz:** Vue 3 y DataTables requieren evaluar expresiones de plantillas dinámicamente (`new Function`). Al carecer de `'unsafe-eval'` en `script-src`, el navegador bloqueaba la inicialización de los componentes.
