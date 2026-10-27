@@ -4,12 +4,19 @@ namespace App\Exports\Dosimetria\Sheets;
 
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithCharts;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use PhpOffice\PhpSpreadsheet\Chart\Chart;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeries;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues;
+use PhpOffice\PhpSpreadsheet\Chart\Legend;
+use PhpOffice\PhpSpreadsheet\Chart\PlotArea;
+use PhpOffice\PhpSpreadsheet\Chart\Title;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
@@ -23,12 +30,13 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
  * 2. Muestra tarjetas de KPIs ejecutivos (Total estudios, equipos, porcentaje de cumplimiento).
  * 3. Renderiza la tabla analítica mensual agrupada por sede, modalidad y tipo de métrica.
  * 4. Aplica formato condicional semántico de semáforo para alertas preventivas y superaciones NRD.
+ * 5. Genera gráficos nativos de barras comparativas y torta de modalidades según Res. 482 de 2018.
  *
  * @author Jhon Javer Lozano Arce
  *
  * @date 2026-10-26
  */
-class DosimetriaEstadisticasSheet implements FromCollection, WithColumnWidths, WithCustomStartCell, WithHeadings, WithMapping, WithStyles, WithTitle
+class DosimetriaEstadisticasSheet implements FromCollection, WithCharts, WithColumnWidths, WithCustomStartCell, WithHeadings, WithMapping, WithStyles, WithTitle
 {
     protected array $filtros;
 
@@ -317,5 +325,102 @@ class DosimetriaEstadisticasSheet implements FromCollection, WithColumnWidths, W
         }
 
         return [];
+    }
+
+    /**
+     * Genera los gráficos analíticos nativos de Excel (Barras comparativas y Torta de modalidades).
+     *
+     * Flujo del proceso:
+     * 1. Verifica si existen datos tabulados; si no hay registros, retorna arreglo vacío.
+     * 2. Construye el gráfico de barras comparativo de Dosis Promedio vs Límite NRD (Resolución 482).
+     * 3. Construye el gráfico de torta de distribución porcentual de estudios por modalidad técnica.
+     * 4. Posiciona los gráficos debajo de la tabla analítica con espaciado clínico adecuado.
+     *
+     * @return Chart[] Lista de gráficos incrustados en la hoja
+     */
+    public function charts(): array
+    {
+        if ($this->totalFilas === 0) {
+            return [];
+        }
+
+        $sheetTitle = $this->title();
+        $filaFin = 8 + $this->totalFilas;
+        $startChart = $filaFin + 3;
+
+        // 1. Gráfico de Barras: Dosis Promedio Registrada vs Límite NRD Regulatorio
+        $barLabels = [
+            new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, "'{$sheetTitle}'!\$G\$8", null, 1),
+            new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, "'{$sheetTitle}'!\$J\$8", null, 1),
+        ];
+        $barCategories = [
+            new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, "'{$sheetTitle}'!\$C\$9:\$C\${$filaFin}", null, $this->totalFilas),
+        ];
+        $barValues = [
+            new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_NUMBER, "'{$sheetTitle}'!\$G\$9:\$G\${$filaFin}", null, $this->totalFilas),
+            new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_NUMBER, "'{$sheetTitle}'!\$J\$9:\$J\${$filaFin}", null, $this->totalFilas),
+        ];
+
+        $barSeries = new DataSeries(
+            DataSeries::TYPE_BARCHART,
+            DataSeries::GROUPING_CLUSTERED,
+            range(0, count($barValues) - 1),
+            $barLabels,
+            $barCategories,
+            $barValues
+        );
+        $barSeries->setPlotDirection(DataSeries::DIRECTION_COL);
+
+        $barPlotArea = new PlotArea(null, [$barSeries]);
+        $barLegend = new Legend(Legend::POSITION_TOP, null, false);
+        $barTitle = new Title('Comparativa Dosis Promedio vs Límite NRD (Res. 482)');
+
+        $barChart = new Chart(
+            'chart_barras_nrd',
+            $barTitle,
+            $barLegend,
+            $barPlotArea,
+            true,
+            DataSeries::EMPTY_AS_GAP
+        );
+        $barChart->setTopLeftPosition('A'.$startChart);
+        $barChart->setBottomRightPosition('F'.($startChart + 17));
+
+        // 2. Gráfico de Torta (Pie): Distribución de Estudios por Modalidad Adquirida
+        $pieLabels = [
+            new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, "'{$sheetTitle}'!\$F\$8", null, 1),
+        ];
+        $pieCategories = [
+            new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, "'{$sheetTitle}'!\$C\$9:\$C\${$filaFin}", null, $this->totalFilas),
+        ];
+        $pieValues = [
+            new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_NUMBER, "'{$sheetTitle}'!\$F\$9:\$F\${$filaFin}", null, $this->totalFilas),
+        ];
+
+        $pieSeries = new DataSeries(
+            DataSeries::TYPE_PIECHART,
+            null,
+            range(0, count($pieValues) - 1),
+            $pieLabels,
+            $pieCategories,
+            $pieValues
+        );
+
+        $piePlotArea = new PlotArea(null, [$pieSeries]);
+        $pieLegend = new Legend(Legend::POSITION_RIGHT, null, false);
+        $pieTitle = new Title('Distribución de Estudios por Modalidad');
+
+        $pieChart = new Chart(
+            'chart_torta_modalidad',
+            $pieTitle,
+            $pieLegend,
+            $piePlotArea,
+            true,
+            DataSeries::EMPTY_AS_GAP
+        );
+        $pieChart->setTopLeftPosition('G'.$startChart);
+        $pieChart->setBottomRightPosition('L'.($startChart + 17));
+
+        return [$barChart, $pieChart];
     }
 }

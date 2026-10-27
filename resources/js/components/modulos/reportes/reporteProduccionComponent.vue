@@ -75,6 +75,24 @@
                     </div>
                 </div>
             </div>
+            <div class="col-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title text-themecolor">
+                            <i class="fa fa-radiation text-warning"></i> Dosimetría y Radiación
+                        </h4>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <a href="javascript:void(0)" @click="abrirModalDosimetria()">
+                                    <i class="fa fa-check text-info"></i>
+                                    Reporte de Dosimetría y Niveles NRD (Res. 482)
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Modal Producción Detallada -->
@@ -328,6 +346,118 @@
                 </div>
             </div>
         </div>
+
+        <!-- Modal Dosimetría / Control de Radiación -->
+        <div
+            v-if="modalDosimetriaVisible"
+            class="modal fade show d-block"
+            tabindex="-1"
+            role="dialog"
+            aria-modal="true"
+            aria-hidden="false"
+            style="background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px); z-index: 1050"
+            @click.self="
+                resetearFormularioDosimetria();
+                modalDosimetriaVisible = false;
+            "
+        >
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">
+                            Filtro para reporte de Dosimetría (Res. 482 de 2018)
+                        </h4>
+                        <button
+                            type="button"
+                            class="close"
+                            aria-label="Cerrar modal"
+                            title="Cerrar (Esc)"
+                            @click="
+                                resetearFormularioDosimetria();
+                                modalDosimetriaVisible = false;
+                            "
+                        >
+                            &times;
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="form-group">
+                                <label class="control-label">Sede Hospitalaria</label>
+                                <select
+                                    class="form-control custom-select"
+                                    style="width: 100%; height: 36px"
+                                    v-model="datosDosimetria.sedeId"
+                                    id="dosis-sede"
+                                >
+                                    <option value="0">...::: Todas las sedes :::...</option>
+                                    <option v-for="sede in sedes" :key="sede.id" :value="sede.id">
+                                        {{ sede.nom_sede }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <div class="example">
+                                            <h5 class="box-title m-t-30">Desde</h5>
+                                            <input
+                                                class="form-control"
+                                                type="date"
+                                                id="dosis-fechaIni"
+                                                v-model="datosDosimetria.fechaIni"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <div class="example">
+                                            <h5 class="box-title m-t-30">Hasta</h5>
+                                            <input
+                                                class="form-control"
+                                                type="date"
+                                                id="dosis-fechaFin"
+                                                v-model="datosDosimetria.fechaFin"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-inverse btn-action-clinical waves-effect"
+                            title="Cerrar (Esc)"
+                            @click="
+                                resetearFormularioDosimetria();
+                                modalDosimetriaVisible = false;
+                            "
+                        >
+                            Cerrar
+                            <span class="badge badge-secondary ml-1">Esc</span>
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-info btn-action-clinical waves-effect waves-light"
+                            title="Descargar reporte en Excel (Ctrl+S)"
+                            @click="descargarReporteDosimetria()"
+                            :disabled="loadingDescargarDosimetria"
+                        >
+                            <i
+                                v-if="loadingDescargarDosimetria"
+                                class="fa fa-spinner fa-spin mr-1"
+                            ></i>
+                            <i v-else class="fa fa-download mr-1"></i>
+                            Descargar reporte
+                            <span class="badge badge-light text-dark ml-1">Ctrl+S</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -352,14 +482,17 @@ const { can } = usePermissions(props.permisos);
 const sedes = ref([]);
 const datosReporte = ref({ sedeId: 0, quien_asigno: "", medico: "", fechaIni: "", fechaFin: "" });
 const datosPAC = ref({ sedeId: 0, fechaIni: "", fechaFin: "" });
+const datosDosimetria = ref({ sedeId: 0, fechaIni: "", fechaFin: "" });
 const quienes_asignaron = ref([]);
 const medicos = ref([]);
 const tipoReporte = ref("Rx");
 const loadingSedes = ref(false);
 const loadingDescargarProduccion = ref(false);
 const loadingDescargarPAC = ref(false);
+const loadingDescargarDosimetria = ref(false);
 const modalProduccionVisible = ref(false);
 const modalPACVisible = ref(false);
+const modalDosimetriaVisible = ref(false);
 
 function resetearFormulario() {
     datosReporte.value = { sedeId: 0, quien_asigno: "", medico: "", fechaIni: "", fechaFin: "" };
@@ -367,6 +500,10 @@ function resetearFormulario() {
 
 function resetearFormularioPAC() {
     datosPAC.value = { sedeId: 0, fechaIni: "", fechaFin: "" };
+}
+
+function resetearFormularioDosimetria() {
+    datosDosimetria.value = { sedeId: 0, fechaIni: "", fechaFin: "" };
 }
 
 function validarFechas(fechaIni, fechaFin) {
@@ -520,6 +657,46 @@ async function descargarReporteEstudiosPAC() {
     }
 }
 
+/**
+ * Descarga el reporte de dosimetría y control de radiación (Res. 482 de 2018) en Excel.
+ */
+async function descargarReporteDosimetria() {
+    if (loadingDescargarDosimetria.value) return;
+    loadingDescargarDosimetria.value = true;
+    try {
+        if (!validarFechas(datosDosimetria.value.fechaIni, datosDosimetria.value.fechaFin)) {
+            return;
+        }
+
+        const params = new URLSearchParams({
+            sedeId: String(datosDosimetria.value.sedeId ?? 0),
+            fechaIni: String(datosDosimetria.value.fechaIni),
+            fechaFin: String(datosDosimetria.value.fechaFin),
+        });
+
+        const url = `/descarga-reportes-dosimetria?${params.toString()}`;
+        const newWindow = window.open(url, "_blank", "noopener,noreferrer");
+
+        if (!newWindow) {
+            toastMessage({
+                heading: "Atención",
+                text: "El navegador bloqueó la apertura de la ventana. Permita pop-ups para este sitio.",
+                icon: "warning",
+            });
+        }
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible generar el reporte de dosimetría.",
+            icon: "error",
+        });
+    } finally {
+        setTimeout(() => {
+            loadingDescargarDosimetria.value = false;
+        }, 700);
+    }
+}
+
 function abrirModalProduccion(tipo) {
     tipoReporte.value = tipo;
     modalProduccionVisible.value = true;
@@ -537,13 +714,26 @@ function abrirModalPAC() {
     });
 }
 
+function abrirModalDosimetria() {
+    modalDosimetriaVisible.value = true;
+    nextTick(() => {
+        const el = document.getElementById("dosis-sede");
+        if (el) el.focus();
+    });
+}
+
 onMounted(() => {
     listarSedes();
 });
 
 useKeyboardShortcuts({
     onSearch: () => {
-        if (!modalProduccionVisible.value && !modalPACVisible.value && !loadingSedes.value) {
+        if (
+            !modalProduccionVisible.value &&
+            !modalPACVisible.value &&
+            !modalDosimetriaVisible.value &&
+            !loadingSedes.value
+        ) {
             listarSedes();
         }
     },
@@ -552,6 +742,8 @@ useKeyboardShortcuts({
             descargarReporte();
         } else if (modalPACVisible.value && !loadingDescargarPAC.value) {
             descargarReporteEstudiosPAC();
+        } else if (modalDosimetriaVisible.value && !loadingDescargarDosimetria.value) {
+            descargarReporteDosimetria();
         }
     },
     onEscape: () => {
@@ -561,6 +753,9 @@ useKeyboardShortcuts({
         } else if (modalPACVisible.value) {
             resetearFormularioPAC();
             modalPACVisible.value = false;
+        } else if (modalDosimetriaVisible.value) {
+            resetearFormularioDosimetria();
+            modalDosimetriaVisible.value = false;
         }
     },
 });

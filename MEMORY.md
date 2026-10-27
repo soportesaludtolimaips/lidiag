@@ -37,6 +37,25 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Integración del Reporte de Dosimetría en el Módulo Central de Reportes:**
+  - **Componente Vue (`reporteProduccionComponent.vue`):** Incorporada tarjeta de *"Dosimetría y Radiación"* en el módulo general de reportes (`/reportes-produccion`). Añadido modal interactivo (`modalDosimetriaVisible`) con selector de sedes (`...::: Todas las sedes :::...` con valor `0`), inputs de rango de fechas ("Desde" / "Hasta"), atajos de teclado (`Esc`, `Ctrl+S`) y botón de descarga con feedback de carga.
+  - **Backend y Routing:** Registrada ruta web `/descarga-reportes-dosimetria` en `routes/web.php` delegando a `DosimetriaController::exportar()`. Actualizado `DosimetriaFiltroRequest` con método `prepareForValidation()` para normalizar dinámicamente alias de parámetros (`sedeId` -> `sede_id`, `fechaIni` -> `fecha_desde`, `fechaFin` -> `fecha_hasta`, y valor `0` a `null`), permitiendo interoperabilidad transparente.
+- [x] **2026-10-27 — Incorporación de Gráficos de Tortas y Barras en Dashboard Web y Reporte Excel:**
+  - **Dashboard Web Interactivo (`DashboardDosimetria.vue`):**
+    * Integración de componentes `Doughnut` y `Bar` con registro de `ArcElement` en Chart.js.
+    * *Gráfico de Torta 1:* Distribución porcentual y conteo de estudios por modalidad técnica de adquisición (`CT`, `DX`, `CR`, `MG`).
+    * *Gráfico de Torta 2:* Semáforo regulatorio de cumplimiento NRD (Resolución 482 de 2018) segmentado en Conforme (Seguro), Alerta Preventiva (>80%) y Superación Crítica NRD.
+    * *Gráficos de Barras y Tendencia:* Comparativa de dosis promedio registrada por sede frente al límite NRD institucional y tendencia mensual histórica.
+  - **Reporte Excel Nativo con Gráficos (`DosimetriaEstadisticasSheet.php`):**
+    * Implementación de la interfaz `WithCharts` de Maatwebsite Excel / PhpSpreadsheet (`Chart`, `DataSeries`, `DataSeriesValues`, `PlotArea`, `Legend`, `Title`).
+    * Generación automática de gráfico nativo de barras (`DataSeries::TYPE_BARCHART`) para contrastar dosis promedio vs límite NRD.
+    * Generación automática de gráfico nativo de torta (`DataSeries::TYPE_PIECHART`) con la distribución de estudios por modalidad técnica.
+    * Posicionamiento dinámico de los gráficos debajo de la tabla analítica mensual.
+  - **Verificaciones Estrictas:**
+    * Laravel Pint: Passed (`{"tool":"pint","result":"passed"}`) ✅
+    * ESLint: 0 errores, 0 advertencias ✅
+    * Vite build: Compilación exitosa en 2.29s (`npm run build`) ✅
+    * Prueba binaria de exportación con gráficos nativos validada (25.9 KB) ✅
 - [x] **2026-10-26 — Generación de Reporte Excel Multi-Hoja de Dosimetría con Estadísticas y Detalle Clínico:**
   - **Arquitectura de Exportación (`app/Exports/Dosimetria/`):** Implementado `DosimetriaExport` (`WithMultipleSheets`) compuesto por dos hojas profesionales de auditoría técnica y biomédica:
     * *Hoja 1 — Estadísticas y NRD (`DosimetriaEstadisticasSheet`):* Encabezado institucional Salud Tolima, bloque de KPIs ejecutivos, tabla analítica mensual agrupada por sede, modalidad y tipo de métrica, contraste contra límites regulatorios NRD (Resolución 482 de 2018) y semáforo semántico condicional de alerta.

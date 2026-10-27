@@ -259,6 +259,7 @@
         </div>
 
         <!-- 5. Gráficos Analíticos de Dosimetría con Chart.js -->
+        <!-- Fila 1: Barras Comparativas vs NRD y Torta de Modalidades -->
         <div class="row g-3 mb-3">
             <div class="col-lg-7">
                 <div class="card h-100 shadow-sm border-0 chart-card">
@@ -295,6 +296,84 @@
             </div>
 
             <div class="col-lg-5">
+                <div class="card h-100 shadow-sm border-0 chart-card">
+                    <div
+                        class="card-header bg-transparent py-2 d-flex justify-content-between align-items-center"
+                    >
+                        <h6 class="mb-0 fw-bold">
+                            <i class="fa fa-pie-chart text-info me-2"></i>Distribución por Modalidad
+                        </h6>
+                        <span class="badge bg-secondary-subtle text-muted small"
+                            >Estudios Registrados</span
+                        >
+                    </div>
+                    <div class="card-body">
+                        <div v-if="loading" class="text-center py-5">
+                            <div class="spinner-border text-info" role="status"></div>
+                            <p class="text-muted small mt-2">Calculando modalidades...</p>
+                        </div>
+                        <div
+                            v-else-if="
+                                chartDataModalidades.labels &&
+                                chartDataModalidades.labels.length > 0
+                            "
+                            class="chart-wrapper"
+                        >
+                            <Doughnut
+                                :data="chartDataModalidades"
+                                :options="chartOptionsModalidades"
+                            />
+                        </div>
+                        <div v-else class="text-center py-5 text-muted">
+                            <i class="fa fa-info-circle fa-2x mb-2 text-secondary"></i>
+                            <p class="mb-0">Sin datos de modalidades para el rango actual.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fila 2: Torta de Cumplimiento Regulatorio NRD y Tendencia Temporal -->
+        <div class="row g-3 mb-3">
+            <div class="col-lg-5">
+                <div class="card h-100 shadow-sm border-0 chart-card">
+                    <div
+                        class="card-header bg-transparent py-2 d-flex justify-content-between align-items-center"
+                    >
+                        <h6 class="mb-0 fw-bold">
+                            <i class="fa fa-pie-chart text-warning me-2"></i>Cumplimiento Normativo
+                            NRD
+                        </h6>
+                        <span class="badge bg-secondary-subtle text-muted small"
+                            >Res. 482 de 2018</span
+                        >
+                    </div>
+                    <div class="card-body">
+                        <div v-if="loading" class="text-center py-5">
+                            <div class="spinner-border text-warning" role="status"></div>
+                            <p class="text-muted small mt-2">Evaluando niveles de radiación...</p>
+                        </div>
+                        <div
+                            v-else-if="
+                                chartDataCumplimiento.labels &&
+                                chartDataCumplimiento.labels.length > 0
+                            "
+                            class="chart-wrapper"
+                        >
+                            <Doughnut
+                                :data="chartDataCumplimiento"
+                                :options="chartOptionsCumplimiento"
+                            />
+                        </div>
+                        <div v-else class="text-center py-5 text-muted">
+                            <i class="fa fa-info-circle fa-2x mb-2 text-secondary"></i>
+                            <p class="mb-0">Sin evaluaciones NRD en el periodo.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
                 <div class="card h-100 shadow-sm border-0 chart-card">
                     <div
                         class="card-header bg-transparent py-2 d-flex justify-content-between align-items-center"
@@ -494,7 +573,7 @@
 
 import { ref, reactive, computed, onMounted, onBeforeUnmount, getCurrentInstance } from "vue";
 import axios from "axios";
-import { Bar, Line } from "vue-chartjs";
+import { Bar, Line, Doughnut } from "vue-chartjs";
 import {
     Chart as ChartJS,
     Title,
@@ -505,6 +584,7 @@ import {
     LinearScale,
     PointElement,
     LineElement,
+    ArcElement,
 } from "chart.js";
 
 // Registrar componentes de Chart.js
@@ -516,7 +596,8 @@ ChartJS.register(
     CategoryScale,
     LinearScale,
     PointElement,
-    LineElement
+    LineElement,
+    ArcElement
 );
 
 const { appContext } = getCurrentInstance() || {};
@@ -733,6 +814,150 @@ const chartOptionsLineas = {
             },
         },
     },
+};
+
+// Configuración de Chart.js para Distribución por Modalidad (Torta / Doughnut)
+const chartDataModalidades = computed(() => {
+    const modMap = {};
+    consolidado.value.forEach((c) => {
+        const mod = c.modalidad || "OTRA";
+        if (!modMap[mod]) {
+            modMap[mod] = 0;
+        }
+        modMap[mod] += parseInt(c.total_estudios || 0, 10);
+    });
+
+    const keys = Object.keys(modMap);
+    if (keys.length === 0) {
+        return { labels: [], datasets: [] };
+    }
+
+    const labelMap = {
+        CT: "Tomografía (CT)",
+        DX: "Rayos X Digital (DX)",
+        CR: "Rayos X Comp. (CR)",
+        MG: "Mamografía (MG)",
+    };
+
+    const colorMap = {
+        CT: "#0284c7",
+        DX: "#06b6d4",
+        CR: "#3b82f6",
+        MG: "#ec4899",
+    };
+
+    const labels = keys.map((k) => labelMap[k] || k);
+    const data = keys.map((k) => modMap[k]);
+    const backgroundColor = keys.map((k) => colorMap[k] || "#8b5cf6");
+
+    return {
+        labels,
+        datasets: [
+            {
+                data,
+                backgroundColor,
+                borderWidth: 2,
+                borderColor: "#ffffff",
+                hoverOffset: 6,
+            },
+        ],
+    };
+});
+
+const chartOptionsModalidades = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            position: "bottom",
+            labels: {
+                boxWidth: 12,
+                padding: 12,
+                font: { size: 11 },
+            },
+        },
+        tooltip: {
+            callbacks: {
+                label: function (context) {
+                    const label = context.label || "";
+                    const value = context.parsed || 0;
+                    const dataset = context.dataset;
+                    const total = dataset.data.reduce((acc, curr) => acc + curr, 0);
+                    const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                    return ` ${label}: ${value.toLocaleString()} estudios (${pct}%)`;
+                },
+            },
+        },
+    },
+    cutout: "60%",
+};
+
+// Configuración de Chart.js para Cumplimiento Normativo NRD (Torta / Doughnut)
+const chartDataCumplimiento = computed(() => {
+    let conformes = 0;
+    let alertasPreventivas = 0;
+    let superaciones = 0;
+
+    consolidado.value.forEach((c) => {
+        const total = parseInt(c.total_estudios || 0, 10);
+        if (c.supera_nrd) {
+            superaciones += total;
+        } else if (c.supera_alerta) {
+            alertasPreventivas += total;
+        } else {
+            conformes += total;
+        }
+    });
+
+    const totalGeneral = conformes + alertasPreventivas + superaciones;
+    if (totalGeneral === 0) {
+        return { labels: [], datasets: [] };
+    }
+
+    return {
+        labels: [
+            "Conforme (Rango Seguro)",
+            "Alerta Preventiva (>80% NRD)",
+            "Superación NRD Crítica",
+        ],
+        datasets: [
+            {
+                data: [conformes, alertasPreventivas, superaciones],
+                backgroundColor: ["#10b981", "#f59e0b", "#ef4444"],
+                borderWidth: 2,
+                borderColor: "#ffffff",
+                hoverOffset: 6,
+            },
+        ],
+    };
+});
+
+const chartOptionsCumplimiento = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            position: "bottom",
+            labels: {
+                boxWidth: 12,
+                padding: 12,
+                font: { size: 11 },
+            },
+        },
+        tooltip: {
+            callbacks: {
+                label: function (context) {
+                    const label = context.label || "";
+                    const value = context.parsed || 0;
+                    const dataset = context.dataset;
+                    const total = dataset.data.reduce((acc, curr) => acc + curr, 0);
+                    const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                    return ` ${label}: ${value.toLocaleString()} estudios (${pct}%)`;
+                },
+            },
+        },
+    },
+    cutout: "60%",
 };
 
 // Carga de datos desde API

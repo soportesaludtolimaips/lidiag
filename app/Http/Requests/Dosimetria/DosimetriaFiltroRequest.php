@@ -15,6 +15,32 @@ class DosimetriaFiltroRequest extends FormRequest
     }
 
     /**
+     * Normaliza los alias de parámetros provenientes del módulo de reportes (sedeId, fechaIni, fechaFin).
+     */
+    protected function prepareForValidation(): void
+    {
+        $merge = [];
+
+        if ($this->has('sedeId') && ! $this->has('sede_id')) {
+            $merge['sede_id'] = (int) $this->input('sedeId') > 0 ? (int) $this->input('sedeId') : null;
+        } elseif ($this->has('sede_id') && (int) $this->input('sede_id') === 0) {
+            $merge['sede_id'] = null;
+        }
+
+        if ($this->has('fechaIni') && ! $this->has('fecha_desde')) {
+            $merge['fecha_desde'] = $this->input('fechaIni');
+        }
+
+        if ($this->has('fechaFin') && ! $this->has('fecha_hasta')) {
+            $merge['fecha_hasta'] = $this->input('fechaFin');
+        }
+
+        if (! empty($merge)) {
+            $this->merge($merge);
+        }
+    }
+
+    /**
      * Reglas de validación para los filtros analíticos del dashboard de dosimetría.
      *
      * Flujo del proceso:

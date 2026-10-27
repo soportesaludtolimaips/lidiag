@@ -41,6 +41,7 @@ Route::post('/logout', [LoginController::class, 'logout'])
 
 // Password Reset
 use App\Http\Controllers\Agenda\AgendaCitaController;
+use App\Http\Controllers\Api\DosimetriaController;
 use App\Http\Controllers\Auth\PasswordChangeController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Configuracion\ConfigSedeController;
@@ -210,6 +211,9 @@ Route::view('reportes-estudios-pac', 'modulos.reportes.reportes-estudios-pac')
 Route::get('descarga-reportes-estudios-pac', [ReporteProduccion::class, 'reporteEstudiosPAC'])
     ->name('descarga.reportes.estudios.pac')
     ->middleware(['auth', 'permission:reportes.detallados|reportes.indicadores']);
+Route::get('descarga-reportes-dosimetria', [DosimetriaController::class, 'exportar'])
+    ->name('descarga.reportes.dosimetria')
+    ->middleware(['auth', 'permission:reportes.detallados|reportes.indicadores|dosimetria.dashboard|dosimetria.registros']);
 
 /**
  * Configuración
