@@ -12,6 +12,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Role;
 
 class UserService extends BaseService
@@ -37,6 +38,18 @@ class UserService extends BaseService
     public function all(): array
     {
         $users = User::with(['modulos', 'roles', 'sedes', 'serviciosCita'])->get();
+
+        $storageLocal = Storage::disk('local');
+        $storageFirmas = Storage::disk('firmas_medicos');
+
+        foreach ($users as $user) {
+            if ($user->firma) {
+                $relative = str_replace('firmas_medicos/', '', $user->firma);
+                $user->firma_disponible = $storageFirmas->exists($relative) || $storageLocal->exists($user->firma);
+            } else {
+                $user->firma_disponible = false;
+            }
+        }
 
         return $this->success($users);
     }
@@ -277,6 +290,61 @@ class UserService extends BaseService
                 ],
                 'Contraseña restablecida correctamente. El usuario deberá cambiarla al iniciar sesión.'
             );
+        });
+    }
+
+    /**
+     * Cambia la contraseña del usuario autenticado previa verificación de su contraseña actual,
+     * actualizando la fecha de cambio a now() y revocando otras sesiones web activas por seguridad.
+     *
+     * Flujo del proceso:
+     * 1. Localiza al usuario o lanza excepción si no existe.
+     * 2. Comprueba mediante Hash::check que la contraseña actual sea correcta.
+     * 3. Verifica que la nueva contraseña no sea idéntica a la contraseña actual.
+     * 4. Asigna el nuevo hash a password y actualiza password_changed_at a now().
+     * 5. Invalida otras sesiones en la tabla sessions y revoca tokens Sanctum del usuario.
+     * 6. Registra la auditoría del cambio de credenciales bajo estándar ISO 27001.
+     * 7. Retorna confirmación de actualización exitosa.
+     *
+     * @param  int  $id  Identificador del usuario autenticado
+     * @param  string  $currentPassword  Contraseña actual suministrada
+     * @param  string  $newPassword  Nueva contraseña segura
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-27
+     */
+    public function changeOwnPassword(int $id, string $currentPassword, string $newPassword): array
+    {
+        return $this->transaction(function () use ($id, $currentPassword, $newPassword) {
+            $user = User::findOrFail($id);
+
+            if (! Hash::check($currentPassword, $user->password)) {
+                return $this->error('La contraseña actual no es correcta.', 422);
+            }
+
+            if (Hash::check($newPassword, $user->password)) {
+                return $this->error('La nueva contraseña debe ser diferente a la contraseña actual.', 422);
+            }
+
+            $user->password = Hash::make($newPassword);
+            $user->password_changed_at = now();
+            $user->save();
+
+            DB::table('sessions')
+                ->where('user_id', $user->id)
+                ->where('id', '!=', session()->getId())
+                ->delete();
+
+            $user->tokens()->delete();
+
+            AuditLogger::actualizar(
+                $user,
+                ['password_changed_at' => $user->getOriginal('password_changed_at')],
+                'Contraseña cambiada por el usuario desde su perfil: '.$user->name
+            );
+
+            return $this->updated(null, 'Contraseña actualizada correctamente.');
         });
     }
 

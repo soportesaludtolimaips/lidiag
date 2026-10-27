@@ -142,15 +142,38 @@
                     <!-- Nav tabs -->
                     <ul class="nav nav-tabs profile-tab" role="tablist">
                         <li class="nav-item">
-                            <a class="nav-link active" data-toggle="tab" href="#settings" role="tab"
-                                >Ajustes</a
+                            <a
+                                class="nav-link"
+                                :class="{ active: tabActiva === 'settings' }"
+                                role="tab"
+                                href="javascript:void(0)"
+                                @click="tabActiva = 'settings'"
                             >
+                                <i class="fa fa-user m-r-5"></i> Datos Personales
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a
+                                class="nav-link"
+                                :class="{ active: tabActiva === 'password' }"
+                                role="tab"
+                                href="javascript:void(0)"
+                                @click="tabActiva = 'password'"
+                            >
+                                <i class="fa fa-key m-r-5"></i> Cambiar Contraseña
+                            </a>
                         </li>
                     </ul>
                     <!-- Tab panes -->
                     <div class="tab-content">
-                        <!--second tab -->
-                        <div class="tab-pane active" id="settings" role="tabpanel">
+                        <!-- Pestaña 1: Datos Personales -->
+                        <div
+                            class="tab-pane"
+                            :class="{ active: tabActiva === 'settings' }"
+                            id="settings"
+                            role="tabpanel"
+                            v-show="tabActiva === 'settings'"
+                        >
                             <div class="card-body">
                                 <form class="form-horizontal form-material">
                                     <div class="form-group">
@@ -192,41 +215,6 @@
                                         </div>
                                     </div>
                                     <div class="form-group">
-                                        <label class="col-md-12">Password</label>
-                                        <div class="col-md-12">
-                                            <input
-                                                type="password"
-                                                id="password"
-                                                name="password"
-                                                v-model="registro.password"
-                                                class="form-control form-control-line"
-                                                autocomplete="new-password"
-                                            />
-                                            <small class="text-muted"
-                                                >Dejar en blanco si no desea cambiar la contraseña.
-                                                Debe tener mínimo 8 caracteres, con mayúscula,
-                                                minúscula, número y símbolo.</small
-                                            >
-                                        </div>
-                                    </div>
-                                    <div class="form-group" v-if="registro.password">
-                                        <label class="col-md-12">Contraseña actual</label>
-                                        <div class="col-md-12">
-                                            <input
-                                                type="password"
-                                                id="current_password"
-                                                name="current_password"
-                                                v-model="registro.current_password"
-                                                class="form-control form-control-line"
-                                                autocomplete="current-password"
-                                            />
-                                            <small class="text-muted"
-                                                >Requerida para confirmar el cambio de
-                                                contraseña.</small
-                                            >
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
                                         <div class="col-sm-12">
                                             <button
                                                 type="button"
@@ -250,6 +238,344 @@
                                 </form>
                             </div>
                         </div>
+
+                        <!-- Pestaña 2: Cambiar Contraseña -->
+                        <div
+                            class="tab-pane"
+                            :class="{ active: tabActiva === 'password' }"
+                            id="passwordTab"
+                            role="tabpanel"
+                            v-show="tabActiva === 'password'"
+                        >
+                            <div class="card-body">
+                                <div class="alert alert-info">
+                                    <i class="fa fa-shield mr-1"></i>
+                                    Para cambiar su contraseña, ingrese su
+                                    <strong>contraseña actual</strong> y defina una
+                                    <strong>nueva contraseña segura</strong>.
+                                </div>
+
+                                <form
+                                    class="form-horizontal form-material"
+                                    @submit.prevent="cambiarPasswordUsuario()"
+                                >
+                                    <!-- Contraseña actual -->
+                                    <div class="form-group">
+                                        <label class="col-md-12 control-label"
+                                            >Contraseña actual
+                                            <span class="text-danger">*</span></label
+                                        >
+                                        <div class="col-md-12">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text"
+                                                        ><i class="ti-lock"></i
+                                                    ></span>
+                                                </div>
+                                                <input
+                                                    :type="
+                                                        mostrarPassword.current
+                                                            ? 'text'
+                                                            : 'password'
+                                                    "
+                                                    id="current_password"
+                                                    v-model="passwordForm.current_password"
+                                                    placeholder="Ingrese su contraseña actual"
+                                                    class="form-control form-control-line"
+                                                    autocomplete="current-password"
+                                                />
+                                                <div class="input-group-append">
+                                                    <button
+                                                        type="button"
+                                                        class="btn btn-secondary waves-effect"
+                                                        @click="
+                                                            mostrarPassword.current =
+                                                                !mostrarPassword.current
+                                                        "
+                                                        title="Mostrar u ocultar contraseña"
+                                                    >
+                                                        <i
+                                                            :class="
+                                                                mostrarPassword.current
+                                                                    ? 'fa fa-eye-slash'
+                                                                    : 'fa fa-eye'
+                                                            "
+                                                        ></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <span
+                                                class="text-danger"
+                                                v-if="erroresPassword.current_password"
+                                            >
+                                                {{ erroresPassword.current_password[0] }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Nueva contraseña -->
+                                    <div class="form-group">
+                                        <label class="col-md-12 control-label"
+                                            >Nueva contraseña
+                                            <span class="text-danger">*</span></label
+                                        >
+                                        <div class="col-md-12">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text"
+                                                        ><i class="ti-key"></i
+                                                    ></span>
+                                                </div>
+                                                <input
+                                                    :type="
+                                                        mostrarPassword.nueva ? 'text' : 'password'
+                                                    "
+                                                    id="new_password"
+                                                    v-model="passwordForm.password"
+                                                    placeholder="Ingrese la nueva contraseña"
+                                                    class="form-control form-control-line"
+                                                    autocomplete="new-password"
+                                                />
+                                                <div class="input-group-append">
+                                                    <button
+                                                        type="button"
+                                                        class="btn btn-secondary waves-effect"
+                                                        @click="
+                                                            mostrarPassword.nueva =
+                                                                !mostrarPassword.nueva
+                                                        "
+                                                        title="Mostrar u ocultar contraseña"
+                                                    >
+                                                        <i
+                                                            :class="
+                                                                mostrarPassword.nueva
+                                                                    ? 'fa fa-eye-slash'
+                                                                    : 'fa fa-eye'
+                                                            "
+                                                        ></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <span
+                                                class="text-danger"
+                                                v-if="erroresPassword.password"
+                                            >
+                                                {{ erroresPassword.password[0] }}
+                                            </span>
+
+                                            <!-- Checklist interactivo de requisitos -->
+                                            <div class="p-3 mt-2 bg-light rounded border">
+                                                <small
+                                                    class="font-weight-bold d-block text-muted mb-2"
+                                                >
+                                                    <i class="fa fa-info-circle mr-1"></i>
+                                                    Requisitos de seguridad institucionales:
+                                                </small>
+                                                <div class="row small">
+                                                    <div
+                                                        class="col-md-6 mb-1"
+                                                        :class="
+                                                            reglasPassword.longitud
+                                                                ? 'text-success'
+                                                                : 'text-muted'
+                                                        "
+                                                    >
+                                                        <i
+                                                            class="fa"
+                                                            :class="
+                                                                reglasPassword.longitud
+                                                                    ? 'fa-check-circle text-success'
+                                                                    : 'fa-circle-o'
+                                                            "
+                                                        ></i>
+                                                        Mínimo 8 caracteres
+                                                    </div>
+                                                    <div
+                                                        class="col-md-6 mb-1"
+                                                        :class="
+                                                            reglasPassword.mayuscula
+                                                                ? 'text-success'
+                                                                : 'text-muted'
+                                                        "
+                                                    >
+                                                        <i
+                                                            class="fa"
+                                                            :class="
+                                                                reglasPassword.mayuscula
+                                                                    ? 'fa-check-circle text-success'
+                                                                    : 'fa-circle-o'
+                                                            "
+                                                        ></i>
+                                                        Una letra mayúscula (A-Z)
+                                                    </div>
+                                                    <div
+                                                        class="col-md-6 mb-1"
+                                                        :class="
+                                                            reglasPassword.minuscula
+                                                                ? 'text-success'
+                                                                : 'text-muted'
+                                                        "
+                                                    >
+                                                        <i
+                                                            class="fa"
+                                                            :class="
+                                                                reglasPassword.minuscula
+                                                                    ? 'fa-check-circle text-success'
+                                                                    : 'fa-circle-o'
+                                                            "
+                                                        ></i>
+                                                        Una letra minúscula (a-z)
+                                                    </div>
+                                                    <div
+                                                        class="col-md-6 mb-1"
+                                                        :class="
+                                                            reglasPassword.numero
+                                                                ? 'text-success'
+                                                                : 'text-muted'
+                                                        "
+                                                    >
+                                                        <i
+                                                            class="fa"
+                                                            :class="
+                                                                reglasPassword.numero
+                                                                    ? 'fa-check-circle text-success'
+                                                                    : 'fa-circle-o'
+                                                            "
+                                                        ></i>
+                                                        Al menos un número (0-9)
+                                                    </div>
+                                                    <div
+                                                        class="col-md-12"
+                                                        :class="
+                                                            reglasPassword.simbolo
+                                                                ? 'text-success'
+                                                                : 'text-muted'
+                                                        "
+                                                    >
+                                                        <i
+                                                            class="fa"
+                                                            :class="
+                                                                reglasPassword.simbolo
+                                                                    ? 'fa-check-circle text-success'
+                                                                    : 'fa-circle-o'
+                                                            "
+                                                        ></i>
+                                                        Un carácter especial (!@#$%^&*_-)
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Confirmar nueva contraseña -->
+                                    <div class="form-group">
+                                        <label class="col-md-12 control-label"
+                                            >Confirmar nueva contraseña
+                                            <span class="text-danger">*</span></label
+                                        >
+                                        <div class="col-md-12">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text"
+                                                        ><i class="ti-check"></i
+                                                    ></span>
+                                                </div>
+                                                <input
+                                                    :type="
+                                                        mostrarPassword.confirmar
+                                                            ? 'text'
+                                                            : 'password'
+                                                    "
+                                                    id="confirmarPassword"
+                                                    v-model="passwordForm.confirmarPassword"
+                                                    placeholder="Confirme la nueva contraseña"
+                                                    class="form-control form-control-line"
+                                                    autocomplete="new-password"
+                                                />
+                                                <div class="input-group-append">
+                                                    <button
+                                                        type="button"
+                                                        class="btn btn-secondary waves-effect"
+                                                        @click="
+                                                            mostrarPassword.confirmar =
+                                                                !mostrarPassword.confirmar
+                                                        "
+                                                        title="Mostrar u ocultar contraseña"
+                                                    >
+                                                        <i
+                                                            :class="
+                                                                mostrarPassword.confirmar
+                                                                    ? 'fa fa-eye-slash'
+                                                                    : 'fa fa-eye'
+                                                            "
+                                                        ></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <span
+                                                class="text-danger"
+                                                v-if="erroresPassword.confirmarPassword"
+                                            >
+                                                {{ erroresPassword.confirmarPassword[0] }}
+                                            </span>
+                                            <span
+                                                class="text-danger small d-block mt-1"
+                                                v-if="
+                                                    passwordForm.confirmarPassword &&
+                                                    passwordForm.password !==
+                                                        passwordForm.confirmarPassword
+                                                "
+                                            >
+                                                <i class="fa fa-times-circle"></i> Las contraseñas
+                                                no coinciden.
+                                            </span>
+                                            <span
+                                                class="text-success small d-block mt-1"
+                                                v-if="
+                                                    passwordForm.confirmarPassword &&
+                                                    passwordForm.password ===
+                                                        passwordForm.confirmarPassword &&
+                                                    reglasPassword.todas
+                                                "
+                                            >
+                                                <i class="fa fa-check-circle"></i> Las contraseñas
+                                                coinciden correctamente.
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group m-t-20">
+                                        <div class="col-sm-12">
+                                            <button
+                                                type="button"
+                                                class="btn btn-info btn-action-clinical m-r-5"
+                                                :disabled="loadingCambiarPassword"
+                                                title="Guardar nueva contraseña (Ctrl+S)"
+                                                @click="cambiarPasswordUsuario()"
+                                            >
+                                                <i
+                                                    v-if="loadingCambiarPassword"
+                                                    class="fa fa-spinner fa-spin mr-1"
+                                                ></i>
+                                                <i v-else class="fa fa-key mr-1"></i> Cambiar
+                                                Contraseña
+                                                <span class="badge badge-light text-dark ml-1"
+                                                    >Ctrl+S</span
+                                                >
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn btn-inverse btn-action-clinical"
+                                                @click="limpiarPasswordForm()"
+                                                :disabled="loadingCambiarPassword"
+                                            >
+                                                Cancelar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -261,23 +587,21 @@
     </div>
 </template>
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from "vue";
-
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import axios from "axios";
-import { toastMessage } from "@/helpers/alerts";
+import { alertError, swalSuccess, toastMessage } from "@/helpers/alerts";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 
 const props = defineProps({ usuarioactual: { type: Object, default: () => ({}) } });
 
 const id = ref(props.usuarioactual.id);
+const tabActiva = ref("settings");
 const registro = ref({
     id: props.usuarioactual.id,
     num_docu: props.usuarioactual.num_docu ?? "",
     dependencia_id: props.usuarioactual.dependencia_id,
     name: props.usuarioactual.name ?? "",
     email: props.usuarioactual.email ?? "",
-    password: "",
-    current_password: "",
     estado: 0,
     imagen_perfil: null,
     firma: null,
@@ -289,6 +613,44 @@ const archivoAvatar = ref(null);
 const archivoFirma = ref(null);
 const loadingObtener = ref(false);
 const loadingActualizar = ref(false);
+
+const loadingCambiarPassword = ref(false);
+const erroresPassword = ref({});
+const mostrarPassword = ref({
+    current: false,
+    nueva: false,
+    confirmar: false,
+});
+const passwordForm = ref({
+    current_password: "",
+    password: "",
+    confirmarPassword: "",
+});
+
+const reglasPassword = computed(() => {
+    const pwd = passwordForm.value.password || "";
+    const longitud = pwd.length >= 8;
+    const mayuscula = /[A-Z]/.test(pwd);
+    const minuscula = /[a-z]/.test(pwd);
+    const numero = /[0-9]/.test(pwd);
+    const simbolo = /[^A-Za-z0-9]/.test(pwd);
+    const todas = longitud && mayuscula && minuscula && numero && simbolo;
+    return { longitud, mayuscula, minuscula, numero, simbolo, todas };
+});
+
+function limpiarPasswordForm() {
+    passwordForm.value = {
+        current_password: "",
+        password: "",
+        confirmarPassword: "",
+    };
+    erroresPassword.value = {};
+    mostrarPassword.value = {
+        current: false,
+        nueva: false,
+        confirmar: false,
+    };
+}
 
 async function obtenerRegistro() {
     if (loadingObtener.value) return;
@@ -312,6 +674,7 @@ async function obtenerRegistro() {
         loadingObtener.value = false;
     }
 }
+
 async function actualizarPerfil() {
     if (loadingActualizar.value) return;
     loadingActualizar.value = true;
@@ -321,17 +684,11 @@ async function actualizarPerfil() {
         formData.append("name", r.name || "");
         formData.append("email", r.email || "");
         formData.append("num_docu", r.num_docu || "");
-        if (r.password) {
-            formData.append("password", r.password);
-            formData.append("current_password", r.current_password || "");
-        }
         if (archivoAvatar.value) formData.append("imagen_perfil", archivoAvatar.value);
         if (archivoFirma.value) formData.append("firma", archivoFirma.value);
         const res = await axios.post("/api/seguridad-actualizar-perfil/" + id.value, formData, {
             headers: { "Content-Type": "multipart/form-data" },
         });
-        r.password = "";
-        r.current_password = "";
         archivoAvatar.value = null;
         archivoFirma.value = null;
         avatarPreview.value = "";
@@ -361,6 +718,75 @@ async function actualizarPerfil() {
         loadingActualizar.value = false;
     }
 }
+
+/**
+ * Procesa el cambio de contraseña del usuario autenticado previa validación
+ * de su contraseña actual y requisitos institucionales de seguridad.
+ *
+ * Flujo del proceso:
+ * 1. Valida los campos y el cumplimiento de las 5 reglas de seguridad en cliente.
+ * 2. Emite la solicitud POST a /api/seguridad-cambiar-password.
+ * 3. En caso de éxito, limpia el formulario y notifica con SweetAlert modal interactivo.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-10-27
+ */
+async function cambiarPasswordUsuario() {
+    if (loadingCambiarPassword.value) return;
+    erroresPassword.value = {};
+
+    if (!passwordForm.value.current_password) {
+        erroresPassword.value = { current_password: ["La contraseña actual es obligatoria."] };
+        return;
+    }
+    if (!passwordForm.value.password) {
+        erroresPassword.value = { password: ["La nueva contraseña es obligatoria."] };
+        return;
+    }
+    if (!reglasPassword.value.todas) {
+        erroresPassword.value = {
+            password: [
+                "La nueva contraseña debe cumplir con todos los requisitos de seguridad institucionales.",
+            ],
+        };
+        return;
+    }
+    if (passwordForm.value.password !== passwordForm.value.confirmarPassword) {
+        erroresPassword.value = {
+            confirmarPassword: ["La confirmación de la nueva contraseña no coincide."],
+        };
+        return;
+    }
+
+    loadingCambiarPassword.value = true;
+    try {
+        const payload = {
+            current_password: passwordForm.value.current_password,
+            password: passwordForm.value.password,
+            confirmarPassword: passwordForm.value.confirmarPassword,
+        };
+
+        const res = await axios.post("/api/seguridad-cambiar-password", payload);
+
+        limpiarPasswordForm();
+
+        swalSuccess(
+            "¡Contraseña Actualizada!",
+            res.data?.message || "Su contraseña ha sido actualizada correctamente."
+        );
+    } catch (err) {
+        erroresPassword.value = err?.response?.data?.errors || {};
+        const msg =
+            err?.response?.data?.message ||
+            (erroresPassword.value && Object.values(erroresPassword.value)[0]?.[0]) ||
+            "No fue posible cambiar la contraseña.";
+        alertError("Error", msg, "error");
+    } finally {
+        loadingCambiarPassword.value = false;
+    }
+}
+
 function obtenerArchivo(e) {
     const file = e.target.files[0];
     if (file) {
@@ -369,6 +795,7 @@ function obtenerArchivo(e) {
         avatarPreview.value = URL.createObjectURL(file);
     }
 }
+
 function obtenerFirma(e) {
     const file = e.target.files[0];
     if (file) {
@@ -394,8 +821,14 @@ useKeyboardShortcuts({
         }
     },
     onSave: () => {
-        if (!loadingActualizar.value) {
-            actualizarPerfil();
+        if (tabActiva.value === "password") {
+            if (!loadingCambiarPassword.value) {
+                cambiarPasswordUsuario();
+            }
+        } else {
+            if (!loadingActualizar.value) {
+                actualizarPerfil();
+            }
         }
     },
 });

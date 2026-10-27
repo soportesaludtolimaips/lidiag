@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Seguridad;
 
 use App\Helpers\PasswordRules;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Seguridad\CambiarPasswordRequest;
 use App\Http\Requests\Seguridad\ResetPasswordUserRequest;
 use App\Http\Requests\Seguridad\StoreUserRequest;
 use App\Http\Requests\Seguridad\UpdateUserProfileRequest;
@@ -11,6 +12,7 @@ use App\Http\Requests\Seguridad\UpdateUserRequest;
 use App\Http\Requests\Seguridad\UserEstadoRequest;
 use App\Services\Seguridad\UserService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -222,6 +224,32 @@ class UserController extends Controller
             $request->validated(),
             $request->file("imagen_perfil"),
             $request->file("firma"),
+        );
+
+        return response()->json($result, (int) $result["status"]);
+    }
+
+    /**
+     * Cambia la contraseña del usuario autenticado previa verificación de su contraseña actual.
+     *
+     * Flujo del proceso:
+     * 1. Valida la contraseña actual, nueva contraseña institucional y confirmación.
+     * 2. Delega al servicio la verificación criptográfica del hash actual y la actualización.
+     * 3. Retorna respuesta estructurada JSON con el estado de la operación.
+     *
+     * @param  CambiarPasswordRequest  $request  Solicitud validada con contraseña actual y nueva.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-27
+     */
+    public function cambiarPassword(CambiarPasswordRequest $request): JsonResponse
+    {
+        $validated = $request->validated();
+        $result = $this->userService->changeOwnPassword(
+            (int) Auth::id(),
+            $validated["current_password"],
+            $validated["password"],
         );
 
         return response()->json($result, (int) $result["status"]);

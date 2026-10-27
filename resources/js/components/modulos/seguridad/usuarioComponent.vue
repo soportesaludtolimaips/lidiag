@@ -111,7 +111,11 @@
                                         <td>{{ item.email }}</td>
                                         <td>
                                             <img
-                                                v-if="item.firma && !firmaError[item.id]"
+                                                v-if="
+                                                    item.firma &&
+                                                    item.firma_disponible !== false &&
+                                                    !firmaError[item.id]
+                                                "
                                                 :src="'/files/' + item.firma"
                                                 alt="Firma"
                                                 :title="'Firma de ' + item.name"
@@ -125,7 +129,11 @@
                                                 @error="firmaError[item.id] = true"
                                             />
                                             <span
-                                                v-else-if="item.firma && firmaError[item.id]"
+                                                v-else-if="
+                                                    item.firma &&
+                                                    (item.firma_disponible === false ||
+                                                        firmaError[item.id])
+                                                "
                                                 class="badge badge-warning"
                                                 title="Archivo de firma no encontrado en el servidor"
                                             >

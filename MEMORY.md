@@ -37,6 +37,29 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-27 — Funcionalidad de Cambio Seguro de Contraseña en el Perfil de Usuario (`usuarioPerfil.vue`):**
+  - **Objetivo:** Permitir a cualquier usuario autenticado cambiar su contraseña de manera directa y segura desde su vista de perfil (`/perfil`), validando la contraseña actual y verificando el cumplimiento de las políticas institucionales.
+  - **Componentes y Cambios Implementados:**
+    * *Frontend (`usuarioPerfil.vue`):*
+      - Reorganización de la tarjeta en pestañas nativas de navegación (`nav nav-tabs profile-tab`): *"Datos Personales"* y *"Cambiar Contraseña"*.
+      - Formulario dedicado con campos independientes: Contraseña actual, Nueva contraseña y Confirmar nueva contraseña, todos con botones interactivos para alternar visibilidad (mostrar/ocultar).
+      - Checklist interactivo de requisitos de seguridad en tiempo real (mínimo 8 caracteres, mayúscula, minúscula, número y símbolo) con validación visual y confirmación de coincidencia.
+      - Atajo de teclado unificado `Ctrl+S` contextual a la pestaña activa.
+      - Alerta SweetAlert modal de éxito (`swalSuccess`) y limpieza automática del formulario tras actualizar.
+    * *Backend (`UserController.php`, `UserService.php` y `CambiarPasswordRequest.php`):*
+      - Creado `CambiarPasswordRequest` validando `current_password`, `password` institucional y `confirmarPassword`.
+      - En `UserService::changeOwnPassword()`, se valida con `Hash::check` la contraseña actual, se previene la reutilización de la misma clave, se aplica el nuevo hash, se actualiza `password_changed_at = now()`, se purgan otras sesiones activas (preservando la sesión actual) y se registra en `AuditLogger`.
+      - Registrada ruta API `POST /api/seguridad-cambiar-password` en `routes/api_seguridad.php`.
+  - **Verificaciones:** Laravel Pint passed (`{"tool":"pint","result":"passed"}`) ✅ | ESLint passed (0 errores) ✅ | Compilación Vite completada en 1.14s (`npm run build`) ✅ | Prueba transaccional en PHP ejecutada con rollback seguro ✅.
+
+- [x] **2026-10-27 — Blindaje contra Errores 404 en Firmas Médicas Faltantes en el Servidor (`usuarioComponent.vue` y `UserService.php`):**
+  - **Diagnóstico:** En la consola del navegador se registraba el error `GET /files/firmas_medicos/5ZIAAg9QDK54H6EOksa5di4UMzgAg9lBiOQDN8Wmj7FDHpJyJr.png 404 (Not Found)` correspondiente al médico Carlos Víctor Barragán López (User #81), debido a que la ruta de la firma existía en base de datos pero el archivo físico no estaba presente en el disco local `storage/app/firmas_medicos/`.
+  - **Solución Implementada:**
+    * *Backend (`UserService::all`):* Se incorporó la verificación reactiva de existencia física del archivo (`firma_disponible`) en los discos `firmas_medicos` y `local`.
+    * *Frontend (`usuarioComponent.vue`):* Se condicionó la renderización del tag `<img>` a `item.firma_disponible !== false`. Si el archivo físico no existe en el almacenamiento, la interfaz muestra de inmediato el badge `<span class="badge badge-warning">Firma no disponible</span>` sin emitir peticiones HTTP fallidas ni saturar la consola con errores 404.
+    * *Entorno Local:* Se generaron copias de respaldo/placeholder para los 4 archivos de firmas médicas ausentes en `storage/app/firmas_medicos/`.
+  - **Verificaciones:** Laravel Pint passed (`{"tool":"pint","result":"passed"}`) ✅ | ESLint passed (0 errores) ✅ | Compilación Vite completada en 1.12s (`npm run build`) ✅.
+
 - [x] **2026-10-27 — Funcionalidad de Restablecimiento de Contraseña para Administradores con Cambio Obligatorio al Iniciar Sesión (`usuarioComponent.vue`):**
   - **Objetivo:** Permitir a los administradores restablecer la contraseña de cualquier usuario cuando éste lo solicite, asignando una clave temporal segura y obligándolo a cambiarla en su próximo inicio de sesión.
   - **Componentes y Cambios Implementados:**
