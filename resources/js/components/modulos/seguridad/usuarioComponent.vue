@@ -8,10 +8,22 @@
                 <h3 class="text-themecolor">Seguridad</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Seguridad</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Seguridad
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Gestión de Usuarios</li>
                 </ol>
@@ -52,11 +64,20 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Listado de usuarios</h4>
-                        <div v-if="loadingListar" class="text-center p-5">
-                            <i class="fa fa-spinner fa-spin fa-3x"></i>
-                            <p class="m-t-10">Cargando usuarios...</p>
-                        </div>
-                        <div class="table-responsive m-t-40" v-else>
+                        <table-skeleton-loader :visible="loadingListar" :rows="6" :columns="10" />
+                        <empty-state-component
+                            v-if="!loadingListar && registros.length === 0"
+                            icon="fa fa-users"
+                            title="No hay usuarios para mostrar"
+                            description="No se encontraron usuarios registrados en el sistema."
+                            action-text="Recargar usuarios"
+                            action-icon="fa fa-refresh"
+                            @action="ListarDatos()"
+                        />
+                        <div
+                            class="table-responsive m-t-40"
+                            v-show="!loadingListar && registros.length > 0"
+                        >
                             <table
                                 id="tablaUsuarios"
                                 ref="dt"
@@ -79,11 +100,6 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-if="!registros.length">
-                                        <td colspan="12" class="text-center text-muted">
-                                            No se encontraron usuarios registrados.
-                                        </td>
-                                    </tr>
                                     <tr v-for="item in registros" :key="item.id">
                                         <td>
                                             <div class="user-img">
@@ -631,17 +647,41 @@
                             </div>
 
                             <div class="col-md-12 m-b-20">
-                                <div
-                                    class="fileupload btn btn-danger btn-rounded waves-effect waves-light"
-                                >
-                                    <span> <i class="ion-upload m-r-5"></i>Subir Firma </span>
-                                    <input type="file" class="upload" @change="obtenerFirma" />
+                                <div class="form-group mb-3">
+                                    <label class="control-label font-weight-bold d-block">
+                                        Firma del Médico
+                                        <small class="text-muted">(Opcional)</small>
+                                    </label>
+                                    <div
+                                        class="fileupload btn btn-secondary btn-rounded waves-effect waves-light"
+                                    >
+                                        <span> <i class="ion-upload m-r-5"></i>Subir Firma </span>
+                                        <input type="file" class="upload" @change="obtenerFirma" />
+                                    </div>
+                                    <span class="badge badge-info ml-2" v-if="firma">{{
+                                        firma.name
+                                    }}</span>
+                                    <span class="text-danger d-block mt-1" v-if="errores.firma">{{
+                                        errores.firma[0]
+                                    }}</span>
                                 </div>
-                                <div
-                                    class="fileupload btn btn-danger btn-rounded waves-effect waves-light"
-                                >
-                                    <span> <i class="ion-upload m-r-5"></i>Subir Avatar </span>
-                                    <input type="file" class="upload" @change="obtenerAvatar" />
+                                <div class="form-group mb-2">
+                                    <label class="control-label font-weight-bold d-block">
+                                        Avatar / Foto de Perfil
+                                        <small class="text-muted">(Opcional)</small>
+                                    </label>
+                                    <div
+                                        class="fileupload btn btn-secondary btn-rounded waves-effect waves-light"
+                                    >
+                                        <span> <i class="ion-upload m-r-5"></i>Subir Avatar </span>
+                                        <input type="file" class="upload" @change="obtenerAvatar" />
+                                    </div>
+                                    <span class="badge badge-info ml-2" v-if="avatar">{{
+                                        avatar.name
+                                    }}</span>
+                                    <span class="text-danger d-block mt-1" v-if="errores.avatar">{{
+                                        errores.avatar[0]
+                                    }}</span>
                                 </div>
                             </div>
 
@@ -1041,8 +1081,12 @@ async function guardarRegistro() {
         const formData = new FormData();
         formData.append("registro", JSON.stringify(registro.value));
         formData.append("id", id.value);
-        formData.append("firma", firma.value);
-        formData.append("avatar", avatar.value);
+        if (firma.value instanceof File) {
+            formData.append("firma", firma.value);
+        }
+        if (avatar.value instanceof File) {
+            formData.append("avatar", avatar.value);
+        }
 
         if (actualizar.value === false) {
             const res = await axios.post("/api/seguridad-usuarios", formData, {
@@ -1210,6 +1254,8 @@ function obtenerAvatar(event) {
 }
 function mostrarRegistro(data = {}) {
     errores.value = {};
+    firma.value = null;
+    avatar.value = null;
     registro.value.password = "";
     registro.value.confirmarPassword = "";
     registro.value.forzar_cambio_password = true;
@@ -1508,6 +1554,8 @@ function limpiarFormulario() {
     actualizar.value = false;
     tituloModal.value = "Nuevo registro";
     id.value = 0;
+    firma.value = null;
+    avatar.value = null;
     registro.value.num_docu = "";
     registro.value.reg_med = "";
     registro.value.name = "";

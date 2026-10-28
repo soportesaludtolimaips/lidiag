@@ -37,6 +37,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-28 — Corrección de Firma y Avatar Opcionales al Editar Usuarios (`usuarioComponent.vue`, `UpdateUserRequest.php`, `StoreUserRequest.php`):**
+  - **Diagnóstico:** En la gestión de usuarios (`/seguridad.usuarios`), al editar un usuario sin seleccionar un archivo de firma o avatar, el guardado fallaba silenciosamente con error de validación 422 (`El campo firma debe ser un archivo`). La causa raíz fue que `FormData.append("firma", firma.value)` y `FormData.append("avatar", avatar.value)` enviaban la cadena `"null"` cuando `firma.value` o `avatar.value` eran nulos. En el backend, Laravel evaluaba la regla `file` sobre la cadena de texto `"null"`, haciendo fallar la validación y bloqueando la actualización a menos que se cargara un archivo de firma.
+  - **Solución Implementada:**
+    * *Frontend (`usuarioComponent.vue`):* En `guardarRegistro()`, se condicionó el `append` de `firma` y `avatar` para ejecutarse únicamente cuando el valor es una instancia real de `File` (`firma.value instanceof File`). Se reinician explícitamente `firma.value = null` y `avatar.value = null` en `mostrarRegistro()` y `limpiarFormulario()`. Se añadieron etiquetas visuales `(Opcional)`, visualizador del nombre de archivo cargado y spans para mostrar mensajes de error si se selecciona un archivo no válido.
+    * *Backend (`UpdateUserRequest.php`, `StoreUserRequest.php`):* Incorporado método `prepareForValidation()` para remover del request cualquier campo `firma` o `avatar` que llegue con cadenas `"null"`, `"undefined"` o vacías.
+  - **Verificaciones:** Prueba CLI de validación con simulación de payload `null` (aprobada con `Fails: NO`) ✅ | Laravel Pint passed (`{"tool":"pint","result":"passed"}`) ✅ | ESLint passed (0 errores, 0 warnings) ✅ | Compilación Vite completada en 1.27s (`npm run build`) ✅.
+
 - [x] **2026-10-28 — Filtrado Exclusivo de Usuarios Activos en Combo "Quien asignó" (`UserService.php`, `UserController.php`, `usuarios.js`, `transcribirEstudioComponent.vue`):**
   - **Diagnóstico:** En la vista de transcripción de estudios (`/estudios.transcribir.listar`), el combo *"Quien asigno"* listaba la totalidad de los usuarios asignadores (57 usuarios en el módulo 1), incluyendo a 23 usuarios inactivos (`estado = 0`) que ya no laboran en la institución.
   - **Solución Implementada:**

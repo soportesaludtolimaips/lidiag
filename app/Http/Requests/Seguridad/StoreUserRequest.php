@@ -19,6 +19,23 @@ class StoreUserRequest extends FormRequest
     }
 
     /**
+     * Prepara los datos antes de la validación saneando archivos opcionales.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-28
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('firma') && in_array($this->input('firma'), ['null', 'undefined', '', null], true)) {
+            $this->request->remove('firma');
+        }
+        if ($this->has('avatar') && in_array($this->input('avatar'), ['null', 'undefined', '', null], true)) {
+            $this->request->remove('avatar');
+        }
+    }
+
+    /**
      * Reglas de validación para registrar un usuario.
      *
      * @author Jhon Javer Lozano Arce
