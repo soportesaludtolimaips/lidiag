@@ -810,8 +810,20 @@ async function marcarTodasComoLeidas() {
 onMounted(() => {
     establecerModuloActual();
     listarSedes();
-    listarMedicos();
     cargarTodasNotificaciones();
+
+    const url = window.location.pathname;
+    const rutasEcografias = [
+        "/ecografias.admisiones",
+        "/ecografias.admisionadas",
+        "/ecografias-pendientes-lecturas",
+        "/ecografias-consentimientos",
+        "/ecografias-consentimientos-plantillas",
+    ];
+    mostrarMedico.value = rutasEcografias.includes(url);
+    if (mostrarMedico.value) {
+        listarMedicos();
+    }
 
     // Polling inteligente cada 30 segundos (con backoff cuando la pestaña está oculta)
     const pollInterval = 30000;
@@ -848,16 +860,6 @@ onMounted(() => {
             }
         }
     });
-
-    const url = window.location.pathname;
-    const rutasEcografias = [
-        "/ecografias.admisiones",
-        "/ecografias.admisionadas",
-        "/ecografias-pendientes-lecturas",
-        "/ecografias-consentimientos",
-        "/ecografias-consentimientos-plantillas",
-    ];
-    mostrarMedico.value = rutasEcografias.includes(url);
 });
 
 /**

@@ -1008,7 +1008,7 @@ import axios from "axios";
 
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
-import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import { safeDestroyDataTable, safeGetDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { confirmAction, toastMessage, getUserSafeError, swalSuccess } from "@/helpers/alerts";
 import { normalizarFecha } from "@/helpers/dateUtils.js";
 import { getModuloIdActual } from "@/helpers/usuarios";
@@ -1471,16 +1471,45 @@ async function guardarRegistro() {
             },
         });
 
-        if (res.status == 200) {
+        if (res.status === 200 || res.status === 201) {
             toastMessage({
                 heading: "Completado",
                 text: res.data.message,
                 icon: "success",
             });
 
-            if (idRow.value >= 0 && idRow.value < registros.value.length) {
+            const studyPk = registro.value.study_pk;
+
+            if (studyPk) {
+                const targetItem = registros.value.find(
+                    (r) => String(r.study_pk) === String(studyPk)
+                );
+                if (targetItem) {
+                    targetItem.agendado = 1;
+                }
+            }
+
+            if (idRow.value !== null && idRow.value >= 0 && idRow.value < registros.value.length) {
                 registros.value[idRow.value].agendado = 1;
             }
+
+            nextTick(() => {
+                if (studyPk) {
+                    const rowEl = document.getElementById(String(studyPk));
+                    if (rowEl) {
+                        rowEl.classList.add("text-info");
+                        const dtInstance = safeGetDataTable(dt.value || "#example23");
+                        if (dtInstance) {
+                            try {
+                                const dtRow = dtInstance.row(rowEl);
+                                if (dtRow && dtRow.node()) {
+                                    dtRow.node().classList.add("text-info");
+                                }
+                            } catch (_) {}
+                        }
+                    }
+                }
+            });
         }
 
         cerrarModal();
@@ -1646,9 +1675,7 @@ async function mostrarRegistro(data = {}, index) {
     }
 
     limpiarFormulario();
-    if (!registro.value.medico_id) {
-        establecerMedico();
-    }
+    registro.value.medico_id = "";
 
     tituloModal.value = "Agendar al paciente: " + data.pat_name;
     registro.value.study_pk = data.study_pk;
@@ -1831,7 +1858,7 @@ function abrirModal() {
  */
 function nuevoRegistro() {
     limpiarFormulario();
-    establecerMedico();
+    registro.value.medico_id = "";
     tituloModal.value = "Nuevo registro de estudio";
     abrirModal();
 }
@@ -2321,22 +2348,17 @@ function onSedeSeleccionada(data) {
 }
 
 /**
- * Asigna al registro el médico configurado en el usuario (sessionStorage
- * ST-medico o localStorage ST-ecografia-medico). Es el valor por defecto al
- * abrir el panel de asignación; el Select2 lo sobreescribe al elegir otro.
+ * Inicializa el campo médico en el formulario de asignación (vacío por defecto,
+ * requiriendo selección explícita del radiólogo para cada estudio).
  *
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-09-29
+ * @date 2026-10-28
  */
 function establecerMedico() {
-    const medicoId =
-        sessionStorage.getItem("ST-medico") || localStorage.getItem("ST-ecografia-medico") || "";
-    if (medicoId) {
-        registro.value.medico_id = String(medicoId);
-    }
+    registro.value.medico_id = "";
 }
 
 /**
