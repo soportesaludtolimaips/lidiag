@@ -37,6 +37,26 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-28 — Estandarización de Validación de Motivo del Examen, Prioridad y Email en Asignar Estudios (`AsignarEstudioComponent.vue`):**
+  - **Diagnóstico:** Se identificó que la validación del selector de Prioridad (`statusPrioridadId`) en el bloque `if` principal de `guardarRegistro()` contenía una condición accidental `&& props.usuarioactual.transcrip_remoto == 1`, lo que invertía la regla de negocio (hacía la Prioridad obligatoria únicamente a remotos y la omitía para locales) y no guardaba relación con el Motivo del Examen. Adicionalmente, `statusEmailReportar` compartía el toast genérico de *"Formulario incompleto / campos requeridos"*, provocando confusión ya que el correo a reportar es un campo opcional cuyo único requisito es respetar el formato RFC si se diligencia.
+  - **Solución Implementada:**
+    * *Prioridad Obligatoria Universal:* Restaurada la validación universal de `statusPrioridadId.value.isInvalid` para todos los usuarios en `guardarRegistro()`, garantizando que todo estudio asignado cuente con un nivel de prioridad válido para el ordenamiento de colas asistenciales (`orderBy('priori.nivel')`).
+    * *Separación de Feedback en Email:* Extraído `statusEmailReportar.value.isInvalid` a su propio bloque condicional con toast descriptivo: *"El correo ingresado en 'Reportar al Email' no tiene un formato válido"*, desvinculándolo del mensaje de campos requeridos.
+    * *Motivo del Examen Condicional:* Preservada la regla de negocio existente en líneas 1060–1073 donde el Motivo del Examen solo se exige si `transcrip_remoto == 0 || null`, permitiendo a los usuarios remotos asignar estudios sin ingresar dicho campo.
+    * *Feedback Visual Contextual:* Actualizado el encabezado del formulario `MOTIVO DEL EXAMEN` para mostrar `<span class="text-danger">*</span>` para usuarios locales y `<small class="text-muted">(Opcional para usuarios remotos)</small>` para transcriptores remotos.
+    * *Formato y Calidad:* Estandarizado el archivo completo bajo las reglas de Prettier y ESLint.
+  - **Verificaciones:** ESLint passed (0 errores, 0 warnings) ✅ | Compilación Vite completada en 1.16s (`npm run build`) ✅.
+
+- [x] **2026-10-28 — Reemplazo de Spinners por Skeleton Loaders (`TableSkeletonLoader`) y Empty States en Módulo Seguridad (`resources/js/components/modulos/seguridad/`):**
+  - **Diagnóstico:** Los componentes del módulo de seguridad aún utilizaban spinners genéricos (`<i class="fa fa-spinner fa-spin fa-3x">`) en lugar del patrón estándar adoptado en el resto de la aplicación (v.gr. `AsignarEstudioComponent.vue`), el cual emplea `<table-skeleton-loader>` para la carga diferida con efecto *shimmer* y `<empty-state-component>` para estados sin registros.
+  - **Acciones Realizadas:**
+    * *`usuarioComponent.vue`:* Sustituido el contenedor de spinner por `<table-skeleton-loader :visible="loadingListar" :rows="6" :columns="10" />` y `<empty-state-component>` con acción de recarga. Tabla controlada con `v-show="!loadingListar && registros.length > 0"`. Breadcrumbs homologados a `<button type="button" class="btn btn-link p-0" style="vertical-align: baseline...">`.
+    * *`roleComponente.vue`:* Sustituido spinner por `<table-skeleton-loader :visible="loadingListar" :rows="5" :columns="2" />` y `<empty-state-component>` de roles. Breadcrumbs homologados.
+    * *`auditLogComponent.vue`:* Sustituido spinner por `<table-skeleton-loader :visible="loading" :rows="8" :columns="8" />` y `<empty-state-component>` con acción para limpiar filtros. Agregado botón de "Limpiar filtros" en la barra de búsqueda y breadcrumbs homologados.
+    * *`backupMonitorComponent.vue`:* Integrado `<table-skeleton-loader>` y `<empty-state-component>` en la telemetría de sedes hospitalarias. Breadcrumbs homologados.
+    * *`usuarioPerfil.vue`:* Breadcrumbs homologados al estándar semántico accesible.
+  - **Verificaciones:** ESLint 0 errores/warnings (`npx eslint` passed en los 5 componentes) ✅ | Build Vite satisfactorio en 1.12s (`npm run build`) ✅ | Vistas y configuración de Laravel purgadas (`view:clear`, `config:clear`) ✅.
+
 - [x] **2026-10-28 — Corrección de Listado de Usuarios en Combo "Quien asignó" (`transcribirEstudioComponent.vue`, `usuarios.js`, `UserService.php`):**
   - **Diagnóstico:** En la vista de transcripción de estudios (`/estudios.transcribir.listar`), el combo "Quien asigno" no listaba los usuarios que asignaron estudios (o quedaba vacío) debido a:
     1. *Desajuste Semántico / Roles:* `listarUsuariosYSedes()` consultaba rígidamente `/api/user.listarUsuarios/Transcriptor/1`. Los estudios en LIDiag son registrados y asignados por personal de recepción (rol `Administrativo`, ej. Estefania Hermosa con 10,500+ estudios, Cristian Muñoz con 2,300+), administradores y transcriptores. Filtrar únicamente por `Transcriptor` excluía al 100% del personal administrativo que asigna estudios.

@@ -814,6 +814,17 @@
 
                                     <h5 class="card-title text-info m-t-40">
                                         <i class="fa fa-history"></i> MOTIVO DEL EXAMEN
+                                        <span
+                                            v-if="
+                                                props.usuarioactual.transcrip_remoto == 0 ||
+                                                props.usuarioactual.transcrip_remoto == null
+                                            "
+                                            class="text-danger"
+                                            >*</span
+                                        >
+                                        <small v-else class="text-muted font-normal"
+                                            >(Opcional para usuarios remotos)</small
+                                        >
                                     </h5>
 
                                     <div class="row">
@@ -1382,12 +1393,22 @@ async function guardarRegistro() {
         statusStudyDesc.value.isInvalid ||
         statusAccessionNo.value.isInvalid ||
         statusStudyDatetime.value.isInvalid ||
-        statusEmailReportar.value.isInvalid ||
         statusPrioridadId.value.isInvalid
     ) {
         toastMessage({
             heading: "Formulario incompleto",
             text: "Por favor complete o corrija los campos requeridos del estudio antes de continuar.",
+            icon: "warning",
+        });
+
+        loadingGuardar.value = false;
+        return;
+    }
+
+    if (statusEmailReportar.value.isInvalid) {
+        toastMessage({
+            heading: "Correo inválido",
+            text: "El correo ingresado en 'Reportar al Email' no tiene un formato válido.",
             icon: "warning",
         });
 
