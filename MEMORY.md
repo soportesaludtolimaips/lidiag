@@ -37,6 +37,17 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-28 — Corrección de Listado de Usuarios en Combo "Quien asignó" (`transcribirEstudioComponent.vue`, `usuarios.js`, `UserService.php`):**
+  - **Diagnóstico:** En la vista de transcripción de estudios (`/estudios.transcribir.listar`), el combo "Quien asigno" no listaba los usuarios que asignaron estudios (o quedaba vacío) debido a:
+    1. *Desajuste Semántico / Roles:* `listarUsuariosYSedes()` consultaba rígidamente `/api/user.listarUsuarios/Transcriptor/1`. Los estudios en LIDiag son registrados y asignados por personal de recepción (rol `Administrativo`, ej. Estefania Hermosa con 10,500+ estudios, Cristian Muñoz con 2,300+), administradores y transcriptores. Filtrar únicamente por `Transcriptor` excluía al 100% del personal administrativo que asigna estudios.
+    2. *Fragilidad en Extracción de Datos y Reactividad:* `usuarios.js` asignaba directamente `res.data.data` sin normalización (`res?.data?.data ?? res?.data ?? []`). Si la respuesta difería en envoltura o fallaba sin `try/catch`, la propiedad quedaba `undefined` y Vue 3 renderizaba 0 opciones. Además, el objeto de contexto en `transcribirEstudioComponent.vue` carecía de `getters` y validación de arrays en sus `setters`.
+    3. *Backend sin soporte para "Asignadores":* `UserService::listByRoleAndModule` requería coincidencia exacta del nombre de un rol único. No existía soporte para consultar colectivamente a los usuarios con permiso `estudio.asignar` o roles asistenciales asignadores.
+  - **Solución Implementada:**
+    * *Backend (`UserService.php`):* Soporte integral para el alias `"Asignadores"` / `"Asignador"` en `listByRoleAndModule()`, trayendo a los usuarios que poseen el permiso `estudio.asignar` o pertenecen a los roles asistenciales asignadores (`Administrador`, `Administrativo`, `Transcriptor`) en el módulo correspondiente (57 asignadores activos en total). Soporte adicional para listas de roles separadas por coma.
+    * *Frontend Helper (`resources/js/helpers/usuarios.js`):* Actualizado `listarUsuariosYSedes()` para consultar prioritariamente `/api/user.listarUsuarios/Asignadores/${moduloId}` con fallback transparente y retrocompatible a `Transcriptor`. Manejo defensivo con `try/catch` individual para asignadores y médicos, asegurando siempre estructuras tipo Array.
+    * *Componente (`transcribirEstudioComponent.vue`):* `onMounted()` blindado con `try/catch`, provisión de getters y setters tipados con `Array.isArray(v) ? v : []` en el contexto pasado a `listarUsuariosYSedes()`.
+  - **Verificaciones:** Backend verificado vía CLI (`listByRoleAndModule('Asignadores', 1)` devolviendo 57 usuarios ordenados) ✅ | Laravel Pint passed (`{"tool":"pint","result":"passed"}`) ✅ | ESLint passed (0 errores) ✅ | Compilación Vite completada en 1.19s (`npm run build`) ✅.
+
 - [x] **2026-10-28 — Blindaje Total contra Error 500 en Listado de Unidades de Quemado (`DicomBurnerController.php`):**
   - **Diagnóstico:** En producción (`lidiag.com`), la petición `GET /api/dicom/list-drives?refresh=1` arrojó HTTP 500 debido a falta de bloque `try/catch` global en el método `listDrives()`, y a que `proc_open` invocaba `powershell` sin ruta absoluta, lo cual falla bajo entornos de servicio web donde `powershell.exe` no se encuentra en el PATH del usuario de Apache/IIS.
   - **Solución Implementada:**

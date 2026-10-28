@@ -1258,17 +1258,27 @@ function btnCerrarModalForm() {
 onMounted(async () => {
     busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
 
-    await listarUsuariosYSedes(
-        {
-            set quienes_asignaron(v) {
-                quienes_asignaron.value = v;
+    try {
+        await listarUsuariosYSedes(
+            {
+                get quienes_asignaron() {
+                    return quienes_asignaron.value;
+                },
+                set quienes_asignaron(v) {
+                    quienes_asignaron.value = Array.isArray(v) ? v : [];
+                },
+                get medicos() {
+                    return medicos.value;
+                },
+                set medicos(v) {
+                    medicos.value = Array.isArray(v) ? v : [];
+                },
             },
-            set medicos(v) {
-                medicos.value = v;
-            },
-        },
-        { moduloId: "1" }
-    );
+            { moduloId: "1" }
+        );
+    } catch (e) {
+        console.error("Error al inicializar usuarios y médicos:", e);
+    }
 
     applyDashboardPrefill();
 

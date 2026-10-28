@@ -55,22 +55,42 @@ class UserService extends BaseService
     }
 
     /**
-     * Lista los usuarios que tienen un rol y acceso a un módulo específicos.
+     * Lista los usuarios que tienen un rol o capacidad de asignación y acceso a un módulo específicos.
      *
-     * @param  string  $roleName  Nombre del rol a filtrar
-     * @param  int  $moduleId  Identificador del módulo al que deben tener acceso
+     * Flujo del proceso:
+     * 1. Inicializa la consulta base sobre usuarios filtrando por asociación al módulo especificado.
+     * 2. Evalúa si el rol solicitado corresponde al alias "asignador/asignadores", aplicando filtro
+     *    por permiso 'estudio.asignar' o roles asistenciales asignadores (Administrativo, Transcriptor, Administrador).
+     * 3. Permite filtrado múltiple por lista de roles separados por coma o filtrado estándar por rol único.
+     * 4. Retorna el listado ordenado alfabéticamente encapsulado en respuesta exitosa.
+     *
+     * @param  string  $roleName  Nombre del rol, alias ("Asignadores") o lista de roles separados por coma.
+     * @param  int  $moduleId  Identificador del módulo al que deben tener acceso.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-10-13
+     * @date 2026-10-28
      */
     public function listByRoleAndModule(string $roleName, int $moduleId): array
     {
-        $users = User::select('users.id', 'users.name')
-            ->whereHas('roles', fn ($q) => $q->where('name', $roleName))
+        $query = User::select('users.id', 'users.name')
             ->whereHas('modulos', fn ($q) => $q->where('config_modulos.id', $moduleId))
-            ->orderBy('users.name')
-            ->get();
+            ->orderBy('users.name');
+
+        $roleLower = strtolower(trim($roleName));
+        if (in_array($roleLower, ['asignador', 'asignadores'], true)) {
+            $query->where(function ($q) {
+                $q->whereHas('permissions', fn ($p) => $p->where('name', 'estudio.asignar'))
+                    ->orWhereHas('roles', fn ($r) => $r->whereIn('name', ['Administrador', 'Administrativo', 'Transcriptor']));
+            });
+        } elseif (str_contains($roleName, ',')) {
+            $roles = array_filter(array_map('trim', explode(',', $roleName)));
+            $query->whereHas('roles', fn ($q) => $q->whereIn('name', $roles));
+        } else {
+            $query->whereHas('roles', fn ($q) => $q->where('name', $roleName));
+        }
+
+        $users = $query->distinct()->get();
 
         return $this->success($users);
     }
