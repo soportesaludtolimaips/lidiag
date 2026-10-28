@@ -33,8 +33,9 @@
                     <div class="card-body">
                         <div class="row m-b-20">
                             <div class="col-md-3">
-                                <label>Evento</label>
+                                <label for="filtro_evento">Evento</label>
                                 <select
+                                    id="filtro_evento"
                                     class="form-control"
                                     v-model="filtros.evento"
                                     @change="cargarLogs"
@@ -46,8 +47,9 @@
                                 </select>
                             </div>
                             <div class="col-md-2">
-                                <label>Desde</label>
+                                <label for="filtro_desde">Desde</label>
                                 <input
+                                    id="filtro_desde"
                                     type="date"
                                     class="form-control"
                                     v-model="filtros.desde"
@@ -55,8 +57,9 @@
                                 />
                             </div>
                             <div class="col-md-2">
-                                <label>Hasta</label>
+                                <label for="filtro_hasta">Hasta</label>
                                 <input
+                                    id="filtro_hasta"
                                     type="date"
                                     class="form-control"
                                     v-model="filtros.hasta"
@@ -64,8 +67,9 @@
                                 />
                             </div>
                             <div class="col-md-3">
-                                <label>Buscar</label>
+                                <label for="filtro_search">Buscar</label>
                                 <input
+                                    id="filtro_search"
                                     type="text"
                                     class="form-control"
                                     v-model="filtros.search"
@@ -117,6 +121,11 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    <tr v-if="!registros.length">
+                                        <td colspan="8" class="text-center text-muted">
+                                            No se encontraron registros de auditoría.
+                                        </td>
+                                    </tr>
                                     <tr v-for="item in registros" :key="item.id">
                                         <td>{{ item.id }}</td>
                                         <td>{{ item.created_at }}</td>

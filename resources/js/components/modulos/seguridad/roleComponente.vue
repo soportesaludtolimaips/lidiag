@@ -57,7 +57,7 @@
                         </div>
                         <div class="table-responsive m-t-40">
                             <table
-                                id="example23"
+                                id="tablaRoles"
                                 ref="dt"
                                 class="display nowrap table table-hover table-striped table-bordered"
                                 cellspacing="0"
@@ -168,14 +168,16 @@
                             <div class="row p-t-20">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Nombre del Rol</label>
+                                        <label class="control-label" for="name">
+                                            Nombre del Rol <span class="text-danger">*</span>
+                                        </label>
                                         <input
                                             type="text"
                                             id="name"
                                             name="name"
                                             v-model="registro.name"
                                             class="form-control"
-                                            placeholder="Ingrese aqui el nombre del rol"
+                                            placeholder="Ingrese aquí el nombre del rol"
                                         />
                                         <span class="text-danger" v-if="errores">{{
                                             errores
@@ -478,7 +480,7 @@ function abrirGrupos({ soloConSeleccion = false } = {}) {
  * @date 2026-09-29
  */
 function initDataTable() {
-    safeInitDataTable(dt.value || "#example23", {
+    safeInitDataTable(dt.value || "#tablaRoles", {
         dom: "Bfrtip",
         buttons: ["copy", "csv", "excel", "pdf", "print"],
         pageLength: 10,
@@ -511,7 +513,7 @@ function initDataTable() {
  * @date 2026-09-29
  */
 function destroyDataTable() {
-    safeDestroyDataTable(dt.value || "#example23");
+    safeDestroyDataTable(dt.value || "#tablaRoles");
 }
 
 /**
@@ -873,6 +875,19 @@ useKeyboardShortcuts({
     right: 0px;
     visibility: visible;
     pointer-events: auto;
+}
+
+@media (max-width: 1024px) {
+    .right-sidebar {
+        width: 70%;
+    }
+}
+
+@media (max-width: 767px) {
+    .right-sidebar {
+        right: -100%;
+        width: 100%;
+    }
 }
 
 .sidebar-backdrop {

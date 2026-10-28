@@ -58,7 +58,7 @@
                         </div>
                         <div class="table-responsive m-t-40" v-else>
                             <table
-                                id="example23"
+                                id="tablaUsuarios"
                                 ref="dt"
                                 class="display nowrap table table-hover table-striped table-bordered"
                                 cellspacing="0"
@@ -68,11 +68,11 @@
                                     <tr>
                                         <th></th>
                                         <th># Documento</th>
-                                        <th>Registro Medico</th>
+                                        <th>Registro Médico</th>
                                         <th>Nombres</th>
                                         <th>E-Mail</th>
                                         <th>Firma</th>
-                                        <th>Modulos</th>
+                                        <th>Módulos</th>
                                         <th>Permisos</th>
                                         <th>Estado</th>
                                         <th></th>
@@ -289,7 +289,9 @@
                             <div class="row p-t-5">
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label class="control-label"># Documento</label>
+                                        <label class="control-label" for="num_docu">
+                                            # Documento <span class="text-danger">*</span>
+                                        </label>
                                         <input
                                             type="text"
                                             id="num_docu"
@@ -304,13 +306,15 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label class="control-label">Registro médico</label>
+                                        <label class="control-label" for="reg_med"
+                                            >Registro médico</label
+                                        >
                                         <input
                                             type="text"
                                             id="reg_med"
                                             v-model="registro.reg_med"
                                             class="form-control"
-                                            placeholder="Registro medico"
+                                            placeholder="Registro médico"
                                         />
                                         <span class="text-danger" v-if="errores.reg_med">{{
                                             errores.reg_med[0]
@@ -319,7 +323,9 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label class="control-label">Id Usuario SAHI</label>
+                                        <label class="control-label" for="interface_id"
+                                            >Id Usuario SAHI</label
+                                        >
                                         <input
                                             type="text"
                                             id="interface_id"
@@ -337,7 +343,9 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Nombres</label>
+                                        <label class="control-label" for="name">
+                                            Nombres <span class="text-danger">*</span>
+                                        </label>
                                         <input
                                             type="text"
                                             id="name"
@@ -355,7 +363,9 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">E - Mail</label>
+                                        <label class="control-label" for="email">
+                                            E-Mail <span class="text-danger">*</span>
+                                        </label>
                                         <div class="input-group">
                                             <div class="input-group-prepend">
                                                 <span class="input-group-text">
@@ -368,7 +378,7 @@
                                                 name="email"
                                                 v-model="registro.email"
                                                 class="form-control"
-                                                placeholder="Ingrese aquí E - Mail del usuario"
+                                                placeholder="Ingrese aquí el E-Mail del usuario"
                                             />
                                         </div>
 
@@ -382,7 +392,10 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="control-label">Contraseña</label>
+                                        <label class="control-label" for="password">
+                                            Contraseña
+                                            <span class="text-danger" v-if="!actualizar">*</span>
+                                        </label>
                                         <div class="input-group">
                                             <div class="input-group-prepend">
                                                 <span class="input-group-text">
@@ -411,7 +424,10 @@
 
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="control-label">Confirmar contraseña</label>
+                                        <label class="control-label" for="confirmarPassword">
+                                            Confirmar contraseña
+                                            <span class="text-danger" v-if="!actualizar">*</span>
+                                        </label>
 
                                         <div class="input-group">
                                             <div class="input-group-prepend">
@@ -496,7 +512,7 @@
                                                             class="custom-control-label"
                                                             for="transcrip_remoto"
                                                         >
-                                                            Transcripcción remota
+                                                            Transcripción remota
                                                         </label>
                                                     </div>
                                                 </div>
@@ -505,7 +521,7 @@
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <p class="text-info"><i class="fa fa-unlock"></i> Modulos</p>
+                                    <p class="text-info"><i class="fa fa-unlock"></i> Módulos</p>
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
@@ -785,14 +801,15 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="control-label"
-                                >Nueva contraseña temporal <span class="text-danger">*</span></label
-                            >
+                            <label class="control-label" for="reset_password">
+                                Nueva contraseña temporal <span class="text-danger">*</span>
+                            </label>
                             <div class="input-group">
                                 <div class="input-group-prepend">
                                     <span class="input-group-text"><i class="ti-lock"></i></span>
                                 </div>
                                 <input
+                                    id="reset_password"
                                     :type="mostrarPasswordReset ? 'text' : 'password'"
                                     class="form-control"
                                     placeholder="Ingrese o genere la contraseña temporal"
@@ -833,15 +850,15 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="control-label"
-                                >Confirmar contraseña temporal
-                                <span class="text-danger">*</span></label
-                            >
+                            <label class="control-label" for="reset_confirmarPassword">
+                                Confirmar contraseña temporal <span class="text-danger">*</span>
+                            </label>
                             <div class="input-group">
                                 <div class="input-group-prepend">
                                     <span class="input-group-text"><i class="ti-lock"></i></span>
                                 </div>
                                 <input
+                                    id="reset_confirmarPassword"
                                     :type="mostrarPasswordReset ? 'text' : 'password'"
                                     class="form-control"
                                     placeholder="Confirme la contraseña temporal"
@@ -971,14 +988,14 @@ const firmaError = ref({});
 const sidebarOpen = ref(false);
 
 function initDataTable() {
-    safeInitDataTable(dt.value || "#example23", {
+    safeInitDataTable(dt.value || "#tablaUsuarios", {
         dom: "Bfrtip",
         buttons: ["copy", "csv", "excel", "pdf", "print"],
         retrieve: true,
     });
 }
 function destroyDataTable() {
-    safeDestroyDataTable(dt.value || "#example23");
+    safeDestroyDataTable(dt.value || "#tablaUsuarios");
 }
 async function ListarDatos() {
     if (loadingListar.value) return;
@@ -1564,6 +1581,19 @@ useKeyboardShortcuts({
     right: 0px;
     visibility: visible;
     pointer-events: auto;
+}
+
+@media (max-width: 1024px) {
+    .right-sidebar {
+        width: 75%;
+    }
+}
+
+@media (max-width: 767px) {
+    .right-sidebar {
+        right: -100%;
+        width: 100%;
+    }
 }
 
 .sidebar-backdrop {

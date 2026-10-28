@@ -130,7 +130,7 @@
                         <hr />
                     </div>
                     <div class="card-body">
-                        <small class="text-muted">Email address</small>
+                        <small class="text-muted">Correo electrónico</small>
                         <h6>{{ registro.email }}</h6>
                     </div>
                 </div>
@@ -177,39 +177,43 @@
                             <div class="card-body">
                                 <form class="form-horizontal form-material">
                                     <div class="form-group">
-                                        <label class="col-md-6"># Documento</label>
+                                        <label class="col-md-6" for="num_docu"># Documento</label>
                                         <div class="col-md-6">
                                             <input
                                                 type="text"
                                                 id="num_docu"
                                                 name="num_docu"
                                                 v-model="registro.num_docu"
-                                                placeholder="Ingrese aqui el número de documento"
+                                                placeholder="Ingrese aquí el número de documento"
                                                 class="form-control form-control-line"
                                             />
                                         </div>
                                     </div>
                                     <div class="form-group">
-                                        <label class="col-md-12">Nombres</label>
+                                        <label class="col-md-12" for="name">
+                                            Nombres <span class="text-danger">*</span>
+                                        </label>
                                         <div class="col-md-12">
                                             <input
                                                 type="text"
                                                 id="name"
                                                 name="name"
                                                 v-model="registro.name"
-                                                placeholder="Ingrese aqui los nombres del usuario"
+                                                placeholder="Ingrese aquí los nombres del usuario"
                                                 class="form-control form-control-line"
                                             />
                                         </div>
                                     </div>
                                     <div class="form-group">
-                                        <label for="example-email" class="col-md-12">Email</label>
+                                        <label for="email" class="col-md-12">
+                                            Correo electrónico <span class="text-danger">*</span>
+                                        </label>
                                         <div class="col-md-12">
                                             <input
                                                 type="email"
                                                 id="email"
                                                 v-model="registro.email"
-                                                placeholder="Ingrese aqui el email"
+                                                placeholder="Ingrese aquí el correo electrónico"
                                                 class="form-control form-control-line"
                                             />
                                         </div>
@@ -258,10 +262,12 @@
                                 >
                                     <!-- Contraseña actual -->
                                     <div class="form-group">
-                                        <label class="col-md-12 control-label"
-                                            >Contraseña actual
-                                            <span class="text-danger">*</span></label
+                                        <label
+                                            class="col-md-12 control-label"
+                                            for="current_password"
                                         >
+                                            Contraseña actual <span class="text-danger">*</span>
+                                        </label>
                                         <div class="col-md-12">
                                             <div class="input-group">
                                                 <div class="input-group-prepend">
@@ -312,10 +318,9 @@
 
                                     <!-- Nueva contraseña -->
                                     <div class="form-group">
-                                        <label class="col-md-12 control-label"
-                                            >Nueva contraseña
-                                            <span class="text-danger">*</span></label
-                                        >
+                                        <label class="col-md-12 control-label" for="new_password">
+                                            Nueva contraseña <span class="text-danger">*</span>
+                                        </label>
                                         <div class="col-md-12">
                                             <div class="input-group">
                                                 <div class="input-group-prepend">
@@ -466,10 +471,13 @@
 
                                     <!-- Confirmar nueva contraseña -->
                                     <div class="form-group">
-                                        <label class="col-md-12 control-label"
-                                            >Confirmar nueva contraseña
-                                            <span class="text-danger">*</span></label
+                                        <label
+                                            class="col-md-12 control-label"
+                                            for="confirmarPassword"
                                         >
+                                            Confirmar nueva contraseña
+                                            <span class="text-danger">*</span>
+                                        </label>
                                         <div class="col-md-12">
                                             <div class="input-group">
                                                 <div class="input-group-prepend">
