@@ -8,8 +8,24 @@
                     Sincronización
                 </h3>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
-                    <li class="breadcrumb-item"><a href="javascript:void(0)">Seguridad</a></li>
+                    <li class="breadcrumb-item">
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Seguridad
+                        </button>
+                    </li>
                     <li class="breadcrumb-item active">Monitoreo de Backups</li>
                 </ol>
             </div>
@@ -217,7 +233,22 @@
                             </span>
                         </div>
 
-                        <div class="table-responsive">
+                        <table-skeleton-loader
+                            :visible="cargando && sedes.length === 0"
+                            :rows="4"
+                            :columns="6"
+                        />
+                        <empty-state-component
+                            v-if="!cargando && sedes.length === 0"
+                            icon="fa fa-server"
+                            title="No hay sedes registradas"
+                            description="No se encontraron sedes hospitalarias configuradas en el sistema."
+                            action-text="Recargar telemetría"
+                            action-icon="fa fa-refresh"
+                            @action="consultarEstado()"
+                        />
+
+                        <div class="table-responsive" v-show="sedes.length > 0">
                             <table class="table table-hover table-striped align-middle mb-0">
                                 <thead class="thead-light">
                                     <tr>
@@ -230,17 +261,6 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-if="cargando && sedes.length === 0">
-                                        <td colspan="6" class="text-center py-4 text-muted">
-                                            <i class="fa fa-spinner fa-spin mr-2"></i> Consultando
-                                            telemetría de sedes...
-                                        </td>
-                                    </tr>
-                                    <tr v-else-if="sedes.length === 0">
-                                        <td colspan="6" class="text-center py-4 text-muted">
-                                            No hay sedes registradas en el sistema.
-                                        </td>
-                                    </tr>
                                     <tr v-for="sede in sedes" :key="sede.sede_id">
                                         <td class="font-weight-bold">
                                             <i class="fa fa-hospital-o mr-2 text-muted"></i>

@@ -8,10 +8,22 @@
                 <h3 class="text-themecolor">Seguridad</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Seguridad</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Seguridad
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Gestión de Roles</li>
                 </ol>
@@ -52,10 +64,20 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Listado de roles</h4>
-                        <div v-if="loadingListar" class="text-center p-3">
-                            <i class="fa fa-spinner fa-spin"></i> Cargando...
-                        </div>
-                        <div class="table-responsive m-t-40">
+                        <table-skeleton-loader :visible="loadingListar" :rows="5" :columns="2" />
+                        <empty-state-component
+                            v-if="!loadingListar && listarRoles.length === 0"
+                            icon="fa fa-shield"
+                            title="No hay roles para mostrar"
+                            description="No se encontraron roles registrados en el sistema."
+                            action-text="Recargar roles"
+                            action-icon="fa fa-refresh"
+                            @action="ListarDatos()"
+                        />
+                        <div
+                            class="table-responsive m-t-40"
+                            v-show="!loadingListar && listarRoles.length > 0"
+                        >
                             <table
                                 id="tablaRoles"
                                 ref="dt"
@@ -70,11 +92,6 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-if="!listarRoles.length">
-                                        <td colspan="2" class="text-center text-muted">
-                                            No se encontraron roles registrados.
-                                        </td>
-                                    </tr>
                                     <tr v-for="item in listarRoles" :key="item.id">
                                         <td>{{ item.name }}</td>
                                         <td class="text-nowrap">

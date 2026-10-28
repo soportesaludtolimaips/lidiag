@@ -5,10 +5,22 @@
                 <h3 class="text-themecolor">Seguridad</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Seguridad</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Seguridad
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Auditoría de Eventos</li>
                 </ol>
@@ -80,10 +92,18 @@
                             <div class="col-md-2 d-flex align-items-end">
                                 <button
                                     type="button"
-                                    class="btn btn-success btn-block waves-effect waves-light"
+                                    class="btn btn-success waves-effect waves-light mr-2 flex-grow-1"
                                     @click="cargarLogs"
                                 >
                                     <i class="fa fa-search"></i> Filtrar
+                                </button>
+                                <button
+                                    type="button"
+                                    class="btn btn-inverse waves-effect waves-light"
+                                    @click="limpiarFiltros"
+                                    title="Limpiar filtros"
+                                >
+                                    <i class="fa fa-refresh"></i>
                                 </button>
                             </div>
                         </div>
@@ -93,14 +113,21 @@
                             {{ totalRegistros }} registro(s) encontrado(s)
                         </span>
 
-                        <div class="table-responsive m-t-20" v-if="loading">
-                            <div class="text-center p-5">
-                                <i class="fa fa-spinner fa-spin fa-3x"></i>
-                                <p class="m-t-10">Cargando registros de auditoría...</p>
-                            </div>
-                        </div>
+                        <table-skeleton-loader :visible="loading" :rows="8" :columns="8" />
+                        <empty-state-component
+                            v-if="!loading && registros.length === 0"
+                            icon="fa fa-history"
+                            title="No hay registros de auditoría"
+                            description="No se encontraron eventos registrados con los filtros seleccionados."
+                            action-text="Limpiar filtros"
+                            action-icon="fa fa-refresh"
+                            @action="limpiarFiltros"
+                        />
 
-                        <div class="table-responsive m-t-20" v-if="!loading">
+                        <div
+                            class="table-responsive m-t-20"
+                            v-show="!loading && registros.length > 0"
+                        >
                             <table
                                 id="tablaAuditoria"
                                 ref="dt"
@@ -121,11 +148,6 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-if="!registros.length">
-                                        <td colspan="8" class="text-center text-muted">
-                                            No se encontraron registros de auditoría.
-                                        </td>
-                                    </tr>
                                     <tr v-for="item in registros" :key="item.id">
                                         <td>{{ item.id }}</td>
                                         <td>{{ item.created_at }}</td>
@@ -399,6 +421,14 @@ async function cargarLogs() {
     } finally {
         loading.value = false;
     }
+}
+function limpiarFiltros() {
+    filtros.value.evento = "";
+    filtros.value.desde = "";
+    filtros.value.hasta = "";
+    filtros.value.search = "";
+    paginaActual.value = 1;
+    cargarLogs();
 }
 function irPagina(pagina) {
     if (pagina < 1 || pagina > totalPaginas.value) return;

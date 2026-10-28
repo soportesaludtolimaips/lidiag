@@ -37,6 +37,16 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-28 — Reemplazo de Spinners por Skeleton Loaders (`TableSkeletonLoader`) y Empty States en Módulo Seguridad (`resources/js/components/modulos/seguridad/`):**
+  - **Diagnóstico:** Los componentes del módulo de seguridad aún utilizaban spinners genéricos (`<i class="fa fa-spinner fa-spin fa-3x">`) en lugar del patrón estándar adoptado en el resto de la aplicación (v.gr. `AsignarEstudioComponent.vue`), el cual emplea `<table-skeleton-loader>` para la carga diferida con efecto *shimmer* y `<empty-state-component>` para estados sin registros.
+  - **Acciones Realizadas:**
+    * *`usuarioComponent.vue`:* Sustituido el contenedor de spinner por `<table-skeleton-loader :visible="loadingListar" :rows="6" :columns="10" />` y `<empty-state-component>` con acción de recarga. Tabla controlada con `v-show="!loadingListar && registros.length > 0"`. Breadcrumbs homologados a `<button type="button" class="btn btn-link p-0" style="vertical-align: baseline...">`.
+    * *`roleComponente.vue`:* Sustituido spinner por `<table-skeleton-loader :visible="loadingListar" :rows="5" :columns="2" />` y `<empty-state-component>` de roles. Breadcrumbs homologados.
+    * *`auditLogComponent.vue`:* Sustituido spinner por `<table-skeleton-loader :visible="loading" :rows="8" :columns="8" />` y `<empty-state-component>` con acción para limpiar filtros. Agregado botón de "Limpiar filtros" en la barra de búsqueda y breadcrumbs homologados.
+    * *`backupMonitorComponent.vue`:* Integrado `<table-skeleton-loader>` y `<empty-state-component>` en la telemetría de sedes hospitalarias. Breadcrumbs homologados.
+    * *`usuarioPerfil.vue`:* Breadcrumbs homologados al estándar semántico accesible.
+  - **Verificaciones:** ESLint 0 errores/warnings (`npx eslint` passed en los 5 componentes) ✅ | Build Vite satisfactorio en 1.12s (`npm run build`) ✅ | Vistas y configuración de Laravel purgadas (`view:clear`, `config:clear`) ✅.
+
 - [x] **2026-10-28 — Corrección de Firma y Avatar Opcionales al Editar Usuarios (`usuarioComponent.vue`, `UpdateUserRequest.php`, `StoreUserRequest.php`):**
   - **Diagnóstico:** En la gestión de usuarios (`/seguridad.usuarios`), al editar un usuario sin seleccionar un archivo de firma o avatar, el guardado fallaba silenciosamente con error de validación 422 (`El campo firma debe ser un archivo`). La causa raíz fue que `FormData.append("firma", firma.value)` y `FormData.append("avatar", avatar.value)` enviaban la cadena `"null"` cuando `firma.value` o `avatar.value` eran nulos. En el backend, Laravel evaluaba la regla `file` sobre la cadena de texto `"null"`, haciendo fallar la validación y bloqueando la actualización a menos que se cargara un archivo de firma.
   - **Solución Implementada:**
