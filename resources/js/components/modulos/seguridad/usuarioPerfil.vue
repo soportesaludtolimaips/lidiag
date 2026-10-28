@@ -8,10 +8,10 @@
                 <h3 class="text-themecolor">Seguridad</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a role="button" tabindex="0">Inicio</a>
+                        <a href="javascript:void(0)">Inicio</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a role="button" tabindex="0">Seguridad</a>
+                        <a href="javascript:void(0)">Seguridad</a>
                     </li>
                     <li class="breadcrumb-item active">Perfil</li>
                 </ol>
@@ -19,13 +19,13 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-sm btn-outline-secondary btn-action-clinical m-r-5"
+                    class="btn btn-sm btn-outline-secondary waves-effect waves-light m-r-5"
                     :disabled="loadingObtener"
-                    title="Recargar datos del perfil (F2)"
+                    title="Recargar datos del perfil"
                     @click="obtenerRegistro()"
                 >
                     <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loadingObtener }"></i>
-                    Refrescar <span class="badge badge-light border ml-1">F2</span>
+                    Refrescar
                 </button>
             </div>
         </div>
@@ -218,9 +218,9 @@
                                         <div class="col-sm-12">
                                             <button
                                                 type="button"
-                                                class="btn btn-success btn-action-clinical m-r-5"
+                                                class="btn btn-success waves-effect waves-light m-r-5"
                                                 :disabled="loadingActualizar"
-                                                title="Guardar cambios del perfil (Ctrl+S)"
+                                                title="Guardar cambios del perfil"
                                                 @click="actualizarPerfil()"
                                             >
                                                 <i
@@ -229,9 +229,6 @@
                                                 ></i>
                                                 <i v-else class="fa fa-pencil mr-1"></i> Actualizar
                                                 Perfil
-                                                <span class="badge badge-light text-dark ml-1">
-                                                    Ctrl+S
-                                                </span>
                                             </button>
                                         </div>
                                     </div>
@@ -548,9 +545,9 @@
                                         <div class="col-sm-12">
                                             <button
                                                 type="button"
-                                                class="btn btn-info btn-action-clinical m-r-5"
+                                                class="btn btn-info waves-effect waves-light m-r-5"
                                                 :disabled="loadingCambiarPassword"
-                                                title="Guardar nueva contraseña (Ctrl+S)"
+                                                title="Guardar nueva contraseña"
                                                 @click="cambiarPasswordUsuario()"
                                             >
                                                 <i
@@ -559,13 +556,10 @@
                                                 ></i>
                                                 <i v-else class="fa fa-key mr-1"></i> Cambiar
                                                 Contraseña
-                                                <span class="badge badge-light text-dark ml-1"
-                                                    >Ctrl+S</span
-                                                >
                                             </button>
                                             <button
                                                 type="button"
-                                                class="btn btn-inverse btn-action-clinical"
+                                                class="btn btn-inverse waves-effect waves-light"
                                                 @click="limpiarPasswordForm()"
                                                 :disabled="loadingCambiarPassword"
                                             >
@@ -833,17 +827,3 @@ useKeyboardShortcuts({
     },
 });
 </script>
-<style scoped>
-.btn-action-clinical {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.btn-action-clinical:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow:
-        0 4px 6px -1px rgba(0, 0, 0, 0.1),
-        0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-</style>

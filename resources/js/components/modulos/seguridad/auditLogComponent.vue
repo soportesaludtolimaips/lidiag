@@ -5,10 +5,10 @@
                 <h3 class="text-themecolor">Seguridad</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a role="button" tabindex="0">Inicio</a>
+                        <a href="javascript:void(0)">Inicio</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a role="button" tabindex="0">Seguridad</a>
+                        <a href="javascript:void(0)">Seguridad</a>
                     </li>
                     <li class="breadcrumb-item active">Auditoría de Eventos</li>
                 </ol>
@@ -16,13 +16,13 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-sm btn-outline-secondary btn-action-clinical m-r-5"
+                    class="btn btn-info waves-effect waves-light"
                     :disabled="loading"
-                    title="Actualizar registros de auditoría (F2)"
+                    title="Actualizar registros de auditoría"
                     @click="cargarLogs"
                 >
                     <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loading }"></i>
-                    Refrescar <span class="badge badge-light border ml-1">F2</span>
+                    Refrescar
                 </button>
             </div>
         </div>
@@ -75,7 +75,8 @@
                             </div>
                             <div class="col-md-2 d-flex align-items-end">
                                 <button
-                                    class="btn btn-success btn-block btn-action-clinical"
+                                    type="button"
+                                    class="btn btn-success btn-block waves-effect waves-light"
                                     @click="cargarLogs"
                                 >
                                     <i class="fa fa-search"></i> Filtrar
@@ -184,26 +185,27 @@
         </div>
 
         <div
-            v-if="mostrarDetalle"
-            class="modal fade show d-block"
+            class="modal fade"
+            :class="{ show: mostrarDetalle }"
+            :style="{ display: mostrarDetalle ? 'block' : 'none' }"
             id="modalDetalleAuditoria"
             tabindex="-1"
             role="dialog"
-            aria-modal="true"
-            aria-hidden="false"
-            style="background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px); z-index: 1060"
+            aria-labelledby="modalDetalleAuditoriaTitle"
+            :aria-hidden="!mostrarDetalle"
             @click.self="mostrarDetalle = false"
         >
-            <div class="modal-dialog modal-lg">
+            <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title">Detalle de Auditoría #{{ detalle.id }}</h4>
+                        <h4 class="modal-title" id="modalDetalleAuditoriaTitle">
+                            Detalle de Auditoría #{{ detalle.id }}
+                        </h4>
                         <button
                             type="button"
                             class="close"
                             @click="mostrarDetalle = false"
                             aria-label="Cerrar modal"
-                            title="Cerrar (Esc)"
                         >
                             &times;
                         </button>
@@ -276,17 +278,16 @@
                     <div class="modal-footer">
                         <button
                             type="button"
-                            class="btn btn-inverse btn-action-clinical"
-                            title="Cerrar (Esc)"
+                            class="btn btn-default waves-effect"
                             @click="mostrarDetalle = false"
                         >
                             Cerrar
-                            <span class="badge badge-secondary ml-1">Esc</span>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+        <div v-if="mostrarDetalle" class="modal-backdrop fade show"></div>
     </div>
 </template>
 <script setup>
@@ -439,17 +440,5 @@ useKeyboardShortcuts({
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-.btn-action-clinical {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.btn-action-clinical:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow:
-        0 4px 6px -1px rgba(0, 0, 0, 0.1),
-        0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 </style>

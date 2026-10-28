@@ -37,6 +37,15 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-28 — Homologación Estricta de UI/UX a Estilos Nativos de la Aplicación en Módulo Seguridad (`resources/js/components/modulos/seguridad/`):**
+  - **Diagnóstico:** Los 5 componentes del módulo de seguridad (`auditLogComponent.vue`, `backupMonitorComponent.vue`, `roleComponente.vue`, `usuarioComponent.vue`, `usuarioPerfil.vue`) mantenían estilos ajenos al diseño base de la aplicación (AdminWrap / Bootstrap 4): uso de la clase foránea `.btn-action-clinical`, bloques `<style scoped>` con animaciones personalizadas de botones, badges de atajos de teclado incrustados dentro de los botones (`F2`, `Ctrl+S`, `Esc`), modales con estilos inline no estándar (`background: rgba(...)`, `backdrop-filter: blur(...)`) y enlaces de breadcrumbs con atributos `role="button"` no semánticos.
+  - **Acciones Realizadas:**
+    * *Eliminación de Clases y Estilos Propios:* Removida la clase `.btn-action-clinical` y eliminadas sus definiciones en todos los bloques `<style scoped>`, prescindiendo totalmente de dicho bloque en los componentes donde solo se definía esa clase.
+    * *Estandarización de Breadcrumbs:* Marcado nativo de AdminWrap (`<ol class="breadcrumb"><li class="breadcrumb-item"><a href="javascript:void(0)">...</a></li>`).
+    * *Botones Nativos de Cabecera y Formulario:* Estandarizados a `btn waves-effect waves-light` (sólidos para acciones principales, `btn-outline-secondary` para refrescar) sin etiquetas de badges foráneas internas.
+    * *Modales Nativos:* Homologados a la estructura estándar de Bootstrap 4 (`modal fade` + `modal-backdrop fade show` y botón de cierre `btn btn-default waves-effect`), eliminando fondos inline oscuros y filtros `backdrop-filter`.
+    * *Right Sidebar / Backdrop:* Homologado el backdrop del panel lateral a `rgba(0, 0, 0, 0.5)` sin desenfoque ni filtros incompatibles.
+  - **Verificaciones:** ESLint 0 errores/advertencias (`npx eslint` passed en los 5 archivos) ✅ | Vite build exitoso en 1.07s (`npm run build`) ✅.
 - [x] **2026-10-28 — Corrección de Tabla Cacheada / No Reactiva en Notificar Estudios (`notificarEstudioComponent.vue`):**
   - **Problema:** Tras notificar un estudio por correo o enviarlo al portal de pacientes, la fila permanecía en la tabla dando la impresión de estar "cacheada". Adicionalmente, DataTables no se destruía antes de una nueva búsqueda y reutilizaba el estado DOM previo.
   - **Solución Aplicada:**

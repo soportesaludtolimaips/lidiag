@@ -8,10 +8,10 @@
                 <h3 class="text-themecolor">Seguridad</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a role="button" tabindex="0">Inicio</a>
+                        <a href="javascript:void(0)">Inicio</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a role="button" tabindex="0">Seguridad</a>
+                        <a href="javascript:void(0)">Seguridad</a>
                     </li>
                     <li class="breadcrumb-item active">Gestión de Roles</li>
                 </ol>
@@ -19,17 +19,17 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-sm btn-outline-secondary btn-action-clinical m-r-5"
+                    class="btn btn-sm btn-outline-secondary waves-effect waves-light m-r-5"
                     :disabled="loadingListar"
-                    title="Actualizar listado de roles (F2)"
+                    title="Actualizar listado de roles"
                     @click="ListarDatos()"
                 >
                     <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loadingListar }"></i>
-                    Refrescar <span class="badge badge-light border ml-1">F2</span>
+                    Refrescar
                 </button>
                 <button
                     type="button"
-                    class="btn btn-info btn-action-clinical btnDesplegarRigthSidebar"
+                    class="btn btn-info waves-effect waves-light btnDesplegarRigthSidebar"
                     title="Crear nuevo rol"
                     @click="
                         actualizar = false;
@@ -274,36 +274,33 @@
                             <div class="form-actions mt-3">
                                 <button
                                     type="button"
-                                    class="btn btn-success btn-action-clinical m-r-5"
+                                    class="btn btn-success waves-effect waves-light m-r-5"
                                     @click="guardarRegistro()"
                                     v-if="!actualizar"
                                     :disabled="loadingGuardar"
-                                    title="Guardar rol (Ctrl+S)"
+                                    title="Guardar rol"
                                 >
                                     <i v-if="loadingGuardar" class="fa fa-spinner fa-spin mr-1"></i>
                                     <i v-else class="fa fa-check mr-1"></i> Guardar
-                                    <span class="badge badge-light text-dark ml-1">Ctrl+S</span>
                                 </button>
                                 <button
                                     type="button"
-                                    class="btn btn-warning btn-action-clinical m-r-5"
+                                    class="btn btn-warning waves-effect waves-light m-r-5"
                                     v-if="actualizar"
                                     @click="guardarRegistro()"
                                     :disabled="loadingGuardar"
-                                    title="Actualizar rol (Ctrl+S)"
+                                    title="Actualizar rol"
                                 >
                                     <i v-if="loadingGuardar" class="fa fa-spinner fa-spin mr-1"></i>
                                     <i v-else class="fa fa-pencil mr-1"></i> Actualizar
-                                    <span class="badge badge-light text-dark ml-1">Ctrl+S</span>
                                 </button>
                                 <button
                                     type="button"
-                                    class="btn btn-inverse btn-action-clinical"
-                                    title="Cancelar (Esc)"
+                                    class="btn btn-inverse waves-effect waves-light"
+                                    title="Cancelar"
                                     @click="btnCerrarModalForm()"
                                 >
                                     Cancelar
-                                    <span class="badge badge-secondary ml-1">Esc</span>
                                 </button>
                             </div>
                         </div>
@@ -884,22 +881,8 @@ useKeyboardShortcuts({
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(15, 23, 42, 0.45);
-    backdrop-filter: blur(2px);
+    background: rgba(0, 0, 0, 0.5);
     z-index: 1050;
     transition: opacity 0.25s ease;
-}
-
-.btn-action-clinical {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.btn-action-clinical:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow:
-        0 4px 6px -1px rgba(0, 0, 0, 0.1),
-        0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 </style>

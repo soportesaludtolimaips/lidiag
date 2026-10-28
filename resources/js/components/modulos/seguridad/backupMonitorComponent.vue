@@ -1,5 +1,5 @@
 <template>
-    <div class="container-fluid">
+    <div>
         <!-- Cabecera de Página -->
         <div class="row page-titles">
             <div class="col-md-7 col-8 align-self-center">
@@ -8,26 +8,25 @@
                     Sincronización
                 </h3>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="/dashboard">Inicio</a></li>
-                    <li class="breadcrumb-item">Seguridad</li>
+                    <li class="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
+                    <li class="breadcrumb-item"><a href="javascript:void(0)">Seguridad</a></li>
                     <li class="breadcrumb-item active">Monitoreo de Backups</li>
                 </ol>
             </div>
             <div class="col-md-5 col-4 align-self-center text-right">
                 <button
                     type="button"
-                    class="btn btn-secondary btn-action-clinical mr-2"
+                    class="btn btn-outline-secondary waves-effect waves-light m-r-5"
                     @click="consultarEstado()"
                     :disabled="cargando"
-                    title="Actualizar estado (F2)"
+                    title="Actualizar estado"
                 >
                     <i :class="['fa fa-refresh mr-1', { 'fa-spin': cargando }]"></i>
                     Refrescar
-                    <span class="badge badge-light text-dark ml-1 d-none d-md-inline">F2</span>
                 </button>
                 <button
                     type="button"
-                    class="btn btn-primary btn-action-clinical"
+                    class="btn btn-info waves-effect waves-light"
                     @click="confirmarEjecucionManual()"
                     :disabled="ejecutandoManual || cargando"
                     title="Generar backup de base de datos inmediatamente"
@@ -492,32 +491,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.btn-action-clinical {
-    font-weight: 500;
-    transition: all 0.2s ease-in-out;
-}
-.round {
-    line-height: 48px;
-    color: #fff;
-    width: 48px;
-    height: 48px;
-    display: inline-block;
-    font-weight: 400;
-    text-align: center;
-    border-radius: 100%;
-}
-.round.round-primary {
-    background: #745af2;
-}
-.round.round-success {
-    background: #06d79c;
-}
-.round.round-info {
-    background: #398bf7;
-}
-.round.round-warning {
-    background: #ffb22b;
-}
 .log-container::-webkit-scrollbar {
     width: 6px;
 }

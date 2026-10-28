@@ -8,10 +8,10 @@
                 <h3 class="text-themecolor">Seguridad</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a role="button" tabindex="0">Inicio</a>
+                        <a href="javascript:void(0)">Inicio</a>
                     </li>
                     <li class="breadcrumb-item">
-                        <a role="button" tabindex="0">Seguridad</a>
+                        <a href="javascript:void(0)">Seguridad</a>
                     </li>
                     <li class="breadcrumb-item active">Gestión de Usuarios</li>
                 </ol>
@@ -19,17 +19,17 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-sm btn-outline-secondary btn-action-clinical m-r-5"
+                    class="btn btn-sm btn-outline-secondary waves-effect waves-light m-r-5"
                     :disabled="loadingListar"
-                    title="Actualizar listado de usuarios (F2)"
+                    title="Actualizar listado de usuarios"
                     @click="ListarDatos()"
                 >
                     <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loadingListar }"></i>
-                    Refrescar <span class="badge badge-light border ml-1">F2</span>
+                    Refrescar
                 </button>
                 <button
                     type="button"
-                    class="btn btn-info btn-action-clinical btnDesplegarRigthSidebar"
+                    class="btn btn-info waves-effect waves-light btnDesplegarRigthSidebar"
                     title="Crear nuevo usuario"
                     @click="
                         actualizar = false;
@@ -650,38 +650,35 @@
                             <div class="form-actions mt-3">
                                 <button
                                     type="button"
-                                    class="btn btn-success btn-action-clinical m-r-5"
+                                    class="btn btn-success waves-effect waves-light m-r-5"
                                     @click="guardarRegistro()"
                                     v-if="!actualizar"
                                     :disabled="loadingGuardar"
-                                    title="Guardar usuario (Ctrl+S)"
+                                    title="Guardar usuario"
                                 >
                                     <i v-if="loadingGuardar" class="fa fa-spinner fa-spin mr-1"></i>
                                     <i v-else class="fa fa-check mr-1"></i> Guardar
-                                    <span class="badge badge-light text-dark ml-1">Ctrl+S</span>
                                 </button>
 
                                 <button
                                     type="button"
-                                    class="btn btn-warning btn-action-clinical m-r-5"
+                                    class="btn btn-warning waves-effect waves-light m-r-5"
                                     v-if="actualizar"
                                     @click="guardarRegistro()"
                                     :disabled="loadingGuardar"
-                                    title="Actualizar usuario (Ctrl+S)"
+                                    title="Actualizar usuario"
                                 >
                                     <i v-if="loadingGuardar" class="fa fa-spinner fa-spin mr-1"></i>
                                     <i v-else class="fa fa-pencil mr-1"></i> Actualizar
-                                    <span class="badge badge-light text-dark ml-1">Ctrl+S</span>
                                 </button>
 
                                 <button
                                     type="button"
-                                    class="btn btn-inverse btn-action-clinical"
-                                    title="Cancelar (Esc)"
+                                    class="btn btn-inverse waves-effect waves-light"
+                                    title="Cancelar"
                                     @click="btnCerrarModalForm()"
                                 >
                                     Cancelar
-                                    <span class="badge badge-secondary ml-1">Esc</span>
                                 </button>
                             </div>
                         </div>
@@ -695,26 +692,27 @@
 
         <!-- Modal ampliar firma -->
         <div
-            v-if="modalFirmaVisible"
-            class="modal fade show d-block"
+            class="modal fade"
+            :class="{ show: modalFirmaVisible }"
+            :style="{ display: modalFirmaVisible ? 'block' : 'none' }"
             id="modalAmpliarFirma"
             tabindex="-1"
             role="dialog"
-            aria-modal="true"
-            aria-hidden="false"
-            style="background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(2px); z-index: 1060"
+            aria-labelledby="modalAmpliarFirmaTitle"
+            :aria-hidden="!modalFirmaVisible"
             @click.self="cerrarModalFirma"
         >
-            <div class="modal-dialog modal-sm">
+            <div class="modal-dialog modal-sm" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title">Firma — {{ firmaAmpliadaNombre }}</h4>
+                        <h4 class="modal-title" id="modalAmpliarFirmaTitle">
+                            Firma — {{ firmaAmpliadaNombre }}
+                        </h4>
                         <button
                             type="button"
                             class="close"
                             @click="cerrarModalFirma"
                             aria-label="Cerrar modal"
-                            title="Cerrar (Esc)"
                         >
                             &times;
                         </button>
@@ -735,17 +733,16 @@
                     <div class="modal-footer">
                         <button
                             type="button"
-                            class="btn btn-inverse btn-action-clinical"
-                            title="Cerrar (Esc)"
+                            class="btn btn-default waves-effect"
                             @click="cerrarModalFirma"
                         >
                             Cerrar
-                            <span class="badge badge-secondary ml-1">Esc</span>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+        <div v-if="modalFirmaVisible" class="modal-backdrop fade show"></div>
 
         <!-- ============================================================== -->
         <!-- Modal Restablecer Contraseña -->
@@ -1575,22 +1572,8 @@ useKeyboardShortcuts({
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(15, 23, 42, 0.45);
-    backdrop-filter: blur(2px);
+    background: rgba(0, 0, 0, 0.5);
     z-index: 1050;
     transition: opacity 0.25s ease;
-}
-
-.btn-action-clinical {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.btn-action-clinical:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow:
-        0 4px 6px -1px rgba(0, 0, 0, 0.1),
-        0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 </style>
