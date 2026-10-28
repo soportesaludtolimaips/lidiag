@@ -37,6 +37,28 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-28 — Campo 'Reportar al Email' como Opcional en Asignar Estudios (`AsignarEstudioComponent.vue`, `userProfileAndSearchComponent.vue`):**
+  - **Diagnóstico:** En el panel de asignación de estudios (`AsignarEstudioComponent.vue`), el campo "Reportar al Email" bloqueaba el guardado con la alerta de "Formulario incompleto / campos requeridos" debido a:
+    1. Si la sede no tenía correo configurado (`res.data.email_repor` nulo), `sessionStorage.setItem("ST-email_repor", null)` almacenaba la cadena de texto `"null"`.
+    2. Al prellenar el formulario con `sessionStorage.getItem("ST-email_repor")`, el valor se establecía como `"null"`, activando el validador de formato de correo (`validators.email`) como inválido.
+    3. `guardarRegistro()` ejecutaba `touchAll` incluyendo obligatoriamente `"email_reportar"`, bloqueando el envío si el usuario no ingresaba un correo.
+  - **Solución Implementada:**
+    * *Detección de Vacío/Opcional en `statusEmailReportar`:* Si el campo es nulo, vacío, `"null"` o `"undefined"`, se retorna estado válido (`isInvalid: false`) sin forzar entrada. Solo se valida el formato de correo si el usuario efectivamente escribe un valor.
+    * *Ajuste en `guardarRegistro`:* Se retiró `"email_reportar"` del `touchAll` de campos requeridos; solo se evalúa si tiene contenido. Se sanea el payload antes de enviarlo (`email_reportar: cleanEmail || null`).
+    * *Saneamiento en `mostrarRegistro`:* Previene la asignación de `"null"` o `"undefined"` desde `sessionStorage`.
+    * *UI:* Agregada etiqueta `<small class="text-muted">(Opcional)</small>` al label del campo.
+    * *Prevención en `userProfileAndSearchComponent.vue`:* Al cambiar de sede se almacena `res.data.email_repor || ""` para evitar cadenas `"null"` en Web Storage.
+  - **Verificaciones:** ESLint passed (0 errores) ✅ | Compilación Vite completada en 1.16s (`npm run build`) ✅.
+
+- [x] **2026-10-28 — Implementación Integral de Fases de Mejora UI/UX y Accesibilidad en Módulo Seguridad (`resources/js/components/modulos/seguridad/`):**
+  - **Alcance:** Aplicación estricta de las 5 fases de mejora descritas en `docs/UI-UX-IMPROVEMENT-PHASES.md` sobre los 5 componentes del módulo de seguridad (`auditLogComponent.vue`, `backupMonitorComponent.vue`, `roleComponente.vue`, `usuarioComponent.vue`, `usuarioPerfil.vue`):
+    * *Fase 1 (Mecánico y Accesibilidad Básica):* Asociación universal de `<label for="id">` en todos los inputs (incluidos modales de reseteo de contraseña en `usuarioComponent.vue`, filtros en `auditLogComponent.vue` y formularios de perfil en `usuarioPerfil.vue`). Corrección de tipeos ortográficos ("aqui" → "aquí", "Modulos" → "Módulos", "Registro Medico" → "Registro Médico", "Transcripcción" → "Transcripción"). Eliminación de estilos CSS duplicados y clases ajenas (`.btn-action-clinical`).
+    * *Fase 2 (Sidebar Responsivo y Enfoque):* Responsive unificado con `@media (max-width: 1024px)` (70-75% ancho) y `@media (max-width: 767px)` (`right: -100%`, `width: 100%`) en paneles laterales. Autofocus inmediato con `nextTick` al abrir sidebars en `roleComponente.vue` y `usuarioComponent.vue`.
+    * *Fase 3 (Feedback Visual y Validación):* Marcadores de campos obligatorios institucionales (`<span class="text-danger">*</span>`) en formularios de creación y edición. Estados de carga (`fa-spinner fa-spin`) en botones de acción. Toasts contextuales consistentes vía `toastMessage()`.
+    * *Fase 4 (Consistencia y DataTables):* Identificadores únicos y semánticos para tablas DataTables (`id="tablaUsuarios"`, `id="tablaRoles"`, `id="tablaAuditoria"`) erradicando el genérico `example23`. Adición de filas vacías formales (Empty states `<tr v-if="!registros.length">...</tr>`) en todas las tablas.
+    * *Fase 5 (Ergonomía):* Atajos de teclado ergonómicos (`F2`, `Ctrl+S`, `Esc`) centralizados con `useKeyboardShortcuts` sin etiquetas visuales incrustadas en botones que contaminen la UI nativa de AdminWrap. Backdrops consistentes en `rgba(0, 0, 0, 0.5)` con animaciones limpias.
+  - **Verificaciones:** ESLint 0 errores/warnings (`npx eslint` passed en los 5 componentes) ✅ | Build Vite satisfactorio en 1.32s (`npm run build`) ✅ | Vistas y configuración de Laravel purgadas (`view:clear`, `config:clear`) ✅.
+
 - [x] **2026-10-28 — Corrección de Detección de Unidades de CD/DVD en Servidor de Producción (`DicomBurnerController.php`, `detect_drives.ps1`, `QuemadorCdComponent.vue`, `QuemarMultiplesComponent.vue`):**
   - **Diagnóstico:** En producción (Windows bajo Laragon/Apache), `GET /api/dicom/list-drives` no reconocía ninguna unidad debido a:
     1. `Get-CimInstance Win32_CDROMDrive` fallaba con `CimException: El cliente no tenía acceso disponible a un recurso CIM` (o `Acceso denegado`) bajo el entorno del servidor web, dejando el arreglo `$drives` vacío y bloqueando por completo el paso 2 (detección IMAPI2).

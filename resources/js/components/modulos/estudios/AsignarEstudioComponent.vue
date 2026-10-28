@@ -444,7 +444,10 @@
                                         <div class="col-md-12">
                                             <div class="form-group">
                                                 <label class="control-label" for="email_reportar"
-                                                    >Reportar al Email</label
+                                                    >Reportar al Email
+                                                    <small class="text-muted"
+                                                        >(Opcional)</small
+                                                    ></label
                                                 >
                                                 <input
                                                     type="email"
@@ -1136,14 +1139,13 @@ const statusStudyDatetime = computed(() =>
     )
 );
 
-const statusEmailReportar = computed(() =>
-    getFieldStatus(
-        "email_reportar",
-        registro.value.email_reportar,
-        [validators.email],
-        errores.value
-    )
-);
+const statusEmailReportar = computed(() => {
+    const val = registro.value.email_reportar;
+    if (!val || val === "null" || val === "undefined" || String(val).trim() === "") {
+        return { isInvalid: false, isValid: false, message: "" };
+    }
+    return getFieldStatus("email_reportar", String(val).trim(), [validators.email], errores.value);
+});
 
 const statusPrioridadId = computed(() =>
     getFieldStatus(
@@ -1371,7 +1373,10 @@ async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
 
-    touchAll(["study_desc", "accession_no", "study_datetime", "email_reportar", "prioridad_id"]);
+    touchAll(["study_desc", "accession_no", "study_datetime", "prioridad_id"]);
+    if (registro.value.email_reportar && String(registro.value.email_reportar).trim() !== "") {
+        touch("email_reportar");
+    }
 
     if (
         statusStudyDesc.value.isInvalid ||
@@ -1420,8 +1425,20 @@ async function guardarRegistro() {
     }
 
     try {
+        const cleanEmail =
+            registro.value.email_reportar &&
+            registro.value.email_reportar !== "null" &&
+            registro.value.email_reportar !== "undefined" &&
+            String(registro.value.email_reportar).trim() !== ""
+                ? String(registro.value.email_reportar).trim()
+                : null;
+        const registroPayload = {
+            ...registro.value,
+            email_reportar: cleanEmail,
+        };
+
         const formData = new FormData();
-        formData.append("registro", JSON.stringify(registro.value));
+        formData.append("registro", JSON.stringify(registroPayload));
         if (soportesHC.value.archivo1) formData.append("archivo1", soportesHC.value.archivo1);
         if (soportesHC.value.archivo2) formData.append("archivo2", soportesHC.value.archivo2);
         if (soportesHC.value.archivo3) formData.append("archivo3", soportesHC.value.archivo3);
@@ -1621,7 +1638,9 @@ async function mostrarRegistro(data = {}, index) {
     registro.value.study_desc = data.study_desc;
     registro.value.mods_in_study = data.mods_in_study;
     registro.value.email = "";
-    registro.value.email_reportar = sessionStorage.getItem("ST-email_repor");
+    const emailRepor = sessionStorage.getItem("ST-email_repor");
+    registro.value.email_reportar =
+        emailRepor && emailRepor !== "null" && emailRepor !== "undefined" ? emailRepor.trim() : "";
     registro.value.num_docu = data.pat_id;
     registro.value.nombres = data.pat_name;
     registro.value.sexo = data.pat_sex;

@@ -588,7 +588,7 @@ async function estableserSede() {
     sessionStorage.setItem("ST-nomsede", nomSedeSeleccionada);
     sessionStorage.setItem("ST-urlsede", res.data.url_oviyam);
     sessionStorage.setItem("ST-servername", res.data.tap_oviyam);
-    sessionStorage.setItem("ST-email_repor", res.data.email_repor);
+    sessionStorage.setItem("ST-email_repor", res.data.email_repor || "");
 
     emitter.emit("sedeSeleccionada", {
         idSede: sedeSeleccionada.value,
