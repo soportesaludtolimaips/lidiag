@@ -576,6 +576,7 @@
                                                     width="100%"
                                                     :allow-clear="true"
                                                     :label-fields="['name']"
+                                                    dropdown-parent-selector="#medicos-parent"
                                                     @input="onMedicoSelect"
                                                 />
 
@@ -673,6 +674,7 @@
                                                 :options="productoOptions"
                                                 width="100%"
                                                 :allow-clear="true"
+                                                dropdown-parent-selector="#productos-parent"
                                                 @input="onProductoSelect"
                                             />
                                             <button
@@ -757,6 +759,7 @@
                                                 width="100%"
                                                 :allow-clear="true"
                                                 :label-fields="['nom_diagnos']"
+                                                dropdown-parent-selector="#diagnosticos-parent"
                                                 @input="onDiagnosticoSelect"
                                             />
                                             <button
@@ -994,6 +997,7 @@ import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { confirmAction, toastMessage, getUserSafeError, swalSuccess } from "@/helpers/alerts";
 import { normalizarFecha } from "@/helpers/dateUtils.js";
+import { getModuloIdActual } from "@/helpers/usuarios";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
 import QuemadorCdComponent from "@/components/modulos/estudios/QuemadorCdComponent.vue";
 import QuemarMultiplesComponent from "@/components/modulos/estudios/QuemarMultiplesComponent.vue";
@@ -1764,6 +1768,9 @@ function abrirModal() {
     sidebarQuemarMultiplesVisible.value = false;
     quemadorModalVisible.value = false;
     sidebarVisible.value = true;
+    if (!medicos.value || medicos.value.length === 0) {
+        listarMedicos();
+    }
     nextTick(() => {
         primerInput.value?.focus();
         selMedico.value?.rebuild();
@@ -1879,7 +1886,7 @@ function btnLimpiar() {
  */
 async function listarMedicos() {
     try {
-        const moduloId = sessionStorage.getItem("ST-modulo") || "1";
+        const moduloId = getModuloIdActual();
         const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
         medicos.value = res.data.data || [];
     } catch (_error) {
@@ -2420,5 +2427,9 @@ onBeforeUnmount(() => {
 
 .selected-row:hover {
     background-color: #bbdefb !important;
+}
+
+:deep(.select2-dropdown) {
+    z-index: 9999 !important;
 }
 </style>

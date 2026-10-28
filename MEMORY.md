@@ -37,6 +37,15 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-28 — Corrección de Carga y Despliegue de Médicos en Asignar Estudios (`AsignarEstudioComponent.vue`):**
+  - **Problema:** En el panel lateral de asignación de estudios, el combo Select2 de médicos no listaba las opciones disponibles debido a falta de inferencia del módulo (`ST-modulo` ausente/nulo), riesgo de carrera en la carga inicial y conflicto de `z-index` (Select2 por defecto abre a 1051, por detrás del `.right-sidebar` con z-index 1100).
+  - **Solución Aplicada:**
+    * Uso de `getModuloIdActual()` para inferir automáticamente el módulo (`1` para estudios) si `sessionStorage` no lo contiene.
+    * Validación y recarga en `abrirModal()` si `medicos.value` está vacío al abrir el panel lateral.
+    * Configuración de `dropdown-parent-selector` para `selMedico`, `selProducto` y `selDiagnostico`.
+    * Regla CSS `:deep(.select2-dropdown) { z-index: 9999 !important; }` garantizando que el menú desplegable flote por encima del sidebar.
+- [x] **2026-10-27 — Automatización de Scheduler y Backups en Segundo Plano (Windows):**
+  - Creados `scheduler_runner.py` (daemon/ejecutor silencioso en Python sin parpadeo de consola CMD) e `instalar_scheduler.bat` para programar la tarea en Windows Task Scheduler bajo `SYSTEM` cada 1 minuto.
 - [x] **2026-10-27 — Funcionalidad de Cambio Seguro de Contraseña en el Perfil de Usuario (`usuarioPerfil.vue`):**
   - **Objetivo:** Permitir a cualquier usuario autenticado cambiar su contraseña de manera directa y segura desde su vista de perfil (`/perfil`), validando la contraseña actual y verificando el cumplimiento de las políticas institucionales.
   - **Componentes y Cambios Implementados:**
