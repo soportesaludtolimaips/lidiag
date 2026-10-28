@@ -499,6 +499,14 @@ const contadorRegistros = computed(() => {
     return registros.value.length;
 });
 
+function initDataTable() {
+    safeInitDataTable(dt.value || "#example23", {
+        dom: "Bfrtip",
+        buttons: ["copy", "csv", "excel", "pdf", "print"],
+        retrieve: true,
+    });
+}
+
 function destroyDataTable() {
     safeDestroyDataTable(dt.value || "#example23");
 }
@@ -531,6 +539,7 @@ async function buscarStudy() {
         return;
     }
 
+    destroyDataTable();
     loadingBuscar.value = true;
     try {
         const res = await axios.post("/api/listar.estudios.notificaciones", busqueda.value);
@@ -540,10 +549,7 @@ async function buscarStudy() {
 
         nextTick(() => {
             destroyDataTable();
-            safeInitDataTable(dt.value || "#example23", {
-                dom: "Bfrtip",
-                buttons: ["copy", "csv", "excel", "pdf", "print"],
-            });
+            initDataTable();
         });
     } catch (error) {
         registros.value = [];
@@ -602,6 +608,19 @@ async function notificar() {
                 text: "La notificación se realizó correctamente, estamos enviando el correo electronico, por favor espere..",
                 icon: "success",
             });
+
+            if (estudio.value?.estudio_producto_id != null) {
+                const idx = registros.value.findIndex(
+                    (x) => x.estudio_producto_id == estudio.value.estudio_producto_id
+                );
+                if (idx >= 0) {
+                    registros.value.splice(idx, 1);
+                    nextTick(() => {
+                        destroyDataTable();
+                        initDataTable();
+                    });
+                }
+            }
         }
 
         btnCerralModalForm();
@@ -663,6 +682,19 @@ async function enviarPortalPacientes() {
                 text: "Enviado al portal de pacientes.",
                 icon: "success",
             });
+
+            if (estudio.value?.estudio_producto_id != null) {
+                const idx = registros.value.findIndex(
+                    (x) => x.estudio_producto_id == estudio.value.estudio_producto_id
+                );
+                if (idx >= 0) {
+                    registros.value.splice(idx, 1);
+                    nextTick(() => {
+                        destroyDataTable();
+                        initDataTable();
+                    });
+                }
+            }
 
             limpiar();
         }

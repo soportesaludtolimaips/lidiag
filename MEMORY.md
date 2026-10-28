@@ -37,6 +37,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-28 — Corrección de Tabla Cacheada / No Reactiva en Notificar Estudios (`notificarEstudioComponent.vue`):**
+  - **Problema:** Tras notificar un estudio por correo o enviarlo al portal de pacientes, la fila permanecía en la tabla dando la impresión de estar "cacheada". Adicionalmente, DataTables no se destruía antes de una nueva búsqueda y reutilizaba el estado DOM previo.
+  - **Solución Aplicada:**
+    * Eliminación reactiva del estudio notificado en `registros.value` con `.splice(idx, 1)` tras respuesta exitosa (200 OK) de `/api/notificar.email` y `/api/enviar-portal-pacientes`.
+    * Destrucción previa limpia de DataTables (`destroyDataTable()`) antes de ejecutar cualquier nueva consulta en `buscarStudy()`.
+    * Estandarización de `initDataTable()` con `retrieve: true` y sincronización en `nextTick()`.
+    * Compilación de producción con Vite (`npm run build`) y validación con ESLint exitosa (0 errores).
 - [x] **2026-10-28 — Corrección de Carga y Despliegue de Médicos en Asignar Estudios (`AsignarEstudioComponent.vue`):**
   - **Problema:** En el panel lateral de asignación de estudios, el combo Select2 de médicos no listaba las opciones disponibles debido a falta de inferencia del módulo (`ST-modulo` ausente/nulo), riesgo de carrera en la carga inicial y conflicto de `z-index` (Select2 por defecto abre a 1051, por detrás del `.right-sidebar` con z-index 1100).
   - **Solución Aplicada:**
