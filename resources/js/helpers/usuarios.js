@@ -66,7 +66,9 @@ export async function listarUsuariosYSedes(context, options = {}) {
     const moduloId = String(options.moduloId ?? getModuloIdActual() ?? "1");
 
     try {
-        const res = await axios.get(`/api/user.listarUsuarios/Asignadores/${moduloId}`);
+        const res = await axios.get(
+            `/api/user.listarUsuarios/Asignadores/${moduloId}?solo_activos=1`
+        );
         const data = Array.isArray(res?.data?.data)
             ? res.data.data
             : Array.isArray(res?.data)
@@ -77,7 +79,7 @@ export async function listarUsuariosYSedes(context, options = {}) {
             context.quienes_asignaron = data;
         } else {
             const fallbackRes = await axios.get(
-                `/api/user.listarUsuarios/Transcriptor/${moduloId}`
+                `/api/user.listarUsuarios/Transcriptor/${moduloId}?solo_activos=1`
             );
             context.quienes_asignaron = Array.isArray(fallbackRes?.data?.data)
                 ? fallbackRes.data.data
@@ -88,7 +90,7 @@ export async function listarUsuariosYSedes(context, options = {}) {
     } catch (_) {
         try {
             const fallbackRes = await axios.get(
-                `/api/user.listarUsuarios/Transcriptor/${moduloId}`
+                `/api/user.listarUsuarios/Transcriptor/${moduloId}?solo_activos=1`
             );
             context.quienes_asignaron = Array.isArray(fallbackRes?.data?.data)
                 ? fallbackRes.data.data
@@ -101,7 +103,9 @@ export async function listarUsuariosYSedes(context, options = {}) {
     }
 
     try {
-        const resMedicos = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
+        const resMedicos = await axios.get(
+            `/api/user.listarUsuarios/Medico/${moduloId}?solo_activos=1`
+        );
         context.medicos = Array.isArray(resMedicos?.data?.data)
             ? resMedicos.data.data
             : Array.isArray(resMedicos?.data)

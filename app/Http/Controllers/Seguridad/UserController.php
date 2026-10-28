@@ -12,6 +12,7 @@ use App\Http\Requests\Seguridad\UpdateUserRequest;
 use App\Http\Requests\Seguridad\UserEstadoRequest;
 use App\Services\Seguridad\UserService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -277,15 +278,20 @@ class UserController extends Controller
      * @param  string  $tipoUser  Nombre del rol a filtrar (ej. "Medico").
      * @param  int  $modulo  ID del módulo al que pertenecen los usuarios.
      *
-     * @returns {JsonResponse} Respuesta JSON con el listado de usuarios.
+     * Lista los usuarios filtrados por rol y módulo.
+     * @param  Request  $request  Solicitud HTTP (admite parámetro solo_activos).
+     * @param  string  $tipoUser  Nombre del rol, lista separada por coma o alias "Asignadores".
+     * @param  int  $modulo  ID del módulo.
+     * @return JsonResponse Respuesta JSON con el listado de usuarios.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2024-06-10
+     * @date 2026-10-28
      */
-    public function listarUsuarios(string $tipoUser, int $modulo): JsonResponse
+    public function listarUsuarios(Request $request, string $tipoUser, int $modulo): JsonResponse
     {
-        $result = $this->userService->listByRoleAndModule($tipoUser, $modulo);
+        $soloActivos = $request->boolean("solo_activos", true);
+        $result = $this->userService->listByRoleAndModule($tipoUser, $modulo, $soloActivos);
 
         return response()->json($result, (int) $result["status"]);
     }

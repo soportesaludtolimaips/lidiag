@@ -59,23 +59,30 @@ class UserService extends BaseService
      *
      * Flujo del proceso:
      * 1. Inicializa la consulta base sobre usuarios filtrando por asociación al módulo especificado.
-     * 2. Evalúa si el rol solicitado corresponde al alias "asignador/asignadores", aplicando filtro
+     * 2. Si $onlyActive es verdadero, aplica el filtro restrictivo de estado activo (users.estado = 1).
+     * 3. Evalúa si el rol solicitado corresponde al alias "asignador/asignadores", aplicando filtro
      *    por permiso 'estudio.asignar' o roles asistenciales asignadores (Administrativo, Transcriptor, Administrador).
-     * 3. Permite filtrado múltiple por lista de roles separados por coma o filtrado estándar por rol único.
-     * 4. Retorna el listado ordenado alfabéticamente encapsulado en respuesta exitosa.
+     * 4. Permite filtrado múltiple por lista de roles separados por coma o filtrado estándar por rol único.
+     * 5. Retorna el listado ordenado alfabéticamente encapsulado en respuesta exitosa.
      *
      * @param  string  $roleName  Nombre del rol, alias ("Asignadores") o lista de roles separados por coma.
      * @param  int  $moduleId  Identificador del módulo al que deben tener acceso.
+     * @param  bool  $onlyActive  Indica si se deben filtrar únicamente usuarios activos (por defecto true).
+     * @return array Respuesta estructurada con los usuarios encontrados.
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-10-28
      */
-    public function listByRoleAndModule(string $roleName, int $moduleId): array
+    public function listByRoleAndModule(string $roleName, int $moduleId, bool $onlyActive = true): array
     {
-        $query = User::select('users.id', 'users.name')
+        $query = User::select('users.id', 'users.name', 'users.estado')
             ->whereHas('modulos', fn ($q) => $q->where('config_modulos.id', $moduleId))
             ->orderBy('users.name');
+
+        if ($onlyActive) {
+            $query->where('users.estado', 1);
+        }
 
         $roleLower = strtolower(trim($roleName));
         if (in_array($roleLower, ['asignador', 'asignadores'], true)) {

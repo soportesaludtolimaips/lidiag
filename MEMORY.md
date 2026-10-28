@@ -37,6 +37,15 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-28 — Filtrado Exclusivo de Usuarios Activos en Combo "Quien asignó" (`UserService.php`, `UserController.php`, `usuarios.js`, `transcribirEstudioComponent.vue`):**
+  - **Diagnóstico:** En la vista de transcripción de estudios (`/estudios.transcribir.listar`), el combo *"Quien asigno"* listaba la totalidad de los usuarios asignadores (57 usuarios en el módulo 1), incluyendo a 23 usuarios inactivos (`estado = 0`) que ya no laboran en la institución.
+  - **Solución Implementada:**
+    * *Backend (`UserService.php`):* Incorporado el parámetro `$onlyActive = true` en `listByRoleAndModule()` aplicando `where('users.estado', 1)` e incluyendo `users.estado` en la proyección `select`.
+    * *Controlador (`UserController.php`):* Incorporada inyección de `Request $request` en `listarUsuarios()` para procesar `$request->boolean('solo_activos', true)` y propagar la restricción al servicio.
+    * *Helper (`resources/js/helpers/usuarios.js`):* Actualizadas las consultas de asignadores, transcriptores y médicos para incluir explícitamente `?solo_activos=1`.
+    * *Frontend (`transcribirEstudioComponent.vue`):* Creada propiedad computada defensiva `quienesAsignaronActivos` para filtrar cualquier elemento con estado inactivo, garantizando que el `<select>` renderice única y exclusivamente usuarios activos (34 asignadores activos disponibles).
+  - **Verificaciones:** Prueba CLI en base de datos (`Total asignadores devueltos: 34, inactivos: 0`) ✅ | Laravel Pint passed (`{"tool":"pint","result":"passed"}`) ✅ | ESLint passed (0 errores, 0 warnings) ✅ | Compilación Vite completada en 1.18s (`npm run build`) ✅.
+
 - [x] **2026-10-28 — Reactividad Inmediata y Resaltado en Azul de Fila al Guardar Asignación de Estudio (`AsignarEstudioComponent.vue`):**
   - **Diagnóstico:** Al guardar la asignación de un estudio en `/estudios.asignar.listar`, el texto de la fila asignada no cambiaba de color a azul (`.text-info`) en tiempo real, obligando al usuario a refrescar manualmente la página para visualizar el estado agendado. La causa raíz fue doble:
     1. `EstudioService::create()` retorna `$this->created(...)`, el cual emite un código HTTP **201** (`Created`). En `guardarRegistro()`, la condición `if (res.status == 200)` evaluaba como falsa, impidiendo la ejecución del toast de éxito y de la actualización del estado `registros.value[idRow.value].agendado = 1`.

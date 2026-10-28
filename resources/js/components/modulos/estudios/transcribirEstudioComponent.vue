@@ -60,7 +60,7 @@
                                                     ...::: Todos los usuarios :::...
                                                 </option>
                                                 <option
-                                                    v-for="ItemUsuario in quienes_asignaron"
+                                                    v-for="ItemUsuario in quienesAsignaronActivos"
                                                     :key="ItemUsuario.id"
                                                     :value="ItemUsuario.id"
                                                 >
@@ -837,6 +837,11 @@ const busqueda = ref({
 });
 const datosImagen = ref({ urlOviyam: "", patientId: "", studyUID: "", serverName: "" });
 const quienes_asignaron = ref([]);
+const quienesAsignaronActivos = computed(() => {
+    return (quienes_asignaron.value || []).filter(
+        (u) => u && (u.estado === undefined || u.estado === 1 || u.estado === true)
+    );
+});
 const medicos = ref([]);
 const errores = ref({});
 const idRow = ref(null);
