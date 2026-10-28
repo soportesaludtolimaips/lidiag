@@ -558,7 +558,8 @@ function quitarEstudio(index) {
 async function listarUnidades(silent = false) {
     loadingDrives.value = true;
     try {
-        const res = await axios.get("/api/dicom/list-drives");
+        const url = silent ? "/api/dicom/list-drives" : "/api/dicom/list-drives?refresh=1";
+        const res = await axios.get(url);
         if (res.data.status === "success") {
             drives.value = res.data.data || [];
             const sigueDisponible =

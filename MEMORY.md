@@ -37,6 +37,26 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-28 — Corrección de Detección de Unidades de CD/DVD en Servidor de Producción (`DicomBurnerController.php`, `detect_drives.ps1`, `QuemadorCdComponent.vue`, `QuemarMultiplesComponent.vue`):**
+  - **Diagnóstico:** En producción (Windows bajo Laragon/Apache), `GET /api/dicom/list-drives` no reconocía ninguna unidad debido a:
+    1. `Get-CimInstance Win32_CDROMDrive` fallaba con `CimException: El cliente no tenía acceso disponible a un recurso CIM` (o `Acceso denegado`) bajo el entorno del servidor web, dejando el arreglo `$drives` vacío y bloqueando por completo el paso 2 (detección IMAPI2).
+    2. Si `ConvertTo-Json -Compress` retornaba un arreglo de múltiples unidades (`[{...}]`), la lectura línea a línea evaluaba `isset($decoded['drive'])` en falso, ignorando todas las unidades.
+    3. `disk_free_space` en `burn()` evaluaba el espacio contra la letra de unidad óptica (ej. `E:\`), arrojando 0 MB en medios vírgenes no formateados e impidiendo la quema.
+    4. Caché de 30 segundos enmascaraba cambios de estado de unidades y no existía mecanismo de refresco forzado.
+  - **Solución Implementada:**
+    * *Script Unificado y Multi-Nivel (`resources/burner/detect_drives.ps1`):*
+      - Nivel 1 (IMAPI2 COM): Detección directa de grabadoras ópticas (`IMAPI2.MsftDiscMaster2` / `IMAPI2.MsftDiscRecorder2` / `IMAPI2.MsftDiscFormat2Data`), extrayendo puntos de montaje `VolumePathNames`, nombre de fabricante/modelo y tipo de medio (CD, DVD, BD).
+      - Nivel 2 (.NET DriveInfo): `[System.IO.DriveInfo]::GetDrives()` para capturar cualquier letra de unidad óptica montada sin requerir permisos de WMI ni COM.
+      - Nivel 3 (Fallback WMI/CIM): Bloque seguro con try/catch que no interrumpe el flujo si el acceso es denegado.
+    * *Backend (`DicomBurnerController.php`):*
+      - Lectura del stream JSON completo de PowerShell y normalización tanto para objeto individual como para lista de unidades.
+      - Soporte para parámetro `?refresh=1` que purga la caché `dicom.drives` inmediatamente.
+      - Reducción del TTL de caché de 30s a 5s para actualizaciones oportunas del estado del medio.
+      - Corrección de la validación de espacio libre en `burn()`: ahora valida el disco de almacenamiento del servidor (`storage_path('app/burns')`) para staging, dejando la verificación de capacidad del medio óptico a `burner.exe` / IMAPI2.
+    * *Frontend (`QuemadorCdComponent.vue` y `QuemarMultiplesComponent.vue`):*
+      - Al hacer clic en el botón de recarga de unidades, se envía `?refresh=1` para forzar la re-inspección de hardware en el servidor.
+  - **Verificaciones:** Laravel Pint passed (`{"tool":"pint","result":"passed"}`) ✅ | ESLint passed (0 errores) ✅ | Compilación Vite completada en 1.13s (`npm run build`) ✅.
+
 - [x] **2026-10-28 — Homologación Estricta de UI/UX a Estilos Nativos de la Aplicación en Módulo Seguridad (`resources/js/components/modulos/seguridad/`):**
   - **Diagnóstico:** Los 5 componentes del módulo de seguridad (`auditLogComponent.vue`, `backupMonitorComponent.vue`, `roleComponente.vue`, `usuarioComponent.vue`, `usuarioPerfil.vue`) mantenían estilos ajenos al diseño base de la aplicación (AdminWrap / Bootstrap 4): uso de la clase foránea `.btn-action-clinical`, bloques `<style scoped>` con animaciones personalizadas de botones, badges de atajos de teclado incrustados dentro de los botones (`F2`, `Ctrl+S`, `Esc`), modales con estilos inline no estándar (`background: rgba(...)`, `backdrop-filter: blur(...)`) y enlaces de breadcrumbs con atributos `role="button"` no semánticos.
   - **Acciones Realizadas:**
