@@ -37,7 +37,15 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
-- [x] **2026-10-28 — Campo 'Reportar al Email' como Opcional en Asignar Estudios (`AsignarEstudioComponent.vue`, `userProfileAndSearchComponent.vue`):**
+- [x] **2026-10-28 — Blindaje Total contra Error 500 en Listado de Unidades de Quemado (`DicomBurnerController.php`):**
+  - **Diagnóstico:** En producción (`lidiag.com`), la petición `GET /api/dicom/list-drives?refresh=1` arrojó HTTP 500 debido a falta de bloque `try/catch` global en el método `listDrives()`, y a que `proc_open` invocaba `powershell` sin ruta absoluta, lo cual falla bajo entornos de servicio web donde `powershell.exe` no se encuentra en el PATH del usuario de Apache/IIS.
+  - **Solución Implementada:**
+    * Encapsulamiento total en `try/catch (\Throwable $e)` con logging detallado y respuesta fallback 200 con `{ status: 'success', data: [...] }` para impedir caídas de interfaz.
+    * Invocación con ruta absoluta a `C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe` con fallback a `powershell`.
+    * Control de timeout de procesos a 8s y eliminación de BOM UTF-8 en la salida.
+    * Fallback automático secundario a `.NET DriveInfo` en caso de que el script devuelva vacío.
+  - **Verificaciones:** Ejecución de prueba con resultado exitoso 200 y detección física de unidad óptica (`hp DVD A DS8A9SH`) ✅ | Laravel Pint passed ✅.
+
   - **Diagnóstico:** En el panel de asignación de estudios (`AsignarEstudioComponent.vue`), el campo "Reportar al Email" bloqueaba el guardado con la alerta de "Formulario incompleto / campos requeridos" debido a:
     1. Si la sede no tenía correo configurado (`res.data.email_repor` nulo), `sessionStorage.setItem("ST-email_repor", null)` almacenaba la cadena de texto `"null"`.
     2. Al prellenar el formulario con `sessionStorage.getItem("ST-email_repor")`, el valor se establecía como `"null"`, activando el validador de formato de correo (`validators.email`) como inválido.

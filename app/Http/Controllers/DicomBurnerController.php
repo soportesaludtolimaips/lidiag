@@ -113,7 +113,7 @@ class DicomBurnerController extends Controller
      * 1. Consulta el parámetro 'refresh' para limpiar la caché de unidades si es requerido.
      * 2. Ejecuta la detección multi-nivel en Windows: IMAPI2 COM -> .NET DriveInfo -> Fallback WMI.
      * 3. Normaliza las letras de unidad, estado de bandeja/disco y nombre del dispositivo.
-     * 4. Retorna la colección formateada en JSON.
+     * 4. Retorna la colección formateada en JSON con tolerancia a fallos para no emitir error 500.
      *
      * @param  Request  $request  Solicitud HTTP con parámetro opcional 'refresh'.
      * @return JsonResponse Respuesta JSON con la lista de unidades, tipo de disco y estado del medio.
@@ -122,79 +122,165 @@ class DicomBurnerController extends Controller
      *
      * @date 2026-10-28
      */
-    public function listDrives(Request $request)
+    public function listDrives(Request $request): JsonResponse
     {
-        if ($request->boolean("refresh")) {
-            Cache::forget("dicom.drives");
+        try {
+            if ($request->boolean("refresh")) {
+                try {
+                    Cache::forget("dicom.drives");
+                } catch (\Throwable $ce) {
+                    Log::warning("DicomBurnerController.listDrives Cache forget failed", ["error" => $ce->getMessage()]);
+                }
+            }
+
+            $drives = Cache::remember("dicom.drives", 5, function () {
+                return $this->detectSystemDrives();
+            });
+
+            return response()->json([
+                "status" => "success",
+                "data" => $drives,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error("DicomBurnerController.listDrives error", [
+                "error" => $e->getMessage(),
+                "trace" => $e->getTraceAsString(),
+            ]);
+
+            try {
+                $drives = $this->detectSystemDrives();
+            } catch (\Throwable) {
+                $drives = [];
+            }
+
+            return response()->json([
+                "status" => "success",
+                "data" => $drives,
+                "warning" => "Consulta de unidades con fallback: ".$e->getMessage(),
+            ]);
         }
+    }
 
-        $drives = Cache::remember("dicom.drives", 5, function () {
-            $drives = [];
+    /**
+     * Detecta las unidades físicas o lógicas de CD/DVD en el sistema operativo.
+     *
+     * @return array Lista de unidades detectadas.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-28
+     */
+    private function detectSystemDrives(): array
+    {
+        $drives = [];
 
-            if (PHP_OS_FAMILY === "Windows") {
-                $scriptPath = base_path("resources/burner/detect_drives.ps1");
-                if (file_exists($scriptPath)) {
-                    $cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File ".escapeshellarg($scriptPath)." 2>&1";
-                } else {
-                    $cmd = 'powershell -NoProfile -Command "[System.IO.DriveInfo]::GetDrives() | Where-Object { $_.DriveType -eq [System.IO.DriveType]::CDRom } | ForEach-Object { [PSCustomObject]@{ drive = $_.Name.Substring(0, 1).ToUpper(); disc_type = \"CD\"; media_loaded = $_.IsReady; recorder_name = (\"Unidad de CD/DVD (\" + $_.Name + \")\") } } | ConvertTo-Json -Compress" 2>&1';
-                }
+        if (PHP_OS_FAMILY === "Windows") {
+            $powerShellBin = file_exists("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe")
+                ? "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+                : "powershell";
 
-                $descriptors = [
-                    0 => ["pipe", "r"],
-                    1 => ["pipe", "w"],
-                    2 => ["pipe", "w"],
-                ];
-                $process = proc_open($cmd, $descriptors, $pipes);
-
-                if (is_resource($process)) {
-                    fclose($pipes[0]);
-                    stream_set_timeout($pipes[1], 10);
-                    $output = stream_get_contents($pipes[1]);
-                    fclose($pipes[1]);
-                    fclose($pipes[2]);
-                    proc_close($process);
-
-                    $trimmed = trim((string) $output);
-                    if ($trimmed !== "") {
-                        $decoded = json_decode($trimmed, true);
-                        if (is_array($decoded)) {
-                            if (isset($decoded["drive"])) {
-                                $decoded = [$decoded];
-                            }
-                            foreach ($decoded as $item) {
-                                if (is_array($item) && ! empty($item["drive"])) {
-                                    $drives[] = [
-                                        "drive" => strtoupper(trim(trim($item["drive"]), ":")),
-                                        "disc_type" => $item["disc_type"] ?? null,
-                                        "media_loaded" => (bool) ($item["media_loaded"] ?? false),
-                                        "recorder_name" => $item["recorder_name"] ?? null,
-                                    ];
-                                }
-                            }
-                        }
-                    }
-                }
+            $scriptPath = base_path("resources/burner/detect_drives.ps1");
+            if (file_exists($scriptPath)) {
+                $cmd = '"'.$powerShellBin.'" -NoProfile -ExecutionPolicy Bypass -File '.escapeshellarg($scriptPath)." 2>&1";
             } else {
-                $possibleDevices = ["/dev/cdrom", "/dev/dvd", "/dev/sr0", "/dev/sr1"];
-                foreach ($possibleDevices as $device) {
-                    if (file_exists($device)) {
-                        $drives[] = [
-                            "drive" => $device,
-                            "disc_type" => null,
-                            "media_loaded" => false,
-                            "recorder_name" => null,
-                        ];
+                $cmd = '"'.$powerShellBin.'" -NoProfile -Command "[System.IO.DriveInfo]::GetDrives() | Where-Object { $_.DriveType -eq [System.IO.DriveType]::CDRom } | ForEach-Object { [PSCustomObject]@{ drive = $_.Name.Substring(0, 1).ToUpper(); disc_type = \"CD\"; media_loaded = $_.IsReady; recorder_name = (\"Unidad de CD/DVD (\" + $_.Name + \")\") } } | ConvertTo-Json -Compress" 2>&1';
+            }
+
+            $output = $this->executeProcessWithTimeout($cmd, 8);
+            $trimmed = trim((string) preg_replace('/^\xEF\xBB\xBF/', "", (string) $output));
+
+            if ($trimmed !== "") {
+                $decoded = json_decode($trimmed, true);
+                if (is_array($decoded)) {
+                    if (isset($decoded["drive"])) {
+                        $decoded = [$decoded];
+                    }
+                    foreach ($decoded as $item) {
+                        if (is_array($item) && ! empty($item["drive"])) {
+                            $drives[] = [
+                                "drive" => strtoupper(trim(trim($item["drive"]), ":")),
+                                "disc_type" => $item["disc_type"] ?? null,
+                                "media_loaded" => (bool) ($item["media_loaded"] ?? false),
+                                "recorder_name" => $item["recorder_name"] ?? null,
+                            ];
+                        }
                     }
                 }
             }
 
-            return $drives;
-        });
+            // Fallback secundario si el script devolvió vacío pero existen unidades lógicas CDRom
+            if (empty($drives)) {
+                $fallbackCmd = '"'.$powerShellBin.'" -NoProfile -Command "[System.IO.DriveInfo]::GetDrives() | Where-Object { $_.DriveType -eq [System.IO.DriveType]::CDRom } | ForEach-Object { [PSCustomObject]@{ drive = $_.Name.Substring(0, 1).ToUpper(); disc_type = \"CD\"; media_loaded = $_.IsReady; recorder_name = (\"Unidad de CD/DVD (\" + $_.Name + \")\") } } | ConvertTo-Json -Compress" 2>&1';
+                $fallbackOutput = $this->executeProcessWithTimeout($fallbackCmd, 5);
+                $fallbackTrimmed = trim((string) preg_replace('/^\xEF\xBB\xBF/', "", (string) $fallbackOutput));
+                if ($fallbackTrimmed !== "") {
+                    $fbDecoded = json_decode($fallbackTrimmed, true);
+                    if (is_array($fbDecoded)) {
+                        if (isset($fbDecoded["drive"])) {
+                            $fbDecoded = [$fbDecoded];
+                        }
+                        foreach ($fbDecoded as $item) {
+                            if (is_array($item) && ! empty($item["drive"])) {
+                                $drives[] = [
+                                    "drive" => strtoupper(trim(trim($item["drive"]), ":")),
+                                    "disc_type" => $item["disc_type"] ?? null,
+                                    "media_loaded" => (bool) ($item["media_loaded"] ?? false),
+                                    "recorder_name" => $item["recorder_name"] ?? null,
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            $possibleDevices = ["/dev/cdrom", "/dev/dvd", "/dev/sr0", "/dev/sr1"];
+            foreach ($possibleDevices as $device) {
+                if (file_exists($device)) {
+                    $drives[] = [
+                        "drive" => $device,
+                        "disc_type" => null,
+                        "media_loaded" => false,
+                        "recorder_name" => null,
+                    ];
+                }
+            }
+        }
 
-        return response()->json([
-            "status" => "success",
-            "data" => $drives,
-        ]);
+        return $drives;
+    }
+
+    /**
+     * Ejecuta un comando en el sistema operativo con timeout y control de descriptores.
+     *
+     * @param  string  $cmd  Comando a ejecutar.
+     * @param  int  $timeoutSeconds  Tiempo límite de espera en segundos.
+     * @return string Salida capturada del proceso.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-28
+     */
+    private function executeProcessWithTimeout(string $cmd, int $timeoutSeconds = 8): string
+    {
+        $descriptors = [
+            0 => ["pipe", "r"],
+            1 => ["pipe", "w"],
+            2 => ["pipe", "w"],
+        ];
+        $process = proc_open($cmd, $descriptors, $pipes);
+
+        if (! is_resource($process)) {
+            return "";
+        }
+
+        fclose($pipes[0]);
+        stream_set_timeout($pipes[1], $timeoutSeconds);
+        $output = stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        proc_close($process);
+
+        return (string) $output;
     }
 
     /**
