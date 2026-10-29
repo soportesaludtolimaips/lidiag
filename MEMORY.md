@@ -37,6 +37,15 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-28 — Verificación y Normalización de Listado de "MARLEN TORRES RODRIGUEZ" en Combo "Quien asignó" (`transcribirEstudioComponent.vue`):**
+  - **Diagnóstico:** Se reportó que la usuaria `MARLEN TORRES RODRIGUEZ` (ID 8) no aparecía listada en el combo *"Quien asigno"* (`#quien_asigno_id`) de `transcribirEstudioComponent.vue`. Tras auditar la base de datos y la API:
+    1. Se confirmó que la usuaria existe en BD con `id = 8`, `estado = 1` (activo), rol `Transcriptor` y módulo `Rx` (`modulo_id = 1`), habiendo registrado más de 59,250 estudios (184 pendientes de transcripción).
+    2. El backend (`UserService::listByRoleAndModule('Asignadores', 1, true)`) sí la retorna efectivamente (índice 22 de 34 usuarios activos) como `{"id":8,"name":"MARLEN TORRES RODRIGUEZ ","estado":true}`.
+    3. No obstante, en el frontend, la propiedad computada `quienesAsignaronActivos` dependía de comparaciones estrictas sobre `u.estado`, el nombre en BD contenía espacios al final (`MARLEN TORRES RODRIGUEZ `), y el array carecía de ordenamiento alfabético normalizado con locale en español (`localeCompare`), lo que dificultaba localizarla entre las 34 opciones nativas de un `<select>`.
+  - **Solución Implementada:**
+    * *Componente (`transcribirEstudioComponent.vue`):* Blindada la propiedad computada `quienesAsignaronActivos` para aceptar defensivamente estados booleanos, numéricos y strings (`1`, `true`, `"1"` o `undefined`). Adicionalmente, se aplica `.map()` para limpiar espacios en blanco con `.trim()` y ordenamiento alfabético estándar en español mediante `.sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }))`.
+  - **Verificaciones:** Verificación en BD directa y simulación de petición HTTP API exitosa ✅ | ESLint passed (0 errores) ✅ | Compilación Vite completada en 1.09s (`npm run build`) ✅.
+
 - [x] **2026-10-28 — Reemplazo de Spinners por Skeleton Loaders (`TableSkeletonLoader`) y Empty States en Módulo Seguridad (`resources/js/components/modulos/seguridad/`):**
   - **Diagnóstico:** Los componentes del módulo de seguridad aún utilizaban spinners genéricos (`<i class="fa fa-spinner fa-spin fa-3x">`) en lugar del patrón estándar adoptado en el resto de la aplicación (v.gr. `AsignarEstudioComponent.vue`), el cual emplea `<table-skeleton-loader>` para la carga diferida con efecto *shimmer* y `<empty-state-component>` para estados sin registros.
   - **Acciones Realizadas:**

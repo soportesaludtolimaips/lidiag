@@ -838,9 +838,17 @@ const busqueda = ref({
 const datosImagen = ref({ urlOviyam: "", patientId: "", studyUID: "", serverName: "" });
 const quienes_asignaron = ref([]);
 const quienesAsignaronActivos = computed(() => {
-    return (quienes_asignaron.value || []).filter(
-        (u) => u && (u.estado === undefined || u.estado === 1 || u.estado === true)
-    );
+    return (quienes_asignaron.value || [])
+        .filter(
+            (u) =>
+                u &&
+                (u.estado === undefined || u.estado === 1 || u.estado === true || u.estado === "1")
+        )
+        .map((u) => ({
+            ...u,
+            name: (u.name || "").trim(),
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
 });
 const medicos = ref([]);
 const errores = ref({});
