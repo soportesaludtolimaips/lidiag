@@ -37,6 +37,22 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-29 — Corrección de Autenticación y Flexibilización de Filtros en Dashboard HelpDesk (`HelpDeskReporteService.php`, `helpdeskReportesComponent.vue`, Restauración de BD):**
+  - **Diagnóstico:**
+    1. Al abrir `https://lidiag.test/helpdesk-reportes`, no se cargaba información en el dashboard. La causa principal fue que tras la importación del volcado de base de datos desde producción (a las 11:08 AM):
+       - La contraseña del usuario `administrador@administrador.com` fue sobreescrita con el hash de producción, impidiendo la autenticación con la clave estándar local (`123456`) y retornando 401 en todas las peticiones a la API.
+       - La tabla `sessions` contenía sesiones cifradas con la clave de producción, las cuales fallaban al desencriptarse con la `APP_KEY` local.
+       - La tabla `help_desk_tickets` quedó vacía en el volcado recién restaurado.
+    2. Adicionalmente, en `HelpDeskReporteService::baseQuery()`, la cláusula de fecha `->whereBetween(DB::raw('DATE(t.created_at)'), [$filters['fechaIni'], $filters['fechaFin']])` forzaba rígidamente ambas fechas; si alguna de ellas no se suministraba, `BETWEEN NULL AND ...` evaluaba siempre en falso impidiendo consultas abiertas o acumuladas.
+    3. En `helpdeskReportesComponent.vue`, el rango por defecto estaba configurado exclusivamente para el día de hoy (`fechaIni: hoy`, `fechaFin: hoy`) y `sedeId` se forzaba con la sede activa del `sessionStorage`, excluyendo tickets creados en otras sedes o fechas.
+  - **Solución Implementada:**
+    * *Base de datos y Credenciales:* Truncada la tabla `sessions` y reestablecida la contraseña de desarrollo de `administrador@administrador.com` a `123456`.
+    * *Backend (`HelpDeskReporteService.php`):* Flexibilizado `baseQuery()` con clausulados condicionales `when()` para rangos de fecha (`fechaIni` y `fechaFin`, solo `fechaIni`, solo `fechaFin`, o histórico completo sin fechas).
+    * *Frontend (`helpdeskReportesComponent.vue`):*
+      - Rango de fechas por defecto ampliado desde el primer día del mes en curso (`_firstDayStr`) hasta hoy (`_todayStr`).
+      - Selector de sede inicializado en `"Todas"` (`""`) para permitir visión global de indicadores.
+      - Eliminado el bloqueo `if (!filters.value.fechaIni || !filters.value.fechaFin) return;` en `buscar()`.
+  - **Verificaciones:** Prueba de login con credenciales de desarrollo y consumo de endpoints `indicadores` y `detallado` exitosa (HTTP 200 con payload completo) ✅ | Laravel Pint passed ✅ | ESLint passed (0 errores) ✅ | Compilación Vite completada en 1.53s (`npm run build`) ✅.
 - [x] **2026-10-29 — Diagnóstico y Resolución de Operatividad del Bot de Telegram en Producción (`.env.production`, Webhook vs Long-Polling):**
   - **Diagnóstico Forense:** Al pasar a producción, el bot (`@salud_tolima_bot`) no respondía a los mensajes ni comandos de los usuarios debido a:
     1. *Webhook no registrado / Error SSL en Telegram:* En la API de Telegram, el bot tenía `url: ""` (sin webhook registrado). Al intentar registrar el webhook a `https://lidiag.com/api/telegram/webhook`, la API de Telegram rechazaba la conexión con: `SSL error {error:0A000086:SSL routines::certificate verify failed}`. La causa es que el servidor web (`186.96.96.115`) entrega únicamente el certificado final de Sectigo sin la cadena intermedia de la Autoridad Certificadora (`fullchain`), lo cual OpenSSL rechaza estrictamente en conexiones server-to-server.

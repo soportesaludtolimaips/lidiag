@@ -403,9 +403,10 @@ const categorias = ref([]);
 const prioridades = ref([]);
 const _today = new Date();
 const _todayStr = `${_today.getFullYear()}-${String(_today.getMonth() + 1).padStart(2, "0")}-${String(_today.getDate()).padStart(2, "0")}`;
+const _firstDayStr = `${_today.getFullYear()}-${String(_today.getMonth() + 1).padStart(2, "0")}-01`;
 
 const filters = ref({
-    fechaIni: _todayStr,
+    fechaIni: _firstDayStr,
     fechaFin: _todayStr,
     sedeId: "",
     estadoId: "",
@@ -459,8 +460,9 @@ function limpiar() {
     const mm = String(today.getMonth() + 1).padStart(2, "0");
     const dd = String(today.getDate()).padStart(2, "0");
     const todayStr = `${yyyy}-${mm}-${dd}`;
+    const firstDayStr = `${yyyy}-${mm}-01`;
     filters.value = {
-        fechaIni: todayStr,
+        fechaIni: firstDayStr,
         fechaFin: todayStr,
         sedeId: "",
         estadoId: "",
@@ -469,12 +471,6 @@ function limpiar() {
         solicitanteId: "",
         tecnicoId: "",
     };
-    try {
-        const sedeActiva = sessionStorage.getItem("ST-sede");
-        if (sedeActiva) filters.value.sedeId = sedeActiva;
-    } catch (e) {
-        console.warn("No se pudo leer sede activa de sessionStorage", e);
-    }
     buscar();
 }
 
@@ -508,7 +504,6 @@ function initDT() {
 }
 
 async function buscar() {
-    if (!filters.value.fechaIni || !filters.value.fechaFin) return;
     if (loading.value) return;
     if (
         filters.value.fechaIni &&
@@ -576,13 +571,6 @@ useKeyboardShortcuts({
 });
 
 onMounted(async () => {
-    // sede activa por defecto
-    try {
-        const sedeActiva = sessionStorage.getItem("ST-sede");
-        if (sedeActiva) filters.value.sedeId = sedeActiva;
-    } catch (e) {
-        console.warn("No se pudo leer sede activa de sessionStorage", e);
-    }
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
     await cargarCatalogos();
     await buscar();

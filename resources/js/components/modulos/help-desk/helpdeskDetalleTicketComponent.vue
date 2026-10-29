@@ -102,7 +102,7 @@
                                 class="form-control custom-select"
                             >
                                 <option value="">Seleccione...</option>
-                                <option v-for="e in estados" :key="e.id" :value="e.id">
+                                <option v-for="e in estadosDisponibles" :key="e.id" :value="e.id">
                                     {{ e.nombre }}
                                 </option>
                             </select>
@@ -282,6 +282,7 @@ import { computed, onMounted, ref } from "vue";
 import DOMPurify from "dompurify";
 import { toastMessage, confirmAction } from "@/helpers/alerts.js";
 import { formatDateTime } from "@/helpers/dateUtils.js";
+import { isHtmlEffectivelyEmpty } from "@/helpers/wysiwyg.js";
 import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import { helpdesk } from "@/helpers/api.js";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
@@ -313,6 +314,13 @@ const reasignacion = ref({
 const estadoSeleccionadoNombre = computed(() => {
     const e = estados.value.find((x) => String(x.id) === String(accion.value.estado_id));
     return e ? e.nombre : "";
+});
+
+const estadosDisponibles = computed(() => {
+    const currentId = ticket.value?.estado_id ?? ticket.value?.estado?.id;
+    return (estados.value || []).filter(
+        (e) => e.activo && (!currentId || String(e.id) !== String(currentId))
+    );
 });
 
 function sanitize(dirty) {
@@ -393,6 +401,18 @@ async function comentar() {
 }
 async function cambiarEstado() {
     if (!accion.value.estado_id) return;
+    if (
+        estadoSeleccionadoNombre.value === "Resuelto" &&
+        isHtmlEffectivelyEmpty(accion.value.descripcion_solucion)
+    ) {
+        toastMessage({
+            heading: "Upss!!!",
+            text: "La descripción de la solución es obligatoria para marcar el ticket como Resuelto.",
+            icon: "warning",
+        });
+        return;
+    }
+
     const ok = await confirmAction({
         title: "Cambiar estado",
         text: "¿Estás seguro de aplicar este cambio de estado?",
@@ -409,10 +429,11 @@ async function cambiarEstado() {
         accion.value = { estado_id: "", comentario: "", descripcion_solucion: "" };
         toastMessage({ heading: "Listo", text: "Estado actualizado.", icon: "success" });
         await recargarTicket();
-    } catch (_error) {
+    } catch (error) {
+        const msg = error?.response?.data?.message || "No se pudo cambiar el estado.";
         toastMessage({
             heading: "Error",
-            text: "No se pudo cambiar el estado.",
+            text: msg,
             icon: "error",
         });
     } finally {

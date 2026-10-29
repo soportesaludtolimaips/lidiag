@@ -403,36 +403,43 @@ class HelpDeskTicketService extends BaseService
             return $this->error('Estado actual inválido', 500);
         }
 
-        $comentario = ! empty($data['comentario']) ? $this->sanitizeHtml($data['comentario']) : null;
+        if ((int) $actual->id === (int) $nuevo->id) {
+            return $this->error("El ticket ya se encuentra en estado '{$actual->nombre}'", 422);
+        }
 
         $transitionOk = $this->isValidTransition($actual->nombre, $nuevo->nombre);
         if (! $transitionOk) {
-            return $this->error('Transición de estado no permitida', 422);
+            return $this->error("Transición de estado no permitida de '{$actual->nombre}' a '{$nuevo->nombre}'", 422);
         }
 
-        if (in_array($nuevo->nombre, ['Resuelto', 'Cerrado'], true) && ! $comentario) {
-            return $this->error('Comentario obligatorio para este cambio de estado', 422);
-        }
+        $comentario = ! empty($data['comentario']) ? $this->sanitizeHtml($data['comentario']) : null;
+
         if ($nuevo->nombre === 'Resuelto') {
             $descSol = ! empty($data['descripcion_solucion']) ? $this->sanitizeHtml($data['descripcion_solucion']) : null;
             if (! $descSol) {
-                return $this->error('Descripción solución obligatoria al marcar Resuelto', 422);
+                return $this->error('La descripción de la solución es obligatoria al marcar Resuelto', 422);
             }
             $ticket->descripcion_solucion = $descSol;
             $ticket->quien_soluciona_id = $user->id;
             $ticket->resolved_at = now();
             $ticket->fechor_sol_quien_soluciona = now();
+            if (! $comentario) {
+                $comentario = $descSol;
+            }
         }
+
         if ($nuevo->nombre === 'Cerrado') {
             $ticket->closed_at = now();
+            if (! $comentario) {
+                $comentario = 'Ticket cerrado.';
+            }
         }
 
-        $ticket->estado_id = $nuevo->id;
-
-        if ($actual->nombre === 'Cerrado' && $nuevo->nombre === 'Abierto') {
+        if (in_array($nuevo->nombre, ['Abierto', 'En Progreso'], true)) {
             $ticket->closed_at = null;
         }
 
+        $ticket->estado_id = $nuevo->id;
         $ticket->save();
 
         HelpDeskTicketHistorial::create([
@@ -481,25 +488,40 @@ class HelpDeskTicketService extends BaseService
     }
 
     /**
-     * Valida si la transición de estado del ticket es permitida según el flujo configurado.
+     * Valida si la transición de estado del ticket es permitida según el flujo institucional.
+     *
+     * Flujo del proceso:
+     * 1. Normaliza los nombres de estado actual y nuevo a minúsculas sin espacios laterales.
+     * 2. Si ambos estados son idénticos, la transición no procede.
+     * 3. Evalúa si el estado destino está contemplado en el mapa de transiciones válidas:
+     *    - Abierto: puede pasar a 'En Progreso', 'Resuelto' o 'Cerrado'.
+     *    - En Progreso: puede pasar a 'Resuelto', 'Abierto' o 'Cerrado'.
+     *    - Resuelto: puede pasar a 'Cerrado', 'En Progreso' o 'Abierto'.
+     *    - Cerrado: puede reabrirse a 'Abierto' o 'En Progreso'.
      *
      * @param  string  $actual  Estado actual del ticket
      * @param  string  $nuevo  Estado al que se desea transicionar
      *
+     * @returns bool Verdadero si la transición es permitida
+     *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-10-13
+     * @date 2026-10-29
      */
     private function isValidTransition(string $actual, string $nuevo): bool
     {
-        $actual = mb_strtolower($actual);
-        $nuevo = mb_strtolower($nuevo);
+        $actual = mb_strtolower(trim($actual));
+        $nuevo = mb_strtolower(trim($nuevo));
+
+        if ($actual === $nuevo) {
+            return false;
+        }
 
         $map = [
-            'abierto' => ['en progreso'],
-            'en progreso' => ['resuelto'],
-            'resuelto' => ['cerrado'],
-            'cerrado' => ['abierto'],
+            'abierto' => ['en progreso', 'resuelto', 'cerrado'],
+            'en progreso' => ['abierto', 'resuelto', 'cerrado'],
+            'resuelto' => ['en progreso', 'abierto', 'cerrado'],
+            'cerrado' => ['abierto', 'en progreso'],
         ];
 
         return in_array($nuevo, $map[$actual] ?? [], true);

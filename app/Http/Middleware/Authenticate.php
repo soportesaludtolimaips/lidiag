@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use Illuminate\Auth\Middleware\Authenticate as Middleware;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -85,7 +86,7 @@ class Authenticate extends Middleware
                 'cookies' => collect($request->cookies->all())->keys()->toArray(),
             ]);
 
-            abort(response()->json(['message' => 'Unauthenticated.'], 401));
+            abort(new JsonResponse(['message' => 'Unauthenticated.'], 401));
         }
 
         parent::unauthenticated($request, $guards);

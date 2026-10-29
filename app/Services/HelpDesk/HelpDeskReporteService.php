@@ -75,7 +75,15 @@ class HelpDeskReporteService extends BaseService
             ->leftJoin('users as u_sol', 'u_sol.id', '=', 't.quien_registra_id')
             ->leftJoin('users as u_asg', 'u_asg.id', '=', 't.quien_atiende_id')
             ->whereNull('t.deleted_at')
-            ->whereBetween(DB::raw('DATE(t.created_at)'), [$filters['fechaIni'], $filters['fechaFin']])
+            ->when($filters['fechaIni'] && $filters['fechaFin'], function ($q) use ($filters) {
+                $q->whereBetween(DB::raw('DATE(t.created_at)'), [$filters['fechaIni'], $filters['fechaFin']]);
+            })
+            ->when($filters['fechaIni'] && ! $filters['fechaFin'], function ($q) use ($filters) {
+                $q->whereDate('t.created_at', '>=', $filters['fechaIni']);
+            })
+            ->when(! $filters['fechaIni'] && $filters['fechaFin'], function ($q) use ($filters) {
+                $q->whereDate('t.created_at', '<=', $filters['fechaFin']);
+            })
             ->when($filters['sedeId'], fn ($q) => $q->where('t.sedes_id', (int) $filters['sedeId']))
             ->when($filters['estadoId'], fn ($q) => $q->where('t.estado_id', (int) $filters['estadoId']))
             ->when($filters['categoriaId'], fn ($q) => $q->where('t.categoria_id', (int) $filters['categoriaId']))
