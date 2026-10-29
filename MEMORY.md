@@ -37,6 +37,12 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-29 — Simplificación de Campo Opcional 'Reportar al Email' (`AsignarEstudioComponent.vue`):**
+  - **Diagnóstico:** El campo "Reportar al Email" contaba con una propiedad computada `statusEmailReportar` y una validación bloqueante en `guardarRegistro()`. Dado que se trata de un campo estrictamente opcional para la atención asistencial, dicha validación y clases reactivas de error eran innecesarias.
+  - **Solución Implementada:**
+    * *Frontend (`AsignarEstudioComponent.vue`):* Eliminada la constante computada `statusEmailReportar`, el feedback visual de error en el `<input>` y la validación en `guardarRegistro()`. Se mantiene únicamente el saneamiento seguro en el payload (`email_reportar: cleanEmail`).
+  - **Verificaciones:** Prettier aplicado ✅ | ESLint passed (0 errores) ✅ | Compilación Vite completada en 1.31s (`npm run build`) ✅.
+
 - [x] **2026-10-29 — Corrección de Autenticación y Flexibilización de Filtros en Dashboard HelpDesk (`HelpDeskReporteService.php`, `helpdeskReportesComponent.vue`, Restauración de BD):**
   - **Diagnóstico:**
     1. Al abrir `https://lidiag.test/helpdesk-reportes`, no se cargaba información en el dashboard. La causa principal fue que tras la importación del volcado de base de datos desde producción (a las 11:08 AM):

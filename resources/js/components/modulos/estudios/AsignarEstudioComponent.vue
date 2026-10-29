@@ -455,16 +455,8 @@
                                                     name="email_reportar"
                                                     v-model="registro.email_reportar"
                                                     class="form-control"
-                                                    :class="getInputClass(statusEmailReportar)"
                                                     placeholder="correo@ejemplo.com"
-                                                    @blur="touch('email_reportar')"
                                                 />
-                                                <div
-                                                    class="invalid-feedback d-block"
-                                                    v-if="statusEmailReportar.isInvalid"
-                                                >
-                                                    {{ statusEmailReportar.message }}
-                                                </div>
                                             </div>
                                         </div>
                                         <div class="col-md-12">
@@ -1150,14 +1142,6 @@ const statusStudyDatetime = computed(() =>
     )
 );
 
-const statusEmailReportar = computed(() => {
-    const val = registro.value.email_reportar;
-    if (!val || val === "null" || val === "undefined" || String(val).trim() === "") {
-        return { isInvalid: false, isValid: false, message: "" };
-    }
-    return getFieldStatus("email_reportar", String(val).trim(), [validators.email], errores.value);
-});
-
 const statusPrioridadId = computed(() =>
     getFieldStatus(
         "prioridad_id",
@@ -1398,17 +1382,6 @@ async function guardarRegistro() {
         toastMessage({
             heading: "Formulario incompleto",
             text: "Por favor complete o corrija los campos requeridos del estudio antes de continuar.",
-            icon: "warning",
-        });
-
-        loadingGuardar.value = false;
-        return;
-    }
-
-    if (statusEmailReportar.value.isInvalid) {
-        toastMessage({
-            heading: "Correo inválido",
-            text: "El correo ingresado en 'Reportar al Email' no tiene un formato válido.",
             icon: "warning",
         });
 
@@ -1675,7 +1648,7 @@ async function mostrarRegistro(data = {}, index) {
     }
 
     limpiarFormulario();
-    registro.value.medico_id = "";
+    //registro.value.medico_id = "";
 
     tituloModal.value = "Agendar al paciente: " + data.pat_name;
     registro.value.study_pk = data.study_pk;
@@ -1687,8 +1660,7 @@ async function mostrarRegistro(data = {}, index) {
     registro.value.mods_in_study = data.mods_in_study;
     registro.value.email = "";
     const emailRepor = sessionStorage.getItem("ST-email_repor");
-    registro.value.email_reportar =
-        emailRepor && emailRepor !== "null" && emailRepor !== "undefined" ? emailRepor.trim() : "";
+    registro.value.email_reportar = emailRepor;
     registro.value.num_docu = data.pat_id;
     registro.value.nombres = data.pat_name;
     registro.value.sexo = data.pat_sex;
