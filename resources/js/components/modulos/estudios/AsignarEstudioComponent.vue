@@ -1814,7 +1814,7 @@ function abrirModal() {
  */
 function nuevoRegistro() {
     limpiarFormulario();
-    registro.value.medico_id = "";
+    //registro.value.medico_id = "";
     tituloModal.value = "Nuevo registro de estudio";
     abrirModal();
 }
@@ -1864,8 +1864,8 @@ function limpiarFormulario() {
     registro.value.diagnosticosEstudio.splice(0, registro.value.diagnosticosEstudio.length);
     registro.value.productosEstudio.splice(0, registro.value.productosEstudio.length);
 
-    registro.value.medico_id = "";
-    registro.value.prioridad_id = "";
+    //registro.value.medico_id = "";
+    //registro.value.prioridad_id = "";
     registro.value.atencion_id = null;
     interfaceAtenciones.value = [];
     interfaceAtencionSeleccionada.value = null;

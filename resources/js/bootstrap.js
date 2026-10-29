@@ -34,7 +34,7 @@ if (metaToken && metaToken.content) {
 refreshCsrfToken();
 
 let _redirectingToLogin = false;
-let _verifyingSession = false;
+let _verifyingPromise = null;
 
 /**
  * Verifica si la sesión del usuario ha expirado.
@@ -46,18 +46,22 @@ let _verifyingSession = false;
  * @date 2024-04-04
  */
 async function confirmSessionExpired() {
-    if (_verifyingSession) return false;
-    _verifyingSession = true;
-    try {
-        const check = await axios.get("/api/debug-session", {
-            headers: { "X-Verify-Session": "1" },
-        });
-        return check.data?.auth_check === false;
-    } catch {
-        return true;
-    } finally {
-        _verifyingSession = false;
-    }
+    if (_verifyingPromise) return _verifyingPromise;
+
+    _verifyingPromise = (async () => {
+        try {
+            const check = await axios.get("/api/debug-session", {
+                headers: { "X-Verify-Session": "1" },
+            });
+            return check.data?.auth_check === false;
+        } catch {
+            return true;
+        } finally {
+            _verifyingPromise = null;
+        }
+    })();
+
+    return _verifyingPromise;
 }
 
 /**
@@ -72,6 +76,9 @@ async function confirmSessionExpired() {
 function redirectToLogin() {
     if (_redirectingToLogin) return;
     _redirectingToLogin = true;
+    import("@/composables/useToast.js").then(({ useToast }) => {
+        useToast().warning("Tu sesión expiró. Redirigiendo al login...", "Sesión expirada");
+    });
     const toast = window.$?.toast;
     if (toast) {
         toast({
@@ -86,7 +93,7 @@ function redirectToLogin() {
     }
     setTimeout(function () {
         window.location.href = "/login";
-    }, 3000);
+    }, 1500);
 }
 
 window.axios.interceptors.response.use(

@@ -37,6 +37,15 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-29 — Deduplicación de Verificación de Sesión Expirada y Redirección al Login (`bootstrap.js`):**
+  - **Diagnóstico:** Al expirar la sesión del navegador, peticiones paralelas (como `cargarCatalogos` en HelpDesk) devolvían HTTP 401. En `bootstrap.js`, `confirmSessionExpired()` evaluaba `if (_verifyingSession) return false;`, de modo que cuando la primera petición iniciaba la comprobación, las peticiones concurrentes recibían `expired = false` creyendo erróneamente que la sesión aún era válida y abortando la redirección al login, dejando al usuario en la vista con errores 401 en la consola.
+  - **Solución Implementada:** Se refactorizó `confirmSessionExpired()` para compartir la misma Promise en vuelo (`_verifyingPromise`), resolviendo consistentemente `true` para todas las peticiones concurrentes cuando la sesión expira y garantizando la invocación de `redirectToLogin()` con toast informativo y redirección fluida a `/login`.
+  - **Verificaciones:** ESLint passed (0 errores) ✅ | Compilación Vite completada en 1.19s (`npm run build`) ✅.
+- [x] **2026-10-29 — Preservación de Médico y Prioridad al Limpiar Formulario en Asignar Estudios (`AsignarEstudioComponent.vue`):**
+  - **Diagnóstico y Necesidad:** Al registrar múltiples estudios consecutivos, el formulario borraba la selección de médico y prioridad (`registro.value.medico_id = ""` y `registro.value.prioridad_id = ""`), obligando al usuario a volver a seleccionar al especialista y nivel de urgencia para cada estudio asignado.
+  - **Solución Implementada:** Se omitió el reseteo de `medico_id` y `prioridad_id` en `nuevoRegistro()` y `limpiarFormulario()`, preservando la selección para flujos de asignación ágil continua.
+  - **Verificaciones:** Formateo con Prettier ✅ | ESLint passed (0 errores) ✅ | Compilación Vite completada en 1.57s (`npm run build`) ✅.
+
 - [x] **2026-10-29 — Inclusión Automática al Seleccionar Productos y Diagnósticos en Asignar Estudios (`AsignarEstudioComponent.vue`):**
   - **Diagnóstico:** Al seleccionar un producto o diagnóstico en los selectores Select2, la opción únicamente actualizaba la variable reactiva local (`productoSelecciondo` o `diagnosticoSelecciondo`) obligando al usuario a presionar manualmente el botón "Agregar".
   - **Solución Implementada:**
