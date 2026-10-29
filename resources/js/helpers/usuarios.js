@@ -67,7 +67,7 @@ export async function listarUsuariosYSedes(context, options = {}) {
 
     try {
         const res = await axios.get(
-            `/api/user.listarUsuarios/Administrador,Administrativo,Transcriptor/${moduloId}?solo_activos=1`
+            `/api/user.listarUsuarios/Administrador,Administrativo,Transcriptor,Transcriptor RX/${moduloId}?solo_activos=1`
         );
         const data = Array.isArray(res?.data?.data)
             ? res.data.data
@@ -79,7 +79,7 @@ export async function listarUsuariosYSedes(context, options = {}) {
             context.quienes_asignaron = data;
         } else {
             const fallbackRes = await axios.get(
-                `/api/user.listarUsuarios/Transcriptor/${moduloId}?solo_activos=1`
+                `/api/user.listarUsuarios/Transcriptor,Transcriptor RX/${moduloId}?solo_activos=1`
             );
             context.quienes_asignaron = Array.isArray(fallbackRes?.data?.data)
                 ? fallbackRes.data.data
@@ -90,7 +90,7 @@ export async function listarUsuariosYSedes(context, options = {}) {
     } catch (_) {
         try {
             const fallbackRes = await axios.get(
-                `/api/user.listarUsuarios/Transcriptor/${moduloId}?solo_activos=1`
+                `/api/user.listarUsuarios/Transcriptor,Transcriptor RX/${moduloId}?solo_activos=1`
             );
             context.quienes_asignaron = Array.isArray(fallbackRes?.data?.data)
                 ? fallbackRes.data.data

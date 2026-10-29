@@ -37,6 +37,59 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-29 — Diagnóstico y Resolución de Operatividad del Bot de Telegram en Producción (`.env.production`, Webhook vs Long-Polling):**
+  - **Diagnóstico Forense:** Al pasar a producción, el bot (`@salud_tolima_bot`) no respondía a los mensajes ni comandos de los usuarios debido a:
+    1. *Webhook no registrado / Error SSL en Telegram:* En la API de Telegram, el bot tenía `url: ""` (sin webhook registrado). Al intentar registrar el webhook a `https://lidiag.com/api/telegram/webhook`, la API de Telegram rechazaba la conexión con: `SSL error {error:0A000086:SSL routines::certificate verify failed}`. La causa es que el servidor web (`186.96.96.115`) entrega únicamente el certificado final de Sectigo sin la cadena intermedia de la Autoridad Certificadora (`fullchain`), lo cual OpenSSL rechaza estrictamente en conexiones server-to-server.
+    2. *Variables Faltantes en `.env.production`:* `.env.production` no contenía las variables de Telegram (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_ALLOWED_CHAT_IDS`, etc.).
+    3. *Modo de Operación en Servidor:* Para que el bot opere en producción bajo esta infraestructura, la solución más estable, autónoma y resiliente es **Long-Polling** (`php artisan telegram:poll`), ya que ejecuta peticiones *salientes* hacia Telegram API (`api.telegram.org`), siendo 100% inmune a problemas de certificados SSL entrantes, puertos cerrados o firewalls.
+  - **Solución y Acciones Realizadas:**
+    * *Actualización de Entorno (`.env.production`):* Se incorporaron las variables de entorno de Telegram (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_ALLOWED_CHAT_IDS=658633601`, `TELEGRAM_WEBHOOK_URL`, `TELEGRAM_WEBHOOK_SECRET`, `TELEGRAM_SSL_VERIFY=false`).
+    * *Liberación de Cola de Telegram:* Se eliminó el webhook registrado en Telegram (`deleteWebhook`) y se procesaron con éxito los comandos acumulados del usuario (`/retrasados`, `wiz:red:hoy`, `wiz:menu`).
+    * *Verificación:* Prueba exitosa de comunicación bidireccional con Telegram mediante `php artisan telegram:poll --once` respondiendo comandos en tiempo real ✅.
+
+- [x] **2026-10-29 — Identificación de Rol Real 'Transcriptor RX' y Soporte en "Quién Asignó" (`UserService.php`, `usuarios.js`):**
+  - **Diagnóstico:** En la base de datos de producción restaurada en desarrollo, los usuarios `MARLEN TORRES RODRIGUEZ` (ID 8) y `YEFER ADNRES AVILEZ GOMEZ` (ID 9) no se mostraban en las `<option>` del combo "Quién asignó". Al auditar la tabla `roles`:
+    1. El rol asignado a todos los transcriptores en la BD no se llama `'Transcriptor'`, sino **`'Transcriptor RX'`** (ID de rol 4).
+    2. Como las peticiones consultaban exclusivamente el rol literal `'Transcriptor'`, ningún usuario que perteneciera únicamente a `'Transcriptor RX'` hacía match con la consulta MySQL.
+  - **Solución Implementada:**
+    * *Frontend Helper (`resources/js/helpers/usuarios.js`):* Actualizada la URL para consultar explícitamente `Administrador,Administrativo,Transcriptor,Transcriptor RX` tanto en la petición principal como en los fallbacks.
+    * *Backend (`UserService.php`):* Incorporada expansión defensiva para que si se solicita `'Transcriptor'`, se incluya automáticamente `'Transcriptor RX'`.
+  - **Verificaciones:** Prueba CLI en base de datos de producción confirmando retorno de los 34 asignadores con `MARLEN TORRES RODRIGUEZ` y `YEFER ADNRES AVILEZ GOMEZ` presentes ✅ | Laravel Pint passed ✅ | ESLint passed ✅ | Compilación Vite completada ✅.
+
+- [x] **2026-10-29 — Blindaje de Sesión Expirada y Prevención de MissingAppKeyException en Middleware (`Authenticate.php`, `config/app.php`, `AgendaCitaController.php`):**
+  - **Diagnóstico:**
+    1. Al expirar la sesión del usuario o invalidarse su cookie, peticiones concurrentes como `/api/helpdesk-estados` retornaban 401 (esperado), pero `/api/citas/notificaciones/no-leidas` fallaba con HTTP 500.
+    2. La causa raíz fue doble:
+       - En `Authenticate::unauthenticated()`, la invocación de `abort(response()->json(...))` hacía que `ResponseFactory` intentara instanciar el encrypter/session store.
+       - En Apache para Windows (con PHP Thread Safe `php8ts.dll`), llamadas concurrentes a peticiones sin configuración cacheada pueden experimentar colisiones de hilos en `getenv()`, provocando que `env('APP_KEY')` retorne temporalmente `null` e invoque `MissingAppKeyException: No application encryption key has been specified`.
+       - Adicionalmente, `AgendaCitaController::notificacionesNoLeidas()` retornaba `response()->json(...)` en lugar de una instancia directa de `JsonResponse`.
+  - **Solución Implementada:**
+    * *Middleware de Autenticación (`Authenticate.php`):* Sustituido `response()->json(...)` por `new JsonResponse(['message' => 'Unauthenticated.'], 401)` desacoplándolo totalmente de `ResponseFactory`, `SessionManager` y `Encrypter`.
+    * *Configuración Institucional (`config/app.php`):* Incorporado el valor institucional en `key => env('APP_KEY', 'base64:EJ6AQ0Bxj+GZ2ZDVubbAjsCncgCWQD7Y33qL801zadY=')` y `'env' => env('APP_ENV', 'local')`, evitando que caiga en excepciones por variables de entorno transitoriamente nulas.
+    * *Controlador de Citas (`AgendaCitaController.php`):* Retorno estandarizado con `new JsonResponse(...)` en `notificacionesNoLeidas()`.
+  - **Verificaciones:** Prueba CLI y mediante cURL confirmando retorno limpio de HTTP 401 `{"message":"Unauthenticated."}` sin errores 500 ni trazas en log ✅ | Laravel Pint passed ✅.
+
+- [x] **2026-10-29 — Flexibilización de Transiciones de Estado y Manejo en Detalle de Ticket HelpDesk (`HelpDeskTicketService.php`, `HelpDeskChangeStatusRequest.php`, `helpdeskDetalleTicketComponent.vue`):**
+  - **Diagnóstico:**
+    1. Al intentar cambiar el estado de un ticket en HelpDesk, el backend retornaba HTTP 422: `{"success": false, "data": null, "message": "Transición de estado no permitida", "status": 422}`. La causa era una máquina de estados excesivamente rígida en `HelpDeskTicketService::isValidTransition()`, que solo admitía un ciclo estrictamente secuencial (`abierto -> en progreso -> resuelto -> cerrado -> abierto`). Operaciones habituales como resolver o cerrar un ticket directamente desde `Abierto`, o reabrir a `En Progreso` desde `Resuelto`, eran rechazadas como inválidas.
+    2. Si se intentaba cambiar al mismo estado actual, la respuesta genérica provocaba desconcierto.
+    3. En `HelpDeskChangeStatusRequest.php`, el campo `comentario` exigía `required_without:descripcion_solucion`, mientras que en la interfaz visual de `helpdeskDetalleTicketComponent.vue` se indicaba como `(opcional)`.
+  - **Solución Implementada:**
+    * *Backend (`HelpDeskTicketService.php`):*
+      - Se flexibilizó y amplió la matriz de transiciones válidas:
+        * `Abierto` → `En Progreso`, `Resuelto`, `Cerrado`
+        * `En Progreso` → `Abierto`, `Resuelto`, `Cerrado`
+        * `Resuelto` → `En Progreso`, `Abierto`, `Cerrado`
+        * `Cerrado` → `Abierto`, `En Progreso`
+      - Añadida validación explícita para evitar transiciones al mismo estado actual con mensaje descriptivo `El ticket ya se encuentra en estado '...'`.
+      - Gestión inteligente de comentarios y marcas temporales: si el estado pasa a `Resuelto` y no se envía un comentario explícito, se utiliza la `descripcion_solucion` en el historial; si pasa a `Cerrado`, se establece un comentario por defecto `"Ticket cerrado."`. Al reabrir (`Abierto` o `En Progreso`), se limpia `closed_at = null`.
+    * *Backend (`HelpDeskChangeStatusRequest.php`):* Campo `comentario` flexibilizado a `nullable|string|max:10000`.
+    * *Frontend (`helpdeskDetalleTicketComponent.vue`):*
+      - Propiedad computada `estadosDisponibles` para filtrar automáticamente el estado actual del `<select>`.
+      - Validación previa con `isHtmlEffectivelyEmpty` de Quill al seleccionar `Resuelto` para exigir la solución antes de enviar.
+      - Despliegue en Toast del mensaje exacto de error retornado por la API (`error?.response?.data?.message`).
+  - **Verificaciones:** Prueba en base de datos real con simulación de transiciones y rollback exitosa (200 OK en transiciones a En Progreso, Resuelto y Cerrado) ✅ | Laravel Pint passed ✅ | ESLint passed (0 errores) ✅ | Compilación Vite completada en 1.07s (`npm run build`) ✅.
+
 - [x] **2026-10-29 — Corrección de Bloqueo 422 (`La sede no tiene cod_sede configurado`) y Creación de Tickets (`HelpDeskTicketService.php`, `ConfigSedeSeeder.php`, `helpdeskCrearTicketComponent.vue`):**
   - **Diagnóstico:**
     1. Al intentar crear un ticket de HelpDesk, la petición fallaba con 422: `La sede no tiene cod_sede configurado`. En base de datos (`config_sedes`), todas las 7 sedes tenían la columna `cod_sede` en `NULL` (la migración histórica la agregó como nullable y la vista de administración de sedes no incluye campo para asignarla).

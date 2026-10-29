@@ -82,12 +82,16 @@ class UserService extends BaseService
             $query->where('users.estado', 1);
         }
 
-        if (str_contains($roleName, ',')) {
-            $roles = array_filter(array_map('trim', explode(',', $roleName)));
-            $query->whereHas('roles', fn ($q) => $q->whereIn('name', $roles));
-        } else {
-            $query->whereHas('roles', fn ($q) => $q->where('name', trim($roleName)));
+        $roles = str_contains($roleName, ',')
+            ? array_filter(array_map('trim', explode(',', $roleName)))
+            : [trim($roleName)];
+
+        // En la base de datos el rol puede llamarse "Transcriptor" o "Transcriptor RX"
+        if (in_array('Transcriptor', $roles, true) && ! in_array('Transcriptor RX', $roles, true)) {
+            $roles[] = 'Transcriptor RX';
         }
+
+        $query->whereHas('roles', fn ($q) => $q->whereIn('name', $roles));
 
         $users = $query->distinct()->get();
 
