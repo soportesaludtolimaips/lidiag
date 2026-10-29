@@ -86,6 +86,7 @@ storage/app_lidiag/src-tauri/target/
 # Credenciales y archivos de estado en app_lidiag
 storage/app_lidiag/**/config.json
 storage/app_lidiag/**/last_alert_state.json
+storage/app_lidiag/telegram_authorized_chats.json
 storage/app_lidiag/**/*.log*
 storage/app_lidiag/**/*.bak*
 storage/app_lidiag/**/*.lock

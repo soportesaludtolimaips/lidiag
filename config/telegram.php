@@ -24,6 +24,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Clave Institucional de Auto-Autorización (PIN)
+    |--------------------------------------------------------------------------
+    |
+    | Clave institucional que permite a médicos, directores y coordinadores
+    | autorizar su cuenta de Telegram de forma autónoma con solo escribirla.
+    |
+    */
+    "access_pin" => env("TELEGRAM_ACCESS_PIN", "Lidiag2026*"),
+
+    /*
+    |--------------------------------------------------------------------------
     | Configuración de Webhook
     |--------------------------------------------------------------------------
     |

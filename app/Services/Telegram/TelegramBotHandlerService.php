@@ -90,6 +90,7 @@ class TelegramBotHandlerService
 
         $message = $update["message"];
         $chat = $message["chat"] ?? [];
+        $from = $message["from"] ?? [];
         $chatId = (string) ($chat["id"] ?? "");
         $text = trim($message["text"] ?? "");
 
@@ -97,9 +98,9 @@ class TelegramBotHandlerService
             return;
         }
 
-        // Verificación de lista blanca
+        // Verificación de lista blanca / Auto-autorización mediante PIN
         if (! $this->isChatAuthorized($chatId)) {
-            $this->sendUnauthorizedMessage($chatId);
+            $this->handleUnauthorizedMessage($chatId, $text, $from);
 
             return;
         }
@@ -111,48 +112,191 @@ class TelegramBotHandlerService
      * Valida si un Chat ID se encuentra autorizado para interactuar con el bot.
      *
      * Flujo del proceso:
-     * 1. Obtiene la lista permitida desde config('telegram.allowed_chat_ids').
-     * 2. Si la lista está vacía, permite el acceso (o deniega según política).
-     * 3. Compara de forma estricta como string la existencia del Chat ID.
+     * 1. Consulta la lista de chats persistidos en el almacenamiento local JSON.
+     * 2. Si el Chat ID ya fue auto-autorizado con PIN, permite el acceso.
+     * 3. Consulta la lista blanca estática configurada en config('telegram.allowed_chat_ids').
+     * 4. Si la lista estática contiene el Chat ID, permite el acceso.
+     * 5. Si no hay lista estática ni PIN configurado, permite el acceso por defecto.
      *
      * @param  string  $chatId  Identificador del chat a verificar.
+     * @return bool Verdadero si el chat se encuentra autorizado.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-10-19
+     * @date 2026-10-29
      */
     protected function isChatAuthorized(string $chatId): bool
     {
-        $allowed = config("telegram.allowed_chat_ids", []);
-
-        if (empty($allowed)) {
+        $persisted = $this->getPersistedAuthorizedChats();
+        if (in_array($chatId, array_map("strval", array_keys($persisted)), true)) {
             return true;
         }
 
-        return in_array($chatId, array_map("strval", $allowed), true);
+        $allowed = config("telegram.allowed_chat_ids", []);
+        if (! empty($allowed) && in_array($chatId, array_map("strval", $allowed), true)) {
+            return true;
+        }
+
+        if (empty($allowed) && empty(config("telegram.access_pin"))) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
-     * Envía un mensaje informativo de acceso denegado indicando el Chat ID del usuario.
+     * Obtiene el listado de chats de Telegram autorizados persistidos en disco.
      *
      * Flujo del proceso:
-     * 1. Construye mensaje explicativo con el identificador del usuario.
-     * 2. Envía el mensaje mediante TelegramService.
+     * 1. Verifica si existe el archivo telegram_authorized_chats.json.
+     * 2. Decodifica el JSON como arreglo asociativo.
+     * 3. Retorna la estructura de chats autorizados.
      *
-     * @param  string  $chatId  Identificador del remitente no autorizado.
+     * @return array<string, array> Mapa de chat_id => metadata.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-10-19
+     * @date 2026-10-29
      */
-    protected function sendUnauthorizedMessage(string $chatId): void
+    public function getPersistedAuthorizedChats(): array
     {
-        $text = "⛔ <b>Acceso Restringido — LIDiag</b>\n\n"
-            ."Tu identificador de Telegram es: <code>{$chatId}</code>\n"
-            ."Actualmente no te encuentras registrado en la lista autorizada para consultar reportes asistenciales o administrativos de LIDiag.\n\n"
-            ."<i>Por favor solicita al administrador del sistema que habilite tu Chat ID.</i>";
+        $filePath = storage_path("app_lidiag/telegram_authorized_chats.json");
+        if (! file_exists($filePath)) {
+            return [];
+        }
 
-        $this->telegramService->sendMessage($chatId, $text);
+        $content = file_get_contents($filePath);
+        $decoded = json_decode($content, true);
+
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    /**
+     * Persiste un Chat ID autorizado en el almacenamiento local JSON.
+     *
+     * Flujo del proceso:
+     * 1. Crea el directorio app_lidiag si no existe.
+     * 2. Lee los registros existentes y agrega el nuevo chat_id con metadatos de usuario y fecha.
+     * 3. Guarda el archivo con bloqueo exclusivo.
+     *
+     * @param  string  $chatId  Identificador del chat de Telegram.
+     * @param  array  $from  Datos del remitente (first_name, username, etc.).
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-29
+     */
+    public function persistAuthorizedChat(string $chatId, array $from = []): void
+    {
+        $dir = storage_path("app_lidiag");
+        if (! is_dir($dir)) {
+            @mkdir($dir, 0755, true);
+        }
+
+        $filePath = $dir."/telegram_authorized_chats.json";
+        $current = $this->getPersistedAuthorizedChats();
+
+        $current[$chatId] = [
+            "authorized_at" => now()->format("Y-m-d H:i:s"),
+            "first_name" => $from["first_name"] ?? "Usuario",
+            "username" => $from["username"] ?? null,
+        ];
+
+        file_put_contents($filePath, json_encode($current, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+    }
+
+    /**
+     * Revoca la autorización de un Chat ID en el almacenamiento persistente.
+     *
+     * Flujo del proceso:
+     * 1. Lee los chats autorizados y elimina la entrada correspondiente.
+     * 2. Guarda el archivo actualizado.
+     *
+     * @param  string  $chatId  Identificador del chat a revocar.
+     * @return bool Verdadero si el chat existía y fue removido.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-29
+     */
+    public function revokeAuthorizedChat(string $chatId): bool
+    {
+        $dir = storage_path("app_lidiag");
+        $filePath = $dir."/telegram_authorized_chats.json";
+        $current = $this->getPersistedAuthorizedChats();
+
+        if (! isset($current[$chatId])) {
+            return false;
+        }
+
+        unset($current[$chatId]);
+        file_put_contents($filePath, json_encode($current, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+
+        return true;
+    }
+
+    /**
+     * Procesa mensajes de usuarios no autorizados, validando PIN institucional o solicitándolo.
+     *
+     * Flujo del proceso:
+     * 1. Limpia el texto recibido e identifica si el remitente envió la clave o comando de acceso.
+     * 2. Si el texto coincide con TELEGRAM_ACCESS_PIN, auto-autoriza el chat y envía bienvenida.
+     * 3. Si no coincide, responde solicitando la clave institucional con instrucciones amigables.
+     *
+     * @param  string  $chatId  Identificador del chat de Telegram.
+     * @param  string  $text  Mensaje enviado por el usuario.
+     * @param  array  $from  Datos de perfil del usuario en Telegram.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-29
+     */
+    protected function handleUnauthorizedMessage(string $chatId, string $text, array $from): void
+    {
+        $accessPin = (string) config("telegram.access_pin", "Lidiag2026*");
+        $cleanInput = trim($text);
+
+        // Si enviaron /acceso <PIN>, /pin <PIN>, /clave <PIN> o /login <PIN>
+        if (str_starts_with($cleanInput, "/")) {
+            $parts = preg_split("/\s+/", $cleanInput);
+            if (in_array(strtolower($parts[0]), ["/acceso", "/pin", "/clave", "/login"], true) && isset($parts[1])) {
+                $cleanInput = trim($parts[1]);
+            }
+        }
+
+        // Validación de coincidencia exacta de PIN
+        if ($accessPin !== "" && hash_equals($accessPin, $cleanInput)) {
+            $this->persistAuthorizedChat($chatId, $from);
+
+            $this->telegramService->sendMessage(
+                $chatId,
+                "✅ <b>¡Acceso Autorizado Exitosamente!</b>\n\n"
+                ."Tu cuenta ha sido vinculada y habilitada para consultar los reportes asistenciales y administrativos de LIDiag.\n\n"
+                ."<i>¡Bienvenido al sistema!</i>"
+            );
+
+            $this->sendTipoReporteSelectionKeyboard($chatId);
+
+            return;
+        }
+
+        // Si no coincide la clave, enviar solicitud descriptiva
+        $firstName = htmlspecialchars($from["first_name"] ?? "Colega", ENT_QUOTES, "UTF-8");
+        $isFirstInteraction = in_array(strtolower($cleanInput), ["/start", "start", "/help", "/ayuda", "hola"], true);
+
+        if ($isFirstInteraction) {
+            $textMsg = "🔒 <b>Acceso Institucional Requerido — LIDiag</b>\n\n"
+                ."Hola <b>{$firstName}</b>. Para consultar la producción médica, estudios represados y estadísticas de la red hospitalaria, por favor escribe la <b>Clave de Acceso Institucional</b>:\n\n"
+                ."👉 <i>Escribe la clave directamente como respuesta en este chat.</i>\n\n"
+                ."<small>Tu Identificador: <code>{$chatId}</code></small>";
+        } else {
+            $textMsg = "❌ <b>Clave de acceso incorrecta</b>\n\n"
+                ."La clave ingresada no es válida. Por favor verifica e intenta nuevamente.\n\n"
+                ."👉 <i>Escribe la Clave Institucional en este chat:</i>\n\n"
+                ."<small>Si no la conoces, solicítala al Administrador de LIDiag. (Tu ID: <code>{$chatId}</code>)</small>";
+        }
+
+        $this->telegramService->sendMessage($chatId, $textMsg);
     }
 
     /**
@@ -230,6 +374,24 @@ class TelegramBotHandlerService
 
             case "sedes":
                 $this->sendSedesMessage($chatId);
+                break;
+
+            case "usuarios":
+            case "usuarios_telegram":
+                $this->sendUsuariosAutorizadosMessage($chatId);
+                break;
+
+            case "revocar":
+                $targetId = $args[0] ?? "";
+                if (! $targetId) {
+                    $this->telegramService->sendMessage($chatId, "⚠️ Uso: <code>/revocar &lt;chat_id&gt;</code>");
+                    break;
+                }
+                if ($this->revokeAuthorizedChat($targetId)) {
+                    $this->telegramService->sendMessage($chatId, "✅ Chat ID <code>{$targetId}</code> revocado exitosamente.");
+                } else {
+                    $this->telegramService->sendMessage($chatId, "ℹ️ El Chat ID <code>{$targetId}</code> no se encontraba en la lista auto-autorizada.");
+                }
                 break;
 
             case "produccion":
@@ -1663,5 +1825,51 @@ class TelegramBotHandlerService
         $lineas[] = "💡 <i>Consultado directamente en base de datos local PACS (MySQL).</i>";
 
         return implode("\n", $lineas);
+    }
+
+    /**
+     * Envía lista de usuarios de Telegram autorizados en el sistema.
+     *
+     * Flujo del proceso:
+     * 1. Consulta la lista de chats estáticos y persistidos.
+     * 2. Da formato legible con fecha de alta y nombre de usuario.
+     * 3. Despacha el mensaje al solicitante.
+     *
+     * @param  string  $chatId  Identificador del chat solicitante.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-29
+     */
+    protected function sendUsuariosAutorizadosMessage(string $chatId): void
+    {
+        $static = config("telegram.allowed_chat_ids", []);
+        $persisted = $this->getPersistedAuthorizedChats();
+
+        $text = "👥 <b>USUARIOS AUTORIZADOS EN TELEGRAM</b>\n\n";
+
+        if (! empty($static)) {
+            $text .= "<b>📌 Lista Blanca Estática (.env):</b>\n";
+            foreach ($static as $id) {
+                $text .= "• <code>{$id}</code> (Administrador)\n";
+            }
+            $text .= "\n";
+        }
+
+        $text .= "<b>🔑 Auto-autorizados mediante PIN:</b>\n";
+        if (empty($persisted)) {
+            $text .= "<i>(Ningún usuario registrado aún por PIN)</i>\n";
+        } else {
+            foreach ($persisted as $id => $data) {
+                $name = $data["first_name"] ?? "Usuario";
+                $user = isset($data["username"]) && $data["username"] ? " (@{$data["username"]})" : "";
+                $date = $data["authorized_at"] ?? "";
+                $text .= "• <code>{$id}</code> — <b>{$name}</b>{$user} [{$date}]\n";
+            }
+        }
+
+        $text .= "\n💡 <i>Para revocar a alguien: <code>/revocar &lt;chat_id&gt;</code></i>";
+
+        $this->telegramService->sendMessage($chatId, $text);
     }
 }

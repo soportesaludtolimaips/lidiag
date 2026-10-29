@@ -37,6 +37,15 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-29 — Sistema de Auto-Autorización de Usuarios de Telegram con Clave Institucional (PIN) (`TelegramBotHandlerService.php`, `config/telegram.php`, `.env.example`, `.env.production`):**
+  - **Diagnóstico y Necesidad:** Cada vez que un médico, directivo o usuario asistencial intentaba interactuar con el bot desde una nueva sede o dispositivo, era rechazado con "Acceso Restringido", obligando al administrador a ingresar al servidor para editar `.env` a mano con el Chat ID de cada persona y reiniciar el servicio.
+  - **Solución Implementada:**
+    * *Auto-Autorización con PIN (`TELEGRAM_ACCESS_PIN`):* Se implementó el mecanismo de auto-habilitación mediante clave institucional (por defecto `Lidiag2026*` configurable vía `.env`).
+    * *Flujo Autónomo:* Al escribir `/start` o cualquier mensaje inicial, el bot solicita amigablemente la clave de acceso institucional. Al escribir la clave correcta, la cuenta queda inmediatamente vinculada y auto-autorizada de por vida, desplegando el menú táctil de reportes.
+    * *Persistencia Ligera y Segura:* Los chats aprobados se almacenan con metadatos (fecha, nombre, username) en `storage/app_lidiag/telegram_authorized_chats.json`, sin requerir migraciones de BD y preservando la lista blanca estática previa de `.env`.
+    * *Comandos de Administración:* Se agregaron `/usuarios` (para que administradores auditen la lista de chats activos) y `/revocar <chat_id>` para deshabilitar usuarios en caliente.
+  - **Verificaciones:** Prueba unitaria simulando todo el ciclo de autenticación (solicitud, fallo por clave errada, éxito con `Lidiag2026*`, persistencia y revocación) ✅ | Laravel Pint passed ✅.
+
 - [x] **2026-10-29 — Habilitación de Segundo Chat ID de Usuario en Telegram (`.env`, `.env.production`, `detener_tarea_telegram_bot.bat`):**
   - **Diagnóstico:** Se reportó nuevo usuario restringido con Chat ID `1246505483`.
   - **Solución Implementada:**
