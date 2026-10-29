@@ -4,30 +4,41 @@
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Configuración</h3>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
-                    <li class="breadcrumb-item"><a href="javascript:void(0)">Configuración</a></li>
+                    <li class="breadcrumb-item">
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Configuración
+                        </button>
+                    </li>
                     <li class="breadcrumb-item active">Helpdesk - Prioridades</li>
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-outline-secondary btn-action-clinical m-r-5"
+                    class="btn btn-outline-secondary m-r-5"
                     @click="listar"
                     :disabled="loadingListar"
-                    title="Actualizar listado (F2)"
+                    title="Actualizar listado"
                 >
                     <i class="fa" :class="loadingListar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
                     Refrescar
-                    <span
-                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                        style="font-size: 10px; opacity: 0.9"
-                        >F2</span
-                    >
                 </button>
                 <button
                     type="button"
-                    class="btn btn-info btnDesplegarRigthSidebar btn-action-clinical"
+                    class="btn btn-info btnDesplegarRigthSidebar"
                     @click="prepararNuevo"
                 >
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
@@ -41,13 +52,17 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de prioridades</h4>
                         <h6 class="card-subtitle">Catálogo de Helpdesk.</h6>
-                        <div v-if="loadingListar" class="text-center m-t-40">
-                            <i class="fa fa-spinner fa-spin fa-2x"></i>
-                            <p class="text-muted m-t-10">Cargando prioridades...</p>
+                        <table-skeleton-loader v-if="loadingListar" :rows="5" :columns="4" />
+                        <div v-else-if="registros.length === 0" class="m-t-20">
+                            <empty-state-component
+                                title="No hay prioridades registradas"
+                                description="No se encontraron registros de prioridades de Helpdesk."
+                                icon="fa-flag"
+                            />
                         </div>
                         <div v-else class="table-responsive m-t-40">
                             <table
-                                id="example23"
+                                id="tablaHelpdeskPrioridades"
                                 ref="dt"
                                 class="display nowrap table table-hover table-striped table-bordered"
                                 cellspacing="0"
@@ -134,7 +149,9 @@
                             <div class="row p-t-20">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Nombre</label>
+                                        <label for="prioridad_nombre" class="control-label"
+                                            >Nombre</label
+                                        >
                                         <input
                                             id="prioridad_nombre"
                                             type="text"
@@ -154,8 +171,11 @@
                             <div class="row">
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label class="control-label">Orden</label>
+                                        <label for="prioridad_orden" class="control-label"
+                                            >Orden</label
+                                        >
                                         <input
+                                            id="prioridad_orden"
                                             type="number"
                                             v-model="registro.orden"
                                             class="form-control"
@@ -189,7 +209,7 @@
                             <div class="form-actions mt-3">
                                 <button
                                     type="button"
-                                    class="btn btn-success m-r-5 btn-action-clinical"
+                                    class="btn btn-success m-r-5"
                                     v-if="!actualizar"
                                     @click="guardarRegistro"
                                     :disabled="loadingGuardar"
@@ -199,16 +219,11 @@
                                         :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"
                                     ></i>
                                     Guardar
-                                    <span
-                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                                        style="font-size: 10px; opacity: 0.9"
-                                        >Ctrl+S</span
-                                    >
                                 </button>
 
                                 <button
                                     type="button"
-                                    class="btn btn-warning m-r-5 btn-action-clinical"
+                                    class="btn btn-warning m-r-5"
                                     v-if="actualizar"
                                     @click="guardarRegistro"
                                     :disabled="loadingGuardar"
@@ -218,24 +233,14 @@
                                         :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-pencil'"
                                     ></i>
                                     Actualizar
-                                    <span
-                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                                        style="font-size: 10px; opacity: 0.9"
-                                        >Ctrl+S</span
-                                    >
                                 </button>
 
                                 <button
                                     type="button"
-                                    class="btn btn-inverse btn-action-clinical"
+                                    class="btn btn-inverse"
                                     @click="cerrarSidebar"
                                 >
                                     Cancelar
-                                    <span
-                                        class="badge badge-secondary ml-1 d-none d-md-inline"
-                                        style="font-size: 10px"
-                                        >Esc</span
-                                    >
                                 </button>
                             </div>
                         </div>
@@ -281,10 +286,10 @@ async function listar() {
     clearErrors();
     try {
         const res = await axios.get("/api/helpdesk-prioridades");
-        safeDestroyDataTable(dt.value || "#example23");
+        safeDestroyDataTable(dt.value || "#tablaHelpdeskPrioridades");
         registros.value = res?.data?.data || res?.data || [];
         nextTick(() => {
-            safeInitDataTable(dt.value || "#example23", {
+            safeInitDataTable(dt.value || "#tablaHelpdeskPrioridades", {
                 dom: "Bfrtip",
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
@@ -405,7 +410,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-    safeDestroyDataTable(dt.value || "#example23");
+    safeDestroyDataTable(dt.value || "#tablaHelpdeskPrioridades");
 });
 </script>
 <style scoped>
@@ -416,7 +421,6 @@ onBeforeUnmount(() => {
     width: 100vw;
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(2px);
     z-index: 1090;
 }
 
@@ -443,7 +447,7 @@ onBeforeUnmount(() => {
     pointer-events: auto !important;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .right-sidebar {
         width: 100% !important;
         right: -100% !important;

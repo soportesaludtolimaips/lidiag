@@ -98,22 +98,21 @@
                         class="mt-3 d-flex flex-wrap gap-2 justify-content-between align-items-center"
                     >
                         <button
-                            class="btn btn-outline-secondary btn-action-clinical"
+                            class="btn btn-outline-secondary waves-effect"
                             type="button"
                             @click="clear"
                             :disabled="saving || !hasInk"
-                            title="Limpiar trazo (Esc)"
+                            title="Limpiar trazo"
                         >
                             <i class="fa fa-eraser mr-1"></i>
                             Limpiar
-                            <span class="badge badge-light border ml-1">Esc</span>
                         </button>
                         <button
-                            class="btn btn-success btn-action-clinical"
+                            class="btn btn-success waves-effect waves-light"
                             type="button"
                             @click="submit"
                             :disabled="saving || !hasInk"
-                            title="Confirmar y registrar firma (Ctrl+S)"
+                            title="Confirmar y registrar firma"
                         >
                             <i
                                 class="fa mr-1"
@@ -121,7 +120,6 @@
                             ></i>
                             <span v-if="saving">Registrando firma...</span>
                             <span v-else>Confirmar Firma</span>
-                            <span class="badge badge-light border ml-1">Ctrl+S</span>
                         </button>
                     </div>
                 </template>
@@ -480,20 +478,6 @@ onBeforeUnmount(() => {
     height: 1px;
     border-bottom: 1px dashed #cbd5e1;
     pointer-events: none;
-}
-
-.btn-action-clinical {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease-in-out;
-}
-
-.btn-action-clinical:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow:
-        0 4px 6px -1px rgba(0, 0, 0, 0.1),
-        0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .clinical-doc-box {

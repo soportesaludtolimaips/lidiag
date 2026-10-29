@@ -5,10 +5,22 @@
                 <h3 class="text-themecolor">Gestión de Citas</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="#">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="#">Citas</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Citas
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Gestión de citas</li>
                 </ol>
@@ -16,18 +28,13 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-info btn-action-clinical"
+                    class="btn btn-info"
                     @click="listarRegistros()"
                     :disabled="loadingBuscar"
-                    title="Actualizar listado (F2)"
+                    title="Actualizar listado"
                 >
                     <i class="fa" :class="loadingBuscar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
                     Refrescar
-                    <span
-                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                        style="font-size: 10px; opacity: 0.9"
-                        >F2</span
-                    >
                 </button>
             </div>
         </div>
@@ -71,8 +78,11 @@
                                     <div class="row p-t-2">
                                         <div class="col-md-2">
                                             <div class="form-group">
-                                                <label class="control-label">Estado</label>
+                                                <label for="filtroEstadoCitas" class="control-label"
+                                                    >Estado</label
+                                                >
                                                 <select
+                                                    id="filtroEstadoCitas"
                                                     v-model="busqueda.estado"
                                                     class="form-control"
                                                 >
@@ -88,8 +98,13 @@
                                         </div>
                                         <div class="col-md-2">
                                             <div class="form-group">
-                                                <label class="control-label">Servicio</label>
+                                                <label
+                                                    for="filtroServicioCitas"
+                                                    class="control-label"
+                                                    >Servicio</label
+                                                >
                                                 <select
+                                                    id="filtroServicioCitas"
                                                     v-model="busqueda.servicio_id"
                                                     class="form-control"
                                                 >
@@ -106,8 +121,13 @@
                                         </div>
                                         <div class="col-md-2">
                                             <div class="form-group">
-                                                <label class="control-label">Fecha Inicio</label>
+                                                <label
+                                                    for="filtroFechaInicioCitas"
+                                                    class="control-label"
+                                                    >Fecha Inicio</label
+                                                >
                                                 <input
+                                                    id="filtroFechaInicioCitas"
                                                     type="date"
                                                     v-model="busqueda.fecha_inicio"
                                                     class="form-control"
@@ -116,8 +136,13 @@
                                         </div>
                                         <div class="col-md-2">
                                             <div class="form-group">
-                                                <label class="control-label">Fecha Fin</label>
+                                                <label
+                                                    for="filtroFechaFinCitas"
+                                                    class="control-label"
+                                                    >Fecha Fin</label
+                                                >
                                                 <input
+                                                    id="filtroFechaFinCitas"
                                                     type="date"
                                                     v-model="busqueda.fecha_fin"
                                                     class="form-control"
@@ -126,8 +151,13 @@
                                         </div>
                                         <div class="col-md-3">
                                             <div class="form-group">
-                                                <label class="control-label">Búsqueda</label>
+                                                <label
+                                                    for="filtroBusquedaCitas"
+                                                    class="control-label"
+                                                    >Búsqueda</label
+                                                >
                                                 <input
+                                                    id="filtroBusquedaCitas"
                                                     type="text"
                                                     v-model="busqueda.busqueda"
                                                     placeholder="Documento o nombre"
@@ -381,8 +411,9 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="control-label">Sede *</label>
+                                    <label class="control-label" for="modal_sede_id">Sede *</label>
                                     <select
+                                        id="modal_sede_id"
                                         v-model="citaSeleccionada.sede_id"
                                         class="form-control"
                                         @change="
@@ -403,8 +434,11 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="control-label">Fecha *</label>
+                                    <label class="control-label" for="modal_fecha_id"
+                                        >Fecha *</label
+                                    >
                                     <input
+                                        id="modal_fecha_id"
                                         type="date"
                                         v-model="citaSeleccionada.fecha"
                                         class="form-control"
@@ -416,8 +450,9 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="control-label">Hora *</label>
+                                    <label class="control-label" for="modal_hora_id">Hora *</label>
                                     <select
+                                        id="modal_hora_id"
                                         v-model="citaSeleccionada.agenda_disponibilidad_detalle_id"
                                         class="form-control"
                                     >
@@ -436,8 +471,11 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="control-label">Duración (min)</label>
+                                    <label class="control-label" for="modal_duracion_id"
+                                        >Duración (min)</label
+                                    >
                                     <input
+                                        id="modal_duracion_id"
                                         type="number"
                                         v-model="citaSeleccionada.duracion_minutos"
                                         class="form-control"
@@ -451,8 +489,11 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label class="control-label">Observaciones</label>
+                                    <label class="control-label" for="modal_observaciones_id"
+                                        >Observaciones</label
+                                    >
                                     <textarea
+                                        id="modal_observaciones_id"
                                         v-model="citaSeleccionada.observaciones"
                                         class="form-control"
                                         rows="3"
@@ -467,32 +508,20 @@
                             type="button"
                             class="btn btn-inverse"
                             @click="showModalAsignar = false"
-                            title="Cerrar modal (Esc)"
                         >
                             Cerrar
-                            <span
-                                class="badge badge-secondary ml-1 d-none d-md-inline"
-                                style="font-size: 10px"
-                                >Esc</span
-                            >
                         </button>
                         <button
                             type="button"
-                            class="btn btn-success btn-action-clinical"
+                            class="btn btn-success"
                             @click="asignarCita()"
                             :disabled="loadingGuardar"
-                            title="Guardar cita (Ctrl+S)"
                         >
                             <i
                                 class="fa"
                                 :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-save'"
                             ></i>
                             {{ loadingGuardar ? "Guardando..." : "Guardar" }}
-                            <span
-                                class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                                style="font-size: 10px; opacity: 0.9"
-                                >Ctrl+S</span
-                            >
                         </button>
                     </div>
                 </div>
@@ -553,14 +582,8 @@
                             type="button"
                             class="btn btn-inverse"
                             @click="showModalConversacion = false"
-                            title="Cerrar modal (Esc)"
                         >
                             Cerrar
-                            <span
-                                class="badge badge-secondary ml-1 d-none d-md-inline"
-                                style="font-size: 10px"
-                                >Esc</span
-                            >
                         </button>
                     </div>
                 </div>
@@ -972,7 +995,6 @@ onBeforeUnmount(() => {
 <style scoped>
 .modal.show {
     background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(2px);
     overflow-y: auto;
 }
 .modal-dialog {

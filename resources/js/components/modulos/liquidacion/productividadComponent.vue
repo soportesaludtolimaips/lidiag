@@ -3,10 +3,18 @@
         <!-- BREADCRUMB -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
-                <h3 class="text-themecolor">Productividad m&eacute;dica</h3>
+                <h3 class="text-themecolor">Productividad médica</h3>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
-                    <li class="breadcrumb-item active">Productividad</li>
+                    <li class="breadcrumb-item">
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
+                    </li>
+                    <li class="breadcrumb-item active">Productividad médica</li>
                 </ol>
             </div>
         </div>
@@ -55,7 +63,7 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label>&nbsp;</label>
+                                    <label class="d-none d-md-block">&nbsp;</label>
                                     <div>
                                         <button
                                             type="button"
@@ -64,7 +72,12 @@
                                             @click="cargar"
                                             title="Generar reporte"
                                         >
-                                            <i class="fa fa-bar-chart m-r-5"></i>
+                                            <i
+                                                class="fa"
+                                                :class="
+                                                    loading ? 'fa-spinner fa-spin' : 'fa-bar-chart'
+                                                "
+                                            ></i>
                                             {{ loading ? "Generando..." : "Generar" }}
                                         </button>
                                         <button
@@ -86,8 +99,19 @@
             </div>
         </div>
 
+        <!-- SKELETON LOADER -->
+        <div v-if="loading" class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <table-skeleton-loader :rows="6" :columns="5" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- RESULTADO -->
-        <div v-if="resultado" class="row">
+        <div v-else-if="resultado" class="row">
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
@@ -97,8 +121,12 @@
                                 formatMoney(granTotal)
                             }}</span>
                         </h4>
-                        <div v-if="!medicos.length" class="alert alert-info">
-                            Sin producción registrada para este corte.
+                        <div v-if="!medicos.length" class="m-t-20">
+                            <empty-state-component
+                                title="Sin producción registrada"
+                                description="No se encontró producción médica registrada para este corte y sede."
+                                icon="fa-bar-chart"
+                            />
                         </div>
                         <div v-for="m in medicos" :key="m.medico_id" class="card m-t-20">
                             <div class="card-body">
@@ -113,6 +141,7 @@
                                 </h5>
                                 <div class="table-responsive m-t-10">
                                     <table
+                                        :id="'tablaProductividad_' + m.medico_id"
                                         class="display nowrap table table-hover table-striped table-bordered"
                                         cellspacing="0"
                                         width="100%"

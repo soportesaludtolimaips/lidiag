@@ -5,10 +5,22 @@
                 <h3 class="text-themecolor">Gestión de Citas - Tablero</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="#">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="#">Citas</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Citas
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Tablero de gestión</li>
                 </ol>
@@ -16,10 +28,10 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-info btn-action-clinical"
+                    class="btn btn-info"
                     @click="cargarDashboard()"
                     :disabled="loading"
-                    title="Actualizar datos del tablero (Refrescar)"
+                    title="Actualizar datos del tablero"
                 >
                     <i class="fa" :class="loading ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
                     Refrescar
@@ -102,15 +114,12 @@
                         <div class="card-body">
                             <h4 class="card-title">Acciones Rápidas</h4>
                             <div class="list-group">
-                                <a
-                                    :href="'/citas'"
-                                    class="list-group-item list-group-item-action btn-action-clinical"
-                                >
+                                <a :href="'/citas'" class="list-group-item list-group-item-action">
                                     <i class="fa fa-list"></i> Ir al listado de citas
                                 </a>
                                 <a
                                     href="#"
-                                    class="list-group-item list-group-item-action btn-action-clinical"
+                                    class="list-group-item list-group-item-action"
                                     @click.prevent="cargarDashboard()"
                                 >
                                     <i

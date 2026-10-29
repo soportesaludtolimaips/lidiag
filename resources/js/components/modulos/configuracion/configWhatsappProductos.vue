@@ -11,58 +11,70 @@
                                 productos.
                             </div>
 
-                            <div v-else-if="loadingProductos" class="text-center m-t-20">
-                                <i class="fa fa-spinner fa-spin fa-2x"></i>
-                                <p class="text-muted m-t-10">Cargando productos...</p>
-                            </div>
-
                             <div v-else-if="errorProductos" class="alert alert-danger m-t-20">
                                 <i class="fa fa-exclamation-triangle"></i>
                                 {{ errorProductos }}
                             </div>
 
-                            <div class="table-responsive m-t-20" v-else>
-                                <table class="table table-bordered table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>Código</th>
-                                            <th>Producto</th>
-                                            <th>Servicio</th>
-                                            <th>Estado</th>
-                                            <th>Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="item in productosVinculados" :key="item.id">
-                                            <td>{{ item.producto?.cod_cups }}</td>
-                                            <td>{{ item.producto?.nom_produc }}</td>
-                                            <td>{{ item.servicio?.nombre }}</td>
-                                            <td>
-                                                <span class="label label-success" v-if="item.estado"
-                                                    >Activo</span
-                                                >
-                                                <span class="label label-danger" v-else
-                                                    >Inactivo</span
-                                                >
-                                            </td>
-                                            <td class="text-nowrap">
-                                                <button
-                                                    type="button"
-                                                    class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                    @click="eliminarVinculo(item.id)"
-                                                >
-                                                    <i class="fa fa-trash"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr v-if="productosVinculados.length === 0">
-                                            <td colspan="5" class="text-center text-muted">
-                                                No hay productos vinculados en esta sede.
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                            <template v-else>
+                                <table-skeleton-loader
+                                    :visible="loadingProductos"
+                                    :rows="4"
+                                    :columns="5"
+                                />
+                                <empty-state-component
+                                    v-if="!loadingProductos && productosVinculados.length === 0"
+                                    icon="fa fa-cubes"
+                                    title="No hay productos vinculados"
+                                    description="No hay productos vinculados en esta sede."
+                                    action-text="Agregar producto"
+                                    action-icon="fa fa-plus"
+                                    @action="agregar()"
+                                />
+
+                                <div
+                                    v-show="!loadingProductos && productosVinculados.length > 0"
+                                    class="table-responsive m-t-20"
+                                >
+                                    <table class="table table-bordered table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Código</th>
+                                                <th>Producto</th>
+                                                <th>Servicio</th>
+                                                <th>Estado</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="item in productosVinculados" :key="item.id">
+                                                <td>{{ item.producto?.cod_cups }}</td>
+                                                <td>{{ item.producto?.nom_produc }}</td>
+                                                <td>{{ item.servicio?.nombre }}</td>
+                                                <td>
+                                                    <span
+                                                        class="label label-success"
+                                                        v-if="item.estado"
+                                                        >Activo</span
+                                                    >
+                                                    <span class="label label-danger" v-else
+                                                        >Inactivo</span
+                                                    >
+                                                </td>
+                                                <td class="text-nowrap">
+                                                    <button
+                                                        type="button"
+                                                        class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
+                                                        @click="eliminarVinculo(item.id)"
+                                                    >
+                                                        <i class="fa fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </template>
                         </div>
                     </div>
                 </div>
@@ -87,7 +99,7 @@
                             type="button"
                             class="close right-side-toggle"
                             aria-label="Cerrar panel"
-                            title="Cerrar (Esc)"
+                            title="Cerrar"
                             @click="cerrarFormSidebar"
                         >
                             &times;
@@ -169,7 +181,7 @@
                             <div class="form-actions mt-3">
                                 <button
                                     type="button"
-                                    class="btn btn-success m-r-5 btn-action-clinical"
+                                    class="btn btn-success m-r-5"
                                     @click="agregarProducto()"
                                     :disabled="
                                         loadingGuardar ||
@@ -182,23 +194,13 @@
                                         :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-save'"
                                     ></i>
                                     {{ loadingGuardar ? "Guardando..." : "Guardar" }}
-                                    <span
-                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                                        style="font-size: 10px; opacity: 0.9"
-                                        >Ctrl+S</span
-                                    >
                                 </button>
                                 <button
                                     type="button"
-                                    class="btn btn-inverse btn-action-clinical"
+                                    class="btn btn-inverse"
                                     @click="cerrarFormSidebar()"
                                 >
                                     Cancelar
-                                    <span
-                                        class="badge badge-secondary ml-1 d-none d-md-inline"
-                                        style="font-size: 10px"
-                                        >Esc</span
-                                    >
                                 </button>
                             </div>
                         </div>
@@ -466,7 +468,6 @@ onMounted(() => {
     width: 100vw;
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(2px);
     z-index: 1090;
 }
 
@@ -493,7 +494,7 @@ onMounted(() => {
     pointer-events: auto !important;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .right-sidebar {
         width: 100% !important;
         right: -100% !important;

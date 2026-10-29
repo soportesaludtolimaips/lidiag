@@ -5,10 +5,22 @@
                 <h3 class="text-themecolor">Configuración</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Configuración</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Configuración
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Motivos de Rechazo (Citas)</li>
                 </ol>
@@ -16,22 +28,17 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-outline-secondary btn-action-clinical m-r-5"
+                    class="btn btn-outline-secondary m-r-5"
                     @click="listarMotivos"
                     :disabled="loadingListar"
-                    title="Actualizar listado (F2)"
+                    title="Actualizar listado"
                 >
                     <i class="fa" :class="loadingListar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
                     Refrescar
-                    <span
-                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                        style="font-size: 10px; opacity: 0.9"
-                        >F2</span
-                    >
                 </button>
                 <button
                     type="button"
-                    class="btn btn-info btnDesplegarRigthSidebar btn-action-clinical"
+                    class="btn btn-info btnDesplegarRigthSidebar"
                     @click="prepararNuevo"
                 >
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
@@ -48,24 +55,26 @@
                             Administración de motivos de rechazo para las citas agendadas.
                         </h6>
 
-                        <div v-if="loadingListar" class="text-center m-t-40">
-                            <i class="fa fa-spinner fa-spin fa-2x"></i>
-                            <p class="text-muted m-t-10">Cargando motivos...</p>
-                        </div>
-
-                        <div v-else-if="errorMotivos" class="alert alert-danger m-t-20">
+                        <div v-if="errorMotivos" class="alert alert-danger m-t-20">
                             <i class="fa fa-exclamation-triangle"></i>
                             {{ errorMotivos }}
                         </div>
 
-                        <div v-else-if="registros.length === 0" class="text-center m-t-40">
-                            <p class="text-muted">
-                                No hay motivos de rechazo configurados. Cree un nuevo registro para
-                                comenzar.
-                            </p>
-                        </div>
+                        <table-skeleton-loader :visible="loadingListar" :rows="5" :columns="3" />
+                        <empty-state-component
+                            v-if="!loadingListar && !errorMotivos && registros.length === 0"
+                            icon="fa fa-ban"
+                            title="No hay motivos de rechazo"
+                            description="No se encontraron motivos de rechazo configurados."
+                            action-text="Nuevo registro"
+                            action-icon="fa fa-plus"
+                            @action="prepararNuevo"
+                        />
 
-                        <div class="table-responsive m-t-40" v-else>
+                        <div
+                            v-show="!loadingListar && registros.length > 0"
+                            class="table-responsive m-t-40"
+                        >
                             <table
                                 id="tblRechazoMotivos"
                                 ref="dt"
@@ -183,54 +192,36 @@
                             <div class="form-actions mt-3">
                                 <button
                                     type="button"
-                                    class="btn btn-success m-r-5 btn-action-clinical"
+                                    class="btn btn-success m-r-5"
                                     @click="guardarRegistro"
                                     v-if="!actualizar"
                                     :disabled="loadingGuardar"
-                                    title="Guardar motivo de rechazo (Ctrl+S)"
                                 >
                                     <i
                                         class="fa"
                                         :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"
                                     ></i>
                                     Guardar
-                                    <span
-                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                                        style="font-size: 10px; opacity: 0.9"
-                                        >Ctrl+S</span
-                                    >
                                 </button>
                                 <button
                                     type="button"
-                                    class="btn btn-warning m-r-5 btn-action-clinical"
+                                    class="btn btn-warning m-r-5"
                                     v-if="actualizar"
                                     @click="guardarRegistro"
                                     :disabled="loadingGuardar"
-                                    title="Actualizar motivo de rechazo (Ctrl+S)"
                                 >
                                     <i
                                         class="fa"
                                         :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-pencil'"
                                     ></i>
                                     Actualizar
-                                    <span
-                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                                        style="font-size: 10px; opacity: 0.9"
-                                        >Ctrl+S</span
-                                    >
                                 </button>
                                 <button
                                     type="button"
-                                    class="btn btn-inverse btn-action-clinical"
+                                    class="btn btn-inverse"
                                     @click="cerrarSidebar"
-                                    title="Cerrar panel (Esc)"
                                 >
                                     Cancelar
-                                    <span
-                                        class="badge badge-secondary ml-1 d-none d-md-inline"
-                                        style="font-size: 10px"
-                                        >Esc</span
-                                    >
                                 </button>
                             </div>
                         </div>
@@ -443,7 +434,6 @@ onBeforeUnmount(() => {
     width: 100vw;
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(2px);
     z-index: 1090;
 }
 
@@ -470,7 +460,7 @@ onBeforeUnmount(() => {
     pointer-events: auto !important;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .right-sidebar {
         width: 100% !important;
         right: -100% !important;

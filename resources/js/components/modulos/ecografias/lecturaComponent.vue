@@ -23,21 +23,16 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-info btn-action-clinical m-r-10"
+                    class="btn btn-info waves-effect waves-light m-r-10"
                     @click="listarPendiestePorLectura()"
                     :disabled="isBuscandoPendientes"
-                    title="Actualizar lista de pendientes (F2)"
+                    title="Actualizar lista de pendientes"
                 >
                     <i
-                        class="fa"
+                        class="fa mr-1"
                         :class="isBuscandoPendientes ? 'fa-spinner fa-spin' : 'fa-refresh'"
                     ></i>
                     Refrescar
-                    <span
-                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                        style="font-size: 10px; opacity: 0.9"
-                        >F2</span
-                    >
                 </button>
                 <i
                     class="fa fa-life-ring model_img img-responsive text-info"
@@ -189,9 +184,30 @@
                             Seleccione un médico desde el menú superior (Módulo → Médico) para
                             listar las ecografías pendientes.
                         </div>
-                        <div class="table-responsive">
+                        <table-skeleton-loader
+                            :visible="isBuscandoPendientes"
+                            :rows="6"
+                            :columns="8"
+                        />
+                        <empty-state-component
+                            v-if="
+                                !isBuscandoPendientes &&
+                                busqueda.medico_id &&
+                                registros.length === 0
+                            "
+                            icon="fa fa-stethoscope"
+                            title="No hay ecografías pendientes"
+                            description="No se encontraron ecografías pendientes de lectura para el médico seleccionado."
+                            action-text="Actualizar lista"
+                            action-icon="fa fa-refresh"
+                            @action="listarPendiestePorLectura()"
+                        />
+                        <div
+                            class="table-responsive"
+                            v-show="!isBuscandoPendientes && registros.length > 0"
+                        >
                             <table
-                                id="example23"
+                                id="tablaEcografiasLectura"
                                 ref="dt"
                                 class="table table-bordered table-striped"
                                 cellspacing="0"
@@ -495,35 +511,30 @@
                         <div class="form-actions mt-3">
                             <button
                                 type="button"
-                                class="btn btn-success m-r-5 btn-action-clinical"
+                                class="btn btn-success waves-effect waves-light m-r-5"
                                 @click="guardarRegistro()"
                                 :disabled="
                                     isGuardandoLectura ||
                                     (sedeInterface && registro.estado_envio_sahi === 'ENVIANDO')
                                 "
-                                title="Guardar informe ecográfico (Ctrl+S)"
+                                title="Guardar informe ecográfico"
                             >
                                 <i
-                                    class="fa"
+                                    class="fa mr-1"
                                     :class="isGuardandoLectura ? 'fa-spinner fa-spin' : 'fa-check'"
                                 ></i>
                                 {{ isGuardandoLectura ? "Guardando..." : "Guardar" }}
-                                <span
-                                    class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                                    style="font-size: 10px; opacity: 0.9"
-                                    >Ctrl+S</span
-                                >
                             </button>
 
                             <button
                                 v-if="sedeInterface && registro.ecografia_producto_id"
                                 type="button"
-                                class="btn btn-info m-r-5 btn-action-clinical"
+                                class="btn btn-info waves-effect waves-light m-r-5"
                                 @click="consultarEstadoSahi(false)"
                                 :disabled="isConsultando"
                             >
                                 <i
-                                    class="fa"
+                                    class="fa mr-1"
                                     :class="isConsultando ? 'fa-spinner fa-spin' : 'fa-refresh'"
                                 ></i>
                                 {{ isConsultando ? "Consultando..." : "Actualizar SAHI" }}
@@ -532,11 +543,11 @@
                             <button
                                 v-if="sedeInterface && registro.estado_envio_sahi === 'ERROR'"
                                 type="button"
-                                class="btn btn-warning m-r-5 btn-action-clinical"
+                                class="btn btn-warning waves-effect waves-light m-r-5"
                                 @click="enviarASahiEcografiaProducto()"
                                 :disabled="isEnviando || registro.estado_envio_sahi === 'ENVIANDO'"
                             >
-                                <i class="fa fa-refresh"></i> Reintentar SAHI
+                                <i class="fa fa-refresh mr-1"></i> Reintentar SAHI
                             </button>
 
                             <span
@@ -565,16 +576,11 @@
 
                             <button
                                 type="button"
-                                class="btn btn-inverse"
+                                class="btn btn-inverse waves-effect waves-light"
                                 @click="btnCerrarModalForm()"
-                                title="Cerrar panel (Esc)"
+                                title="Cerrar panel"
                             >
                                 Cancelar
-                                <span
-                                    class="badge badge-secondary ml-1 d-none d-md-inline"
-                                    style="font-size: 10px"
-                                    >Esc</span
-                                >
                             </button>
                         </div>
                     </form>
@@ -1636,7 +1642,7 @@ async function consultarEstadoSahi(silent = false) {
  * @author Jhon Javer Lozano Arce
  * @date 2024-06-10
  */
-function safeDestroyDataTable(selector = "#example23") {
+function safeDestroyDataTable(selector = "#tablaEcografiasLectura") {
     if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
         return;
     const $t = window.$(selector);
@@ -1648,11 +1654,11 @@ function safeDestroyDataTable(selector = "#example23") {
 
 /**
  * Inicializa de manera segura un DataTable en el selector dado, si no está ya inicializado.
- * @param {string} selector - Selector del DataTable a inicializar (por defecto: "#example23").
+ * @param {string} selector - Selector del DataTable a inicializar (por defecto: "#tablaEcografiasLectura").
  * @author Jhon Javer Lozano Arce
  * @date 2024-06-10
  */
-function safeInitDataTable(selector = "#example23") {
+function safeInitDataTable(selector = "#tablaEcografiasLectura") {
     if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
         return;
     nextTick(() => {
@@ -1690,11 +1696,11 @@ async function listarPendiestePorLectura() {
 
         const res = await axios.post("/api/ecografia-listarPendientesPorLectura/" + medicoId);
         if (res.status == 200) {
-            safeDestroyDataTable(dt.value || "#example23");
+            safeDestroyDataTable(dt.value || "#tablaEcografiasLectura");
 
             registros.value = res.data.data.ecografias;
 
-            safeInitDataTable(dt.value || "#example23");
+            safeInitDataTable(dt.value || "#tablaEcografiasLectura");
 
             evaluarPendientesConsentimientosDiaAnterior();
         }
@@ -2471,9 +2477,7 @@ onBeforeUnmount(() => {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(15, 23, 42, 0.45);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
+    background: rgba(0, 0, 0, 0.5);
     z-index: 1090;
     cursor: pointer;
 }

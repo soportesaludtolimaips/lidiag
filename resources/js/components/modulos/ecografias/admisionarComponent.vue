@@ -23,21 +23,16 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-info btn-action-clinical"
+                    class="btn btn-info waves-effect waves-light"
                     @click="listarAtenciones()"
                     :disabled="isBuscandoAtenciones"
-                    title="Actualizar listado de atenciones (F2)"
+                    title="Actualizar listado de atenciones"
                 >
                     <i
-                        class="fa"
+                        class="fa mr-1"
                         :class="isBuscandoAtenciones ? 'fa-spinner fa-spin' : 'fa-refresh'"
                     ></i>
                     Refrescar
-                    <span
-                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                        style="font-size: 10px; opacity: 0.9"
-                        >F2</span
-                    >
                 </button>
             </div>
         </div>
@@ -55,12 +50,12 @@
                         <h4 class="card-title text-themecolor">
                             <i class="fa fa-filter"></i> Filtros para búsqueda de atención
                         </h4>
-                        <form action="#">
+                        <form action="#" @submit.prevent="listarAtenciones()">
                             <div class="form-body">
                                 <div class="row p-t-2">
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label class="control-label">
+                                            <label class="control-label" for="bus_nom_num_docu">
                                                 # de atención, # de documento ó Nombres de paciente
                                             </label>
                                             <input
@@ -69,14 +64,16 @@
                                                 name="bus_nom_num_docu"
                                                 v-model="busqueda.bus_nom_num_docu"
                                                 class="form-control"
-                                                placeholder=" Atención, Nombres de paciente o # de documento"
+                                                placeholder="Atención, Nombres de paciente o # de documento"
                                                 @keyup.enter="buscarStudy()"
                                             />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <label class="control-label">Fecha Inicio</label>
+                                            <label class="control-label" for="bus_fech_ini"
+                                                >Fecha Inicio</label
+                                            >
                                             <input
                                                 type="date"
                                                 id="bus_fech_ini"
@@ -88,7 +85,9 @@
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <label class="control-label">Fecha Fin</label>
+                                            <label class="control-label" for="bus_fecha_fin"
+                                                >Fecha Fin</label
+                                            >
                                             <input
                                                 type="date"
                                                 id="bus_fecha_fin"
@@ -103,12 +102,12 @@
                                 <div class="form-actions mt-3">
                                     <button
                                         type="button"
-                                        class="btn btn-success btn-action-clinical m-r-5"
+                                        class="btn btn-success waves-effect waves-light m-r-5"
                                         @click="listarAtenciones()"
                                         :disabled="isBuscandoAtenciones"
                                     >
                                         <i
-                                            class="fa"
+                                            class="fa mr-1"
                                             :class="
                                                 isBuscandoAtenciones
                                                     ? 'fa-spinner fa-spin'
@@ -120,11 +119,11 @@
 
                                     <button
                                         type="button"
-                                        class="btn btn-inverse btn-action-clinical"
+                                        class="btn btn-inverse waves-effect waves-light"
                                         @click="btnLimpiar()"
                                         :disabled="isBuscandoAtenciones || isGuardandoEcografia"
                                     >
-                                        <i class="fa fa-refresh"></i> Limpiar
+                                        <i class="fa fa-refresh mr-1"></i> Limpiar
                                     </button>
                                 </div>
                             </div>
@@ -142,9 +141,26 @@
                         <h6 class="card-subtitle text-info">
                             Asigne los médicos para su respectiva lectura.
                         </h6>
-                        <div class="table-responsive">
+                        <table-skeleton-loader
+                            :visible="isBuscandoAtenciones"
+                            :rows="6"
+                            :columns="12"
+                        />
+                        <empty-state-component
+                            v-if="!isBuscandoAtenciones && registros.length === 0"
+                            icon="fa fa-stethoscope"
+                            title="No hay atenciones para mostrar"
+                            description="No se encontraron atenciones con los criterios de búsqueda seleccionados."
+                            action-text="Limpiar filtros"
+                            action-icon="fa fa-refresh"
+                            @action="btnLimpiar()"
+                        />
+                        <div
+                            class="table-responsive"
+                            v-show="!isBuscandoAtenciones && registros.length > 0"
+                        >
                             <table
-                                id="example23"
+                                id="tablaAdmisiones"
                                 ref="dt"
                                 class="table table-bordered table-striped"
                                 cellspacing="0"
@@ -695,38 +711,28 @@
                             <div class="form-actions mt-3">
                                 <button
                                     type="button"
-                                    class="btn btn-success m-r-5 btn-action-clinical"
+                                    class="btn btn-success waves-effect waves-light m-r-5"
                                     @click="guardarRegistro()"
                                     :disabled="isGuardandoEcografia"
-                                    title="Guardar admisión (Ctrl+S)"
+                                    title="Guardar admisión"
                                 >
                                     <i
-                                        class="fa"
+                                        class="fa mr-1"
                                         :class="
                                             isGuardandoEcografia ? 'fa-spinner fa-spin' : 'fa-check'
                                         "
                                     ></i>
                                     {{ isGuardandoEcografia ? "Guardando..." : "Guardar" }}
-                                    <span
-                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                                        style="font-size: 10px; opacity: 0.9"
-                                        >Ctrl+S</span
-                                    >
                                 </button>
 
                                 <button
                                     type="button"
-                                    class="btn btn-inverse btn-action-clinical"
+                                    class="btn btn-inverse waves-effect waves-light"
                                     @click="cerrarSidebar()"
                                     :disabled="isGuardandoEcografia"
-                                    title="Cerrar panel (Esc)"
+                                    title="Cerrar panel"
                                 >
                                     Cancelar
-                                    <span
-                                        class="badge badge-secondary ml-1 d-none d-md-inline"
-                                        style="font-size: 10px"
-                                        >Esc</span
-                                    >
                                 </button>
                             </div>
                         </div>
@@ -1122,7 +1128,7 @@ function btnLimpiar() {
     busqueda.value.bus_fecha_fin = "";
     erroresBusqueda.value = {};
 
-    safeDestroyDataTable(dt.value || "#example23");
+    safeDestroyDataTable(dt.value || "#tablaAdmisiones");
     registros.value = [];
     limpiarFormulario();
 }
@@ -1137,7 +1143,7 @@ function btnLimpiar() {
  *
  * @date 2024-04-04
  */
-function safeDestroyDataTable(selector = "#example23") {
+function safeDestroyDataTable(selector = "#tablaAdmisiones") {
     if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
         return;
     const $t = window.$(selector);
@@ -1157,7 +1163,7 @@ function safeDestroyDataTable(selector = "#example23") {
  *
  * @date 2024-04-04
  */
-function safeInitDataTable(selector = "#example23") {
+function safeInitDataTable(selector = "#tablaAdmisiones") {
     if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
         return;
     nextTick(() => {
@@ -1193,11 +1199,11 @@ async function listarAtenciones() {
         );
 
         if (res.status == 200) {
-            safeDestroyDataTable(dt.value || "#example23");
+            safeDestroyDataTable(dt.value || "#tablaAdmisiones");
 
             registros.value = res.data.data;
 
-            safeInitDataTable(dt.value || "#example23");
+            safeInitDataTable(dt.value || "#tablaAdmisiones");
         }
     } catch (error) {
         erroresBusqueda.value = error?.response?.data?.errors || {};
@@ -1821,9 +1827,7 @@ onBeforeUnmount(() => {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(15, 23, 42, 0.45);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
+    background: rgba(0, 0, 0, 0.5);
     z-index: 1090;
     cursor: pointer;
 }
@@ -1855,11 +1859,24 @@ onBeforeUnmount(() => {
     pointer-events: none;
 }
 
+@media (max-width: 767px) {
+    .right-sidebar {
+        right: -100%;
+        width: 100%;
+    }
+}
+
 .shw-rside {
     right: 0px !important;
     width: 80%;
     visibility: visible;
     pointer-events: auto;
+}
+
+@media (max-width: 767px) {
+    .shw-rside {
+        width: 100% !important;
+    }
 }
 
 .audio {

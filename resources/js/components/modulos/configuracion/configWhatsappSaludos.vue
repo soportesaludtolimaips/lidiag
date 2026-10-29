@@ -10,94 +10,99 @@
             Seleccione una sede en el menú superior para administrar sus saludos.
         </div>
 
-        <div v-else-if="loadingSaludos" class="text-center m-t-40">
-            <i class="fa fa-spinner fa-spin fa-2x"></i>
-            <p class="text-muted m-t-10">Cargando saludos...</p>
-        </div>
-
         <div v-else-if="errorSaludos" class="alert alert-danger m-t-20">
             <i class="fa fa-exclamation-triangle"></i>
             {{ errorSaludos }}
         </div>
 
-        <div v-else-if="registrosSaludos.length === 0" class="text-center m-t-40">
-            <p class="text-muted">
-                No hay saludos configurados. Cree un nuevo registro para comenzar.
-            </p>
-        </div>
+        <template v-else>
+            <table-skeleton-loader :visible="loadingSaludos" :rows="5" :columns="5" />
+            <empty-state-component
+                v-if="!loadingSaludos && registrosSaludos.length === 0"
+                icon="fa fa-comment-o"
+                title="No hay saludos configurados"
+                description="No se encontraron mensajes de bienvenida en esta sede."
+                action-text="Nuevo registro"
+                action-icon="fa fa-plus"
+                @action="nuevo()"
+            />
 
-        <div class="table-responsive m-t-40" v-else>
-            <table
-                id="tblWhatsappSaludos"
-                ref="dtSaludos"
-                class="display nowrap table table-hover table-striped table-bordered"
-                cellspacing="0"
-                width="100%"
+            <div
+                v-show="!loadingSaludos && registrosSaludos.length > 0"
+                class="table-responsive m-t-40"
             >
-                <thead>
-                    <tr>
-                        <th>Sede</th>
-                        <th>Servicio</th>
-                        <th>Mensaje de bienvenida</th>
-                        <th>Activo</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="item in registrosSaludos" :key="item.id">
-                        <td>
-                            {{ item.sede ? item.sede.nom_sede : "Todas las sedes" }}
-                        </td>
-                        <td>
-                            {{ item.servicio ? item.servicio.nombre : "Todos los servicios" }}
-                        </td>
-                        <td class="text-wrap" style="max-width: 400px">
-                            {{ item.mensaje_bienvenida.substring(0, 50)
-                            }}{{ item.mensaje_bienvenida.length > 50 ? "..." : "" }}
-                        </td>
-                        <td>
-                            <span
-                                class="label"
-                                :class="item.activo ? 'label-success' : 'label-danger'"
-                            >
-                                {{ item.activo ? "Activo" : "Inactivo" }}
-                            </span>
-                        </td>
-                        <td class="text-nowrap">
-                            <button
-                                type="button"
-                                class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                @click="editar(item)"
-                            >
-                                <i class="fa fa-pencil"></i>
-                            </button>
-                            <button
-                                type="button"
-                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
-                                @click="abrirProbarEnvio()"
-                            >
-                                <i class="fa fa-send"></i>
-                            </button>
-                            <button
-                                type="button"
-                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                @click="eliminarRegistro(item.id)"
-                                :disabled="loadingEliminarId === item.id"
-                            >
-                                <i
-                                    class="fa"
-                                    :class="
-                                        loadingEliminarId === item.id
-                                            ? 'fa-spinner fa-spin'
-                                            : 'fa-trash'
-                                    "
-                                ></i>
-                            </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+                <table
+                    id="tblWhatsappSaludos"
+                    ref="dtSaludos"
+                    class="display nowrap table table-hover table-striped table-bordered"
+                    cellspacing="0"
+                    width="100%"
+                >
+                    <thead>
+                        <tr>
+                            <th>Sede</th>
+                            <th>Servicio</th>
+                            <th>Mensaje de bienvenida</th>
+                            <th>Activo</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="item in registrosSaludos" :key="item.id">
+                            <td>
+                                {{ item.sede ? item.sede.nom_sede : "Todas las sedes" }}
+                            </td>
+                            <td>
+                                {{ item.servicio ? item.servicio.nombre : "Todos los servicios" }}
+                            </td>
+                            <td class="text-wrap" style="max-width: 400px">
+                                {{ item.mensaje_bienvenida.substring(0, 50)
+                                }}{{ item.mensaje_bienvenida.length > 50 ? "..." : "" }}
+                            </td>
+                            <td>
+                                <span
+                                    class="label"
+                                    :class="item.activo ? 'label-success' : 'label-danger'"
+                                >
+                                    {{ item.activo ? "Activo" : "Inactivo" }}
+                                </span>
+                            </td>
+                            <td class="text-nowrap">
+                                <button
+                                    type="button"
+                                    class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
+                                    @click="editar(item)"
+                                >
+                                    <i class="fa fa-pencil"></i>
+                                </button>
+                                <button
+                                    type="button"
+                                    class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
+                                    @click="abrirProbarEnvio()"
+                                >
+                                    <i class="fa fa-send"></i>
+                                </button>
+                                <button
+                                    type="button"
+                                    class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
+                                    @click="eliminarRegistro(item.id)"
+                                    :disabled="loadingEliminarId === item.id"
+                                >
+                                    <i
+                                        class="fa"
+                                        :class="
+                                            loadingEliminarId === item.id
+                                                ? 'fa-spinner fa-spin'
+                                                : 'fa-trash'
+                                        "
+                                    ></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </template>
 
         <!-- Backdrop overlay para cerrar al hacer clic afuera -->
         <div v-if="sidebarVisible" class="sidebar-backdrop" @click="cerrarFormSidebar"></div>
@@ -116,7 +121,7 @@
                             type="button"
                             class="close right-side-toggle"
                             aria-label="Cerrar panel"
-                            title="Cerrar (Esc)"
+                            title="Cerrar"
                             @click="cerrarFormSidebar"
                         >
                             &times;
@@ -264,7 +269,7 @@
                             <div class="form-actions mt-3">
                                 <button
                                     type="button"
-                                    class="btn btn-success m-r-5 btn-action-clinical"
+                                    class="btn btn-success m-r-5"
                                     @click="guardarRegistro()"
                                     v-if="!actualizar"
                                     :disabled="loadingGuardar"
@@ -274,16 +279,11 @@
                                         :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"
                                     ></i>
                                     Guardar
-                                    <span
-                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                                        style="font-size: 10px; opacity: 0.9"
-                                        >Ctrl+S</span
-                                    >
                                 </button>
 
                                 <button
                                     type="button"
-                                    class="btn btn-warning m-r-5 btn-action-clinical"
+                                    class="btn btn-warning m-r-5"
                                     v-if="actualizar"
                                     @click="guardarRegistro()"
                                     :disabled="loadingGuardar"
@@ -293,24 +293,14 @@
                                         :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-pencil'"
                                     ></i>
                                     Actualizar
-                                    <span
-                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                                        style="font-size: 10px; opacity: 0.9"
-                                        >Ctrl+S</span
-                                    >
                                 </button>
 
                                 <button
                                     type="button"
-                                    class="btn btn-inverse btn-action-clinical"
+                                    class="btn btn-inverse"
                                     @click="cerrarFormSidebar()"
                                 >
                                     Cancelar
-                                    <span
-                                        class="badge badge-secondary ml-1 d-none d-md-inline"
-                                        style="font-size: 10px"
-                                        >Esc</span
-                                    >
                                 </button>
                             </div>
                         </div>
@@ -739,7 +729,6 @@ onBeforeUnmount(() => {
     width: 100vw;
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(2px);
     z-index: 1090;
 }
 
@@ -766,7 +755,7 @@ onBeforeUnmount(() => {
     pointer-events: auto !important;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .right-sidebar {
         width: 100% !important;
         right: -100% !important;

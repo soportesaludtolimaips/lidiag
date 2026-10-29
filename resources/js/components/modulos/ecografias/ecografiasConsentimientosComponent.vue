@@ -8,10 +8,22 @@
                 <h3 class="text-themecolor">Ecografías</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Ecografías</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Ecografías
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Consentimientos</li>
                 </ol>
@@ -150,7 +162,18 @@
                             </div>
                         </div>
 
-                        <div class="table-responsive">
+                        <table-skeleton-loader :visible="loading" :rows="6" :columns="7" />
+                        <empty-state-component
+                            v-if="!loading && registros.length === 0"
+                            icon="fa fa-file-text-o"
+                            title="No hay consentimientos para mostrar"
+                            description="No se encontraron consentimientos informados con los criterios de búsqueda ingresados."
+                            action-text="Limpiar filtros"
+                            action-icon="fa fa-refresh"
+                            @action="limpiarFiltros"
+                        />
+
+                        <div class="table-responsive" v-show="!loading && registros.length > 0">
                             <table class="table table-bordered table-striped">
                                 <thead>
                                     <tr>
@@ -171,121 +194,104 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-if="loading">
-                                        <td colspan="7" class="text-center py-4 text-muted">
-                                            <i
-                                                class="fa fa-spinner fa-spin fa-2x mb-2 text-primary"
-                                            ></i>
-                                            <div>Cargando consentimientos...</div>
+                                    <tr
+                                        v-for="c in registros"
+                                        :key="c.id"
+                                        :class="{ 'table-active': selectedMap[c.id] }"
+                                    >
+                                        <td class="text-center">
+                                            <input
+                                                type="checkbox"
+                                                :disabled="!esSeleccionable(c)"
+                                                :checked="selectedMap[c.id] === true"
+                                                @change="toggleSelect(c)"
+                                                aria-label="Seleccionar consentimiento"
+                                            />
+                                        </td>
+                                        <td>{{ pacienteNombre(c) }}</td>
+                                        <td>
+                                            {{
+                                                c.ecografia_producto?.ecografia?.paciente
+                                                    ?.num_docu || "—"
+                                            }}
+                                        </td>
+                                        <td>{{ c.producto?.nom_produc || "—" }}</td>
+                                        <td class="text-center">
+                                            <span
+                                                v-if="c.estado === 'COMPLETO'"
+                                                class="badge badge-success"
+                                            >
+                                                <i class="fa fa-check mr-1"></i>COMPLETO
+                                            </span>
+                                            <span
+                                                v-else-if="c.estado === 'ANULADO'"
+                                                class="badge badge-danger"
+                                            >
+                                                <i class="fa fa-ban mr-1"></i>ANULADO
+                                            </span>
+                                            <span v-else class="badge badge-secondary">
+                                                {{ c.estado }}
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span v-if="c.pdf_path" class="badge badge-info">
+                                                <i class="fa fa-file-pdf-o mr-1"></i>Generado
+                                            </span>
+                                            <span v-else class="text-muted">—</span>
+                                        </td>
+                                        <td class="text-nowrap text-center">
+                                            <button
+                                                v-if="
+                                                    can('ecografias.consentimientos.pdf.generar') &&
+                                                    c.estado === 'COMPLETO'
+                                                "
+                                                type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
+                                                @click="generarPdf(c)"
+                                                :disabled="loadingPdfId === c.id"
+                                                title="Generar PDF"
+                                                aria-label="Generar PDF"
+                                            >
+                                                <i
+                                                    class="fa"
+                                                    :class="
+                                                        loadingPdfId === c.id
+                                                            ? 'fa-spinner fa-spin'
+                                                            : 'fa-file-pdf-o'
+                                                    "
+                                                ></i>
+                                            </button>
+
+                                            <button
+                                                v-if="
+                                                    can(
+                                                        'ecografias.consentimientos.pdf.descargar'
+                                                    ) && c.pdf_path
+                                                "
+                                                type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
+                                                @click="descargarPdf(c)"
+                                                title="Descargar PDF"
+                                                aria-label="Descargar PDF"
+                                            >
+                                                <i class="fa fa-download"></i>
+                                            </button>
+
+                                            <button
+                                                v-if="
+                                                    can('ecografias.consentimientos.anular') &&
+                                                    c.estado === 'COMPLETO'
+                                                "
+                                                type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
+                                                @click="abrirModalAnular(c)"
+                                                title="Anular consentimiento"
+                                                aria-label="Anular consentimiento"
+                                            >
+                                                <i class="fa fa-ban"></i>
+                                            </button>
                                         </td>
                                     </tr>
-                                    <template v-else>
-                                        <tr
-                                            v-for="c in registros"
-                                            :key="c.id"
-                                            :class="{ 'table-active': selectedMap[c.id] }"
-                                        >
-                                            <td class="text-center">
-                                                <input
-                                                    type="checkbox"
-                                                    :disabled="!esSeleccionable(c)"
-                                                    :checked="selectedMap[c.id] === true"
-                                                    @change="toggleSelect(c)"
-                                                    aria-label="Seleccionar consentimiento"
-                                                />
-                                            </td>
-                                            <td>{{ pacienteNombre(c) }}</td>
-                                            <td>
-                                                {{
-                                                    c.ecografia_producto?.ecografia?.paciente
-                                                        ?.num_docu || "—"
-                                                }}
-                                            </td>
-                                            <td>{{ c.producto?.nom_produc || "—" }}</td>
-                                            <td class="text-center">
-                                                <span
-                                                    v-if="c.estado === 'COMPLETO'"
-                                                    class="badge badge-success"
-                                                >
-                                                    <i class="fa fa-check mr-1"></i>COMPLETO
-                                                </span>
-                                                <span
-                                                    v-else-if="c.estado === 'ANULADO'"
-                                                    class="badge badge-danger"
-                                                >
-                                                    <i class="fa fa-ban mr-1"></i>ANULADO
-                                                </span>
-                                                <span v-else class="badge badge-secondary">
-                                                    {{ c.estado }}
-                                                </span>
-                                            </td>
-                                            <td class="text-center">
-                                                <span v-if="c.pdf_path" class="badge badge-info">
-                                                    <i class="fa fa-file-pdf-o mr-1"></i>Generado
-                                                </span>
-                                                <span v-else class="text-muted">—</span>
-                                            </td>
-                                            <td class="text-nowrap text-center">
-                                                <button
-                                                    v-if="
-                                                        can(
-                                                            'ecografias.consentimientos.pdf.generar'
-                                                        ) && c.estado === 'COMPLETO'
-                                                    "
-                                                    type="button"
-                                                    class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
-                                                    @click="generarPdf(c)"
-                                                    :disabled="loadingPdfId === c.id"
-                                                    title="Generar PDF"
-                                                    aria-label="Generar PDF"
-                                                >
-                                                    <i
-                                                        class="fa"
-                                                        :class="
-                                                            loadingPdfId === c.id
-                                                                ? 'fa-spinner fa-spin'
-                                                                : 'fa-file-pdf-o'
-                                                        "
-                                                    ></i>
-                                                </button>
-
-                                                <button
-                                                    v-if="
-                                                        can(
-                                                            'ecografias.consentimientos.pdf.descargar'
-                                                        ) && c.pdf_path
-                                                    "
-                                                    type="button"
-                                                    class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
-                                                    @click="descargarPdf(c)"
-                                                    title="Descargar PDF"
-                                                    aria-label="Descargar PDF"
-                                                >
-                                                    <i class="fa fa-download"></i>
-                                                </button>
-
-                                                <button
-                                                    v-if="
-                                                        can('ecografias.consentimientos.anular') &&
-                                                        c.estado === 'COMPLETO'
-                                                    "
-                                                    type="button"
-                                                    class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                    @click="abrirModalAnular(c)"
-                                                    title="Anular consentimiento"
-                                                    aria-label="Anular consentimiento"
-                                                >
-                                                    <i class="fa fa-ban"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr v-if="registros.length === 0">
-                                            <td colspan="7" class="text-center text-muted py-4">
-                                                <i class="fa fa-info-circle mr-1"></i>Sin resultados
-                                                encontrados.
-                                            </td>
-                                        </tr>
-                                    </template>
                                 </tbody>
                             </table>
                         </div>

@@ -8,10 +8,22 @@
                 <h3 class="text-themecolor">Ecografías</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Ecografías</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Ecografías
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Plantillas Consentimientos</li>
                 </ol>
@@ -100,10 +112,18 @@
                                         :disabled="loading"
                                     >
                                         <i
-                                            class="fa"
+                                            class="fa mr-1"
                                             :class="loading ? 'fa-spinner fa-spin' : 'fa-search'"
                                         ></i>
                                         {{ loading ? "Buscando..." : "Buscar" }}
+                                    </button>
+                                    <button
+                                        class="btn btn-inverse waves-effect waves-light"
+                                        type="button"
+                                        @click="btnLimpiar"
+                                        :disabled="loading"
+                                    >
+                                        <i class="fa fa-refresh mr-1"></i> Limpiar
                                     </button>
                                 </div>
                             </div>
@@ -121,7 +141,17 @@
                         <h6 class="card-subtitle text-info">
                             Gestión y versionado de plantillas de consentimientos.
                         </h6>
-                        <div class="table-responsive">
+                        <table-skeleton-loader :visible="loading" :rows="5" :columns="6" />
+                        <empty-state-component
+                            v-if="!loading && registros.length === 0"
+                            icon="fa fa-file-code-o"
+                            title="No hay plantillas para mostrar"
+                            description="No se encontraron plantillas de consentimientos con los criterios de búsqueda seleccionados."
+                            action-text="Nueva plantilla"
+                            action-icon="fa fa-plus"
+                            @action="nuevo()"
+                        />
+                        <div class="table-responsive" v-show="!loading && registros.length > 0">
                             <table class="table table-bordered table-striped">
                                 <thead>
                                     <tr>
@@ -445,6 +475,12 @@ const modalVersionesVisible = ref(false);
 
 function cerrarModalPlantilla() {
     modalPlantillaVisible.value = false;
+}
+
+function btnLimpiar() {
+    q.value = "";
+    filtros.value.config_modulo_id = "";
+    listar();
 }
 
 function cerrarModalVersiones() {

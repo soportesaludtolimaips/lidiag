@@ -23,13 +23,13 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-info btn-action-clinical"
+                    class="btn btn-info waves-effect waves-light"
                     @click="listarAtenciones()"
                     :disabled="isBuscandoAdmisionadas"
-                    title="Actualizar listado de ecografías admisionadas (Refrescar)"
+                    title="Actualizar listado de ecografías admisionadas"
                 >
                     <i
-                        class="fa"
+                        class="fa mr-1"
                         :class="isBuscandoAdmisionadas ? 'fa-spinner fa-spin' : 'fa-refresh'"
                     ></i>
                     Refrescar
@@ -78,12 +78,16 @@
                             </button>
                         </div>
                         <transition name="fade-collapse">
-                            <form v-show="filtrosVisible" action="#">
+                            <form
+                                v-show="filtrosVisible"
+                                action="#"
+                                @submit.prevent="listarAtenciones()"
+                            >
                                 <div class="form-body">
                                     <div class="row p-t-2">
                                         <div class="col-md-3">
                                             <div class="form-group">
-                                                <label class="control-label">
+                                                <label class="control-label" for="bus_nom_num_docu">
                                                     # de atención, # de documento ó Nombres de
                                                     paciente
                                                 </label>
@@ -93,14 +97,16 @@
                                                     name="bus_nom_num_docu"
                                                     v-model="busqueda.bus_nom_num_docu"
                                                     class="form-control"
-                                                    placeholder=" Atención, Nombres de paciente o # de documento"
+                                                    placeholder="Atención, Nombres de paciente o # de documento"
                                                     @keyup.enter="buscarStudy()"
                                                 />
                                             </div>
                                         </div>
                                         <div class="col-md-2">
                                             <div class="form-group">
-                                                <label class="control-label">Fecha Inicio</label>
+                                                <label class="control-label" for="bus_fech_ini"
+                                                    >Fecha Inicio</label
+                                                >
                                                 <input
                                                     type="date"
                                                     id="bus_fech_ini"
@@ -112,7 +118,9 @@
                                         </div>
                                         <div class="col-md-2">
                                             <div class="form-group">
-                                                <label class="control-label">Fecha Fin</label>
+                                                <label class="control-label" for="bus_fecha_fin"
+                                                    >Fecha Fin</label
+                                                >
                                                 <input
                                                     type="date"
                                                     id="bus_fecha_fin"
@@ -127,12 +135,12 @@
                                     <div class="form-actions mt-3">
                                         <button
                                             type="button"
-                                            class="btn btn-success m-r-5"
+                                            class="btn btn-success waves-effect waves-light m-r-5"
                                             @click="listarAtenciones()"
                                             :disabled="isBuscandoAdmisionadas"
                                         >
                                             <i
-                                                class="fa"
+                                                class="fa mr-1"
                                                 :class="
                                                     isBuscandoAdmisionadas
                                                         ? 'fa-spinner fa-spin'
@@ -144,10 +152,10 @@
 
                                         <button
                                             type="button"
-                                            class="btn btn-inverse"
+                                            class="btn btn-inverse waves-effect waves-light"
                                             @click="btnLimpiar()"
                                         >
-                                            <i class="fa fa-refresh"></i> Limpiar
+                                            <i class="fa fa-refresh mr-1"></i> Limpiar
                                         </button>
                                     </div>
                                 </div>
@@ -185,7 +193,7 @@
                             class="table-responsive"
                         >
                             <table
-                                id="example23"
+                                id="tablaEcografiasAdmisionadas"
                                 ref="dt"
                                 class="table table-bordered table-striped"
                                 cellspacing="0"
@@ -325,7 +333,7 @@
                                         <td class="text-nowrap">
                                             <button
                                                 type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5 btn-action-clinical"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
                                                 @click="
                                                     actualizar = false;
                                                     registroParaAnular(item);
@@ -416,28 +424,23 @@
                 <div class="modal-footer">
                     <button
                         type="button"
-                        class="btn btn-default waves-effect btn-action-clinical"
+                        class="btn btn-default waves-effect"
                         id="btnCerrarModalAunular"
                         @click="cerrarModalAnular()"
-                        title="Cancelar y cerrar modal (Esc)"
+                        title="Cancelar y cerrar modal"
                     >
                         Cancelar
-                        <span
-                            class="badge badge-secondary ml-1 d-none d-md-inline"
-                            style="font-size: 10px; opacity: 0.9"
-                            >Esc</span
-                        >
                     </button>
                     <button
                         type="button"
-                        class="btn btn-danger waves-effect waves-light btn-action-clinical"
+                        class="btn btn-danger waves-effect waves-light"
                         v-if="can('ecografias.anular')"
                         @click="anularEcografia()"
                         :disabled="
                             isAnulandoAdmisionada ||
                             !(registroAnular.motivo_anula && registroAnular.motivo_anula.trim())
                         "
-                        title="Confirmar anulación (Ctrl+S / Cmd+S)"
+                        title="Confirmar anulación"
                     >
                         <i
                             class="fa"
@@ -591,7 +594,7 @@ async function initSede() {
  *
  * @date 2025-11-18
  */
-function safeDestroyDataTable(selector = "#example23") {
+function safeDestroyDataTable(selector = "#tablaEcografiasAdmisionadas") {
     if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
         return;
     const $t = window.$(selector);
@@ -611,7 +614,7 @@ function safeDestroyDataTable(selector = "#example23") {
  *
  * @date 2025-11-18
  */
-function safeInitDataTable(selector = "#example23") {
+function safeInitDataTable(selector = "#tablaEcografiasAdmisionadas") {
     if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
         return;
     nextTick(() => {
@@ -657,12 +660,12 @@ async function listarAtenciones() {
         const res = await axios.post("/api/ecografias-filtar", busqueda.value);
 
         if (res.status == 200) {
-            safeDestroyDataTable(dt.value || "#example23");
+            safeDestroyDataTable(dt.value || "#tablaEcografiasAdmisionadas");
 
             registros.value = res.data.data;
             guardarFiltros();
 
-            safeInitDataTable(dt.value || "#example23");
+            safeInitDataTable(dt.value || "#tablaEcografiasAdmisionadas");
         }
     } catch (error) {
         erroresBusqueda.value = error?.response?.data?.errors || {};
@@ -831,8 +834,8 @@ async function consultarEstadoSahi(item) {
         item.sahi_esquema_149 = estado.sahi_esquema_149 ?? item.sahi_esquema_149;
         item.sahi_esquema_150 = estado.sahi_esquema_150 ?? item.sahi_esquema_150;
 
-        safeDestroyDataTable(dt.value || "#example23");
-        safeInitDataTable(dt.value || "#example23");
+        safeDestroyDataTable(dt.value || "#tablaEcografiasAdmisionadas");
+        safeInitDataTable(dt.value || "#tablaEcografiasAdmisionadas");
     } catch (error) {
         toastMessage({
             heading: "SAHI",
@@ -868,8 +871,8 @@ async function reenviarASahi(item) {
 
         toastMessage({ heading: "SAHI", text: "Envío a SAHI encolado.", icon: "info" });
 
-        safeDestroyDataTable(dt.value || "#example23");
-        safeInitDataTable(dt.value || "#example23");
+        safeDestroyDataTable(dt.value || "#tablaEcografiasAdmisionadas");
+        safeInitDataTable(dt.value || "#tablaEcografiasAdmisionadas");
     } catch (error) {
         item.estado_envio_sahi = "ERROR";
         item.error_envio_sahi = error.response?.data?.message || "No se pudo reenviar a SAHI.";
@@ -945,10 +948,23 @@ onBeforeUnmount(() => {
     transition: all 0.3s ease;
 }
 
+@media (max-width: 767px) {
+    .right-sidebar {
+        right: -100%;
+        width: 100%;
+    }
+}
+
 .shw-rside {
     right: 0px;
     width: 80%;
     display: block;
+}
+
+@media (max-width: 767px) {
+    .shw-rside {
+        width: 100% !important;
+    }
 }
 
 .audio {

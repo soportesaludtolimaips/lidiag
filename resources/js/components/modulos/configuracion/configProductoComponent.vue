@@ -5,10 +5,22 @@
                 <h3 class="text-themecolor">Configuración</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Configuración</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Configuración
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Productos</li>
                 </ol>
@@ -16,22 +28,17 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-outline-secondary btn-action-clinical m-r-5"
+                    class="btn btn-outline-secondary m-r-5"
                     @click="ListarDatos"
                     :disabled="loadingListar"
-                    title="Actualizar listado (F2)"
+                    title="Actualizar listado"
                 >
                     <i class="fa" :class="loadingListar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
                     Refrescar
-                    <span
-                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                        style="font-size: 10px; opacity: 0.9"
-                        >F2</span
-                    >
                 </button>
                 <button
                     type="button"
-                    class="btn btn-info btnDesplegarRigthSidebar btn-action-clinical"
+                    class="btn btn-info btnDesplegarRigthSidebar"
                     @click="prepararNuevo"
                 >
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
@@ -48,13 +55,22 @@
                             Administración de productos para la prestación del servicio de imágenes
                             diagnósticas.
                         </h6>
-                        <div v-if="loadingListar" class="text-center m-t-40">
-                            <i class="fa fa-spinner fa-spin fa-2x"></i>
-                            <p class="text-muted m-t-10">Cargando productos...</p>
-                        </div>
-                        <div v-else class="table-responsive m-t-40">
+                        <table-skeleton-loader :visible="loadingListar" :rows="6" :columns="10" />
+                        <empty-state-component
+                            v-if="!loadingListar && registros.length === 0"
+                            icon="fa fa-medkit"
+                            title="No hay productos registrados"
+                            description="No se encontraron productos en el catálogo."
+                            action-text="Nuevo registro"
+                            action-icon="fa fa-plus"
+                            @action="prepararNuevo"
+                        />
+                        <div
+                            v-show="!loadingListar && registros.length > 0"
+                            class="table-responsive m-t-40"
+                        >
                             <table
-                                id="example23"
+                                id="tablaProductos"
                                 ref="dt"
                                 class="display nowrap table table-hover table-striped table-bordered"
                                 cellspacing="0"
@@ -294,56 +310,38 @@
                             <div class="form-actions mt-3">
                                 <button
                                     type="button"
-                                    class="btn btn-success m-r-5 btn-action-clinical"
+                                    class="btn btn-success m-r-5"
                                     @click="guardarRegistro"
                                     v-if="!actualizar"
                                     :disabled="loadingGuardar"
-                                    title="Guardar producto (Ctrl+S)"
                                 >
                                     <i
                                         class="fa"
                                         :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"
                                     ></i>
                                     Guardar
-                                    <span
-                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                                        style="font-size: 10px; opacity: 0.9"
-                                        >Ctrl+S</span
-                                    >
                                 </button>
 
                                 <button
                                     type="button"
-                                    class="btn btn-warning m-r-5 btn-action-clinical"
+                                    class="btn btn-warning m-r-5"
                                     v-if="actualizar"
                                     @click="guardarRegistro"
                                     :disabled="loadingGuardar"
-                                    title="Actualizar producto (Ctrl+S)"
                                 >
                                     <i
                                         class="fa"
                                         :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-pencil'"
                                     ></i>
                                     Actualizar
-                                    <span
-                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                                        style="font-size: 10px; opacity: 0.9"
-                                        >Ctrl+S</span
-                                    >
                                 </button>
 
                                 <button
                                     type="button"
-                                    class="btn btn-inverse btn-action-clinical"
+                                    class="btn btn-inverse"
                                     @click="cerrarSidebar"
-                                    title="Cerrar panel (Esc)"
                                 >
                                     Cancelar
-                                    <span
-                                        class="badge badge-secondary ml-1 d-none d-md-inline"
-                                        style="font-size: 10px"
-                                        >Esc</span
-                                    >
                                 </button>
                             </div>
                         </div>
@@ -424,10 +422,10 @@ async function ListarDatos() {
     clearErrors();
     try {
         const res = await axios.get("/api/config-productos");
-        safeDestroyDataTable(dt.value || "#example23");
+        safeDestroyDataTable(dt.value || "#tablaProductos");
         registros.value = res.data?.data || res.data || [];
         nextTick(() => {
-            safeInitDataTable(dt.value || "#example23", {
+            safeInitDataTable(dt.value || "#tablaProductos", {
                 dom: "Bfrtip",
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
@@ -577,7 +575,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-    safeDestroyDataTable(dt.value || "#example23");
+    safeDestroyDataTable(dt.value || "#tablaProductos");
 });
 </script>
 <style scoped>
@@ -588,7 +586,6 @@ onBeforeUnmount(() => {
     width: 100vw;
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(2px);
     z-index: 1090;
 }
 
@@ -615,7 +612,7 @@ onBeforeUnmount(() => {
     pointer-events: auto !important;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .right-sidebar {
         width: 100% !important;
         right: -100% !important;

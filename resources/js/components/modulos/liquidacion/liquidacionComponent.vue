@@ -3,10 +3,18 @@
         <!-- BREADCRUMB -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
-                <h3 class="text-themecolor">Liquidaci&oacute;n</h3>
+                <h3 class="text-themecolor">Liquidación</h3>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
-                    <li class="breadcrumb-item active">Liquidaci&oacute;n</li>
+                    <li class="breadcrumb-item">
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
+                    </li>
+                    <li class="breadcrumb-item active">Liquidación</li>
                 </ol>
             </div>
         </div>
@@ -16,7 +24,7 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title">Filtros de liquidaci&oacute;n</h4>
+                        <h4 class="card-title">Filtros de liquidación</h4>
                         <h6 class="card-subtitle">
                             Seleccione la sede y el rango de fechas a liquidar. Ambas fechas son
                             obligatorias. Contrato y médico son opcionales para acotar.
@@ -101,7 +109,7 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label>&nbsp;</label>
+                                    <label class="d-none d-md-block">&nbsp;</label>
                                     <div>
                                         <button
                                             type="button"
@@ -110,7 +118,12 @@
                                             @click="calcular"
                                             title="Calcular liquidación"
                                         >
-                                            <i class="fa fa-calculator m-r-5"></i>
+                                            <i
+                                                class="fa"
+                                                :class="
+                                                    loading ? 'fa-spinner fa-spin' : 'fa-calculator'
+                                                "
+                                            ></i>
                                             {{ loading ? "Calculando..." : "Calcular" }}
                                         </button>
                                         <button
@@ -120,7 +133,8 @@
                                             @click="exportar"
                                             title="Exportar liquidación a Excel"
                                         >
-                                            <i class="fa fa-file-excel-o"></i>
+                                            <i class="fa fa-file-excel-o m-r-5"></i>
+                                            Excel
                                         </button>
                                     </div>
                                 </div>
@@ -131,25 +145,44 @@
             </div>
         </div>
 
+        <!-- SKELETON LOADER -->
+        <div v-if="loading" class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <table-skeleton-loader :rows="6" :columns="7" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- RESULTADOS -->
-        <div v-if="resultado" class="row">
+        <div v-else-if="resultado" class="row">
             <!-- LÍNEAS -->
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">
-                            L&iacute;neas liquidables
+                            Líneas liquidables
                             <span class="badge badge-info m-l-5">{{ lineas.length }}</span>
                         </h4>
-                        <div class="table-responsive m-t-20">
+                        <div v-if="!lineas.length" class="m-t-20">
+                            <empty-state-component
+                                title="Sin líneas liquidables"
+                                description="No se encontraron líneas liquidables para los filtros seleccionados."
+                                icon="fa-calculator"
+                            />
+                        </div>
+                        <div v-else class="table-responsive m-t-20">
                             <table
+                                id="tablaLiquidacionLineas"
                                 class="display nowrap table table-hover table-striped table-bordered"
                                 cellspacing="0"
                                 width="100%"
                             >
                                 <thead>
                                     <tr>
-                                        <th>M&eacute;dico</th>
+                                        <th>Médico</th>
                                         <th>CUPS</th>
                                         <th>Producto</th>
                                         <th>Clase</th>
@@ -176,12 +209,6 @@
                                         <td>{{ formatDate(linea.fecha_lectura) }}</td>
                                         <td>#{{ linea.contrato_id }}</td>
                                     </tr>
-                                    <tr v-if="!lineas.length">
-                                        <td colspan="7" class="text-center">
-                                            Sin l&iacute;neas liquidables para los filtros
-                                            seleccionados.
-                                        </td>
-                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -193,12 +220,15 @@
             <div class="col-md-8">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title">Totales por m&eacute;dico</h4>
+                        <h4 class="card-title">Totales por médico</h4>
                         <div class="table-responsive m-t-20">
-                            <table class="table table-hover table-striped table-bordered">
+                            <table
+                                id="tablaLiquidacionTotales"
+                                class="table table-hover table-striped table-bordered"
+                            >
                                 <thead>
                                     <tr>
-                                        <th>M&eacute;dico</th>
+                                        <th>Médico</th>
                                         <th>Consulta</th>
                                         <th>Urgencias</th>
                                         <th>Total</th>
@@ -235,9 +265,7 @@
                             Exclusiones
                             <span class="badge badge-secondary m-l-5">{{ totalExcluidos }}</span>
                         </h4>
-                        <h6 class="card-subtitle">
-                            Lecturas que no se liquidaron, por categor&iacute;a.
-                        </h6>
+                        <h6 class="card-subtitle">Lecturas que no se liquidaron, por categoría.</h6>
                         <ul class="list-group m-t-20">
                             <li
                                 v-for="item in exclusiones"
@@ -281,12 +309,7 @@
             class="modal show"
             tabindex="-1"
             role="dialog"
-            style="
-                display: block;
-                background: rgba(0, 0, 0, 0.5);
-                backdrop-filter: blur(2px);
-                z-index: 1050;
-            "
+            style="display: block; background: rgba(0, 0, 0, 0.5); z-index: 1050"
             @click.self="cerrarModalExclusion"
         >
             <div class="modal-dialog modal-xl" role="document">
@@ -319,7 +342,11 @@
                                 </p>
                             </div>
                             <div class="col-md-6 text-right">
+                                <label for="busqueda-exclusion" class="sr-only"
+                                    >Buscar exclusiones</label
+                                >
                                 <input
+                                    id="busqueda-exclusion"
                                     v-model="busquedaExclusion"
                                     type="text"
                                     class="form-control"
@@ -329,7 +356,10 @@
                         </div>
 
                         <div class="table-responsive" style="max-height: 480px; overflow-y: auto">
-                            <table class="table table-hover table-striped table-bordered">
+                            <table
+                                id="tablaLiquidacionExclusiones"
+                                class="table table-hover table-striped table-bordered"
+                            >
                                 <thead class="thead-light">
                                     <tr>
                                         <th>Fecha</th>
@@ -941,3 +971,10 @@ onBeforeUnmount(() => {
     window.removeEventListener("keydown", onKeyDown);
 });
 </script>
+<style scoped>
+@media (max-width: 767px) {
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+}
+</style>

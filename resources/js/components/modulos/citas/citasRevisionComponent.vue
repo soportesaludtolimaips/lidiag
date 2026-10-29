@@ -5,10 +5,22 @@
                 <h3 class="text-themecolor">Revisión de Solicitudes</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="#">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="#">Citas</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Citas
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Solicitudes Pendientes</li>
                 </ol>
@@ -16,18 +28,13 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-info btn-action-clinical"
+                    class="btn btn-info"
                     @click="listarRegistros()"
                     :disabled="loadingBuscar"
-                    title="Actualizar solicitudes (F2)"
+                    title="Actualizar solicitudes"
                 >
                     <i class="fa" :class="loadingBuscar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
                     Refrescar
-                    <span
-                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                        style="font-size: 10px; opacity: 0.9"
-                        >F2</span
-                    >
                 </button>
             </div>
         </div>
@@ -44,8 +51,13 @@
                                 <div class="row p-t-2">
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label class="control-label">Servicio</label>
+                                            <label
+                                                for="filtroServicioRevision"
+                                                class="control-label"
+                                                >Servicio</label
+                                            >
                                             <select
+                                                id="filtroServicioRevision"
                                                 v-model="filtro.servicio_id"
                                                 class="form-control"
                                                 @change="listarRegistros()"
@@ -63,8 +75,11 @@
                                     </div>
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label class="control-label">Sede</label>
+                                            <label for="filtroSedeRevision" class="control-label"
+                                                >Sede</label
+                                            >
                                             <select
+                                                id="filtroSedeRevision"
                                                 v-model="filtro.sede_id"
                                                 class="form-control"
                                                 @change="listarRegistros()"
@@ -82,8 +97,13 @@
                                     </div>
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label class="control-label">Búsqueda</label>
+                                            <label
+                                                for="filtroBusquedaRevision"
+                                                class="control-label"
+                                                >Búsqueda</label
+                                            >
                                             <input
+                                                id="filtroBusquedaRevision"
                                                 type="text"
                                                 v-model="filtro.busqueda"
                                                 class="form-control"
@@ -141,11 +161,24 @@
                             </div>
                         </div>
 
-                        <loading-spinner :visible="loadingBuscar" />
+                        <table-skeleton-loader :visible="loadingBuscar" :rows="6" :columns="11" />
 
-                        <div class="table-responsive" :class="{ 'd-none': loadingBuscar }">
+                        <empty-state-component
+                            v-if="!loadingBuscar && registros.length === 0"
+                            icon="fa fa-inbox"
+                            title="No hay solicitudes pendientes"
+                            description="No se encontraron solicitudes pendientes con los filtros aplicados."
+                            action-text="Limpiar filtros"
+                            action-icon="fa fa-refresh"
+                            @action="limpiarFiltros()"
+                        />
+
+                        <div
+                            v-show="!loadingBuscar && registros.length > 0"
+                            class="table-responsive"
+                        >
                             <table
-                                id="example23"
+                                id="tablaCitasRevision"
                                 ref="dt"
                                 class="table table-bordered table-striped"
                                 cellspacing="0"
@@ -167,12 +200,6 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-if="!registros.length">
-                                        <td colspan="11" class="text-center text-muted py-4">
-                                            <i class="fa fa-inbox fa-2x d-block mb-2"></i>
-                                            No hay solicitudes pendientes.
-                                        </td>
-                                    </tr>
                                     <tr
                                         v-for="item in registros"
                                         :key="item.id"
@@ -343,8 +370,11 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="control-label">Sede *</label>
+                                    <label class="control-label" for="modal_aprobar_sede_id"
+                                        >Sede *</label
+                                    >
                                     <select
+                                        id="modal_aprobar_sede_id"
                                         v-model="formAprobar.sede_id"
                                         class="form-control"
                                         @change="
@@ -363,8 +393,11 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="control-label">Fecha *</label>
+                                    <label class="control-label" for="modal_aprobar_fecha"
+                                        >Fecha *</label
+                                    >
                                     <input
+                                        id="modal_aprobar_fecha"
                                         type="date"
                                         v-model="formAprobar.fecha"
                                         class="form-control"
@@ -374,8 +407,11 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="control-label">Horarios disponibles *</label>
+                                    <label class="control-label" for="modal_aprobar_horarios"
+                                        >Horarios disponibles *</label
+                                    >
                                     <select
+                                        id="modal_aprobar_horarios"
                                         v-model="formAprobar.agenda_disponibilidad_detalle_id"
                                         class="form-control"
                                         :disabled="
@@ -429,8 +465,11 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label class="control-label">Observaciones</label>
+                                    <label class="control-label" for="modal_aprobar_observaciones"
+                                        >Observaciones</label
+                                    >
                                     <textarea
+                                        id="modal_aprobar_observaciones"
                                         v-model="formAprobar.observaciones"
                                         class="form-control"
                                         rows="2"
@@ -444,32 +483,20 @@
                             type="button"
                             class="btn btn-inverse"
                             @click="showModalAprobar = false"
-                            title="Cerrar modal (Esc)"
                         >
                             Cancelar
-                            <span
-                                class="badge badge-secondary ml-1 d-none d-md-inline"
-                                style="font-size: 10px"
-                                >Esc</span
-                            >
                         </button>
                         <button
                             type="button"
-                            class="btn btn-success btn-action-clinical"
+                            class="btn btn-success"
                             @click="aprobarCita()"
                             :disabled="loadingGuardar"
-                            title="Aprobar y Asignar (Ctrl+S)"
                         >
                             <i
                                 class="fa"
                                 :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"
                             ></i>
                             {{ loadingGuardar ? "Guardando..." : "Aprobar y Asignar" }}
-                            <span
-                                class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                                style="font-size: 10px; opacity: 0.9"
-                                >Ctrl+S</span
-                            >
                         </button>
                     </div>
                 </div>
@@ -538,32 +565,20 @@
                             type="button"
                             class="btn btn-inverse"
                             @click="showModalRechazar = false"
-                            title="Cerrar modal (Esc)"
                         >
                             Cancelar
-                            <span
-                                class="badge badge-secondary ml-1 d-none d-md-inline"
-                                style="font-size: 10px"
-                                >Esc</span
-                            >
                         </button>
                         <button
                             type="button"
-                            class="btn btn-danger btn-action-clinical"
+                            class="btn btn-danger"
                             @click="rechazarCita()"
                             :disabled="loadingGuardar"
-                            title="Rechazar cita (Ctrl+S)"
                         >
                             <i
                                 class="fa"
                                 :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-times'"
                             ></i>
                             {{ loadingGuardar ? "Guardando..." : "Rechazar" }}
-                            <span
-                                class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                                style="font-size: 10px; opacity: 0.9"
-                                >Ctrl+S</span
-                            >
                         </button>
                     </div>
                 </div>
@@ -578,7 +593,6 @@ const { proxy, appContext } = getCurrentInstance();
 const emitter = appContext.config.globalProperties.emitter;
 const dt = ref(null);
 
-import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { alertSuccess, alertError } from "@/helpers/alerts";
 import { formatFecha } from "@/composables/useCitasUtils.js";
@@ -662,7 +676,7 @@ const productoOptions = computed(() => {
 });
 
 function destroyDataTable() {
-    safeDestroyDataTable(dt.value || "#example23");
+    safeDestroyDataTable(dt.value || "#tablaCitasRevision");
 }
 
 function cargarListas() {
@@ -725,7 +739,7 @@ async function listarRegistros() {
         registros.value = Array.isArray(data) ? data : [];
 
         nextTick(() => {
-            safeInitDataTable(dt.value || "#example23", {
+            safeInitDataTable(dt.value || "#tablaCitasRevision", {
                 dom: "Bfrtip",
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
@@ -954,7 +968,6 @@ onBeforeUnmount(() => {
 <style scoped>
 .modal.show {
     background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(2px);
     overflow-y: auto;
 }
 .modal-dialog {

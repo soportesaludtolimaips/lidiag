@@ -5,10 +5,22 @@
                 <h3 class="text-themecolor">Producto</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="#">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="#">Citas</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Citas
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Recomendaciones por Producto</li>
                 </ol>
@@ -16,22 +28,17 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-outline-secondary btn-action-clinical m-r-5"
+                    class="btn btn-outline-secondary m-r-5"
                     @click="buscar()"
                     :disabled="loadingBuscar"
-                    title="Actualizar listado (F2)"
+                    title="Actualizar listado"
                 >
                     <i class="fa" :class="loadingBuscar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
                     Refrescar
-                    <span
-                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                        style="font-size: 10px; opacity: 0.9"
-                        >F2</span
-                    >
                 </button>
                 <button
                     type="button"
-                    class="btn btn-info btn-action-clinical"
+                    class="btn btn-info"
                     @click="mostrarRegistro(null)"
                     title="Nueva recomendación"
                 >
@@ -52,8 +59,13 @@
                                 <div class="row p-t-2">
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label class="control-label">Sede</label>
+                                            <label
+                                                for="filtroSedeRecomendacion"
+                                                class="control-label"
+                                                >Sede</label
+                                            >
                                             <select
+                                                id="filtroSedeRecomendacion"
                                                 v-model="filtro.sede_id"
                                                 class="form-control"
                                                 @change="
@@ -76,8 +88,13 @@
                                     </div>
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label class="control-label">Servicio</label>
+                                            <label
+                                                for="filtroServicioRecomendacion"
+                                                class="control-label"
+                                                >Servicio</label
+                                            >
                                             <select
+                                                id="filtroServicioRecomendacion"
                                                 v-model="filtro.servicio_id"
                                                 class="form-control"
                                                 @change="
@@ -157,12 +174,22 @@
                             Texto enviado al paciente junto con la confirmación de su cita.
                         </h6>
 
-                        <loading-spinner :visible="loadingBuscar" />
+                        <table-skeleton-loader :visible="loadingBuscar" :rows="5" :columns="4" />
 
-                        <div :class="{ 'd-none': loadingBuscar }">
+                        <empty-state-component
+                            v-if="!loadingBuscar && registros.length === 0"
+                            icon="fa fa-commenting-o"
+                            title="No hay recomendaciones registradas"
+                            description="No se encontraron recomendaciones con los filtros aplicados."
+                            action-text="Limpiar filtros"
+                            action-icon="fa fa-refresh"
+                            @action="btnLimpiar()"
+                        />
+
+                        <div v-show="!loadingBuscar && registros.length > 0">
                             <div class="table-responsive">
                                 <table
-                                    id="tabla-recomendaciones"
+                                    id="tablaRecomendaciones"
                                     ref="dt"
                                     class="table table-bordered table-striped"
                                     cellspacing="0"
@@ -233,11 +260,6 @@
                                                 </button>
                                             </td>
                                         </tr>
-                                        <tr v-if="registros.length === 0">
-                                            <td colspan="4" class="text-center text-muted">
-                                                No hay recomendaciones registradas
-                                            </td>
-                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -265,7 +287,7 @@
                         id="btnCerrarModalForm"
                         @click="cerrarModal()"
                         aria-label="Cerrar panel"
-                        title="Cerrar (Esc)"
+                        title="Cerrar"
                     >
                         <i class="ti-close"></i>
                     </button>
@@ -301,8 +323,14 @@
                                 >
                             </div>
                             <div class="form-group">
-                                <label class="control-label">Estado</label>
-                                <select v-model="form.estado" class="form-control">
+                                <label for="form_estado_recomendacion" class="control-label"
+                                    >Estado</label
+                                >
+                                <select
+                                    id="form_estado_recomendacion"
+                                    v-model="form.estado"
+                                    class="form-control"
+                                >
                                     <option :value="true">Activo</option>
                                     <option :value="false">Inactivo</option>
                                 </select>
@@ -311,36 +339,20 @@
                         <div
                             class="form-actions mt-3 d-flex justify-content-end align-items-center"
                         >
-                            <button
-                                type="button"
-                                class="btn btn-inverse btn-action-clinical"
-                                @click="cerrarModal()"
-                                title="Cancelar cambios y cerrar panel (Esc)"
-                            >
+                            <button type="button" class="btn btn-inverse" @click="cerrarModal()">
                                 Cancelar
-                                <span
-                                    class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                                    style="font-size: 10px; opacity: 0.9"
-                                    >Esc</span
-                                >
                             </button>
                             <button
                                 type="button"
-                                class="btn btn-success m-l-5 btn-action-clinical"
+                                class="btn btn-success m-l-5"
                                 @click="guardar()"
                                 :disabled="loadingGuardar"
-                                title="Guardar recomendación (Ctrl+S / Cmd+S)"
                             >
                                 <i
                                     class="fa"
                                     :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"
                                 ></i>
                                 {{ loadingGuardar ? "Guardando..." : "Guardar" }}
-                                <span
-                                    class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                                    style="font-size: 10px; opacity: 0.9"
-                                    >Ctrl+S</span
-                                >
                             </button>
                         </div>
                     </form>
@@ -357,7 +369,6 @@ const dt = ref(null);
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { alertSuccess, alertError, confirmAction } from "@/helpers/alerts";
 import FormattedTextEditor from "@/components/shared/FormattedTextEditor.vue";
-import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import axios from "axios";
 
@@ -474,10 +485,10 @@ async function buscar() {
         const params = {};
         if (filtro.value.producto_id) params.producto_id = filtro.value.producto_id;
         const res = await axios.get("/api/config-recomendacion-productos", { params });
-        safeDestroyDataTable(dt.value || "#tabla-recomendaciones");
+        safeDestroyDataTable(dt.value || "#tablaRecomendaciones");
         registros.value = res.data?.data || [];
         nextTick(() => {
-            safeInitDataTable(dt.value || "#tabla-recomendaciones", {
+            safeInitDataTable(dt.value || "#tablaRecomendaciones", {
                 dom: "Bfrtip",
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
@@ -595,7 +606,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-    safeDestroyDataTable(dt.value || "#tabla-recomendaciones");
+    safeDestroyDataTable(dt.value || "#tablaRecomendaciones");
 });
 </script>
 <style scoped>
@@ -605,9 +616,8 @@ onBeforeUnmount(() => {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(0, 0, 0, 0.45);
+    background-color: rgba(0, 0, 0, 0.5);
     z-index: 1090;
-    backdrop-filter: blur(1px);
 }
 
 .right-sidebar {
@@ -632,7 +642,7 @@ onBeforeUnmount(() => {
     visibility: visible;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .right-sidebar {
         width: 100%;
         right: -100%;

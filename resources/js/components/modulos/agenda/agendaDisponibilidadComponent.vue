@@ -5,33 +5,40 @@
                 <h3 class="text-themecolor">Citas</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Citas</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Citas
+                        </button>
                     </li>
-                    <li class="breadcrumb-item active">Gesti&oacute;n de citas</li>
+                    <li class="breadcrumb-item active">Disponibilidad de citas</li>
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-outline-secondary btn-action-clinical m-r-5"
+                    class="btn btn-outline-secondary m-r-5"
                     @click="buscarStudy()"
                     :disabled="loadingBuscar"
-                    title="Actualizar listado (F2)"
+                    title="Actualizar listado"
                 >
                     <i class="fa" :class="loadingBuscar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
                     Refrescar
-                    <span
-                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                        style="font-size: 10px; opacity: 0.9"
-                        >F2</span
-                    >
                 </button>
                 <button
                     type="button"
-                    class="btn btn-info btnDesplegarRigthSidebar btn-action-clinical"
+                    class="btn btn-info btnDesplegarRigthSidebar"
                     @click="
                         editando = false;
                         mostrarRegistro();
@@ -47,14 +54,16 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> Filtros de b&uacute;squeda
+                            <i class="fa fa-filter"></i> Filtros de búsqueda
                         </h4>
                         <form action="#">
                             <div class="form-body">
                                 <div class="row p-t-2">
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <label class="control-label">Fecha Inicio</label>
+                                            <label for="bus_fech_ini" class="control-label"
+                                                >Fecha Inicio</label
+                                            >
                                             <input
                                                 type="date"
                                                 id="bus_fech_ini"
@@ -66,7 +75,9 @@
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <label class="control-label">Fecha Fin</label>
+                                            <label for="bus_fecha_fin" class="control-label"
+                                                >Fecha Fin</label
+                                            >
                                             <input
                                                 type="date"
                                                 id="bus_fecha_fin"
@@ -81,7 +92,7 @@
                                 <div class="form-actions mt-3">
                                     <button
                                         type="button"
-                                        class="btn btn-success btn-action-clinical m-r-5"
+                                        class="btn btn-success m-r-5"
                                         @click="buscarStudy()"
                                         :disabled="loadingBuscar"
                                     >
@@ -96,7 +107,7 @@
 
                                     <button
                                         type="button"
-                                        class="btn btn-inverse btn-action-clinical"
+                                        class="btn btn-inverse"
                                         @click="btnLimpiar()"
                                     >
                                         <i class="fa fa-refresh"></i> Limpiar
@@ -118,72 +129,70 @@
                             Gestione las disponibilidades de citas para estudios.
                         </h6>
 
-                        <loading-spinner :visible="loadingBuscar" />
+                        <table-skeleton-loader v-if="loadingBuscar" :rows="5" :columns="5" />
 
-                        <div :class="{ 'd-none': loadingBuscar }">
-                            <div v-if="!registros.length" class="text-center p-5">
-                                <i class="fa fa-calendar fa-3x text-muted"></i>
-                                <p class="mt-3 text-muted">No se encontraron disponibilidades.</p>
-                                <p class="text-muted">
-                                    Presione <strong>"Nuevo registro"</strong> para crear una.
-                                </p>
-                            </div>
+                        <div v-else-if="!registros.length" class="m-t-20">
+                            <empty-state-component
+                                title="No hay disponibilidades registradas"
+                                description="No se encontraron disponibilidades para la sede y fechas seleccionadas. Presione 'Nuevo registro' para crear una."
+                                icon="fa-calendar"
+                            />
+                        </div>
 
-                            <div class="table-responsive" v-if="registros.length">
-                                <table
-                                    id="tabla-disponibilidad"
-                                    ref="dt"
-                                    class="table table-bordered table-striped"
-                                    cellspacing="0"
-                                    width="100%"
-                                >
-                                    <thead>
-                                        <tr>
-                                            <th width="5%">Fecha Inicio</th>
-                                            <th width="5%">Fecha Fin</th>
-                                            <th width="30%">Sede</th>
-                                            <th>Servicio de Cita</th>
-                                            <th class="sr-only">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="item in registros" :key="item.id">
-                                            <td>{{ formatFecha(item.fecha_hora_ini) }}</td>
-                                            <td>{{ formatFecha(item.fecha_hora_fin) }}</td>
-                                            <td>{{ item.sede?.nom_sede || item.sede_id }}</td>
-                                            <td>{{ item.servicio_cita?.nombre || "-" }}</td>
-                                            <td class="text-nowrap">
-                                                <button
-                                                    type="button"
-                                                    class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
-                                                    title="Editar disponibilidad"
-                                                    aria-label="Editar"
-                                                    @click="editarRegistro(item)"
-                                                >
-                                                    <i class="fa fa-pencil"></i>
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                    title="Eliminar disponibilidad"
-                                                    aria-label="Eliminar"
-                                                    @click="elimnarRegistro(item.id)"
-                                                    :disabled="loadingEliminarId === item.id"
-                                                >
-                                                    <i
-                                                        class="fa"
-                                                        :class="
-                                                            loadingEliminarId === item.id
-                                                                ? 'fa-spinner fa-spin'
-                                                                : 'fa-trash'
-                                                        "
-                                                    ></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                        <div class="table-responsive m-t-20" v-else>
+                            <table
+                                id="tablaAgendaDisponibilidad"
+                                ref="dt"
+                                class="display nowrap table table-hover table-striped table-bordered"
+                                cellspacing="0"
+                                width="100%"
+                            >
+                                <thead>
+                                    <tr>
+                                        <th width="5%">Fecha Inicio</th>
+                                        <th width="5%">Fecha Fin</th>
+                                        <th width="30%">Sede</th>
+                                        <th>Servicio de Cita</th>
+                                        <th class="sr-only">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="item in registros" :key="item.id">
+                                        <td>{{ formatFecha(item.fecha_hora_ini) }}</td>
+                                        <td>{{ formatFecha(item.fecha_hora_fin) }}</td>
+                                        <td>{{ item.sede?.nom_sede || item.sede_id }}</td>
+                                        <td>{{ item.servicio_cita?.nombre || "-" }}</td>
+                                        <td class="text-nowrap">
+                                            <button
+                                                type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
+                                                title="Editar disponibilidad"
+                                                aria-label="Editar"
+                                                @click="editarRegistro(item)"
+                                            >
+                                                <i class="fa fa-pencil"></i>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
+                                                title="Eliminar disponibilidad"
+                                                aria-label="Eliminar"
+                                                @click="elimnarRegistro(item.id)"
+                                                :disabled="loadingEliminarId === item.id"
+                                            >
+                                                <i
+                                                    class="fa"
+                                                    :class="
+                                                        loadingEliminarId === item.id
+                                                            ? 'fa-spinner fa-spin'
+                                                            : 'fa-trash'
+                                                    "
+                                                ></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -226,7 +235,7 @@
                                     <div class="row">
                                         <div class="col-md-3">
                                             <div class="form-group">
-                                                <label class="control-label">
+                                                <label for="total_citas" class="control-label">
                                                     Total de citas
                                                     <span class="text-danger">*</span>
                                                 </label>
@@ -248,7 +257,7 @@
 
                                         <div class="col-md-5">
                                             <div class="form-group">
-                                                <label class="control-label">
+                                                <label for="dura_cita" class="control-label">
                                                     Minutos Por Cita
                                                     <span class="text-danger">*</span>
                                                 </label>
@@ -268,7 +277,7 @@
 
                                         <div class="col-md-5">
                                             <div class="form-group">
-                                                <label class="control-label">
+                                                <label for="servicio_id" class="control-label">
                                                     Servicio de Cita
                                                     <span class="text-danger">*</span>
                                                 </label>
@@ -299,7 +308,7 @@
 
                                         <div class="col-md-5">
                                             <div class="form-group">
-                                                <label class="control-label">
+                                                <label for="fecha_hora_ini" class="control-label">
                                                     Fec. Inicio
                                                     <span class="text-danger">*</span>
                                                 </label>
@@ -325,13 +334,13 @@
                             <div class="form-actions mt-3">
                                 <button
                                     type="button"
-                                    class="btn btn-success m-r-5 btn-action-clinical"
+                                    class="btn btn-success m-r-5"
                                     @click="guardarRegistro()"
                                     :disabled="loadingGuardar"
                                     :title="
                                         editando
-                                            ? 'Actualizar disponibilidad (Ctrl+S)'
-                                            : 'Guardar disponibilidad (Ctrl+S)'
+                                            ? 'Actualizar disponibilidad'
+                                            : 'Guardar disponibilidad'
                                     "
                                 >
                                     <i
@@ -345,25 +354,15 @@
                                               ? "Actualizar"
                                               : "Guardar"
                                     }}
-                                    <span
-                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                                        style="font-size: 10px; opacity: 0.9"
-                                        >Ctrl+S</span
-                                    >
                                 </button>
 
                                 <button
                                     type="button"
-                                    class="btn btn-inverse btn-action-clinical"
+                                    class="btn btn-inverse"
                                     @click="cerrarModal()"
-                                    title="Cancelar y cerrar (Esc)"
+                                    title="Cancelar y cerrar"
                                 >
                                     Cancelar
-                                    <span
-                                        class="badge badge-secondary ml-1 d-none d-md-inline"
-                                        style="font-size: 10px"
-                                        >Esc</span
-                                    >
                                 </button>
                             </div>
                         </div>
@@ -378,7 +377,6 @@ import { getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "v
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts";
-import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import axios from "axios";
 
@@ -432,11 +430,11 @@ async function buscarStudy() {
             bus_fecha_fin: busqueda.value.bus_fecha_fin || undefined,
         };
         const res = await axios.get("/api/agenda-disponibilidad", { params });
-        safeDestroyDataTable(dt.value || "#tabla-disponibilidad");
+        safeDestroyDataTable(dt.value || "#tablaAgendaDisponibilidad");
         registros.value = res.data.data || [];
         nextTick(() => {
             if (registros.value.length) {
-                safeInitDataTable(dt.value || "#tabla-disponibilidad", {
+                safeInitDataTable(dt.value || "#tablaAgendaDisponibilidad", {
                     dom: "Bfrtip",
                     buttons: ["copy", "csv", "excel", "pdf", "print"],
                 });
@@ -590,7 +588,7 @@ function formatFecha(fecha) {
 
 function onSedeSeleccionada() {
     establecerSede();
-    safeDestroyDataTable(dt.value || "#tabla-disponibilidad");
+    safeDestroyDataTable(dt.value || "#tablaAgendaDisponibilidad");
 }
 
 onMounted(() => {
@@ -603,7 +601,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     emitter?.off("sedeSeleccionada", onSedeSeleccionada);
-    safeDestroyDataTable(dt.value || "#tabla-disponibilidad");
+    safeDestroyDataTable(dt.value || "#tablaAgendaDisponibilidad");
 });
 </script>
 <style scoped>
@@ -614,7 +612,6 @@ onBeforeUnmount(() => {
     width: 100vw;
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(2px);
     z-index: 1090;
 }
 
@@ -641,7 +638,7 @@ onBeforeUnmount(() => {
     pointer-events: auto !important;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .right-sidebar {
         width: 100% !important;
         right: -100% !important;

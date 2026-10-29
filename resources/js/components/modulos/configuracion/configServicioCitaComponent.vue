@@ -5,10 +5,22 @@
                 <h3 class="text-themecolor">Configuración</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Configuración</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Configuración
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Servicios de Citas</li>
                 </ol>
@@ -16,22 +28,17 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-outline-secondary btn-action-clinical m-r-5"
+                    class="btn btn-outline-secondary m-r-5"
                     @click="ListarDatos"
                     :disabled="loadingListar"
-                    title="Actualizar listado (F2)"
+                    title="Actualizar listado"
                 >
                     <i class="fa" :class="loadingListar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
                     Refrescar
-                    <span
-                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                        style="font-size: 10px; opacity: 0.9"
-                        >F2</span
-                    >
                 </button>
                 <button
                     type="button"
-                    class="btn btn-info btnDesplegarRigthSidebar btn-action-clinical"
+                    class="btn btn-info btnDesplegarRigthSidebar"
                     @click="abrirFormularioNuevo()"
                 >
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
@@ -51,8 +58,9 @@
                         <div class="row m-t-20 m-b-20">
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label>Filtrar por sede</label>
+                                    <label for="filtroSedeServicios">Filtrar por sede</label>
                                     <select
+                                        id="filtroSedeServicios"
                                         class="form-control"
                                         v-model="filtroSede"
                                         @change="ListarDatos"
@@ -66,11 +74,20 @@
                             </div>
                         </div>
 
-                        <div v-if="loadingListar" class="text-center m-t-40">
-                            <i class="fa fa-spinner fa-spin fa-2x"></i>
-                            <p class="text-muted m-t-10">Cargando servicios...</p>
-                        </div>
-                        <div v-else class="table-responsive m-t-40">
+                        <table-skeleton-loader :visible="loadingListar" :rows="5" :columns="4" />
+                        <empty-state-component
+                            v-if="!loadingListar && registros.length === 0"
+                            icon="fa fa-calendar-check-o"
+                            title="No hay servicios de citas registrados"
+                            description="No se encontraron servicios configurados."
+                            action-text="Nuevo registro"
+                            action-icon="fa fa-plus"
+                            @action="abrirFormularioNuevo()"
+                        />
+                        <div
+                            v-show="!loadingListar && registros.length > 0"
+                            class="table-responsive m-t-40"
+                        >
                             <table
                                 id="tablaServicios"
                                 ref="dt"
@@ -195,52 +212,34 @@
                             <div class="form-actions mt-3">
                                 <button
                                     type="submit"
-                                    class="btn btn-success m-r-5 btn-action-clinical"
+                                    class="btn btn-success m-r-5"
                                     v-if="!editando"
                                     :disabled="loadingGuardar"
-                                    title="Guardar servicio (Ctrl+S)"
                                 >
                                     <i
                                         class="fa"
                                         :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"
                                     ></i>
                                     Guardar
-                                    <span
-                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                                        style="font-size: 10px; opacity: 0.9"
-                                        >Ctrl+S</span
-                                    >
                                 </button>
                                 <button
                                     type="submit"
-                                    class="btn btn-warning m-r-5 btn-action-clinical"
+                                    class="btn btn-warning m-r-5"
                                     v-if="editando"
                                     :disabled="loadingGuardar"
-                                    title="Actualizar servicio (Ctrl+S)"
                                 >
                                     <i
                                         class="fa"
                                         :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-pencil'"
                                     ></i>
                                     Actualizar
-                                    <span
-                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                                        style="font-size: 10px; opacity: 0.9"
-                                        >Ctrl+S</span
-                                    >
                                 </button>
                                 <button
                                     type="button"
-                                    class="btn btn-inverse btn-action-clinical"
+                                    class="btn btn-inverse"
                                     @click="cerrarSidebar"
-                                    title="Cerrar panel (Esc)"
                                 >
                                     Cancelar
-                                    <span
-                                        class="badge badge-secondary ml-1 d-none d-md-inline"
-                                        style="font-size: 10px"
-                                        >Esc</span
-                                    >
                                 </button>
                             </div>
                         </div>
@@ -433,7 +432,6 @@ onBeforeUnmount(() => {
     width: 100vw;
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(2px);
     z-index: 1090;
 }
 
@@ -460,7 +458,7 @@ onBeforeUnmount(() => {
     pointer-events: auto !important;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .right-sidebar {
         width: 100% !important;
         right: -100% !important;

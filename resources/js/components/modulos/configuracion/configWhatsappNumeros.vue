@@ -6,23 +6,26 @@
             mensajes.
         </h6>
 
-        <div v-if="loadingNumeros" class="text-center m-t-40">
-            <i class="fa fa-spinner fa-spin fa-2x"></i>
-            <p class="text-muted m-t-10">Cargando números...</p>
-        </div>
-
-        <div v-else-if="errorNumeros" class="alert alert-danger m-t-20">
+        <div v-if="errorNumeros" class="alert alert-danger m-t-20">
             <i class="fa fa-exclamation-triangle"></i>
             {{ errorNumeros }}
         </div>
 
-        <div v-else-if="registrosNumeros.length === 0" class="text-center m-t-40">
-            <p class="text-muted">
-                No hay números WhatsApp configurados. Cree un nuevo registro para comenzar.
-            </p>
-        </div>
+        <table-skeleton-loader :visible="loadingNumeros" :rows="5" :columns="6" />
+        <empty-state-component
+            v-if="!loadingNumeros && !errorNumeros && registrosNumeros.length === 0"
+            icon="fa fa-phone"
+            title="No hay números configurados"
+            description="No hay números de WhatsApp configurados en el sistema."
+            action-text="Nuevo registro"
+            action-icon="fa fa-plus"
+            @action="nuevo()"
+        />
 
-        <div class="table-responsive m-t-40" v-else>
+        <div
+            v-show="!loadingNumeros && registrosNumeros.length > 0"
+            class="table-responsive m-t-40"
+        >
             <table
                 id="tblWhatsappNumbers"
                 ref="dtNumeros"
@@ -100,7 +103,7 @@
                             type="button"
                             class="close right-side-toggle"
                             aria-label="Cerrar panel"
-                            title="Cerrar (Esc)"
+                            title="Cerrar"
                             @click="cerrarFormSidebar"
                         >
                             &times;
@@ -199,7 +202,7 @@
                             <div class="form-actions mt-3">
                                 <button
                                     type="button"
-                                    class="btn btn-success m-r-5 btn-action-clinical"
+                                    class="btn btn-success m-r-5"
                                     @click="guardarRegistro()"
                                     v-if="!actualizar"
                                     :disabled="loadingGuardar"
@@ -209,16 +212,11 @@
                                         :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"
                                     ></i>
                                     Guardar
-                                    <span
-                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                                        style="font-size: 10px; opacity: 0.9"
-                                        >Ctrl+S</span
-                                    >
                                 </button>
 
                                 <button
                                     type="button"
-                                    class="btn btn-warning m-r-5 btn-action-clinical"
+                                    class="btn btn-warning m-r-5"
                                     v-if="actualizar"
                                     @click="guardarRegistro()"
                                     :disabled="loadingGuardar"
@@ -228,24 +226,14 @@
                                         :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-pencil'"
                                     ></i>
                                     Actualizar
-                                    <span
-                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                                        style="font-size: 10px; opacity: 0.9"
-                                        >Ctrl+S</span
-                                    >
                                 </button>
 
                                 <button
                                     type="button"
-                                    class="btn btn-inverse btn-action-clinical"
+                                    class="btn btn-inverse"
                                     @click="cerrarFormSidebar()"
                                 >
                                     Cancelar
-                                    <span
-                                        class="badge badge-secondary ml-1 d-none d-md-inline"
-                                        style="font-size: 10px"
-                                        >Esc</span
-                                    >
                                 </button>
                             </div>
                         </div>
@@ -408,7 +396,6 @@ onBeforeUnmount(() => {
     width: 100vw;
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(2px);
     z-index: 1090;
 }
 
@@ -435,7 +422,7 @@ onBeforeUnmount(() => {
     pointer-events: auto !important;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .right-sidebar {
         width: 100% !important;
         right: -100% !important;

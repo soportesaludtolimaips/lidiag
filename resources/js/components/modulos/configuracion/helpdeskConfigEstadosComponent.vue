@@ -4,26 +4,37 @@
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Configuración</h3>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
-                    <li class="breadcrumb-item"><a href="javascript:void(0)">Configuración</a></li>
+                    <li class="breadcrumb-item">
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Configuración
+                        </button>
+                    </li>
                     <li class="breadcrumb-item active">Helpdesk - Estados</li>
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-outline-secondary btn-action-clinical"
+                    class="btn btn-outline-secondary"
                     @click="listar"
                     :disabled="loadingListar"
-                    title="Actualizar listado (F2)"
+                    title="Actualizar listado"
                 >
                     <i class="fa" :class="loadingListar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
                     Refrescar
-                    <span
-                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                        style="font-size: 10px; opacity: 0.9"
-                        >F2</span
-                    >
                 </button>
             </div>
         </div>
@@ -34,13 +45,17 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de estados</h4>
                         <h6 class="card-subtitle">Estados del flujo de Helpdesk.</h6>
-                        <div v-if="loadingListar" class="text-center m-t-40">
-                            <i class="fa fa-spinner fa-spin fa-2x"></i>
-                            <p class="text-muted m-t-10">Cargando estados...</p>
+                        <table-skeleton-loader v-if="loadingListar" :rows="5" :columns="3" />
+                        <div v-else-if="registros.length === 0" class="m-t-20">
+                            <empty-state-component
+                                title="No hay estados registrados"
+                                description="No se encontraron registros de estados de Helpdesk."
+                                icon="fa-tasks"
+                            />
                         </div>
                         <div v-else class="table-responsive m-t-40">
                             <table
-                                id="example23"
+                                id="tablaHelpdeskEstados"
                                 ref="dt"
                                 class="display nowrap table table-hover table-striped table-bordered"
                                 cellspacing="0"
@@ -90,10 +105,10 @@ async function listar() {
     loadingListar.value = true;
     try {
         const res = await axios.get("/api/helpdesk-estados");
-        safeDestroyDataTable(dt.value || "#example23");
+        safeDestroyDataTable(dt.value || "#tablaHelpdeskEstados");
         registros.value = res?.data?.data || res?.data || [];
         nextTick(() => {
-            safeInitDataTable(dt.value || "#example23", {
+            safeInitDataTable(dt.value || "#tablaHelpdeskEstados", {
                 dom: "Bfrtip",
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
@@ -118,6 +133,6 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-    safeDestroyDataTable(dt.value || "#example23");
+    safeDestroyDataTable(dt.value || "#tablaHelpdeskEstados");
 });
 </script>
