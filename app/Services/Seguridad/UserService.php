@@ -60,7 +60,7 @@ class UserService extends BaseService
      * Flujo del proceso:
      * 1. Inicializa la consulta base sobre usuarios filtrando por asociación al módulo especificado.
      * 2. Si $onlyActive es verdadero, aplica el filtro restrictivo de estado activo (users.estado = 1).
-     * 3. Si $sedeId está definido, filtra por pertenencia de sede en 'user_sedes' o por haber registrado estudios en dicha sede.
+     * 3. Si $sedeId está definido, filtra por pertenencia de sede en 'user_sedes' o por haber registrado o tener estudios asignados en dicha sede.
      * 4. Permite filtrado múltiple por lista de roles separados por coma o filtrado estándar por rol único.
      * 5. Retorna el listado ordenado alfabéticamente encapsulado en respuesta exitosa.
      *
@@ -92,6 +92,12 @@ class UserService extends BaseService
                             ->from("estudios")
                             ->where("sede_id", $sedeId)
                             ->whereNotNull("quien_registro_id");
+                    })
+                    ->orWhereIn("users.id", function ($sub) use ($sedeId) {
+                        $sub->select("medico_id")
+                            ->from("estudios")
+                            ->where("sede_id", $sedeId)
+                            ->whereNotNull("medico_id");
                     });
             });
         }

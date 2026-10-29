@@ -82,7 +82,7 @@
                                                     ...::: Todos los medicos :::...
                                                 </option>
                                                 <option
-                                                    v-for="ItemUsuario in medicos"
+                                                    v-for="ItemUsuario in medicosActivos"
                                                     :key="ItemUsuario.id"
                                                     :value="ItemUsuario.id"
                                                 >
@@ -851,6 +851,19 @@ const quienesAsignaronActivos = computed(() => {
         .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
 });
 const medicos = ref([]);
+const medicosActivos = computed(() => {
+    return (medicos.value || [])
+        .filter(
+            (u) =>
+                u &&
+                (u.estado === undefined || u.estado === 1 || u.estado === true || u.estado === "1")
+        )
+        .map((u) => ({
+            ...u,
+            name: (u.name || "").trim(),
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
+});
 const errores = ref({});
 const idRow = ref(null);
 const loadingBuscar = ref(false);
@@ -975,7 +988,7 @@ async function guardarRegistro() {
     if (loadingGuardar.value) return;
 
     touch("email_reportar");
-    if (statusEmailReportar.value.isInvalid) {
+    /* if (statusEmailReportar.value.isInvalid) {
         toastMessage({
             heading: "Email inválido",
             text:
@@ -984,7 +997,7 @@ async function guardarRegistro() {
             icon: "warning",
         });
         return;
-    }
+    } */
 
     loadingGuardar.value = true;
     try {
@@ -1321,8 +1334,8 @@ onMounted(async () => {
 
 /**
  * Maneja el evento "sedeSeleccionada" emitido por el selector global de sede: actualiza
- * busqueda.sede_id, limpia el filtro de asignador, recarga los asignadores para la nueva sede,
- * destruye la tabla y vuelve a listar los pendientes de transcribir.
+ * busqueda.sede_id, limpia los filtros de asignador y médico, recarga los asignadores y médicos
+ * para la nueva sede, destruye la tabla y vuelve a listar los pendientes de transcribir.
  *
  * @param {Object} data - Payload del evento, contiene data.idSede con el ID de la sede elegida.
  *
@@ -1335,6 +1348,7 @@ onMounted(async () => {
 function onSedeSeleccionada(data) {
     busqueda.value.sede_id = data.idSede;
     busqueda.value.quien_asigno_id = "";
+    busqueda.value.medico_id = "";
     cargarAsignadoresYSedes(data.idSede);
     destroyDataTable();
     listarPendientesTrascribir();

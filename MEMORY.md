@@ -37,6 +37,33 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-29 — Homologación de UI/UX, Skeleton Loaders y Estilos Nativos en Módulo Configuración (`resources/js/components/modulos/configuracion/` — 19 componentes):**
+  - **Diagnóstico:** Los 19 componentes del módulo de configuración presentaban las desviaciones descritas en `UI-UX-IMPROVEMENT-PHASES.md`: uso de selectores DataTables genéricos (`#example23`), spinners clásicos en lugar de `<table-skeleton-loader>` y `<empty-state-component>`, clases foráneas (`.btn-action-clinical`), badges de atajos de teclado (`F2`, `Ctrl+S`, `Esc`) incrustados en botones, etiquetas `<label>` sin asociación `for="<id>"`, y modales/sidebars con filtros `backdrop-filter: blur(2px)` y sin adaptación móvil.
+  - **Acciones Realizadas:**
+    * *Estandarización de Tablas:* Reemplazado `#example23` por IDs semánticos únicos en plantilla y helpers `safeInitDataTable`/`safeDestroyDataTable` (`#tablaAdminSalud`, `#tablaDiagnosticos`, `#tablaTiposDocumento`, `#tablaPrioridades`, `#tablaSedes`, `#tablaProductos`, `#tablaServicioCitas`, `#tablaServicioProductos`, `#tablaCitaRechazoMotivos`, `#tablaPlantillas`, `#tablaTiposPlantillas`, `#tablaConsentimientos`, `#tablaWhatsappNumeros`, `#tablaWhatsappProductos`, `#tablaWhatsappSaludos`, `#tablaHelpdeskCategorias`, `#tablaHelpdeskEstados`, `#tablaHelpdeskPrioridades`).
+    * *Skeleton y Empty States:* Reemplazados spinners de carga por `<table-skeleton-loader>` con filas/columnas ajustadas a cada catálogo y `<empty-state-component>` al no haber registros.
+    * *Limpieza de Botones y Atajos:* Retirada la clase `.btn-action-clinical` y los spans con badges de atajos (`F2`, `Ctrl+S`, `Esc`) en cabeceras, formularios y paneles laterales.
+    * *Breadcrumbs y Accesibilidad:* Homologados breadcrumbs a `<button type="button" class="btn btn-link p-0" style="vertical-align: baseline; text-decoration: none; color: inherit">` y vinculadas etiquetas `<label for="...">` con sus respectivos `<input id="...">`.
+    * *Paneles Laterales y Modales:* Eliminado `backdrop-filter: blur(2px)` en favor de `rgba(0, 0, 0, 0.5)` nativo y añadido soporte responsive móvil `@media (max-width: 767px)` a todos los paneles laterales y diálogos.
+  - **Verificaciones:** ESLint 0 errores/warnings (`npx eslint`) en los 19 componentes ✅ | Compilación Vite completada en 1.39s (`npm run build`) ✅ | Vistas y configuración de Laravel purgadas (`view:clear`, `config:clear`) ✅.
+
+- [x] **2026-10-29 — Homologación de UI/UX, Skeleton Loaders y Estilos Nativos en Módulo Citas (`resources/js/components/modulos/citas/` — 4 componentes):**
+  - **Diagnóstico:** Los componentes del módulo Citas (`citasComponent.vue`, `citasRevisionComponent.vue`, `gestionCitasComponent.vue`, `recomendacionProductoComponent.vue`) presentaban inconsistencias de accesibilidad en breadcrumbs (`<a>` sin href ni rol), tablas con spinners crudos, clases no estándar `.btn-action-clinical` y badges de atajos en botones.
+  - **Acciones Realizadas:**
+    * Homologación de breadcrumbs a `<button type="button" class="btn btn-link p-0"...>`.
+    * Retiro de `.btn-action-clinical` y badges `F2`/`Ctrl+S`/`Esc`.
+    * Sustitución de spinners por `<table-skeleton-loader>` y `<empty-state-component>`.
+    * IDs semánticos de tabla (`#tablaCitasAgendadas`, `#tablaCitasRevision`, `#tablaGestionCitas`, `#tablaRecomendacionProductos`) en template y DataTables helpers.
+    * Accesibilidad con labels vinculados a inputs y soporte responsive en modales.
+  - **Verificaciones:** ESLint 0 errores/warnings (`npx eslint`) ✅ | Compilación Vite completada en 2.45s (`npm run build`) ✅.
+
+- [x] **2026-10-29 — Filtrado Dinámico del Combo de Médicos por Sede Activa en Transcribir Estudios (`transcribirEstudioComponent.vue`, `usuarios.js`, `UserService.php`):**
+  - **Diagnóstico:** El combo selector de "Médicos" (`#medico_id`) en `transcribirEstudioComponent.vue` listaba todos los médicos de la base de datos sin considerar la sede seleccionada, y mostraba usuarios sin ordenar alfabéticamente ni verificar reactivamente su estado activo.
+  - **Solución Implementada:**
+    * *Backend (`UserService.php`):* En `listByRoleAndModule`, cuando se especifica `sedeId`, se amplió la consulta para incluir médicos que tengan la sede asignada en `user_sedes` o que figuren como `medico_id` en `estudios` para dicha sede (`sede_id`), además de los asignadores (`quien_registro_id`).
+    * *Frontend Helper (`usuarios.js`):* Se anexó el parámetro `sedeParam` a la petición de médicos `/api/user.listarUsuarios/Medico/${moduloId}?solo_activos=1${sedeParam}`.
+    * *Componente Vue (`transcribirEstudioComponent.vue`):* Se creó la propiedad computada `medicosActivos` para filtrar médicos activos, sanitizar nombres y ordenarlos alfabéticamente de la 'A' a la 'Z'. En el selector se vinculó a `medicosActivos` y en `onSedeSeleccionada(data)` se resetea `busqueda.value.medico_id = ""` junto con `busqueda.value.quien_asigno_id = ""`.
+  - **Verificaciones:** Laravel Pint (`vendor/bin/pint.bat --test`) 0 incidencias ✅ | ESLint 0 errores/warnings (`npx eslint`) ✅ | Compilación Vite completada en 1.84s (`npm run build`) ✅ | Prueba PHP con la BD real: Sede 1 retorna 39 médicos activos, Sede 4 retorna 7 médicos activos, y sin sede retorna los 44 generales ✅.
 - [x] **2026-10-29 — Unificación de Fuente de Auditoría y Registro de Eventos de Usuario (`AuditLogService`, `AuditLogger`, `EstudioService`, `AgendaCitaService`, `HelpDeskTicketService`, `RolService`, `auditLogComponent.vue`):**
   - **Diagnóstico:**
     1. Se detectó una desconexión crítica en `/seguridad-auditoria`: `AuditLogService` consultaba la tabla `activity_log` (que no tiene columna `descripcion` y sólo almacenaba nombres en inglés), dejando la columna "Descripción" siempre vacía (`"—"`).

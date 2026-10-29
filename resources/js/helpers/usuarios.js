@@ -51,7 +51,7 @@ export function getModuloIdActual() {
  * 2. Si se suministra options.sedeId, prepara el parámetro de consulta para acotar los asignadores a dicha sede.
  * 3. Consulta los usuarios asignadores mediante endpoint /api/user.listarUsuarios/Administrador,Administrativo,Transcriptor/{moduloId}?solo_activos=1(&sede_id=X).
  * 4. Si no obtiene datos o falla la consulta, recurre al fallback de Transcriptor respetando el filtro de sede.
- * 5. Consulta los médicos asociados al módulo vía /api/user.listarUsuarios/Medico/{moduloId}?solo_activos=1.
+ * 5. Consulta los médicos asociados al módulo vía /api/user.listarUsuarios/Medico/{moduloId}?solo_activos=1(&sede_id=X).
  * 6. Normaliza y asigna de forma segura los datos en context.quienes_asignaron y context.medicos.
  *
  * @param {Object} context Contexto con setters/propiedades quienes_asignaron y medicos.
@@ -106,7 +106,7 @@ export async function listarUsuariosYSedes(context, options = {}) {
 
     try {
         const resMedicos = await axios.get(
-            `/api/user.listarUsuarios/Medico/${moduloId}?solo_activos=1`
+            `/api/user.listarUsuarios/Medico/${moduloId}?solo_activos=1${sedeParam}`
         );
         context.medicos = Array.isArray(resMedicos?.data?.data)
             ? resMedicos.data.data
