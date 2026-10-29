@@ -37,6 +37,14 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-29 — Automatizador en Batch para Tarea Programada del Bot de Telegram (`instalar_tarea_telegram_bot.bat`, `ejecutar_telegram_bot.bat`, `detener_tarea_telegram_bot.bat`):**
+  - **Diagnóstico y Necesidad:** El usuario requería un instalador automatizado en archivo `.bat` idéntico al patrón institucional de `instalar_scheduler.bat` y `storage/app_lidiag/agente_backups_dcm/instalar_tareas_sede.bat`, permitiendo que el bot de Telegram (`php artisan telegram:poll`) opere como servicio residente 24/7 en segundo plano bajo el Programador de Tareas de Windows (Windows Task Scheduler) sin requerir consolas abiertas manualmente.
+  - **Scripts Implementados:**
+    * *`ejecutar_telegram_bot.bat`:* Lanzador con auto-detección del binario de PHP (Laragon `php-*` o PATH del sistema), verificación de `artisan`, bucle de resiliencia con auto-reinicio tras caídas de red y volcado de telemetría a `storage/logs/telegram_bot.log`. Formato estricto CRLF.
+    * *`instalar_tarea_telegram_bot.bat`:* Instalador interactivo que verifica privilegios de Administrador, registra la tarea `LIDiag_Telegram_Bot` para iniciar al arrancar el sistema (`/sc ONSTART /ru "SYSTEM" /rl HIGHEST`), reemplaza versiones previas de forma idempotente y ofrece arranque inmediato. Formato estricto CRLF.
+    * *`detener_tarea_telegram_bot.bat`:* Script de mantenimiento para detener la tarea en ejecución, finalizar procesos huérfanos de `artisan telegram:poll` y permitir la eliminación opcional de la tarea programada.
+  - **Verificaciones:** Detección de binario PHP en Laragon confirmada (`php-8.3.30`) ✅ | Normalización CRLF y verificación de ejecución limpia ✅.
+
 - [x] **2026-10-29 — Simplificación de Campo Opcional 'Reportar al Email' (`AsignarEstudioComponent.vue`):**
   - **Diagnóstico:** El campo "Reportar al Email" contaba con una propiedad computada `statusEmailReportar` y una validación bloqueante en `guardarRegistro()`. Dado que se trata de un campo estrictamente opcional para la atención asistencial, dicha validación y clases reactivas de error eran innecesarias.
   - **Solución Implementada:**
