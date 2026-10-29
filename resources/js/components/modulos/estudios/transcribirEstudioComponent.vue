@@ -270,7 +270,7 @@
                                         <td>{{ item.fechor_lectura }}</td>
                                         <td>{{ formatDate(item.created_at) }}</td>
                                         <td>{{ item.quien_registro }}</td>
-                                        <td>{{ item.medico }}</td>
+                                        <td>{{ item.nombres_medico }}</td>
                                         <td>
                                             # Docu: {{ item.num_docu }} <br />
                                             Nombres: {{ item.nom_pacien }}
@@ -959,7 +959,12 @@ async function listarPendientesTrascribir() {
                 icon: "warning",
             });
         } else {
-            const res = await axios.post("/api/estudio-listarPendientesTrascribir", busqueda.value);
+            const payload = {
+                ...busqueda.value,
+                quien_asigno_id: busqueda.value.quien_asigno_id || null,
+                medico_id: busqueda.value.medico_id || null,
+            };
+            const res = await axios.post("/api/estudio-listarPendientesTrascribir", payload);
             registros.value = res.data.data;
 
             nextTick(() => {
