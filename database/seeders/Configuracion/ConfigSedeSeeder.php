@@ -14,11 +14,22 @@ class ConfigSedeSeeder extends Seeder
      */
     public function run()
     {
-        ConfigSede::create(['nom_sede' => 'Espinal - Hospital San Rafael', 'ip_dcm' => '10.35.47.3', 'bd_dcm' => 'pacsdb', 'puerto_dcm' => '3306', 'usuario_dcm' => 'lidiag', 'password_dcm' => 'Lidiag@852', 'usuario_oviyam' => 'admin', 'password_oviyam' => 'admin', 'url_oviyam' => 'http://190.254.23.227:34769/oviyam2/viewer.html', 'tap_oviyam' => 'Imagenes', 'interface_software' => 'SAHI']);
-        ConfigSede::create(['nom_sede' => 'La dorada - Hospital San Félix', 'ip_dcm' => '10.35.47.168', 'bd_dcm' => 'pacsdb', 'puerto_dcm' => '3306', 'usuario_dcm' => 'lidiag', 'password_dcm' => '&LaApp$593', 'usuario_oviyam' => 'admin', 'password_oviyam' => 'admin', 'url_oviyam' => 'http://152.200.148.86:8888/oviyam2/viewer.html', 'tap_oviyam' => 'Servidor']);
-        ConfigSede::create(['nom_sede' => 'Chaparral - Hospital San Jua Bautista', 'ip_dcm' => '10.35.47.34', 'bd_dcm' => 'pacsdb', 'puerto_dcm' => '3306', 'usuario_dcm' => 'applidiag', 'password_dcm' => 'Lidiag753...', 'usuario_oviyam' => 'admin', 'password_oviyam' => 'admin', 'url_oviyam' => 'http://186.170.28.80:8088/oviyam2/viewer.html', 'tap_oviyam' => 'Pacs']);
-        ConfigSede::create(['nom_sede' => 'Ibague - Hospital Federico lleras', 'ip_dcm' => '10.35.47.102', 'bd_dcm' => 'pacsdb', 'puerto_dcm' => '3306', 'usuario_dcm' => 'lidiagfede', 'password_dcm' => '@Lidiag-2024*', 'usuario_oviyam' => 'admin', 'password_oviyam' => 'admin', 'url_oviyam' => 'http://152.200.148.86:8888/oviyam2/viewer.html', 'tap_oviyam' => 'Imagenes']);
-        ConfigSede::create(['nom_sede' => 'Libano - Hospital Regional Alfonso Jaramillo Salazar', 'ip_dcm' => '10.35.47.130', 'bd_dcm' => 'pacsdb', 'puerto_dcm' => '3306', 'usuario_dcm' => 'appconexlidiag', 'password_dcm' => '@Salud*.*2018*', 'usuario_oviyam' => 'admin', 'password_oviyam' => 'admin', 'url_oviyam' => 'http://152.200.148.86:8888/oviyam2/viewer.html', 'tap_oviyam' => 'Servidor']);
-        ConfigSede::create(['nom_sede' => 'Honda - Hospital San Juan de Dios de Honda', 'ip_dcm' => '10.35.47.70', 'bd_dcm' => 'pacsdb', 'puerto_dcm' => '3306', 'usuario_dcm' => 'applidiag', 'password_dcm' => '@salud.2018*', 'usuario_oviyam' => 'admin', 'password_oviyam' => 'admin', 'url_oviyam' => 'http://152.200.148.86:8888/oviyam2/viewer.html', 'tap_oviyam' => 'Servidor']);
+        $sedes = [
+            1 => ['nom_sede' => 'Espinal - Hospital San Rafael', 'cod_sede' => 'ESP'],
+            2 => ['nom_sede' => 'La dorada - Hospital San Félix', 'cod_sede' => 'LAD'],
+            3 => ['nom_sede' => 'Chaparral - Hospital San Jua Bautista', 'cod_sede' => 'CHA'],
+            4 => ['nom_sede' => 'Ibague - Hospital Federico lleras', 'cod_sede' => 'IBA'],
+            5 => ['nom_sede' => 'Libano - Hospital Regional Alfonso Jaramillo Salazar', 'cod_sede' => 'LIB'],
+            6 => ['nom_sede' => 'Honda - Hospital San Juan de Dios de Honda', 'cod_sede' => 'HON'],
+            7 => ['nom_sede' => 'Rovira - Hospital San Vicente', 'cod_sede' => 'ROV'],
+        ];
+
+        foreach ($sedes as $id => $data) {
+            ConfigSede::where('id', $id)
+                ->where(function ($q) {
+                    $q->whereNull('cod_sede')->orWhere('cod_sede', '');
+                })
+                ->update(['cod_sede' => $data['cod_sede']]);
+        }
     }
 }

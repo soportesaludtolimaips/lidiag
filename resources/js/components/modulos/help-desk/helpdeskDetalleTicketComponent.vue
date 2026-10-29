@@ -322,7 +322,7 @@ function sanitize(dirty) {
 async function recargarTicket() {
     try {
         const ticketRes = await helpdesk.ticket(props.ticketId);
-        ticket.value = ticketRes.data;
+        ticket.value = ticketRes.data?.data ?? ticketRes.data;
     } catch (_error) {
         toastMessage({
             heading: "Error",
@@ -336,12 +336,19 @@ async function cargar() {
     loading.value = true;
     try {
         const ticketRes = await helpdesk.ticket(props.ticketId);
-        ticket.value = ticketRes.data;
+        ticket.value = ticketRes.data?.data ?? ticketRes.data;
+
+        const extractArray = (res) =>
+            Array.isArray(res?.data?.data)
+                ? res.data.data
+                : Array.isArray(res?.data)
+                  ? res.data
+                  : [];
 
         // Estados (puede fallar por permisos; no bloquea el detalle)
         try {
             const estadosRes = await helpdesk.estados();
-            estados.value = (estadosRes.data || []).filter((x) => x.activo);
+            estados.value = extractArray(estadosRes).filter((x) => x.activo);
         } catch (e) {
             console.warn("No se pudieron cargar estados", e);
             estados.value = [];
@@ -350,7 +357,7 @@ async function cargar() {
         // Asignables (solo necesario para reasignación; no bloquea el detalle)
         try {
             const asignablesRes = await helpdesk.asignables();
-            asignables.value = asignablesRes.data || [];
+            asignables.value = extractArray(asignablesRes);
         } catch (e) {
             console.warn("No se pudieron cargar usuarios asignables", e);
             asignables.value = [];

@@ -434,10 +434,16 @@ async function cargarCatalogos() {
             helpdesk.estados(),
             helpdesk.sedesActivas(),
         ]);
-        categorias.value = (cats.data || []).filter((x) => x.activo);
-        prioridades.value = (prios.data || []).filter((x) => x.activo);
-        estados.value = (ests.data || []).filter((x) => x.activo);
-        sedes.value = sedesRes.data || [];
+        const extractArray = (res) =>
+            Array.isArray(res?.data?.data)
+                ? res.data.data
+                : Array.isArray(res?.data)
+                  ? res.data
+                  : [];
+        categorias.value = extractArray(cats).filter((x) => x.activo);
+        prioridades.value = extractArray(prios).filter((x) => x.activo);
+        estados.value = extractArray(ests).filter((x) => x.activo);
+        sedes.value = extractArray(sedesRes);
     } catch (_error) {
         toastMessage({
             heading: "Error",
@@ -524,8 +530,9 @@ async function buscar() {
             helpdesk.indicadores(params),
             helpdesk.detallado(params),
         ]);
-        indicadores.value = ind.data || null;
-        detallado.value = det.data?.items || [];
+        indicadores.value = ind.data?.data ?? ind.data ?? null;
+        const detPayload = det.data?.data ?? det.data;
+        detallado.value = detPayload?.items || (Array.isArray(detPayload) ? detPayload : []);
         nextTick(() => {
             safeDestroyDataTable(dt.value || "#helpdeskReportesDetallado");
             initDT();

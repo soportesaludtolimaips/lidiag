@@ -27,6 +27,7 @@ use Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull;
 use Illuminate\Foundation\Http\Middleware\ValidatePostSize;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Middleware\HandleCors;
 use Illuminate\Http\Middleware\SetCacheHeaders;
 use Illuminate\Http\Request;
@@ -37,6 +38,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Spatie\Permission\Exceptions\UnauthorizedException as SpatieUnauthorizedException;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
@@ -147,7 +149,7 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->expectsJson()) {
                 $status = match (true) {
                     $e instanceof AuthenticationException => 401,
-                    $e instanceof AuthorizationException => 403,
+                    $e instanceof AuthorizationException, $e instanceof SpatieUnauthorizedException => 403,
                     $e instanceof ModelNotFoundException => 404,
                     $e instanceof NotFoundHttpException => 404,
                     $e instanceof ValidationException => 422,
@@ -158,7 +160,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 $message = match (true) {
                     $e instanceof ValidationException => $e->getMessage(),
                     $e instanceof AuthenticationException => 'No autenticado.',
-                    $e instanceof AuthorizationException => 'No autorizado.',
+                    $e instanceof AuthorizationException, $e instanceof SpatieUnauthorizedException => 'No autorizado.',
                     $e instanceof ModelNotFoundException => 'Recurso no encontrado.',
                     $e instanceof ThrottleRequestsException => 'Demasiadas solicitudes.',
                     $e instanceof NotFoundHttpException => 'Ruta no encontrada.',
@@ -169,7 +171,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
                 $data = $e instanceof ValidationException ? $e->errors() : null;
 
-                return response()->json([
+                return new JsonResponse([
                     'success' => false,
                     'data' => $data,
                     'message' => $message,

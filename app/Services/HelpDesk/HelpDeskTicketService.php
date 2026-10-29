@@ -158,12 +158,10 @@ class HelpDeskTicketService extends BaseService
             return $this->error('Catálogo de estados no inicializado', 500);
         }
 
-        $sede = ConfigSede::query()->select(['id', 'cod_sede'])->findOrFail((int) $data['sede_id']);
-        if (! $sede->cod_sede) {
-            return $this->error('La sede no tiene cod_sede configurado', 422);
-        }
+        $sede = ConfigSede::query()->select(['id', 'cod_sede', 'nom_sede'])->findOrFail((int) $data['sede_id']);
+        $codigoSede = $this->resolveCodSede($sede);
 
-        $ticket = $this->transaction(function () use ($data, $user, $estadoAbierto, $sede, $asignado) {
+        return $this->transaction(function () use ($data, $user, $estadoAbierto, $sede, $asignado, $codigoSede) {
             $now = now();
             $anio = (int) $now->format('Y');
 
@@ -180,7 +178,7 @@ class HelpDeskTicketService extends BaseService
 
             $seq = str_pad((string) $counter->last_number, 5, '0', STR_PAD_LEFT);
             $fecha = $now->format('Ymd');
-            $folio = "{$sede->cod_sede}-{$fecha}-{$seq}";
+            $folio = "{$codigoSede}-{$fecha}-{$seq}";
 
             $ticket = HelpDeskTickets::create([
                 'folio' => $folio,
@@ -209,10 +207,8 @@ class HelpDeskTicketService extends BaseService
                 $asignado->notify($notif);
             }
 
-            return $ticket;
+            return $this->created($ticket->load(['categoria', 'prioridad', 'estado']));
         });
-
-        return $this->created($ticket->load(['categoria', 'prioridad', 'estado']));
     }
 
     /**
@@ -526,5 +522,65 @@ class HelpDeskTicketService extends BaseService
         }
 
         return in_array($estado->nombre, ['Abierto', 'En Progreso'], true);
+    }
+
+    /**
+     * Resuelve el código de sede para la generación del folio de tickets.
+     *
+     * Flujo del proceso:
+     * 1. Verifica si la sede ya tiene asignado un `cod_sede` válido.
+     * 2. Si no lo tiene, busca en el mapeo de sedes institucionales conocidas.
+     * 3. Si no existe en el mapa, deriva un código de 3 letras a partir del nombre de la sede.
+     * 4. Persiste el código generado de manera silenciosa en `config_sedes` para futuras consultas.
+     *
+     * @param  ConfigSede  $sede  Instancia de la sede a evaluar
+     *
+     * @returns string Código alfanumérico en mayúsculas de la sede
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-29
+     */
+    private function resolveCodSede(ConfigSede $sede): string
+    {
+        $code = trim((string) ($sede->cod_sede ?? ''));
+        if ($code !== '') {
+            return strtoupper($code);
+        }
+
+        $defaultMap = [
+            1 => 'ESP',
+            2 => 'LAD',
+            3 => 'CHA',
+            4 => 'IBA',
+            5 => 'LIB',
+            6 => 'HON',
+            7 => 'ROV',
+        ];
+
+        $code = $defaultMap[(int) $sede->id] ?? null;
+
+        if (! $code) {
+            $parts = explode('-', (string) ($sede->nom_sede ?? ''));
+            $firstPart = trim($parts[0] ?? '');
+            $clean = preg_replace('/[^A-Za-z0-9]/', '', $firstPart);
+            $code = strtoupper(substr($clean, 0, 3));
+            if (strlen($code) < 3) {
+                $code = 'SED'.str_pad((string) $sede->id, 2, '0', STR_PAD_LEFT);
+            }
+        }
+
+        try {
+            ConfigSede::where('id', $sede->id)
+                ->where(function ($q) {
+                    $q->whereNull('cod_sede')->orWhere('cod_sede', '');
+                })
+                ->update(['cod_sede' => $code]);
+            $sede->cod_sede = $code;
+        } catch (\Throwable $e) {
+            Log::warning('No se pudo persistir cod_sede automáticamente para sede '.$sede->id.': '.$e->getMessage());
+        }
+
+        return $code;
     }
 }

@@ -184,9 +184,15 @@ async function cargar() {
             helpdesk.prioridades(),
             helpdesk.asignables(),
         ]);
-        categorias.value = (cats.data || []).filter((x) => x.activo);
-        prioridades.value = (prios.data || []).filter((x) => x.activo);
-        asignables.value = asignablesRes.data || [];
+        const extractArray = (res) =>
+            Array.isArray(res?.data?.data)
+                ? res.data.data
+                : Array.isArray(res?.data)
+                  ? res.data
+                  : [];
+        categorias.value = extractArray(cats).filter((x) => x.activo);
+        prioridades.value = extractArray(prios).filter((x) => x.activo);
+        asignables.value = extractArray(asignablesRes);
     } catch (_error) {
         toastMessage({
             heading: "Error",
@@ -262,7 +268,7 @@ async function guardar() {
             asignado_id: form.value.asignado_id,
         });
 
-        const ticket = res.data.data;
+        const ticket = res.data?.data ?? res.data;
 
         // Adjuntos iniciales (si hay)
         const input = files.value;

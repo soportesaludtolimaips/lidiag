@@ -37,6 +37,31 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-29 — Corrección de Bloqueo 422 (`La sede no tiene cod_sede configurado`) y Creación de Tickets (`HelpDeskTicketService.php`, `ConfigSedeSeeder.php`, `helpdeskCrearTicketComponent.vue`):**
+  - **Diagnóstico:**
+    1. Al intentar crear un ticket de HelpDesk, la petición fallaba con 422: `La sede no tiene cod_sede configurado`. En base de datos (`config_sedes`), todas las 7 sedes tenían la columna `cod_sede` en `NULL` (la migración histórica la agregó como nullable y la vista de administración de sedes no incluye campo para asignarla).
+    2. En `HelpDeskTicketService::create()`, una validación rígida `if (! $sede->cod_sede)` bloqueaba la creación de cualquier ticket en cualquier sede.
+    3. Adicionalmente, `$this->transaction()` en `BaseService` tiene tipado estricto `: array`. En `create()`, la clausura retornaba `$ticket` (un objeto modelo de Eloquent), provocando un `TypeError` interno y retornando error 500 al intentar ejecutar `$ticket->load(...)` sobre un array de error.
+  - **Solución Implementada:**
+    * *Backend (`HelpDeskTicketService.php`):*
+      - Retirado el bloqueo 422 y reemplazado por resolución automática y defensiva mediante el método privado `resolveCodSede(ConfigSede $sede): string`, el cual toma el código existente, o lo resuelve a partir de un mapa institucional predeterminado (`1 => 'ESP'`, `2 => 'LAD'`, `3 => 'CHA'`, `4 => 'IBA'`, `5 => 'LIB'`, `6 => 'HON'`, `7 => 'ROV'`) o de las iniciales del nombre de la sede, persistiendo el valor en `config_sedes`.
+      - Corregido el flujo transaccional retornando directamente `return $this->transaction(...)` con `return $this->created($ticket->load(...))` dentro de la clausura respetando el contrato de `BaseService`.
+    * *Base de Datos y Seeder (`ConfigSedeSeeder.php`):* Seeder actualizado para asignar de forma idempotente los códigos estándar a las 7 sedes institucionales y aplicado en BD con `php artisan db:seed --class=...`.
+    * *Frontend (`helpdeskCrearTicketComponent.vue`):* Saneada la extracción reactiva de `ticket = res.data?.data ?? res.data` previo a la redirección.
+  - **Verificaciones:** Prueba transaccional en PHP ejecutada con simulación de creación con `cod_sede` presente y `cod_sede` nulo (ambos retornando HTTP 201 Created con folios correlativos `ESP-20261029-00001` y `ESP-20261029-00002` con rollback limpio) ✅ | Laravel Pint passed ✅ | ESLint passed (0 errores) ✅ | Compilación Vite completada en 1.33s (`npm run build`) ✅.
+
+- [x] **2026-10-29 — Corrección de Error 500 y Desempaquetado de Catálogos en HelpDesk (`bootstrap/app.php`, componentes Vue HelpDesk):**
+  - **Diagnóstico:**
+    1. En `storage/logs/laravel.log` y `C:\laragon\tmp\php_errors.log` a las 09:40:15 se registró `production.ERROR: No application encryption key has been specified` y `Uncaught MissingAppKeyException` al cargar `https://lidiag.test/api/helpdesk-prioridades` y `helpdesk-tickets`. La causa en el manejador global de excepciones (`bootstrap/app.php`) era la invocación de `response()->json(...)`, la cual intenta instanciar `ResponseFactory` -> `Redirector` -> `SessionManager` -> `Encrypter`, provocando un fallo en cascada irrecuperable ante cualquier excepción previa al booteo completo de la sesión.
+    2. Asimismo, en el frontend (`helpdeskTicketsComponent.vue`, `helpdeskCrearTicketComponent.vue`, `helpdeskDetalleTicketComponent.vue`, `helpdeskReportesComponent.vue`), los servicios backend retornan respuestas estándar de `BaseService::success()` envueltas en `{ success: true, data: [...], status: 200 }`. Los componentes asignaban directamente `(cats.data || []).filter(...)` o `ticket.value = ticketRes.data`. Como `cats.data` en Axios es el objeto de la respuesta `{ success, data }` y no un Array nativo, `.filter()` evaluaba `undefined(...)` arrojando un TypeError fatal en JavaScript (`.filter is not a function`) que impedía cargar los catálogos y dejaba vacíos los campos de los tickets.
+  - **Solución Implementada:**
+    * *Manejador de Excepciones (`bootstrap/app.php`):* Estandarizado el retorno con `new JsonResponse(...)` evitando la resolución de `ResponseFactory`, redirecciones y dependencias de sesión durante la captura de excepciones. Mapeo explícito de `Spatie\Permission\Exceptions\UnauthorizedException` para devolver HTTP 403 con "No autorizado.".
+    * *Frontend (`resources/js/components/modulos/help-desk/`):*
+      - En `helpdeskTicketsComponent.vue`, `helpdeskCrearTicketComponent.vue` y `helpdeskReportesComponent.vue`, extracción defensiva de arreglos con `extractArray` (`Array.isArray(res?.data?.data) ? res.data.data : ...`) para catálogos (categorías, prioridades, estados, sedes y asignables) y desempaquetado correcto de tickets e indicadores.
+      - En `helpdeskDetalleTicketComponent.vue`, desempaquetado de `ticket.value = ticketRes.data?.data ?? ticketRes.data` permitiendo la visualización completa del folio, título, detalles y adjuntos.
+    * *Caché de Configuración y Rutas:* Purgados y regenerados con `config:clear`, `route:clear`, `view:clear`.
+  - **Verificaciones:** Prueba de API autenticada en los 7 endpoints de HelpDesk (`helpdesk-categorias`, `helpdesk-prioridades`, `helpdesk-estados`, `config-sedes`, `helpdesk-tickets`, `helpdesk-usuarios-asignables`, `helpdesk-notificaciones`) con HTTP 200 OK ✅ | Laravel Pint passed ✅ | ESLint passed (0 errores) ✅ | Compilación Vite completada en 1.47s (`npm run build`) ✅.
+
 - [x] **2026-10-29 — Análisis y Corrección de Filtrado de Roles en "Quien Asignó" (`UserService.php`, `usuarios.js`):**
   - **Diagnóstico Forense:** En producción, la consulta devolvía únicamente 19 usuarios (`Administrador` y `Administrativo`), excluyendo a los 15 transcriptores activos (entre ellos a `MARLEN TORRES RODRIGUEZ`, ID 8). La causa raíz fue:
     1. En la consulta que generó los 19 registros, el parámetro evaluado correspondía a los roles `Administrador,Administrativo` (o un filtro que omitía `Transcriptor`).
