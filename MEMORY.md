@@ -37,6 +37,23 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-29 — Habilitación de Segundo Chat ID de Usuario en Telegram (`.env`, `.env.production`, `detener_tarea_telegram_bot.bat`):**
+  - **Diagnóstico:** Se reportó nuevo usuario restringido con Chat ID `1246505483`.
+  - **Solución Implementada:**
+    * Incorporado el Chat ID en `.env` y `.env.production` (`TELEGRAM_ALLOWED_CHAT_IDS=658633601,999587626,1246505483`).
+    * Configuración purgada con `php artisan config:clear`.
+    * Actualizado `detener_tarea_telegram_bot.bat` con soporte PowerShell (`Get-CimInstance`) para finalizar procesos de forma compatible en Windows 11 donde `wmic` está deprecado.
+
+- [x] **2026-10-29 — Resolución de 'Este campo es obligatorio' al Cancelar en Transcribir Estudios (`transcribirEstudioComponent.vue`):**
+  - **Diagnóstico:** Al presionar el botón "Cancelar" en el panel lateral de transcripción, la interfaz desplegaba el mensaje de validación "Este campo es obligatorio" y el panel no se cerraba. La causa raíz fue doble:
+    1. *Desfase de Propiedad Nombres del Paciente:* `transcribirEstudioComponent.vue` utilizaba únicamente la propiedad `nom_pacien` en `registro`, dejando `registro.nombres` como `undefined`. El subcomponente hijo `<form-paciente>` valida y enlaza `<input id="nombres" v-model="registro.nombres">` con `validators.required`. Al estar vacío, cualquier desenfoque (`blur`) marcaba el campo como tocado e inválido, inyectando el mensaje de obligatoriedad en el DOM.
+    2. *Layout Shift en Evento Blur:* Al hacer clic en "Cancelar" con foco previo en un input (como `nombres` o `email_reportar`), el evento `blur` se disparaba en `mousedown` antes del `click`. La inserción dinámica del feedback de error en el DOM empujaba el contenido hacia abajo, desplazando el botón de "Cancelar" fuera del puntero del ratón antes del `mouseup`, cancelando el evento `click` del navegador e impidiendo la ejecución de `btnCerrarModalForm()`.
+  - **Solución Implementada:**
+    * Se incorporó la propiedad `nombres: ""` en la estructura de `registro` y se inicializó `registro.value.nombres = data.nom_pacien` en `mostrarRegistro(data)` y su reseteo en `limpiar()`, garantizando que `<form-paciente>` reciba los nombres cargados del paciente sin disparar validaciones espurias.
+    * Se añadió `@mousedown.prevent="btnCerrarModalForm()"` en el botón "Cancelar", evitando que el evento de pérdida de foco interfiera o desplace el botón antes del cierre.
+    * En `btnCerrarModalForm()`, se garantizó la limpieza completa de errores con `errores.value = {}` además de `resetTouched()`.
+  - **Verificaciones:** ESLint 0 errores/warnings (`npx eslint`) ✅ | Formateo Prettier con LF estricto ✅ | Compilación Vite exitosa en 1.63s (`npm run build`) ✅.
+
 - [x] **2026-10-29 — Homologación de UI/UX, Skeleton Loaders y Estilos Nativos en Módulo Agenda (`resources/js/components/modulos/agenda/` — `agendaDisponibilidadComponent.vue`):**
   - **Diagnóstico:** El componente `agendaDisponibilidadComponent.vue` presentaba inconsistencias con `UI-UX-IMPROVEMENT-PHASES.md`: breadcrumb con enlaces no semánticos y título genérico, clases foráneas `.btn-action-clinical`, badges de atajo (`F2`, `Ctrl+S`, `Esc`) incrustados en botones, uso del spinner legado `<loading-spinner>` en lugar de `<table-skeleton-loader>`, tabla con ID `#tabla-disponibilidad`, inputs sin `<label for="...">` asociados y panel lateral con `backdrop-filter: blur(2px)`.
   - **Acciones Realizadas:**

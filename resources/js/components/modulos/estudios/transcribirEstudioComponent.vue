@@ -738,6 +738,7 @@
                                     class="btn btn-inverse"
                                     ref="btnCerrarForm"
                                     @click="btnCerrarModalForm()"
+                                    @mousedown.prevent="btnCerrarModalForm()"
                                     title="Cerrar panel (Esc)"
                                 >
                                     Cancelar
@@ -807,6 +808,7 @@ const registro = ref({
     email_reportar: "",
     num_docu: "",
     nom_pacien: "",
+    nombres: "",
     sexo: "",
     fec_naci: "",
     email: "",
@@ -1223,6 +1225,7 @@ async function mostrarRegistro(data = {}) {
         registro.value.medico_id = data.medico_id;
         registro.value.num_docu = data.num_docu;
         registro.value.nom_pacien = data.nom_pacien;
+        registro.value.nombres = data.nom_pacien;
         registro.value.direccion = data.direccion;
         registro.value.email = data.email;
         // Unificar campo teléfono: el backend espera `tel`
@@ -1280,6 +1283,8 @@ function limpiar() {
     tituloModal.value = "Nuevo registro";
     registro.value.email_reportar = "";
     registro.value.email = "";
+    registro.value.nom_pacien = "";
+    registro.value.nombres = "";
 
     btnCerrarModalForm();
     errores.value = {};
@@ -1293,6 +1298,7 @@ function abrirModal() {
 function btnCerrarModalForm() {
     sidebarVisible.value = false;
     resetTouched();
+    errores.value = {};
 }
 
 /**
