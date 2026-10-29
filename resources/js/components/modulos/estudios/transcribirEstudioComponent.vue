@@ -1268,9 +1268,24 @@ function btnCerrarModalForm() {
     resetTouched();
 }
 
-onMounted(async () => {
-    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
-
+/**
+ * Carga o recarga los usuarios asignadores y médicos filtrando por la sede activa.
+ *
+ * Flujo del proceso:
+ * 1. Resuelve el ID de la sede objetivo a partir del argumento, de busqueda.sede_id o de sessionStorage.
+ * 2. Invoca listarUsuariosYSedes pasando options.sedeId para restringir el listado de asignadores.
+ * 3. Captura cualquier fallo de red de forma silenciosa para no interrumpir el montaje.
+ *
+ * @param {string|number|null} [sedeId=null] - ID opcional de la sede a filtrar.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-10-29
+ */
+const cargarAsignadoresYSedes = async (sedeId = null) => {
+    const targetSede = sedeId ?? busqueda.value.sede_id ?? sessionStorage.getItem("ST-sede");
     try {
         await listarUsuariosYSedes(
             {
@@ -1287,11 +1302,17 @@ onMounted(async () => {
                     medicos.value = Array.isArray(v) ? v : [];
                 },
             },
-            { moduloId: "1" }
+            { moduloId: "1", sedeId: targetSede }
         );
     } catch (e) {
         console.error("Error al inicializar usuarios y médicos:", e);
     }
+};
+
+onMounted(async () => {
+    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
+
+    await cargarAsignadoresYSedes(busqueda.value.sede_id);
 
     applyDashboardPrefill();
 
@@ -1300,7 +1321,8 @@ onMounted(async () => {
 
 /**
  * Maneja el evento "sedeSeleccionada" emitido por el selector global de sede: actualiza
- * busqueda.sede_id, destruye la tabla y vuelve a listar los pendientes de transcribir.
+ * busqueda.sede_id, limpia el filtro de asignador, recarga los asignadores para la nueva sede,
+ * destruye la tabla y vuelve a listar los pendientes de transcribir.
  *
  * @param {Object} data - Payload del evento, contiene data.idSede con el ID de la sede elegida.
  *
@@ -1308,10 +1330,12 @@ onMounted(async () => {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-07-14
+ * @date 2026-10-29
  */
 function onSedeSeleccionada(data) {
     busqueda.value.sede_id = data.idSede;
+    busqueda.value.quien_asigno_id = "";
+    cargarAsignadoresYSedes(data.idSede);
     destroyDataTable();
     listarPendientesTrascribir();
 }

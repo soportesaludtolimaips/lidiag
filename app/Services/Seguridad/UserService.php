@@ -55,43 +55,57 @@ class UserService extends BaseService
     }
 
     /**
-     * Lista los usuarios que tienen un rol y acceso a un módulo específicos.
+     * Lista los usuarios que tienen un rol y acceso a un módulo específicos, con filtro opcional por sede.
      *
      * Flujo del proceso:
      * 1. Inicializa la consulta base sobre usuarios filtrando por asociación al módulo especificado.
      * 2. Si $onlyActive es verdadero, aplica el filtro restrictivo de estado activo (users.estado = 1).
-     * 3. Permite filtrado múltiple por lista de roles separados por coma o filtrado estándar por rol único.
-     * 4. Retorna el listado ordenado alfabéticamente encapsulado en respuesta exitosa.
+     * 3. Si $sedeId está definido, filtra por pertenencia de sede en 'user_sedes' o por haber registrado estudios en dicha sede.
+     * 4. Permite filtrado múltiple por lista de roles separados por coma o filtrado estándar por rol único.
+     * 5. Retorna el listado ordenado alfabéticamente encapsulado en respuesta exitosa.
      *
      * @param  string  $roleName  Nombre del rol o lista de roles separados por coma.
      * @param  int  $moduleId  Identificador del módulo al que deben tener acceso.
      * @param  bool  $onlyActive  Indica si se deben filtrar únicamente usuarios activos (por defecto true).
+     * @param  int|null  $sedeId  Identificador opcional de la sede para filtrar usuarios.
      * @return array Respuesta estructurada con los usuarios encontrados.
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-10-29
      */
-    public function listByRoleAndModule(string $roleName, int $moduleId, bool $onlyActive = true): array
+    public function listByRoleAndModule(string $roleName, int $moduleId, bool $onlyActive = true, ?int $sedeId = null): array
     {
-        $query = User::select('users.id', 'users.name', 'users.estado')
-            ->whereHas('modulos', fn ($q) => $q->where('config_modulos.id', $moduleId))
-            ->orderBy('users.name');
+        $query = User::select("users.id", "users.name", "users.estado")
+            ->whereHas("modulos", fn ($q) => $q->where("config_modulos.id", $moduleId))
+            ->orderBy("users.name");
 
         if ($onlyActive) {
-            $query->where('users.estado', 1);
+            $query->where("users.estado", 1);
         }
 
-        $roles = str_contains($roleName, ',')
-            ? array_filter(array_map('trim', explode(',', $roleName)))
+        if ($sedeId !== null && $sedeId > 0) {
+            $query->where(function ($q) use ($sedeId) {
+                $q->whereHas("sedes", fn ($s) => $s->where("config_sedes.id", $sedeId))
+                    ->orWhereIn("users.id", function ($sub) use ($sedeId) {
+                        $sub->select("quien_registro_id")
+                            ->from("estudios")
+                            ->where("sede_id", $sedeId)
+                            ->whereNotNull("quien_registro_id");
+                    });
+            });
+        }
+
+        $roles = str_contains($roleName, ",")
+            ? array_filter(array_map("trim", explode(",", $roleName)))
             : [trim($roleName)];
 
         // En la base de datos el rol puede llamarse "Transcriptor" o "Transcriptor RX"
-        if (in_array('Transcriptor', $roles, true) && ! in_array('Transcriptor RX', $roles, true)) {
-            $roles[] = 'Transcriptor RX';
+        if (in_array("Transcriptor", $roles, true) && ! in_array("Transcriptor RX", $roles, true)) {
+            $roles[] = "Transcriptor RX";
         }
 
-        $query->whereHas('roles', fn ($q) => $q->whereIn('name', $roles));
+        $query->whereHas("roles", fn ($q) => $q->whereIn("name", $roles));
 
         $users = $query->distinct()->get();
 

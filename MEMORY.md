@@ -37,6 +37,24 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-29 — Filtrado Dinámico de Asignadores por Sede Activa en Transcribir Estudios (`transcribirEstudioComponent.vue`, `usuarios.js`, `UserController.php`, `UserService.php`):**
+  - **Diagnóstico:** El combo selector "Quién asignó" (`#quien_asigno_id`) en `transcribirEstudioComponent.vue` cargaba todos los usuarios del sistema sin filtrar por la sede hospitalaria activa. Además, en la base de datos de producción la tabla `user_sedes` sólo cuenta con 11 registros manuales, mientras que la vinculación operativa y real de los asignadores reside en `estudios.quien_registro_id` por `estudios.sede_id`.
+  - **Solución Implementada:**
+    * *Backend:* Se actualizó `UserController::listarUsuarios` para recibir el parámetro opcional `sede_id` y pasarlo a `UserService::listByRoleAndModule`. En `UserService`, se amplió la consulta para filtrar usuarios activos pertenecientes a la sede vía relación `user_sedes` O que hayan asignado estudios en dicha sede (`quien_registro_id` en `estudios` para esa `sede_id`), deduplicando los resultados con `distinct()`.
+    * *Frontend Helper:* Se actualizó `listarUsuariosYSedes` en `resources/js/helpers/usuarios.js` para admitir `options.sedeId` y enviar `&sede_id=${options.sedeId}` al endpoint de asignadores (incluyendo la ruta fallback).
+    * *Componente Vue:* En `transcribirEstudioComponent.vue`, se modularizó la carga con `cargarAsignadoresYSedes(sedeId)` ejecutándola en `onMounted` con la sede inicial y en el listener de `emitter.on('sedeSeleccionada')`, reseteando simultáneamente `busqueda.value.quien_asigno_id = ""` para no dejar selecciones inválidas al alternar de sede.
+  - **Verificaciones:** Laravel Pint (`vendor/bin/pint.bat --test`) 0 incidencias ✅ | ESLint 0 errores/warnings (`npx eslint`) ✅ | Build Vite completado en 2.36s (`npm run build`) ✅ | Prueba de servicio en PHP con la BD real: Sede 1 (Espinal) retorna exactamente los 13 asignadores activos (incluyendo Marlen Torres y Yefer Avilez), Sede 4 (Ibagué) retorna 4 asignadores, y sin sede retorna el catálogo completo de 34 ✅.
+- [x] **2026-10-29 — Homologación de UI/UX, Skeleton Loaders y Estilos Nativos en Módulo Ecografías (`resources/js/components/modulos/ecografias/`):**
+  - **Diagnóstico:** Los componentes del módulo de ecografías presentaban inconsistencias de estilo frente a las directrices de `UI-UX-IMPROVEMENT-PHASES.md`: uso de clases personalizadas foráneas (`.btn-action-clinical`), badges de atajos de teclado incrustados en botones (`F2`, `Ctrl+S`, `Esc`), backdrops con filtros invasivos (`backdrop-filter: blur(2px)`), spinners clásicos en lugar de skeleton loaders y tablas con el ID genérico `example23`.
+  - **Acciones Realizadas:**
+    * *`admisionarComponent.vue`:* Reemplazada la clase `.btn-action-clinical` por `waves-effect waves-light`, retirados badges de atajos en botones. Integrado `<table-skeleton-loader :visible="isBuscandoAtenciones" :rows="6" :columns="12" />` y `<empty-state-component>` al no hallar atenciones. Asignado `id="tablaAdmisiones"` a la tabla y actualizados sus helpers `safeInitDataTable`/`safeDestroyDataTable`. Backdrop estandarizado a `rgba(0, 0, 0, 0.5)` y añadido soporte responsive móvil (`max-width: 767px`).
+    * *`ecografiasAdmisionadasComponent.vue`:* Retirado `.btn-action-clinical` de cabecera y modales. Reemplazado `id="example23"` por `id="tablaEcografiasAdmisionadas"` en marcado y helpers DataTables. Añadido soporte responsive móvil al panel lateral.
+    * *`lecturaComponent.vue`:* Retirado `.btn-action-clinical` y badges de atajos. Reemplazado `id="example23"` por `id="tablaEcografiasLectura"`. Integrado `<table-skeleton-loader :visible="isBuscandoPendientes" :rows="6" :columns="8" />` y `<empty-state-component>`. Backdrop homologado a `rgba(0, 0, 0, 0.5)` sin filtros de desenfoque.
+    * *`ecografiasConsentimientosComponent.vue`:* Homologados breadcrumbs a `<button type="button" class="btn btn-link p-0" style="vertical-align: baseline...">`. Sustituido spinner tradicional por `<table-skeleton-loader :visible="loading" :rows="6" :columns="7" />` y `<empty-state-component>`.
+    * *`ecografiasConsentimientosPlantillasComponent.vue`:* Homologados breadcrumbs. Integrado botón "Limpiar filtros", `<table-skeleton-loader :visible="loading" :rows="5" :columns="6" />` y `<empty-state-component>`.
+    * *`ecografiaFirmaConsentimientoComponent.vue`:* Retirado `.btn-action-clinical` y sus estilos en `<style scoped>`, eliminados badges de atajo incrustados en botones de firma.
+  - **Verificaciones:** ESLint 0 errores/warnings (`npx eslint` passed en los 6 componentes) ✅ | Build Vite satisfactorio en 1.12s (`npm run build`) ✅ | Vistas y configuración de Laravel purgadas (`view:clear`, `config:clear`) ✅.
+
 - [x] **2026-10-29 — Deduplicación de Verificación de Sesión Expirada y Redirección al Login (`bootstrap.js`):**
   - **Diagnóstico:** Al expirar la sesión del navegador, peticiones paralelas (como `cargarCatalogos` en HelpDesk) devolvían HTTP 401. En `bootstrap.js`, `confirmSessionExpired()` evaluaba `if (_verifyingSession) return false;`, de modo que cuando la primera petición iniciaba la comprobación, las peticiones concurrentes recibían `expired = false` creyendo erróneamente que la sesión aún era válida y abortando la redirección al login, dejando al usuario en la vista con errores 401 en la consola.
   - **Solución Implementada:** Se refactorizó `confirmSessionExpired()` para compartir la misma Promise en vuelo (`_verifyingPromise`), resolviendo consistentemente `true` para todas las peticiones concurrentes cuando la sesión expira y garantizando la invocación de `redirectToLogin()` con toast informativo y redirección fluida a `/login`.
@@ -1420,6 +1438,20 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * Creado seeder `PermisionRecomendacionesSeeder` idempotente para `config.recomendaciones.*`.
     * Ejecución exitosa de seeders en BD (`php artisan db:seed --class=...`).
   - **Verificación:** `php artisan permissions:audit` pasando con **0 faltantes** (119 permisos en código, 151 en BD) ✅ | Laravel Pint passed ✅ | `npm run build` passed en 2.26s ✅ | Autoload con 9,416 clases sin advertencias ✅.
+- [x] **2026-10-29 — Estandarización UI/UX Nativa AdminWrap en módulos Ecografías y Citas:**
+  - **Módulo Ecografías (`admisionarComponent.vue`, `ecografiasAdmisionadasComponent.vue`, `lecturaComponent.vue`, `ecografiasConsentimientosComponent.vue`, `ecografiasConsentimientosPlantillasComponent.vue`, `ecografiaFirmaConsentimientoComponent.vue`):**
+    - Eliminadas clases foráneas `.btn-action-clinical`, badges incrustados de atajos (`F2`, `Esc`, `Ctrl+S`), y selectores `id="example23"` reemplazados por IDs semánticos únicos (`#tablaAdmisiones`, `#tablaEcografiasAdmisionadas`, `#tablaEcografiasLectura`).
+    - Integrados `<table-skeleton-loader>` y `<empty-state-component>` reemplazando spinners crudos y estados vacíos no estructurados.
+    - Homologadas migas de pan a botones accesibles `<button type="button" class="btn btn-link p-0" style="vertical-align: baseline; text-decoration: none; color: inherit">`.
+    - Normalizados sidebars responsive con `@media (max-width: 767px)` y backdrops `rgba(0, 0, 0, 0.5)` sin filtros de desenfoque.
+  - **Módulo Citas (`citasComponent.vue`, `citasRevisionComponent.vue`, `gestionCitasComponent.vue`, `recomendacionProductoComponent.vue`):**
+    - Homologadas migas de pan y eliminadas clases foráneas `.btn-action-clinical` y badges de atajos.
+    - Reemplazado `id="example23"` por `#tablaCitasRevision` y `id="tabla-recomendaciones"` por `#tablaRecomendaciones`.
+    - Integrados `<table-skeleton-loader>` y `<empty-state-component>` en `citasRevisionComponent.vue` y `recomendacionProductoComponent.vue`.
+    - Agregados atributos `for="<id>"` en todos los labels y selectores de filtros.
+    - Normalizados backdrops y sidebars a estándares AdminWrap / Bootstrap 4.
+  - **Verificación estricta:** ESLint 0 errores/warnings en todos los componentes de ecografías y citas ✅ | Vite `npm run build` en 2.45s ✅ | Caches de vistas y configuración de Laravel purgadas ✅.
+
 ### Estado de módulos recientes (oct. 2026)
 - **Auditoría de Permisos Spatie** (2026-10-22): ✅ 100% sincronizado (0 faltantes en BD, regex de guard corregida, seeders idempotentes ejecutados).
 - **EcografiaLecturaController / Seeders Configuracion** (2026-10-22): ✅ Casing normalizado conforme a PSR-4. Autoload optimizado limpio al 100%.

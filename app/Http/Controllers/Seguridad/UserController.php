@@ -273,25 +273,28 @@ class UserController extends Controller
     }
 
     /**
-     * Lista usuarios por rol y módulo (ej. médicos del módulo de estudios).
+     * Lista los usuarios filtrados por rol y módulo, con soporte opcional de filtrado por sede.
      *
-     * @param  string  $tipoUser  Nombre del rol a filtrar (ej. "Medico").
-     * @param  int  $modulo  ID del módulo al que pertenecen los usuarios.
+     * Flujo del proceso:
+     * 1. Extrae el parámetro booleano 'solo_activos' (por defecto true).
+     * 2. Extrae el parámetro opcional 'sede_id' si fue suministrado en la solicitud.
+     * 3. Consulta el servicio de usuarios aplicando los filtros solicitados.
+     * 4. Retorna la respuesta en formato JSON.
      *
-     * Lista los usuarios filtrados por rol y módulo.
-     * @param  Request  $request  Solicitud HTTP (admite parámetro solo_activos).
-     * @param  string  $tipoUser  Nombre del rol, lista separada por coma o alias "Asignadores".
+     * @param  Request  $request  Solicitud HTTP (admite parámetros solo_activos y sede_id).
+     * @param  string  $tipoUser  Nombre del rol o lista de roles separada por comas.
      * @param  int  $modulo  ID del módulo.
      * @return JsonResponse Respuesta JSON con el listado de usuarios.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-10-28
+     * @date 2026-10-29
      */
     public function listarUsuarios(Request $request, string $tipoUser, int $modulo): JsonResponse
     {
         $soloActivos = $request->boolean("solo_activos", true);
-        $result = $this->userService->listByRoleAndModule($tipoUser, $modulo, $soloActivos);
+        $sedeId = $request->filled("sede_id") ? (int) $request->input("sede_id") : null;
+        $result = $this->userService->listByRoleAndModule($tipoUser, $modulo, $soloActivos, $sedeId);
 
         return response()->json($result, (int) $result["status"]);
     }
