@@ -2,6 +2,7 @@
 
 namespace App\Services\HelpDesk;
 
+use App\Helpers\AuditLogger;
 use App\Models\Configuracion\ConfigSede;
 use App\Models\HelpDesk\HelpDeskEstado;
 use App\Models\HelpDesk\HelpDeskFolioCounter;
@@ -207,6 +208,11 @@ class HelpDeskTicketService extends BaseService
                 $asignado->notify($notif);
             }
 
+            AuditLogger::crear(
+                $ticket,
+                "Ticket HelpDesk {$ticket->folio} creado: '{$ticket->titulo}' por {$user->name}"
+            );
+
             return $this->created($ticket->load(['categoria', 'prioridad', 'estado']));
         });
     }
@@ -289,6 +295,11 @@ class HelpDeskTicketService extends BaseService
         if ($estado && ! in_array($estado->nombre, ['Abierto', 'Cerrado'], true)) {
             return $this->error('Solo se pueden eliminar tickets en estado Abierto o Cerrado.', 422);
         }
+
+        AuditLogger::eliminar(
+            $ticket,
+            "Ticket HelpDesk {$ticket->folio} eliminado por {$user->name}"
+        );
 
         $ticket->delete();
 
@@ -373,6 +384,12 @@ class HelpDeskTicketService extends BaseService
 
         $this->notifyPartes($ticket, 'REASIGNADO', 'Ticket reasignado', null);
 
+        AuditLogger::log(
+            'reasignar_ticket',
+            $ticket,
+            "Ticket {$ticket->folio} reasignado a técnico ID: {$asignado->id} ({$asignado->name}) por {$user->name}"
+        );
+
         return $this->success(['ok' => true]);
     }
 
@@ -452,6 +469,12 @@ class HelpDeskTicketService extends BaseService
         ]);
 
         $this->notifyPartes($ticket, 'CAMBIO_ESTADO', "Estado: {$nuevo->nombre}", null);
+
+        AuditLogger::log(
+            'cambio_estado_ticket',
+            $ticket,
+            "Ticket {$ticket->folio} cambió de estado a '{$nuevo->nombre}' por {$user->name}"
+        );
 
         return $this->success(['ok' => true]);
     }

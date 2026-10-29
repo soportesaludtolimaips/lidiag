@@ -2,7 +2,9 @@
 
 namespace App\Services\Seguridad;
 
+use App\Helpers\AuditLogger;
 use App\Services\BaseService;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -115,6 +117,11 @@ class RolService extends BaseService
 
             $role->syncPermissions($permissionNames);
 
+            AuditLogger::crear(
+                $role,
+                "Rol creado: '{$role->name}' con ".count($permissionNames).' permisos por '.(Auth::user()?->name ?? ('ID: '.Auth::id()))
+            );
+
             return $this->created(['message' => 'Registro creado satisfactoriamente.']);
         });
     }
@@ -180,11 +187,18 @@ class RolService extends BaseService
                 return $this->notFound('El rol no se encontró');
             }
 
+            $oldName = $role->name;
             $role->name = $data['registro']['name'];
             $role->guard_name = 'web';
             $role->save();
 
             $role->syncPermissions($permissionNames);
+
+            AuditLogger::actualizar(
+                $role,
+                ['name' => $oldName],
+                "Rol '{$role->name}' actualizado y permisos sincronizados (".count($permissionNames).' permisos) por '.(Auth::user()?->name ?? ('ID: '.Auth::id()))
+            );
 
             return $this->updated(['message' => 'Registro actualizado satisfactoriamente.']);
         });
@@ -217,6 +231,11 @@ class RolService extends BaseService
             return $this->error("No se puede eliminar el rol \"{$role->name}\" porque está asignado a {$usersCount} usuario(s).", 422);
         }
 
+        AuditLogger::eliminar(
+            $role,
+            "Rol '{$role->name}' eliminado por ".(Auth::user()?->name ?? ('ID: '.Auth::id()))
+        );
+
         $role->delete();
 
         return $this->deleted('Registro eliminado satisfactoriamente.');
@@ -243,6 +262,12 @@ class RolService extends BaseService
 
         $role->estado = $role->estado ? 0 : 1;
         $role->save();
+
+        AuditLogger::log(
+            'cambio_estado_rol',
+            $role,
+            "Rol '{$role->name}' ".($role->estado ? 'activado' : 'desactivado').' por '.(Auth::user()?->name ?? ('ID: '.Auth::id()))
+        );
 
         return $this->success([
             'message' => $role->estado ? 'Rol activado correctamente.' : 'Rol desactivado correctamente.',

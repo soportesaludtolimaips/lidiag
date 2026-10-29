@@ -2,6 +2,7 @@
 
 namespace App\Services\Estudios;
 
+use App\Helpers\AuditLogger;
 use App\Models\Configuracion\ConfigProducto;
 use App\Models\Configuracion\ConfigSede;
 use App\Models\Estudio\Estudio;
@@ -139,6 +140,12 @@ class EstudioService extends BaseService
                 $this->processSoportes($estudio->id, $archivo1, $archivo2, $archivo3);
                 $this->autoReconciliarWorklistOrden($estudio, $registro);
 
+                AuditLogger::log(
+                    'asignar_estudio',
+                    $estudio,
+                    "Asignación de estudio #{$estudio->id} ({$estudio->study_desc}) — Paciente: {$nombrePaciente}, Médico ID: {$estudio->medico_id}, Prioridad ID: {$estudio->prioridad_id}"
+                );
+
                 // Asignación registrada: se libera la reserva (si la transacción revierte, vuelve a existir).
                 if ($claveAsignacion !== null) {
                     $this->lockService->liberarPorClave('asignacion', $claveAsignacion);
@@ -211,6 +218,12 @@ class EstudioService extends BaseService
                 $item->lectura = $lectura;
                 $item->fechor_lectura = Carbon::now();
                 $item->save();
+
+                AuditLogger::log(
+                    'lectura_estudio',
+                    $item,
+                    "Lectura médica registrada para producto de estudio #{$item->id} (Estudio #{$estudio->id}) por médico: ".(Auth::user()?->name ?? ('ID: '.Auth::id()))
+                );
 
                 // Guardado exitoso: se libera la reserva del médico.
                 $this->lockService->liberarPorClave('lectura', $this->lockService->claveLectura($estudioProductoId));
@@ -357,6 +370,12 @@ class EstudioService extends BaseService
                 $producto->visto = 1;
                 $producto->save();
 
+                AuditLogger::log(
+                    'transcripcion_estudio',
+                    $producto,
+                    "Transcripción clínica registrada para producto de estudio #{$producto->id} (Estudio #{$data['id_estudio']}) por transcriptor: ".(Auth::user()?->name ?? ('ID: '.Auth::id()))
+                );
+
                 if (! empty($data['destino_estudio']) && $data['destino_estudio'] === self::DESTINO_TELE_RADIOLOGIA) {
                     $estudio = Estudio::findOrFail($data['id_estudio']);
                     $estudio->medico_id = $data['medico_id'];
@@ -441,6 +460,12 @@ class EstudioService extends BaseService
 
                 $producto->activo = 0;
                 $producto->save();
+
+                AuditLogger::log(
+                    'anular_estudio',
+                    $producto,
+                    "Asignación anulada para producto de estudio #{$producto->id} por usuario: ".(Auth::user()?->name ?? ('ID: '.Auth::id()))
+                );
 
                 LiquidacionLinea::where('estudio_producto_id', $producto->id)->update(['estado' => 0]);
 

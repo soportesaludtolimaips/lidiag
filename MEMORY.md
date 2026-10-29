@@ -37,6 +37,21 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-29 — Unificación de Fuente de Auditoría y Registro de Eventos de Usuario (`AuditLogService`, `AuditLogger`, `EstudioService`, `AgendaCitaService`, `HelpDeskTicketService`, `RolService`, `auditLogComponent.vue`):**
+  - **Diagnóstico:**
+    1. Se detectó una desconexión crítica en `/seguridad-auditoria`: `AuditLogService` consultaba la tabla `activity_log` (que no tiene columna `descripcion` y sólo almacenaba nombres en inglés), dejando la columna "Descripción" siempre vacía (`"—"`).
+    2. Al mismo tiempo, los eventos reales de autenticación (inicios de sesión, cierres, fallos) y administración de usuarios/configuraciones se registraban en la tabla `audit_logs` vía `AuditLogger`, pero permanecían invisibles en la interfaz de auditoría.
+    3. Ninguno de los servicios clínicos y operativos principales (`EstudioService`, `AgendaCitaService`, `HelpDeskTicketService`, `RolService`) auditaba las acciones que realizan los usuarios (asignaciones, lecturas, transcripciones, agendamientos, cambios de estado, etc.).
+  - **Acciones Realizadas:**
+    * *Unificación en Backend (`AuditLogService.php`):* Se reorientó la consulta a `AuditLog` (`audit_logs`), proyectando `descripcion`, habilitando búsqueda global por descripción, modelo, IP y nombre de usuario (`whereHas('user')`), y obteniendo los tipos de evento directamente desde `audit_logs`.
+    * *Saneamiento de Helper (`AuditLogger.php`):* Retirado el docblock de deprecación obsoleto, consolidándolo como el helper institucional de auditoría.
+    * *Instrumentación en Módulo Estudios (`EstudioService.php`):* Integrado registro de eventos para `asignar_estudio` (con detalle del estudio, paciente, médico y prioridad), `lectura_estudio` (médico especialista), `transcripcion_estudio` (transcriptor clínico) y `anular_estudio`.
+    * *Instrumentación en Módulo Citas (`AgendaCitaService.php`):* Integrado registro de eventos para creación de solicitud (`create`), eliminación (`delete`), `asignar_cita` (sede y fecha), `confirmar_cita`, `cancelar_cita` (con motivo), `cumplir_cita`, `inasistencia_cita` y `rechazar_cita`.
+    * *Instrumentación en Módulo HelpDesk (`HelpDeskTicketService.php`):* Integrado registro de eventos para creación (`create`), eliminación (`delete`), `reasignar_ticket` (con técnico destino) y `cambio_estado_ticket` (con nuevo estado).
+    * *Instrumentación en Módulo Roles (`RolService.php`):* Integrado registro de eventos para creación (`create`), actualización y sincronización de permisos (`update`), eliminación (`delete`) y cambio de estado (`toggleEstado`).
+    * *Frontend (`auditLogComponent.vue`):* Ampliado el mapa `colorEvento` para asignar insignias cromáticas diferenciadas a todos los nuevos tipos de eventos registrados en la interfaz.
+  - **Verificaciones:** Laravel Pint passed (`{"tool":"pint","result":"passed"}`) ✅ | ESLint passed (0 errores, 0 warnings) ✅ | Compilación Vite completada en 1.50s (`npm run build`) ✅.
+
 - [x] **2026-10-29 — Filtrado Dinámico de Asignadores por Sede Activa en Transcribir Estudios (`transcribirEstudioComponent.vue`, `usuarios.js`, `UserController.php`, `UserService.php`):**
   - **Diagnóstico:** El combo selector "Quién asignó" (`#quien_asigno_id`) en `transcribirEstudioComponent.vue` cargaba todos los usuarios del sistema sin filtrar por la sede hospitalaria activa. Además, en la base de datos de producción la tabla `user_sedes` sólo cuenta con 11 registros manuales, mientras que la vinculación operativa y real de los asignadores reside en `estudios.quien_registro_id` por `estudios.sede_id`.
   - **Solución Implementada:**

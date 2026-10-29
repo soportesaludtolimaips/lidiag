@@ -2,6 +2,7 @@
 
 namespace App\Services\Agenda;
 
+use App\Helpers\AuditLogger;
 use App\Models\Agenda\AgendaCita;
 use App\Models\Agenda\AgendaDisponibilidaDetalle;
 use App\Models\Citas\ConfigCitaRechazoMotivo;
@@ -105,6 +106,11 @@ class AgendaCitaService extends BaseService
 
         $this->whatsAppService->enviarSolicitudRecibida($cita);
 
+        AuditLogger::crear(
+            $cita,
+            "Solicitud de cita #{$cita->id} registrada para paciente ID: {$paciente->id} por usuario: ".(Auth::user()?->name ?? ('ID: '.Auth::id()))
+        );
+
         return $this->created([
             'message' => 'Solicitud de cita creada exitosamente',
             'cita' => $cita->fresh(['paciente', 'servicio']),
@@ -149,6 +155,11 @@ class AgendaCitaService extends BaseService
         if (! in_array($cita->estado, ['solicitada', 'cancelada'])) {
             return $this->error('No se puede eliminar una cita asignada o confirmada', 422);
         }
+
+        AuditLogger::eliminar(
+            $cita,
+            "Cita #{$cita->id} eliminada por usuario: ".(Auth::user()?->name ?? ('ID: '.Auth::id()))
+        );
 
         $cita->delete();
 
@@ -205,6 +216,12 @@ class AgendaCitaService extends BaseService
 
         $this->whatsAppService->enviarConfirmacion($cita);
 
+        AuditLogger::log(
+            'asignar_cita',
+            $cita,
+            "Cita #{$cita->id} asignada a sede ID: {$data['sede_id']}, fecha: ".($data['fecha_cita'] ?? 'N/A').' por usuario: '.(Auth::user()?->name ?? ('ID: '.Auth::id()))
+        );
+
         return $this->success([
             'message' => 'Cita asignada y notificación enviada',
             'cita' => $cita,
@@ -232,6 +249,12 @@ class AgendaCitaService extends BaseService
             'estado' => 'confirmada',
             'quien_confirma_id' => Auth::id(),
         ]);
+
+        AuditLogger::log(
+            'confirmar_cita',
+            $cita,
+            "Cita #{$cita->id} confirmada por usuario: ".(Auth::user()?->name ?? ('ID: '.Auth::id()))
+        );
 
         return $this->success([
             'message' => 'Cita confirmada',
@@ -264,6 +287,12 @@ class AgendaCitaService extends BaseService
 
         $this->whatsAppService->enviarCancelacion($cita, $motivo);
 
+        AuditLogger::log(
+            'cancelar_cita',
+            $cita,
+            "Cita #{$cita->id} cancelada. Motivo: {$motivo} por usuario: ".(Auth::user()?->name ?? ('ID: '.Auth::id()))
+        );
+
         return $this->success([
             'message' => 'Cita cancelada',
             'cita' => $cita->fresh(),
@@ -289,6 +318,12 @@ class AgendaCitaService extends BaseService
 
         $cita->update(['estado' => 'cumplida']);
 
+        AuditLogger::log(
+            'cumplir_cita',
+            $cita,
+            "Cita #{$cita->id} marcada como cumplida por usuario: ".(Auth::user()?->name ?? ('ID: '.Auth::id()))
+        );
+
         return $this->success([
             'message' => 'Cita marcada como cumplida',
             'cita' => $cita->fresh(),
@@ -313,6 +348,12 @@ class AgendaCitaService extends BaseService
         }
 
         $cita->update(['estado' => 'no_asistio']);
+
+        AuditLogger::log(
+            'inasistencia_cita',
+            $cita,
+            "Inasistencia registrada para cita #{$cita->id} por usuario: ".(Auth::user()?->name ?? ('ID: '.Auth::id()))
+        );
 
         return $this->success([
             'message' => 'Inasistencia registrada',
@@ -369,6 +410,12 @@ class AgendaCitaService extends BaseService
             $cita,
             $motivo?->motivo ?? 'Motivo no especificado',
             $data['rechazo_observacion'] ?? ''
+        );
+
+        AuditLogger::log(
+            'rechazar_cita',
+            $cita,
+            "Cita #{$cita->id} rechazada. Motivo: ".($motivo?->motivo ?? 'No especificado').' por usuario: '.(Auth::user()?->name ?? ('ID: '.Auth::id()))
         );
 
         return $this->success([

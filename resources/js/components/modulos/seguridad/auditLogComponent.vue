@@ -442,11 +442,31 @@ function verDetalle(item) {
 function colorEvento(evento) {
     const colores = {
         crear: "success",
+        created: "success",
         actualizar: "warning",
+        updated: "warning",
         eliminar: "danger",
+        deleted: "danger",
         inicio_sesion: "info",
-        cierre_sesion: "default",
+        cierre_sesion: "inverse",
         inicio_sesion_fallido: "danger",
+        cambio_estado: "primary",
+        cambio_password: "warning",
+        asignar_roles: "info",
+        asignar_estudio: "info",
+        lectura_estudio: "success",
+        transcripcion_estudio: "primary",
+        anular_estudio: "danger",
+        asignar_cita: "info",
+        confirmar_cita: "primary",
+        cancelar_cita: "danger",
+        cumplir_cita: "success",
+        inasistencia_cita: "warning",
+        rechazar_cita: "danger",
+        cambio_estado_ticket: "warning",
+        reasignar_ticket: "info",
+        comentario_ticket: "secondary",
+        cambio_estado_rol: "primary",
     };
     return colores[evento] || "primary";
 }
