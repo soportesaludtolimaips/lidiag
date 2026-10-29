@@ -37,6 +37,31 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-29 — Homologación de UI/UX, Skeleton Loaders y Estilos Nativos en Módulo Agenda (`resources/js/components/modulos/agenda/` — `agendaDisponibilidadComponent.vue`):**
+  - **Diagnóstico:** El componente `agendaDisponibilidadComponent.vue` presentaba inconsistencias con `UI-UX-IMPROVEMENT-PHASES.md`: breadcrumb con enlaces no semánticos y título genérico, clases foráneas `.btn-action-clinical`, badges de atajo (`F2`, `Ctrl+S`, `Esc`) incrustados en botones, uso del spinner legado `<loading-spinner>` en lugar de `<table-skeleton-loader>`, tabla con ID `#tabla-disponibilidad`, inputs sin `<label for="...">` asociados y panel lateral con `backdrop-filter: blur(2px)`.
+  - **Acciones Realizadas:**
+    * *Breadcrumbs y Títulos:* Homologados breadcrumbs a `<button type="button" class="btn btn-link p-0"...>` y ajustado título activo a "Disponibilidad de citas".
+    * *Limpieza de Botones:* Retiradas las clases `.btn-action-clinical` y badges de atajos en cabecera, filtros y panel lateral.
+    * *Skeleton y Empty State:* Reemplazado `<loading-spinner>` por `<table-skeleton-loader :rows="5" :columns="5" />` y `<empty-state-component>` al no hallar disponibilidades.
+    * *ID Semántico DataTables:* Estandarizado a `#tablaAgendaDisponibilidad` en plantilla, `buscarStudy()`, `onSedeSeleccionada()` y `onBeforeUnmount()`.
+    * *Accesibilidad y Modal:* Vinculadas etiquetas `<label for="...">` con inputs y selects en formulario de búsqueda y lateral. Eliminado `backdrop-filter: blur(2px)` y añadido soporte responsive móvil (`@media (max-width: 767px)`).
+  - **Verificaciones:** ESLint 0 errores/warnings (`npx eslint`) ✅ | Compilación Vite completada en 2.23s (`npm run build`) ✅ | Vistas y configuración de Laravel purgadas (`view:clear`, `config:clear`) ✅.
+
+- [x] **2026-10-29 — Corrección de Validación Opcional en Email para Reportar en Transcribir Estudios (`transcribirEstudioComponent.vue`):**
+  - **Diagnóstico:** Al guardar la transcripción de un estudio sin suministrar correo electrónico a reportar, el componente bloqueaba el guardado y arrojaba el toast "Email inválido: Este campo es obligatorio". Esto se debía a que `statusEmailReportar` aplicaba la regla estricta `validators.required` a un campo que operativamente y en backend (`GuardarTranscripcionRequest`) es opcional (`nullable`).
+  - **Solución Implementada:**
+    * Se actualizó la propiedad computada `statusEmailReportar` para retornar estado válido si el campo está vacío, en blanco, o tiene valor nulo/indefinido, aplicando `validators.email` exclusivamente cuando el usuario haya ingresado texto.
+    * En `guardarRegistro()`, se condicionó la validación y el toast únicamente cuando exista un correo diligenciado, permitiendo guardar sin impedimentos si el campo se deja vacío.
+    * En el payload enviado a `/api/estudio-guardarTranscripcion`, se sanitizó `email_reportar` para enviar el texto limpio o `null`.
+    * En la interfaz se sustituyó el asterisco de obligatoriedad (`<span class="text-danger">*</span>`) por `<small class="text-muted">(Opcional)</small>`.
+  - **Verificaciones:** ESLint 0 errores/warnings (`npx eslint`) ✅ | Formateo con Prettier ✅ | Compilación Vite exitosa en 2.90s (`npm run build`) ✅.
+- [x] **2026-10-29 — Homologación de UI/UX, Skeleton Loaders y Estilos Nativos en Módulo Liquidación (`resources/js/components/modulos/liquidacion/` — 2 componentes):**
+  - **Diagnóstico:** Los componentes del módulo Liquidación (`liquidacionComponent.vue` y `productividadComponent.vue`) presentaban inconsistencias de estilo: breadcrumbs con etiquetas `<a>` crudas sin accesibilidad, carencia de `<table-skeleton-loader>` durante el cálculo y generación de reportes, alertas simples en lugar de `<empty-state-component>`, entidades HTML escapadas en títulos (`&oacute;`, `&eacute;`), modal de detalle de exclusión con filtro intrusivo `backdrop-filter: blur(2px)` y tablas sin IDs semánticos únicos.
+  - **Acciones Realizadas:**
+    * *`liquidacionComponent.vue`:* Homologado breadcrumb a `<button type="button" class="btn btn-link p-0"...>`. Añadido `<table-skeleton-loader :rows="6" :columns="7" />` durante el estado de cálculo. Integrado `<empty-state-component>` al no hallar líneas liquidables. Asignados IDs semánticos únicos (`#tablaLiquidacionLineas`, `#tablaLiquidacionTotales`, `#tablaLiquidacionExclusiones`). Retirado el desenfoque `backdrop-filter: blur(2px)` del modal de exclusiones y añadida accesibilidad con `<label for="busqueda-exclusion">` y soporte responsive móvil (`@media (max-width: 767px)`).
+    * *`productividadComponent.vue`:* Homologado breadcrumb a botón accesible. Añadido `<table-skeleton-loader :rows="6" :columns="5" />` durante la generación del reporte. Integrado `<empty-state-component>` al no existir producción médica registrada. Asignados IDs únicos por médico (`:id="'tablaProductividad_' + m.medico_id"`). Estandarizados textos con tildes nativas y botones limpios con spinners reactivos.
+  - **Verificaciones:** ESLint 0 errores/warnings (`npx eslint`) ✅ | Compilación Vite completada en 1.90s (`npm run build`) ✅ | Vistas y configuración de Laravel purgadas (`view:clear`, `config:clear`) ✅.
+
 - [x] **2026-10-29 — Homologación de UI/UX, Skeleton Loaders y Estilos Nativos en Módulo Configuración (`resources/js/components/modulos/configuracion/` — 19 componentes):**
   - **Diagnóstico:** Los 19 componentes del módulo de configuración presentaban las desviaciones descritas en `UI-UX-IMPROVEMENT-PHASES.md`: uso de selectores DataTables genéricos (`#example23`), spinners clásicos en lugar de `<table-skeleton-loader>` y `<empty-state-component>`, clases foráneas (`.btn-action-clinical`), badges de atajos de teclado (`F2`, `Ctrl+S`, `Esc`) incrustados en botones, etiquetas `<label>` sin asociación `for="<id>"`, y modales/sidebars con filtros `backdrop-filter: blur(2px)` y sin adaptación móvil.
   - **Acciones Realizadas:**

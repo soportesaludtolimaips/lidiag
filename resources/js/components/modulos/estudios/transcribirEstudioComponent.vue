@@ -351,6 +351,7 @@
                 v-if="sidebarVisible"
                 class="sidebar-backdrop"
                 @click="btnCerrarModalForm()"
+                @mousedown.prevent="btnCerrarModalForm()"
                 aria-hidden="true"
             ></div>
         </transition>
@@ -364,6 +365,7 @@
                         type="button"
                         class="right-side-toggle"
                         @click="btnCerrarModalForm()"
+                        @mousedown.prevent="btnCerrarModalForm()"
                         aria-label="Cerrar panel"
                     >
                         <i class="ti-close"></i>
@@ -430,7 +432,9 @@
                                             <div class="form-group">
                                                 <label class="control-label" for="email_reportar"
                                                     >Reportar al Email
-                                                    <span class="text-danger">*</span></label
+                                                    <small class="text-muted"
+                                                        >(Opcional)</small
+                                                    ></label
                                                 >
                                                 <input
                                                     type="email"
@@ -878,14 +882,13 @@ const contadorRegistros = computed(() => {
 
 const { touch, getFieldStatus, getInputClass, validators, resetTouched } = useFormValidation();
 
-const statusEmailReportar = computed(() =>
-    getFieldStatus(
-        "email_reportar",
-        registro.value.email_reportar,
-        [validators.required, validators.email],
-        errores.value
-    )
-);
+const statusEmailReportar = computed(() => {
+    const val = registro.value.email_reportar;
+    if (!val || val === "null" || val === "undefined" || String(val).trim() === "") {
+        return { isInvalid: false, isValid: false, message: "" };
+    }
+    return getFieldStatus("email_reportar", String(val).trim(), [validators.email], errores.value);
+});
 
 useKeyboardShortcuts({
     onSave: guardarRegistro,
@@ -987,17 +990,19 @@ async function listarPendientesTrascribir() {
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
 
-    touch("email_reportar");
-    /* if (statusEmailReportar.value.isInvalid) {
-        toastMessage({
-            heading: "Email inválido",
-            text:
-                statusEmailReportar.value.message ||
-                "Por favor ingrese un email válido para reportar.",
-            icon: "warning",
-        });
-        return;
-    } */
+    if (registro.value.email_reportar && String(registro.value.email_reportar).trim() !== "") {
+        touch("email_reportar");
+        if (statusEmailReportar.value.isInvalid) {
+            toastMessage({
+                heading: "Email inválido",
+                text:
+                    statusEmailReportar.value.message ||
+                    "Por favor ingrese un email válido para reportar.",
+                icon: "warning",
+            });
+            return;
+        }
+    }
 
     loadingGuardar.value = true;
     try {
@@ -1006,6 +1011,14 @@ async function guardarRegistro() {
             text: "Enviando lectura, por favor espere",
             icon: "info",
         });
+
+        const cleanEmail =
+            registro.value.email_reportar &&
+            registro.value.email_reportar !== "null" &&
+            registro.value.email_reportar !== "undefined" &&
+            String(registro.value.email_reportar).trim() !== ""
+                ? String(registro.value.email_reportar).trim()
+                : null;
 
         const payload = {
             estudio_producto_id: registro.value.estudio_producto_id,
@@ -1023,6 +1036,7 @@ async function guardarRegistro() {
             num_docu: registro.value.num_docu,
             nom_pacien: registro.value.nom_pacien,
             email: registro.value.email,
+            email_reportar: cleanEmail,
             fec_naci: registro.value.fec_naci,
             fec_estudio: registro.value.fec_estudio,
             fec_lectura: registro.value.fec_lectura,
