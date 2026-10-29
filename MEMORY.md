@@ -37,6 +37,18 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-29 — Inclusión Automática al Seleccionar Productos y Diagnósticos en Asignar Estudios (`AsignarEstudioComponent.vue`):**
+  - **Diagnóstico:** Al seleccionar un producto o diagnóstico en los selectores Select2, la opción únicamente actualizaba la variable reactiva local (`productoSelecciondo` o `diagnosticoSelecciondo`) obligando al usuario a presionar manualmente el botón "Agregar".
+  - **Solución Implementada:**
+    * *Inclusión Inmediata:* Actualizados `onProductoSelect` y `onDiagnosticoSelect` para invocar inmediatamente `guardarProductosEstudio(selectedId)` y `guardarDiagnosticosEstudio(selectedId)` al seleccionar cualquier opción válida.
+    * *Limpieza Automática:* `guardarProductosEstudio` y `guardarDiagnosticosEstudio` limpian el estado reactivo (`productoSelecciondo.value = ""` y `diagnosticoSelecciondo.value = ""`) permitiendo que el selector Select2 quede listo y despejado para la siguiente selección sin intervención manual.
+    * *Eliminación de Botones Redundantes:* Retirados los botones manuales "Agregar" del marcado HTML.
+  - **Verificaciones:** Prettier aplicado ✅ | ESLint passed (0 errores) ✅ | Compilación Vite completada en 2.22s (`npm run build`) ✅.
+
+- [x] **2026-10-29 — Habilitación de Chat ID de Usuario en Lista Blanca de Telegram (`.env`, `.env.production`):**
+  - **Diagnóstico:** El bot de Telegram ya se encuentra operativo y respondiendo en tiempo real, pero el nuevo usuario (Chat ID `999587626`) recibía el mensaje de "Acceso Restringido — LIDiag" debido a la lista blanca de seguridad institucional en `TELEGRAM_ALLOWED_CHAT_IDS`.
+  - **Solución Implementada:** Incorporado el nuevo Chat ID en `.env` y `.env.production` (`TELEGRAM_ALLOWED_CHAT_IDS=658633601,999587626`) y purgada la caché de configuración con `config:clear`.
+
 - [x] **2026-10-29 — Automatizador en Batch para Tarea Programada del Bot de Telegram (`instalar_tarea_telegram_bot.bat`, `ejecutar_telegram_bot.bat`, `detener_tarea_telegram_bot.bat`):**
   - **Diagnóstico y Necesidad:** El usuario requería un instalador automatizado en archivo `.bat` idéntico al patrón institucional de `instalar_scheduler.bat` y `storage/app_lidiag/agente_backups_dcm/instalar_tareas_sede.bat`, permitiendo que el bot de Telegram (`php artisan telegram:poll`) opere como servicio residente 24/7 en segundo plano bajo el Programador de Tareas de Windows (Windows Task Scheduler) sin requerir consolas abiertas manualmente.
   - **Scripts Implementados:**

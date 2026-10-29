@@ -672,14 +672,6 @@
                                                 dropdown-parent-selector="#productos-parent"
                                                 @input="onProductoSelect"
                                             />
-                                            <button
-                                                type="button"
-                                                class="btn btn-sm btn-info m-t-5"
-                                                @click="guardarProductosEstudio()"
-                                                :disabled="!productoSelecciondo"
-                                            >
-                                                <i class="fa fa-plus"></i> Agregar
-                                            </button>
                                         </div>
                                         <div class="col-md-12 table-responsive table-scroll">
                                             <table
@@ -757,14 +749,6 @@
                                                 dropdown-parent-selector="#diagnosticos-parent"
                                                 @input="onDiagnosticoSelect"
                                             />
-                                            <button
-                                                type="button"
-                                                class="btn btn-sm btn-info m-t-5"
-                                                @click="guardarDiagnosticosEstudio()"
-                                                :disabled="!diagnosticoSelecciondo"
-                                            >
-                                                <i class="fa fa-plus"></i> Agregar
-                                            </button>
                                         </div>
                                         <div class="col-md-12 table-responsive table-scroll">
                                             <table
@@ -2011,7 +1995,8 @@ function onMedicoSelect(value) {
 }
 
 /**
- * Manejar la selección de un producto en el formulario.
+ * Manejar la selección de un producto en el formulario:
+ * al seleccionar una opción, se agrega automáticamente al estudio.
  * @param {any} value - El valor seleccionado del producto.
  * @returns {void}
  * @author: Jhon Javer Lozano Arce
@@ -2027,10 +2012,14 @@ function onProductoSelect(value) {
         selectedId = String(value);
     }
     productoSelecciondo.value = selectedId || "";
+    if (selectedId && selectedId !== "0" && selectedId !== "") {
+        guardarProductosEstudio(selectedId);
+    }
 }
 
 /**
- * Manejar la selección de un diagnóstico en el formulario.
+ * Manejar la selección de un diagnóstico en el formulario:
+ * al seleccionar una opción, se agrega automáticamente al estudio.
  * @param {any} value - El valor seleccionado del diagnóstico.
  * @returns {void}
  * @author: Jhon Javer Lozano Arce
@@ -2046,16 +2035,23 @@ function onDiagnosticoSelect(value) {
         selectedId = String(value);
     }
     diagnosticoSelecciondo.value = selectedId || "";
+    if (selectedId && selectedId !== "0" && selectedId !== "") {
+        guardarDiagnosticosEstudio(selectedId);
+    }
 }
 
 /**
  * Guardar un producto seleccionado en el estudio.
+ * @param {string|number|null} idProd - Identificador opcional del producto a guardar.
  * @returns {void}
  * @author: Jhon Javer Lozano Arce
  */
-function guardarProductosEstudio() {
+function guardarProductosEstudio(idProd = null) {
+    const targetId = idProd ?? productoSelecciondo.value;
+    if (!targetId || targetId === "" || targetId === "0" || targetId === 0) return;
+
     const indexProductoEstudio = productos.value.findIndex(
-        (x) => x.id == productoSelecciondo.value
+        (x) => String(x.id) === String(targetId)
     );
 
     if (indexProductoEstudio >= 0) {
@@ -2063,7 +2059,9 @@ function guardarProductosEstudio() {
         const productoEstudioCod_Cubs = productos.value[indexProductoEstudio].cod_cups;
         const productoEstudioNomProduc = productos.value[indexProductoEstudio].nom_produc;
 
-        const yaExiste = registro.value.productosEstudio.some((p) => p.id == productoEstudioId);
+        const yaExiste = registro.value.productosEstudio.some(
+            (p) => String(p.id) === String(productoEstudioId)
+        );
         if (!yaExiste) {
             registro.value.productosEstudio.push({
                 id: productoEstudioId,
@@ -2073,7 +2071,7 @@ function guardarProductosEstudio() {
             });
         }
 
-        // Limpiar selección
+        // Limpiar selección para permitir seleccionar el siguiente producto inmediatamente
         productoSelecciondo.value = "";
     }
 }
@@ -2097,13 +2095,15 @@ async function quitarProductoEstudio(indexEliminar) {
 
 /**
  * Guardar un diagnóstico seleccionado en el estudio.
+ * @param {string|number|null} idDiag - Identificador opcional del diagnóstico a guardar.
  * @returns {void}
  * @author: Jhon Javer Lozano Arce
  */
-function guardarDiagnosticosEstudio() {
-    const idx = diagnosticos.value.findIndex(
-        (x) => String(x.id) === String(diagnosticoSelecciondo.value)
-    );
+function guardarDiagnosticosEstudio(idDiag = null) {
+    const targetId = idDiag ?? diagnosticoSelecciondo.value;
+    if (!targetId || targetId === "" || targetId === "0" || targetId === 0) return;
+
+    const idx = diagnosticos.value.findIndex((x) => String(x.id) === String(targetId));
     if (idx >= 0) {
         const diag = diagnosticos.value[idx];
         const yaExiste = registro.value.diagnosticosEstudio.some(
@@ -2116,7 +2116,7 @@ function guardarDiagnosticosEstudio() {
                 nom_diagnos: diag.nom_diagnos,
             });
         }
-        // Limpiar selección
+        // Limpiar selección para permitir seleccionar el siguiente diagnóstico inmediatamente
         diagnosticoSelecciondo.value = "";
     }
 }
