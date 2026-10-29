@@ -44,13 +44,13 @@ export function getModuloIdActual() {
 }
 
 /**
- * Lista los usuarios asignadores (o transcriptores) y médicos del módulo actual y los asigna al contexto.
+ * Lista los usuarios asignadores (Administrador, Administrativo, Transcriptor) y médicos del módulo actual y los asigna al contexto.
  *
  * Flujo del proceso:
  * 1. Determina el módulo actual (a través de options.moduloId o inferido de sessionStorage/ruta).
- * 2. Consulta los usuarios asignadores mediante endpoint /api/user.listarUsuarios/Asignadores/{moduloId}.
- * 3. Si no obtiene datos o falla la consulta, recurre a /api/user.listarUsuarios/Transcriptor/{moduloId}.
- * 4. Consulta los médicos asociados al módulo vía /api/user.listarUsuarios/Medico/{moduloId}.
+ * 2. Consulta los usuarios asignadores mediante endpoint /api/user.listarUsuarios/Administrador,Administrativo,Transcriptor/{moduloId}?solo_activos=1.
+ * 3. Si no obtiene datos o falla la consulta, recurre a /api/user.listarUsuarios/Transcriptor/{moduloId}?solo_activos=1.
+ * 4. Consulta los médicos asociados al módulo vía /api/user.listarUsuarios/Medico/{moduloId}?solo_activos=1.
  * 5. Normaliza y asigna de forma segura los datos en context.quienes_asignaron y context.medicos.
  *
  * @param {Object} context Contexto con setters/propiedades quienes_asignaron y medicos.
@@ -60,14 +60,14 @@ export function getModuloIdActual() {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-10-28
+ * @date 2026-10-29
  */
 export async function listarUsuariosYSedes(context, options = {}) {
     const moduloId = String(options.moduloId ?? getModuloIdActual() ?? "1");
 
     try {
         const res = await axios.get(
-            `/api/user.listarUsuarios/Asignadores/${moduloId}?solo_activos=1`
+            `/api/user.listarUsuarios/Administrador,Administrativo,Transcriptor/${moduloId}?solo_activos=1`
         );
         const data = Array.isArray(res?.data?.data)
             ? res.data.data

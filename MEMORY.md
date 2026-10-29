@@ -37,6 +37,15 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-29 — Análisis y Corrección de Filtrado de Roles en "Quien Asignó" (`UserService.php`, `usuarios.js`):**
+  - **Diagnóstico Forense:** En producción, la consulta devolvía únicamente 19 usuarios (`Administrador` y `Administrativo`), excluyendo a los 15 transcriptores activos (entre ellos a `MARLEN TORRES RODRIGUEZ`, ID 8). La causa raíz fue:
+    1. En la consulta que generó los 19 registros, el parámetro evaluado correspondía a los roles `Administrador,Administrativo` (o un filtro que omitía `Transcriptor`).
+    2. En Spatie Permission, `whereHas('permissions')` solo evalúa permisos directos asignados en la tabla `model_has_permissions`, pero los transcriptores heredan el permiso `estudio.asignar` a través de su rol en `role_has_permissions`, por lo que dicha condición evaluaba en falso para ellos.
+  - **Solución Implementada:**
+    * *Frontend Helper (`resources/js/helpers/usuarios.js`):* Actualizado el helper para enviar explícitamente los roles en la ruta: `/api/user.listarUsuarios/Administrador,Administrativo,Transcriptor/${moduloId}?solo_activos=1`, cumpliendo la premisa de enviar los parámetros por la ruta y listar los 34 usuarios asignadores reales.
+    * *Backend (`UserService.php`):* Limpieza de trazas de debug temporales y consolidación del filtrado multi-rol transparente en `listByRoleAndModule()`.
+  - **Verificaciones:** Prueba en BD confirmando los 34 usuarios activos (19 administrativos + 15 transcriptores, con Marlen Torres ID 8 incluida) ✅ | Laravel Pint passed ✅ | ESLint passed (0 errores) ✅ | Compilación Vite completada en 1.91s (`npm run build`) ✅.
+
 - [x] **2026-10-28 — Verificación y Normalización de Listado de "MARLEN TORRES RODRIGUEZ" en Combo "Quien asignó" (`transcribirEstudioComponent.vue`):**
   - **Diagnóstico:** Se reportó que la usuaria `MARLEN TORRES RODRIGUEZ` (ID 8) no aparecía listada en el combo *"Quien asigno"* (`#quien_asigno_id`) de `transcribirEstudioComponent.vue`. Tras auditar la base de datos y la API:
     1. Se confirmó que la usuaria existe en BD con `id = 8`, `estado = 1` (activo), rol `Transcriptor` y módulo `Rx` (`modulo_id = 1`), habiendo registrado más de 59,250 estudios (184 pendientes de transcripción).

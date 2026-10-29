@@ -55,24 +55,22 @@ class UserService extends BaseService
     }
 
     /**
-     * Lista los usuarios que tienen un rol o capacidad de asignación y acceso a un módulo específicos.
+     * Lista los usuarios que tienen un rol y acceso a un módulo específicos.
      *
      * Flujo del proceso:
      * 1. Inicializa la consulta base sobre usuarios filtrando por asociación al módulo especificado.
      * 2. Si $onlyActive es verdadero, aplica el filtro restrictivo de estado activo (users.estado = 1).
-     * 3. Evalúa si el rol solicitado corresponde al alias "asignador/asignadores", aplicando filtro
-     *    por permiso 'estudio.asignar' o roles asistenciales asignadores (Administrativo, Transcriptor, Administrador).
-     * 4. Permite filtrado múltiple por lista de roles separados por coma o filtrado estándar por rol único.
-     * 5. Retorna el listado ordenado alfabéticamente encapsulado en respuesta exitosa.
+     * 3. Permite filtrado múltiple por lista de roles separados por coma o filtrado estándar por rol único.
+     * 4. Retorna el listado ordenado alfabéticamente encapsulado en respuesta exitosa.
      *
-     * @param  string  $roleName  Nombre del rol, alias ("Asignadores") o lista de roles separados por coma.
+     * @param  string  $roleName  Nombre del rol o lista de roles separados por coma.
      * @param  int  $moduleId  Identificador del módulo al que deben tener acceso.
      * @param  bool  $onlyActive  Indica si se deben filtrar únicamente usuarios activos (por defecto true).
      * @return array Respuesta estructurada con los usuarios encontrados.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-10-28
+     * @date 2026-10-29
      */
     public function listByRoleAndModule(string $roleName, int $moduleId, bool $onlyActive = true): array
     {
@@ -84,17 +82,11 @@ class UserService extends BaseService
             $query->where('users.estado', 1);
         }
 
-        $roleLower = strtolower(trim($roleName));
-        if (in_array($roleLower, ['asignador', 'asignadores'], true)) {
-            $query->where(function ($q) {
-                $q->whereHas('permissions', fn ($p) => $p->where('name', 'estudio.asignar'))
-                    ->orWhereHas('roles', fn ($r) => $r->whereIn('name', ['Administrador', 'Administrativo', 'Transcriptor']));
-            });
-        } elseif (str_contains($roleName, ',')) {
+        if (str_contains($roleName, ',')) {
             $roles = array_filter(array_map('trim', explode(',', $roleName)));
             $query->whereHas('roles', fn ($q) => $q->whereIn('name', $roles));
         } else {
-            $query->whereHas('roles', fn ($q) => $q->where('name', $roleName));
+            $query->whereHas('roles', fn ($q) => $q->where('name', trim($roleName)));
         }
 
         $users = $query->distinct()->get();
