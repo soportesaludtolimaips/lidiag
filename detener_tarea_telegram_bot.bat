@@ -25,6 +25,7 @@ echo Deteniendo tarea en Windows Task Scheduler: "%TASK_NAME%"...
 schtasks /end /tn "%TASK_NAME%" >nul 2>&1
 
 echo Terminando cualquier proceso activo de 'artisan telegram:poll'...
+powershell -NoProfile -Command "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*artisan*telegram:poll*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }" >nul 2>&1
 wmic process where "CommandLine like '%%artisan%%telegram:poll%%'" call terminate >nul 2>&1
 
 echo.
