@@ -1072,6 +1072,7 @@ async function guardarRegistro() {
                 icon: "success",
             });
 
+            await nextTick();
             btnCerrarModalForm();
             limpiar();
         } else {
