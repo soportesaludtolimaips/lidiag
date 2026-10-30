@@ -37,6 +37,23 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-30 — Idempotencia Inteligente en SAHI por Atención, CUPS y Ventana Temporal de 24h (`SAHITranscibirService.php`, `EstudiosSahiEnviarRangoCommand.php`, `EstudiosSahiReconcileCommand.php`):**
+  - **Diagnóstico y Necesidad:**
+    * El servicio de radiología `SAHITranscibirService` carecía de verificación preventiva en SQL Server antes de insertar esquemas. Al reintentar o reconciliar, corría el riesgo de duplicar los esquemas 149 y 150 en SAHI.
+    * Sin embargo, un paciente hospitalizado (mismo `IdAtencion`) puede tener múltiples estudios del mismo CUPS en días distintos (estudios de control intrahospitalarios, ej. TAC de cráneo en día 1, día 3 y día 7). Una verificación simple por `Atención + CUPS` descartaría erróneamente los controles posteriores.
+  - **Solución Implementada:**
+    * *Detección Inteligente en `SAHITranscibirService`:* Creado `findExistingEsquemaForAtencionCups($idAtencion, $codCups, $fecHorLectura)`.
+    * Consulta `hceEsquemaEncabeza` con join a `hceEsquemaDetProc` filtrando por `IdEsquema = 150`, `idAtencion`, `ValVarChar3 = $codCups` y evaluando la diferencia temporal: `ABS(DATEDIFF(hour, d.FecRegistro, :fecha)) <= 24`.
+    * Si la diferencia es menor o igual a 24 horas (mismo estudio/transcripción de turno nocturno), reconoce que ya existe en SAHI, retorna los consecutivos existentes sin duplicar y marca en MySQL como `ENVIADO`.
+    * Si la diferencia es superior a 24 horas (nuevo control clínico hospitalario en día posterior), permite la inserción normal de nuevos esquemas 149 y 150.
+    * Se integró feedback visual en consola (`[YA EXISTÍA EN SAHI]`) tanto en `estudios:sahi-enviar-rango` como en `estudios:sahi-reconcile`.
+  - **Verificaciones:**
+    * Pruebas directas con casos reales de la base de datos de SAHI (`ESP_PRI`):
+      - Atención 7002557 (TAC día 29 vs controles días 23 y 25): Reconocido como nuevo estudio (se enviará normalmente) ✅.
+      - Atención 7004883 (TAC día 29 vs control día 25): Reconocido como nuevo estudio (se enviará normalmente) ✅.
+      - Atención 7009390 (TAC día 29 vs registro día 29): Reconocido como ya existente en SAHI (no duplicará) ✅.
+      - Atención 7010003 (TAC noche 29 vs madrugada día 30, diff 8h): Reconocido como ya existente en SAHI (no duplicará) ✅.
+    * Laravel Pint (`vendor\bin\pint.bat --test`) 100% passed ✅ | Suite de pruebas `SahiInteroperabilidadTest` (10 pruebas, 31 aserciones) pasando al 100% ✅.
 - [x] **2026-10-30 — Comando para Envío por Rango de Fechas a SAHI (`EstudiosSahiEnviarRangoCommand.php`, `SahiInteroperabilidadTest.php`):**
   - **Diagnóstico y Necesidad:**
     * Se requería una herramienta operativa de consola para despachar en lote hacia SAHI todos los estudios de radiología transcritos en una ventana temporal específica (ej. entre `'2026-10-28'` y `'2026-10-30'`), excluyendo estudios ya sincronizados para evitar duplicidad, pero permitiendo forzar el reenvío o simular en seco (`--dry-run`).

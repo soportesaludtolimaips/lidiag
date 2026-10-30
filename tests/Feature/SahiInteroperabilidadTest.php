@@ -141,4 +141,10 @@ class SahiInteroperabilidadTest extends TestCase
         $this->artisan('estudios:sahi-reconcile --minutes=5 --limit=10')
             ->assertSuccessful();
     }
+
+    public function test_estudios_sahi_enviar_rango_command_dry_run_se_ejecuta_correctamente(): void
+    {
+        $this->artisan('estudios:sahi-enviar-rango 2026-10-28 2026-10-30 --dry-run')
+            ->assertSuccessful();
+    }
 }

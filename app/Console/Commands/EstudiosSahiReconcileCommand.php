@@ -163,7 +163,11 @@ class EstudiosSahiReconcileCommand extends Command
                             'error_envio_sahi' => null,
                         ]);
                     }
-                    $this->info(" -> [OK] Enviado a SAHI exitosamente. Esquema 149: {$dataSahi['conseEsquemaEncavezado']}, Esquema 150: {$dataSahi['conseEsquemaEncavezado2']}");
+                    if (! empty($dataSahi['already_exists'])) {
+                        $this->warn(" -> [YA EXISTÍA EN SAHI] Vinculados esquemas existentes sin duplicar. Esquema 149: {$dataSahi['conseEsquemaEncavezado']}, Esquema 150: {$dataSahi['conseEsquemaEncavezado2']}");
+                    } else {
+                        $this->info(" -> [OK] Enviado a SAHI exitosamente. Esquema 149: {$dataSahi['conseEsquemaEncavezado']}, Esquema 150: {$dataSahi['conseEsquemaEncavezado2']}");
+                    }
                     $exitosos++;
                 } else {
                     $msgError = $res['message'] ?? 'Error desconocido en SAHI';

@@ -13,6 +13,7 @@ use App\Models\Interface\Sahi\ProProducto;
 use App\Models\Interface\Sahi\sisTabla;
 use App\Models\User;
 use App\Services\BaseService;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -83,6 +84,20 @@ class SAHITranscibirService extends BaseService
         }
 
         $fecHorLecturaFmt = str_replace(' ', 'T', (string) $fecHorLectura);
+
+        // Verificación de idempotencia en SAHI: Si el estudio ya fue registrado previamente
+        // para la misma atención, CUPS y dentro de la misma ventana temporal (<= 24h),
+        // se reutilizan los identificadores sin crear esquemas duplicados en SAHI.
+        if ($codCups) {
+            $existente = $this->findExistingEsquemaForAtencionCups($idAtencion, $codCups, $fecHorLectura);
+            if ($existente) {
+                return $this->success([
+                    'conseEsquemaEncavezado' => $existente['IdEsquemaEncabezado149'],
+                    'conseEsquemaEncavezado2' => $existente['IdEsquemaEncabezado150'],
+                    'already_exists' => true,
+                ], 'El estudio ya se encontraba registrado en SAHI para esta atención y fecha (no se reinsertó).');
+            }
+        }
 
         try {
             return DB::connection('sqlsrv')->transaction(function () use (
@@ -510,6 +525,86 @@ class SAHITranscibirService extends BaseService
             return (int) $ubicacion->IdUbicacionActual;
         } catch (\Throwable $e) {
             Log::error('Error al consultar ubicación actual en SAHI: '.$e->getMessage(), ['idAtencion' => $idAtencion]);
+
+            return null;
+        }
+    }
+
+    /**
+     * Consulta si ya existe un esquema registrado en SAHI para la misma atención, CUPS y ventana de tiempo (<= 24h).
+     *
+     * Flujo del proceso:
+     * 1. Consulta la tabla hceEsquemaEncabeza con join a hceEsquemaDetProc en SQL Server.
+     * 2. Filtra por IdEsquema = 150, IdAtencion y código CUPS (ValVarChar3).
+     * 3. Compara que la diferencia temporal entre el estudio y el registro SAHI sea menor o igual a 24 horas,
+     *    garantizando que nuevos controles hospitalarios en días posteriores no sean bloqueados erróneamente.
+     * 4. Valida que el esquema padre 149 exista en hceEsquemaEncabeza.
+     * 5. Retorna los identificadores de encabezado [149, 150] si ya existe, o null si es nuevo.
+     *
+     * @param  int  $idAtencion  Identificador de la atención en SAHI
+     * @param  string  $codCups  Código CUPS del producto
+     * @param  string|null  $fecHorLectura  Fecha y hora de la lectura o estudio
+     * @return array|null Identificadores [IdEsquemaEncabezado149, IdEsquemaEncabezado150] o null
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-30
+     */
+    public function findExistingEsquemaForAtencionCups(int $idAtencion, string $codCups, ?string $fecHorLectura = null): ?array
+    {
+        try {
+            $query = DB::connection('sqlsrv')
+                ->table('hceEsquemaEncabeza as e150')
+                ->join('hceEsquemaDetProc as d', 'd.IdEsquemaEncabezado', '=', 'e150.IdEsquemaEncabezado')
+                ->where('e150.IdEsquema', 150)
+                ->where('e150.idAtencion', $idAtencion)
+                ->where('d.IdDetalleValor', 1)
+                ->where('d.ValNroRegistro', 1)
+                ->where('d.ValVarChar3', $codCups);
+
+            if ($fecHorLectura) {
+                $fec = Carbon::parse($fecHorLectura)->format('Y-m-d H:i:s');
+                $query->whereRaw('ABS(DATEDIFF(hour, d.FecRegistro, ?)) <= 24', [$fec]);
+                $query->orderByRaw('ABS(DATEDIFF(hour, d.FecRegistro, ?)) ASC', [$fec]);
+            } else {
+                $query->orderByDesc('e150.IdEsquemaEncabezado');
+            }
+
+            $row = $query->first([
+                'e150.IdEsquemaEncabezado as IdEsquemaEncabezado150',
+                'e150.idEncabezadoPadre as IdEsquemaEncabezado149',
+            ]);
+
+            if (! $row) {
+                return null;
+            }
+
+            $id149 = (int) ($row->IdEsquemaEncabezado149 ?? 0);
+            $id150 = (int) ($row->IdEsquemaEncabezado150 ?? 0);
+
+            if ($id149 <= 0 || $id150 <= 0) {
+                return null;
+            }
+
+            $parentOk = DB::connection('sqlsrv')
+                ->table('hceEsquemaEncabeza')
+                ->where('IdEsquemaEncabezado', $id149)
+                ->where('IdEsquema', 149)
+                ->exists();
+
+            if (! $parentOk) {
+                return null;
+            }
+
+            return [
+                'IdEsquemaEncabezado149' => $id149,
+                'IdEsquemaEncabezado150' => $id150,
+            ];
+        } catch (\Throwable $e) {
+            Log::warning('Error consultando existencia previa de esquema en SAHI: '.$e->getMessage(), [
+                'idAtencion' => $idAtencion,
+                'codCups' => $codCups,
+            ]);
 
             return null;
         }
