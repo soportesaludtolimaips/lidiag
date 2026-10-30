@@ -41,7 +41,7 @@
                         @endcanany
 
                         {{-- Asignación de Estudios --}}
-                        @canany(['estudio.asignar', 'estudio.transcribir', 'estudio.leerEstudio', 'estudios.notificar.index', 'estudios.reporteLectura.index'])
+                        @canany(['estudio.index', 'estudio.asignar', 'estudio.transcribir', 'estudio.leerEstudio', 'estudios.notificar.index', 'estudios.reporteLectura.index'])
                             <li class="{{ request()->routeIs('estudios.*') ? 'active' : '' }}">
                                 <a class="has-arrow waves-effect waves-dark {{ request()->routeIs('estudios.*') ? 'active' : '' }}" href="#" aria-expanded="{{ request()->routeIs('estudios.*') ? 'true' : 'false' }}">
                                     <i class="icon-Bookmark"></i>

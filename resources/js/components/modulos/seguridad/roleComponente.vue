@@ -371,7 +371,11 @@ const loadingCargarPermisos = ref(false);
  */
 function moduloDePermiso(permiso) {
     const partes = String(permiso?.name ?? "").split(".");
-    return partes.length > 1 ? partes[0] : "Otros";
+    let modulo = partes.length > 1 ? partes[0] : "Otros";
+    if (modulo === "estudios") {
+        modulo = "estudio";
+    }
+    return modulo;
 }
 
 /**
@@ -394,6 +398,11 @@ const permisosAgrupados = computed(() => {
         }
         grupos[modulo].push(permiso);
     });
+
+    Object.keys(grupos).forEach((modulo) => {
+        grupos[modulo].sort((a, b) => String(a.name ?? "").localeCompare(String(b.name ?? "")));
+    });
+
     return grupos;
 });
 
@@ -407,6 +416,10 @@ const modulosTraducidos = {
     agendamiento: "Agendamiento",
     ecografias: "Ecografías",
     consentimientos: "Consentimientos",
+    contratos: "Contratos",
+    dosimetria: "Dosimetría",
+    liquidacion: "Liquidación",
+    otrasPlataformas: "Otras Plataformas",
     citas: "Citas",
     helpdesk: "Help Desk",
     tele: "Tele-Radiología",

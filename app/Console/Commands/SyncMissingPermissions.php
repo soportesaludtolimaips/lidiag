@@ -58,12 +58,9 @@ class SyncMissingPermissions extends Command
 
         $created = 0;
         foreach ($missing as $permission) {
-            $parts = explode('.', $permission);
-            $guard = array_pop($parts);
-
-            Permission::create([
+            Permission::firstOrCreate([
                 'name' => $permission,
-                'guard_name' => $guard,
+                'guard_name' => 'web',
             ]);
             $created++;
         }

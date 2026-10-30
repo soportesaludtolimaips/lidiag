@@ -37,6 +37,19 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-30 — Incorporación de Permiso `estudio.index`, Unificación de Módulo de Estudios y Traducción de Acordeones en `roleComponente.vue` (`PermisionEstudiosSeeder.php`, `roleComponente.vue`, `RolService.php`, `AuditPermissions.php`, `SyncMissingPermissions.php`):**
+  - **Diagnóstico:**
+    * El permiso `estudio.index` (junto con `estudio.leer` y `estudio.productos`) estaba definido en `routes/api_estudios.php` pero no existía en la tabla `permissions` ni en ningún seeder, por lo que `RolService::all()` no lo retornaba y no se mostraba en la interfaz de asignación de roles.
+    * En `roleComponente.vue`, la función `moduloDePermiso` dividía los permisos con prefijo `estudio.*` y `estudios.*` en dos módulos separados pero con el mismo nombre "Estudios" en `modulosTraducidos`, generando dos acordeones duplicados y fragmentados en la interfaz. Además, faltaban traducciones para `contratos`, `dosimetria`, `liquidacion` y `otrasPlataformas`.
+    * El comando `permissions:audit` fallaba con `BadMethodCallException: File::isAbsolutePath does not exist` y no escaneaba todas las rutas de `routes/`.
+    * El comando `sync:missing-permissions` extraía incorrectamente el último segmento del permiso como `guard_name` (ej. `'index'` en vez de `'web'`).
+  - **Solución Implementada:**
+    * *Seeder Idempotente:* Creado `PermisionEstudiosSeeder.php` registrando `estudio.index`, `estudio.asignar`, `estudio.transcribir`, `estudio.leer`, `estudio.leerEstudio`, `estudio.productos`, `estudios.notificar.index` y `estudios.reporteLectura.index`, asignándolos a los roles `Administrador`, `Administrativo`, `Transcriptor RX`, `Medico` y `Estadistico`. Registrado en `DatabaseSeeder.php`, ejecutado y caché reseteada con `permissions:cache-reset`.
+    * *Backend:* `RolService::all()` ahora consulta `Permission::where('guard_name', 'web')->orderBy('name')->get()`, garantizando orden alfabético.
+    * *Frontend:* En `roleComponente.vue`, `moduloDePermiso` normaliza `estudios` a `estudio`, unificando todos los permisos bajo un solo acordeón con conteo consolidado. `permisosAgrupados` ordena alfabéticamente los permisos dentro de cada grupo. Se completaron las traducciones en `modulosTraducidos`.
+    * *Comandos Artisan:* Corregido `AuditPermissions.php` para resolver rutas absolutas de forma nativa e incluir el directorio `routes/`. Corregido `SyncMissingPermissions.php` para fijar siempre `guard_name = 'web'`.
+    * *Sidebar:* Incluido `'estudio.index'` en la directiva `@canany` del menú de Estudios en `resources/views/comunes/sidebar.blade.php`.
+  - **Verificaciones:** `php artisan permissions:audit` ejecutado con éxito ✅ | Pint (`vendor\bin\pint.bat --test`) 100% passed ✅ | ESLint 0 errores ✅ | Compilación Vite (`npm run build`) en 1.95s ✅.
 - [x] **2026-10-30 — Pruebas Exitosas de Envío a SAHI (Estudios 211528 y 211529) y Corrección de Clave Primaria en `HceEsquema` (`HceEsquema.php`, `EstudiosSahiReconcileCommand.php`):**
   - **Diagnóstico:**
     * Durante la prueba de envío puntual del estudio ID 211528 (Atención SAHI 7005281, Producto 261934, Sede 1 Espinal), el proceso arrojó la excepción: `SQLSTATE[42S22]: [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]El nombre de columna 'id' no es válido en SQL: update [HceEsquema] set [IdConsecutivoEsq] = ..., [HceEsquema].[updated_at] = ... where [id] is null`.

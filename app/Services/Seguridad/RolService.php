@@ -25,7 +25,7 @@ class RolService extends BaseService
     public function all(): array
     {
         $roles = Role::all();
-        $permissions = Permission::get();
+        $permissions = Permission::where('guard_name', 'web')->orderBy('name')->get();
 
         return $this->success(['roles' => $roles, 'permissions' => $permissions]);
     }

@@ -131,7 +131,7 @@ class AuditPermissions extends Command
     private function collectUsedPermissions(): array
     {
         $paths = [
-            base_path('routes/web.php'),
+            base_path('routes'),
             base_path('app/Http'),
             base_path('resources/views'),
             base_path('resources/js/components'),
@@ -145,7 +145,8 @@ class AuditPermissions extends Command
                 continue;
             }
 
-            $paths[] = File::isAbsolutePath($extra) ? $extra : base_path($extra);
+            $isAbsolute = str_starts_with($extra, '/') || (bool) preg_match('/^[A-Za-z]:[\\\\\/]/', $extra);
+            $paths[] = $isAbsolute ? $extra : base_path($extra);
         }
 
         $files = $this->expandToFiles($paths);

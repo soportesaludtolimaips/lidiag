@@ -56,6 +56,7 @@ class DatabaseSeeder extends Seeder
         $this->call(ModulosSeeder::class);
         $this->call(PermisionEcografiasSeeder::class);
         $this->call(PermisionConsentimientosEcografiasSeeder::class);
+        $this->call(PermisionEstudiosSeeder::class);
 
         $this->call(ConfigServiciosSeeder::class);
 
