@@ -17,6 +17,7 @@ use App\Http\Requests\Estudios\StoreEstudioRequest;
 use App\Services\Estudios\EstudioQueryService;
 use App\Services\Estudios\EstudioService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -316,5 +317,26 @@ class EstudioController extends Controller
         $result = $this->estudioService->enviarPortalPacientes($request->validated());
 
         return response()->json($result, $result['status']);
+    }
+
+    /**
+     * Envía manualmente un producto de estudio a SAHI (SQL Server).
+     *
+     * @param  Request  $request  Solicitud HTTP con estudio_producto_id
+     * @return JsonResponse Confirmación y resultado del despacho a SAHI
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-30
+     */
+    public function enviarSahiEstudioProducto(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'estudio_producto_id' => 'required|integer|exists:estudios_productos,id',
+        ]);
+
+        $result = $this->estudioService->enviarSahiEstudioProducto((int) $validated['estudio_producto_id']);
+
+        return response()->json($result, $result['status'] ?? 200);
     }
 }

@@ -37,6 +37,19 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-30 — Botón de Envío Directo a SAHI y Trazabilidad en Módulo Estudios Asignados (`estudioAsignadosComponent.vue`, `EstudioQueryService.php`, `EstudioService.php`, `EstudioController.php`, `api_estudios.php`):**
+  - **Diagnóstico y Necesidad:**
+    * Los operadores y transcriptores en la vista de Estudios Asignados (`/estudios/asignados`) no tenían forma de ver el estado de sincronización con SAHI ni un botón para reenviar o transmitir manualmente un estudio puntual a SQL Server sin tener que abrir la consola de comandos.
+  - **Solución Implementada:**
+    * *Backend:* `EstudioQueryService::listarEstudiosAsignados()` ahora selecciona los campos `estado_envio_sahi`, `fechor_envio_sahi`, `sahi_esquema_149`, `sahi_esquema_150`, `error_envio_sahi` e `interface_software`.
+    * *Servicio y Controlador:* Creado `EstudioService::enviarSahiEstudioProducto($id)` y su endpoint `POST /api/estudio-enviar-sahi` en `EstudioController.php` con autorización y validación.
+    * *Frontend en `estudioAsignadosComponent.vue`:*
+      - En la columna de Acciones se incorporó un botón dedicado para sedes SAHI con estados reactivos: verde `check-circle` (`ENVIADO`), rojo `exclamation-triangle` (`ERROR` con tooltip del mensaje de fallo) y azul `cloud-upload` (`PENDIENTE`).
+      - Diálogo de confirmación accesible con `confirmAction` indicando paciente, estudio y número de atención.
+      - En la columna Detalle se añadió un badge informativo (`SAHI`, `SAHI Error`, `SAHI Pendiente`) con tooltip de fecha y números de esquemas 149 y 150.
+      - Deshabilitado con tooltip si el estudio aún no ha sido transcrito.
+  - **Verificaciones:**
+    * ESLint 0 errores (`npx eslint`) ✅ | Formateo Prettier ✅ | Compilación Vite completada en 1.43s (`npm run build`) ✅ | Laravel Pint (`vendor\bin\pint.bat --test`) 100% passed ✅ | Suite de pruebas unitarias y de integración `SahiInteroperabilidadTest` (12 pruebas, 34 aserciones) pasando al 100% ✅.
 - [x] **2026-10-30 — Idempotencia Inteligente en SAHI por Atención, CUPS y Ventana Temporal de 24h (`SAHITranscibirService.php`, `EstudiosSahiEnviarRangoCommand.php`, `EstudiosSahiReconcileCommand.php`):**
   - **Diagnóstico y Necesidad:**
     * El servicio de radiología `SAHITranscibirService` carecía de verificación preventiva en SQL Server antes de insertar esquemas. Al reintentar o reconciliar, corría el riesgo de duplicar los esquemas 149 y 150 en SAHI.

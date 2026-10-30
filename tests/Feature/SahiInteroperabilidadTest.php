@@ -147,4 +147,23 @@ class SahiInteroperabilidadTest extends TestCase
         $this->artisan('estudios:sahi-enviar-rango 2026-10-28 2026-10-30 --dry-run')
             ->assertSuccessful();
     }
+
+    public function test_enviar_sahi_estudio_producto_valida_autenticacion(): void
+    {
+        $this->postJson('/api/estudio-enviar-sahi', [
+            'estudio_producto_id' => 999999,
+        ])->assertStatus(401);
+    }
+
+    public function test_enviar_sahi_estudio_producto_valida_parametro(): void
+    {
+        Permission::firstOrCreate(['name' => 'estudio.index', 'guard_name' => 'web']);
+        $this->user->givePermissionTo('estudio.index');
+
+        $response = $this->actingAs($this->user)
+            ->postJson('/api/estudio-enviar-sahi', []);
+
+        $response->assertStatus(422);
+        $this->assertArrayHasKey('estudio_producto_id', $response->json('data'));
+    }
 }

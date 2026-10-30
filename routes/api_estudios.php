@@ -96,6 +96,9 @@ Route::middleware(['auth', 'permission:estudio.index|estudio.asignar|estudio.lee
     Route::post('/estudio-guardarTranscripcion', [EstudioController::class, 'guardarTranscripcion'])
         ->name('api.estudio.guardarTranscripcion');
 
+    Route::post('/estudio-enviar-sahi', [EstudioController::class, 'enviarSahiEstudioProducto'])
+        ->name('api.estudio.enviarSahi');
+
     Route::post('/estudio-anular-asignacion', [EstudioController::class, 'anularAsignacion'])
         ->name('api.estudio.anularAsignacion');
 

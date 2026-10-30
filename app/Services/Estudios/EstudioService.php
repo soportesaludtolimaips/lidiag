@@ -745,6 +745,65 @@ class EstudioService extends BaseService
     }
 
     /**
+     * Envía manualmente un producto de estudio a SAHI (SQL Server).
+     *
+     * Flujo del proceso:
+     * 1. Consulta el producto de estudio con su estudio padre y sede asociada.
+     * 2. Valida que la sede posea interface_software = 'SAHI'.
+     * 3. Valida que el producto cuente con transcripción guardada y número de atención válido.
+     * 4. Configura dinámicamente la conexión a SQL Server según la sede.
+     * 5. Invoca SAHITranscibirService con detección de esquemas existentes.
+     * 6. Actualiza el estado de tracking en estudios_productos y retorna la respuesta.
+     *
+     * @param  int  $estudioProductoId  Identificador del registro en estudios_productos
+     * @return array<string, mixed> Resultado del despacho con estado y mensajes
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-30
+     */
+    public function enviarSahiEstudioProducto(int $estudioProductoId): array
+    {
+        $producto = EstudioProducto::with(['estudio.sede'])->find($estudioProductoId);
+        if (! $producto) {
+            return $this->error('No se encontró el producto de estudio especificado.', 404);
+        }
+
+        $estudio = $producto->estudio;
+        if (! $estudio) {
+            return $this->error('El producto no tiene un estudio padre asociado.', 422);
+        }
+
+        $sede = $estudio->sede;
+        if (! $sede || $sede->interface_software !== 'SAHI') {
+            return $this->error('La sede de este estudio no tiene habilitada la interfaz SAHI.', 422);
+        }
+
+        if (empty($producto->lectura)) {
+            return $this->error('El estudio no cuenta con transcripción/lectura guardada para enviar a SAHI.', 422);
+        }
+
+        $atencionId = (int) $estudio->atencion;
+        if ($atencionId <= 0) {
+            return $this->error('El estudio no cuenta con un número de atención SAHI válido.', 422);
+        }
+
+        SahiConnectionHelper::configureForSede($sede);
+
+        $sahiResult = $this->sahiTranscibirService->enviarEstudio(
+            $atencionId,
+            (int) $estudio->medico_id,
+            $producto->lectura,
+            $producto->cod_cups,
+            $producto->fechor_lectura ?? Carbon::now()->format('Y-m-d H:i:s')
+        );
+
+        $this->actualizarEstadoSahiProducto($producto, $sahiResult);
+
+        return $sahiResult;
+    }
+
+    /**
      * Actualiza el estado de sincronización SAHI en el producto del estudio.
      *
      * Flujo del proceso:

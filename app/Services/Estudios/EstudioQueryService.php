@@ -218,6 +218,11 @@ class EstudioQueryService extends BaseService
             'estudios_productos.lectura',
             'estudios_productos.transcriptor_id',
             'estudios_productos.activo',
+            'estudios_productos.estado_envio_sahi',
+            'estudios_productos.fechor_envio_sahi',
+            'estudios_productos.sahi_esquema_149',
+            'estudios_productos.sahi_esquema_150',
+            'estudios_productos.error_envio_sahi',
             'users.name AS quien_registro',
             'priori.id as priori_id',
             'priori.nom_priori',
@@ -230,6 +235,7 @@ class EstudioQueryService extends BaseService
             'sede.nom_sede',
             'sede.url_oviyam',
             'sede.tap_oviyam',
+            'sede.interface_software',
         )
             ->join('estudios_productos', 'estudios_productos.estudio_id', '=', 'estudios.id')
             ->join('pacientes AS pacien', 'estudios.paciente_id', '=', 'pacien.id')

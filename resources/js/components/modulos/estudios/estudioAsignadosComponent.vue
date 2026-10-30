@@ -311,6 +311,43 @@
                                             Atención: {{ item.atencion }} <br />
                                             Descrip: {{ item.study_desc }} <br />
                                             {{ item.accession_no }}
+                                            <div
+                                                v-if="item.interface_software === 'SAHI'"
+                                                class="mt-1"
+                                            >
+                                                <span
+                                                    v-if="item.estado_envio_sahi === 'ENVIADO'"
+                                                    class="badge badge-success"
+                                                    :title="
+                                                        'Sincronizado con SAHI | Esquema 149: ' +
+                                                        (item.sahi_esquema_149 || 'N/A') +
+                                                        ' | Esquema 150: ' +
+                                                        (item.sahi_esquema_150 || 'N/A')
+                                                    "
+                                                >
+                                                    <i class="fa fa-check"></i> SAHI
+                                                </span>
+                                                <span
+                                                    v-else-if="item.estado_envio_sahi === 'ERROR'"
+                                                    class="badge badge-danger"
+                                                    :title="
+                                                        item.error_envio_sahi ||
+                                                        'Error de sincronización con SAHI'
+                                                    "
+                                                >
+                                                    <i class="fa fa-times"></i> SAHI Error
+                                                </span>
+                                                <span
+                                                    v-else-if="
+                                                        item.transcriptor_id != null ||
+                                                        item.lectura != null
+                                                    "
+                                                    class="badge badge-warning"
+                                                    title="Transcrito pero pendiente de enviar a SAHI"
+                                                >
+                                                    <i class="fa fa-clock-o"></i> SAHI Pendiente
+                                                </span>
+                                            </div>
                                         </td>
                                         <td>{{ item.nom_produc }}</td>
                                         <td>
@@ -350,6 +387,53 @@
                                             >
                                         </td>
                                         <td class="text-nowrap">
+                                            <button
+                                                type="button"
+                                                v-if="item.interface_software === 'SAHI'"
+                                                class="btn waves-effect waves-light btn-rounded btn-sm m-r-5"
+                                                :class="{
+                                                    'btn-outline-success':
+                                                        item.estado_envio_sahi === 'ENVIADO',
+                                                    'btn-outline-danger':
+                                                        item.estado_envio_sahi === 'ERROR',
+                                                    'btn-outline-info':
+                                                        !item.estado_envio_sahi ||
+                                                        item.estado_envio_sahi === 'PENDIENTE',
+                                                }"
+                                                :disabled="
+                                                    loadingSahiId === item.estudio_producto_id ||
+                                                    (!item.transcriptor_id && !item.lectura)
+                                                "
+                                                @click="enviarASahi(item)"
+                                                :title="
+                                                    !item.transcriptor_id && !item.lectura
+                                                        ? 'Debe transcribir el estudio antes de enviarlo a SAHI'
+                                                        : item.estado_envio_sahi === 'ENVIADO'
+                                                          ? 'Enviado a SAHI (Clic para reenviar)'
+                                                          : item.estado_envio_sahi === 'ERROR'
+                                                            ? 'Error en SAHI: ' +
+                                                              (item.error_envio_sahi || '') +
+                                                              ' (Clic para reintentar)'
+                                                            : 'Enviar a SAHI'
+                                                "
+                                                aria-label="Enviar a SAHI"
+                                            >
+                                                <i
+                                                    v-if="
+                                                        loadingSahiId === item.estudio_producto_id
+                                                    "
+                                                    class="fa fa-spinner fa-spin"
+                                                ></i>
+                                                <i
+                                                    v-else-if="item.estado_envio_sahi === 'ENVIADO'"
+                                                    class="fa fa-check-circle"
+                                                ></i>
+                                                <i
+                                                    v-else-if="item.estado_envio_sahi === 'ERROR'"
+                                                    class="fa fa-exclamation-triangle"
+                                                ></i>
+                                                <i v-else class="fa fa-cloud-upload"></i>
+                                            </button>
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
@@ -964,6 +1048,7 @@ const errores = ref({});
 const idRow = ref(null);
 const loadingBuscar = ref(false);
 const loadingAnularId = ref(null);
+const loadingSahiId = ref(null);
 const loadingAbrirRegistroId = ref(null);
 const loadingGuardar = ref(false);
 const sidebarVisible = ref(false);
@@ -1226,6 +1311,86 @@ async function anularAsignacion(idProductoEstudio, paciente, producto) {
         });
     } finally {
         loadingAnularId.value = null;
+    }
+}
+
+/**
+ * Envía manualmente un estudio transcrito al sistema SAHI (SQL Server).
+ *
+ * @param {Object} item - Registro del estudio/producto asignado.
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-10-30
+ */
+async function enviarASahi(item) {
+    if (!item?.estudio_producto_id) return;
+    if (loadingSahiId.value !== null) return;
+
+    if (!item.lectura && !item.transcriptor_id) {
+        toastMessage({
+            heading: "Aviso",
+            text: "El estudio debe contar con transcripción guardada antes de enviarse a SAHI.",
+            icon: "warning",
+        });
+        return;
+    }
+
+    const pacienteNombre = item.nom_pacien ? item.nom_pacien.trim() : "este paciente";
+    const productoNombre = item.nom_produc ? item.nom_produc.trim() : "el estudio";
+    const atencionNum = item.atencion ? item.atencion : "N/A";
+
+    const ok = await confirmAction({
+        title: `¿Deseas enviar a SAHI la lectura de ${pacienteNombre}?`,
+        text: `Se transmitirá ${productoNombre} con atención ${atencionNum} al servidor SAHI.`,
+        icon: "question",
+    });
+    if (!ok) return;
+
+    loadingSahiId.value = item.estudio_producto_id;
+    try {
+        const res = await axios.post("/api/estudio-enviar-sahi", {
+            estudio_producto_id: item.estudio_producto_id,
+        });
+
+        if (res.data?.success) {
+            item.estado_envio_sahi = "ENVIADO";
+            item.error_envio_sahi = null;
+            const dataSahi = res.data.data || {};
+            if (dataSahi.conseEsquemaEncavezado) {
+                item.sahi_esquema_149 = dataSahi.conseEsquemaEncavezado;
+                item.sahi_esquema_150 = dataSahi.conseEsquemaEncavezado2;
+            }
+            toastMessage({
+                heading: "¡Éxito en SAHI!",
+                text: res.data.message || "Estudio sincronizado con SAHI correctamente.",
+                icon: "success",
+            });
+        } else {
+            item.estado_envio_sahi = "ERROR";
+            item.error_envio_sahi =
+                res.data?.message || "Error desconocido al sincronizar con SAHI.";
+            toastMessage({
+                heading: "Error SAHI",
+                text: item.error_envio_sahi,
+                icon: "error",
+            });
+        }
+    } catch (error) {
+        item.estado_envio_sahi = "ERROR";
+        const errMsg =
+            error.response?.data?.message ||
+            error.message ||
+            "Error de comunicación con el servidor.";
+        item.error_envio_sahi = errMsg;
+        toastMessage({
+            heading: "Error al enviar",
+            text: errMsg,
+            icon: "error",
+        });
+    } finally {
+        loadingSahiId.value = null;
     }
 }
 
