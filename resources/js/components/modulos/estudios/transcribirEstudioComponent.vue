@@ -481,37 +481,35 @@
                                     <br />
                                 </div>
                                 <div class="col-md-6">
-                                    <div class="row">
+                                    <div class="row align-items-center">
                                         <div class="col-9">
-                                            <h5 class="card-title text-info">
+                                            <h5 class="card-title text-info mb-0">
                                                 <i class="fa fa-edit"></i> Lectura
                                             </h5>
-                                            <hr />
                                         </div>
-                                        <div class="col-3">
-                                            <div
-                                                class="col-md-7 align-self-center text-right d-none d-md-block"
+                                        <div class="col-3 text-right">
+                                            <button
+                                                type="button"
+                                                class="btn btn-secondary btn-xs"
+                                                @click="
+                                                    verImagen(
+                                                        datosImagen.urlOviyam,
+                                                        datosImagen.patientId,
+                                                        datosImagen.studyUID,
+                                                        datosImagen.serverName
+                                                    )
+                                                "
+                                                :disabled="loadingVerImagen"
                                             >
-                                                <button
-                                                    type="button"
-                                                    class="btn btn-secondary btn-xs"
-                                                    @click="
-                                                        verImagen(
-                                                            datosImagen.urlOviyam,
-                                                            datosImagen.patientId,
-                                                            datosImagen.studyUID,
-                                                            datosImagen.serverName
-                                                        )
-                                                    "
-                                                    :disabled="loadingVerImagen"
-                                                >
-                                                    <i
-                                                        v-if="loadingVerImagen"
-                                                        class="fa fa-spinner fa-spin"
-                                                    ></i>
-                                                    <i v-else class="fa fa-file-image-o"></i>
-                                                </button>
-                                            </div>
+                                                <i
+                                                    v-if="loadingVerImagen"
+                                                    class="fa fa-spinner fa-spin"
+                                                ></i>
+                                                <i v-else class="fa fa-file-image-o"></i>
+                                            </button>
+                                        </div>
+                                        <div class="col-12">
+                                            <hr />
                                         </div>
                                     </div>
                                     <span class="text-danger" v-if="errores.lectura">{{
@@ -1314,7 +1312,9 @@ function limpiar() {
 function abrirModal() {
     sidebarVisible.value = true;
     nextTick(() => {
-        primerInput.value?.focus();
+        if (typeof window !== "undefined" && window.innerWidth >= 768) {
+            primerInput.value?.focus();
+        }
     });
 }
 function btnCerrarModalForm() {
@@ -1433,11 +1433,13 @@ onBeforeUnmount(() => {
     position: fixed;
     right: -80%;
     width: 80%;
+    display: block !important;
     z-index: 1100;
     background: #ffffff;
     top: 0px;
     padding-bottom: 20px;
     height: 100%;
+    height: 100dvh;
     box-shadow: -5px 0 35px rgba(0, 0, 0, 0.15);
     transition:
         right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
@@ -1446,11 +1448,23 @@ onBeforeUnmount(() => {
     pointer-events: none;
 }
 
-@media (max-width: 767px) {
-    .right-sidebar {
-        right: -100%;
-        width: 100%;
-    }
+.right-sidebar .rpanel-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    word-break: break-word;
+}
+
+.right-sidebar .rpanel-title .right-side-toggle {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 18px;
+    line-height: 1;
+    padding: 4px 8px;
+    cursor: pointer;
+    flex-shrink: 0;
 }
 
 .shw-rside {
@@ -1460,15 +1474,61 @@ onBeforeUnmount(() => {
     pointer-events: auto;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 991px) {
+    .right-sidebar {
+        right: -92%;
+        width: 92%;
+    }
+
     .shw-rside {
-        width: 100%;
+        width: 92%;
+    }
+}
+
+@media (max-width: 767px) {
+    .right-sidebar {
+        right: -100%;
+        width: 100% !important;
+        max-width: 100vw;
+    }
+
+    .shw-rside {
+        width: 100% !important;
+        max-width: 100vw;
+    }
+
+    .right-sidebar .rpanel-title {
+        padding: 14px 16px;
+        font-size: 14px;
+    }
+
+    .right-sidebar .r-panel-body {
+        padding: 12px 14px 80px 14px !important;
+    }
+
+    :deep(.wysihtml5-toolbar) {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-bottom: 6px !important;
+    }
+
+    :deep(.wysihtml5-toolbar > li) {
+        margin: 0 !important;
+        padding: 2px 0 !important;
+    }
+
+    :deep(.wysihtml5-sandbox),
+    :deep(.textarea_editor) {
+        width: 100% !important;
+        min-height: 240px !important;
     }
 }
 
 .sidebar-scroll {
     overflow-x: hidden;
-    overflow-y: scroll;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     height: 100%;
 }
 </style>

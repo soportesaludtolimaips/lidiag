@@ -5,6 +5,8 @@
         class="form-control textarea_editor"
         :rows="rows"
         :placeholder="placeholder"
+        :value="modelValue"
+        @input="onNativeTextareaInput"
     ></textarea>
 </template>
 
@@ -25,6 +27,19 @@ const emit = defineEmits(["update:modelValue"]);
 const textareaRef = ref(null);
 const editorId = `wysiwyg-${++idCounter}`;
 let observer = null;
+
+/**
+ * Maneja la entrada directa en el textarea nativo (modo fallback móvil o previo a wysihtml5).
+ *
+ * @param {Event} event - Evento input del textarea
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-10-30
+ */
+function onNativeTextareaInput(event) {
+    emit("update:modelValue", event?.target?.value ?? "");
+}
 
 /**
  * Convierte saltos de linea plano a HTML para wysihtml5.
@@ -68,11 +83,64 @@ function htmlToPlain(html) {
 }
 
 /**
- * Inicializa el editor Wysiwyg (wysihtml5) en el textarea,
- * configurando el valor inicial, evento blur y observer de mutaciones.
+ * Sincroniza de forma segura el valor texto plano hacia el textarea nativo y el composer de wysihtml5.
+ * Evita llamar a parent.parse() cuando composer o su iframe aún no están inicializados (previniendo
+ * TypeError en navegadores móviles donde wysihtml5 desactiva composer o carga asíncronamente).
+ *
+ * @param {string} rawVal - Texto plano a mostrar en el editor
+ * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-18
+ * @date 2026-10-30
+ */
+function syncEditorValue(rawVal) {
+    const el = textareaRef.value;
+    if (!el) return;
+    const plain = rawVal || "";
+
+    if (el.value !== plain) {
+        el.value = plain;
+    }
+
+    if (!window.$) return;
+    const inst = $(el).data("wysihtml5");
+    if (!inst?.editor) return;
+
+    const editor = inst.editor;
+    if (editor.composer && editor.composer.element) {
+        const current = htmlToPlain(editor.composer.getValue(false));
+        if (current !== plain) {
+            if (plain) {
+                try {
+                    editor.fire("unset_placeholder");
+                } catch (_) {
+                    /* noop */
+                }
+                editor.composer.setValue(plainToHtml(plain), false);
+                editor.composer.element.classList?.remove("placeholder");
+            } else {
+                editor.composer.clear();
+                try {
+                    editor.fire("set_placeholder");
+                } catch (_) {
+                    /* noop */
+                }
+            }
+        }
+        applyHeight();
+    } else if (editor.textarea?.element) {
+        if (editor.textarea.element.value !== plain) {
+            editor.textarea.element.value = plain;
+        }
+    }
+}
+
+/**
+ * Inicializa el editor Wysiwyg (wysihtml5) en el textarea,
+ * configurando soporte táctil móvil, valor inicial, evento load/blur y observer de mutaciones.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-10-30
  */
 function initEditor() {
     const el = textareaRef.value;
@@ -82,45 +150,68 @@ function initEditor() {
     if ($el.data("wysihtml5")) return;
     if ($el.prevAll(".wysihtml5-toolbar").length) return;
 
+    // wysihtml5 0.3.0 detecta erróneamente Chrome Android como iOS < 5 incompatible.
+    // Habilitamos explícitamente el soporte en navegadores móviles modernos.
+    if (window.wysihtml5?.browser) {
+        window.wysihtml5.browser.supported = () => true;
+    }
+
+    if (props.modelValue) {
+        el.value = props.modelValue;
+    }
+
     $el.wysihtml5({
         stylesheets: ["/lib/css/wysiwyg-color.css"],
+        supportTouchDevices: true,
     });
 
     const inst = $el.data("wysihtml5");
     if (inst?.editor) {
-        if (props.modelValue) {
-            inst.editor.setValue(plainToHtml(props.modelValue), true);
-        }
+        const onEditorReady = () => {
+            syncEditorValue(props.modelValue);
+            attachObserver(inst.editor);
+            applyHeight();
+            setTimeout(applyHeight, 300);
+        };
+
+        inst.editor.observe("load", onEditorReady);
 
         inst.editor.on("blur", () => {
-            const val = htmlToPlain(inst.editor.getValue());
+            const val = inst.editor.composer?.element
+                ? htmlToPlain(inst.editor.composer.getValue(false))
+                : el.value || "";
             emit("update:modelValue", val);
         });
 
-        nextTick(() => {
-            attachObserver(inst.editor);
-            applyHeight();
-            setTimeout(applyHeight, 500);
+        inst.editor.on("change_view", () => {
+            setTimeout(applyHeight, 50);
         });
+
+        nextTick(onEditorReady);
     }
 }
 
 /**
- * Aplica el alto al iframe visible del editor (wysihtml5 oculta el textarea,
+ * Aplica el ancho (100%) y el alto al iframe visible del editor (wysihtml5 oculta el textarea,
  * por eso el atributo rows solo no tiene efecto visual).
- * Prioridad: prop height > alto derivado de rows (solo si rows > 4) > defecto del plugin.
+ * En pantallas móviles ajusta una altura proporcional cómoda para no desbordar el viewport.
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-09-23
+ * @date 2026-10-30
  */
 function applyHeight() {
     try {
-        const height = props.height || (props.rows > 4 ? `${props.rows * 22}px` : "");
-        if (!height) return;
+        const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+        const computedRowsHeight =
+            props.rows > 4 ? (isMobile && props.rows > 12 ? "260px" : `${props.rows * 22}px`) : "";
+        const height = props.height || computedRowsHeight;
         const iframe = textareaRef.value?.parentElement?.querySelector(".wysihtml5-sandbox");
         if (iframe) {
-            iframe.style.setProperty("height", height, "important");
-            iframe.style.setProperty("min-height", height, "important");
+            iframe.style.setProperty("width", "100%", "important");
+            if (height) {
+                iframe.style.setProperty("height", height, "important");
+                iframe.style.setProperty("min-height", height, "important");
+            }
         }
     } catch (_) {
         /* noop */
@@ -178,7 +269,10 @@ function attachObserver(editor) {
             if (pending) return;
             pending = true;
             setTimeout(() => {
-                emit("update:modelValue", htmlToPlain(editor.getValue()));
+                const rawHtml = editor.composer?.element
+                    ? editor.composer.getValue(false)
+                    : editor.getValue(false);
+                emit("update:modelValue", htmlToPlain(rawHtml));
                 pending = false;
             }, 300);
         });
@@ -254,16 +348,7 @@ function disconnectObserver() {
 watch(
     () => props.modelValue,
     (newVal) => {
-        const el = textareaRef.value;
-        if (!el) return;
-        const inst = $(el).data("wysihtml5");
-        if (inst?.editor) {
-            const current = htmlToPlain(inst.editor.getValue());
-            const plain = newVal || "";
-            if (current !== plain) {
-                inst.editor.setValue(plainToHtml(plain), true);
-            }
-        }
+        syncEditorValue(newVal);
     }
 );
 
