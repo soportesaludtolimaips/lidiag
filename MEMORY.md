@@ -37,6 +37,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-30 — Resolución de TDZ en `configDiagnosticoComponent.vue` y Auditoría Exhaustiva de Módulo Configuración:**
+  - **Diagnóstico:** Se reportó en navegador `configDiagnosticoComponent.vue:289 Uncaught ReferenceError: Cannot access 'loadingGuardar' before initialization`. `useKeyboardShortcuts` accedía a `loadingGuardar` en la línea 289 antes de su declaración con `const` en la línea 298.
+  - **Solución Implementada:**
+    * En `configDiagnosticoComponent.vue`, se agruparon los `import` al inicio y se reubicaron las declaraciones de estado reactivo (`loadingGuardar`, `id`, `registros`, etc.) antes de la llamada a `useKeyboardShortcuts`.
+    * Se ejecutó una auditoría automatizada en todos los 19 componentes de `resources/js/components/modulos/configuracion/` y en el resto del proyecto, confirmando que la totalidad de los archivos declaran sus variables reactivas antes de pasarlas a composables.
+  - **Verificaciones:** Análisis AST y script PowerShell de orden léxico en todos los `.vue` del repositorio ✅.
+
 - [x] **2026-10-29 — Corrección de Listado, Filtros de Asignador/Médico, Columna Médico en Transcribir Estudios y Orden de Inicialización `useKeyboardShortcuts` (`transcribirEstudioComponent.vue`, `EstudioQueryService.php`, `configuracion/*.vue`, `agendaDisponibilidadComponent.vue`):**
   - **Diagnóstico:**
     1. En `configAdminSaludComponent.vue`, `configDiagnosticoComponent.vue`, `agendaDisponibilidadComponent.vue` y otros 9 componentes de Configuración, `useKeyboardShortcuts` referenciaba `loadingGuardar` antes de su declaración `const` (TDZ), provocando `Uncaught ReferenceError: Cannot access 'loadingGuardar' before initialization`.
