@@ -1065,23 +1065,9 @@ async function guardarRegistro() {
         const res = await axios.post("/api/estudio-guardarTranscripcion", payload);
 
         if (res.status == 200) {
-            if (idRow.value != null) {
-                const estudioEliminar = registros.value.findIndex(
-                    (x) => x.estudio_producto_id == idRow.value
-                );
-                if (estudioEliminar >= 0) {
-                    destroyDataTable();
-                    registros.value.splice(estudioEliminar, 1);
-                    nextTick(() => {
-                        if (registros.value.length > 0) {
-                            safeInitDataTable(dt.value || "#example23", {
-                                dom: "Bfrtip",
-                                buttons: ["copy", "csv", "excel", "pdf", "print"],
-                            });
-                        }
-                    });
-                }
-            }
+            const rowTargetId = idRow.value;
+
+            btnCerrarModalForm();
 
             toastMessage({
                 heading: "Completado",
@@ -1089,9 +1075,28 @@ async function guardarRegistro() {
                 icon: "success",
             });
 
-            await nextTick();
-            btnCerrarModalForm();
-            limpiar();
+            requestAnimationFrame(() => {
+                if (rowTargetId != null) {
+                    const estudioEliminar = registros.value.findIndex(
+                        (x) => x.estudio_producto_id == rowTargetId
+                    );
+                    if (estudioEliminar >= 0) {
+                        destroyDataTable();
+                        registros.value.splice(estudioEliminar, 1);
+                        nextTick(() => {
+                            if (registros.value.length > 0) {
+                                safeInitDataTable(dt.value || "#example23", {
+                                    dom: "Bfrtip",
+                                    buttons: ["copy", "csv", "excel", "pdf", "print"],
+                                });
+                            }
+                        });
+                    }
+                }
+                if (!sidebarVisible.value) {
+                    limpiar();
+                }
+            });
         } else {
             toastMessage({
                 heading: "Upss!!!",

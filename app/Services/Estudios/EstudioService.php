@@ -317,6 +317,16 @@ class EstudioService extends BaseService
     }
 
     /**
+     * Guarda la transcripción clínica de un estudio y programa la generación de PDF,
+     * sincronización SAHI y envío al portal tras enviar la respuesta HTTP al cliente.
+     *
+     * Flujo del proceso:
+     * 1. Valida en milisegundos que la sede tenga plantilla configurada y médico SAHI válido.
+     * 2. Bloquea el registro de estudios_productos evitando doble transcripción concurrente.
+     * 3. Actualiza los datos del paciente por llave primaria (paciente_id) solo si hubo cambios.
+     * 4. Persiste la transcripción, marca visto = 1 y registra el evento en audit_logs.
+     * 5. Difiere la conversión pesada de Word/PDF (LibreOffice), sincronización SAHI y envío al portal con app()->terminating().
+     *
      * @param array{
      *     estudio_producto_id: int,
      *     lectura: string,
@@ -338,12 +348,28 @@ class EstudioService extends BaseService
      *     atencion?: string|int|null,
      *     atencion_id?: int|null,
      * } $data
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-30
      */
     public function guardarTranscripcion(array $data): array
     {
         try {
             $result = DB::transaction(function () use ($data) {
                 $sede = ConfigSede::findOrFail($data['sede_id']);
+
+                if (! $sede->plantilla_rx) {
+                    return $this->error(
+                        'La plantilla para la sede '.($sede->nom_sede ?? 'N/A').' no está configurada.',
+                        402
+                    );
+                }
+
+                $templatePath = storage_path('app/plantillas_lecturas/'.$sede->plantilla_rx);
+                if (! is_file($templatePath)) {
+                    return $this->error('Archivo de plantilla no encontrado.', 404);
+                }
 
                 if ($sede->interface_software === 'SAHI') {
                     $medico = User::find($data['medico_id']);
@@ -352,23 +378,41 @@ class EstudioService extends BaseService
                     }
                 }
 
-                $paciente = Paciente::updateOrCreate(
-                    ['num_docu' => $data['num_docu']],
-                    [
-                        'num_docu' => $data['num_docu'],
-                        'nombres' => $data['nom_pacien'],
-                        'direccion' => $data['direccion'] ?? null,
-                        'sexo' => $data['sexo'] ?? null,
-                        'fec_naci' => $data['fec_naci'] ?? null,
-                        'tel' => $data['tel'] ?? null,
-                        'email' => $data['email'] ?? null,
-                    ]
-                );
-
                 $producto = EstudioProducto::lockForUpdate()->findOrFail($data['estudio_producto_id']);
 
                 if ($producto->fechor_trascrito !== null) {
                     return $this->error('Esta transcripción ya fue procesada por otro usuario. Actualice la página.', 409);
+                }
+
+                $estudio = ! empty($data['id_estudio'])
+                    ? Estudio::find($data['id_estudio'])
+                    : $producto->estudio;
+
+                $existingPaciente = ($estudio && $estudio->paciente_id)
+                    ? Paciente::find($estudio->paciente_id)
+                    : null;
+
+                if ($existingPaciente === null || (string) $existingPaciente->num_docu !== (string) $data['num_docu']) {
+                    $existingPaciente = Paciente::where('num_docu', $data['num_docu'])->first();
+                }
+
+                $pacienteAttrs = [
+                    'num_docu' => $data['num_docu'],
+                    'nombres' => $data['nom_pacien'],
+                    'direccion' => $data['direccion'] ?? ($existingPaciente->direccion ?? null),
+                    'sexo' => $data['sexo'] ?? ($existingPaciente->sexo ?? null),
+                    'fec_naci' => $data['fec_naci'] ?? ($existingPaciente->fec_naci ?? null),
+                    'tel' => $data['tel'] ?? ($existingPaciente->tel ?? null),
+                    'email' => $data['email'] ?? ($existingPaciente->email ?? null),
+                ];
+
+                if ($existingPaciente !== null) {
+                    $existingPaciente->fill($pacienteAttrs);
+                    if ($existingPaciente->isDirty()) {
+                        $existingPaciente->save();
+                    }
+                } else {
+                    Paciente::create($pacienteAttrs);
                 }
 
                 $producto->lectura = $data['lectura'];
@@ -380,26 +424,19 @@ class EstudioService extends BaseService
                 AuditLogger::log(
                     'transcripcion_estudio',
                     $producto,
-                    "Transcripción clínica registrada para producto de estudio #{$producto->id} (Estudio #{$data['id_estudio']}) por transcriptor: ".(Auth::user()?->name ?? ('ID: '.Auth::id()))
+                    "Transcripción clínica registrada para producto de estudio #{$producto->id} (Estudio #{$producto->estudio_id}) por transcriptor: ".(Auth::user()?->name ?? ('ID: '.Auth::id()))
                 );
 
-                if (! empty($data['destino_estudio']) && $data['destino_estudio'] === self::DESTINO_TELE_RADIOLOGIA) {
-                    $estudio = Estudio::findOrFail($data['id_estudio']);
+                if (! empty($data['destino_estudio']) && $data['destino_estudio'] === self::DESTINO_TELE_RADIOLOGIA && $estudio) {
                     $estudio->medico_id = $data['medico_id'];
                     $estudio->save();
                 }
 
-                $plantillaResult = $this->plantillaEstudioService->editWord($data);
-                if (! $plantillaResult['success']) {
-                    return $this->error(
-                        $plantillaResult['message'] ?? 'La plantilla no está configurada para esta sede.',
-                        $plantillaResult['status'] ?? 402
-                    );
-                }
-
                 return $this->success([
                     'producto_id' => $producto->id,
-                    'estudio_id' => $data['id_estudio'] ?? $producto->estudio_id,
+                    'estudio_id' => $estudio?->id ?? $producto->estudio_id,
+                    'atencion_estudio' => $estudio?->atencion,
+                    'medico_estudio_id' => $estudio?->medico_id,
                     'sede_id' => $sede->id,
                     'interface_software' => $sede->interface_software,
                     'cod_cups' => $producto->cod_cups,
@@ -411,20 +448,63 @@ class EstudioService extends BaseService
                 return $result;
             }
 
-            // Sincronización hacia SAHI (SQL Server) si la sede tiene la interfaz habilitada
             $info = $result['data'] ?? [];
-            if (($info['interface_software'] ?? '') === 'SAHI' && ! empty($info['producto_id'])) {
+
+            if (app()->runningInConsole()) {
+                $this->procesarPostTranscripcion($data, $info);
+            } else {
+                app()->terminating(function () use ($data, $info) {
+                    @ignore_user_abort(true);
+                    if (function_exists('fastcgi_finish_request')) {
+                        @fastcgi_finish_request();
+                    } else {
+                        while (ob_get_level() > 0) {
+                            @ob_end_flush();
+                        }
+                        @flush();
+                    }
+
+                    $this->procesarPostTranscripcion($data, $info);
+                });
+            }
+
+            return $this->success(null, 'La transcripción se guardó correctamente.');
+        } catch (\Throwable $e) {
+            Log::error('Error al guardar transcripción: '.$e->getMessage());
+
+            return $this->error('No fue posible guardar la transcripción.', 500);
+        }
+    }
+
+    /**
+     * Ejecuta en segundo plano las tareas pesadas posteriores al guardado de la transcripción
+     * (sincronización con SAHI SQL Server, generación de Word/PDF con LibreOffice y envío al Portal de Pacientes).
+     *
+     * Flujo del proceso:
+     * 1. Si la sede tiene interfaz SAHI y número de atención válido, transmite la lectura a SQL Server y guarda la trazabilidad.
+     * 2. Genera el reporte PDF con PlantillaEstudioService::editWord().
+     * 3. Envía el reporte generado al portal de pacientes y limpia el archivo temporal.
+     *
+     * @param  array  $data  Datos de la transcripción enviados desde el controlador
+     * @param  array  $info  Metadatos del estudio y sede persistidos en la transacción
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-30
+     */
+    private function procesarPostTranscripcion(array $data, array $info): void
+    {
+        // 1. Sincronización hacia SAHI (SQL Server) si la sede tiene la interfaz habilitada
+        if (($info['interface_software'] ?? '') === 'SAHI' && ! empty($info['producto_id'])) {
+            try {
                 $producto = EstudioProducto::find($info['producto_id']);
                 if ($producto) {
                     $atencionId = ! empty($data['atencion_id']) ? (int) $data['atencion_id'] : null;
                     if (! $atencionId && ! empty($data['atencion']) && is_numeric($data['atencion'])) {
                         $atencionId = (int) $data['atencion'];
                     }
-                    if (! $atencionId) {
-                        $estudioPadre = ! empty($info['estudio_id']) ? Estudio::find($info['estudio_id']) : $producto->estudio;
-                        if ($estudioPadre && ! empty($estudioPadre->atencion) && is_numeric($estudioPadre->atencion)) {
-                            $atencionId = (int) $estudioPadre->atencion;
-                        }
+                    if (! $atencionId && ! empty($info['atencion_estudio']) && is_numeric($info['atencion_estudio'])) {
+                        $atencionId = (int) $info['atencion_estudio'];
                     }
 
                     if ($atencionId > 0) {
@@ -433,7 +513,7 @@ class EstudioService extends BaseService
 
                         $sahiResult = $this->sahiTranscibirService->enviarEstudio(
                             $atencionId,
-                            (int) ($data['medico_id'] ?? $producto->estudio?->medico_id),
+                            (int) ($data['medico_id'] ?? $info['medico_estudio_id'] ?? 0),
                             $info['lectura'] ?? $data['lectura'],
                             $info['cod_cups'] ?? $producto->cod_cups,
                             $data['fechor_lectura'] ?? Carbon::now()->format('Y-m-d H:i:s')
@@ -444,19 +524,25 @@ class EstudioService extends BaseService
                         Log::warning("Estudio producto #{$producto->id} pertenece a sede SAHI pero no cuenta con atencion_id asociada para sincronizar.");
                     }
                 }
-            }
-
-            try {
-                $this->estudioNotificacionService->enviarPortalPacientes((object) $data);
             } catch (\Throwable $e) {
-                Log::warning('Error al enviar al portal de pacientes: '.$e->getMessage());
+                Log::warning('Error en sincronización SAHI post-transcripción: '.$e->getMessage());
             }
+        }
 
-            return $this->success(null, 'La transcripción se guardó correctamente.');
+        // 2. Generación de reporte PDF y envío al Portal de Pacientes
+        try {
+            $plantillaResult = $this->plantillaEstudioService->editWord($data);
+            if ($plantillaResult['success'] ?? false) {
+                $this->estudioNotificacionService->enviarPortalPacientes((object) $data);
+                $outputName = $plantillaResult['data']['output_name'] ?? '';
+                if ($outputName !== '') {
+                    $this->plantillaEstudioService->eliminarReporte($outputName);
+                }
+            } else {
+                Log::warning('No fue posible generar el PDF post-transcripción: '.($plantillaResult['message'] ?? 'Error desconocido'));
+            }
         } catch (\Throwable $e) {
-            Log::error('Error al guardar transcripción: '.$e->getMessage());
-
-            return $this->error('No fue posible guardar la transcripción.', 500);
+            Log::warning('Error al enviar al portal de pacientes post-transcripción: '.$e->getMessage());
         }
     }
 

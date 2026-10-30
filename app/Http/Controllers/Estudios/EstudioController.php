@@ -191,12 +191,17 @@ class EstudioController extends Controller
     /**
      * Guarda la transcripción final de un estudio y genera el informe clínico oficial.
      *
+     * Flujo del proceso:
+     * 1. Extrae los datos validados y normaliza las fechas de lectura y transcripción.
+     * 2. Persiste la transcripción mediante EstudioService::guardarTranscripcion().
+     * 3. Define cabeceras Content-Length y Connection: close para liberar la conexión HTTP antes del post-procesamiento en segundo plano.
+     *
      * @param  GuardarTranscripcionRequest  $request  Solicitud validada con datos de transcripción
      * @return JsonResponse Confirmación del guardado de transcripción
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2024-04-04
+     * @date 2026-10-30
      */
     public function guardarTranscripcion(GuardarTranscripcionRequest $request): JsonResponse
     {
@@ -206,7 +211,12 @@ class EstudioController extends Controller
 
         $result = $this->estudioService->guardarTranscripcion($data);
 
-        return response()->json($result, $result['status']);
+        $response = response()->json($result, $result['status']);
+        $content = (string) $response->getContent();
+        $response->headers->set('Content-Length', (string) strlen($content));
+        $response->headers->set('Connection', 'close');
+
+        return $response;
     }
 
     /**
