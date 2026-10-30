@@ -37,6 +37,27 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-30 — Pruebas Exitosas de Envío a SAHI (Estudios 211528 y 211529) y Corrección de Clave Primaria en `HceEsquema` (`HceEsquema.php`, `EstudiosSahiReconcileCommand.php`):**
+  - **Diagnóstico:**
+    * Durante la prueba de envío puntual del estudio ID 211528 (Atención SAHI 7005281, Producto 261934, Sede 1 Espinal), el proceso arrojó la excepción: `SQLSTATE[42S22]: [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]El nombre de columna 'id' no es válido en SQL: update [HceEsquema] set [IdConsecutivoEsq] = ..., [HceEsquema].[updated_at] = ... where [id] is null`.
+    * La causa raíz radicaba en que el modelo Eloquent `HceEsquema` carecía de las propiedades `protected $primaryKey = 'IdEsquema';`, `public $incrementing = false;` y `public $timestamps = false;`. Al llamar a `$encavezadoPadre->save()` en `generarConsecutivoEsquemaEncavezadoPadre()`, Eloquent asumía `id` y marcas de tiempo automáticas (`updated_at`), fallando al actualizar el consecutivo en SQL Server.
+  - **Solución Implementada:**
+    * *Modelo Eloquent:* En `app/Models/Interface/Sahi/HceEsquema.php` se definieron explícitamente `$primaryKey = 'IdEsquema'`, `$incrementing = false` y `$timestamps = false`.
+    * *Comando Artisan Reconciliación:* En `app/Console/Commands/EstudiosSahiReconcileCommand.php` se incorporó el parámetro `{--estudio-id=}` para despachar productos especificando directamente el ID del estudio padre (`estudios.id`), con logging detallado por consola y trazabilidad protegida por `hasTracking`.
+  - **Verificaciones y Resultados:**
+    * Estudio #211528 (Producto #261934, Atención #7005281):
+      - Creado Esquema Encabezado 149 (Consecutivo: `2678884`).
+      - Creado Esquema Encabezado 150 (Consecutivo: `2678885`).
+      - Memo de lectura insertado en `hceEsquemaDetMemo` (texto plano limpio sin `&nbsp;`).
+      - Detalles de médico (`CRISTY JOHANA CASTRO PALENCIA`, ID `2601`) y CUPS (`871121`) insertados en `hceEsquemaDetProc`.
+      - Actualizado en MySQL `estudios_productos` #261934 con `estado_envio_sahi = 'ENVIADO'`.
+    * Estudio #211529 (Producto #261935, Atención #7006479):
+      - Creado Esquema Encabezado 149 (Consecutivo: `2678906`).
+      - Creado Esquema Encabezado 150 (Consecutivo: `2678907`).
+      - Memo de lectura insertado en `hceEsquemaDetMemo` (texto plano limpio sin `&nbsp;`).
+      - Detalles de médico (`CRISTY JOHANA CASTRO PALENCIA`, ID `2601`) y CUPS (`871121`) insertados en `hceEsquemaDetProc`.
+      - Actualizado en MySQL `estudios_productos` #261935 con `estado_envio_sahi = 'ENVIADO'`.
+    * Laravel Pint (`vendor\bin\pint.bat --test`) 100% passed ✅ | Suite de pruebas `SahiInteroperabilidadTest` (9 pruebas, 30 aserciones) pasando al 100% ✅.
 - [x] **2026-10-30 — Reparación Integral de Interfaz SAHI (SQL Server), Sanitización de `&nbsp;` en WYSIWYG/PDF y Trazabilidad en Transcripción de Estudios:**
   - **Diagnóstico:**
     1. *Fallo silencioso en Sede 1:* `EstudioService::guardarTranscripcion()` validaba que el médico tuviese `interface_id` si la sede era `'SAHI'`, pero omitía por completo invocar `SAHITranscibirService::enviarEstudio()`. Además, `GuardarTranscripcionRequest` no aceptaba `atencion_id` (por lo que `$request->validated()` lo purgaba), `transcribirEstudioComponent.vue` no enviaba `atencion_id` y `estudios_productos` carecía de columnas de estado SAHI (`estado_envio_sahi`).

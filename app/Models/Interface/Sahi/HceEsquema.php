@@ -17,5 +17,11 @@ class HceEsquema extends Model
 
     protected $table = 'HceEsquema';
 
+    protected $primaryKey = 'IdEsquema';
+
+    public $incrementing = false;
+
+    public $timestamps = false;
+
     protected $fillable = ['IdConsecutivoEsq'];
 }
