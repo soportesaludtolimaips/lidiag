@@ -63,20 +63,26 @@ class EstudioAudio extends Model
     }
 
     /**
-     * URL pública de descarga del audio (normaliza el prefijo "audios/").
+     * URL pública de reproducción del audio a través de la ruta de streaming "/audios/{filename}".
+     *
+     * @returns string|null
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-10-08
+     * @date 2026-10-30
      */
     public function getUrlAttribute()
     {
+        if (! $this->audio) {
+            return null;
+        }
+
         $path = $this->audio;
         if (str_starts_with($path, 'audios/')) {
             $path = substr($path, 7);
         }
 
-        return Storage::disk('audios')->url($path);
+        return '/audios/'.ltrim($path, '/');
     }
 
     /**

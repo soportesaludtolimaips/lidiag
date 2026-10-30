@@ -130,7 +130,7 @@ Route::get('/descargar.pdf.lectura/{nomArchivo}', [EstudioController::class, 'de
 // Audios (fallback sin depender de symlink `public/audios`)
 Route::get('/audios/{filename}', [EstudioAudioController::class, 'stream'])
     ->name('audios.stream')
-    ->middleware(['auth', 'permission:estudio.transcribir|estudio.leerEstudio'])
+    ->middleware(['auth', 'permission:estudio.asignar|estudio.transcribir|estudio.leerEstudio|tele.ragiologia.transcribir'])
     ->where('filename', '(audio|cargado)_[A-Z0-9]{10,}\.mp3');
 
 Route::view('/estudios.leer.estudio.listar', 'modulos.estudios.leer-estudio')

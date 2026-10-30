@@ -37,6 +37,19 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-30 — Comando para Envío por Rango de Fechas a SAHI (`EstudiosSahiEnviarRangoCommand.php`, `SahiInteroperabilidadTest.php`):**
+  - **Diagnóstico y Necesidad:**
+    * Se requería una herramienta operativa de consola para despachar en lote hacia SAHI todos los estudios de radiología transcritos en una ventana temporal específica (ej. entre `'2026-10-28'` y `'2026-10-30'`), excluyendo estudios ya sincronizados para evitar duplicidad, pero permitiendo forzar el reenvío o simular en seco (`--dry-run`).
+  - **Solución Implementada:**
+    * *Comando Artisan `estudios:sahi-enviar-rango`:* Creado en `app/Console/Commands/EstudiosSahiEnviarRangoCommand.php`.
+    * Soporta rango posicional o mediante opciones (`{from=2026-10-28} {to=2026-10-30}`, `--from=`, `--to=`).
+    * Soporta `--dry-run` para previsualizar en tabla formateada los estudios a despachar con ID, Producto, Atención SAHI, CUPS, Sede, Médico, Fecha y Estado.
+    * Soporta `--sede={ID}` para filtrar por sede y `--field={fechor_trascrito|created_at|fec_estudio|all}` para elegir el criterio temporal.
+    * Soporta `--force` para reenviar registros que ya posean `estado_envio_sahi = 'ENVIADO'`.
+    * Despacha atómicamente a SQL Server usando `SAHITranscibirService` y actualiza la trazabilidad en `estudios_productos`.
+  - **Verificaciones:**
+    * Ejecución en modo `--dry-run` identificó correctamente 8 estudios pendientes en Sede 1 para el rango 2026-10-28 a 2026-10-30 (y 10 con `--force`, incluyendo los 2 ya enviados previamente) ✅.
+    * Laravel Pint (`vendor\bin\pint.bat --test`) 100% passed ✅ | Suite de pruebas `SahiInteroperabilidadTest` (10 pruebas, 31 aserciones) pasando al 100% ✅.
 - [x] **2026-10-30 — Incorporación de Permiso `estudio.index`, Unificación de Módulo de Estudios y Traducción de Acordeones en `roleComponente.vue` (`PermisionEstudiosSeeder.php`, `roleComponente.vue`, `RolService.php`, `AuditPermissions.php`, `SyncMissingPermissions.php`):**
   - **Diagnóstico:**
     * El permiso `estudio.index` (junto con `estudio.leer` y `estudio.productos`) estaba definido en `routes/api_estudios.php` pero no existía en la tabla `permissions` ni en ningún seeder, por lo que `RolService::all()` no lo retornaba y no se mostraba en la interfaz de asignación de roles.
@@ -85,6 +98,17 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * *UI Ecografías:* `lecturaComponent.vue` no cierra el modal si SAHI falla, manteniendo visible el botón de reintento.
     * *Multi-Host Helper & Reconciliación:* Creado `SahiConnectionHelper` para configurar dinámicamente conexiones por sede y comando `estudios:sahi-reconcile` registrado en `routes/console.php`.
   - **Verificaciones:** Laravel Pint (`vendor\bin\pint.bat --test`) 100% passed ✅ | ESLint (`npx eslint`) 0 errores ✅ | Compilación Vite exitosa (`npm run build`) en 1.22s ✅ | Suite de pruebas `SahiInteroperabilidadTest` (9 pruebas, 30 aserciones) pasando al 100% ✅.
+- [x] **2026-10-30 — Corrección de Carga y Reproducción de Audios en Estudios Asignados (`estudioAsignadosComponent.vue`, `EstudioAudio.php`, `routes/web.php`):**
+  - **Diagnóstico:** En `/estudios.asignados.listar` (`estudioAsignadosComponent.vue`), al abrir el panel lateral de un estudio (ej. paciente documento `14012971` — `LAZARO MOSQUERO`, estudio `211372`, producto `261756`, audio `#6128`), los controles del reproductor `<audio>` aparecían deshabilitados/grises sin permitir la reproducción. La causa raíz fue triple:
+    1. *Atributo `url` en `EstudioAudio.php`:* `EstudioAudio::getUrlAttribute()` invocaba `Storage::disk('audios')->url($path)`. Como el disco `'audios'` en `config/filesystems.php` es privado y no define clave `'url'`, el adaptador local de Laravel retornaba `/storage/audio_....mp3` (apuntando a `storage/app/public`) en vez de la ruta autenticada de streaming `/audios/audio_....mp3` (`EstudioAudioController::stream` que sirve desde `storage/app/audios`).
+    2. *Binding en `estudioAsignadosComponent.vue`:* La pestaña `#profile8` enlazaba `:src="item.url || item.audio"`, recibiendo `/storage/audio_....mp3` (HTTP 404 Not Found), a diferencia de `transcribirEstudioComponent.vue` que construía explícitamente `audioUrl(item)` (`"/audios/" + item.audio`).
+    3. *Permisos en Ruta de Streaming (`routes/web.php`):* La ruta `GET /audios/{filename}` solo admitía `permission:estudio.transcribir|estudio.leerEstudio`, omitiendo `estudio.asignar` (permiso con el cual se accede a `/estudios.asignados.listar`) y `tele.ragiologia.transcribir`.
+  - **Solución Implementada:**
+    * *Modelo (`app/Models/Estudio/EstudioAudio.php`):* `getUrlAttribute()` ahora retorna `'/audios/'.ltrim($path, '/')`, resolviendo directamente hacia el endpoint de streaming con soporte de rangos HTTP 206.
+    * *Rutas (`routes/web.php`):* Ampliado el middleware de `GET /audios/{filename}` a `permission:estudio.asignar|estudio.transcribir|estudio.leerEstudio|tele.ragiologia.transcribir`.
+    * *Frontend (`estudioAsignadosComponent.vue`):* Homologada la pestaña `#profile8` con `transcribirEstudioComponent.vue` (indicador `loadingAudios`, tarjeta con nombre/número de audio, badge `Cargado`/`Grabado`, duración formateada, `<audio :src="audioUrl(item)" controls>`, vista previa de transcripción y estado vacío `"No hay audios para este estudio."`), además de sincronizar `destroyDataTable()` antes de mutar `registros.value`.
+  - **Verificaciones:** Prueba CLI de `EstudioAudioService::listarPorProducto(261756)` y verificación en disco para paciente `14012971` ✅ | Laravel Pint (`vendor\bin\pint.bat --test`) ✅ | ESLint (`npx eslint`) ✅ | Compilación Vite (`npm run build`) en 1.24s ✅.
+
 - [x] **2026-10-30 — Resolución de TDZ en `configDiagnosticoComponent.vue` y Auditoría Exhaustiva de Módulo Configuración:**
   - **Diagnóstico:** Se reportó en navegador `configDiagnosticoComponent.vue:289 Uncaught ReferenceError: Cannot access 'loadingGuardar' before initialization`. `useKeyboardShortcuts` accedía a `loadingGuardar` en la línea 289 antes de su declaración con `const` en la línea 298.
   - **Solución Implementada:**

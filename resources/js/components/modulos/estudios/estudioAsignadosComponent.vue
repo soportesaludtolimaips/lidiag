@@ -740,15 +740,102 @@
                                                     id="profile8"
                                                     role="tabpanel"
                                                 >
-                                                    <template
-                                                        v-for="item in audiosDeEstudio"
-                                                        :key="item.id || item.audio"
+                                                    <div
+                                                        v-if="loadingAudios"
+                                                        class="text-muted mb-2"
                                                     >
-                                                        <audio
-                                                            :src="item.url || item.audio"
-                                                            controls
-                                                            style="height: 30px; width: 100%"
-                                                        ></audio>
+                                                        <i class="fa fa-spinner fa-spin"></i>
+                                                        Cargando audios...
+                                                    </div>
+
+                                                    <template v-else>
+                                                        <div
+                                                            v-for="(item, index) in audiosDeEstudio"
+                                                            :key="item.id || item.audio || index"
+                                                            class="card mb-2 p-2"
+                                                            style="border-left: 3px solid #007bff"
+                                                        >
+                                                            <div
+                                                                class="d-flex justify-content-between align-items-center mb-1"
+                                                            >
+                                                                <div>
+                                                                    <small
+                                                                        class="font-weight-bold text-dark"
+                                                                    >
+                                                                        {{
+                                                                            item.nombre_original ||
+                                                                            "Audio #" + (index + 1)
+                                                                        }}
+                                                                    </small>
+                                                                    <span
+                                                                        class="badge ml-2"
+                                                                        :class="
+                                                                            item.tipo === 'cargado'
+                                                                                ? 'badge-info'
+                                                                                : 'badge-success'
+                                                                        "
+                                                                    >
+                                                                        <i
+                                                                            :class="
+                                                                                item.tipo ===
+                                                                                'cargado'
+                                                                                    ? 'fa fa-upload'
+                                                                                    : 'fa fa-microphone'
+                                                                            "
+                                                                        ></i>
+                                                                        {{
+                                                                            item.tipo === "cargado"
+                                                                                ? "Cargado"
+                                                                                : "Grabado"
+                                                                        }}
+                                                                    </span>
+                                                                    <small
+                                                                        v-if="item.duracion"
+                                                                        class="text-muted ml-2"
+                                                                    >
+                                                                        <i
+                                                                            class="fa fa-clock-o"
+                                                                        ></i>
+                                                                        {{
+                                                                            formatDuracion(
+                                                                                item.duracion
+                                                                            )
+                                                                        }}
+                                                                    </small>
+                                                                </div>
+                                                            </div>
+                                                            <audio
+                                                                v-if="audioUrl(item)"
+                                                                :src="audioUrl(item)"
+                                                                controls
+                                                                style="height: 30px; width: 100%"
+                                                            ></audio>
+                                                            <div
+                                                                v-if="item.transcripcion"
+                                                                class="mt-1 p-1 bg-light rounded"
+                                                                style="
+                                                                    font-size: 12px;
+                                                                    max-height: 60px;
+                                                                    overflow-y: auto;
+                                                                "
+                                                            >
+                                                                <strong class="text-muted"
+                                                                    >Transcripción:</strong
+                                                                >
+                                                                {{
+                                                                    previewTranscripcion(
+                                                                        item.transcripcion
+                                                                    )
+                                                                }}
+                                                            </div>
+                                                        </div>
+
+                                                        <div
+                                                            v-if="audiosDeEstudio.length === 0"
+                                                            class="text-muted"
+                                                        >
+                                                            No hay audios para este estudio.
+                                                        </div>
                                                     </template>
                                                 </div>
                                             </div>
@@ -803,6 +890,7 @@ const emitter = appContext.config.globalProperties.emitter;
 
 const {
     loadingDescarga,
+    loadingAudios,
     loadingVerImagen,
     audiosDeEstudio,
     descargaSoporte,
@@ -885,6 +973,7 @@ const contadorRegistros = computed(() => {
 });
 
 function initDataTable() {
+    if (registros.value.length === 0) return;
     safeInitDataTable(dt.value || "#example23", {
         dom: "Bfrtip",
         buttons: ["copy", "csv", "excel", "pdf", "print"],
@@ -893,6 +982,24 @@ function initDataTable() {
 }
 function destroyDataTable() {
     safeDestroyDataTable(dt.value || "#example23");
+}
+
+function formatDuracion(segundos) {
+    if (!segundos) return "0:00";
+    const mins = Math.floor(segundos / 60);
+    const secs = segundos % 60;
+    return mins + ":" + (secs < 10 ? "0" : "") + secs;
+}
+
+function audioUrl(item) {
+    if (!item || !item.audio) return null;
+    return "/audios/" + item.audio;
+}
+
+function previewTranscripcion(texto, maxLen = 120) {
+    if (!texto || typeof texto !== "string") return "";
+    if (texto.length <= maxLen) return texto;
+    return texto.substring(0, maxLen) + "...";
 }
 function btnLimpiar() {
     limpiarFiltrosStorage();
@@ -961,11 +1068,11 @@ async function listarEstudiosAsignados() {
     try {
         const res = await axios.post("/api/estudio-listarEstudiosAsignados", busqueda.value);
 
-        registros.value = res.data.data;
+        destroyDataTable();
+        registros.value = res.data.data || [];
         guardarFiltros();
 
         nextTick(() => {
-            destroyDataTable();
             initDataTable();
         });
     } catch (error) {
@@ -1034,9 +1141,9 @@ async function guardarRegistro() {
             if (idRow.value != null) {
                 const idx = registros.value.findIndex((x) => x.estudio_producto_id == idRow.value);
                 if (idx >= 0) {
+                    destroyDataTable();
                     registros.value.splice(idx, 1);
                     nextTick(() => {
-                        destroyDataTable();
                         initDataTable();
                     });
                 }
@@ -1093,9 +1200,9 @@ async function anularAsignacion(idProductoEstudio, paciente, producto) {
                 (x) => x.estudio_producto_id == idProductoEstudio
             );
             if (idx >= 0) {
+                destroyDataTable();
                 registros.value.splice(idx, 1);
                 nextTick(() => {
-                    destroyDataTable();
                     initDataTable();
                 });
             }
