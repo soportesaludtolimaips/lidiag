@@ -240,6 +240,18 @@ import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import FormattedTextEditor from "@/components/shared/FormattedTextEditor.vue";
 import axios from "axios";
 
+const servicios = ref([]);
+const servicioSeleccionado = ref(null);
+const servicioActual = ref(null);
+const productosVinculados = ref([]);
+const productosDisponibles = ref([]);
+const productoSeleccionado = ref("");
+const recomendacion = ref("");
+const loadingGuardar = ref(false);
+const loadingListar = ref(false);
+const sidebarVisible = ref(false);
+const sidebarRef = ref(null);
+
 useKeyboardShortcuts({
     onSearch: () => {
         if (!sidebarVisible.value) {
@@ -255,18 +267,6 @@ useKeyboardShortcuts({
     isActive: () => true,
     isLoading: loadingGuardar,
 });
-
-const servicios = ref([]);
-const servicioSeleccionado = ref(null);
-const servicioActual = ref(null);
-const productosVinculados = ref([]);
-const productosDisponibles = ref([]);
-const productoSeleccionado = ref("");
-const recomendacion = ref("");
-const loadingGuardar = ref(false);
-const loadingListar = ref(false);
-const sidebarVisible = ref(false);
-const sidebarRef = ref(null);
 
 const servicioIdDesdeUrl = computed(() => {
     const params = new URLSearchParams(window.location.search);

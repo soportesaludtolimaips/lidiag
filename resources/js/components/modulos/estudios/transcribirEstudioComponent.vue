@@ -55,6 +55,7 @@
                                                 name="quien_asigno_id"
                                                 id="quien_asigno_id"
                                                 class="form-control custom-select"
+                                                @change="listarPendientesTrascribir()"
                                             >
                                                 <option value="">
                                                     ...::: Todos los usuarios :::...
@@ -77,6 +78,7 @@
                                                 name="medico_id"
                                                 id="medico_id"
                                                 class="form-control custom-select"
+                                                @change="listarPendientesTrascribir()"
                                             >
                                                 <option value="" selected>
                                                     ...::: Todos los medicos :::...
@@ -270,7 +272,7 @@
                                         <td>{{ item.fechor_lectura }}</td>
                                         <td>{{ formatDate(item.created_at) }}</td>
                                         <td>{{ item.quien_registro }}</td>
-                                        <td>{{ item.nombres_medico }}</td>
+                                        <td>{{ item.nombres_medico || item.medico }}</td>
                                         <td>
                                             # Docu: {{ item.num_docu }} <br />
                                             Nombres: {{ item.nom_pacien }}
@@ -911,7 +913,8 @@ function applyDashboardPrefill() {
             busqueda.value.bus_nom_num_docu = String(accession).trim();
             // Consumir para no pegar el filtro en siguientes visitas
             sessionStorage.removeItem("ST-accession");
-            // Lanzar búsqueda
+        }
+        if (sessionStorage.getItem("ST-sede") != null) {
             destroyDataTable();
             listarPendientesTrascribir();
         }
@@ -952,36 +955,43 @@ async function listarPendientesTrascribir() {
     if (loadingBuscar.value) return;
     loadingBuscar.value = true;
     try {
-        if (sessionStorage.getItem("ST-sede") == null) {
+        const sedeActual = sessionStorage.getItem("ST-sede");
+        if (sedeActual == null) {
             toastMessage({
                 heading: "Upsss!!!",
                 text: "Debes establece la sede en la cual vas a trabajar.",
                 icon: "warning",
             });
         } else {
+            busqueda.value.sede_id = sedeActual;
+            destroyDataTable();
+
             const payload = {
                 ...busqueda.value,
+                sede_id: sedeActual,
                 quien_asigno_id: busqueda.value.quien_asigno_id || null,
                 medico_id: busqueda.value.medico_id || null,
             };
             const res = await axios.post("/api/estudio-listarPendientesTrascribir", payload);
-            registros.value = res.data.data;
+            registros.value = Array.isArray(res?.data?.data) ? res.data.data : [];
 
             nextTick(() => {
-                destroyDataTable();
-                safeInitDataTable(dt.value || "#example23", {
-                    dom: "Bfrtip",
-                    buttons: ["copy", "csv", "excel", "pdf", "print"],
-                });
+                if (registros.value.length > 0) {
+                    safeInitDataTable(dt.value || "#example23", {
+                        dom: "Bfrtip",
+                        buttons: ["copy", "csv", "excel", "pdf", "print"],
+                    });
+                }
             });
         }
     } catch (error) {
+        const msg =
+            error?.response?.data?.message ||
+            error?.response?.data?.errors?.sede_id?.[0] ||
+            "No fue posible listar los estudios pendientes de transcribir.";
         toastMessage({
             heading: "Error",
-            text: getUserSafeError(
-                error,
-                "No fue posible listar los estudios pendientes de transcribir."
-            ),
+            text: getUserSafeError(error, msg),
             icon: "error",
         });
     } finally {
@@ -1060,13 +1070,15 @@ async function guardarRegistro() {
                     (x) => x.estudio_producto_id == idRow.value
                 );
                 if (estudioEliminar >= 0) {
+                    destroyDataTable();
                     registros.value.splice(estudioEliminar, 1);
                     nextTick(() => {
-                        destroyDataTable();
-                        safeInitDataTable(dt.value || "#example23", {
-                            dom: "Bfrtip",
-                            buttons: ["copy", "csv", "excel", "pdf", "print"],
-                        });
+                        if (registros.value.length > 0) {
+                            safeInitDataTable(dt.value || "#example23", {
+                                dom: "Bfrtip",
+                                buttons: ["copy", "csv", "excel", "pdf", "print"],
+                            });
+                        }
                     });
                 }
             }
@@ -1143,13 +1155,15 @@ async function anularAsignacion(idProductoEstudio, paciente, producto) {
                 (x) => x.estudio_producto_id == idProductoEstudio
             );
             if (idx >= 0) {
+                destroyDataTable();
                 registros.value.splice(idx, 1);
                 nextTick(() => {
-                    destroyDataTable();
-                    safeInitDataTable(dt.value || "#example23", {
-                        dom: "Bfrtip",
-                        buttons: ["copy", "csv", "excel", "pdf", "print"],
-                    });
+                    if (registros.value.length > 0) {
+                        safeInitDataTable(dt.value || "#example23", {
+                            dom: "Bfrtip",
+                            buttons: ["copy", "csv", "excel", "pdf", "print"],
+                        });
+                    }
                 });
             }
             toastMessage({

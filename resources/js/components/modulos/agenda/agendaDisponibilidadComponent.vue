@@ -391,18 +391,6 @@ const editando = ref(false);
 const editandoId = ref(null);
 const tituloModal = ref("Guardar disponibilidad de citas");
 const showSidebar = ref(false);
-
-useKeyboardShortcuts({
-    onSearch: () => {
-        if (!showSidebar.value) {
-            buscarStudy();
-        }
-    },
-    onSave: guardarRegistro,
-    onEscape: cerrarModal,
-    isActive: () => true,
-    isLoading: loadingGuardar,
-});
 const sedeActual = ref(sessionStorage.getItem("ST-sede"));
 const registro = ref({
     sede_id: sedeActual.value,
@@ -419,6 +407,18 @@ const registros = ref([]);
 const loadingBuscar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
+
+useKeyboardShortcuts({
+    onSearch: () => {
+        if (!showSidebar.value) {
+            buscarStudy();
+        }
+    },
+    onSave: guardarRegistro,
+    onEscape: cerrarModal,
+    isActive: () => true,
+    isLoading: loadingGuardar,
+});
 
 async function buscarStudy() {
     if (loadingBuscar.value) return;

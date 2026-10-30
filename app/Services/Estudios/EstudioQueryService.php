@@ -167,6 +167,7 @@ class EstudioQueryService extends BaseService
             'priori.nom_priori',
             'priori.nivel AS priori_nivel',
             'priori.tiempo AS priori_tiempo',
+            'medi.name as medico',
             'medi.name as nombres_medico',
             'medi.firma as firma_medico',
             'medi.reg_med as reg_medico',

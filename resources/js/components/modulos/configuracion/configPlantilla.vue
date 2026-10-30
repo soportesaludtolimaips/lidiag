@@ -307,22 +307,6 @@ import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import axios from "axios";
 
-useKeyboardShortcuts({
-    onSearch: () => {
-        if (!sidebarVisible.value) {
-            ListarDatos();
-        }
-    },
-    onSave: () => {
-        if (sidebarVisible.value) {
-            guardarRegistro();
-        }
-    },
-    onEscape: cerrarSidebar,
-    isActive: () => true,
-    isLoading: loadingGuardar,
-});
-
 const id = ref(0);
 const registrosData = ref([]);
 const registro = ref({
@@ -342,6 +326,22 @@ const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
 const sidebarVisible = ref(false);
+
+useKeyboardShortcuts({
+    onSearch: () => {
+        if (!sidebarVisible.value) {
+            ListarDatos();
+        }
+    },
+    onSave: () => {
+        if (sidebarVisible.value) {
+            guardarRegistro();
+        }
+    },
+    onEscape: cerrarSidebar,
+    isActive: () => true,
+    isLoading: loadingGuardar,
+});
 
 async function ListarDatos() {
     if (loadingListar.value) return;

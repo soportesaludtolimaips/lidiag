@@ -363,22 +363,6 @@ import { confirmAction, toastMessage } from "@/helpers/alerts.js";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import axios from "axios";
 
-useKeyboardShortcuts({
-    onSearch: () => {
-        if (!sidebarVisible.value) {
-            ListarDatos();
-        }
-    },
-    onSave: () => {
-        if (sidebarVisible.value) {
-            guardarRegistro();
-        }
-    },
-    onEscape: cerrarSidebar,
-    isActive: () => true,
-    isLoading: loadingGuardar,
-});
-
 const id = ref(0);
 const registros = ref([]);
 const registro = ref({
@@ -397,6 +381,22 @@ const actualizar = ref(false);
 const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
+
+useKeyboardShortcuts({
+    onSearch: () => {
+        if (!sidebarVisible.value) {
+            ListarDatos();
+        }
+    },
+    onSave: () => {
+        if (sidebarVisible.value) {
+            guardarRegistro();
+        }
+    },
+    onEscape: cerrarSidebar,
+    isActive: () => true,
+    isLoading: loadingGuardar,
+});
 
 const errores = ref({});
 

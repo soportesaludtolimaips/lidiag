@@ -264,14 +264,21 @@
 </template>
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
-
-const dt = ref(null);
-const sidebarVisible = ref(false);
-
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { confirmAction, toastMessage } from "@/helpers/alerts.js";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import axios from "axios";
+
+const dt = ref(null);
+const sidebarVisible = ref(false);
+const id = ref(0);
+const registros = ref([]);
+const registro = ref({ cod_diagnos: "", nom_diagnos: "", estado: true });
+const tituloModal = ref("Nuevo registro");
+const actualizar = ref(false);
+const loadingListar = ref(false);
+const loadingGuardar = ref(false);
+const loadingEliminarId = ref(null);
 
 useKeyboardShortcuts({
     onSearch: () => {
@@ -288,15 +295,6 @@ useKeyboardShortcuts({
     isActive: () => true,
     isLoading: loadingGuardar,
 });
-
-const id = ref(0);
-const registros = ref([]);
-const registro = ref({ cod_diagnos: "", nom_diagnos: "", estado: true });
-const tituloModal = ref("Nuevo registro");
-const actualizar = ref(false);
-const loadingListar = ref(false);
-const loadingGuardar = ref(false);
-const loadingEliminarId = ref(null);
 
 const errores = ref({});
 

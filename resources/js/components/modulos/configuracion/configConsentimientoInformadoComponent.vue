@@ -288,22 +288,6 @@ import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import Select2 from "@/components/shared/Select2.vue";
 import axios from "axios";
 
-useKeyboardShortcuts({
-    onSearch: () => {
-        if (!sidebarVisible.value) {
-            ListarDatos();
-        }
-    },
-    onSave: () => {
-        if (sidebarVisible.value) {
-            guardarRegistro();
-        }
-    },
-    onEscape: cerrarSidebar,
-    isActive: () => true,
-    isLoading: loadingGuardar,
-});
-
 const id = ref(0);
 const registros = ref([]);
 const registro = ref({
@@ -321,6 +305,22 @@ const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
 const productos = ref([]);
 const sidebarVisible = ref(false);
+
+useKeyboardShortcuts({
+    onSearch: () => {
+        if (!sidebarVisible.value) {
+            ListarDatos();
+        }
+    },
+    onSave: () => {
+        if (sidebarVisible.value) {
+            guardarRegistro();
+        }
+    },
+    onEscape: cerrarSidebar,
+    isActive: () => true,
+    isLoading: loadingGuardar,
+});
 
 const errores = ref({});
 

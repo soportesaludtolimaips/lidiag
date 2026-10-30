@@ -231,6 +231,16 @@ import { confirmAction, toastMessage } from "@/helpers/alerts.js";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import axios from "axios";
 
+const id = ref(0);
+const registros = ref([]);
+const registro = ref({ nom_tipo: "", estado: true });
+const tituloModal = ref("Nuevo registro");
+const actualizar = ref(false);
+const loadingListar = ref(false);
+const loadingGuardar = ref(false);
+const loadingEliminarId = ref(null);
+const sidebarVisible = ref(false);
+
 useKeyboardShortcuts({
     onSearch: () => {
         if (!sidebarVisible.value) {
@@ -246,16 +256,6 @@ useKeyboardShortcuts({
     isActive: () => true,
     isLoading: loadingGuardar,
 });
-
-const id = ref(0);
-const registros = ref([]);
-const registro = ref({ nom_tipo: "", estado: true });
-const tituloModal = ref("Nuevo registro");
-const actualizar = ref(false);
-const loadingListar = ref(false);
-const loadingGuardar = ref(false);
-const loadingEliminarId = ref(null);
-const sidebarVisible = ref(false);
 
 const errores = ref({});
 

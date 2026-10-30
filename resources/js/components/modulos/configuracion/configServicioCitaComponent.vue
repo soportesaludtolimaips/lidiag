@@ -261,6 +261,18 @@ import { alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import axios from "axios";
 
+const registros = ref([]);
+const sedes = ref([]);
+const filtroSede = ref("");
+const form = ref({ nombre: "", sede_id: "", estado: 1 });
+const tituloModal = ref("Nuevo registro");
+const editando = ref(false);
+const errores = ref({});
+const loadingListar = ref(false);
+const loadingSedes = ref(false);
+const loadingGuardar = ref(false);
+const loadingEliminarId = ref(null);
+
 useKeyboardShortcuts({
     onSearch: () => {
         if (!sidebarVisible.value) {
@@ -276,18 +288,6 @@ useKeyboardShortcuts({
     isActive: () => true,
     isLoading: loadingGuardar,
 });
-
-const registros = ref([]);
-const sedes = ref([]);
-const filtroSede = ref("");
-const form = ref({ nombre: "", sede_id: "", estado: 1 });
-const tituloModal = ref("Nuevo registro");
-const editando = ref(false);
-const errores = ref({});
-const loadingListar = ref(false);
-const loadingSedes = ref(false);
-const loadingGuardar = ref(false);
-const loadingEliminarId = ref(null);
 
 async function cargarSedes() {
     if (loadingSedes.value) return;

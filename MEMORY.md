@@ -37,6 +37,18 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-29 — Corrección de Listado, Filtros de Asignador/Médico, Columna Médico en Transcribir Estudios y Orden de Inicialización `useKeyboardShortcuts` (`transcribirEstudioComponent.vue`, `EstudioQueryService.php`, `configuracion/*.vue`, `agendaDisponibilidadComponent.vue`):**
+  - **Diagnóstico:**
+    1. En `configAdminSaludComponent.vue`, `configDiagnosticoComponent.vue`, `agendaDisponibilidadComponent.vue` y otros 9 componentes de Configuración, `useKeyboardShortcuts` referenciaba `loadingGuardar` antes de su declaración `const` (TDZ), provocando `Uncaught ReferenceError: Cannot access 'loadingGuardar' before initialization`.
+    2. En `transcribirEstudioComponent.vue`, la tabla mostraba `item.medico` mientras que `EstudioQueryService::listarPendientesTranscribir()` seleccionaba únicamente `medi.name as nombres_medico`, dejando vacía la columna "Médico".
+    3. Al filtrar por "Quien asignó" o "Médico" (o cuando una búsqueda retornaba 0 resultados y luego se volvía a consultar), `destroyDataTable()` se invocaba dentro de `nextTick()` *después* de mutar `registros.value` y `safeInitDataTable()` se ejecutaba incluso con 0 filas. Esto hacía que jQuery DataTables restaurara en el DOM las filas cacheadas de la inicialización previa (ignorando el filtro o vaciando la tabla), además de no haberse ejecutado `npm run build` tras los cambios previos.
+  - **Solución Implementada:**
+    * *`useKeyboardShortcuts` (12 componentes):* Reubicada la invocación de `useKeyboardShortcuts` después de declarar `loadingGuardar` y demás referencias reactivas en `configAdminSaludComponent.vue`, `configDiagnosticoComponent.vue`, `configCitaRechazoMotivoComponent.vue`, `configConsentimientoInformadoComponent.vue`, `configPlantilla.vue`, `configPrioridadComponent.vue`, `configProductoComponent.vue`, `configServicioCitaComponent.vue`, `configServicioProductoComponent.vue`, `configTipoDocumentoComponent.vue`, `configTipoPlantilla.vue` y `agendaDisponibilidadComponent.vue`.
+    * *`EstudioQueryService.php` y `transcribirEstudioComponent.vue`:* Incluido `'medi.name as medico'` junto a `'medi.name as nombres_medico'` en la consulta backend y `{{ item.nombres_medico || item.medico }}` en la celda de la tabla.
+    * *Sincronización DataTables + Vue:* En `listarPendientesTrascribir()`, `guardarRegistro()` y `anularAsignacion()`, se ejecuta `destroyDataTable()` *antes* de mutar `registros.value`, y dentro de `nextTick()` solo se inicializa `safeInitDataTable()` cuando `registros.value.length > 0`.
+    * *Filtros y Carga Inicial:* Añadido `@change="listarPendientesTrascribir()"` en los selectores `#quien_asigno_id` y `#medico_id`, sanitización de IDs vacíos a `null` en el payload, sincronización de `sede_id` desde `sessionStorage` y ejecución de `listarPendientesTrascribir()` al montar el componente en `applyDashboardPrefill()` cuando hay sede activa.
+  - **Verificaciones:** Laravel Pint (`vendor\bin\pint.bat --test`) ✅ | ESLint (`npx eslint`) ✅ | Compilación Vite (`npm run build`) ✅.
+
 - [x] **2026-10-29 — Sistema de Auto-Autorización de Usuarios de Telegram con Clave Institucional (PIN) (`TelegramBotHandlerService.php`, `config/telegram.php`, `.env.example`, `.env.production`):**
   - **Diagnóstico y Necesidad:** Cada vez que un médico, directivo o usuario asistencial intentaba interactuar con el bot desde una nueva sede o dispositivo, era rechazado con "Acceso Restringido", obligando al administrador a ingresar al servidor para editar `.env` a mano con el Chat ID de cada persona y reiniciar el servicio.
   - **Solución Implementada:**
