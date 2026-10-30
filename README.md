@@ -46,7 +46,7 @@ Esto genera una URL como `https://xxx.trycloudflare.com`. Úsala en la configura
 
 ## Stack Tecnológico (resumen)
 
--   **Backend**: Laravel 13 (PHP ^8.3), MySQL
+-   **Backend**: Laravel 13 (PHP ^8.4), MySQL
 -   **Frontend**: Vue 3 + Vite (Laravel Vite Plugin), Bootstrap 5, Chart.js + vue-chartjs (analítica clínica)
 -   **Seguridad**: `spatie/laravel-permission` (roles/permisos), anonimización criptográfica SHA-256 de identificadores de pacientes (ISO/IEC 27001)
 -   **Integraciones**: HIS/SAHI (SQL Server), PACS Dcm4chee (MySQL multisede), Twilio (WhatsApp), generación de PDF/Excel (DomPDF / Maatwebsite Excel)
@@ -678,7 +678,7 @@ Siga estos pasos para desplegar la aplicación en un entorno local o de producci
 
 ### Requisitos Previos
 
--   **PHP**: ^8.3 (ver `composer.json`)
+-   **PHP**: ^8.4 (ver `composer.json`)
 -   **Composer**
 -   **Servidor Web**: Apache o Nginx
 -   **Base de Datos**: MySQL (Principal) y SQL Server (Integraciones opcionales)

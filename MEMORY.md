@@ -37,6 +37,16 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-30 — Migración y Adaptación del Entorno a PHP 8.4 (`composer.json`, `README.md`, `AGENTS.md`, `Laragon PHP 8.4 NTS`):**
+  - **Diagnóstico y Necesidad:**
+    * El entorno Laragon se actualizó a PHP 8.4 (`php-8.4.12-nts-Win32-vs17-x64`), requiriendo la habilitación de dependencias críticas y la actualización de los requerimientos de Laravel.
+    * La instalación inicial de PHP 8.4 carecía de los controladores de Microsoft SQL Server (`sqlsrv` y `pdo_sqlsrv`), lo cual provocaría la ruptura inmediata de la interoperabilidad con HIS/SAHI.
+    * La extensión `zip` requerida por `maatwebsite/excel` y `phpoffice/phpword` se encontraba comentada, y los certificados SSL CA estaban sin vincular.
+  - **Solución Implementada:**
+    * *Drivers SQL Server para PHP 8.4:* Se extrajeron desde el paquete oficial `SQLSRV5.13.1_Windows.zip` los binarios `php_sqlsrv_84_nts_x64.dll` y `php_pdo_sqlsrv_84_nts_x64.dll` colocándolos en `C:\laragon\bin\php\php-8.4.12-nts-Win32-vs17-x64\ext\` y registrándolos en `php.ini`.
+    * *Extensiones Críticas y SSL:* Se activó `extension=zip` y se configuraron `curl.cainfo` y `openssl.cafile` apuntando a `C:\laragon\etc\ssl\cacert.pem`.
+    * *Requisitos de Laravel:* Se actualizó `composer.json` (`"php": "^8.4"`), `README.md` y `AGENTS.md`.
+    * *Verificación de Compatibilidad:* Se ejecutó `composer check-platform-reqs` bajo PHP 8.4.12 pasando el 100% de requerimientos y `php artisan about` arrancando Laravel 13.38.0 exitosamente.
 - [x] **2026-10-30 — Optimización de Tiempo de Guardado y Cierre del Drawer en Transcribir Estudios (`transcribirEstudioComponent.vue`, `EstudioService.php`, `EstudioController.php`):**
   - **Diagnóstico y Causa Raíz:**
     * *Backend:* En `EstudioService::guardarTranscripcion`, antes de devolver el `200 OK` al navegador se ejecutaban de forma síncrona dentro y fuera de la transacción: (1) `Paciente::updateOrCreate(['num_docu' => ...])` haciendo un *Full Table Scan* sobre las 100,655 filas de `pacientes`, (2) `PlantillaEstudioService::editWord($data)` que invocaba `soffice.com --headless --convert-to pdf` (LibreOffice Portable) bloqueando el hilo y la transacción MySQL entre 2 y 6 segundos, (3) `SAHITranscibirService::enviarEstudio(...)` abriendo conexión SQL Server remota y ejecutando múltiples consultas/inserciones, y (4) `EstudioNotificacionService::enviarPortalPacientes(...)` realizando un `POST` HTTP externo con `timeout(60)`.

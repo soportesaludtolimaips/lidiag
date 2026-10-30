@@ -1,6 +1,6 @@
 # AGENTS.md — LIDiag
 
-Laravel 3 (PHP >= 8.3) + MySQL + Vue 3 + Vite. Spatie Permissions ^6, Sanctum, Maatwebsite Excel. Windows + Laragon + PowerShell 5.1. Vite dev on `https://lidiag.test` (Laragon vhost).
+Laravel 3 (PHP >= 8.4) + MySQL + Vue 3 + Vite. Spatie Permissions ^6, Sanctum, Maatwebsite Excel. Windows + Laragon + PowerShell 5.1. Vite dev on `https://lidiag.test` (Laragon vhost).
 
 ## Integraciones y Servicios Críticos
 - **Procesamiento de Audio:** FFmpeg comprime obligatoriamente a MP3 (64 kbps) en el disco `audios` asignado a `estudio_producto_id`.
