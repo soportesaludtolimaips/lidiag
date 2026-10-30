@@ -1227,8 +1227,15 @@ const productoOptions = computed(() => {
 });
 
 const medicoOptions = computed(() => {
-    // Opciones para el Select2 local de medicos.
-    return (medicos.value || []).map((p) => ({ id: String(p.id), name: p.name }));
+    // Opciones para el Select2 local de médicos activos ordenados alfabéticamente.
+    return (medicos.value || [])
+        .filter(
+            (u) =>
+                u &&
+                (u.estado === undefined || u.estado === 1 || u.estado === true || u.estado === "1")
+        )
+        .map((p) => ({ id: String(p.id), name: (p.name || "").trim() }))
+        .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
 });
 
 /**
@@ -1732,8 +1739,8 @@ async function interfaceListarProductosDiagnosticos() {
  *
  * @date 2026-09-29
  */
-function cargarDatosSede() {
-    listarMedicos();
+function cargarDatosSede(sedeId = null) {
+    listarMedicos(sedeId);
     listarPrioridades();
     listarProductos();
     listarDiagnosticos();
@@ -1750,10 +1757,11 @@ function cargarDatosSede() {
  * @date 2026-09-29
  */
 function establecerSede() {
-    registro.value.sede_id = sessionStorage.getItem("ST-sede");
-    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
-    sedeActual.value = sessionStorage.getItem("ST-sede");
-    cargarDatosSede();
+    const sede = sessionStorage.getItem("ST-sede");
+    registro.value.sede_id = sede;
+    busqueda.value.sede_id = sede;
+    sedeActual.value = sede;
+    cargarDatosSede(sede);
     registros.value = [];
 }
 
@@ -1884,15 +1892,27 @@ function btnLimpiar() {
 }
 
 /**
- * Listar los médicos disponibles para la sede actual.
+ * Listar los médicos activos disponibles para la sede actual.
+ * @param {string|number|null} [sedeId=null] - ID opcional de la sede a filtrar.
  * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa la carga de médicos.
  * @author: Jhon Javer Lozano Arce
  */
-async function listarMedicos() {
+async function listarMedicos(sedeId = null) {
     try {
         const moduloId = getModuloIdActual();
-        const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
-        medicos.value = res.data.data || [];
+        const targetSede =
+            sedeId ??
+            registro.value.sede_id ??
+            busqueda.value.sede_id ??
+            sessionStorage.getItem("ST-sede");
+        const sedeParam = targetSede ? `&sede_id=${encodeURIComponent(targetSede)}` : "";
+        const res = await axios.get(
+            `/api/user.listarUsuarios/Medico/${moduloId}?solo_activos=1${sedeParam}`
+        );
+        medicos.value = Array.isArray(res?.data?.data) ? res.data.data : [];
+        nextTick(() => {
+            selMedico.value?.rebuild();
+        });
     } catch (_error) {
         toastMessage({
             heading: "Error",
@@ -2294,9 +2314,13 @@ function onQuemadoMultiplesCompletado() {
  * @date 2026-09-29
  */
 function onSedeSeleccionada(data) {
-    registro.value.sede_id = data.idSede;
-    busqueda.value.sede_id = data.idSede;
-    establecerSede();
+    const nuevaSede = data?.idSede ?? sessionStorage.getItem("ST-sede");
+    registro.value.sede_id = nuevaSede;
+    busqueda.value.sede_id = nuevaSede;
+    sedeActual.value = nuevaSede;
+    registro.value.medico_id = "";
+    cargarDatosSede(nuevaSede);
+    registros.value = [];
     destroyDataTable();
 }
 

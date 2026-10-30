@@ -82,12 +82,13 @@
                                                     name="quien_asigno_id"
                                                     id="quien_asigno_id"
                                                     class="form-control custom-select"
+                                                    @change="listarEstudiosAsignados()"
                                                 >
                                                     <option value="">
                                                         ...::: Todos los usuarios :::...
                                                     </option>
                                                     <option
-                                                        v-for="ItemUsuario in quienes_asignaron"
+                                                        v-for="ItemUsuario in quienesAsignaronActivos"
                                                         :key="ItemUsuario.id"
                                                         :value="ItemUsuario.id"
                                                     >
@@ -104,12 +105,13 @@
                                                     name="medico_id"
                                                     id="medico_id"
                                                     class="form-control custom-select"
+                                                    @change="listarEstudiosAsignados()"
                                                 >
                                                     <option value="" selected>
                                                         ...::: Todos los medicos :::...
                                                     </option>
                                                     <option
-                                                        v-for="ItemUsuario in medicos"
+                                                        v-for="ItemUsuario in medicosActivos"
                                                         :key="ItemUsuario.id"
                                                         :value="ItemUsuario.id"
                                                     >
@@ -1043,7 +1045,33 @@ const {
 ]);
 const datosImagen = ref({ urlOviyam: "", patientId: "", studyUID: "", serverName: "" });
 const quienes_asignaron = ref([]);
+const quienesAsignaronActivos = computed(() => {
+    return (quienes_asignaron.value || [])
+        .filter(
+            (u) =>
+                u &&
+                (u.estado === undefined || u.estado === 1 || u.estado === true || u.estado === "1")
+        )
+        .map((u) => ({
+            ...u,
+            name: (u.name || "").trim(),
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
+});
 const medicos = ref([]);
+const medicosActivos = computed(() => {
+    return (medicos.value || [])
+        .filter(
+            (u) =>
+                u &&
+                (u.estado === undefined || u.estado === 1 || u.estado === true || u.estado === "1")
+        )
+        .map((u) => ({
+            ...u,
+            name: (u.name || "").trim(),
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
+});
 const errores = ref({});
 const idRow = ref(null);
 const loadingBuscar = ref(false);
@@ -1151,10 +1179,18 @@ async function listarEstudiosAsignados() {
 
     loadingBuscar.value = true;
     try {
-        const res = await axios.post("/api/estudio-listarEstudiosAsignados", busqueda.value);
+        const sedeActual = sessionStorage.getItem("ST-sede") || busqueda.value.sede_id;
+        busqueda.value.sede_id = sedeActual;
+        const payload = {
+            ...busqueda.value,
+            sede_id: sedeActual,
+            quien_asigno_id: busqueda.value.quien_asigno_id || null,
+            medico_id: busqueda.value.medico_id || null,
+        };
+        const res = await axios.post("/api/estudio-listarEstudiosAsignados", payload);
 
         destroyDataTable();
-        registros.value = res.data.data || [];
+        registros.value = Array.isArray(res?.data?.data) ? res.data.data : [];
         guardarFiltros();
 
         nextTick(() => {
@@ -1486,22 +1522,59 @@ function btnCerrarModalForm() {
     sidebarVisible.value = false;
 }
 
+/**
+ * Carga o recarga los usuarios asignadores y médicos filtrando por la sede activa.
+ *
+ * Flujo del proceso:
+ * 1. Resuelve el ID de la sede objetivo a partir del argumento, de busqueda.sede_id o de sessionStorage.
+ * 2. Invoca listarUsuariosYSedes pasando options.sedeId para restringir el listado de asignadores y médicos.
+ * 3. Captura cualquier fallo de red de forma silenciosa para no interrumpir el montaje.
+ *
+ * @param {string|number|null} [sedeId=null] - ID opcional de la sede a filtrar.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-10-30
+ */
+const cargarAsignadoresYSedes = async (sedeId = null) => {
+    const targetSede = sedeId ?? busqueda.value.sede_id ?? sessionStorage.getItem("ST-sede");
+    try {
+        await listarUsuariosYSedes(
+            {
+                get quienes_asignaron() {
+                    return quienes_asignaron.value;
+                },
+                set quienes_asignaron(v) {
+                    quienes_asignaron.value = Array.isArray(v) ? v : [];
+                },
+                get medicos() {
+                    return medicos.value;
+                },
+                set medicos(v) {
+                    medicos.value = Array.isArray(v) ? v : [];
+                },
+            },
+            { moduloId: "1", sedeId: targetSede }
+        );
+    } catch (e) {
+        console.error("Error al inicializar usuarios y médicos:", e);
+    }
+};
+
 function onSedeSeleccionada(data) {
     busqueda.value.sede_id = data.idSede;
+    busqueda.value.quien_asigno_id = "";
+    busqueda.value.medico_id = "";
+    cargarAsignadoresYSedes(data.idSede);
     destroyDataTable();
     registros.value = [];
 }
 
 onMounted(async () => {
     busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
-    await listarUsuariosYSedes({
-        set quienes_asignaron(v) {
-            quienes_asignaron.value = v;
-        },
-        set medicos(v) {
-            medicos.value = v;
-        },
-    });
+    await cargarAsignadoresYSedes(busqueda.value.sede_id);
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
     if (hasRestoredFilters && busqueda.value.sede_id) {
         listarEstudiosAsignados();
