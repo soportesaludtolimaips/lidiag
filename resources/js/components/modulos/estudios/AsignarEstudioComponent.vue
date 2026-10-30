@@ -396,8 +396,7 @@
                                         <div class="col-md-4">
                                             <div class="form-group">
                                                 <label class="control-label" for="accession_no"
-                                                    >Detalle
-                                                    <span class="text-danger">*</span></label
+                                                    >Detalle</label
                                                 >
                                                 <input
                                                     type="text"
@@ -405,15 +404,7 @@
                                                     name="accession_no"
                                                     v-model="registro.accession_no"
                                                     class="form-control"
-                                                    :class="getInputClass(statusAccessionNo)"
-                                                    @blur="touch('accession_no')"
                                                 />
-                                                <div
-                                                    class="invalid-feedback d-block"
-                                                    v-if="statusAccessionNo.isInvalid"
-                                                >
-                                                    {{ statusAccessionNo.message }}
-                                                </div>
                                             </div>
                                         </div>
 
@@ -1108,15 +1099,6 @@ const statusStudyDesc = computed(() =>
     getFieldStatus("study_desc", registro.value.study_desc, [validators.required], errores.value)
 );
 
-const statusAccessionNo = computed(() =>
-    getFieldStatus(
-        "accession_no",
-        registro.value.accession_no,
-        [validators.required],
-        errores.value
-    )
-);
-
 const statusStudyDatetime = computed(() =>
     getFieldStatus(
         "study_datetime",
@@ -1352,14 +1334,13 @@ async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
 
-    touchAll(["study_desc", "accession_no", "study_datetime", "prioridad_id"]);
+    touchAll(["study_desc", "study_datetime", "prioridad_id"]);
     if (registro.value.email_reportar && String(registro.value.email_reportar).trim() !== "") {
         touch("email_reportar");
     }
 
     if (
         statusStudyDesc.value.isInvalid ||
-        statusAccessionNo.value.isInvalid ||
         statusStudyDatetime.value.isInvalid ||
         statusPrioridadId.value.isInvalid
     ) {
