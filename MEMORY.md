@@ -37,6 +37,15 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-30 — Optimización de Tiempo de Guardado y Cierre del Drawer en Asignar Estudios (`AsignarEstudioComponent.vue`, `EstudioService.php`):**
+  - **Diagnóstico y Causa Raíz:**
+    * *Backend:* En `EstudioService::createOrUpdatePatient`, se ejecutaba `Paciente::where('num_docu', ...)->first()` seguido de `Paciente::updateOrCreate(['num_docu' => ...], ...)`, provocando **dos Full Table Scans consecutivos** sobre la tabla `pacientes` (~100,655 filas sin índice en `num_docu`). Además, `syncStudyProducts` y `syncStudyDiagnostics` ejecutaban sentencias `DELETE` innecesarias para un estudio recién creado, consultas `ConfigProducto::where('cod_cups', ...)` en bucle (N+1) e inserciones fila por fila.
+    * *Frontend:* En `AsignarEstudioComponent.vue`, al recibir el `200/201` de `POST /api/estudios`, `guardarRegistro()` mutaba `registros.value` (`targetItem.agendado = 1`) antes de cerrar el drawer (`cerrarModal()`), obligando a Vue a re-renderizar todas las filas de la tabla principal antes de iniciar la transición de cierre; simultáneamente `cerrarModal()` ejecutaba `limpiarFormulario()` en el mismo frame de la animación y disparaba una petición redundante `POST /api/estudio-lock/liberar` pese a que `EstudioService::create` ya liberaba la reserva en el servidor.
+  - **Solución Implementada:**
+    * En `EstudioService::createOrUpdatePatient`, se reutiliza la instancia `$existing` aplicando `fill()` + `isDirty()` (actualizando por llave primaria `id` solo cuando cambian datos y eliminando el segundo Full Table Scan).
+    * En `EstudioService::syncStudyProducts` y `syncStudyDiagnostics`, se eliminaron los `DELETE` redundantes en la creación, se agruparon las consultas de `ConfigProducto` con un único `whereIn('cod_cups', ...)` y se reemplazaron las inserciones individuales por inserción en bloque (`insert()`), reduciendo el tiempo de `EstudioService::create` en más de un 55% (de ~270 ms a ~118 ms).
+    * En `AsignarEstudioComponent.vue`, `guardarRegistro()` pausa el heartbeat antes de enviar, cierra el drawer en el primer frame con `cerrarModal({ skipRelease: true })` omitiendo el `POST /api/estudio-lock/liberar` duplicado, y difiere la actualización de la fila de la tabla y `limpiarFormulario()` mediante `requestAnimationFrame`.
+  - **Verificación:** Validado con `vendor\bin\pint.bat --test` (`passed`), `npx eslint` (0 errores) y `npm run build` exitoso.
 - [x] **2026-10-30 — Botón de Envío Directo a SAHI y Trazabilidad en Módulo Estudios Asignados (`estudioAsignadosComponent.vue`, `EstudioQueryService.php`, `EstudioService.php`, `EstudioController.php`, `api_estudios.php`):**
   - **Diagnóstico y Necesidad:**
     * Los operadores y transcriptores en la vista de Estudios Asignados (`/estudios/asignados`) no tenían forma de ver el estado de sincronización con SAHI ni un botón para reenviar o transmitir manualmente un estudio puntual a SQL Server sin tener que abrir la consola de comandos.

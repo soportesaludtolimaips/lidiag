@@ -1409,6 +1409,8 @@ async function guardarRegistro() {
         if (soportesHC.value.archivo2) formData.append("archivo2", soportesHC.value.archivo2);
         if (soportesHC.value.archivo3) formData.append("archivo3", soportesHC.value.archivo3);
 
+        detenerHeartbeatLockAsignacion();
+
         const res = await axios.post("/api/estudios", formData, {
             headers: { "Content-Type": "multipart/form-data" },
             onUploadProgress: (e) => {
@@ -1417,48 +1419,59 @@ async function guardarRegistro() {
         });
 
         if (res.status === 200 || res.status === 201) {
+            const studyPk = registro.value.study_pk;
+            const rowIdx = idRow.value;
+
+            // El backend ya liberó el lock dentro de la transacción de EstudioService::create
+            lockAsignParams.value = null;
+            cerrarModal({ skipRelease: true });
+
             toastMessage({
                 heading: "Completado",
                 text: res.data.message,
                 icon: "success",
             });
 
-            const studyPk = registro.value.study_pk;
-
-            if (studyPk) {
-                const targetItem = registros.value.find(
-                    (r) => String(r.study_pk) === String(studyPk)
-                );
-                if (targetItem) {
-                    targetItem.agendado = 1;
-                }
-            }
-
-            if (idRow.value !== null && idRow.value >= 0 && idRow.value < registros.value.length) {
-                registros.value[idRow.value].agendado = 1;
-            }
-
-            nextTick(() => {
+            requestAnimationFrame(() => {
                 if (studyPk) {
-                    const rowEl = document.getElementById(String(studyPk));
-                    if (rowEl) {
-                        rowEl.classList.add("text-info");
-                        const dtInstance = safeGetDataTable(dt.value || "#example23");
-                        if (dtInstance) {
-                            try {
-                                const dtRow = dtInstance.row(rowEl);
-                                if (dtRow && dtRow.node()) {
-                                    dtRow.node().classList.add("text-info");
-                                }
-                            } catch (_) {}
-                        }
+                    const targetItem = registros.value.find(
+                        (r) => String(r.study_pk) === String(studyPk)
+                    );
+                    if (targetItem) {
+                        targetItem.agendado = 1;
                     }
                 }
+
+                if (rowIdx !== null && rowIdx >= 0 && rowIdx < registros.value.length) {
+                    registros.value[rowIdx].agendado = 1;
+                }
+
+                nextTick(() => {
+                    if (studyPk) {
+                        const rowEl = document.getElementById(String(studyPk));
+                        if (rowEl) {
+                            rowEl.classList.add("text-info");
+                            const dtInstance = safeGetDataTable(dt.value || "#example23");
+                            if (dtInstance) {
+                                try {
+                                    const dtRow = dtInstance.row(rowEl);
+                                    if (dtRow && dtRow.node()) {
+                                        dtRow.node().classList.add("text-info");
+                                    }
+                                } catch (_) {}
+                            }
+                        }
+                    }
+                });
             });
+            return;
         }
 
         cerrarModal();
     } catch (error) {
+        if (lockAsignParams.value && sidebarVisible.value) {
+            iniciarHeartbeatLockAsignacion();
+        }
         errores.value =
             error?.response?.data?.errors && typeof error.response.data.errors === "object"
                 ? error.response.data.errors
@@ -1809,19 +1822,31 @@ function nuevoRegistro() {
 }
 
 /**
- * Cierra el panel lateral y descarta los datos capturados y los errores mostrados.
+ * Cierra el panel lateral inmediatamente y difiere la limpieza del formulario
+ * al siguiente frame para no bloquear la transición de cierre del drawer.
  *
+ * @param {Object} [options={}] Opciones de cierre.
+ * @param {boolean} [options.skipRelease=false] Si es true, omite la petición de liberar lock (ya liberado en backend).
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-09-29
+ * @date 2026-10-30
  */
-function cerrarModal() {
+function cerrarModal({ skipRelease = false } = {}) {
     sidebarVisible.value = false;
-    limpiarFormulario();
     errores.value = {};
-    liberarLockAsignacion();
+    if (skipRelease) {
+        detenerHeartbeatLockAsignacion();
+        lockAsignParams.value = null;
+    } else {
+        liberarLockAsignacion();
+    }
+    requestAnimationFrame(() => {
+        if (!sidebarVisible.value) {
+            limpiarFormulario();
+        }
+    });
 }
 
 /**

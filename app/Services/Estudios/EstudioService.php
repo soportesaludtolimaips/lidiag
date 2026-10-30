@@ -698,29 +698,44 @@ class EstudioService extends BaseService
     /**
      * Crea o actualiza el paciente por número de documento, conservando campos vacíos del existente.
      *
+     * Flujo del proceso:
+     * 1. Busca el paciente existente por número de documento una única vez.
+     * 2. Arma los atributos conservando los valores previos cuando el formulario envía campos vacíos.
+     * 3. Si el paciente existe, actualiza únicamente si hubo cambios (evita segundo SELECT y UPDATE innecesario).
+     * 4. Si no existe, inserta el nuevo registro de paciente.
+     *
      * @param  array  $registro  Datos del formulario de asignación
      * @param  string  $nombrePaciente  Nombre ya saneado
+     * @return Paciente Instancia del paciente creado o actualizado
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-10-08
+     * @date 2026-10-30
      */
     private function createOrUpdatePatient(array $registro, string $nombrePaciente): Paciente
     {
         $existing = Paciente::where('num_docu', $registro['num_docu'])->first();
 
-        return Paciente::updateOrCreate(
-            ['num_docu' => $registro['num_docu']],
-            [
-                'num_docu' => $registro['num_docu'],
-                'nombres' => $nombrePaciente,
-                'direccion' => ! empty($registro['direccion']) ? $registro['direccion'] : ($existing->direccion ?? ''),
-                'sexo' => ! empty($registro['sexo']) ? $registro['sexo'] : ($existing->sexo ?? ''),
-                'fec_naci' => ! empty($registro['fec_naci']) ? $registro['fec_naci'] : ($existing->fec_naci ?? null),
-                'tel' => ! empty($registro['tel']) ? $registro['tel'] : ($registro['telefono'] ?? ($existing->tel ?? '')),
-                'email' => ! empty($registro['email']) ? $registro['email'] : ($existing->email ?? ''),
-            ]
-        );
+        $attributes = [
+            'num_docu' => $registro['num_docu'],
+            'nombres' => $nombrePaciente,
+            'direccion' => ! empty($registro['direccion']) ? $registro['direccion'] : ($existing->direccion ?? ''),
+            'sexo' => ! empty($registro['sexo']) ? $registro['sexo'] : ($existing->sexo ?? ''),
+            'fec_naci' => ! empty($registro['fec_naci']) ? $registro['fec_naci'] : ($existing->fec_naci ?? null),
+            'tel' => ! empty($registro['tel']) ? $registro['tel'] : ($registro['telefono'] ?? ($existing->tel ?? '')),
+            'email' => ! empty($registro['email']) ? $registro['email'] : ($existing->email ?? ''),
+        ];
+
+        if ($existing !== null) {
+            $existing->fill($attributes);
+            if ($existing->isDirty()) {
+                $existing->save();
+            }
+
+            return $existing;
+        }
+
+        return Paciente::create($attributes);
     }
 
     /**
@@ -847,59 +862,97 @@ class EstudioService extends BaseService
     }
 
     /**
-     * Reemplaza los productos del estudio por los marcados que requieren lectura (requi_lectura = 1).
+     * Registra en bloque los productos del estudio que requieren lectura (requi_lectura = 1).
      *
-     * @param  int  $estudioId  Identificador del estudio
+     * Flujo del proceso:
+     * 1. Extrae los códigos CUPS únicos enviados en los productos marcados.
+     * 2. Consulta en una sola sentencia los productos del catálogo con requi_lectura = 1.
+     * 3. Construye las filas válidas y las inserta por lote en estudios_productos.
+     *
+     * @param  int  $estudioId  Identificador del estudio recién creado
      * @param  array  $productosMarcados  Productos marcados en el formulario
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-10-08
+     * @date 2026-10-30
      */
     private function syncStudyProducts(int $estudioId, array $productosMarcados): void
     {
-        EstudioProducto::where('estudio_id', $estudioId)->delete();
+        $codigosCups = array_values(array_unique(array_filter(array_column($productosMarcados, 'cod_cups'))));
+        if (empty($codigosCups)) {
+            return;
+        }
+
+        $productosCatalogo = ConfigProducto::whereIn('cod_cups', $codigosCups)
+            ->where('requi_lectura', 1)
+            ->get()
+            ->keyBy('cod_cups');
+
+        $now = Carbon::now();
+        $rows = [];
 
         foreach ($productosMarcados as $producto) {
-            $productoDicom = ConfigProducto::where('cod_cups', $producto['cod_cups'])->first();
+            $cups = $producto['cod_cups'] ?? null;
+            $productoDicom = $cups !== null ? $productosCatalogo->get($cups) : null;
 
-            if (! $productoDicom || (int) $productoDicom->requi_lectura === 0) {
+            if (! $productoDicom) {
                 continue;
             }
 
-            EstudioProducto::create([
+            $rows[] = [
                 'estudio_id' => $estudioId,
                 'producto_id' => $productoDicom->id,
                 'cod_cups' => $productoDicom->cod_cups,
                 'nom_produc' => $productoDicom->nom_produc,
-            ]);
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        if (! empty($rows)) {
+            EstudioProducto::insert($rows);
         }
     }
 
     /**
-     * Reemplaza los diagnósticos del estudio por los válidos (con código y nombre).
+     * Registra en bloque los diagnósticos válidos (con código y nombre) asociados al estudio.
      *
-     * @param  int  $estudioId  Identificador del estudio
+     * Flujo del proceso:
+     * 1. Filtra los diagnósticos que cuenten con código y nombre no vacíos.
+     * 2. Inserta los diagnósticos en una sola operación por lote en estudios_diagnosticos.
+     *
+     * @param  int  $estudioId  Identificador del estudio recién creado
      * @param  array  $diagnosticos  Diagnósticos enviados desde el formulario
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-10-08
+     * @date 2026-10-30
      */
     private function syncStudyDiagnostics(int $estudioId, array $diagnosticos): void
     {
-        EstudioDiagnostico::where('estudio_id', $estudioId)->delete();
+        if (empty($diagnosticos)) {
+            return;
+        }
+
+        $now = Carbon::now();
+        $rows = [];
 
         foreach ($diagnosticos as $diagnostico) {
             if (empty($diagnostico['cod_diagnos']) || empty($diagnostico['nom_diagnos'])) {
                 continue;
             }
 
-            EstudioDiagnostico::create([
+            $rows[] = [
                 'estudio_id' => $estudioId,
                 'cod_diagnos' => $diagnostico['cod_diagnos'],
                 'nom_diagnos' => $diagnostico['nom_diagnos'],
-            ]);
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        if (! empty($rows)) {
+            EstudioDiagnostico::insert($rows);
         }
     }
 
