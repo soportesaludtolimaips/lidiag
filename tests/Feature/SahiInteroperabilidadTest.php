@@ -57,7 +57,7 @@ class SahiInteroperabilidadTest extends TestCase
 
     public function test_verificar_conexion_sahi_responde_con_permiso(): void
     {
-        $permiso = Permission::firstOrCreate(['name' => 'estudio.index', 'guard_name' => 'web']);
+        $permiso = Permission::firstOrCreate(['name' => 'estudio.transcribir', 'guard_name' => 'web']);
         $this->user->givePermissionTo($permiso);
 
         $response = $this->actingAs($this->user)
@@ -133,6 +133,12 @@ class SahiInteroperabilidadTest extends TestCase
     public function test_reconcile_command_se_ejecuta_correctamente(): void
     {
         $this->artisan('ecografias:sahi-reconcile --minutes=10 --limit=10')
+            ->assertSuccessful();
+    }
+
+    public function test_estudios_sahi_reconcile_command_se_ejecuta_correctamente(): void
+    {
+        $this->artisan('estudios:sahi-reconcile --minutes=5 --limit=10')
             ->assertSuccessful();
     }
 }

@@ -277,13 +277,49 @@ class SAHITranscibirService extends BaseService
      */
     private function storeEsquemaMemo(int $conseEsquemaEncavezado, string $reporteEstudio): hceEsquemaDetMemo
     {
+        $memoLimpio = $this->limpiarTextoPlanoSahi($reporteEstudio);
+
         $esquemaMemo = new hceEsquemaDetMemo;
         $esquemaMemo->IdMemo = 1;
         $esquemaMemo->IdEsquemaEncabezado = $conseEsquemaEncavezado;
-        $esquemaMemo->DesMemo = $reporteEstudio;
+        $esquemaMemo->DesMemo = $memoLimpio;
         $esquemaMemo->save();
 
         return $esquemaMemo;
+    }
+
+    /**
+     * Normaliza cualquier entrada de texto a texto plano clínico puro para SAHI (SQL Server).
+     *
+     * Flujo del proceso:
+     * 1. Convierte saltos de línea HTML (<br>, </p>, </div>) a saltos de línea \n.
+     * 2. Reemplaza entidades &nbsp; y &#160; por espacios regulares.
+     * 3. Remueve etiquetas HTML y decodifica entidades a UTF-8 real.
+     * 4. Normaliza espacios de no separación UTF-8 (\u{00A0}) y saltos de línea.
+     *
+     * @param  string  $texto  Texto del reporte a normalizar
+     * @return string Texto plano clínico limpio para SAHI
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-30
+     */
+    private function limpiarTextoPlanoSahi(string $texto): string
+    {
+        if (trim($texto) === '') {
+            return '';
+        }
+
+        $texto = preg_replace('/<\s*br\s*\/?>/i', "\n", $texto);
+        $texto = preg_replace('/<\/\s*(?:p|div|h[1-6])\s*>/i', "\n\n", $texto);
+        $texto = str_ireplace(['&nbsp;', '&#160;'], ' ', $texto);
+        $texto = strip_tags($texto);
+        $texto = html_entity_decode($texto, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $texto = preg_replace('/\x{00A0}/u', ' ', $texto);
+        $texto = preg_replace("/\r\n|\r/", "\n", $texto);
+        $texto = preg_replace("/\n{3,}/", "\n\n", $texto);
+
+        return trim($texto);
     }
 
     /**

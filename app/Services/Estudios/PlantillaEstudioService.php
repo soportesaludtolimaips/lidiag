@@ -61,11 +61,19 @@ class PlantillaEstudioService extends BaseService
         $template->setValue('atencion', ($data['atencion'] ?? '') === 'null' ? '' : ($data['atencion'] ?? ''));
 
         $textRun = new TextRun;
-        foreach (explode("\n", $data['lectura'] ?? '') as $line) {
+        $lecturaSanitizada = $this->sanitizarTextoParaDocx($data['lectura'] ?? '');
+        foreach (explode("\n", $lecturaSanitizada) as $line) {
+            $line = trim($line);
+            if ($line === '') {
+                $textRun->addTextBreak();
+
+                continue;
+            }
+
             $boldKeywords = ['Atención:', 'Fecha y Hora:', 'HALLAZGOS:', 'IMPRESIÓN DIAGNÓSTICA:', 'CONCLUSIÓN:', $data['nom_produc'] ?? '__NOMATCH__'];
             $isBold = false;
             foreach ($boldKeywords as $keyword) {
-                if (strpos($line, $keyword) !== false) {
+                if (stripos($line, $keyword) !== false) {
                     $isBold = true;
                     break;
                 }
@@ -158,5 +166,39 @@ class PlantillaEstudioService extends BaseService
                 @unlink($path);
             }
         }
+    }
+
+    /**
+     * Sanitiza el texto de lectura eliminando entidades HTML corruptas para OpenXML.
+     *
+     * Flujo del proceso:
+     * 1. Convierte saltos de línea HTML en saltos de línea planos \n.
+     * 2. Reemplaza entidades &nbsp; y &#160; por espacios estándar.
+     * 3. Decodifica entidades HTML a caracteres UTF-8 reales.
+     * 4. Normaliza espacios de no separación UTF-8 (\u{00A0}) a espacios regulares.
+     * 5. Elimina etiquetas HTML restantes.
+     *
+     * @param  string  $texto  Texto de la lectura clínico
+     * @return string Texto plano limpio y seguro para el archivo DOCX/XML
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-30
+     */
+    private function sanitizarTextoParaDocx(string $texto): string
+    {
+        if (trim($texto) === '') {
+            return '';
+        }
+
+        $texto = preg_replace('/<\s*br\s*\/?>/i', "\n", $texto);
+        $texto = preg_replace('/<\/\s*(?:p|div|h[1-6])\s*>/i', "\n", $texto);
+        $texto = str_ireplace(['&nbsp;', '&#160;'], ' ', $texto);
+        $texto = html_entity_decode($texto, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $texto = preg_replace('/\x{00A0}/u', ' ', $texto);
+        $texto = strip_tags($texto);
+        $texto = preg_replace("/\r\n|\r/", "\n", $texto);
+
+        return trim($texto);
     }
 }

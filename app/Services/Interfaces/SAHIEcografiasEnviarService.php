@@ -2,6 +2,8 @@
 
 namespace App\Services\Interfaces;
 
+use App\Helpers\SahiConnectionHelper;
+use App\Models\Configuracion\ConfigSede;
 use App\Models\Ecografias\EcografiaProducto;
 use App\Models\Interface\Sahi\ASI_USUA;
 use App\Models\Interface\Sahi\Atencion;
@@ -157,6 +159,9 @@ class SAHIEcografiasEnviarService extends BaseService
         $fecRegistro = $validated['fec_registro'];
 
         try {
+            $sedeEco = $ecografia->sede_id ? ConfigSede::find($ecografia->sede_id) : null;
+            SahiConnectionHelper::configureForSede($sedeEco);
+
             $result = DB::connection('sqlsrv')->transaction(
                 fn () => $this->executeSahiInsert($medico, $atencionId, (int) $ecografia->id, $productoIds, $fecRegistro, $memo)
             );
@@ -801,10 +806,12 @@ class SAHIEcografiasEnviarService extends BaseService
         }
 
         $v = preg_replace('/<\s*br\s*\/?>/i', "\n", $v);
-        $v = preg_replace('/<\/\s*div\s*>/i', "\n", $v);
-        $v = preg_replace('/<\/\s*h[1-6]\s*>/i', "\n", $v);
+        $v = preg_replace('/<\/\s*(?:p|div|h[1-6])\s*>/i', "\n\n", $v);
+        $v = str_ireplace(['&nbsp;', '&#160;'], ' ', $v);
         $v = strip_tags($v);
         $v = html_entity_decode($v, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $v = preg_replace('/\x{00A0}/u', ' ', $v);
+        $v = preg_replace("/\r\n|\r/", "\n", $v);
         $v = preg_replace("/\n{3,}/", "\n\n", $v);
 
         return trim($v);

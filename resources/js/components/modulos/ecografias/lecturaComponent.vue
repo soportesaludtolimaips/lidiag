@@ -1941,7 +1941,11 @@ async function guardarRegistro() {
 
     // Enviar a SAHI solo si la sede tiene interface y la acción fue TERMINAR_LECTURA
     if (sedeInterface.value && accionActual === "TERMINAR_LECTURA") {
-        await enviarASahiEcografiaProducto();
+        const sahiOk = await enviarASahiEcografiaProducto();
+        if (!sahiOk) {
+            listarPendiestePorLectura();
+            return;
+        }
     }
 
     listarPendiestePorLectura();

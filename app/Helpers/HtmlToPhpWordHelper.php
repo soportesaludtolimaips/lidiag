@@ -207,7 +207,9 @@ class HtmlToPhpWordHelper
     private static function cleanHtml(string $html): string
     {
         $html = strip_tags($html, '<p><br><strong><b><em><i><ul><ol><li>');
+        $html = str_ireplace(['&nbsp;', '&#160;'], ' ', $html);
         $html = html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $html = preg_replace('/\x{00A0}/u', ' ', $html);
         $html = preg_replace('/\s+/', ' ', $html);
         $html = trim($html);
 

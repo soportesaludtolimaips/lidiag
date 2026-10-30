@@ -37,6 +37,20 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-30 — Reparación Integral de Interfaz SAHI (SQL Server), Sanitización de `&nbsp;` en WYSIWYG/PDF y Trazabilidad en Transcripción de Estudios:**
+  - **Diagnóstico:**
+    1. *Fallo silencioso en Sede 1:* `EstudioService::guardarTranscripcion()` validaba que el médico tuviese `interface_id` si la sede era `'SAHI'`, pero omitía por completo invocar `SAHITranscibirService::enviarEstudio()`. Además, `GuardarTranscripcionRequest` no aceptaba `atencion_id` (por lo que `$request->validated()` lo purgaba), `transcribirEstudioComponent.vue` no enviaba `atencion_id` y `estudios_productos` carecía de columnas de estado SAHI (`estado_envio_sahi`).
+    2. *Error en PDF por `&nbsp;`:* `WysiwygEditor.vue` en `htmlToPlain()` solo eliminaba etiquetas `<...>`, permitiendo que `&nbsp;` y `\u00A0` pasaran intactos. Al generar el reporte en `PlantillaEstudioService`, PHPWord inyectaba `&nbsp;` en el OpenXML (`document.xml`). Al no ser una entidad válida de XML 1.0, LibreOffice headless colapsaba con `SAXParseException` y la conversión a PDF fallaba arrojando error 400.
+    3. *Falso positivo en Ecografías:* En `lecturaComponent.vue`, `guardarRegistro()` cerraba el modal y limpiaba el formulario incluso cuando el envío a SAHI (`enviarASahiEcografiaProducto()`) fallaba o quedaba en `ERROR`.
+  - **Solución Implementada:**
+    * *Capa 1 (Frontend WYSIWYG):* `WysiwygEditor.vue` ahora normaliza entidades literales `&nbsp;`, espacios Unicode de no separación (`\u00A0`), decodifica entidades HTML y colapsa espacios antes de emitir a `v-model`.
+    * *Capa 2 (Backend Plantilla PDF):* `PlantillaEstudioService.php` incorpora `sanitizarTextoParaDocx()` para garantizar que solo texto plano seguro y XML-compliant entre a `TextRun`.
+    * *Capa 3 (Backend SAHI Interoperabilidad):* `SAHITranscibirService.php` y `SAHIEcografiasEnviarService.php` limpian el texto para `hceEsquemaDetMemo.DesMemo` (`limpiarTextoPlanoSahi()`), previniendo códigos web en SQL Server.
+    * *Trazabilidad y Orquestación:* Migración `2026_10_30_100000_add_estado_envio_sahi_columns_to_estudios_productos.php` creada; `GuardarTranscripcionRequest` y `transcribirEstudioComponent.vue` actualizados para validar y enviar `atencion_id`.
+    * *Despacho Transaccional:* `EstudioService::guardarTranscripcion()` orquesta el envío síncrono/asíncrono hacia SAHI y actualiza el estado de tracking (`ENVIADO` o `ERROR`).
+    * *UI Ecografías:* `lecturaComponent.vue` no cierra el modal si SAHI falla, manteniendo visible el botón de reintento.
+    * *Multi-Host Helper & Reconciliación:* Creado `SahiConnectionHelper` para configurar dinámicamente conexiones por sede y comando `estudios:sahi-reconcile` registrado en `routes/console.php`.
+  - **Verificaciones:** Laravel Pint (`vendor\bin\pint.bat --test`) 100% passed ✅ | ESLint (`npx eslint`) 0 errores ✅ | Compilación Vite exitosa (`npm run build`) en 1.22s ✅ | Suite de pruebas `SahiInteroperabilidadTest` (9 pruebas, 30 aserciones) pasando al 100% ✅.
 - [x] **2026-10-30 — Resolución de TDZ en `configDiagnosticoComponent.vue` y Auditoría Exhaustiva de Módulo Configuración:**
   - **Diagnóstico:** Se reportó en navegador `configDiagnosticoComponent.vue:289 Uncaught ReferenceError: Cannot access 'loadingGuardar' before initialization`. `useKeyboardShortcuts` accedía a `loadingGuardar` en la línea 289 antes de su declaración con `const` en la línea 298.
   - **Solución Implementada:**

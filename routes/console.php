@@ -11,6 +11,10 @@ Schedule::command('ecografias:sahi-reconcile --minutes=10 --limit=200')
     ->everyTenMinutes()
     ->withoutOverlapping();
 
+Schedule::command('estudios:sahi-reconcile --minutes=5 --limit=50')
+    ->everyFiveMinutes()
+    ->withoutOverlapping();
+
 Schedule::command('citas:notificar')
     ->dailyAt('08:00')
     ->withoutOverlapping();

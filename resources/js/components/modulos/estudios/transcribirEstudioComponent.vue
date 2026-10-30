@@ -1040,6 +1040,8 @@ async function guardarRegistro() {
         const payload = {
             estudio_producto_id: registro.value.estudio_producto_id,
             id_estudio: registro.value.id_estudio,
+            atencion: registro.value.atencion ?? null,
+            atencion_id: registro.value.atencion ? parseInt(registro.value.atencion, 10) : null,
             destino_estudio: registro.value.destino_estudio ?? null,
             lectura: registro.value.lectura,
             url_oviyam: registro.value.url_oviyam,

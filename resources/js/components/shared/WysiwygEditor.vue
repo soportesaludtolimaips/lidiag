@@ -38,9 +38,15 @@ function plainToHtml(text) {
 
 /**
  * Convierte HTML del editor a texto plano para el backend/SAHI.
- * Reemplaza <br>, </p><p>, </p>, <p> por saltos de linea \n.
+ * Reemplaza <br>, </p><p>, </p>, <p> por saltos de linea \n,
+ * elimina tags HTML, normaliza &nbsp; y espacios de no separación a espacios regulares,
+ * y decodifica entidades HTML.
+ *
  * @param {string} html - HTML del editor
  * @returns {string} Texto plano con \n
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-10-30
  */
 function htmlToPlain(html) {
     if (!html) return "";
@@ -50,6 +56,14 @@ function htmlToPlain(html) {
         .replace(/<\/p>/gi, "\n")
         .replace(/<p>/gi, "")
         .replace(/<[^>]+>/g, "")
+        .replace(/&nbsp;/gi, " ")
+        .replace(/[\u00A0\u1680\u2000-\u200B\u202F\u205F\u3000]/g, " ")
+        .replace(/&amp;/gi, "&")
+        .replace(/&lt;/gi, "<")
+        .replace(/&gt;/gi, ">")
+        .replace(/&quot;/gi, '"')
+        .replace(/&#39;/gi, "'")
+        .replace(/[ \t]+/g, " ")
         .trim();
 }
 

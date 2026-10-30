@@ -33,6 +33,8 @@ class GuardarTranscripcionRequest extends FormRequest
         return [
             'estudio_producto_id' => 'required|integer|exists:estudios_productos,id',
             'id_estudio' => 'nullable|integer',
+            'atencion_id' => 'sometimes|nullable|integer',
+            'atencion' => 'sometimes|nullable|string|max:50',
             'destino_estudio' => 'nullable|string|max:255',
             'lectura' => 'required|string|min:3',
             'num_docu' => 'required|string|max:50',

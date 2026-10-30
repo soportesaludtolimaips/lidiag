@@ -3,6 +3,7 @@
 namespace App\Services\Estudios;
 
 use App\Helpers\AuditLogger;
+use App\Helpers\SahiConnectionHelper;
 use App\Models\Configuracion\ConfigProducto;
 use App\Models\Configuracion\ConfigSede;
 use App\Models\Estudio\Estudio;
@@ -14,12 +15,14 @@ use App\Models\Liquidacion\LiquidacionLinea;
 use App\Models\User;
 use App\Models\Worklist\WorklistOrden;
 use App\Services\BaseService;
+use App\Services\Interfaces\SAHITranscibirService;
 use App\Services\Liquidacion\LiquidacionService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -32,6 +35,7 @@ class EstudioService extends BaseService
      * @param  EstudioNotificacionService  $estudioNotificacionService  Servicio de notificaciones
      * @param  EstudioLockService  $lockService  Servicio de reservas de lectura/asignación
      * @param  EstudioQueryService  $queryService  Servicio de consultas de estudios
+     * @param  SAHITranscibirService  $sahiTranscibirService  Servicio de transcripción hacia SAHI (SQL Server)
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -42,6 +46,7 @@ class EstudioService extends BaseService
         private readonly EstudioNotificacionService $estudioNotificacionService,
         private readonly EstudioLockService $lockService,
         private readonly EstudioQueryService $queryService,
+        private readonly SAHITranscibirService $sahiTranscibirService,
     ) {}
 
     private const DESTINO_TELE_RADIOLOGIA = 'Tele Radiologia';
@@ -330,6 +335,8 @@ class EstudioService extends BaseService
      *     sexo?: string,
      *     fec_naci?: string,
      *     destino_estudio?: string,
+     *     atencion?: string|int|null,
+     *     atencion_id?: int|null,
      * } $data
      */
     public function guardarTranscripcion(array $data): array
@@ -390,8 +397,54 @@ class EstudioService extends BaseService
                     );
                 }
 
-                return $this->success(null, 'La transcripción se guardó correctamente.');
+                return $this->success([
+                    'producto_id' => $producto->id,
+                    'estudio_id' => $data['id_estudio'] ?? $producto->estudio_id,
+                    'sede_id' => $sede->id,
+                    'interface_software' => $sede->interface_software,
+                    'cod_cups' => $producto->cod_cups,
+                    'lectura' => $producto->lectura,
+                ], 'La transcripción se guardó correctamente.');
             });
+
+            if (! ($result['success'] ?? false)) {
+                return $result;
+            }
+
+            // Sincronización hacia SAHI (SQL Server) si la sede tiene la interfaz habilitada
+            $info = $result['data'] ?? [];
+            if (($info['interface_software'] ?? '') === 'SAHI' && ! empty($info['producto_id'])) {
+                $producto = EstudioProducto::find($info['producto_id']);
+                if ($producto) {
+                    $atencionId = ! empty($data['atencion_id']) ? (int) $data['atencion_id'] : null;
+                    if (! $atencionId && ! empty($data['atencion']) && is_numeric($data['atencion'])) {
+                        $atencionId = (int) $data['atencion'];
+                    }
+                    if (! $atencionId) {
+                        $estudioPadre = ! empty($info['estudio_id']) ? Estudio::find($info['estudio_id']) : $producto->estudio;
+                        if ($estudioPadre && ! empty($estudioPadre->atencion) && is_numeric($estudioPadre->atencion)) {
+                            $atencionId = (int) $estudioPadre->atencion;
+                        }
+                    }
+
+                    if ($atencionId > 0) {
+                        $sedeActual = ! empty($info['sede_id']) ? ConfigSede::find($info['sede_id']) : null;
+                        SahiConnectionHelper::configureForSede($sedeActual);
+
+                        $sahiResult = $this->sahiTranscibirService->enviarEstudio(
+                            $atencionId,
+                            (int) ($data['medico_id'] ?? $producto->estudio?->medico_id),
+                            $info['lectura'] ?? $data['lectura'],
+                            $info['cod_cups'] ?? $producto->cod_cups,
+                            $data['fechor_lectura'] ?? Carbon::now()->format('Y-m-d H:i:s')
+                        );
+
+                        $this->actualizarEstadoSahiProducto($producto, $sahiResult);
+                    } else {
+                        Log::warning("Estudio producto #{$producto->id} pertenece a sede SAHI pero no cuenta con atencion_id asociada para sincronizar.");
+                    }
+                }
+            }
 
             try {
                 $this->estudioNotificacionService->enviarPortalPacientes((object) $data);
@@ -399,7 +452,7 @@ class EstudioService extends BaseService
                 Log::warning('Error al enviar al portal de pacientes: '.$e->getMessage());
             }
 
-            return $result;
+            return $this->success(null, 'La transcripción se guardó correctamente.');
         } catch (\Throwable $e) {
             Log::error('Error al guardar transcripción: '.$e->getMessage());
 
@@ -689,6 +742,49 @@ class EstudioService extends BaseService
         }
 
         return $default;
+    }
+
+    /**
+     * Actualiza el estado de sincronización SAHI en el producto del estudio.
+     *
+     * Flujo del proceso:
+     * 1. Verifica si la tabla estudios_productos cuenta con la columna estado_envio_sahi.
+     * 2. Si el resultado de SAHI fue exitoso, persiste estado ENVIADO y los consecutivos generados.
+     * 3. Si falló, persiste estado ERROR y el mensaje descriptivo del fallo.
+     *
+     * @param  EstudioProducto  $producto  Instancia del producto de estudio
+     * @param  array  $sahiResult  Resultado retornado por SAHITranscibirService
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-30
+     */
+    private function actualizarEstadoSahiProducto(EstudioProducto $producto, array $sahiResult): void
+    {
+        if (! Schema::hasColumn('estudios_productos', 'estado_envio_sahi')) {
+            if (! ($sahiResult['success'] ?? false)) {
+                Log::warning('Sincronización SAHI para estudio #'.$producto->id.' falló: '.($sahiResult['message'] ?? 'Error desconocido'));
+            }
+
+            return;
+        }
+
+        if ($sahiResult['success'] ?? false) {
+            $dataSahi = $sahiResult['data'] ?? [];
+            $producto->update([
+                'estado_envio_sahi' => 'ENVIADO',
+                'fechor_envio_sahi' => Carbon::now(),
+                'sahi_esquema_149' => $dataSahi['conseEsquemaEncavezado'] ?? null,
+                'sahi_esquema_150' => $dataSahi['conseEsquemaEncavezado2'] ?? null,
+                'error_envio_sahi' => null,
+            ]);
+        } else {
+            $producto->update([
+                'estado_envio_sahi' => 'ERROR',
+                'fechor_envio_sahi' => Carbon::now(),
+                'error_envio_sahi' => $sahiResult['message'] ?? 'Error desconocido en SAHI',
+            ]);
+        }
     }
 
     /**
