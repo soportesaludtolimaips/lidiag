@@ -169,6 +169,13 @@
                                         </td>
                                         <td>
                                             <span
+                                                class="badge badge-warning text-dark m-1"
+                                                v-if="!item.roles || item.roles.length === 0"
+                                            >
+                                                <i class="fa fa-exclamation-triangle mr-1"></i> Sin
+                                                rol
+                                            </span>
+                                            <span
                                                 class="badge badge-info m-1"
                                                 v-for="rol in item.roles"
                                                 :key="rol.id"

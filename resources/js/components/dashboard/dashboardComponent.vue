@@ -108,7 +108,10 @@
                                 <small class="text-muted">Resumen en tiempo real</small>
                             </div>
                             <div class="ml-auto">
-                                <small class="text-muted">Rol: {{ rolesusuario }}</small>
+                                <span v-if="!rolesusuario" class="badge badge-warning text-dark">
+                                    <i class="fa fa-exclamation-triangle mr-1"></i> Sin rol asignado
+                                </span>
+                                <small v-else class="text-muted">Rol: {{ rolesusuario }}</small>
                             </div>
                         </div>
                     </div>

@@ -37,6 +37,16 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-31 — Prevención de Error 500 y Alertas de Usuario sin Rol Asignado (`dashboard.blade.php`, `dashboardComponent.vue`, `usuarioComponent.vue`):**
+  - **Diagnóstico:**
+    * Al acceder a `https://lidiag.com/dashboard` desde clientes donde el usuario autenticado no posee ningún rol en la base de datos (por ejemplo usuarios recién sincronizados o creados sin rol), Laravel arrojaba `500 | Server Error`.
+    * Causa raíz: en `resources/views/modulos/dashboard/dashboard.blade.php`, la directiva `rolesusuario="{{ auth()->user()->roles()->first()->name }}"` ejecutaba `->name` sobre `null`, provocando `ErrorException: Attempt to read property "name" on null` en PHP 8+.
+    * Ni el dashboard ni el módulo de usuarios alertaban de forma visible que la cuenta se encontraba sin rol asignado.
+  - **Solución Implementada:**
+    * *Blade Dashboard:* Se reemplazó la lectura por `$user->roles->pluck('name')->first() ?? ''` y se incorporó un banner de alerta Bootstrap visible cuando `auth()->user()->roles->isEmpty()`, informando al usuario y a los administradores que la cuenta no tiene rol y orientándolos a configurarlo en **Seguridad > Usuarios**.
+    * *Vue Dashboard:* En `dashboardComponent.vue`, si `rolesusuario` está vacío se muestra una insignia destacada `Sin rol asignado` en lugar de una etiqueta en blanco.
+    * *Vue Usuarios:* En `usuarioComponent.vue`, la columna de roles de la tabla de usuarios ahora muestra una insignia `Sin rol` con icono de advertencia cuando un usuario no tiene roles asignados, facilitando a los administradores identificar rápidamente cuentas huérfanas.
+  - **Verificaciones:** ESLint 0 errores ✅ | Compilación Vite (`npm run build`) en 1.99s ✅ | Scripts de prueba PHP verificando usuarios sin rol con salida controlada ✅.
 - [x] **2026-10-30 — Migración y Adaptación del Entorno a PHP 8.4 (`composer.json`, `README.md`, `AGENTS.md`, `Laragon PHP 8.4 NTS`):**
   - **Diagnóstico y Necesidad:**
     * El entorno Laragon se actualizó a PHP 8.4 (`php-8.4.12-nts-Win32-vs17-x64`), requiriendo la habilitación de dependencias críticas y la actualización de los requerimientos de Laravel.
