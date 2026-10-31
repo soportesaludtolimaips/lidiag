@@ -187,7 +187,7 @@
                             v-show="!loadingBuscar && registros.length > 0"
                         >
                             <table
-                                id="example23"
+                                id="tablaAsignarEstudio"
                                 ref="dt"
                                 class="table table-bordered table-striped"
                                 cellspacing="0"
@@ -1248,7 +1248,7 @@ const medicoOptions = computed(() => {
  * @date 2026-09-29
  */
 function destroyDataTable() {
-    safeDestroyDataTable(dt.value || "#example23");
+    safeDestroyDataTable(dt.value || "#tablaAsignarEstudio");
 }
 
 /**
@@ -1313,7 +1313,7 @@ async function buscarStudy() {
                 registros.value = Array.isArray(data) ? data : [];
                 nextTick(() => {
                     destroyDataTable();
-                    safeInitDataTable(dt.value || "#example23", {
+                    safeInitDataTable(dt.value || "#tablaAsignarEstudio", {
                         dom: "Bfrtip",
                         buttons: ["copy", "csv", "excel", "pdf", "print"],
                     });
@@ -1451,7 +1451,7 @@ async function guardarRegistro() {
                         const rowEl = document.getElementById(String(studyPk));
                         if (rowEl) {
                             rowEl.classList.add("text-info");
-                            const dtInstance = safeGetDataTable(dt.value || "#example23");
+                            const dtInstance = safeGetDataTable(dt.value || "#tablaAsignarEstudio");
                             if (dtInstance) {
                                 try {
                                     const dtRow = dtInstance.row(rowEl);
@@ -2411,9 +2411,7 @@ onBeforeUnmount(() => {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(15, 23, 42, 0.45);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
+    background: rgba(0, 0, 0, 0.5);
     z-index: 1090;
     cursor: pointer;
 }

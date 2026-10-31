@@ -185,7 +185,7 @@
                             v-show="!loadingBuscar && registros.length > 0"
                         >
                             <table
-                                id="example23"
+                                id="tablaAdmisionPacientes"
                                 ref="dt"
                                 class="table table-bordered table-striped"
                                 cellspacing="0"
@@ -708,7 +708,7 @@ const worklistForm = ref({
 });
 
 function destroyDataTable() {
-    safeDestroyDataTable(dt.value || "#example23");
+    safeDestroyDataTable(dt.value || "#tablaAdmisionPacientes");
 }
 
 function resolverNombreSede() {
@@ -783,7 +783,7 @@ async function buscar() {
 
         nextTick(() => {
             destroyDataTable();
-            safeInitDataTable(dt.value || "#example23", {
+            safeInitDataTable(dt.value || "#tablaAdmisionPacientes", {
                 dom: "Bfrtip",
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
                 pageLength: 10,

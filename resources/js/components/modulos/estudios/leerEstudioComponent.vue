@@ -210,7 +210,7 @@
                     />
                     <div class="table-responsive" v-show="tablaVisible && registros.length > 0">
                         <table
-                            id="example23"
+                            id="tablaLeerEstudios"
                             ref="dt"
                             class="table table-bordered table-striped"
                             cellspacing="0"
@@ -1219,7 +1219,7 @@
                                                 </div>
                                                 <table
                                                     v-else
-                                                    id="example23-1"
+                                                    id="tablaLeerEstudiosPrevios"
                                                     class="table table-bordered table-striped"
                                                     cellspacing="0"
                                                     width="100%"
@@ -1545,7 +1545,7 @@ function applyDashboardPrefill() {
  * @date 2026-09-29
  */
 function initDataTable() {
-    safeInitDataTable(dt.value || "#example23", {
+    safeInitDataTable(dt.value || "#tablaLeerEstudios", {
         dom: "Bfrtip",
         buttons: ["copy", "csv", "excel", "pdf", "print"],
         retrieve: true,
@@ -1564,10 +1564,10 @@ function initDataTable() {
     });
 }
 function destroyDataTable() {
-    safeDestroyDataTable("#example23");
+    safeDestroyDataTable(dt.value || "#tablaLeerEstudios");
 }
 function destroyDataTableHistorial() {
-    safeDestroyDataTable("#example23-1");
+    safeDestroyDataTable("#tablaLeerEstudiosPrevios");
 }
 
 function handleAudioFileSelect(event) {
@@ -1860,7 +1860,7 @@ async function listar_historial_estudios(num_docu) {
 
             nextTick(() => {
                 destroyDataTableHistorial();
-                safeInitDataTable("#example23-1", {
+                safeInitDataTable("#tablaLeerEstudiosPrevios", {
                     dom: "Bfrtip",
                     buttons: ["copy", "csv", "excel", "pdf", "print"],
                 });
@@ -2327,9 +2327,7 @@ onBeforeUnmount(() => {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(15, 23, 42, 0.45);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
+    background: rgba(0, 0, 0, 0.5);
     z-index: 1090;
     cursor: pointer;
 }

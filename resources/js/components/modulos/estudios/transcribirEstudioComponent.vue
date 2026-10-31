@@ -206,7 +206,7 @@
                             v-show="!loadingBuscar && registros.length > 0"
                         >
                             <table
-                                id="example23"
+                                id="tablaTranscribirEstudio"
                                 ref="dt"
                                 class="table table-bordered table-striped"
                                 cellspacing="0"
@@ -927,7 +927,7 @@ function applyDashboardPrefill() {
 }
 
 function destroyDataTable() {
-    safeDestroyDataTable(dt.value || "#example23");
+    safeDestroyDataTable(dt.value || "#tablaTranscribirEstudio");
 }
 
 function btnLimpiar() {
@@ -975,7 +975,7 @@ async function listarPendientesTrascribir() {
 
             nextTick(() => {
                 if (registros.value.length > 0) {
-                    safeInitDataTable(dt.value || "#example23", {
+                    safeInitDataTable(dt.value || "#tablaTranscribirEstudio", {
                         dom: "Bfrtip",
                         buttons: ["copy", "csv", "excel", "pdf", "print"],
                     });
@@ -1085,7 +1085,7 @@ async function guardarRegistro() {
                         registros.value.splice(estudioEliminar, 1);
                         nextTick(() => {
                             if (registros.value.length > 0) {
-                                safeInitDataTable(dt.value || "#example23", {
+                                safeInitDataTable(dt.value || "#tablaTranscribirEstudio", {
                                     dom: "Bfrtip",
                                     buttons: ["copy", "csv", "excel", "pdf", "print"],
                                 });
@@ -1164,7 +1164,7 @@ async function anularAsignacion(idProductoEstudio, paciente, producto) {
                 registros.value.splice(idx, 1);
                 nextTick(() => {
                     if (registros.value.length > 0) {
-                        safeInitDataTable(dt.value || "#example23", {
+                        safeInitDataTable(dt.value || "#tablaTranscribirEstudio", {
                             dom: "Bfrtip",
                             buttons: ["copy", "csv", "excel", "pdf", "print"],
                         });
@@ -1417,9 +1417,7 @@ onBeforeUnmount(() => {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(15, 23, 42, 0.45);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
+    background: rgba(0, 0, 0, 0.5);
     z-index: 1090;
     cursor: pointer;
 }

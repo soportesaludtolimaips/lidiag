@@ -4,8 +4,23 @@
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Helpdesk</h3>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="#">Inicio</a></li>
-                    <li class="breadcrumb-item"><a href="/helpdesk-tickets">Tickets</a></li>
+                    <li class="breadcrumb-item">
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a
+                            href="/helpdesk-tickets"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Tickets
+                        </a>
+                    </li>
                     <li class="breadcrumb-item active">Crear</li>
                 </ol>
             </div>
@@ -125,24 +140,22 @@
                                 <div class="form-actions mt-3">
                                     <button
                                         type="submit"
-                                        class="btn btn-success btn-action-clinical m-r-5"
+                                        class="btn btn-success m-r-5"
                                         :disabled="loading"
-                                        title="Guardar ticket (Ctrl + S)"
+                                        title="Guardar ticket"
                                     >
                                         <i v-if="loading" class="fa fa-spinner fa-spin"></i>
                                         <i v-else class="fa fa-check"></i>
                                         Guardar
-                                        <span class="badge badge-light border ml-1">Ctrl+S</span>
                                     </button>
                                     <a
                                         href="/helpdesk-tickets"
-                                        class="btn btn-inverse btn-action-clinical"
+                                        class="btn btn-inverse"
                                         :class="{ disabled: loading }"
                                         tabindex="0"
-                                        title="Cancelar y volver (Esc)"
+                                        title="Cancelar y volver"
                                     >
                                         Cancelar
-                                        <span class="badge badge-secondary ml-1">Esc</span>
                                     </a>
                                 </div>
                             </div>
@@ -319,19 +332,3 @@ onMounted(async () => {
     await cargar();
 });
 </script>
-
-<style scoped>
-.btn-action-clinical {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease-in-out;
-}
-
-.btn-action-clinical:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow:
-        0 4px 6px -1px rgba(0, 0, 0, 0.1),
-        0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-</style>

@@ -6,10 +6,13 @@
                 <h3 class="text-themecolor">Reportes</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
-                    </li>
-                    <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Reportes</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Producción</li>
                 </ol>

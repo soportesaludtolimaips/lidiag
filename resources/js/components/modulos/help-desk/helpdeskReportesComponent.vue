@@ -4,23 +4,31 @@
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Helpdesk</h3>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="#">Inicio</a></li>
+                    <li class="breadcrumb-item">
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
+                    </li>
                     <li class="breadcrumb-item active">Reportes</li>
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
-                    class="btn btn-success btn-sm m-r-5 btn-action-clinical"
+                    class="btn btn-success btn-sm m-r-5"
                     type="button"
                     :disabled="loading"
-                    title="Consultar reporte (F2)"
+                    title="Consultar reporte"
                     @click="buscar()"
                 >
                     <i class="fa mr-1" :class="loading ? 'fa-spinner fa-spin' : 'fa-search'"></i>
-                    Consultar <span class="badge badge-light border ml-1">F2</span>
+                    Consultar
                 </button>
                 <button
-                    class="btn btn-info btn-sm m-r-5 btn-action-clinical"
+                    class="btn btn-info btn-sm m-r-5"
                     type="button"
                     :disabled="!canExport"
                     @click="exportExcel()"
@@ -28,7 +36,7 @@
                     <i class="fa fa-file-excel-o mr-1"></i> Excel
                 </button>
                 <button
-                    class="btn btn-danger btn-sm btn-action-clinical"
+                    class="btn btn-danger btn-sm"
                     type="button"
                     :disabled="!canExport"
                     @click="exportPdf()"
@@ -139,14 +147,13 @@
                             </div>
                             <div class="col-md-3 d-flex align-items-end">
                                 <button
-                                    class="btn btn-inverse btn-sm btn-action-clinical"
+                                    class="btn btn-inverse btn-sm"
                                     type="button"
                                     :disabled="loading"
-                                    title="Limpiar filtros (Esc)"
+                                    title="Limpiar filtros"
                                     @click="limpiar()"
                                 >
                                     <i class="fa fa-eraser mr-1"></i> Limpiar
-                                    <span class="badge badge-secondary ml-1">Esc</span>
                                 </button>
                             </div>
                         </div>
@@ -318,14 +325,15 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Detalle (últimos {{ limit }} registros)</h4>
-                        <div v-if="loading" class="text-center p-5">
-                            <i class="fa fa-spinner fa-spin fa-3x"></i>
-                            <p class="m-t-10">Cargando reporte...</p>
+                        <table-skeleton-loader v-if="loading" :rows="8" :columns="12" />
+                        <div v-else-if="!detallado.length" class="m-t-20">
+                            <empty-state-component
+                                title="No se encontraron registros"
+                                description="No hay registros detallados para los filtros seleccionados."
+                                icon="fa-bar-chart"
+                            />
                         </div>
-                        <div v-else-if="!detallado.length" class="text-center p-5 text-muted">
-                            No se encontraron registros para los filtros seleccionados.
-                        </div>
-                        <div v-else class="table-responsive">
+                        <div v-else class="table-responsive m-t-20">
                             <table
                                 id="helpdeskReportesDetallado"
                                 ref="dt"
@@ -581,19 +589,3 @@ onBeforeUnmount(() => {
     safeDestroyDataTable(dt.value || "#helpdeskReportesDetallado");
 });
 </script>
-
-<style scoped>
-.btn-action-clinical {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease-in-out;
-}
-
-.btn-action-clinical:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow:
-        0 4px 6px -1px rgba(0, 0, 0, 0.1),
-        0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-</style>

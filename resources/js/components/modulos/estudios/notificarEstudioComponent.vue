@@ -182,7 +182,7 @@
                             v-show="!loadingBuscar && registros.length > 0"
                         >
                             <table
-                                id="example23"
+                                id="tablaNotificarEstudio"
                                 ref="dt"
                                 class="table table-bordered table-striped"
                                 cellspacing="0"
@@ -385,19 +385,14 @@
                             <div class="form-actions mt-3">
                                 <button
                                     type="button"
-                                    class="btn btn-success m-r-5 btn-action-clinical"
+                                    class="btn btn-success m-r-5"
                                     @click="notificar()"
                                     :disabled="loadingNotificar"
-                                    title="Notificar por email (Ctrl + S)"
+                                    title="Notificar por email"
                                 >
                                     <i v-if="loadingNotificar" class="fa fa-spinner fa-spin"></i>
                                     <i v-else class="fa fa-envelope-o"></i>
                                     Notificar
-                                    <span
-                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                                        style="font-size: 10px"
-                                        >Ctrl+S</span
-                                    >
                                 </button>
 
                                 <button
@@ -500,7 +495,7 @@ const contadorRegistros = computed(() => {
 });
 
 function initDataTable() {
-    safeInitDataTable(dt.value || "#example23", {
+    safeInitDataTable(dt.value || "#tablaNotificarEstudio", {
         dom: "Bfrtip",
         buttons: ["copy", "csv", "excel", "pdf", "print"],
         retrieve: true,
@@ -508,7 +503,7 @@ function initDataTable() {
 }
 
 function destroyDataTable() {
-    safeDestroyDataTable(dt.value || "#example23");
+    safeDestroyDataTable(dt.value || "#tablaNotificarEstudio");
 }
 function btnLimpiar() {
     limpiarFiltrosStorage();
@@ -844,9 +839,7 @@ onBeforeUnmount(() => {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(15, 23, 42, 0.45);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
+    background: rgba(0, 0, 0, 0.5);
     z-index: 1090;
     cursor: pointer;
 }

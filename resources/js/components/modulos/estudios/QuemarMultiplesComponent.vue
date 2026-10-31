@@ -1,6 +1,6 @@
 <template>
     <div class="quemar-multiples">
-        <loading-spinner :visible="loading" />
+        <table-skeleton-loader v-if="loading" :rows="4" :columns="2" />
 
         <div v-if="!loading">
             <!-- Lista de estudios -->
@@ -316,7 +316,6 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import draggable from "vuedraggable";
-import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { confirmAction, toastMessage } from "@/helpers/alerts.js";
 import axios from "axios";
 

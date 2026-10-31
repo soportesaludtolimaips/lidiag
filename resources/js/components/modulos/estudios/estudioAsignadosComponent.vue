@@ -239,7 +239,7 @@
                             class="table-responsive"
                         >
                             <table
-                                id="example23"
+                                id="tablaEstudiosAsignados"
                                 ref="dt"
                                 class="table table-bordered table-striped"
                                 cellspacing="0"
@@ -1087,14 +1087,14 @@ const contadorRegistros = computed(() => {
 
 function initDataTable() {
     if (registros.value.length === 0) return;
-    safeInitDataTable(dt.value || "#example23", {
+    safeInitDataTable(dt.value || "#tablaEstudiosAsignados", {
         dom: "Bfrtip",
         buttons: ["copy", "csv", "excel", "pdf", "print"],
         retrieve: true,
     });
 }
 function destroyDataTable() {
-    safeDestroyDataTable(dt.value || "#example23");
+    safeDestroyDataTable(dt.value || "#tablaEstudiosAsignados");
 }
 
 function formatDuracion(segundos) {

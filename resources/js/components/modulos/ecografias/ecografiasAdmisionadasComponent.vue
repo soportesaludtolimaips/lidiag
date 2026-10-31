@@ -384,12 +384,7 @@
         role="dialog"
         aria-labelledby="myModalLabel"
         aria-hidden="true"
-        style="
-            display: block;
-            background: rgba(15, 23, 42, 0.45);
-            backdrop-filter: blur(2px);
-            -webkit-backdrop-filter: blur(2px);
-        "
+        style="display: block; background: rgba(0, 0, 0, 0.5)"
         @click.self="cerrarModalAnular()"
     >
         <div class="modal-dialog">
@@ -564,7 +559,7 @@ function btnLimpiar() {
     limpiarFiltrosStorage();
     erroresBusqueda.value = {};
 
-    safeDestroyDataTable(dt.value || "#example23");
+    safeDestroyDataTable(dt.value || "#tablaEcografiasAdmisionadas");
     registros.value = [];
 }
 /**

@@ -1,6 +1,6 @@
 <template>
     <div class="quemador-cd">
-        <loading-spinner :visible="loading" />
+        <table-skeleton-loader v-if="loading" :rows="4" :columns="2" />
 
         <div v-if="!loading">
             <!-- Datos del estudio y paciente -->
@@ -175,7 +175,6 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
-import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { confirmAction, toastMessage } from "@/helpers/alerts.js";
 import axios from "axios";
 

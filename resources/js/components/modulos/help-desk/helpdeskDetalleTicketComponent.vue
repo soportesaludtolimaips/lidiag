@@ -4,29 +4,35 @@
             <div class="col-md-7 align-self-center">
                 <h3 class="text-themecolor">Helpdesk</h3>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="/helpdesk-tickets">Tickets</a></li>
+                    <li class="breadcrumb-item">
+                        <a
+                            href="/helpdesk-tickets"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Tickets
+                        </a>
+                    </li>
                     <li class="breadcrumb-item active">{{ ticket?.folio || "#" + ticketId }}</li>
                 </ol>
             </div>
             <div class="col-md-5 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-sm btn-outline-secondary btn-action-clinical m-r-5"
+                    class="btn btn-sm btn-outline-secondary m-r-5"
                     :disabled="loading"
-                    title="Actualizar datos del ticket (F2)"
+                    title="Actualizar datos del ticket"
                     @click="cargar()"
                 >
                     <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loading }"></i>
-                    Refrescar <span class="badge badge-light border ml-1">F2</span>
+                    Refrescar
                 </button>
                 <a
                     href="/helpdesk-tickets"
-                    class="btn btn-inverse btn-sm btn-action-clinical"
+                    class="btn btn-inverse btn-sm"
                     tabindex="0"
-                    title="Volver al listado de tickets (Esc)"
+                    title="Volver al listado de tickets"
                 >
                     <i class="fa fa-arrow-left"></i> Volver
-                    <span class="badge badge-secondary ml-1">Esc</span>
                 </a>
             </div>
         </div>
@@ -34,7 +40,9 @@
         <div class="row" v-if="loading">
             <div class="col-12">
                 <div class="card">
-                    <div class="card-body"><i class="fa fa-spinner fa-spin"></i> Cargando...</div>
+                    <div class="card-body">
+                        <table-skeleton-loader :rows="4" :columns="2" />
+                    </div>
                 </div>
             </div>
         </div>
@@ -116,7 +124,7 @@
                             <WysiwygEditor v-model="accion.descripcion_solucion" :rows="4" />
                         </div>
                         <button
-                            class="btn btn-info btn-sm btn-action-clinical"
+                            class="btn btn-info btn-sm"
                             type="button"
                             :disabled="savingEstado"
                             @click="cambiarEstado()"
@@ -151,7 +159,7 @@
                             ></textarea>
                         </div>
                         <button
-                            class="btn btn-warning btn-sm btn-action-clinical"
+                            class="btn btn-warning btn-sm"
                             type="button"
                             :disabled="savingReasignar"
                             @click="reasignar()"
@@ -184,16 +192,15 @@
                         <h4 class="card-title">Agregar comentario</h4>
                         <WysiwygEditor v-model="nuevoComentario" :rows="4" />
                         <button
-                            class="btn btn-success btn-sm m-t-10 btn-action-clinical"
+                            class="btn btn-success btn-sm m-t-10"
                             type="button"
                             :disabled="savingComentario"
-                            title="Enviar comentario (Ctrl+S)"
+                            title="Enviar comentario"
                             @click="comentar()"
                         >
                             <i v-if="savingComentario" class="fa fa-spinner fa-spin"></i>
                             <i v-else class="fa fa-comment"></i>
                             Enviar comentario
-                            <span class="badge badge-light border ml-1">Ctrl+S</span>
                         </button>
                     </div>
                 </div>
@@ -210,7 +217,7 @@
                             accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
                         />
                         <button
-                            class="btn btn-secondary btn-sm m-t-10 btn-action-clinical"
+                            class="btn btn-secondary btn-sm m-t-10"
                             type="button"
                             :disabled="savingAdjuntos"
                             @click="subirAdjuntos()"
@@ -509,18 +516,3 @@ useKeyboardShortcuts({
     },
 });
 </script>
-
-<style scoped>
-.btn-action-clinical {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.btn-action-clinical:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow:
-        0 4px 6px -1px rgba(0, 0, 0, 0.1),
-        0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-</style>

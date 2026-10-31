@@ -4,22 +4,30 @@
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Helpdesk</h3>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="#">Inicio</a></li>
+                    <li class="breadcrumb-item">
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
+                    </li>
                     <li class="breadcrumb-item active">Tickets</li>
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-sm btn-outline-secondary m-r-5 btn-action-clinical"
+                    class="btn btn-sm btn-outline-secondary m-r-5"
                     :disabled="loading"
-                    title="Actualizar listado de tickets (F2)"
+                    title="Actualizar listado de tickets"
                     @click="buscar()"
                 >
                     <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loading }"></i>
-                    Refrescar <span class="badge badge-light border ml-1">F2</span>
+                    Refrescar
                 </button>
-                <a href="/helpdesk-tickets/crear" class="btn btn-info btn-sm btn-action-clinical">
+                <a href="/helpdesk-tickets/crear" class="btn btn-info btn-sm">
                     <i class="fa fa-plus"></i> Crear ticket
                 </a>
             </div>
@@ -166,7 +174,7 @@
 
                             <div class="col-md-5 d-flex align-items-end">
                                 <button
-                                    class="btn btn-success m-r-5 btn-action-clinical"
+                                    class="btn btn-success m-r-5"
                                     type="button"
                                     :disabled="loading"
                                     @click="buscar()"
@@ -174,10 +182,9 @@
                                     <i v-if="loading" class="fa fa-spinner fa-spin"></i>
                                     <i v-else class="fa fa-search"></i>
                                     Buscar
-                                    <span class="badge badge-light border ml-1">F2</span>
                                 </button>
                                 <button
-                                    class="btn btn-inverse btn-action-clinical"
+                                    class="btn btn-inverse"
                                     type="button"
                                     :disabled="loading"
                                     @click="limpiar()"
@@ -200,11 +207,15 @@
                             Orden por defecto: Prioridad (Alta→Baja) y luego fecha.
                         </h6>
 
-                        <div v-if="loading" class="text-center p-5">
-                            <i class="fa fa-spinner fa-spin fa-3x"></i>
-                            <p class="m-t-10">Cargando tickets...</p>
+                        <table-skeleton-loader v-if="loading" :rows="8" :columns="11" />
+                        <div v-else-if="!tickets.length" class="m-t-20">
+                            <empty-state-component
+                                title="No se encontraron tickets"
+                                description="No hay tickets registrados para los filtros seleccionados."
+                                icon="fa-ticket"
+                            />
                         </div>
-                        <div v-else class="table-responsive">
+                        <div v-else class="table-responsive m-t-20">
                             <table
                                 id="helpdeskTicketsTable"
                                 ref="dt"
@@ -231,11 +242,6 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-if="!tickets.length">
-                                        <td colspan="11" class="text-center text-muted">
-                                            No se encontraron tickets.
-                                        </td>
-                                    </tr>
                                     <tr
                                         v-for="t in tickets"
                                         :key="t.id"
@@ -443,19 +449,3 @@ onBeforeUnmount(() => {
     destroyDataTable();
 });
 </script>
-
-<style scoped>
-.btn-action-clinical {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease-in-out;
-}
-
-.btn-action-clinical:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow:
-        0 4px 6px -1px rgba(0, 0, 0, 0.1),
-        0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-</style>

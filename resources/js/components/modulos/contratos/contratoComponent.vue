@@ -3,9 +3,17 @@
         <!-- BREADCRUMB -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
-                <h3 class="text-themecolor">Contrataci&oacute;n</h3>
+                <h3 class="text-themecolor">Contratación</h3>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
+                    <li class="breadcrumb-item">
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
+                    </li>
                     <li class="breadcrumb-item active">Contratos</li>
                 </ol>
             </div>
@@ -29,12 +37,18 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Listado de contratos</h4>
-                        <h6 class="card-subtitle">
-                            Gesti&oacute;n de contrataci&oacute;n por sedes.
-                        </h6>
-                        <div class="table-responsive m-t-40">
+                        <h6 class="card-subtitle">Gestión de contratación por sedes.</h6>
+                        <table-skeleton-loader v-if="loadingListar" :rows="5" :columns="6" />
+                        <div v-else-if="registros.length === 0" class="m-t-20">
+                            <empty-state-component
+                                title="No hay contratos registrados"
+                                description="No se encontraron contratos para la sede seleccionada."
+                                icon="fa-file-text-o"
+                            />
+                        </div>
+                        <div v-else class="table-responsive m-t-40">
                             <table
-                                id="example23"
+                                id="tablaContratos"
                                 ref="dt"
                                 class="display nowrap table table-hover table-striped table-bordered"
                                 cellspacing="0"
@@ -722,11 +736,11 @@ async function listar() {
     if (loadingListar.value) return;
     loadingListar.value = true;
     try {
-        safeDestroyDataTable(dt.value || "#example23");
+        safeDestroyDataTable(dt.value || "#tablaContratos");
         const res = await axios.get("/api/contratos");
         registros.value = res.data.data.data || [];
         await nextTick();
-        safeInitDataTable(dt.value || "#example23", {
+        safeInitDataTable(dt.value || "#tablaContratos", {
             dom: "Bfrtip",
             buttons: ["copy", "csv", "excel", "pdf", "print"],
         });
@@ -1340,7 +1354,7 @@ onMounted(() => {
  * @date 2026-08-20
  */
 onBeforeUnmount(() => {
-    safeDestroyDataTable(dt.value || "#example23");
+    safeDestroyDataTable(dt.value || "#tablaContratos");
 });
 </script>
 <style scoped>
@@ -1371,5 +1385,16 @@ onBeforeUnmount(() => {
     overflow-x: hidden;
     overflow-y: scroll;
     height: 100%;
+}
+
+@media (max-width: 767px) {
+    .right-sidebar {
+        width: 100% !important;
+        right: -100%;
+    }
+    .shw-rside {
+        right: 0px !important;
+        width: 100% !important;
+    }
 }
 </style>

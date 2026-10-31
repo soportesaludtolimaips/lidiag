@@ -39,9 +39,11 @@
             </div>
         </div>
 
-        <loading-spinner :visible="loading" />
+        <div v-if="loading" class="m-t-20">
+            <table-skeleton-loader :rows="6" :columns="4" />
+        </div>
 
-        <div :class="{ 'd-none': loading }">
+        <div v-else>
             <div class="row">
                 <div class="col-md-3" v-for="stat in stats" :key="stat.label">
                     <div class="card" :class="stat.cardClass">
@@ -195,7 +197,6 @@
  */
 import { getCurrentInstance, onBeforeUnmount, onMounted, ref } from "vue";
 
-import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { formatFecha, getEstadoLabel, getEstadoClase } from "@/composables/useCitasUtils.js";
 import axios from "axios";
 

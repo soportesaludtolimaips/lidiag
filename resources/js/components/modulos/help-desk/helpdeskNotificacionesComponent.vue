@@ -4,23 +4,30 @@
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Helpdesk</h3>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="/helpdesk-tickets">Tickets</a></li>
+                    <li class="breadcrumb-item">
+                        <a
+                            href="/helpdesk-tickets"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Tickets
+                        </a>
+                    </li>
                     <li class="breadcrumb-item active">Notificaciones</li>
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right">
                 <button
                     type="button"
-                    class="btn btn-sm btn-outline-secondary btn-action-clinical m-r-5"
+                    class="btn btn-sm btn-outline-secondary m-r-5"
                     :disabled="loading"
-                    title="Actualizar notificaciones (F2)"
+                    title="Actualizar notificaciones"
                     @click="cargar()"
                 >
                     <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loading }"></i>
-                    Refrescar <span class="badge badge-light border ml-1">F2</span>
+                    Refrescar
                 </button>
                 <button
-                    class="btn btn-info btn-sm btn-action-clinical"
+                    class="btn btn-info btn-sm"
                     type="button"
                     :disabled="loading"
                     title="Marcar todas como leídas"
@@ -30,11 +37,10 @@
                 </button>
                 <a
                     href="/helpdesk-tickets"
-                    class="btn btn-inverse btn-sm btn-action-clinical m-l-5"
-                    title="Volver a tickets (Esc)"
+                    class="btn btn-inverse btn-sm m-l-5"
+                    title="Volver a tickets"
                 >
                     <i class="fa fa-arrow-left mr-1"></i> Volver
-                    <span class="badge badge-secondary ml-1">Esc</span>
                 </a>
             </div>
         </div>
@@ -56,11 +62,15 @@
                             </label>
                         </div>
 
-                        <div v-if="loading"><i class="fa fa-spinner fa-spin"></i> Cargando...</div>
+                        <table-skeleton-loader v-if="loading" :rows="4" :columns="3" />
 
                         <div v-else>
-                            <div v-if="items.length === 0" class="text-muted">
-                                Sin notificaciones.
+                            <div v-if="items.length === 0" class="m-t-20">
+                                <empty-state-component
+                                    title="Sin notificaciones"
+                                    description="No hay notificaciones pendientes o recibidas."
+                                    icon="fa-bell-slash"
+                                />
                             </div>
                             <template v-else>
                                 <div
@@ -226,18 +236,3 @@ useKeyboardShortcuts({
     },
 });
 </script>
-
-<style scoped>
-.btn-action-clinical {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.btn-action-clinical:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow:
-        0 4px 6px -1px rgba(0, 0, 0, 0.1),
-        0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-</style>

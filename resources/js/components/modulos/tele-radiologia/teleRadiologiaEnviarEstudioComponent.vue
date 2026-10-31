@@ -6,12 +6,24 @@
                 <h3 class="text-themecolor">Estudios</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Estudios</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Estudios
+                        </button>
                     </li>
-                    <li class="breadcrumb-item active">Tele radiologia</li>
+                    <li class="breadcrumb-item active">Tele radiología</li>
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
@@ -19,11 +31,11 @@
                     type="button"
                     class="btn btn-sm btn-outline-secondary"
                     :disabled="loadingBuscar"
-                    title="Actualizar listado de estudios (F2)"
+                    title="Actualizar listado de estudios"
                     @click="buscarStudy()"
                 >
                     <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loadingBuscar }"></i>
-                    Refrescar <span class="badge badge-light border ml-1">F2</span>
+                    Refrescar
                 </button>
             </div>
         </div>
@@ -84,18 +96,17 @@
                                 <div class="form-actions mt-3">
                                     <button
                                         type="button"
-                                        class="btn btn-success m-r-5 btn-action-clinical"
+                                        class="btn btn-success m-r-5"
                                         @click="buscarStudy()"
                                         :disabled="loadingBuscar"
                                     >
                                         <i v-if="loadingBuscar" class="fa fa-spinner fa-spin"></i>
                                         <i v-else class="fa fa-search"></i> Buscar
-                                        <span class="badge badge-light border ml-1">F2</span>
                                     </button>
 
                                     <button
                                         type="button"
-                                        class="btn btn-outline-primary m-r-5 btn-action-clinical"
+                                        class="btn btn-outline-primary m-r-5"
                                         @click="buscarStudy()"
                                         :disabled="loadingBuscar"
                                     >
@@ -108,7 +119,7 @@
 
                                     <button
                                         type="button"
-                                        class="btn btn-inverse btn-action-clinical"
+                                        class="btn btn-inverse"
                                         @click="btnLimpiar()"
                                     >
                                         <i class="fa fa-eraser"></i> Limpiar
@@ -130,16 +141,17 @@
                         <h6 class="card-subtitle text-info">
                             Asigne los estudios a los médicos para su respectiva lectura.
                         </h6>
-                        <div
-                            v-if="registros.length === 0 && !loadingBuscar"
-                            class="text-center py-4 text-muted"
-                        >
-                            <i class="fa fa-search fa-3x mb-3"></i>
-                            <p>No hay estudios para mostrar. Use los filtros para buscar.</p>
+                        <table-skeleton-loader v-if="loadingBuscar" :rows="6" :columns="6" />
+                        <div v-else-if="registros.length === 0" class="m-t-20">
+                            <empty-state-component
+                                title="No hay estudios para mostrar"
+                                description="No se encontraron estudios con los filtros seleccionados. Use los filtros para buscar."
+                                icon="fa-search"
+                            />
                         </div>
-                        <div v-else class="table-responsive">
+                        <div v-else class="table-responsive m-t-20">
                             <table
-                                id="example23"
+                                id="tablaTeleRadiologiaEnviar"
                                 ref="dt"
                                 class="table table-bordered table-striped"
                                 cellspacing="0"
@@ -567,24 +579,22 @@
                             <div class="form-actions mt-3">
                                 <button
                                     type="button"
-                                    class="btn btn-success m-r-5 btn-action-clinical"
+                                    class="btn btn-success m-r-5"
                                     @click="guardarRegistro()"
                                     :disabled="loadingGuardar"
-                                    title="Guardar orden (Ctrl + S)"
+                                    title="Guardar orden"
                                 >
                                     <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
                                     <i v-else class="fa fa-check"></i> Guardar
-                                    <span class="badge badge-light border ml-1">Ctrl+S</span>
                                 </button>
 
                                 <button
                                     type="button"
-                                    class="btn btn-inverse btn-action-clinical"
+                                    class="btn btn-inverse"
                                     @click="btnCerrarModal()"
-                                    title="Cerrar panel (Esc)"
+                                    title="Cerrar panel"
                                 >
                                     Cancelar
-                                    <span class="badge badge-secondary ml-1">Esc</span>
                                 </button>
                             </div>
                         </div>
@@ -718,7 +728,7 @@ const productoOptions = computed(() => {
 });
 
 function initDataTable() {
-    safeInitDataTable(dt.value || "#example23", {
+    safeInitDataTable(dt.value || "#tablaTeleRadiologiaEnviar", {
         dom: "Bfrtip",
         buttons: ["copy", "csv", "excel", "pdf", "print"],
         retrieve: true,
@@ -726,7 +736,7 @@ function initDataTable() {
 }
 
 function destroyDataTable() {
-    safeDestroyDataTable(dt.value || "#example23");
+    safeDestroyDataTable(dt.value || "#tablaTeleRadiologiaEnviar");
 }
 
 async function buscarStudy() {
@@ -1294,24 +1304,8 @@ onBeforeUnmount(() => {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(15, 23, 42, 0.45);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
+    background: rgba(0, 0, 0, 0.5);
     z-index: 1050;
-}
-
-.btn-action-clinical {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease-in-out;
-}
-
-.btn-action-clinical:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow:
-        0 4px 6px -1px rgba(0, 0, 0, 0.1),
-        0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .fade-enter-active,

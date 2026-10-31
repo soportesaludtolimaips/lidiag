@@ -1638,7 +1638,7 @@ async function consultarEstadoSahi(silent = false) {
 
 /**
  * Destruye de manera segura un DataTable en el selector dado, si existe y está inicializado.
- * @param {string} selector - Selector del DataTable a destruir (por defecto: "#example23").
+ * @param {string} selector - Selector del DataTable a destruir (por defecto: "#tablaEcografiasLectura").
  * @author Jhon Javer Lozano Arce
  * @date 2024-06-10
  */

@@ -37,6 +37,25 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-10-31 — Estandarización Integral UI/UX AdminWrap / Bootstrap 4 en Módulos Restantes (`help-desk`, `tele-radiologia`, `contratos`, `pacientes`, `reportes`, `estudios`, `ecografias`, `citas`):**
+  - **Diagnóstico y Necesidad:**
+    * Múltiples componentes en los módulos de `help-desk` (5 componentes), `tele-radiologia` (2 componentes), `contratos` (1 componente), `pacientes` (1 componente), `reportes` (1 componente), `estudios` (7 componentes) y `ecografias` presentaban inconsistencias visuales y de accesibilidad frente a los estándares AdminWrap / Bootstrap 4 de LIDiag:
+    * Uso de spinners rudimentarios o componentes obsoletos (`<loading-spinner>`, `<i class="fa fa-spinner">`).
+    * Presencia de IDs genéricos `#example23` y `#example23-1` en DataTables que provocaban colisiones o fallas en `safeDestroyDataTable`.
+    * Clases CSS ajenas como `.btn-action-clinical`, badges de atajos de teclado embebidos (`F2`, `Ctrl+S`, `Esc`), e overlays con `backdrop-filter: blur(2px)`.
+    * Migas de pan (breadcrumbs) con elementos `<a>` no semánticos en lugar de `<button type="button" class="btn btn-link p-0"...>`.
+  - **Solución Implementada:**
+    * *HelpDesk:* Se actualizaron los 5 componentes (`helpdeskTicketsComponent.vue`, `helpdeskCrearTicketComponent.vue`, `helpdeskDetalleTicketComponent.vue`, `helpdeskNotificacionesComponent.vue`, `helpdeskReportesComponent.vue`) incorporando `<table-skeleton-loader>` y `<empty-state-component>`, retirando `.btn-action-clinical`, normalizando botones y migas de pan.
+    * *Tele-Radiología:* En `teleRadiologiaEnviarEstudioComponent.vue` y `teleRadiologiaTranscibirComponent.vue` se reemplazó `#example23` por `#tablaTeleRadiologiaEnviar` y `#tablaTeleRadiologiaTranscribir`, integrando skeleton loaders, empty states y eliminando `.btn-action-clinical` y `backdrop-filter`.
+    * *Contratos:* En `contratoComponent.vue` se normalizó el ID a `#tablaContratos`, se incorporó skeleton loader, empty state, migas accesibles y soporte móvil `@media (max-width: 767px)`.
+    * *Pacientes y Reportes:* En `admisionComponent.vue` se reemplazó `#example23` por `#tablaAdmisionPacientes` en template, `destroyDataTable()` e inicialización; en `reporteProduccionComponent.vue` se homologaron las migas de pan.
+    * *Estudios:* En `AsignarEstudioComponent.vue`, `estudioAsignadosComponent.vue`, `leerEstudioComponent.vue`, `notificarEstudioComponent.vue` y `transcribirEstudioComponent.vue` se renombraron todos los selectores `#example23` a IDs semánticos únicos (`#tablaAsignarEstudio`, `#tablaEstudiosAsignados`, `#tablaLeerEstudios`, `#tablaLeerEstudiosPrevios`, `#tablaNotificarEstudio`, `#tablaTranscribirEstudio`), retirando clases no estándar y overlays con blur. En `QuemadorCdComponent.vue` y `QuemarMultiplesComponent.vue` se erradicó por completo `<loading-spinner>` sustituyéndolo por skeleton loaders.
+    * *Ecografías y Citas:* Se corrigieron referencias residuales `#example23` en `ecografiasAdmisionadasComponent.vue` y `lecturaComponent.vue`, se retiró el modal blur residual y se reemplazó `<loading-spinner>` por `<table-skeleton-loader>` en `gestionCitasComponent.vue`.
+  - **Verificaciones:**
+    * ESLint: 0 errores y 0 warnings en toda la carpeta `resources/js/components/modulos/` (`npx eslint`) ✅.
+    * Erradicación de `loading-spinner`, `btn-action-clinical` y selectores duplicados `#example23` verificada al 100% ✅.
+    * Compilación de producción Vite (`npm run build`): Exitosa en 1.95s sin advertencias de sintaxis ✅.
+    * Vaciado de caché de vistas y configuración de Laravel (`php artisan view:clear; php artisan config:clear`) ✅.
 - [x] **2026-10-31 — Prevención de Error 500 y Alertas de Usuario sin Rol Asignado (`dashboard.blade.php`, `dashboardComponent.vue`, `usuarioComponent.vue`):**
   - **Diagnóstico:**
     * Al acceder a `https://lidiag.com/dashboard` desde clientes donde el usuario autenticado no posee ningún rol en la base de datos (por ejemplo usuarios recién sincronizados o creados sin rol), Laravel arrojaba `500 | Server Error`.
