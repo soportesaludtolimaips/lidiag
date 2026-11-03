@@ -7,11 +7,13 @@
         :placeholder="placeholder"
         :value="modelValue"
         @input="onNativeTextareaInput"
+        @paste="onNativeTextareaPaste"
     ></textarea>
 </template>
 
 <script setup>
 import { onMounted, onBeforeUnmount, ref, watch, nextTick } from "vue";
+import { cleanPastedHtml, htmlToPlain, plainToHtml } from "@/helpers/wysiwyg.js";
 
 let idCounter = 0;
 
@@ -42,44 +44,42 @@ function onNativeTextareaInput(event) {
 }
 
 /**
- * Convierte saltos de linea plano a HTML para wysihtml5.
- * @param {string} text - Texto plano con \n
- * @returns {string} HTML con <br> y <p>
- */
-function plainToHtml(text) {
-    if (!text) return "";
-    return text.replace(/\n/g, "<br>");
-}
-
-/**
- * Convierte HTML del editor a texto plano para el backend/SAHI.
- * Reemplaza <br>, </p><p>, </p>, <p> por saltos de linea \n,
- * elimina tags HTML, normaliza &nbsp; y espacios de no separación a espacios regulares,
- * y decodifica entidades HTML.
+ * Intercepta el evento de pegado en el textarea nativo (modo móvil o fallback)
+ * para normalizar saltos de línea y limpiar texto pegado desde Word.
  *
- * @param {string} html - HTML del editor
- * @returns {string} Texto plano con \n
+ * @param {ClipboardEvent} e - Evento paste nativo.
+ * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-10-30
+ * @date 2026-11-03
  */
-function htmlToPlain(html) {
-    if (!html) return "";
-    return html
-        .replace(/<br\s*\/?>/gi, "\n")
-        .replace(/<\/p><p>/gi, "\n\n")
-        .replace(/<\/p>/gi, "\n")
-        .replace(/<p>/gi, "")
-        .replace(/<[^>]+>/g, "")
-        .replace(/&nbsp;/gi, " ")
-        .replace(/[\u00A0\u1680\u2000-\u200B\u202F\u205F\u3000]/g, " ")
-        .replace(/&amp;/gi, "&")
-        .replace(/&lt;/gi, "<")
-        .replace(/&gt;/gi, ">")
-        .replace(/&quot;/gi, '"')
-        .replace(/&#39;/gi, "'")
-        .replace(/[ \t]+/g, " ")
-        .trim();
+function onNativeTextareaPaste(e) {
+    const clipboardData = e.clipboardData || window.clipboardData;
+    if (!clipboardData) return;
+
+    const htmlData = clipboardData.getData("text/html");
+    const textData = clipboardData.getData("text/plain");
+
+    let textToInsert = "";
+    if (htmlData && htmlData.trim() !== "") {
+        textToInsert = htmlToPlain(cleanPastedHtml(htmlData));
+    } else if (textData) {
+        textToInsert = textData.replace(/\r\n|\r/g, "\n");
+    }
+
+    if (textToInsert) {
+        e.preventDefault();
+        const textarea = textareaRef.value;
+        if (!textarea) return;
+
+        const start = textarea.selectionStart ?? textarea.value.length;
+        const end = textarea.selectionEnd ?? textarea.value.length;
+        const val = textarea.value || "";
+
+        textarea.value = val.substring(0, start) + textToInsert + val.substring(end);
+        textarea.selectionStart = textarea.selectionEnd = start + textToInsert.length;
+        emit("update:modelValue", textarea.value);
+    }
 }
 
 /**
@@ -137,10 +137,11 @@ function syncEditorValue(rawVal) {
 
 /**
  * Inicializa el editor Wysiwyg (wysihtml5) en el textarea,
- * configurando soporte táctil móvil, valor inicial, evento load/blur y observer de mutaciones.
+ * configurando soporte táctil móvil, reglas de parseo con soporte de párrafos y divs,
+ * valor inicial, evento load/blur y observer de mutaciones.
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-10-30
+ * @date 2026-11-03
  */
 function initEditor() {
     const el = textareaRef.value;
@@ -163,6 +164,44 @@ function initEditor() {
     $el.wysihtml5({
         stylesheets: ["/lib/css/wysiwyg-color.css"],
         supportTouchDevices: true,
+        parserRules: {
+            classes: {
+                "wysiwyg-color-silver": 1,
+                "wysiwyg-color-gray": 1,
+                "wysiwyg-color-white": 1,
+                "wysiwyg-color-maroon": 1,
+                "wysiwyg-color-red": 1,
+                "wysiwyg-color-purple": 1,
+                "wysiwyg-color-fuchsia": 1,
+                "wysiwyg-color-green": 1,
+                "wysiwyg-color-lime": 1,
+                "wysiwyg-color-olive": 1,
+                "wysiwyg-color-yellow": 1,
+                "wysiwyg-color-navy": 1,
+                "wysiwyg-color-blue": 1,
+                "wysiwyg-color-teal": 1,
+                "wysiwyg-color-aqua": 1,
+                "wysiwyg-color-orange": 1,
+            },
+            tags: {
+                b: {},
+                strong: {},
+                i: {},
+                em: {},
+                u: 1,
+                br: {},
+                p: {},
+                div: {},
+                span: 1,
+                ol: {},
+                ul: {},
+                li: {},
+                h1: {},
+                h2: {},
+                h3: {},
+                blockquote: {},
+            },
+        },
     });
 
     const inst = $el.data("wysihtml5");
@@ -284,6 +323,71 @@ function attachObserver(editor) {
         });
 
         attachKeydownForwarding(iframe);
+        attachPasteForwarding(iframe, editor);
+    } catch (_) {
+        /* noop */
+    }
+}
+
+/**
+ * Intercepta el evento de pegado (paste) en el iframe del editor wysihtml5
+ * para limpiar el HTML de Word u otras fuentes, preservando saltos de línea y formato seguro.
+ *
+ * @param {HTMLIFrameElement} iframe - Elemento iframe del sandbox.
+ * @param {Object} editor - Instancia del editor wysihtml5.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-03
+ */
+function attachPasteForwarding(iframe, editor) {
+    try {
+        if (!iframe?.contentDocument) return;
+        iframe.contentDocument.addEventListener("paste", (e) => {
+            const clipboardData = e.clipboardData || window.clipboardData;
+            if (!clipboardData) return;
+
+            const htmlData = clipboardData.getData("text/html");
+            const textData = clipboardData.getData("text/plain");
+
+            let contentToInsert = "";
+            if (htmlData && htmlData.trim() !== "") {
+                contentToInsert = cleanPastedHtml(htmlData);
+            } else if (textData) {
+                contentToInsert = plainToHtml(textData);
+            }
+
+            if (contentToInsert) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+
+                let inserted = false;
+                try {
+                    if (editor?.composer?.commands?.support?.("insertHTML")) {
+                        editor.composer.commands.exec("insertHTML", contentToInsert);
+                        inserted = true;
+                    } else if (iframe.contentDocument.execCommand) {
+                        inserted = iframe.contentDocument.execCommand(
+                            "insertHTML",
+                            false,
+                            contentToInsert
+                        );
+                    }
+                } catch (_) {
+                    inserted = false;
+                }
+
+                if (!inserted && editor?.composer) {
+                    editor.composer.setValue(contentToInsert, false);
+                }
+
+                nextTick(() => {
+                    const current = editor.composer?.element
+                        ? htmlToPlain(editor.composer.getValue(false))
+                        : textareaRef.value?.value || "";
+                    emit("update:modelValue", current);
+                });
+            }
+        });
     } catch (_) {
         /* noop */
     }

@@ -37,6 +37,22 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-03 — Corrección y Preservación de Saltos de Línea al Pegar Texto de Word en el Editor WYSIWYG (`wysiwyg.js`, `WysiwygEditor.vue`):**
+  - **Diagnóstico y Causa Raíz:**
+    * Al copiar texto desde Microsoft Word y pegarlo en el editor (utilizado en Transcripción y Lectura de Estudios), el texto perdía todos los saltos de línea y párrafos quedando en una sola línea continua.
+    * Esto ocurría porque: (1) Las reglas de parseo predeterminadas de `bootstrap-wysihtml5` no incluían la etiqueta `<p>`, provocando que `wysihtml5.dom.parse` renombrara cada párrafo `<p class="MsoNormal">` de Word a `<span>` (etiqueta inline) y descartara los párrafos vacíos `<p><o:p>&nbsp;</o:p></p>`, (2) `cleanPastedHTML` de wysihtml5 no normalizaba la estructura de Word, y (3) `htmlToPlain` no contemplaba atributos en `<p ...>` ni bloques `<div>`, despojando los saltos y uniendo las frases consecutivas.
+  - **Solución Implementada:**
+    * **Helper (`resources/js/helpers/wysiwyg.js`):**
+      - Se implementó `cleanPastedHtml(html)`: extrae fragmentos `<!--StartFragment-->`, elimina comentarios y metadatos de Office (`xml`, `o:`, `w:`, `m:`), normaliza párrafos vacíos a `<br>`, transforma cierres de bloque (`</p>`, `</div>`, `</h1-6>`) en `<br>`, preserva formato seguro (`<b>`, `<strong>`, `<i>`, `<em>`, `<u>`), elimina etiquetas residuales (`<span>`, `<font>`) y colapsa saltos múltiples excesivos respetando renglones en blanco.
+      - Se modularizó y fortaleció `htmlToPlain(html)` y `plainToHtml(text)` garantizando decodificación de entidades HTML y separación exacta de párrafos.
+    * **Editor (`resources/js/components/shared/WysiwygEditor.vue`):**
+      - Se incorporó soporte explícito para `p: {}` y `div: {}` en `parserRules.tags`.
+      - Se interceptó el evento nativo `paste` en el `contentDocument` del iframe de wysihtml5 (`attachPasteForwarding`), limpiando el portapapeles mediante `cleanPastedHtml` e insertándolo limpiamente con `insertHTML` en la posición del cursor, sincronizando `modelValue`.
+      - Se añadió `@paste="onNativeTextareaPaste"` en el textarea nativo para modo móvil o fallback.
+  - **Verificaciones:**
+    * ESLint validado sin errores (`npx eslint`) ✅.
+    * Prettier formateado (`npx prettier --write`) ✅.
+    * Compilación Vite completada sin errores (`npm run build`) ✅.
 - [x] **2026-11-03 — Consulta de Órdenes y Facturas en Interface (SAHI) para Admisión de Pacientes (`admisionComponent.vue`, `SAHIService.php`, `SAHIController.php`):**
   - **Diagnóstico y Necesidad:**
     * En el módulo de Admisión de Pacientes (`/pacientes/admision`), los operadores necesitaban consultar las atenciones, órdenes médicas y facturas registradas en la interface HIS (SAHI) correspondiente a la sede activa, permitiendo vincular los estudios y enviarlos a la Modality Worklist (MWL) de Rayos X sin transcripción manual redundante.
