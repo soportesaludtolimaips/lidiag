@@ -37,6 +37,24 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-03 — Depuración Estricta de Estilos en Dashboard de Dosimetría (`/dosimetria/dashboard`) alineado 100% a AdminWrap:**
+  - **Diagnóstico y Necesidad:**
+    * Se identificó la presencia residual de clases no pertenecientes a la plantilla oficial `Documentos/Plantilla lidiag` (clases de Bootstrap 5 como `gap-2`, `shadow-sm`, `border-0`, `fs-6`, `align-middle`, `spinner-border`, `text-warning-emphasis`, `opacity-75` y utilidades de espaciado `mr-1`, `mb-2`, `mb-3`, `py-2 px-3`, `py-5`), así como tags `badge badge-*` y backdrop filters CSS en modales.
+  - **Solución Implementada:**
+    * **Purga de Clases Extrañas:** Se eliminaron por completo `gap-2`, `shadow-sm`, `border-0`, `fs-6`, `text-warning-emphasis`, `opacity-75` y selectores Bootstrap 5.
+    * **Estandarización de Espaciados a AdminWrap:** Sustitución de `mr-1`/`mr-2` por `m-r-5`/`m-r-10`, `ml-1` por `m-l-5`, `mb-2`/`mb-3` por `m-b-10`/`m-b-20`, `mt-2` por `m-t-10`, y padding `py-5`/`py-2 px-3` por `p-20`/`p-30`.
+    * **Spinners Nativos:** Reemplazados `spinner-border` por íconos FontAwesome oficiales `<i class="fa fa-spinner fa-spin fa-2x text-info"></i>`.
+    * **Info-Boxes Estrictos (`index.html`):** Alineados al diseño exacto sin pies de tarjeta artificiales, con barra de micro-progreso nativa `style="height: 3px"`.
+    * **Formularios y Filtros (`form-layout.html`):** Reestructurados bajo `form-group m-b-0`, `control-label font-12 m-b-5 text-muted` y `form-control form-control-sm custom-select`.
+    * **Tablas Nativas (`pro-of-month` y `vm`):** Aplicada la clase de alineación vertical nativa `.vm` (`table table-hover vm` y `table vm no-th-brd pro-of-month`).
+    * **Badges / Labels Canónicos:** Migración integral de `badge badge-*` a la convención canónica de AdminWrap: `.label.label-primary`, `.label.label-danger`, `.label.label-info`, `.label.label-inverse`, `.label.label-rounded` y `.label.label-light-*`.
+    * **Modal Canónico (`ui-modals.html`):** Adaptado a `modal-header` nativo con `close` estándar y backdrop `style="display: block; background: rgba(0, 0, 0, 0.5)"`, botón footer `btn btn-secondary waves-effect`.
+  - **Verificaciones:**
+    * Auditoría con script Python verificó 0 clases Bootstrap 5, 0 estilos arbitrarios y 100% apego a la plantilla ✅.
+    * ESLint validado sin errores ni advertencias (`npx eslint`) ✅.
+    * Compilación Vite completada sin errores (`npm run build` en 1.30s) ✅.
+    * Formato LF verificado sin BOM ✅.
+
 - [x] **2026-11-03 — Rediseño Integral UI/UX del Dashboard de Dosimetría (`/dosimetria/dashboard`) con Estándar AdminWrap:**
   - **Diagnóstico y Necesidad:**
     * El dashboard de dosimetría médica y control de radiación (Resolución 482 de 2018) presentaba un contenedor redundante `container-fluid`, estilos scoped manuales y widgets que no aprovechaban los componentes visuales nativos de la plantilla AdminWrap (`index.html`, `index2.html`, `index3.html`).

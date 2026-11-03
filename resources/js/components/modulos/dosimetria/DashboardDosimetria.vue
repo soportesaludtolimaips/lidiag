@@ -21,7 +21,7 @@
                     title="Exportar informe institucional a Excel (.xlsx)"
                     @click="exportarExcel"
                 >
-                    <i class="fa fa-file-excel-o mr-1"></i> Exportar Excel
+                    <i class="fa fa-file-excel-o m-r-5"></i> Exportar Excel
                 </button>
                 <button
                     type="button"
@@ -30,7 +30,7 @@
                     title="Actualizar datos del dashboard"
                     @click="cargarDatos"
                 >
-                    <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loading }"></i> Refrescar
+                    <i class="fa fa-refresh m-r-5" :class="{ 'fa-spin': loading }"></i> Refrescar
                 </button>
                 <button
                     type="button"
@@ -38,13 +38,13 @@
                     title="Ver catálogo de Niveles de Referencia para Diagnóstico"
                     @click="mostrarModalUmbrales = true"
                 >
-                    <i class="fa fa-sliders mr-1"></i> Catálogo NRD
+                    <i class="fa fa-sliders m-r-5"></i> Catálogo NRD
                 </button>
             </div>
         </div>
 
         <!-- ============================================================== -->
-        <!-- 1. Info Boxes con Micro-Progreso (AdminWrap index.html & index2.html) -->
+        <!-- 1. Info Boxes con Micro-Progreso (AdminWrap index.html) -->
         <!-- ============================================================== -->
         <div class="row">
             <!-- 1.1 Total Estudios Monitoreados -->
@@ -52,7 +52,7 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex p-10 no-block">
-                            <div class="align-slef-center">
+                            <div class="align-self-center">
                                 <h2 class="m-b-0">
                                     {{ kpis.total_estudios?.toLocaleString() || 0 }}
                                 </h2>
@@ -69,17 +69,9 @@
                             role="progressbar"
                             :style="{
                                 width: Math.min(100, kpis.tasa_conformidad || 100) + '%',
-                                height: '4px',
+                                height: '3px',
                             }"
                         ></div>
-                    </div>
-                    <div
-                        class="card-body bg-light py-2 px-3 d-flex justify-content-between align-items-center font-12"
-                    >
-                        <span class="text-muted">Conformidad NRD</span>
-                        <span class="text-success font-medium"
-                            >{{ kpis.tasa_conformidad || 100 }}%</span
-                        >
                     </div>
                 </div>
             </div>
@@ -89,7 +81,7 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex p-10 no-block">
-                            <div class="align-slef-center">
+                            <div class="align-self-center">
                                 <h2 class="m-b-0">{{ kpis.total_equipos || 0 }}</h2>
                                 <h6 class="text-muted m-b-0">Equipos Emisores</h6>
                             </div>
@@ -106,17 +98,9 @@
                                 width:
                                     (kpis.sedes_online / Math.max(1, kpis.sedes_total || 1)) * 100 +
                                     '%',
-                                height: '4px',
+                                height: '3px',
                             }"
                         ></div>
-                    </div>
-                    <div
-                        class="card-body bg-light py-2 px-3 d-flex justify-content-between align-items-center font-12"
-                    >
-                        <span class="text-muted">Sedes Conectadas</span>
-                        <span class="text-info font-medium"
-                            >{{ kpis.sedes_online || 0 }} / {{ kpis.sedes_total || 0 }}</span
-                        >
                     </div>
                 </div>
             </div>
@@ -126,7 +110,7 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex p-10 no-block">
-                            <div class="align-slef-center">
+                            <div class="align-self-center">
                                 <h2
                                     class="m-b-0"
                                     :class="
@@ -157,27 +141,9 @@
                             role="progressbar"
                             :style="{
                                 width: (kpis.total_alertas || 0) > 0 ? '100%' : '0%',
-                                height: '4px',
+                                height: '3px',
                             }"
                         ></div>
-                    </div>
-                    <div
-                        class="card-body bg-light py-2 px-3 d-flex justify-content-between align-items-center font-12"
-                    >
-                        <span class="text-muted">Auditoría Radiológica</span>
-                        <span
-                            :class="
-                                (kpis.total_alertas || 0) > 0
-                                    ? 'text-danger font-medium'
-                                    : 'text-success font-medium'
-                            "
-                        >
-                            {{
-                                (kpis.total_alertas || 0) > 0
-                                    ? "Requiere Auditoría"
-                                    : "En Rango Seguro"
-                            }}
-                        </span>
                     </div>
                 </div>
             </div>
@@ -187,7 +153,7 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex p-10 no-block">
-                            <div class="align-slef-center">
+                            <div class="align-self-center">
                                 <h2 class="m-b-0">
                                     {{ kpis.dosis_efectiva_promedio || "0.00" }}
                                     <small class="font-14 text-muted">mSv</small>
@@ -203,16 +169,8 @@
                         <div
                             class="progress-bar bg-purple"
                             role="progressbar"
-                            style="width: 100%; height: 4px"
+                            style="width: 100%; height: 3px"
                         ></div>
-                    </div>
-                    <div
-                        class="card-body bg-light py-2 px-3 d-flex justify-content-between align-items-center font-12"
-                    >
-                        <span class="text-muted">Pacientes HMAC-SHA256</span>
-                        <span class="text-dark font-medium"
-                            >{{ kpis.total_pacientes?.toLocaleString() || 0 }} únicos</span
-                        >
                     </div>
                 </div>
             </div>
@@ -222,7 +180,7 @@
         <!-- 2. Monitor de Latidos Edge (Dead Man's Switch por Sede) -->
         <!-- ============================================================== -->
         <div class="card m-b-20">
-            <div class="card-body py-2 px-3">
+            <div class="card-body p-20">
                 <div class="d-flex flex-wrap align-items-center justify-content-between">
                     <div class="d-flex align-items-center">
                         <i class="fa fa-heartbeat text-danger font-20 m-r-10"></i>
@@ -252,7 +210,7 @@
                             {{ s.nom_sede }}
                             <small
                                 v-if="s.minutos_sin_contacto !== null"
-                                class="m-l-5 font-10 opacity-75"
+                                class="m-l-5 font-10 text-muted"
                                 >({{ s.minutos_sin_contacto }}m)</small
                             >
                         </span>
@@ -262,67 +220,59 @@
         </div>
 
         <!-- ============================================================== -->
-        <!-- 3. Alertas Clínicas (NRD y Deriva Técnica) -->
+        <!-- 3. Alertas Clínicas (NRD y Deriva Técnica) (Nativo AdminWrap) -->
         <!-- ============================================================== -->
         <!-- 3.1 Alertas NRD Críticas -->
-        <div v-if="alertas.length > 0" class="alert alert-danger shadow-sm mb-3 p-3">
-            <div class="d-flex align-items-start">
-                <i class="fa fa-exclamation-triangle fa-2x m-r-15 text-danger m-t-5"></i>
-                <div class="flex-grow-1">
-                    <h5 class="alert-heading font-medium m-b-5">
-                        Alerta de Radioprotección — Se detectaron promedios superiores a los Niveles
-                        de Referencia para Diagnóstico (NRD)
-                    </h5>
-                    <p class="small m-b-10 text-danger">
-                        De acuerdo con la Resolución 482 de 2018, la institución debe revisar los
-                        protocolos técnicos de adquisición y calibración de los equipos:
-                    </p>
-                    <div class="d-flex flex-wrap gap-2">
-                        <span
-                            v-for="(al, idx) in alertas"
-                            :key="'alert-' + idx"
-                            class="label label-danger p-2 m-r-5 m-b-5"
-                        >
-                            <strong>{{ al.nom_sede }}</strong> | {{ al.modalidad }} ({{
-                                al.tipo_metrica
-                            }}): Promedio {{ al.dosis_promedio }} {{ al.unidad_medida }} (Límite
-                            NRD: {{ al.limite_nrd }} {{ al.unidad_medida }})
-                        </span>
-                    </div>
-                </div>
+        <div v-if="alertas.length > 0" class="alert alert-danger m-b-20">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <h4 class="card-title text-danger m-b-5">
+                <i class="fa fa-exclamation-triangle m-r-10"></i>Alerta de Radioprotección — Se
+                detectaron promedios superiores a los Niveles de Referencia para Diagnóstico (NRD)
+            </h4>
+            <p class="font-14 text-danger m-b-10">
+                De acuerdo con la Resolución 482 de 2018, la institución debe revisar los protocolos
+                técnicos de adquisición y calibración de los equipos:
+            </p>
+            <div class="d-flex flex-wrap">
+                <span
+                    v-for="(al, idx) in alertas"
+                    :key="'alert-' + idx"
+                    class="label label-danger m-r-5 m-b-5"
+                >
+                    <strong>{{ al.nom_sede }}</strong> | {{ al.modalidad }} ({{ al.tipo_metrica }}):
+                    Promedio {{ al.dosis_promedio }} {{ al.unidad_medida }} (Límite NRD:
+                    {{ al.limite_nrd }} {{ al.unidad_medida }})
+                </span>
             </div>
         </div>
 
         <!-- 3.2 Alertas Predictivas de Deriva Técnica de Tubos (Machine Drift) -->
-        <div
-            v-if="alertasDeriva && alertasDeriva.length > 0"
-            class="alert alert-warning shadow-sm mb-3 p-3"
-        >
-            <div class="d-flex align-items-start">
-                <i class="fa fa-wrench fa-2x m-r-15 text-warning m-t-5"></i>
-                <div class="flex-grow-1">
-                    <h5 class="alert-heading font-medium m-b-5">
-                        Alerta Predictiva de Deriva Técnica (Machine Drift Detection)
-                    </h5>
-                    <p class="small m-b-10 text-warning-emphasis">
-                        Se detectaron equipos emisores con incremento atípico (+20% sobre la línea
-                        base histórica del periodo), sugiriendo posible descalibración física o
-                        fatiga del tubo:
-                    </p>
-                    <div class="d-flex flex-wrap gap-2">
-                        <span
-                            v-for="(ad, idx) in alertasDeriva"
-                            :key="'drift-' + idx"
-                            class="label label-warning p-2 m-r-5 m-b-5"
-                        >
-                            <strong>{{ ad.equipo_nombre }}</strong> ({{ ad.nom_sede }}) |
-                            {{ ad.tipo_metrica }}: +{{ ad.cambio_porcentaje }}% ({{
-                                ad.media_inicial
-                            }}
-                            &rarr; {{ ad.media_reciente }} {{ ad.unidad_medida }})
-                        </span>
-                    </div>
-                </div>
+        <div v-if="alertasDeriva && alertasDeriva.length > 0" class="alert alert-warning m-b-20">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <h4 class="card-title text-warning m-b-5">
+                <i class="fa fa-wrench m-r-10"></i>Alerta Predictiva de Deriva Técnica (Machine
+                Drift Detection)
+            </h4>
+            <p class="font-14 text-muted m-b-10">
+                Se detectaron equipos emisores con incremento atípico (+20% sobre la línea base
+                histórica del periodo), sugiriendo posible descalibración física o fatiga del tubo:
+            </p>
+            <div class="d-flex flex-wrap">
+                <span
+                    v-for="(ad, idx) in alertasDeriva"
+                    :key="'drift-' + idx"
+                    class="label label-warning m-r-5 m-b-5"
+                >
+                    <strong>{{ ad.equipo_nombre }}</strong> ({{ ad.nom_sede }}) |
+                    {{ ad.tipo_metrica }}: +{{ ad.cambio_porcentaje }}% ({{
+                        ad.media_inicial
+                    }}
+                    &rarr; {{ ad.media_reciente }} {{ ad.unidad_medida }})
+                </span>
             </div>
         </div>
 
@@ -330,99 +280,113 @@
         <!-- 4. Filtros Interactivos (Formularios Nativos AdminWrap) -->
         <!-- ============================================================== -->
         <div class="card m-b-20">
-            <div class="card-body py-2 px-3">
+            <div class="card-body p-20">
                 <div class="row align-items-end">
                     <div class="col-md-3 col-lg-2 m-b-10">
-                        <label class="control-label font-12 m-b-5 text-muted"
-                            >Sede Hospitalaria</label
-                        >
-                        <select
-                            v-model="filtros.sede_id"
-                            class="custom-select form-control-sm"
-                            @change="cargarDatos"
-                        >
-                            <option value="">Todas las Sedes</option>
-                            <option v-for="s in sedes" :key="s.id" :value="s.id">
-                                {{ s.nom_sede }}
-                            </option>
-                        </select>
+                        <div class="form-group m-b-0">
+                            <label class="control-label font-12 m-b-5 text-muted"
+                                >Sede Hospitalaria</label
+                            >
+                            <select
+                                v-model="filtros.sede_id"
+                                class="form-control form-control-sm custom-select"
+                                @change="cargarDatos"
+                            >
+                                <option value="">Todas las Sedes</option>
+                                <option v-for="s in sedes" :key="s.id" :value="s.id">
+                                    {{ s.nom_sede }}
+                                </option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="col-md-3 col-lg-2 m-b-10">
-                        <label class="control-label font-12 m-b-5 text-muted">Modalidad</label>
-                        <select
-                            v-model="filtros.modalidad"
-                            class="custom-select form-control-sm"
-                            @change="cargarDatos"
-                        >
-                            <option value="TODAS">Todas (CT, MG, DX)</option>
-                            <option value="CT">Tomografía (CT)</option>
-                            <option value="MG">Mamografía (MG)</option>
-                            <option value="DX">Rayos X Digital (DX)</option>
-                            <option value="CR">Rayos X Computarizado (CR)</option>
-                        </select>
+                        <div class="form-group m-b-0">
+                            <label class="control-label font-12 m-b-5 text-muted">Modalidad</label>
+                            <select
+                                v-model="filtros.modalidad"
+                                class="form-control form-control-sm custom-select"
+                                @change="cargarDatos"
+                            >
+                                <option value="TODAS">Todas (CT, MG, DX)</option>
+                                <option value="CT">Tomografía (CT)</option>
+                                <option value="MG">Mamografía (MG)</option>
+                                <option value="DX">Rayos X Digital (DX)</option>
+                                <option value="CR">Rayos X Computarizado (CR)</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="col-md-3 col-lg-2 m-b-10">
-                        <label class="control-label font-12 m-b-5 text-muted"
-                            >Región Anatómica</label
-                        >
-                        <select
-                            v-model="filtros.region_anatomica"
-                            class="custom-select form-control-sm"
-                            @change="cargarDatos"
-                        >
-                            <option value="TODAS">Todas las Regiones</option>
-                            <option value="CRANEO">Cráneo / Encéfalo</option>
-                            <option value="TORAX">Tórax / Cardio</option>
-                            <option value="ABDOMEN">Abdomen / Hepático</option>
-                            <option value="PELVIS">Pelvis / Urología</option>
-                            <option value="COLUMNA">Columna Vertebral</option>
-                            <option value="EXTREMIDADES">Extremidades</option>
-                            <option value="MAMA">Mama / Senos</option>
-                            <option value="GENERAL">General / Otras</option>
-                        </select>
+                        <div class="form-group m-b-0">
+                            <label class="control-label font-12 m-b-5 text-muted"
+                                >Región Anatómica</label
+                            >
+                            <select
+                                v-model="filtros.region_anatomica"
+                                class="form-control form-control-sm custom-select"
+                                @change="cargarDatos"
+                            >
+                                <option value="TODAS">Todas las Regiones</option>
+                                <option value="CRANEO">Cráneo / Encéfalo</option>
+                                <option value="TORAX">Tórax / Cardio</option>
+                                <option value="ABDOMEN">Abdomen / Hepático</option>
+                                <option value="PELVIS">Pelvis / Urología</option>
+                                <option value="COLUMNA">Columna Vertebral</option>
+                                <option value="EXTREMIDADES">Extremidades</option>
+                                <option value="MAMA">Mama / Senos</option>
+                                <option value="GENERAL">General / Otras</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="col-md-3 col-lg-2 m-b-10">
-                        <label class="control-label font-12 m-b-5 text-muted">Métrica Dosis</label>
-                        <select
-                            v-model="filtros.tipo_metrica"
-                            class="custom-select form-control-sm"
-                            @change="cargarDatos"
-                        >
-                            <option value="TODAS">Todas las Métricas</option>
-                            <option value="CTDIvol">CTDIvol (mGy)</option>
-                            <option value="DLP">DLP (mGy·cm)</option>
-                            <option value="DGM">DGM (mGy)</option>
-                            <option value="DAP">DAP (Gy·cm²)</option>
-                        </select>
+                        <div class="form-group m-b-0">
+                            <label class="control-label font-12 m-b-5 text-muted"
+                                >Métrica Dosis</label
+                            >
+                            <select
+                                v-model="filtros.tipo_metrica"
+                                class="form-control form-control-sm custom-select"
+                                @change="cargarDatos"
+                            >
+                                <option value="TODAS">Todas las Métricas</option>
+                                <option value="CTDIvol">CTDIvol (mGy)</option>
+                                <option value="DLP">DLP (mGy·cm)</option>
+                                <option value="DGM">DGM (mGy)</option>
+                                <option value="DAP">DAP (Gy·cm²)</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="col-md-3 col-lg-1 m-b-10">
-                        <label class="control-label font-12 m-b-5 text-muted">Desde</label>
-                        <input
-                            v-model="filtros.fecha_desde"
-                            type="date"
-                            class="form-control form-control-sm"
-                            @change="cargarDatos"
-                        />
+                        <div class="form-group m-b-0">
+                            <label class="control-label font-12 m-b-5 text-muted">Desde</label>
+                            <input
+                                v-model="filtros.fecha_desde"
+                                type="date"
+                                class="form-control form-control-sm"
+                                @change="cargarDatos"
+                            />
+                        </div>
                     </div>
 
                     <div class="col-md-3 col-lg-2 m-b-10">
-                        <label class="control-label font-12 m-b-5 text-muted">Hasta</label>
-                        <input
-                            v-model="filtros.fecha_hasta"
-                            type="date"
-                            class="form-control form-control-sm"
-                            @change="cargarDatos"
-                        />
+                        <div class="form-group m-b-0">
+                            <label class="control-label font-12 m-b-5 text-muted">Hasta</label>
+                            <input
+                                v-model="filtros.fecha_hasta"
+                                type="date"
+                                class="form-control form-control-sm"
+                                @change="cargarDatos"
+                            />
+                        </div>
                     </div>
 
                     <div class="col-md-1 m-b-10 text-right">
                         <button
                             type="button"
-                            class="btn btn-sm btn-outline-secondary btn-block"
+                            class="btn btn-sm btn-secondary waves-effect btn-block"
                             title="Limpiar filtros de búsqueda"
                             @click="limpiarFiltros"
                         >
@@ -453,9 +417,9 @@
                                 </h6>
                             </div>
                         </div>
-                        <div v-if="loading" class="text-center py-5">
-                            <div class="spinner-border text-primary" role="status"></div>
-                            <p class="text-muted small mt-2">Cargando telemetría analítica...</p>
+                        <div v-if="loading" class="text-center p-30">
+                            <i class="fa fa-spinner fa-spin fa-2x text-info"></i>
+                            <p class="text-muted small m-t-10">Cargando telemetría analítica...</p>
                         </div>
                         <div
                             v-else-if="chartDataBarras.labels && chartDataBarras.labels.length > 0"
@@ -463,9 +427,9 @@
                         >
                             <Bar :data="chartDataBarras" :options="chartOptionsBarras" />
                         </div>
-                        <div v-else class="text-center py-5 text-muted">
-                            <i class="fa fa-info-circle fa-2x mb-2 text-secondary"></i>
-                            <p class="mb-0">
+                        <div v-else class="text-center p-30 text-muted">
+                            <i class="fa fa-info-circle fa-2x m-b-10 text-muted"></i>
+                            <p class="m-b-0">
                                 No se encontraron registros de dosis para los filtros seleccionados.
                             </p>
                         </div>
@@ -485,8 +449,8 @@
                                 <h6 class="card-subtitle">Resolución 482 de 2018</h6>
                             </div>
                         </div>
-                        <div v-if="loading" class="text-center py-5">
-                            <div class="spinner-border text-warning" role="status"></div>
+                        <div v-if="loading" class="text-center p-30">
+                            <i class="fa fa-spinner fa-spin fa-2x text-warning"></i>
                         </div>
                         <div
                             v-else-if="
@@ -500,8 +464,8 @@
                                 :options="chartOptionsCumplimiento"
                             />
                         </div>
-                        <div v-else class="text-center py-5 text-muted">
-                            <p class="mb-0">Sin evaluaciones NRD en el periodo.</p>
+                        <div v-else class="text-center p-30 text-muted">
+                            <p class="m-b-0">Sin evaluaciones NRD en el periodo.</p>
                         </div>
                         <ul class="list-inline m-t-20 text-center font-12">
                             <li><i class="fa fa-circle text-success"></i> Seguro (&lt;80%)</li>
@@ -578,7 +542,7 @@
                                         </td>
                                     </tr>
                                     <tr v-if="equiposRanking.length === 0">
-                                        <td colspan="6" class="text-center text-muted py-4">
+                                        <td colspan="6" class="text-center text-muted p-20">
                                             No hay equipos registrados para los filtros
                                             seleccionados.
                                         </td>
@@ -637,9 +601,9 @@
                                 <h6 class="card-subtitle">Evolución cronológica institucional</h6>
                             </div>
                         </div>
-                        <div v-if="loading" class="text-center py-5">
-                            <div class="spinner-border text-success" role="status"></div>
-                            <p class="text-muted small mt-2">Calculando tendencias...</p>
+                        <div v-if="loading" class="text-center p-30">
+                            <i class="fa fa-spinner fa-spin fa-2x text-success"></i>
+                            <p class="text-muted small m-t-10">Calculando tendencias...</p>
                         </div>
                         <div
                             v-else-if="chartDataLineas.labels && chartDataLineas.labels.length > 0"
@@ -647,9 +611,9 @@
                         >
                             <Line :data="chartDataLineas" :options="chartOptionsLineas" />
                         </div>
-                        <div v-else class="text-center py-5 text-muted">
-                            <i class="fa fa-info-circle fa-2x mb-2 text-secondary"></i>
-                            <p class="mb-0">Sin datos de tendencia para el rango actual.</p>
+                        <div v-else class="text-center p-30 text-muted">
+                            <i class="fa fa-info-circle fa-2x m-b-10 text-muted"></i>
+                            <p class="m-b-0">Sin datos de tendencia para el rango actual.</p>
                         </div>
                     </div>
                 </div>
@@ -666,8 +630,8 @@
                                 <h6 class="card-subtitle">Estudios registrados en el periodo</h6>
                             </div>
                         </div>
-                        <div v-if="loading" class="text-center py-5">
-                            <div class="spinner-border text-info" role="status"></div>
+                        <div v-if="loading" class="text-center p-30">
+                            <i class="fa fa-spinner fa-spin fa-2x text-info"></i>
                         </div>
                         <div
                             v-else-if="
@@ -681,9 +645,9 @@
                                 :options="chartOptionsModalidades"
                             />
                         </div>
-                        <div v-else class="text-center py-5 text-muted">
-                            <i class="fa fa-info-circle fa-2x mb-2 text-secondary"></i>
-                            <p class="mb-0">Sin datos de modalidades para el rango actual.</p>
+                        <div v-else class="text-center p-30 text-muted">
+                            <i class="fa fa-info-circle fa-2x m-b-10 text-muted"></i>
+                            <p class="m-b-0">Sin datos de modalidades para el rango actual.</p>
                         </div>
                     </div>
                 </div>
@@ -694,7 +658,7 @@
         <!-- 8. Fila 4: Tabla de Últimas Mediciones Dosimétricas Recibidas (Edge) -->
         <!-- ============================================================== -->
         <div class="card m-b-20">
-            <div class="card-body">
+            <div class="card-body p-20">
                 <div class="d-flex no-block">
                     <div>
                         <h4 class="card-title">
@@ -714,7 +678,7 @@
 
                 <!-- Tabla de datos -->
                 <div v-if="!loading && ultimosRegistros.length > 0" class="table-responsive m-t-20">
-                    <table class="table table-hover align-middle">
+                    <table class="table table-hover vm">
                         <thead>
                             <tr>
                                 <th>Fecha Estudio</th>
@@ -737,7 +701,7 @@
                                     <strong>{{ reg.nom_sede }}</strong>
                                 </td>
                                 <td>
-                                    <span class="badge badge-light border">{{
+                                    <span class="label label-light-inverse">{{
                                         reg.equipo_nombre
                                     }}</span>
                                 </td>
@@ -752,10 +716,10 @@
                                     </span>
                                     <span
                                         v-if="reg.es_rdsr"
-                                        class="badge badge-info m-l-5"
+                                        class="label label-info m-l-5"
                                         title="Objeto DICOM Radiation Dose Structured Report (RDSR PS3.16)"
                                     >
-                                        <i class="fa fa-certificate mr-1"></i>RDSR
+                                        <i class="fa fa-certificate m-r-5"></i>RDSR
                                     </span>
                                 </td>
                                 <td>
@@ -763,7 +727,7 @@
                                 </td>
                                 <td>
                                     <strong class="font-14">{{ reg.valor_dosis }}</strong>
-                                    <small class="text-muted ml-1">{{ reg.unidad_medida }}</small>
+                                    <small class="text-muted m-l-5">{{ reg.unidad_medida }}</small>
                                 </td>
                                 <td>
                                     <code class="text-muted small" :title="reg.patient_id_hashed">
@@ -781,7 +745,7 @@
                 </div>
 
                 <!-- Empty State si no hay registros -->
-                <div v-if="!loading && ultimosRegistros.length === 0" class="py-5 text-center">
+                <div v-if="!loading && ultimosRegistros.length === 0" class="p-30 text-center">
                     <empty-state-component
                         title="Sin registros de dosimetría"
                         message="No se han recibido telemetrías de radiación para los filtros seleccionados."
@@ -795,21 +759,21 @@
         <!-- ============================================================== -->
         <div
             v-if="mostrarModalUmbrales"
-            class="modal fade show d-block"
+            class="modal fade show"
             tabindex="-1"
             role="dialog"
-            style="background-color: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px)"
+            style="display: block; background: rgba(0, 0, 0, 0.5)"
         >
-            <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-                <div class="modal-content border-0 shadow">
-                    <div class="modal-header bg-info text-white">
-                        <h5 class="modal-title text-white">
-                            <i class="fa fa-sliders text-warning mr-2"></i>Niveles de Referencia
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">
+                            <i class="fa fa-sliders text-warning m-r-10"></i>Niveles de Referencia
                             para Diagnóstico (Resolución 482 de 2018)
-                        </h5>
+                        </h4>
                         <button
                             type="button"
-                            class="close text-white"
+                            class="close"
                             aria-label="Cerrar modal"
                             @click="mostrarModalUmbrales = false"
                         >
@@ -823,8 +787,8 @@
                             institucionales superan de forma reiterada estos límites, se requiere
                             auditoría médica.
                         </p>
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-striped align-middle">
+                        <div class="table-responsive m-t-20">
+                            <table class="table table-bordered table-striped vm">
                                 <thead>
                                     <tr>
                                         <th>Modalidad</th>
@@ -838,7 +802,7 @@
                                 <tbody>
                                     <tr v-for="u in umbralesNrd" :key="u.id">
                                         <td>
-                                            <span class="badge badge-secondary">{{
+                                            <span class="label label-inverse">{{
                                                 u.modalidad
                                             }}</span>
                                         </td>
@@ -846,7 +810,7 @@
                                             <strong>{{ u.tipo_metrica }}</strong>
                                         </td>
                                         <td class="text-warning font-bold">{{ u.valor_alerta }}</td>
-                                        <td class="text-danger font-bold fs-6">
+                                        <td class="text-danger font-bold font-14">
                                             {{ u.valor_limite_nrd }}
                                         </td>
                                         <td>{{ u.unidad_medida }}</td>
@@ -859,7 +823,7 @@
                     <div class="modal-footer">
                         <button
                             type="button"
-                            class="btn btn-default"
+                            class="btn btn-secondary waves-effect"
                             @click="mostrarModalUmbrales = false"
                         >
                             Cerrar
@@ -972,15 +936,15 @@ function getRoundClass(mod) {
     }
 }
 
-// Helpers de conexión de sedes
+// Helpers de conexión de sedes (Estilo nativo AdminWrap)
 function getSedeConexionLabelClass(estado) {
     switch (estado) {
         case "ONLINE":
-            return "label-light-success text-success border border-success";
+            return "label-success";
         case "DELAYED":
-            return "label-light-warning text-warning border border-warning";
+            return "label-warning";
         default:
-            return "label-light-danger text-danger border border-danger";
+            return "label-danger";
     }
 }
 
@@ -1008,40 +972,40 @@ function getSedeConexionTooltip(sede) {
     return `Estado: ${estado} (${mins}) | Último latido: ${ult}${version}${pend}`;
 }
 
-// Helper de clases de modalidad
+// Helper de clases de modalidad (Nativo AdminWrap: label)
 function getModalidadBadgeClass(mod) {
     switch (mod) {
         case "CT":
-            return "badge badge-primary";
+            return "label label-primary";
         case "MG":
-            return "badge badge-danger";
+            return "label label-danger";
         case "DX":
         case "CR":
-            return "badge badge-info";
+            return "label label-info";
         default:
-            return "badge badge-secondary";
+            return "label label-inverse";
     }
 }
 
-// Helper de clases de región anatómica
+// Helper de clases de región anatómica (Nativo AdminWrap: label-light-*)
 function getRegionBadgeClass(region) {
     switch (region) {
         case "CRANEO":
-            return "badge badge-primary";
+            return "label label-light-primary";
         case "TORAX":
-            return "badge badge-info";
+            return "label label-light-info";
         case "ABDOMEN":
-            return "badge badge-success";
+            return "label label-light-success";
         case "PELVIS":
-            return "badge badge-warning";
+            return "label label-light-warning";
         case "COLUMNA":
-            return "badge badge-secondary";
+            return "label label-light-inverse";
         case "EXTREMIDADES":
-            return "badge badge-dark";
+            return "label label-inverse";
         case "MAMA":
-            return "badge badge-danger";
+            return "label label-light-danger";
         default:
-            return "badge badge-light border";
+            return "label label-light-inverse";
     }
 }
 
