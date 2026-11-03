@@ -37,6 +37,18 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-03 — Estandarización de Transmisión de Datos y Telemetría Central en los 3 Agentes Edge (`agente_dosimetria.py`, `backup_dcm_agent.py`, `sync_dcm_images.py`):**
+  - **Diagnóstico y Necesidad:**
+    * En el dashboard central `/seguridad-backups`, las sedes hospitalarias aparecían en estado crítico ("Sin backups" / rojo) debido a que `backup_dcm_agent.py` y `sync_dcm_images.py` únicamente transferían datos localmente a la NAS QNAP vía SMB, sin reportar su estado ni transmitir los archivos de backup comprimidos hacia la API Central de LIDiag.
+    * Solo `agente_dosimetria.py` realizaba conexiones HTTP hacia Central. Se requería unificar la capa de red para que los 3 agentes consuman `api_url` y `api_token` de `config.json` y transmitan tanto sus datos como su estado de salud en tiempo real.
+  - **Solución Implementada:**
+    * **Backend Central (`BackupUploadController.php`):** Se adaptó la autenticación para soportar tokens Sanctum por sede además del `BACKUP_API_TOKEN` estático. Se agregó el endpoint `POST /api/backups/telemetria` para recepción de latidos de sincronización y estado de respaldos con volcado a `storage/logs/backups.log`.
+    * **Rutas:** Registro de `POST /api/backups/telemetria` en `routes/api.php`.
+    * **Agente de Backups (`backup_dcm_agent.py`):** Incorporación de lectura de `api_url` y `api_token`. Se añadió el Paso 9 para transmitir el `.zip` a Central (`POST /api/backups/upload-dcm`) y emitir telemetría (`POST /api/backups/telemetria`) reflejando el estado "Al día" en el monitor de backups.
+    * **Agente de Sincronización de Imágenes (`sync_dcm_images.py`):** Se integró `requests`, resolución dinámica de endpoints y emisión de telemetría a Central (`POST /api/backups/telemetria`) en cada ciclo de sincronización de Robocopy con métricas de imágenes copiadas, duración y espacio libre.
+    * **Agente de Dosimetría (`agente_dosimetria.py`):** Normalización de `resolve_api_endpoint` para evitar 404 en el endpoint de heartbeat independientemente de sufijos de URL.
+  - **Verificaciones:** Formato LF verificado ✅.
+
 - [x] **2026-11-03 — Creación del Módulo "Tokens de Sedes" (Generador y Gestor Sanctum para Agentes Edge):**
   - **Diagnóstico y Necesidad:**
     * Los Agentes Edge distribuidos en los hospitales de la red asistencial (Espinal, La Dorada, Chaparral, Ibagué, Líbano, Honda, Rovira) requieren credenciales API Sanctum para autenticar de forma segura el envío masivo de dosimetría radiológica (`POST /api/dosimetria/registros`), latidos periódicos (`heartbeat`) y la telemetría/subida de respaldos DCM (`/seguridad-backups`).

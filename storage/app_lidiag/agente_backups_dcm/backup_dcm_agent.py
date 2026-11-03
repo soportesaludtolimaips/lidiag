@@ -44,6 +44,13 @@ import sys
 import time
 import zipfile
 
+try:
+    import requests
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+except ImportError:
+    requests = None
+
 
 AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
 _venv_site = os.path.join(AGENT_DIR, "venv", "Lib", "site-packages")
@@ -188,6 +195,8 @@ def parse_arguments():
     parser.add_argument("--min-free-gb", type=float, dest="min_free_space_gb", help="Espacio libre mínimo en disco en GB (por defecto: 5)")
     parser.add_argument("--qnap-ip", dest="qnap_ip", help="IP del servidor QNAP (ej. 10.35.47.21)")
     parser.add_argument("--qnap-share", dest="qnap_share_backups", help="Recurso compartido en QNAP para backups (ej. backups_espinal)")
+    parser.add_argument("--api-url", dest="api_url", help="URL base o endpoint de API de LIDiag Central")
+    parser.add_argument("--api-token", dest="api_token", help="Token de autenticación de la sede en LIDiag Central")
     return parser.parse_args()
 
 
@@ -272,6 +281,8 @@ def load_config(config_path, args):
         "qnap_user": loaded.get("qnap_user", "").strip(),
         "qnap_password": loaded.get("qnap_password", ""),
         "qnap_share_backups": (loaded.get("qnap_share_backups") or loaded.get("qnap_share", "")).strip(),
+        "api_url": loaded.get("api_url", "").strip(),
+        "api_token": loaded.get("api_token", "").strip(),
     }
 
     # Sobreescribir con argumentos de línea de comandos si fueron suministrados
@@ -301,6 +312,10 @@ def load_config(config_path, args):
         config["qnap_ip"] = args.qnap_ip
     if getattr(args, "qnap_share_backups", None):
         config["qnap_share_backups"] = args.qnap_share_backups
+    if getattr(args, "api_url", None):
+        config["api_url"] = args.api_url
+    if getattr(args, "api_token", None):
+        config["api_token"] = args.api_token
 
     return config
 
@@ -536,6 +551,100 @@ def transfer_backup_to_qnap(config: dict, files_to_transfer: list, retention_day
     except Exception as e:
         err = f"Error durante la copia hacia el QNAP: {e}"
         print(f"      [ERROR QNAP] {err}")
+        return {"estado": "ERROR", "error": err}
+
+
+def resolve_api_endpoint(base_api_url: str, endpoint_path: str) -> str:
+    """
+    Dada una URL base como 'https://10.35.47.4/lidiag-update/public/api/dosimetria/registros',
+    deriva la raíz de la API ('https://10.35.47.4/lidiag-update/public/api') y concatena endpoint_path.
+    """
+    if not base_api_url:
+        return ""
+    clean = base_api_url.rstrip("/")
+    idx = clean.find("/api/")
+    if idx != -1:
+        base = clean[:idx + 5].rstrip("/")
+    elif clean.endswith("/api"):
+        base = clean
+    else:
+        base = clean.rsplit("/", 1)[0]
+    return f"{base}/{endpoint_path.lstrip('/')}"
+
+
+def enviar_telemetria_backup_central(api_url: str, api_token: str, sede_id: int, estado: str, mensaje: str, detalles: dict = None) -> bool:
+    """Emite la telemetría del estado de backups hacia la API Central de LIDiag."""
+    if not requests or not api_url or not api_token or not sede_id:
+        return False
+
+    endpoint = resolve_api_endpoint(api_url, "backups/telemetria")
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": f"Bearer {api_token}",
+        "X-Requested-With": "XMLHttpRequest",
+    }
+    payload = {
+        "sede_id": sede_id,
+        "servicio": "backup_db",
+        "estado": estado,
+        "mensaje": mensaje,
+        "detalles": detalles or {},
+    }
+    try:
+        res = requests.post(endpoint, json=payload, headers=headers, timeout=15, verify=False)
+        return res.status_code == 200
+    except Exception as e:
+        print(f"      [AVISO TELEMETRÍA] No se pudo emitir telemetría de backup a Central: {e}")
+        return False
+
+
+def transmitir_backup_a_central(api_url: str, api_token: str, sede_id: int, zip_path: str, timeout: int = 600) -> dict:
+    """Transmite el archivo comprimido ZIP del backup hacia la API Central de LIDiag."""
+    if not requests:
+        return {"estado": "SKIPPED", "error": "Librería 'requests' no disponible en el entorno."}
+    if not api_url or not api_token:
+        return {"estado": "SKIPPED", "error": "api_url o api_token no configurados en config.json."}
+    if not zip_path or not os.path.isfile(zip_path):
+        return {"estado": "ERROR", "error": f"Archivo no encontrado: {zip_path}"}
+
+    endpoint = resolve_api_endpoint(api_url, "backups/upload-dcm")
+    fname = os.path.basename(zip_path)
+    fsize = os.path.getsize(zip_path)
+    print(f"      Transmitiendo '{fname}' ({format_bytes(fsize)}) hacia Central: {endpoint}...")
+
+    headers = {
+        "Authorization": f"Bearer {api_token}",
+        "Accept": "application/json",
+    }
+    data = {
+        "sede_id": sede_id,
+    }
+
+    t_start = time.time()
+    try:
+        with open(zip_path, "rb") as f:
+            files = {"backup_file": (fname, f, "application/zip")}
+            res = requests.post(endpoint, data=data, files=files, headers=headers, timeout=timeout, verify=False)
+
+        duration = round(time.time() - t_start, 2)
+        mb_rate = round((fsize / (1024 * 1024)) / duration, 2) if duration > 0 else 0.0
+
+        if res.status_code == 200:
+            print(f"      [OK] Backup recibido y validado por LIDiag Central en {duration}s (~{mb_rate} MB/s).")
+            return {
+                "estado": "SUCCESS",
+                "segundos": duration,
+                "endpoint": endpoint,
+                "respuesta": res.json() if "application/json" in res.headers.get("content-type", "") else {},
+            }
+        else:
+            err = f"Central respondió HTTP {res.status_code}: {res.text[:200]}"
+            print(f"      [ERROR CENTRAL] {err}")
+            return {"estado": "ERROR", "error": err, "status_code": res.status_code}
+    except Exception as e:
+        err = f"Fallo de conexión transmitiendo a Central: {e}"
+        print(f"      [ERROR CENTRAL] {err}")
         return {"estado": "ERROR", "error": err}
 
 
@@ -793,13 +902,45 @@ def main():
         print(f"[Telemetría] Manifiesto generado localmente: {os.path.basename(manifest_file)}")
 
     # Paso 8: Envío inmediato a la NAS QNAP (si está configurada)
-    print("\n[Paso 8/8] Transmitiendo backup inmediatamente a la NAS QNAP...")
+    print("\n[Paso 8/9] Transmitiendo backup inmediatamente a la NAS QNAP...")
     files_to_transfer = [zip_path, sha256_file, manifest_file, os.path.join(dest_dir, "backup_status.json")]
     qnap_res = transfer_backup_to_qnap(config, files_to_transfer, retention_days)
 
     if qnap_res.get("estado") == "SUCCESS":
         status_data["qnap_transfer"] = qnap_res
         write_status_manifest(dest_dir, config["sede_id"], status_data)
+
+    # Paso 9: Envío a Servidor Central LIDiag (si api_url y api_token están configurados)
+    central_res = {"estado": "SKIPPED"}
+    if config.get("api_url") and config.get("api_token"):
+        print("\n[Paso 9/9] Transmitiendo backup hacia el Servidor Central LIDiag...")
+        central_res = transmitir_backup_a_central(
+            api_url=config["api_url"],
+            api_token=config["api_token"],
+            sede_id=config["sede_id"],
+            zip_path=zip_path,
+        )
+        status_data["central_transfer"] = central_res
+        write_status_manifest(dest_dir, config["sede_id"], status_data)
+
+        # Telemetría de estado hacia Central
+        enviar_telemetria_backup_central(
+            api_url=config["api_url"],
+            api_token=config["api_token"],
+            sede_id=config["sede_id"],
+            estado="OK" if central_res.get("estado") == "SUCCESS" else "ADVERTENCIA",
+            mensaje=f"Backup completado localmente. Central: {central_res.get('estado')}",
+            detalles={
+                "archivo_zip": zip_filename,
+                "tamano_zip": format_bytes(zip_size),
+                "sha256": sha256_hash,
+                "duracion_total": total_duration,
+                "qnap_estado": qnap_res.get("estado"),
+                "central_estado": central_res.get("estado"),
+            },
+        )
+    else:
+        print("\n[Paso 9/9] Transmisión a Central omitida (api_url o api_token no presentes en config.json).")
 
     # Actualizar manifiesto unificado de salud (healthcheck)
     update_unified_healthcheck(
@@ -813,6 +954,7 @@ def main():
             "tamano_zip": status_data.get("tamano_zip_humano", ""),
             "sha256": status_data.get("sha256", ""),
             "duracion_segundos": status_data.get("duracion_total_segundos", 0),
+            "central_transfer": central_res.get("estado"),
         },
         unc_dest=qnap_res.get("qnap_destino", ""),
     )
@@ -823,12 +965,16 @@ def main():
     print(f" SHA-256       : {sha256_hash}")
     if qnap_res.get("estado") == "SUCCESS":
         print(f" Destino QNAP  : {qnap_res.get('qnap_destino')}")
-        print(f" Tasa envío    : {qnap_res.get('segundos')}s ({format_bytes(qnap_res.get('bytes_transferidos', 0))})")
+        print(f" Tasa QNAP     : {qnap_res.get('segundos')}s ({format_bytes(qnap_res.get('bytes_transferidos', 0))})")
     elif qnap_res.get("estado") == "SKIPPED":
         print(" Destino QNAP  : No configurado (backup conservado localmente)")
     else:
         print(f" Estado QNAP   : {qnap_res.get('estado')} ({qnap_res.get('error', '')})")
-        print("                 (El backup local se encuentra a salvo e íntegro)")
+
+    if central_res.get("estado") == "SUCCESS":
+        print(f" Central LIDiag: RECIBIDO ({central_res.get('segundos')}s)")
+    elif central_res.get("estado") != "SKIPPED":
+        print(f" Central LIDiag: {central_res.get('estado')} ({central_res.get('error', '')})")
     print("=========================================================")
 
 

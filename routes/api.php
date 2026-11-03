@@ -31,6 +31,7 @@ Route::get('/test', function () {
 
 // Endpoint receptor de backups de bases de datos DCM por sedes (autenticado por Bearer Token)
 Route::post('/backups/upload-dcm', [BackupUploadController::class, 'uploadDcm']);
+Route::post('/backups/telemetria', [BackupUploadController::class, 'telemetria']);
 
 /**
  * Diagnóstico mínimo de sesión para el interceptor 401 del frontend.

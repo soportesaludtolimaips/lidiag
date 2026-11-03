@@ -588,13 +588,27 @@ def purgar_antiguos_sqlite(dias: int = 30, db_path: str = SQLITE_COLA_FILE):
         pass
 
 
+def resolve_api_endpoint(base_api_url: str, endpoint_path: str) -> str:
+    """
+    Dada una URL base como 'https://10.35.47.4/lidiag-update/public/api/dosimetria/registros',
+    deriva la raíz de la API ('https://10.35.47.4/lidiag-update/public/api') y concatena endpoint_path.
+    """
+    if not base_api_url:
+        return ""
+    clean = base_api_url.rstrip("/")
+    idx = clean.find("/api/")
+    if idx != -1:
+        base = clean[:idx + 5].rstrip("/")
+    elif clean.endswith("/api"):
+        base = clean
+    else:
+        base = clean.rsplit("/", 1)[0]
+    return f"{base}/{endpoint_path.lstrip('/')}"
+
+
 def enviar_heartbeat(api_url: str, api_token: str, sede_id: int, pendientes: int, version: str = "1.3.0"):
     """Emite un latido (Heartbeat / Dead Man's Switch) hacia la API Central."""
-    hb_url = api_url.rstrip("/")
-    if hb_url.endswith("/registros"):
-        hb_url = hb_url[:-10] + "/heartbeat"
-    else:
-        hb_url = hb_url + "/heartbeat"
+    hb_url = resolve_api_endpoint(api_url, "dosimetria/heartbeat")
 
     headers = {
         "Content-Type": "application/json",

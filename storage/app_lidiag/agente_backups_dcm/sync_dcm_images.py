@@ -33,6 +33,13 @@ import argparse
 import subprocess
 from datetime import datetime
 
+try:
+    import requests
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+except ImportError:
+    requests = None
+
 AGENT_DIR = os.path.dirname(os.path.abspath(__file__))
 _venv_site = os.path.join(AGENT_DIR, "venv", "Lib", "site-packages")
 if os.path.isdir(_venv_site) and _venv_site not in sys.path:
@@ -443,6 +450,60 @@ def sync_cycle(config: dict) -> bool:
         CURRENT_ROBOCOPY_PROC = None
 
 
+def resolve_api_endpoint(base_api_url: str, endpoint_path: str) -> str:
+    """
+    Dada una URL base como 'https://10.35.47.4/lidiag-update/public/api/dosimetria/registros',
+    deriva la raíz de la API ('https://10.35.47.4/lidiag-update/public/api') y concatena endpoint_path.
+    """
+    if not base_api_url:
+        return ""
+    clean = base_api_url.rstrip("/")
+    idx = clean.find("/api/")
+    if idx != -1:
+        base = clean[:idx + 5].rstrip("/")
+    elif clean.endswith("/api"):
+        base = clean
+    else:
+        base = clean.rsplit("/", 1)[0]
+    return f"{base}/{endpoint_path.lstrip('/')}"
+
+
+def enviar_telemetria_sync_central(config: dict, status: str, msg: str, copiados: int = 0, duration: float = 0.0, free_gb: float = 0.0) -> bool:
+    """Emite la telemetría periódica de sincronización de imágenes hacia la API Central de LIDiag."""
+    api_url = config.get("api_url", "")
+    api_token = config.get("api_token", "")
+    sede_id = config.get("sede_id", 0)
+
+    if not requests or not api_url or not api_token or not sede_id:
+        return False
+
+    endpoint = resolve_api_endpoint(api_url, "backups/telemetria")
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": f"Bearer {api_token}",
+        "X-Requested-With": "XMLHttpRequest",
+    }
+    payload = {
+        "sede_id": sede_id,
+        "servicio": "sync_imagenes",
+        "estado": status,
+        "mensaje": msg,
+        "detalles": {
+            "archivos_copiados": copiados,
+            "duracion_segundos": duration,
+            "espacio_libre_local_gb": free_gb,
+            "qnap_destino": f"\\\\{config.get('qnap_ip')}\\{config.get('qnap_share_imagenes') or config.get('qnap_share', '')}",
+        },
+    }
+    try:
+        res = requests.post(endpoint, json=payload, headers=headers, timeout=12, verify=False)
+        return res.status_code == 200
+    except Exception as e:
+        logger.warning(f"No se pudo emitir telemetría de sincronización a Central: {e}")
+        return False
+
+
 def emit_status(config: dict, status: str, msg: str, copiados: int = 0, duration: float = 0.0, free_gb: float = 0.0, unc_dest: str = ""):
     """Emite la telemetría JSON local y remotamente en el QNAP."""
     sede_nombre = config.get("sede_nombre", "Sede")
@@ -490,6 +551,17 @@ def emit_status(config: dict, status: str, msg: str, copiados: int = 0, duration
         },
         unc_dest=unc_dest,
     )
+
+    # Emisión de telemetría hacia LIDiag Central (si api_url y api_token están presentes)
+    if config.get("api_url") and config.get("api_token"):
+        enviar_telemetria_sync_central(
+            config=config,
+            status=status,
+            msg=msg,
+            copiados=copiados,
+            duration=duration,
+            free_gb=free_gb,
+        )
 
 
 HEALTHCHECK_FILE = os.path.join(LOGS_DIR, "healthcheck_agente.json")

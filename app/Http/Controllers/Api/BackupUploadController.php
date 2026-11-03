@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Laravel\Sanctum\PersonalAccessToken;
 use Throwable;
 
 class BackupUploadController extends Controller
@@ -56,11 +57,21 @@ class BackupUploadController extends Controller
     {
         set_time_limit(0);
 
-        // 1. Validar autenticación por Bearer Token
+        // 1. Validar autenticación (compatible con Sanctum por sede y BACKUP_API_TOKEN estático)
         $tokenRecibido = $request->bearerToken() ?: $request->header("X-Backup-Token") ?: $request->input("token");
         $tokenEsperado = (string) config("backup.api_token", env("BACKUP_API_TOKEN", "lidiag_backup_secure_token_2026"));
 
-        if (empty($tokenRecibido) || ! hash_equals($tokenEsperado, (string) $tokenRecibido)) {
+        $esValido = false;
+        if (! empty($tokenRecibido) && hash_equals($tokenEsperado, (string) $tokenRecibido)) {
+            $esValido = true;
+        } elseif (! empty($tokenRecibido)) {
+            $personalToken = PersonalAccessToken::findToken($tokenRecibido);
+            if ($personalToken && $personalToken->tokenable) {
+                $esValido = true;
+            }
+        }
+
+        if (! $esValido) {
             Log::channel("backups")->warning("Intento no autorizado de subida de backup DCM", [
                 "ip" => $request->ip(),
                 "sede_id" => $request->input("sede_id"),
@@ -139,5 +150,71 @@ class BackupUploadController extends Controller
                 "message" => "Error interno al almacenar el backup: ".$e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Registra el latido o telemetría periódica de los servicios de backup e imágenes de una sede.
+     *
+     * Flujo del proceso:
+     * 1. Valida autenticación por Bearer Token (Sanctum o estático).
+     * 2. Valida los parámetros: sede_id, servicio, estado y métricas operativas.
+     * 3. Registra el evento en storage/logs/backups.log para visualización en el dashboard central.
+     * 4. Retorna respuesta HTTP 200 con confirmación de recepción.
+     *
+     * @param  Request  $request  Petición HTTP con telemetría del agente
+     * @return JsonResponse Confirmación de recepción
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-03
+     */
+    public function telemetria(Request $request): JsonResponse
+    {
+        $tokenRecibido = $request->bearerToken() ?: $request->header("X-Backup-Token") ?: $request->input("token");
+        $tokenEsperado = (string) config("backup.api_token", env("BACKUP_API_TOKEN", "lidiag_backup_secure_token_2026"));
+
+        $esValido = false;
+        if (! empty($tokenRecibido) && hash_equals($tokenEsperado, (string) $tokenRecibido)) {
+            $esValido = true;
+        } elseif (! empty($tokenRecibido)) {
+            $personalToken = PersonalAccessToken::findToken($tokenRecibido);
+            if ($personalToken && $personalToken->tokenable) {
+                $esValido = true;
+            }
+        }
+
+        if (! $esValido) {
+            return response()->json([
+                "success" => false,
+                "message" => "No autorizado. Token de acceso inválido.",
+            ], 401);
+        }
+
+        $validated = $request->validate([
+            "sede_id" => "required|integer|exists:config_sedes,id",
+            "servicio" => "required|string|max:50",
+            "estado" => "required|string|max:50",
+            "mensaje" => "sometimes|nullable|string|max:500",
+            "detalles" => "sometimes|nullable|array",
+        ]);
+
+        $sede = ConfigSede::find($validated["sede_id"]);
+        $sedeNombre = $sede?->nom_sede ?? "Sede #{$validated['sede_id']}";
+
+        Log::channel("backups")->info(
+            "[Telemetría {$validated['servicio']}] {$sedeNombre}: Estado {$validated['estado']} - ".($validated["mensaje"] ?? "OK"),
+            [
+                "sede_id" => $validated["sede_id"],
+                "servicio" => $validated["servicio"],
+                "estado" => $validated["estado"],
+                "detalles" => $validated["detalles"] ?? [],
+            ]
+        );
+
+        return response()->json([
+            "success" => true,
+            "message" => "Telemetría registrada correctamente para {$sedeNombre}.",
+            "timestamp" => now()->format("Y-m-d H:i:s"),
+        ]);
     }
 }
