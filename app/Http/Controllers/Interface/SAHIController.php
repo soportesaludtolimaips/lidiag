@@ -67,7 +67,11 @@ class SAHIController extends Controller
      */
     public function listarProductosAtencion(Request $request): JsonResponse
     {
-        $result = $this->sahiService->listarProductosAtencion($request->input('bus_nom_num_docu'));
+        $atencionId = $request->input('atencion_id')
+            ?? $request->input('bus_nom_num_docu')
+            ?? $request->input('idAtencion');
+
+        $result = $this->sahiService->listarProductosAtencion($atencionId);
 
         return response()->json($result, $result['status']);
     }

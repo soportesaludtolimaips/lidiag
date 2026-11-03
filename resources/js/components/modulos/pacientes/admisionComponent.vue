@@ -284,6 +284,39 @@
                                             </button>
                                             <button
                                                 type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-sm m-r-5"
+                                                :class="
+                                                    sedeInterface
+                                                        ? 'btn-outline-info'
+                                                        : 'btn-outline-secondary'
+                                                "
+                                                :disabled="
+                                                    !sedeInterface ||
+                                                    loadingInterfacePacienteId === item.id
+                                                "
+                                                :title="
+                                                    sedeInterface
+                                                        ? 'Consultar órdenes y facturas en interface ' +
+                                                          (
+                                                              sedeInterfaceSoftware || 'SAHI'
+                                                          ).toUpperCase()
+                                                        : 'La sede actual no cuenta con interface configurada'
+                                                "
+                                                :aria-label="
+                                                    sedeInterface
+                                                        ? 'Consultar órdenes y facturas en interface'
+                                                        : 'Interface no configurada en esta sede'
+                                                "
+                                                @click="abrirModalInterface(item)"
+                                            >
+                                                <i
+                                                    v-if="loadingInterfacePacienteId === item.id"
+                                                    class="fa fa-spinner fa-spin"
+                                                ></i>
+                                                <i v-else class="fa fa-database"></i>
+                                            </button>
+                                            <button
+                                                type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
                                                 @click="mostrarRegistro(item)"
                                                 title="Editar datos del paciente"
@@ -595,6 +628,292 @@
             </div>
         </div>
         <div v-if="modalWorklistVisible" class="modal-backdrop fade show"></div>
+
+        <!-- ============================================================== -->
+        <!-- Modal: Consulta de Órdenes y Facturas en Interface (SAHI)      -->
+        <!-- ============================================================== -->
+        <div
+            v-if="modalInterfaceVisible"
+            class="modal fade show"
+            id="modalInterface"
+            tabindex="-1"
+            role="dialog"
+            aria-labelledby="modalInterfaceLabel"
+            style="display: block; background: rgba(0, 0, 0, 0.55)"
+        >
+            <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+                <div class="modal-content shadow-lg">
+                    <div class="modal-header bg-info text-white">
+                        <h4 class="modal-title text-white" id="modalInterfaceLabel">
+                            <i class="fa fa-database m-r-5"></i>
+                            Órdenes y Facturas en Interface
+                            {{ (sedeInterfaceSoftware || "SAHI").toUpperCase() }}
+                        </h4>
+                        <button
+                            type="button"
+                            class="close text-white"
+                            @click="cerrarModalInterface"
+                            aria-label="Cerrar"
+                        >
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+
+                    <div class="modal-body p-4">
+                        <!-- Cabecera contextual del Paciente -->
+                        <div class="alert alert-light border mb-3 p-3">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <h5 class="mb-1 text-dark">
+                                        <i class="fa fa-user-circle text-info m-r-5"></i>
+                                        <strong>{{
+                                            pacienteInterface?.nombre_completo ||
+                                            pacienteInterface?.nombres
+                                        }}</strong>
+                                    </h5>
+                                    <div class="text-muted small">
+                                        <span
+                                            ><strong>Documento:</strong>
+                                            {{ pacienteInterface?.tipo_documento?.codigo || "DOC" }}
+                                            {{ pacienteInterface?.num_docu }}</span
+                                        >
+                                        <span class="mx-2">•</span>
+                                        <span
+                                            ><strong>Sexo / Edad:</strong>
+                                            {{ pacienteInterface?.sexo }} ({{
+                                                calcularEdadPaciente(pacienteInterface?.fec_naci)
+                                            }})</span
+                                        >
+                                        <span class="mx-2">•</span>
+                                        <span><strong>Sede Activa:</strong> {{ sedeNombre }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-md-right mt-2 mt-md-0">
+                                    <span class="badge badge-success px-3 py-2">
+                                        <i class="fa fa-plug m-r-5"></i> Interface
+                                        {{ (sedeInterfaceSoftware || "SAHI").toUpperCase() }}
+                                        Conectada
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Selector de Atenciones -->
+                        <div class="card mb-3 border">
+                            <div class="card-body bg-light py-3">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <label
+                                            class="form-label font-weight-bold mb-1"
+                                            for="selectInterfaceAtencion"
+                                        >
+                                            <i class="fa fa-calendar-check-o text-info m-r-5"></i>
+                                            Seleccione una Atención del Paciente:
+                                        </label>
+                                        <select
+                                            id="selectInterfaceAtencion"
+                                            class="form-control custom-select"
+                                            v-model="interfaceAtencionSeleccionada"
+                                            @change="onCambioAtencion"
+                                            :disabled="
+                                                loadingInterfaceAtenciones ||
+                                                loadingInterfaceProductos
+                                            "
+                                        >
+                                            <option
+                                                v-if="loadingInterfaceAtenciones"
+                                                value=""
+                                                disabled
+                                            >
+                                                Cargando atenciones desde el HIS...
+                                            </option>
+                                            <option
+                                                v-else-if="interfaceAtenciones.length === 0"
+                                                value=""
+                                                disabled
+                                            >
+                                                No se encontraron atenciones registradas en el HIS
+                                                para este paciente
+                                            </option>
+                                            <option
+                                                v-for="atn in interfaceAtenciones"
+                                                :key="atn.IdAtencion"
+                                                :value="atn.IdAtencion"
+                                            >
+                                                Atención #{{ atn.IdAtencion }} — Ingreso:
+                                                {{
+                                                    atn.FecIngreso
+                                                        ? atn.FecIngreso.substring(0, 10)
+                                                        : "Sin fecha"
+                                                }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 text-md-right mt-2 mt-md-0">
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-info waves-effect"
+                                            @click="recargarInterface"
+                                            :disabled="
+                                                loadingInterfaceAtenciones ||
+                                                loadingInterfaceProductos
+                                            "
+                                            title="Actualizar datos desde la interface"
+                                        >
+                                            <i
+                                                class="fa fa-refresh m-r-5"
+                                                :class="{
+                                                    'fa-spin':
+                                                        loadingInterfaceAtenciones ||
+                                                        loadingInterfaceProductos,
+                                                }"
+                                            ></i>
+                                            Recargar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estado de carga de productos -->
+                        <div v-if="loadingInterfaceProductos" class="text-center py-5">
+                            <i class="fa fa-spinner fa-spin fa-2x text-info"></i>
+                            <h5 class="mt-3 text-muted">
+                                Consultando órdenes y facturas en la atención #{{
+                                    interfaceAtencionSeleccionada
+                                }}...
+                            </h5>
+                        </div>
+
+                        <!-- Sin atenciones -->
+                        <div
+                            v-else-if="
+                                !loadingInterfaceAtenciones && interfaceAtenciones.length === 0
+                            "
+                            class="text-center py-5"
+                        >
+                            <i class="fa fa-folder-open-o fa-3x text-muted mb-3"></i>
+                            <h5>No se encontraron atenciones</h5>
+                            <p class="text-muted">
+                                El paciente con documento {{ pacienteInterface?.num_docu }} no posee
+                                atenciones registradas en la interface
+                                {{ (sedeInterfaceSoftware || "SAHI").toUpperCase() }}.
+                            </p>
+                        </div>
+
+                        <!-- Atención seleccionada sin productos -->
+                        <div
+                            v-else-if="
+                                !loadingInterfaceAtenciones &&
+                                interfaceAtenciones.length > 0 &&
+                                interfaceProductos.length === 0
+                            "
+                            class="alert alert-warning text-center py-4"
+                        >
+                            <i class="fa fa-exclamation-triangle fa-2x text-warning mb-2"></i>
+                            <h5 class="mb-1 text-warning">Sin procedimientos diagnósticos</h5>
+                            <p class="mb-0 text-dark">
+                                No se encontraron productos facturados ni órdenes de procedimiento
+                                registradas para la Atención #{{ interfaceAtencionSeleccionada }}.
+                            </p>
+                        </div>
+
+                        <!-- Tabla de Órdenes y Facturas encontradas -->
+                        <div v-else-if="interfaceProductos.length > 0" class="table-responsive">
+                            <table
+                                class="table table-hover table-striped table-bordered align-middle mb-0"
+                            >
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th style="width: 12%" class="text-center">Tipo / #</th>
+                                        <th style="width: 10%" class="text-center">CUPS</th>
+                                        <th style="width: 32%">Estudio / Procedimiento</th>
+                                        <th style="width: 18%">Médico Ordenante</th>
+                                        <th style="width: 16%">EPS / Responsable</th>
+                                        <th style="width: 12%" class="text-center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(prod, idx) in interfaceProductos" :key="idx">
+                                        <td class="text-center">
+                                            <span
+                                                v-if="prod.TipoRegistro === 'FACTURA'"
+                                                class="badge badge-success text-uppercase"
+                                            >
+                                                <i class="fa fa-file-text-o m-r-5"></i> Factura
+                                                <div v-if="prod.NumFactura" class="small mt-1">
+                                                    {{ prod.NumFactura }}
+                                                </div>
+                                            </span>
+                                            <span v-else class="badge badge-primary text-uppercase">
+                                                <i class="fa fa-clipboard m-r-5"></i> Orden
+                                                <div v-if="prod.NumFactura" class="small mt-1">
+                                                    #{{ prod.NumFactura }}
+                                                </div>
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge badge-info">{{
+                                                prod.CodProducto || prod.cod_cups || "N/A"
+                                            }}</span>
+                                        </td>
+                                        <td>
+                                            <strong class="text-dark d-block">{{
+                                                prod.NomProducto ||
+                                                prod.nom_produc ||
+                                                "Sin descripción"
+                                            }}</strong>
+                                            <small class="text-muted" v-if="prod.ValProduc">
+                                                Valor: ${{
+                                                    Number(prod.ValProduc).toLocaleString("es-CO")
+                                                }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <small class="text-dark">{{
+                                                prod.quien_ordeno || "No registrado"
+                                            }}</small>
+                                        </td>
+                                        <td>
+                                            <small class="d-block font-weight-bold text-dark">{{
+                                                prod.NomTercero || "Particular"
+                                            }}</small>
+                                            <small
+                                                class="text-muted"
+                                                v-if="prod.DesContrato || prod.DesPlan"
+                                            >
+                                                {{ prod.DesContrato || prod.DesPlan }}
+                                            </small>
+                                        </td>
+                                        <td class="text-center">
+                                            <button
+                                                type="button"
+                                                class="btn btn-success btn-sm waves-effect waves-light"
+                                                @click="seleccionarParaWorklist(prod)"
+                                                title="Cargar y enviar este estudio a Worklist"
+                                            >
+                                                <i class="fa fa-paper-plane m-r-5"></i> Worklist
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-secondary waves-effect"
+                            @click="cerrarModalInterface"
+                        >
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-if="modalInterfaceVisible" class="modal-backdrop fade show"></div>
     </div>
 </template>
 
@@ -707,6 +1026,18 @@ const worklistForm = ref({
     station_aet: "",
 });
 
+// Control de Modal de Consulta de Interface (SAHI / HIS)
+const sedeInterface = ref(false);
+const sedeInterfaceSoftware = ref(null);
+const modalInterfaceVisible = ref(false);
+const loadingInterfacePacienteId = ref(null);
+const loadingInterfaceAtenciones = ref(false);
+const loadingInterfaceProductos = ref(false);
+const pacienteInterface = ref(null);
+const interfaceAtenciones = ref([]);
+const interfaceAtencionSeleccionada = ref(null);
+const interfaceProductos = ref([]);
+
 function destroyDataTable() {
     safeDestroyDataTable(dt.value || "#tablaAdmisionPacientes");
 }
@@ -732,7 +1063,29 @@ function resolverNombreSede() {
     }
 }
 
-function onSedeSeleccionada(data) {
+async function consultarConfigSede() {
+    if (!sedeId.value) {
+        sedeInterface.value = false;
+        sedeInterfaceSoftware.value = null;
+        return;
+    }
+    try {
+        const res = await axios.get(`/api/config-sedes/${sedeId.value}/buscarPorId`);
+        const data = res?.data?.data || {};
+        sedeInterfaceSoftware.value = data.interface_software || null;
+        sedeInterface.value = Boolean(
+            data.interface_software && data.interface_software.toLowerCase() === "sahi"
+        );
+        if (data.nom_sede) {
+            sedeNombre.value = data.nom_sede;
+        }
+    } catch {
+        sedeInterface.value = false;
+        sedeInterfaceSoftware.value = null;
+    }
+}
+
+async function onSedeSeleccionada(data) {
     const nuevoId = parsearSedeId(data) ?? parsearSedeId(sessionStorage.getItem("ST-sede"));
     if (nuevoId) {
         sedeId.value = nuevoId;
@@ -743,6 +1096,7 @@ function onSedeSeleccionada(data) {
         } else {
             resolverNombreSede();
         }
+        await consultarConfigSede();
         buscar();
         cargarEstacionesWorklist();
     }
@@ -1111,8 +1465,116 @@ async function reconciliarConPacs() {
     }
 }
 
-onMounted(() => {
+async function abrirModalInterface(item) {
+    if (!sedeInterface.value) {
+        toastMessage({
+            heading: "Interface no disponible",
+            text: "La sede actual no cuenta con una interfaz HIS/SAHI configurada.",
+            icon: "warning",
+        });
+        return;
+    }
+
+    pacienteInterface.value = item;
+    interfaceAtenciones.value = [];
+    interfaceAtencionSeleccionada.value = null;
+    interfaceProductos.value = [];
+    modalInterfaceVisible.value = true;
+    loadingInterfacePacienteId.value = item.id;
+    loadingInterfaceAtenciones.value = true;
+
+    try {
+        const res = await axios.get(
+            `/api/interface-sahi-listar-atenciones/${encodeURIComponent(item.num_docu)}`
+        );
+        const atenciones = res.data?.data || [];
+        interfaceAtenciones.value = atenciones;
+
+        if (atenciones.length > 0) {
+            interfaceAtencionSeleccionada.value = atenciones[0].IdAtencion;
+            await cargarProductosAtencion(atenciones[0].IdAtencion);
+        }
+    } catch (err) {
+        const msg =
+            err.response?.data?.message ||
+            "Error al consultar las atenciones del paciente en la interface.";
+        toastMessage({ heading: "Error Interface", text: msg, icon: "error" });
+    } finally {
+        loadingInterfacePacienteId.value = null;
+        loadingInterfaceAtenciones.value = false;
+    }
+}
+
+async function onCambioAtencion() {
+    if (!interfaceAtencionSeleccionada.value) return;
+    await cargarProductosAtencion(interfaceAtencionSeleccionada.value);
+}
+
+async function recargarInterface() {
+    if (!pacienteInterface.value) return;
+    await abrirModalInterface(pacienteInterface.value);
+}
+
+async function cargarProductosAtencion(idAtencion) {
+    if (!idAtencion) return;
+    loadingInterfaceProductos.value = true;
+    interfaceProductos.value = [];
+
+    try {
+        const res = await axios.post("/api/interface-sahi/listar/productos/atencion", {
+            atencion_id: idAtencion,
+            bus_nom_num_docu: idAtencion,
+        });
+        interfaceProductos.value = res.data?.data || [];
+    } catch (err) {
+        const msg =
+            err.response?.data?.message || "Error consultando órdenes y facturas de la atención.";
+        toastMessage({ heading: "Error", text: msg, icon: "error" });
+    } finally {
+        loadingInterfaceProductos.value = false;
+    }
+}
+
+function cerrarModalInterface() {
+    modalInterfaceVisible.value = false;
+    pacienteInterface.value = null;
+    interfaceAtenciones.value = [];
+    interfaceAtencionSeleccionada.value = null;
+    interfaceProductos.value = [];
+}
+
+async function seleccionarParaWorklist(prod) {
+    const paciente = pacienteInterface.value;
+    cerrarModalInterface();
+
+    await abrirModalWorklist(paciente);
+
+    const cupCode = String(prod.CodProducto || prod.cod_cups || "").trim();
+    if (cupCode) {
+        const encontrado = productosRayosX.value.find(
+            (p) => String(p.cod_cups || "").trim() === cupCode
+        );
+
+        if (encontrado) {
+            worklistForm.value.producto_id = encontrado.id;
+            toastMessage({
+                heading: "Producto Asociado",
+                text: `Se asoció automáticamente "${encontrado.nom_produc}" (CUPS: ${cupCode}).`,
+                icon: "success",
+            });
+        } else {
+            toastMessage({
+                heading: "Selección Manual",
+                text: `El CUPS "${cupCode}" (${prod.NomProducto || "Estudio"}) no coincide con un producto de Rayos X en LIDiag. Por favor selecciónelo manualmente.`,
+                icon: "warning",
+            });
+        }
+    }
+}
+
+onMounted(async () => {
     resolverNombreSede();
+    await consultarConfigSede();
     cargarCatalogos();
     buscar();
 

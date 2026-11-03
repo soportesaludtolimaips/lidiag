@@ -243,9 +243,9 @@ class SAHIService extends BaseService
         }
 
         try {
-            $gruposPermitidos = [44, 195, 156, 190, 204];
+            $gruposPermitidos = [44, 156, 190, 191, 195, 204, 225, 243];
 
-            $consulta1 = facFacturaDet::select($this->buildAtencionSelect('facFacturaDet.ValTotal'))
+            $consulta1 = facFacturaDet::select($this->buildAtencionSelect('facFacturaDet.ValTotal', 'CAST(facFactura.NumFactura AS VARCHAR(50))', "'FACTURA'"))
                 ->join('facFactura', 'facFacturaDet.IdFactura', '=', 'facFactura.IdFactura')
                 ->join('proProducto', 'facFacturaDet.IdProducto', '=', 'proProducto.IdProducto')
                 ->join('admAtencion', 'facFactura.IdDestino', '=', 'admAtencion.IdAtencion')
@@ -257,7 +257,7 @@ class SAHIService extends BaseService
                 ->where('admAtencion.IdAtencion', $atencionId)
                 ->whereIn('proProducto.IdGrupo', $gruposPermitidos);
 
-            $consulta2 = FacMovimientoDet::select($this->buildAtencionSelect('facMovimientoDet.ValVenta'))
+            $consulta2 = FacMovimientoDet::select($this->buildAtencionSelect('facMovimientoDet.ValVenta', 'CAST(facMovimiento.NumMovimiento AS VARCHAR(50))', "'ORDEN'"))
                 ->join('facMovimiento', 'facMovimientoDet.IdMovimiento', '=', 'facMovimiento.IdMovimiento')
                 ->join('proProducto', 'facMovimientoDet.IdProducto', '=', 'proProducto.IdProducto')
                 ->join('admAtencion', 'facMovimiento.IdDestino', '=', 'admAtencion.IdAtencion')
@@ -303,7 +303,7 @@ class SAHIService extends BaseService
      *
      * @date 2026-10-21
      */
-    private function buildAtencionSelect(string $valProducField): array
+    private function buildAtencionSelect(string $valProducField, string $numDocField = "CAST(NULL AS VARCHAR(50))", string $tipoDocField = "'FACTURA'"): array
     {
         return [
             'admAtencion.IdAtencion',
@@ -333,6 +333,8 @@ class SAHIService extends BaseService
                         INNER JOIN proProducto PoducOrden ON hceProceDetalle.IdProducto = PoducOrden.IdProducto
                     WHERE QuinOrdenoOrden.IdAtencion = admAtencion.IdAtencion AND PoducOrden.CodProducto = proProducto.CodProducto
                 ) as quien_ordeno'),
+            DB::raw("{$numDocField} AS NumFactura"),
+            DB::raw("{$tipoDocField} AS TipoRegistro"),
         ];
     }
 

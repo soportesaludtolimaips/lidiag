@@ -37,6 +37,23 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-03 — Consulta de Órdenes y Facturas en Interface (SAHI) para Admisión de Pacientes (`admisionComponent.vue`, `SAHIService.php`, `SAHIController.php`):**
+  - **Diagnóstico y Necesidad:**
+    * En el módulo de Admisión de Pacientes (`/pacientes/admision`), los operadores necesitaban consultar las atenciones, órdenes médicas y facturas registradas en la interface HIS (SAHI) correspondiente a la sede activa, permitiendo vincular los estudios y enviarlos a la Modality Worklist (MWL) de Rayos X sin transcripción manual redundante.
+  - **Solución Implementada:**
+    * **Frontend (`admisionComponent.vue`):**
+      - Se añadió en la tabla de pacientes el botón interactivo de consulta en interface (`fa fa-database`), habilitado reactivamente solo si la sede actual tiene configurada interface activa (`interface_software === 'sahi'`) y deshabilitado con tooltip informativo si no aplica.
+      - Se creó el modal `modalInterface` con selector de atenciones históricas del paciente en el HIS, recarga rápida y tabla detallada de procedimientos diagnosticados.
+      - La tabla desglosa si el ítem proviene de Factura (`NumFactura`) o de Orden Médica/Movimiento (`NumMovimiento`), mostrando código CUPS, descripción del estudio, médico ordenante, EPS/convenio y valor.
+      - Se implementó la acción "Worklist" que cierra la consulta, abre el modal de envío a Worklist y realiza un **match automático por código CUPS (`cod_cups`)** con el catálogo de productos de Rayos X de LIDiag, alertando con selección asistida si no hubiese coincidencia exacta.
+    * **Backend (`SAHIService.php` y `SAHIController.php`):**
+      - En `SAHIService::listarProductosAtencion`, se enriqueció la proyección de `consulta1` (facturas) y `consulta2` (movimientos) unificando con `CAST` seguro a `VARCHAR(50)` el número de documento (`NumFactura` / `NumMovimiento`) y el tipo de registro (`FACTURA` / `ORDEN`), ampliando los grupos diagnósticos permitidos (`[44, 156, 190, 191, 195, 204, 225, 243]`).
+      - En `SAHIController::listarProductosAtencion`, se flexibilizó el parámetro de entrada aceptando tanto `atencion_id` como `bus_nom_num_docu` e `idAtencion`.
+  - **Verificaciones:**
+    * Compilación Vite completada sin errores (`npm run build` en 2.46s) ✅.
+    * ESLint validado sin errores (`npx eslint`) ✅.
+    * Laravel Pint verificado (`vendor\bin\pint.bat --test`) al 100% passed ✅.
+    * Validación directa en base de datos SAHI (`ESP_PRI`) confirmando retorno simultáneo de órdenes médicas y facturas de venta ✅.
 - [x] **2026-11-03 — Estandarización de Transmisión de Datos y Telemetría Central en los 3 Agentes Edge (`agente_dosimetria.py`, `backup_dcm_agent.py`, `sync_dcm_images.py`):**
   - **Diagnóstico y Necesidad:**
     * En el dashboard central `/seguridad-backups`, las sedes hospitalarias aparecían en estado crítico ("Sin backups" / rojo) debido a que `backup_dcm_agent.py` y `sync_dcm_images.py` únicamente transferían datos localmente a la NAS QNAP vía SMB, sin reportar su estado ni transmitir los archivos de backup comprimidos hacia la API Central de LIDiag.
