@@ -70,21 +70,146 @@ Copia `config.json.example` y renómbralo a `config.json`. Ajusta los parámetro
 }
 ```
 
-### 4. Probar la Ejecución Manual
-Abre una consola de PowerShell o CMD en la carpeta del agente y prueba los procesos:
+#### 🏥 Catálogo Oficial de Sedes Hospitalarias e Identificadores (`sede_id`)
 
-* **Prueba de Base de Datos:**
-  ```powershell
-  python backup_dcm_agent.py
-  ```
-* **Prueba de Sincronización de Imágenes (Pasada única):**
-  ```powershell
-  python sync_dcm_images.py --once
-  ```
-* **Prueba de Extracción de Dosimetría (Modo simulado sin envío):**
-  ```powershell
-  python agente_dosimetria.py --dry-run
-  ```
+En la red asistencial de **LIDiag**, cada sede hospitalaria cuenta con un identificador unívoco (`sede_id`) registrado en la tabla `config_sedes` de la base de datos central. Es indispensable configurar el `sede_id` correspondiente para que los respaldos se vinculen correctamente con el panel de telemetría de LIDiag (`/seguridad-backups`) y la dosimetría (Res. 482) sea atribuida adecuadamente:
+
+| `sede_id` | Código | Municipio / Sede | Institución Hospitalaria | `sede_nombre` Sugerido | Recurso QNAP Backups | Recurso QNAP Imágenes |
+| :---: | :---: | :--- | :--- | :--- | :--- | :--- |
+| **`1`** | `ESP` | Espinal | Hospital San Rafael E.S.E. | `"Espinal"` | `backups-db-espinal` | `img-dicom-espinal` |
+| **`2`** | `LAD` | La Dorada | Hospital San Félix E.S.E. | `"La Dorada"` | `backups-db-ladorada` | `img-dicom-ladorada` |
+| **`3`** | `CHA` | Chaparral | Hospital San Juan Bautista E.S.E. | `"Chaparral"` | `backups-db-chaparral` | `img-dicom-chaparral` |
+| **`4`** | `IBA` | Ibagué | Hospital Federico Lleras Acosta E.S.E. | `"Ibague"` | `backups-db-ibague` | `img-dicom-ibague` |
+| **`5`** | `LIB` | Líbano | Hospital Regional Alfonso Jaramillo Salazar E.S.E. | `"Libano"` | `backups-db-libano` | `img-dicom-libano` |
+| **`6`** | `HON` | Honda | Hospital San Juan de Dios de Honda E.S.E. | `"Honda"` | `backups-db-honda` | `img-dicom-honda` |
+| **`7`** | `ROV` | Rovira | Hospital San Vicente E.S.E. | `"Rovira"` | `backups-db-rovira` | `img-dicom-rovira` |
+
+> [!IMPORTANT]
+> - **Coincidencia Exacta:** El valor numérico de `sede_id` debe existir obligatoriamente en `config_sedes`. De lo contrario, la API central de LIDiag rechazará la recepción de backups con error `422 Unprocessable Entity` o `404 Not Found`.
+> - **Nomenclatura Automática de Archivos:** El script `backup_dcm_agent.py` generará automáticamente el archivo ZIP con el prefijo estandarizado `backup_dcm_sede_{sede_id}_{slug}_{timestamp}.zip`, lo cual permite que el monitor central de `/seguridad-backups` calcule de forma inmediata el semáforo de salud de cada sede.
+
+
+### 4. Guía Rápida de Comandos por Agente
+
+Puedes ejecutar cada agente a través de su **lanzador `.bat`** (1-clic / tareas programadas) o directamente mediante la **consola de comandos** (PowerShell o CMD con Python):
+
+#### ⚡ Matriz Resumen de Comandos
+
+| Agente / Servicio | Lanzador `.bat` (1 Clic) | Ejecución Directa (Python) | Modo Simulación (`--dry-run`) | Tarea Programada Windows |
+| :--- | :--- | :--- | :--- | :--- |
+| **1. Respaldo BD MySQL (`pacsdb`)** | `ejecutar_backup_db.bat` | `python backup_dcm_agent.py` | `python backup_dcm_agent.py --dry-run` | `LIDiag_Backup_DB_DCM` (02:00 AM) |
+| **2. Sincronización Imágenes DICOM** | `ejecutar_sync_imagenes.bat` | `python sync_dcm_images.py` | `python sync_dcm_images.py --dry-run` | `LIDiag_Sync_Imagenes_DCM` (ONSTART) |
+| **3. Extracción Dosimetría (Res. 482)** | `ejecutar_dosimetria.bat` | `python agente_dosimetria.py` | `python agente_dosimetria.py --dry-run` | `LIDiag_Dosimetria_Edge` (Cada 1h) |
+| **4. Recuperación ante Desastres (Restore)** | `ejecutar_restore_imagenes.bat` | `python restore_dcm_images.py` | `python restore_dcm_images.py --dry-run` | Manual interactivo |
+| **5. Instalador de Automatización** | `instalar_tareas_sede.bat` | *(Configura `schtasks` bajo `SYSTEM`)* | N/A | Registra las 3 tareas automáticas |
+
+---
+
+#### 💻 Comandos Detallados por Consola (PowerShell / CMD)
+
+##### 1. Agente de Respaldo de Base de Datos MySQL (`backup_dcm_agent.py`)
+```powershell
+# Ejecución estándar (volcado mysqldump, compresión ZIP, CRC32, SHA-256 y envío a QNAP)
+python backup_dcm_agent.py
+# O usando el lanzador por lotes:
+.\ejecutar_backup_db.bat
+
+# Modo prueba / simulación (valida conectividad TCP 3306 y carpetas sin generar volcado)
+python backup_dcm_agent.py --dry-run
+
+# Usar un archivo de configuración alternativo
+python backup_dcm_agent.py --config C:\ruta\otro_config.json
+```
+
+##### 2. Agente de Sincronización Continua de Imágenes DICOM (`sync_dcm_images.py`)
+```powershell
+# Servicio continuo persistente (ejecuta en bucle infinito cada N segundos según config.json)
+python sync_dcm_images.py
+# O con el lanzador por lotes:
+.\ejecutar_sync_imagenes.bat
+
+# Pase único de sincronización (sincroniza cambios pendientes y termina de inmediato; ideal para pruebas)
+python sync_dcm_images.py --once
+
+# Modo simulación (utiliza /L de Robocopy para listar archivos pendientes sin copiarlos)
+python sync_dcm_images.py --dry-run
+
+# Sobrescribir número de hilos de transferencia (ej: 16 hilos en enlaces de alta velocidad)
+python sync_dcm_images.py --threads 16
+
+# Sobrescribir intervalo de escaneo en segundos (ej: cada 60 segundos)
+python sync_dcm_images.py --interval 60
+
+# Combinar parámetros (un solo pase rápido con 16 hilos)
+python sync_dcm_images.py --once --threads 16
+```
+
+##### 3. Agente Edge de Dosimetría Radiológica (`agente_dosimetria.py`)
+```powershell
+# Ejecución estándar (evalúa estudios de las últimas 24 horas, hasta 200 estudios)
+python agente_dosimetria.py
+# O con el lanzador por lotes:
+.\ejecutar_dosimetria.bat
+
+# Modo simulación (extrae métricas de cabeceras DICOM en pantalla sin enviarlas a LIDiag Central)
+python agente_dosimetria.py --dry-run
+
+# Procesar una ventana de tiempo más amplia (ej: últimos 7 o 30 días)
+python agente_dosimetria.py --dias 7 --limit 500
+python agente_dosimetria.py --dias 30 --limit 1000
+
+# Procesar un rango histórico fijo por fechas (YYYY-MM-DD)
+python agente_dosimetria.py --desde 2026-08-01 --hasta 2026-08-31 --limit 500
+
+# Forzar re-evaluación (ignora la caché local para reprocesar y retransmitir estudios ya evaluados)
+python agente_dosimetria.py --dias 15 --forzar
+
+# Limpiar la memoria caché local de estudios procesados (logs/dosimetria_cache_procesados.json)
+python agente_dosimetria.py --limpiar-cache
+
+# Sobrescribir temporalmente el ID de sede sin modificar config.json
+python agente_dosimetria.py --sede-id 1 --dias 2
+```
+
+##### 4. Agente de Recuperación ante Desastres de Imágenes (`restore_dcm_images.py`)
+```powershell
+# Asistente interactivo guiado por menú
+.\ejecutar_restore_imagenes.bat
+
+# Restauración completa descendente (2026 -> 2025 -> 2024 -> histórico)
+python restore_dcm_images.py
+
+# Restaurar con prioridad máxima únicamente el año en curso (continuidad asistencial inmediata)
+python restore_dcm_images.py --year 2026
+
+# Restaurar desde el año actual descendiendo hasta un año límite (ej: 2026 a 2024)
+python restore_dcm_images.py --from-year 2024
+
+# Acelerar la descarga con múltiples hilos paralelos de Robocopy (ej: 32 hilos en red local 10 GbE)
+python restore_dcm_images.py --threads 32
+
+# Modo simulación (escanea el QNAP y calcula el tamaño total a restaurar sin escribir en disco)
+python restore_dcm_images.py --dry-run
+```
+
+##### 5. Instalación y Control de Tareas Programadas de Windows
+```powershell
+# Registrar automáticamente las 3 tareas en Windows Task Scheduler bajo la cuenta SYSTEM:
+# (Ejecutar en consola CMD / PowerShell como Administrador)
+.\instalar_tareas_sede.bat
+
+# Verificar el estado de las tareas programadas en Windows:
+schtasks /query /tn "LIDiag_Backup_DB_DCM" /fo LIST /v
+schtasks /query /tn "LIDiag_Sync_Imagenes_DCM" /fo LIST /v
+schtasks /query /tn "LIDiag_Dosimetria_Edge" /fo LIST /v
+
+# Ejecutar manualmente una tarea programada registrada:
+schtasks /run /tn "LIDiag_Backup_DB_DCM"
+schtasks /run /tn "LIDiag_Dosimetria_Edge"
+
+# Detener una tarea en ejecución:
+schtasks /end /tn "LIDiag_Sync_Imagenes_DCM"
+```
 
 ---
 

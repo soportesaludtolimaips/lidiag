@@ -50,6 +50,21 @@
     <link href="{{ asset('admin-wrap/css/style.css') }}" rel="stylesheet">
     <!-- You can change the theme colors from here -->
     <link href="{{ asset('admin-wrap/css/colors/default.css') }}" id="theme" rel="stylesheet">
+
+    <style>
+        /* Corrección de submenús flotantes en mini-sidebar para evitar desborde inferior */
+        .mini-sidebar .sidebar-nav #sidebarnav > li:hover > ul {
+            max-height: calc(100vh - 100px) !important;
+            overflow-y: auto !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            border-radius: 4px;
+        }
+        .mini-sidebar .sidebar-nav #sidebarnav > li:last-child > ul,
+        .mini-sidebar .sidebar-nav #sidebarnav > li:nth-last-child(-n+4) > ul {
+            top: auto !important;
+            bottom: 0px !important;
+        }
+    </style>
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>

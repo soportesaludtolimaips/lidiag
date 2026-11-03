@@ -318,7 +318,7 @@
                     @canany([
                         'helpdesk.tickets.index', 'helpdesk.tickets.create', 'helpdesk.tickets.show', 'helpdesk.reportes.index', 'helpdesk.notificaciones.index',
                         'config.admin.salud.index', 'config.diagnosticos.index', 'config.prioridades.index', 'config.productos.index', 'config.sedes.index', 'config.servicio.citas.index', 'config.plantillas.index', 'config.tipo.documento.index', 'config.consentimiento_informado.index', 'config.whatsapp.saludo.index', 'ecografias.consentimientos.index', 'ecografias.consentimientos.plantillas.index', 'helpdesk.config.categorias.index', 'helpdesk.config.prioridades.index', 'helpdesk.config.estados.index',
-                        'seguridad.usuarios.index', 'seguridad.roles.index', 'seguridad.auditoria.index', 'seguridad.backups.index'
+                        'seguridad.usuarios.index', 'seguridad.roles.index', 'seguridad.auditoria.index', 'seguridad.backups.index', 'seguridad.tokens.index'
                     ])
                         <li class="nav-small-cap"><span>Administración</span></li>
 
@@ -505,7 +505,7 @@
                         @endcanany
 
                         {{-- Seguridad --}}
-                        @canany(['seguridad.usuarios.index', 'seguridad.roles.index', 'seguridad.auditoria.index', 'seguridad.backups.index'])
+                        @canany(['seguridad.usuarios.index', 'seguridad.roles.index', 'seguridad.auditoria.index', 'seguridad.backups.index', 'seguridad.tokens.index'])
                             <li class="{{ request()->routeIs('seguridad.*') ? 'active' : '' }}">
                                 <a class="has-arrow waves-effect waves-dark {{ request()->routeIs('seguridad.*') ? 'active' : '' }}" href="#" aria-expanded="{{ request()->routeIs('seguridad.*') ? 'true' : 'false' }}">
                                     <i class="icon-Key-Lock"></i>
@@ -537,6 +537,13 @@
                                         <li class="{{ request()->routeIs('seguridad.backups') ? 'active' : '' }}">
                                             <a class="{{ request()->routeIs('seguridad.backups') ? 'active' : '' }}" href="{{ route('seguridad.backups') }}">
                                                 <i class="fa fa-database text-info"></i> Monitoreo Backups
+                                            </a>
+                                        </li>
+                                    @endcan
+                                    @can('seguridad.tokens.index')
+                                        <li class="{{ request()->routeIs('seguridad.tokens*') ? 'active' : '' }}">
+                                            <a class="{{ request()->routeIs('seguridad.tokens*') ? 'active' : '' }}" href="{{ route('seguridad.tokens') }}">
+                                                <i class="fa fa-ticket text-info"></i> Tokens de Sedes
                                             </a>
                                         </li>
                                     @endcan

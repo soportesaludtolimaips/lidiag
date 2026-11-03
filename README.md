@@ -48,8 +48,8 @@ Esto genera una URL como `https://xxx.trycloudflare.com`. Úsala en la configura
 
 -   **Backend**: Laravel 13 (PHP ^8.4), MySQL
 -   **Frontend**: Vue 3 + Vite (Laravel Vite Plugin), Bootstrap 5, Chart.js + vue-chartjs (analítica clínica)
--   **Seguridad**: `spatie/laravel-permission` (roles/permisos), anonimización criptográfica SHA-256 de identificadores de pacientes (ISO/IEC 27001)
--   **Integraciones**: HIS/SAHI (SQL Server), PACS Dcm4chee (MySQL multisede), Twilio (WhatsApp), generación de PDF/Excel (DomPDF / Maatwebsite Excel)
+-   **Seguridad y Auditoría**: `spatie/laravel-permission` (roles/permisos), módulo de auditoría de eventos de usuario (`audit_logs` + `AuditLogger`), anonimización criptográfica SHA-256 de identificadores de pacientes (ISO/IEC 27001)
+-   **Integraciones**: HIS/SAHI (SQL Server), PACS Dcm4chee (MySQL multisede), Visores DICOM (Oviyam / OHIF), Twilio (WhatsApp), Telegram Bot API (Long-Polling desatendido y Webhook), generación de PDF/Excel (DomPDF / Maatwebsite Excel)
 -   **Estándares Médicos / DICOM**: Modality Worklist (MWL) DICOM nativo, codificación binaria Little Endian Explicit VR, compresión zlib *Deflated Explicit VR Little Endian* (`1.2.840.10008.1.2.1.99`), telemetría Edge de dosimetría radiológica (`pydicom`) con extracción de `CTDIvol`, `DLP`, `DGM` y `DAP` conforme a la Resolución 482 de 2018 (Colombia)
 -   **Autenticación API**: `auth:sanctum` (Sanctum stateful para SPA)
 -   **Multimedia**: FFmpeg (conversión/compresión de audios a MP3)
@@ -133,18 +133,35 @@ La aplicación está compuesta por los siguientes módulos especializados:
 
 ### 8. HelpDesk
 
-**Propósito:** Soporte técnico.
+**Propósito:** Gestión integral de soporte técnico e incidencias hospitalarias.
 
--   Módulo de uso interno para la gestión de tickets de soporte y requerimientos técnicos de la aplicación.
+-   **Folios Secuenciales por Sede:** Asignación automática de folio correlativo diario con formato estándar `SED-YYYYMMDD-#####` (ej. `ESP-20261029-00001`).
+-   **Ciclo de Vida y Transiciones Flexibles:** Máquina de estados con validación de transiciones entre `Abierto`, `En Progreso`, `Resuelto` y `Cerrado`, control de reapertura y registro de solución obligatoria.
+-   **Trazabilidad e Historial:** Registro detallado de comentarios, adjuntos, reasignaciones de agentes y cambios de estado con marcas de tiempo.
+-   **Dashboard de Analítica y Reportes:** Pantalla en `/helpdesk-reportes` con KPIs de tickets por sede, estado, categoría y tiempos de resolución, con filtros de fechas flexibles.
+-   **Centro de Notificaciones en Vivo:** Alertas en base de datos para solicitantes y personal técnico asignado.
+-   **UI y Rutas:** Pantallas web en `/helpdesk-tickets`, `/helpdesk-tickets/crear`, `/helpdesk-reportes`, `/helpdesk-notificaciones`, API en `/api/helpdesk-*`.
 
 ### 9. Configuración
 
--   Administración de parámetros generales del sistema, sedes, aseguradoras, y catálogos de servicios.
+-   Administración de parámetros generales del sistema, sedes hospitalarias, aseguradoras (EPS), y catálogos de servicios.
+-   Parametrización de HelpDesk (categorías, prioridades y estados).
+-   Configuración de plantillas de lectura, tipos de documentos, consentimientos informados y WhatsApp.
 
-### 10. Seguridad
+### 10. Seguridad y Auditoría
 
--   Gestión de usuarios, roles y permisos (basado en `spatie/laravel-permission`).
--   Control de acceso y auditoría.
+**Propósito:** Control de acceso, gobernanza y trazabilidad forense de eventos de usuario.
+
+-   **Roles y Permisos:** Control de acceso granular basado en `spatie/laravel-permission` (guard `web`), con auditoría estricta (`php artisan permissions:audit`).
+-   **Módulo Centralizado de Auditoría (`/seguridad-auditoria`):**
+    -   Persistencia en tabla `audit_logs` mediante el helper institucional `AuditLogger`.
+    -   **Eventos de Autenticación:** `inicio_sesion`, `cierre_sesion`, `inicio_sesion_fallido` con captura de IP y User-Agent.
+    -   **Eventos Asistenciales de Estudios:** `asignar_estudio` (paciente, médico, prioridad), `lectura_estudio` (médico especialista), `transcripcion_estudio` (transcriptor clínico) y `anular_estudio`.
+    -   **Eventos de Citas y Agendamiento:** Creación, eliminación, `asignar_cita` (sede y fecha), `confirmar_cita`, `cancelar_cita` (con motivo), `cumplir_cita`, `inasistencia_cita` y `rechazar_cita`.
+    -   **Eventos de Soporte y Seguridad:** `cambio_estado_ticket`, `reasignar_ticket`, creación/edición de roles y sincronización de permisos.
+    -   **Filtros y Búsqueda Fulltext:** Filtrado por tipo de evento, usuario, rango de fechas y búsqueda textual por descripción, modelo, IP y nombre de usuario.
+    -   **Exportación:** Descarga de registros a Excel, CSV, PDF, Portapapeles e Impresión con DataTables.
+-   **UI y Rutas:** Pantallas web en `/seguridad.usuarios.listar`, `/seguridad.roles.listar`, `/seguridad.perfil`, `/seguridad-auditoria`, `/seguridad-backups`.
 
 ### 11. Contratación
 
@@ -201,6 +218,46 @@ La aplicación está compuesta por los siguientes módulos especializados:
     -   Alertas visuales semánticas (badges `.bg-danger` y paneles de advertencia) ante superación de umbrales.
     -   Soporte nativo para Modo Oscuro Radiológico (Slate Clínico) y `TableSkeletonLoader` (CLS = 0).
 -   **UI y Rutas:** Pantalla web en `/dosimetria/dashboard`, API en `/api/dosimetria/*` (permisos `dosimetria.*`). Agente local en `storage/app_lidiag/agente_backups_dcm/`.
+
+### 15. Tele-Radiología
+
+**Propósito:** Flujo de trabajo para asignación, descarga y lectura deslocalizada de estudios entre sedes remotas y especialistas externos.
+
+-   **Asignación Deslocalizada:** Distribución de estudios a médicos radiólogos remotos con destino configurable (`Tele-Radiología`).
+-   **Transcripción y Notificación Remota:** Pantallas especializadas para transcripción a distancia (`/tele-radiologia-transcribir`) y visualización de cola de trabajo remota (`/tele-radiologia`).
+-   **Integración con Plantillas Word/PDF:** Sincronización de formatos institucionales de reporte según la sede de origen.
+-   **UI y Rutas:** Pantallas web en `/tele-radiologia` y `/tele-radiologia-transcribir`.
+
+### 16. Bot de Telegram & Telemetría Asistencial (`@salud_tolima_bot`)
+
+**Propósito:** Canal móvil bidireccional y automatizado para monitoreo asistencial, alertas operativas y telemetría de sedes hospitalarias.
+
+-   **Modo Dual (Long-Polling / Webhook):**
+    -   *Long-Polling desatendido:* `php artisan telegram:poll` con resiliencia y auto-reinicio ante cortes de red. Óptimo para servidores Windows detrás de firewalls o sin certificado intermedio.
+    -   *Webhook HTTPS:* Endpoint en `/api/telegram/webhook` con verificación de secreto criptográfico.
+-   **Seguridad de Acceso:** Lista blanca institucional estricta mediante `TELEGRAM_ALLOWED_CHAT_IDS`.
+-   **Comandos Interactivos:**
+    -   `/start`: Menú interactivo de opciones y estado del bot.
+    -   `/retrasados`: Semáforo asistencial de estudios prioritarios que exceden el tiempo límite de lectura.
+    -   `/sedes`: Telemetría operativa y carga de trabajo agrupada por sede hospitalaria.
+    -   `/resumen` / `wiz:red:hoy`: Resumen ejecutivo consolidado del día.
+-   **Daily Digest Matutino:** Despacho automatizado a las 07:30 AM (`php artisan telegram:daily-digest`) con los indicadores clave del día.
+-   **Automatización Windows (Servicio 24/7):** Scripts por lotes para Windows Task Scheduler (`instalar_tarea_telegram_bot.bat`, `ejecutar_telegram_bot.bat`, `detener_tarea_telegram_bot.bat`).
+
+### 17. Monitoreo de Backups en Tiempo Real
+
+**Propósito:** Supervisión centralizada de la integridad y vigencia de las copias de seguridad de todas las sedes hospitalarias.
+
+-   **Telemetría de Sedes:** Monitoreo en `/seguridad-backups` del estado de los respaldos locales de `pacsdb` y almacenamiento clínico.
+-   **Verificación Criptográfica:** Validación de hashes SHA-256 e integridad ZIP de cada respaldo generado.
+-   **Ejecución Manual:** Capacidad de forzar copias de seguridad inmediatas bajo demanda.
+
+### 18. Visores Diagnósticos Web (Oviyam y OHIF Viewer)
+
+**Propósito:** Visualización de estudios e imágenes médicas DICOM en navegadores web sin requerir instalación de software cliente.
+
+-   **Oviyam:** Integración nativa con Dcm4chee para visualización en pestaña auxiliar (`tap_oviyam`).
+-   **OHIF Viewer:** Servicio preparado para visualización DICOM web zero-footprint de series multimodales.
 
 ---
 
@@ -353,13 +410,32 @@ php artisan worklist:reconcile --sede=1
 **Parámetros:**
 - `--sede=ID`: Filtro opcional por ID de la sede hospitalaria (`config_sedes.id`). Si se omite, evalúa todas las sedes activas con parámetros de conexión PACS válidos.
 
+### Bot de Telegram y Telemetría (`@salud_tolima_bot`)
+
+Permite la operación móvil desatendida del bot de Telegram para monitoreo de estudios, alertas asistenciales y consultas operativas.
+
+```bash
+# Iniciar el bot en modo Long-Polling continuo (ideal para entornos locales y producción)
+php artisan telegram:poll
+
+# Procesar una única iteración de mensajes pendientes y salir (pruebas y depuración)
+php artisan telegram:poll --once
+
+# Ejecutar el despacho matutino de resumen y semáforo asistencial (Daily Digest)
+php artisan telegram:daily-digest
+```
+
 ### Automatización en Windows (Task Scheduler)
 
 El proyecto incluye scripts por lotes para programar tareas desatendidas:
-1. **En Servidor Central LIDiag (`storage/app_lidiag/agente_backups_dcm/programar_tarea_backup.bat`):**
+1. **Agente Bot de Telegram (`instalar_tarea_telegram_bot.bat`):**
+   - Registra la tarea programada `LIDiag_Telegram_Bot` en Windows con inicio automático al arrancar el sistema (`/sc ONSTART /ru "SYSTEM" /rl HIGHEST`).
+   - `ejecutar_telegram_bot.bat`: Bucle de resiliencia con autodetección de PHP y volcado de logs a `storage/logs/telegram_bot.log`.
+   - `detener_tarea_telegram_bot.bat`: Detiene el bot y limpia procesos huérfanos.
+2. **En Servidor Central LIDiag (`storage/app_lidiag/agente_backups_dcm/programar_tarea_backup.bat`):**
    - `LIDiag_Daily_Backup`: Respaldo central de Base de Datos y Storage clínico a las **02:00 AM**.
    - `LIDiag_Daily_Backup_DCM`: Tarea central programada a las **02:30 AM** como respaldo secundario.
-2. **En Servidores de Hospitales DCM (`storage/app_lidiag/agente_backups_dcm/instalar_tarea_programada.bat`):**
+3. **En Servidores de Hospitales DCM (`storage/app_lidiag/agente_backups_dcm/instalar_tarea_programada.bat`):**
    - `LIDiag_Local_DCM_Backup`: Ejecución local a las **02:00 AM** generando el `.zip` en `C:\backups_dcm` para sincronización con **QNAP Qsync**.
 
 
@@ -497,12 +573,11 @@ El sistema utiliza varios servicios de terceros configurados en el archivo `.env
     -   Usado en flujos de generación de reportes a partir de plantillas Word (por ejemplo, en `PlantillaEstudioController`).
     -   En este repositorio hay utilidades en `Documentos/` relacionadas con `unoconv`. En producción normalmente se instala LibreOffice y se expone `unoconv` en PATH (o se ajusta el comando/ruta).
 
--   **Speech-to-text (Whisper + FastAPI)**:
-    -   Servicio Python independiente (`storage/transcriptor/`) que expone un endpoint HTTP en el puerto 8001.
-    -   Recibe archivos de audio desde Laravel, los transcribe usando Whisper (modelo base, CPU) y devuelve el texto.
-    -   Configuración: `TRANSCRIPTOR_SERVICE_URL` (por defecto `http://localhost:8001`).
-    -   Instalación: `cd storage/transcriptor && pip install -r requirements.txt`
-    -   Inicio: `python main.py` (o ejecutar `start.bat` en Windows).
+-   **Bot de Telegram (`@salud_tolima_bot`)**:
+    -   Servicio de telemetría y consultas asistenciales móviles.
+    -   Opera bajo Long-Polling con `php artisan telegram:poll` o vía Webhook en `/api/telegram/webhook`.
+    -   Configuración en `.env`: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ALLOWED_CHAT_IDS`, `TELEGRAM_WEBHOOK_URL`, `TELEGRAM_SSL_VERIFY`.
+    -   Servicio desatendido 24/7 en Windows con `instalar_tarea_telegram_bot.bat`.
 
 -   **Servicio externo de reportes (`URL_API_REPORTES`, `PASSWORD_API_REPORTES`)**:
     -   Variables usadas por flujos de notificación/reportes (revisar `.env` en cada entorno).
@@ -798,9 +873,10 @@ Además de `APP_*`, las variables más importantes que suelen requerir ajuste so
 -   **Migración/importación (si aplica)**: `DB_CONNECTION_IMPORTAR`, `DB_HOST_IMPORTAR`, `DB_DATABASE_IMPORTAR`, etc.
 -   **HIS/SAHI (SQL Server)**: `DB_CONNECTION_SQLSRV=sqlsrv`, `DB_HOST_SQLSRV`, `DB_DATABASE_SQLSRV`, `DB_USERNAME_SQLSRV`, `DB_PASSWORD_SQLSRV`
 -   **Twilio (WhatsApp)**: `TWILIO_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_NUMBER`
+-   **Telegram Bot**: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ALLOWED_CHAT_IDS` (IDs separados por coma), `TELEGRAM_WEBHOOK_URL`, `TELEGRAM_SSL_VERIFY`
 -   **Servicio externo de reportes**: `URL_API_REPORTES`, `PASSWORD_API_REPORTES`
 -   **FFmpeg/FFprobe (audios)**: `FFMPEG_BINARIES`, `FFPROBE_BINARIES` (ver sección de FFmpeg arriba)
--   **Transcripción Whisper**: `TRANSCRIPTOR_SERVICE_URL`, `TRANSCRIPTOR_TIMEOUT` (ver sección de transcripción abajo)
+-   **Transcripción Whisper**: `TRANSCRIPTOR_SERVICE_URL`, `TRANSCRIPTOR_TIMEOUT` (ver sección de transcripción arriba)
 
 > Nota: este repositorio incluye `.env.example` como referencia. **No uses credenciales reales** allí (y evita subir secretos al repositorio). Si vas a compartir/publicar el proyecto, revisa y sanitiza `.env.example` para que solo tenga placeholders.
 

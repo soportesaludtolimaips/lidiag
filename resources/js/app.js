@@ -161,6 +161,9 @@ import auditLogComponent from "./components/modulos/seguridad/auditLogComponent.
 app.component("AuditLogComponent", auditLogComponent);
 import backupMonitorComponent from "./components/modulos/seguridad/backupMonitorComponent.vue";
 app.component("BackupMonitorComponent", backupMonitorComponent);
+import seguridadTokensComponent from "./components/modulos/seguridad/seguridadTokensComponent.vue";
+app.component("SeguridadTokensComponent", seguridadTokensComponent);
+app.component("SeguridadTokensComponent", seguridadTokensComponent);
 
 /**
  * Reportes

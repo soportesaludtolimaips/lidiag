@@ -3,6 +3,7 @@
 use App\Http\Controllers\Seguridad\AuditLogController;
 use App\Http\Controllers\Seguridad\BackupMonitorController;
 use App\Http\Controllers\Seguridad\RolController;
+use App\Http\Controllers\Seguridad\TokenSedeController;
 use App\Http\Controllers\Seguridad\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -103,4 +104,21 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/seguridad-backups/ejecutar-db', [BackupMonitorController::class, 'ejecutarBackupDb'])
         ->name('api.seguridad.backups.ejecutar-db')
         ->middleware(['permission:seguridad.backups.ejecutar']);
+
+    // Generador y Gestión de Tokens por Sede (Agentes Edge)
+    Route::get('/seguridad-tokens', [TokenSedeController::class, 'index'])
+        ->name('api.seguridad.tokens.index')
+        ->middleware(['permission:seguridad.tokens.index']);
+
+    Route::post('/seguridad-tokens', [TokenSedeController::class, 'store'])
+        ->name('api.seguridad.tokens.store')
+        ->middleware(['permission:seguridad.tokens.create']);
+
+    Route::delete('/seguridad-tokens/{id}', [TokenSedeController::class, 'destroy'])
+        ->name('api.seguridad.tokens.destroy')
+        ->middleware(['permission:seguridad.tokens.revoke']);
+
+    Route::get('/seguridad-tokens/{sedeId}/config-json', [TokenSedeController::class, 'descargarConfigJson'])
+        ->name('api.seguridad.tokens.config-json')
+        ->middleware(['permission:seguridad.tokens.index']);
 });

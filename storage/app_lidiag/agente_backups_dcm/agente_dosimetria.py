@@ -34,6 +34,7 @@ from logging.handlers import RotatingFileHandler
 import os
 import re
 import secrets
+import socket
 import sqlite3
 import subprocess
 import sys
@@ -49,6 +50,16 @@ if os.path.isdir(_venv_site) and _venv_site not in sys.path:
 # Verificación de dependencias externas
 try:
     import pydicom
+    import pydicom.datadict
+    # Desactivar validación estricta de VR para evitar warnings ruidosos con tags fuera de norma
+    try:
+        pydicom.config.enforce_valid_values = False
+    except Exception:
+        pass
+    try:
+        pydicom.config.settings.reading_validation_mode = pydicom.config.IGNORE
+    except Exception:
+        pass
 except ImportError:
     print("[ERROR CRÍTICO] La librería 'pydicom' no está instalada. Ejecute: pip install pydicom")
     sys.exit(1)
@@ -189,6 +200,15 @@ def release_process_lock():
 atexit.register(release_process_lock)
 
 
+def check_mysql_socket(host: str, port: int = 3306, timeout: float = 4.0) -> bool:
+    """Verifica conectividad TCP al puerto de MySQL antes de intentar la conexión del driver."""
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except (socket.timeout, socket.error, OSError):
+        return False
+
+
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Agente Edge de Dosimetría Radiológica LIDiag")
     parser.add_argument("--config", "-c", help="Ruta al archivo config.json")
@@ -289,16 +309,61 @@ def get_db_connection(config: dict):
     password = config["db_password"]
     database = config["db_name"]
 
-    if DB_CONNECTOR == "mysql.connector":
-        conn = mysql.connector.connect(
-            host=host,
-            port=port,
-            user=user,
-            password=password,
-            database=database,
-            charset="utf8",
-            connect_timeout=15,
+    logger.info(f"[1/4] Verificando socket TCP MySQL en {host}:{port}...")
+    if not check_mysql_socket(host, port, timeout=4.0):
+        logger.critical(
+            f"[ERROR DB] No se puede conectar a {host}:{port}. "
+            f"El socket TCP no responde o el puerto está cerrado. "
+            f"Verifique que el servicio MySQL de dcm4chee esté iniciado y que 'db_host' en config.json sea la IP correcta (ej: si MySQL está en otro servidor, usar su IP en lugar de 127.0.0.1)."
         )
+        sys.exit(1)
+
+    logger.info(f"[1/4] Conectando a '{database}' ({user}@{host}:{port})...")
+    if DB_CONNECTOR == "mysql.connector":
+        # Estrategia multi-fallback para evitar bloqueos por SSL handshake o extensiones C
+        base_kwargs = {
+            "host": host,
+            "port": port,
+            "user": user,
+            "password": password,
+            "database": database,
+            "charset": "utf8",
+            "connect_timeout": 8,
+            "use_pure": True,
+        }
+
+        # Intento A: Pure Python con ssl_mode='DISABLED' (evita stalls en MySQL 5.5/5.7)
+        try:
+            conn = mysql.connector.connect(**base_kwargs, ssl_mode="DISABLED")
+        except (TypeError, Exception):
+            conn = None
+
+        # Intento B: Pure Python con ssl_disabled=True (versiones legadas de mysql.connector)
+        if not conn:
+            try:
+                conn = mysql.connector.connect(**base_kwargs, ssl_disabled=True)
+            except (TypeError, Exception):
+                conn = None
+
+        # Intento C: Pure Python estándar
+        if not conn:
+            try:
+                conn = mysql.connector.connect(**base_kwargs)
+            except Exception:
+                conn = None
+
+        # Intento D: Fallback estándar C-extension
+        if not conn:
+            std_kwargs = {
+                "host": host,
+                "port": port,
+                "user": user,
+                "password": password,
+                "database": database,
+                "charset": "utf8",
+                "connect_timeout": 10,
+            }
+            conn = mysql.connector.connect(**std_kwargs)
     else:
         conn = pymysql.connect(
             host=host,
@@ -307,7 +372,7 @@ def get_db_connection(config: dict):
             password=password,
             database=database,
             charset="utf8",
-            connect_timeout=15,
+            connect_timeout=10,
         )
 
     # 1. Aislamiento READ UNCOMMITTED para evitar shared locks sobre las tablas maestras de Dcm4chee durante C-STORE
@@ -341,6 +406,49 @@ def hash_patient_id(raw_patient_id: Optional[str], salt: str = "LIDIAG_DOSIMETRI
         raw_patient_id = "ANONYMOUS"
     clean_id = str(raw_patient_id).strip()
     return hmac.new(salt.encode("utf-8"), clean_id.encode("utf-8"), hashlib.sha256).hexdigest()
+
+
+# =============================================================================
+# CACHÉ DE ESTUDIOS PROCESADOS (Evita re-inspeccionar estudios ya evaluados)
+# =============================================================================
+
+def cargar_cache_procesados(cache_path: str = CACHE_PROCESADOS_FILE) -> Dict[str, int]:
+    """
+    Carga la memoria caché de estudios procesados desde el archivo JSON local.
+    Soporta formato diccionario {'study_uid_modality': timestamp} y formato lista retrocompatible.
+    """
+    if not os.path.isfile(cache_path):
+        return {}
+
+    try:
+        with open(cache_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        if isinstance(data, dict):
+            return data
+        elif isinstance(data, list):
+            now_ts = int(time.time())
+            return {str(k): now_ts for k in data}
+        return {}
+    except Exception as e:
+        logger.warning(f"No se pudo leer la caché de estudios procesados ({cache_path}): {e}")
+        return {}
+
+
+def guardar_cache_procesados(cache: Dict[str, Any], cache_path: str = CACHE_PROCESADOS_FILE):
+    """Persiste la memoria caché de estudios procesados en el archivo JSON local de forma atómica."""
+    try:
+        os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+        temp_path = f"{cache_path}.tmp"
+        with open(temp_path, "w", encoding="utf-8") as f:
+            json.dump(cache, f, indent=2, ensure_ascii=False)
+        if os.path.isfile(temp_path):
+            if os.path.isfile(cache_path):
+                os.replace(temp_path, cache_path)
+            else:
+                os.rename(temp_path, cache_path)
+    except Exception as e:
+        logger.warning(f"No se pudo guardar la caché de estudios procesados ({cache_path}): {e}")
 
 
 # =============================================================================
@@ -557,6 +665,7 @@ def buscar_estudios_candidatos(conn, dias: int = 1, limit: int = 200, desde: Opt
         LIMIT %s
     """
 
+    logger.info("[2/4] Ejecutando consulta de estudios candidatos en pacsdb (puede tardar si la ventana es amplia)...")
     cursor = conn.cursor(dictionary=True) if DB_CONNECTOR == "mysql.connector" else conn.cursor(pymysql.cursors.DictCursor)
     try:
         cursor.execute(query, params)
@@ -690,10 +799,21 @@ def extraer_metricas_dosis(dcm_path: str, modalidad: str) -> Optional[List[Dict[
         # Tags privados frecuentes de CT (GE, Siemens, Philips)
         if ctdivol is None:
             for elem in ds.elements():
-                desc = elem.name.lower()
-                if "ctdi" in desc and isinstance(elem.value, (int, float)):
-                    ctdivol = elem.value
-                    break
+                try:
+                    desc = getattr(elem, "name", None)
+                    if not desc and hasattr(elem, "tag"):
+                        try:
+                            desc = pydicom.datadict.keyword_for_tag(elem.tag)
+                        except Exception:
+                            desc = ""
+                    desc = str(desc or "").lower()
+                    if "ctdi" in desc:
+                        val_num = getattr(elem, "value", None)
+                        if isinstance(val_num, (int, float)):
+                            ctdivol = val_num
+                            break
+                except Exception:
+                    continue
 
         if ctdivol is not None:
             try:
@@ -948,58 +1068,62 @@ def main():
     if candidatos:
         logger.info("[3/4] Extrayendo métricas de radiación ionizante...")
         for item in candidatos:
-            study_uid = item["study_iuid"]
-            modality = item["modality"]
-            cache_key = f"{study_uid}_{modality}"
-
-            if cache_key in cache_procesados:
-                continue
-
-            dcm_path = resolver_ruta_archivo(item.get("dirpath") or "", item.get("filepath") or "", local_images_dir)
-            metricas = extraer_metricas_dosis(dcm_path, modality)
-
-            if metricas is None:
-                continue
-
-            if not metricas:
-                sin_metricas.append(cache_key)
-                continue
-
-            # Anonimización criptográfica estricta con HMAC-SHA256 y salt dinámico por sede
             try:
-                ds_pat = pydicom.dcmread(dcm_path, stop_before_pixels=True, specific_tags=["PatientID"])
-                raw_patient_id = getattr(ds_pat, "PatientID", "ANONYMOUS")
-            except Exception:
-                raw_patient_id = "ANONYMOUS"
+                study_uid = item["study_iuid"]
+                modality = item["modality"]
+                cache_key = f"{study_uid}_{modality}"
 
-            patient_hashed = hash_patient_id(raw_patient_id, salt=dosimetria_salt)
-            fecha_estudio = item["study_datetime"]
-            if isinstance(fecha_estudio, datetime.datetime):
-                fecha_str = fecha_estudio.strftime("%Y-%m-%d %H:%M:%S")
-            else:
-                fecha_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                if cache_key in cache_procesados:
+                    continue
 
-            region = clasificar_region_anatomica(item.get("study_desc"), modality)
-            for m in metricas:
-                es_rdsr_val = bool(m.get("es_rdsr", False))
-                prefix_rdsr = "[RDSR] " if es_rdsr_val else ""
-                desc_orig = item.get("study_desc") or ""
-                desc_final = f"{prefix_rdsr}[{region}] {desc_orig}".strip()[:250] if desc_orig else f"{prefix_rdsr}[{region}]".strip()
+                dcm_path = resolver_ruta_archivo(item.get("dirpath") or "", item.get("filepath") or "", local_images_dir)
+                metricas = extraer_metricas_dosis(dcm_path, modality)
 
-                registros_extraidos.append({
-                    "study_uid": study_uid,
-                    "patient_id_hashed": patient_hashed,
-                    "modalidad": modality,
-                    "aet_title": item.get("src_aet") or item.get("station_name") or "EQUIPO_LOCAL",
-                    "tipo_metrica": m["tipo_metrica"],
-                    "valor_dosis": m["valor_dosis"],
-                    "unidad_medida": m["unidad_medida"],
-                    "fecha_estudio": fecha_str,
-                    "accession_no": item.get("accession_no"),
-                    "study_desc": desc_final,
-                    "region_anatomica": region,
-                    "es_rdsr": es_rdsr_val,
-                })
+                if metricas is None:
+                    continue
+
+                if not metricas:
+                    sin_metricas.append(cache_key)
+                    continue
+
+                # Anonimización criptográfica estricta con HMAC-SHA256 y salt dinámico por sede
+                try:
+                    ds_pat = pydicom.dcmread(dcm_path, stop_before_pixels=True, specific_tags=["PatientID"])
+                    raw_patient_id = getattr(ds_pat, "PatientID", "ANONYMOUS")
+                except Exception:
+                    raw_patient_id = "ANONYMOUS"
+
+                patient_hashed = hash_patient_id(raw_patient_id, salt=dosimetria_salt)
+                fecha_estudio = item["study_datetime"]
+                if isinstance(fecha_estudio, datetime.datetime):
+                    fecha_str = fecha_estudio.strftime("%Y-%m-%d %H:%M:%S")
+                else:
+                    fecha_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+                region = clasificar_region_anatomica(item.get("study_desc"), modality)
+                for m in metricas:
+                    es_rdsr_val = bool(m.get("es_rdsr", False))
+                    prefix_rdsr = "[RDSR] " if es_rdsr_val else ""
+                    desc_orig = item.get("study_desc") or ""
+                    desc_final = f"{prefix_rdsr}[{region}] {desc_orig}".strip()[:250] if desc_orig else f"{prefix_rdsr}[{region}]".strip()
+
+                    registros_extraidos.append({
+                        "study_uid": study_uid,
+                        "patient_id_hashed": patient_hashed,
+                        "modalidad": modality,
+                        "aet_title": item.get("src_aet") or item.get("station_name") or "EQUIPO_LOCAL",
+                        "tipo_metrica": m["tipo_metrica"],
+                        "valor_dosis": m["valor_dosis"],
+                        "unidad_medida": m["unidad_medida"],
+                        "fecha_estudio": fecha_str,
+                        "accession_no": item.get("accession_no"),
+                        "study_desc": desc_final,
+                        "region_anatomica": region,
+                        "es_rdsr": es_rdsr_val,
+                    })
+            except Exception as e:
+                logger.warning(f"Error procesando estudio {item.get('study_iuid', 'DESCONOCIDO')}: {e}")
+                continue
 
         # Encolar en la base de datos persistente SQLite local
         if registros_extraidos:
@@ -1050,4 +1174,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        logger.info("Operación cancelada por el usuario.")
+        sys.exit(0)
+    except Exception as e:
+        logger.exception(f"[FATAL] Excepción no controlada en el agente de dosimetría: {e}")
+        sys.exit(1)

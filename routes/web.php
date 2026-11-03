@@ -331,6 +331,10 @@ Route::view('/seguridad-backups', 'modulos.seguridad.backups')
     ->name('seguridad.backups')
     ->middleware(['auth', 'permission:seguridad.backups.index']);
 
+Route::view('/seguridad-tokens', 'modulos.seguridad.tokens')
+    ->name('seguridad.tokens')
+    ->middleware(['auth', 'permission:seguridad.tokens.index']);
+
 /**
  * Interface SAHI
  */

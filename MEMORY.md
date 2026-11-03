@@ -37,6 +37,75 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-03 — Creación del Módulo "Tokens de Sedes" (Generador y Gestor Sanctum para Agentes Edge):**
+  - **Diagnóstico y Necesidad:**
+    * Los Agentes Edge distribuidos en los hospitales de la red asistencial (Espinal, La Dorada, Chaparral, Ibagué, Líbano, Honda, Rovira) requieren credenciales API Sanctum para autenticar de forma segura el envío masivo de dosimetría radiológica (`POST /api/dosimetria/registros`), latidos periódicos (`heartbeat`) y la telemetría/subida de respaldos DCM (`/seguridad-backups`).
+    * Se requería una interfaz administrativa dentro del módulo de **Seguridad** que permitiera emitir tokens individuales por sede asociados a un usuario de servicio técnico dedicado (`agente.edge@lidiag.gov.co`), con tokens permanentes sin caducidad, rotación segura con reemplazo automático (1 token activo por sede), auditoría y un modal de alta seguridad con copiado rápido y descarga directa del archivo `config.json` preconfigurado.
+  - **Solución Implementada:**
+    * **Seeder y Permisos Spatie:** Se creó `database/seeders/PermisionSeguridadTokensSeeder.php` registrando de forma idempotente los permisos `seguridad.tokens.index`, `seguridad.tokens.create`, `seguridad.tokens.revoke`, asignándolos al rol `Administrador` y garantizando la existencia del usuario de servicio `agente.edge@lidiag.gov.co`.
+    * **Servicio Backend:** Se implementó `App\Services\Seguridad\TokenSedeService.php` heredando de `BaseService`, con gestión de tokens Sanctum (`listarSedesConTokens`, `generarTokenSede`, `revocarToken`, `construirConfigJson` con los datos de red y credenciales de cada sede) y auditoría vía `AuditLogger`.
+    * **Controlador REST:** Se creó `App\Http\Controllers\Seguridad\TokenSedeController.php` con políticas Spatie y endpoints para index, store, destroy y descarga de `config.json`.
+    * **Rutas:** Rutas API registradas en `routes/api_seguridad.php` y ruta web `Route::view('/seguridad-tokens', 'modulos.seguridad.tokens')` en `routes/web.php`.
+    * **Frontend Vue 3:** Se creó `resources/js/components/modulos/seguridad/seguridadTokensComponent.vue` con estética AdminWrap, tarjetas KPI (total sedes, activas, pendientes, cuenta de servicio), tabla con badges de estado, última actividad y semáforos, confirmaciones SweetAlert2 y Modal de alta seguridad con copiado en 1 clic y descarga de `config.json`.
+    * **Cableado:** Montaje en `resources/views/modulos/seguridad/tokens.blade.php`, registro en `resources/js/app.js`, enlace en el sidebar `resources/views/comunes/sidebar.blade.php` bajo la sección `Seguridad` y documentación técnica en `docs/CONTROLLERS.md`.
+  - **Verificaciones:** Formato LF y validación de sintaxis verificados ✅.
+
+- [x] **2026-11-03 — Corrección de `UnboundLocalError` con `pydicom` y supresión de warnings VR en `agente_dosimetria.py`:**
+  - **Diagnóstico:** Al procesar estudios DICOM, el agente lanzaba `[WARNING] Error al leer cabecera DICOM... cannot access local variable 'pydicom' where it is not associated with a value`. La causa raíz fue un `import pydicom.datadict` anidado dentro de la función `extraer_metricas_dosis()` para la lectura de tags privados en CT, lo que convirtió a `pydicom` en una variable local no inicializada desde el inicio del scope de la función, rompiendo la llamada `ds = pydicom.dcmread(...)`. Además, pydicom generaba alertas recurrentes por elementos DICOM con Representation Values (VR) fuera de norma (ej. floats en campos IS `6.400000`).
+  - **Solución Implementada:**
+    * Se promovió `import pydicom.datadict` al inicio del archivo a nivel módulo.
+    * Se removió el `import pydicom.datadict` interno dentro del bucle de elementos privados de `extraer_metricas_dosis()`.
+    * Se configuró `pydicom.config.enforce_valid_values = False` y `reading_validation_mode = pydicom.config.IGNORE` para suprimir advertencias ruidosas en cabeceras de equipos médicos con formato legacy.
+  - **Verificaciones:** Formato LF verificado ✅.
+
+- [x] **2026-11-03 — Compatibilidad con `RawDataElement` en pydicom y Tolerancia a Fallos en Extracción Dosimétrica (`agente_dosimetria.py`):**
+  - **Diagnóstico:** Al extraer métricas de estudios CT en producción, el proceso colapsaba con `AttributeError: 'RawDataElement' object has no attribute 'name'` en `extraer_metricas_dosis()`. En `pydicom`, las cabeceras DICOM procesadas en modo diferido o con tags privados pueden contener instancias de `RawDataElement`, las cuales carecen de la propiedad `.name`. Además, la ausencia de un bloque `try...except` individual por estudio en el bucle principal abortaba los 500 estudios si uno solo presentaba anomalías en sus metadatos.
+  - **Solución Implementada:**
+    * Se protegió la inspección de tags de dosis CT resolviendo el nombre mediante `getattr(elem, "name", None)` y `pydicom.datadict.keyword_for_tag(elem.tag)` de forma segura.
+    * Se encapsuló la extracción de cada estudio individual en un bloque defensivo `try...except Exception as e` con advertencia controlada para que cualquier estudio corrupto o no estándar sea omitido sin detener la extracción de los demás 499 estudios.
+  - **Verificaciones:** Formato LF verificado ✅.
+
+- [x] **2026-11-03 — Pre-flight Socket Check, Driver Pure-Python (`use_pure=True`) y Prevención de Bloqueos SSL en `agente_dosimetria.py`:**
+  - **Diagnóstico:** En entornos de producción (`C:\agente_backups_dcm\`), tras superar el socket check en 22 ms, el agente se congelaba indefinidamente en la línea `mysql.connector.connect()` al conectar a `10.35.47.3:3306`. La causa raíz fue la extensión binaria C de `mysql-connector-python` que se quedaba esperando respuesta al enviar paquetes ClientHello TLS hacia servidores MySQL legados de dcm4chee que no tienen SSL activo.
+  - **Solución Implementada:**
+    * Se configuró `use_pure=True` forzando el motor de socket puro en Python con `connect_timeout=8` y política multi-intento con `ssl_mode='DISABLED'` y `ssl_disabled=True`.
+    * Se integró `check_mysql_socket` defensivo previo.
+    * Se añadieron logs paso a paso en consola y archivo para visibilidad total del ciclo.
+  - **Verificaciones:** Formato LF verificado ✅.
+
+- [x] **2026-11-03 — Corrección de `NameError: name 'cargar_cache_procesados' is not defined` en `agente_dosimetria.py`:**
+  - **Diagnóstico:** Al ejecutar `python agente_dosimetria.py --dias 7 --limit 500`, el script colapsaba con `NameError: name 'cargar_cache_procesados' is not defined` en la línea 935. Las funciones `cargar_cache_procesados` y `guardar_cache_procesados` eran invocadas en el flujo principal (`main()`) pero carecían de su definición en el cuerpo del script.
+  - **Solución Implementada:**
+    * Se implementó `cargar_cache_procesados(cache_path)` leyendo `CACHE_PROCESADOS_FILE` (`logs/dosimetria_cache_procesados.json`) con soporte resiliente de formatos (diccionario con timestamp y retrocompatibilidad con arrays previos).
+    * Se implementó `guardar_cache_procesados(cache, cache_path)` realizando escritura atómica con archivo temporal `.tmp` y reemplazo seguro para evitar corrupción ante reinicios imprevistos.
+  - **Verificaciones:** Análisis léxico y sintaxis Python validados ✅.
+
+- [x] **2026-11-03 — Incorporación de Catálogo de Sedes e IDs y Guía Exhaustiva de Comandos por Agente (`storage/app_lidiag/agente_backups_dcm/README.md`):**
+  - **Diagnóstico y Necesidad:**
+    * El archivo de configuración `config.json` del Agente Unificado de Backups DCM y Dosimetría requiere obligatoriamente el parámetro `sede_id` para vincular los volcados a la telemetría central de LIDiag (`/seguridad-backups`) y atribuir los reportes dosimétricos (Res. 482 de 2018).
+    * El manual `README.md` del paquete carecía de la relación explícita de los identificadores (`sede_id`) y nombres oficiales de cada hospital de la red asistencial, así como de un compendio unificado y estructurado con todos los comandos de ejecución (lanzadores `.bat`, scripts Python, modos `--dry-run`, parámetros de escaneo y control de tareas programadas en Windows).
+  - **Solución Implementada:**
+    * Se integró en la sección de configuración de `README.md` la tabla canónica con las 7 sedes hospitalarias activas en `config_sedes`:
+      - ID 1: Espinal — Hospital San Rafael E.S.E. (`ESP`)
+      - ID 2: La Dorada — Hospital San Félix E.S.E. (`LAD`)
+      - ID 3: Chaparral — Hospital San Juan Bautista E.S.E. (`CHA`)
+      - ID 4: Ibagué — Hospital Federico Lleras Acosta E.S.E. (`IBA`)
+      - ID 5: Líbano — Hospital Regional Alfonso Jaramillo Salazar E.S.E. (`LIB`)
+      - ID 6: Honda — Hospital San Juan de Dios de Honda E.S.E. (`HON`)
+      - ID 7: Rovira — Hospital San Vicente E.S.E. (`ROV`)
+    * Se documentaron las convenciones sugeridas de carpetas compartidas SMB en el QNAP NAS (`backups-db-{sede}` e `img-dicom-{sede}`) y el patrón de nombres de archivo `backup_dcm_sede_{sede_id}_{slug}_{timestamp}.zip`.
+    * Se amplió la sección de ejecución con la **Matriz Resumen de Comandos** y los bloques completos de comandos para consola (PowerShell / CMD) para los 4 agentes (`backup_dcm_agent.py`, `sync_dcm_images.py`, `agente_dosimetria.py`, `restore_dcm_images.py`) y las tareas programadas con `schtasks`.
+  - **Verificaciones:** Formato Markdown y consistencia de datos validados ✅.
+
+- [x] **2026-10-31 — Actualización Integral del Documento Maestro (`README.md`):**
+  - **Diagnóstico y Necesidad:** El archivo `README.md` presentaba desfases frente a los hitos y módulos desarrollados recientemente en el repositorio: carecía de la documentación del Bot de Telegram (`@salud_tolima_bot`), el módulo unificado de Auditoría (`/seguridad-auditoria`), el ciclo completo de HelpDesk con folios por sede, los visores diagnósticos (OHIF / Oviyam), el flujo de Tele-Radiología y el monitoreo de respaldos en tiempo real.
+  - **Solución Implementada:**
+    * *Stack e Integraciones:* Incorporación de Telegram Bot API (Long-Polling y Webhook), visores DICOM (OHIF / Oviyam) y auditoría de eventos de usuario (`audit_logs` + `AuditLogger`).
+    * *Módulos del Sistema:* Se agregaron y ampliaron las secciones de HelpDesk (folios `SED-YYYYMMDD-#####` y dashboard), Seguridad y Auditoría (`/seguridad-auditoria`), Tele-Radiología (`/tele-radiologia`), Bot de Telegram (`@salud_tolima_bot`), Monitoreo de Backups (`/seguridad-backups`) y Visores Diagnósticos.
+    * *Comandos Artisan y Automatización:* Se documentaron `php artisan telegram:poll` y `telegram:daily-digest`, así como las tareas programadas en Windows (`instalar_tarea_telegram_bot.bat`, `ejecutar_telegram_bot.bat`, `detener_tarea_telegram_bot.bat`).
+    * *Variables de Entorno:* Actualizadas las variables clave en la guía de despliegue (`TELEGRAM_*`, etc.).
+  - **Verificaciones:** Formato Markdown y consistencia estructural validados ✅.
+
 - [x] **2026-10-31 — Estandarización Integral UI/UX AdminWrap / Bootstrap 4 en Módulos Restantes (`help-desk`, `tele-radiologia`, `contratos`, `pacientes`, `reportes`, `estudios`, `ecografias`, `citas`):**
   - **Diagnóstico y Necesidad:**
     * Múltiples componentes en los módulos de `help-desk` (5 componentes), `tele-radiologia` (2 componentes), `contratos` (1 componente), `pacientes` (1 componente), `reportes` (1 componente), `estudios` (7 componentes) y `ecografias` presentaban inconsistencias visuales y de accesibilidad frente a los estándares AdminWrap / Bootstrap 4 de LIDiag:

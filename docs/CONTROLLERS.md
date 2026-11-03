@@ -457,6 +457,13 @@ Controlador para el panel de monitoreo y gestión en tiempo real de copias de se
 - **`estado`**: Retorna métricas consolidadas de almacenamiento en disco, estado de backups centrales (MySQL y storage) y semáforo de sincronización de imágenes DCM por sede. Requiere permiso `seguridad.backups.index`.
 - **`ejecutarBackupDb`**: Dispara la ejecución manual e inmediata de un respaldo de la base de datos principal MySQL con política de retención automática. Requiere permiso `seguridad.backups.ejecutar`.
 
+### `TokenSedeController.php`
+Controlador para el generador y gestor de tokens de acceso Sanctum unificados para los Agentes Edge de cada sede hospitalaria.
+- **`index`**: Retorna la lista consolidada de las 7 sedes asistenciales con el estado de su token, identificador Sanctum, fecha de creación y último reporte/transmisión. Requiere permiso `seguridad.tokens.index`.
+- **`store`**: Genera un nuevo token de acceso unificado permanente para la sede indicada ejecutando rotación automática (revoca cualquier token previo de esa sede) y devuelve el token en texto plano junto con la estructura lista de `config.json`. Requiere permiso `seguridad.tokens.create`.
+- **`destroy`**: Revoca definitivamente un token de sede impidiendo conexiones futuras del agente. Requiere permiso `seguridad.tokens.revoke`.
+- **`descargarConfigJson`**: Descarga el archivo `config_sede_{id}.json` institucional preconfigurado para el despliegue del agente en la sede hospitalaria. Requiere permiso `seguridad.tokens.index`.
+
 ---
 
 ## Módulo: Autenticación
