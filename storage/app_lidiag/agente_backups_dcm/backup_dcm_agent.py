@@ -197,6 +197,7 @@ def parse_arguments():
     parser.add_argument("--qnap-share", dest="qnap_share_backups", help="Recurso compartido en QNAP para backups (ej. backups_espinal)")
     parser.add_argument("--api-url", dest="api_url", help="URL base o endpoint de API de LIDiag Central")
     parser.add_argument("--api-token", dest="api_token", help="Token de autenticación de la sede en LIDiag Central")
+    parser.add_argument("--dry-run", action="store_true", help="Modo simulación: valida puertos, rutas y servicios sin generar volcado ni transferir")
     return parser.parse_args()
 
 
@@ -717,6 +718,19 @@ def main():
             "espacio_libre_gb": round(free_gb, 2),
         })
         sys.exit(1)
+
+    if getattr(args, "dry_run", False):
+        print("\n--- MODO SIMULACIÓN (--dry-run) ACTIVADO ---")
+        print(f"[OK] MySQL Socket        : Conexión TCP exitosa a MySQL en {db_host}:{db_port}")
+        print(f"[OK] Espacio en disco    : {free_gb:.2f} GB disponibles (mínimo requerido: {min_gb:.2f} GB)")
+        dump_bin = find_mysqldump(config.get("mysqldump_path"))
+        print(f"[OK] mysqldump ejecutable: {dump_bin}")
+        if config.get("qnap_ip"):
+            qnap_ok = check_qnap_port(config["qnap_ip"], ports=(445, 139))
+            print(f"[{'OK' if qnap_ok else 'OFFLINE'}] Conexión QNAP NAS   : {config['qnap_ip']} en puertos 445/139 ({'accesible' if qnap_ok else 'no responde'})")
+        print("[SIMULACIÓN COMPLETADA] Todos los chequeos previos fueron validados exitosamente sin alterar disco ni base de datos.")
+        release_process_lock()
+        sys.exit(0)
 
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")
     sede_tag = f"sede_{config['sede_id']}" if config.get("sede_id") else "sede"

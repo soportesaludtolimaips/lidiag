@@ -13,14 +13,15 @@ echo.
 net session >nul 2>&1
 if %errorLevel% neq 0 (
     echo [ADVERTENCIA] Este instalador requiere privilegios de Administrador.
-    echo Por favor, haz clic derecho y selecciona "Ejecutar como administrador".
+    echo Por favor, ejecuta este script como Administrador:
+    echo Clic derecho en instalar_tareas_sede.bat -^> "Ejecutar como administrador"
     echo.
     pause
     exit /b 1
 )
 
-if not exist "config.json" (
-    echo [ERROR] No se encontro config.json.
+if not exist "%~dp0config.json" (
+    echo [ERROR] No se encontro config.json en: %~dp0
     echo Configura el archivo config.json antes de registrar las tareas.
     echo.
     pause
@@ -71,7 +72,7 @@ echo [COMPLETADO] Las 3 tareas fueron registradas con exito bajo la cuenta SYSTE
 echo Todas operan de forma 100%% autonoma sin requerir inicio de sesion de usuario.
 echo =========================================================================
 echo.
-echo ¿Deseas iniciar la sincronizacion continua de imagenes ahora mismo? (S/N)
+echo Deseas iniciar la sincronizacion continua de imagenes ahora mismo? (S/N)
 set /p "INICIAR=Opcion: "
 if /i "%INICIAR%"=="S" (
     schtasks /run /tn "%TASK_IMG%"

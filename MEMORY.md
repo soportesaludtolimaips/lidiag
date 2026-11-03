@@ -37,6 +37,44 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-03 — Enriquecimiento y Documentación Integral de Comandos por Agente (`storage/app_lidiag/agente_backups_dcm/README.md`):**
+  - **Diagnóstico y Necesidad:**
+    * Los administradores de sistemas y técnicos de soporte en las sedes hospitalarias requerían un catálogo exhaustivo y estandarizado con todos los comandos de consola, banderas (flags CLI), comandos de diagnóstico/red y monitoreo de logs para cada uno de los agentes Edge.
+  - **Solución Implementada:**
+    * **Actualización en Scripts Python:**
+      - Se implementó `--dry-run` en `backup_dcm_agent.py` para validar socket MySQL (3306), QNAP (445/139), espacio en disco y binario `mysqldump` sin alterar datos ni generar volcado.
+      - Se ampliaron los argumentos de `sync_dcm_images.py` con `--config`, `--threads`, `--interval` y `--dry-run` (modo simulación que inyecta `/L` en Robocopy).
+    * **Expansión de `storage/app_lidiag/agente_backups_dcm/README.md`:**
+      - Tablas completas de argumentos CLI para los 4 agentes (`backup_dcm_agent.py`, `sync_dcm_images.py`, `agente_dosimetria.py`, `restore_dcm_images.py`).
+      - Comandos detallados de ejecución por consola y lanzadores `.bat` (estándar, simulación, sobrescritura de credenciales/rutas, rangos históricos, forzado de caché).
+      - Comandos de diagnóstico y pruebas previas (sockets TCP, pruebas SMB con `net use`, tests de tokens Bearer con PowerShell).
+      - Comandos de streaming de logs en tiempo real (`Get-Content .\logs\*.log -Wait -Tail 30`).
+      - Comandos de administración de tareas programadas de Windows (`schtasks`) y entorno virtual (`venv`).
+  - **Verificaciones:** `python -m py_compile` exitoso en todos los scripts y formato LF verificado sin BOM ✅.
+- [x] **2026-11-03 — Implementación Fase 2: Seguridad Diagnóstica, Botones Interactivos WhatsApp y Firma Digital con Código QR:**
+  - **Diagnóstico y Necesidad:**
+    * **Hallazgos Críticos en Urgencias:** En radiología de urgencias (neumotórax a tensión, hemorragia subaracnoidea, perforación de víscera hueca, tromboembolismo pulmonar masivo), la falta de un mecanismo de priorización inmediata y notificación push retrasaba la intervención médica de emergencia.
+    * **Confirmación de Citas:** Los recordatorios de 24 horas requerían que el paciente digitara números o textos planos que a menudo fallaban o se ignoraban, necesitando botones interactivos rápidos (`Confirmar Cita` / `Cancelar Cita`).
+    * **Firma Digital y Verificación Pública:** Se requería dotar a los informes médicos radiológicos generados en PDF de un sello de autenticidad criptográfica verificable mediante código QR y URL segura pública para pacientes y médicos remitentes (Ley 527 de 1999 y Resolución 1995 de 1999).
+  - **Solución Implementada:**
+    * **2.1 Marcado y Alerta de Hallazgo Crítico (`EstudioService.php`, `transcribirEstudioComponent.vue`, `leerEstudioComponent.vue`, `GuardarTranscripcionRequest.php`, `LeerEstudioRequest.php`):**
+      - Se implementó el switch/checkbox de "Hallazgo Crítico en Urgencias / UCI" con advertencia visual prominente en los editores de lectura médica y transcripción.
+      - Al marcarse como crítico, el backend escala automáticamente el estudio a prioridad máxima (`prioridad_id = 1`), antepone la marca `[HALLAZGO CRÍTICO]` en las observaciones clínicas y registra el evento en `AuditLogger`.
+      - Se implementó la notificación push de emergencia inmediata vía `TelegramService` dirigida a los chats autorizados asistenciales (`allowed_chat_ids`) detallando sede, paciente, estudio, radiólogo y marca de tiempo.
+    * **2.2 Botones Interactivos de WhatsApp para Confirmación de Citas (`WhatsAppService.php`, `WhatsAppFlowService.php`):**
+      - En `WhatsAppService::enviarRecordatorio`, se sustituyó el mensaje plano por botones interactivos rápidos de Meta Graph API (`cita_confirmar_{id}` y `cita_cancelar_{id}`) con fallback transparente a texto.
+      - En `WhatsAppFlowService`, se interceptaron las respuestas interactivas: al pulsar "Confirmar Cita", la cita se actualiza de inmediato a estado `confirmada` y se envía confirmación formal; al pulsar "Cancelar Cita", pasa a `cancelada` con motivo registrado.
+      - En el resumen final de solicitud de cita, se implementó el envío de botones interactivos (`btn_confirmar_solicitud` y `btn_cancelar_solicitud`).
+    * **2.3 Firma Digital con Código QR y Timestamp en PDF (`QrCodeHelper.php`, `PlantillaEstudioService.php`, `VerificacionInformeController.php`, `validar-informe.blade.php`):**
+      - Se desarrolló el helper de código QR autónomo en pure PHP + GD (`QrCodeHelper.php`) sin dependencias externas, compatible con ISO/IEC 18004.
+      - En `PlantillaEstudioService::editWord`, se genera un token criptográfico seguro HMAC-SHA256 (`token_validacion`) y la URL de verificación pública (`/validar-informe/{token}`), incrustando el código QR temporal y el pie legal de certificación digital dentro del informe.
+      - Se creó el controlador público y la vista oficial de certificación (`VerificacionInformeController.php` y `validar-informe.blade.php`) con anonimización de datos sensibles del paciente (Habeas Data Ley 1581) y cálculo de hash de integridad SHA-256.
+  - **Verificaciones:**
+    * Pint validado al 100% passed (`vendor\bin\pint.bat --test`) en todos los archivos PHP nuevos y modificados ✅.
+    * ESLint validado con 0 errores y 0 advertencias (`npx eslint`) en componentes Vue ✅.
+    * Compilación de producción Vite completada exitosamente (`npm run build` en 1.23s) con bundle inicial optimizado en 197 kB (62 kB gzip) ✅.
+    * Verificación de ruta pública `/validar-informe/{token}` testeada con respuesta HTTP 200 y tokens fraudulentos con HTTP 404/403 ✅.
+    * Formato LF verificado sin BOM ✅.
 - [x] **2026-11-03 — Depuración Estricta de Estilos en Dashboard de Dosimetría (`/dosimetria/dashboard`) alineado 100% a AdminWrap:**
   - **Diagnóstico y Necesidad:**
     * Se identificó la presencia residual de clases no pertenecientes a la plantilla oficial `Documentos/Plantilla lidiag` (clases de Bootstrap 5 como `gap-2`, `shadow-sm`, `border-0`, `fs-6`, `align-middle`, `spinner-border`, `text-warning-emphasis`, `opacity-75` y utilidades de espaciado `mr-1`, `mb-2`, `mb-3`, `py-2 px-3`, `py-5`), así como tags `badge badge-*` y backdrop filters CSS en modales.

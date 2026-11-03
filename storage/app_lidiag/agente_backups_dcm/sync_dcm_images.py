@@ -288,7 +288,7 @@ def normalize_robocopy_output_line(raw_line: str, base_dir: str, pending_prefixe
     return result_lines
 
 
-def sync_cycle(config: dict) -> bool:
+def sync_cycle(config: dict, dry_run: bool = False) -> bool:
     """
     Ejecuta un ciclo de sincronización incremental desde local hacia el QNAP.
     """
@@ -377,6 +377,10 @@ def sync_cycle(config: dict) -> bool:
         "$RECYCLE.BIN",
         "System Volume Information",
     ]
+
+    if dry_run:
+        cmd.append("/L")
+        logger.info("      [MODO SIMULACIÓN] Robocopy ejecutándose con flag /L (no se copiarán archivos)")
 
     global CURRENT_ROBOCOPY_PROC
     try:
@@ -600,23 +604,33 @@ def update_unified_healthcheck(sede_id: int, sede_nombre: str, service: str, inf
 
 def main():
     parser = argparse.ArgumentParser(description="LIDiag Agente de Sincronización Continua de Imágenes PACS")
+    parser.add_argument("--config", "-c", default=CONFIG_FILE, help="Ruta al archivo config.json (por defecto: config.json)")
     parser.add_argument("--once", action="store_true", help="Ejecuta una sola pasada y finaliza (sin bucle continuo)")
+    parser.add_argument("--threads", "-t", type=int, help="Sobrescribe el número de hilos paralelos de Robocopy")
+    parser.add_argument("--interval", "-i", type=int, help="Sobrescribe el intervalo en segundos entre ciclos")
+    parser.add_argument("--dry-run", action="store_true", help="Modo simulación: lista archivos pendientes con /L de Robocopy sin transferir")
     args = parser.parse_args()
 
     # Prevenir múltiples instancias simultáneas compitiendo por disco y red
     if not acquire_process_lock():
         sys.exit(0)
 
-    if not os.path.isfile(CONFIG_FILE):
-        logger.critical(f"Archivo de configuración no encontrado: {CONFIG_FILE}")
+    config_path = os.path.abspath(args.config)
+    if not os.path.isfile(config_path):
+        logger.critical(f"Archivo de configuración no encontrado: {config_path}")
         logger.critical("Crea config.json basándote en config.json.example antes de iniciar.")
         sys.exit(1)
 
     try:
-        config = parse_tolerant_json(CONFIG_FILE)
+        config = parse_tolerant_json(config_path)
     except Exception as e:
         logger.critical(f"Error al parsear config.json: {e}")
         sys.exit(1)
+
+    if args.threads:
+        config["threads"] = int(args.threads)
+    if args.interval:
+        config["sync_interval_seconds"] = int(args.interval)
 
     interval = int(config.get("sync_interval_seconds", 180))
     sede_nombre = config.get("sede_nombre", "Sede")
@@ -626,6 +640,11 @@ def main():
     logger.info(f"Destino QNAP  : \\\\{config.get('qnap_ip')}\\{share_name}")
     logger.info(f"Intervalo     : {interval} segundos")
     logger.info(f"Hilos Robocopy: {config.get('threads', 8)}")
+
+    if args.dry_run:
+        logger.info("Modo de ejecución: Simulación (--dry-run / Robocopy /L)")
+        success = sync_cycle(config, dry_run=True)
+        sys.exit(0 if success else 1)
 
     if args.once:
         logger.info("Modo de ejecución: Pasada única (--once)")
