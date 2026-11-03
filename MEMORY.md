@@ -37,6 +37,26 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-03 — Incorporación de Estilos de Fuente y Tipografía en el Editor WYSIWYG (`WysiwygEditor.vue`, `wysiwyg-color.css`):**
+  - **Diagnóstico y Necesidad:**
+    * Los médicos radiólogos y operadores de transcripción requerían selectores de tipos de fuente (familia tipográfica como Arial, Calibri, Times New Roman, Roboto, etc.) y tamaños de fuente (Pequeño, Normal, Mediano, Grande, Muy grande), así como estilos de encabezado (Párrafo, Título 1, Título 2, Título 3) directamente en la barra de herramientas del editor WYSIWYG.
+    * `bootstrap-wysihtml5` solo proveía un menú básico en inglés (`Normal text`, `Heading 1-3`), carecía de selectores para familias tipográficas y tamaños de texto, y sus menús desplegables fallaban al no integrarse adecuadamente con Bootstrap 4 (`.show` vs `.open`).
+  - **Solución Implementada:**
+    * **Comandos Personalizados en Wysihtml5 (`WysiwygEditor.vue`):**
+      - Se implementó `wysihtml5.commands.fontFamily` usando `wysihtml5.commands.formatInline` con regex `wysiwyg-font-family-[a-z0-9-]+` para aplicar clases tipográficas a selecciones de texto o al bloque/body activo cuando no hay rango seleccionado.
+      - Se extendió defensivamente `wysihtml5.commands.fontSize` para permitir cambiar tamaños tanto en selecciones de rango como en el cursor de texto.
+      - Se añadieron a `parserRules.classes` las familias (`wysiwyg-font-family-*`) y tamaños (`wysiwyg-font-size-*`).
+    * **Estilos CSS en iframe y Barra de Herramientas (`wysiwyg-color.css`, `WysiwygEditor.vue`):**
+      - Se definieron en `public/lib/css/wysiwyg-color.css` las familias: Arial, Calibri, Times New Roman, Roboto, Verdana, Tahoma y Courier New, junto con los tamaños: pequeño (11px), normal (14px), mediano (16px), grande (20px) y muy grande (24px).
+      - Se rediseñó la barra de herramientas (`.wysihtml5-toolbar`) con estilo moderno, limpio, flexbox adaptable, botones con íconos vectoriales (`fa fa-bold`, `fa fa-italic`, `fa fa-underline`, `fa fa-list-ul`, `fa fa-list-ol`), menú de estilos de párrafo/títulos en español, selector de fuentes y selector de tamaños con soporte nativo de Bootstrap 4 y cierre automático al dar clic fuera o al enfocar el editor.
+    * **Integridad con SAHI y Reportes Clínicos:**
+      - El editor continúa emitiendo texto plano limpio mediante `htmlToPlain()` al modelo reactivo (`v-model`), garantizando total compatibilidad con el esquema memo de SAHI SQL Server (`hceEsquemaDetMemo.DesMemo`) y con el generador de Word y PDF de `PlantillaEstudioService`.
+  - **Verificaciones:**
+    * ESLint validado sin errores (`npx eslint`) ✅.
+    * Prettier formateado (`npx prettier --write`) ✅.
+    * Compilación Vite completada sin errores (`npm run build` en 1.37s) ✅.
+    * Formato LF verificado sin BOM ✅.
+
 - [x] **2026-11-03 — Refactorización UI/UX del Módulo Tokens de Sedes y Resiliencia en confirmAction:**
   - **Diagnóstico y Necesidad:**
     * El módulo de generación de tokens (`/seguridad-tokens`) presentaba inconsistencias visuales frente al estándar AdminWrap y Bootstrap 4 de LIDiag (tarjetas KPI ajenas con estilos utilitarios no usados en los módulos de administración, cabeceras con íconos directos en `<h3>`, modal con cabeceras `bg-success` y bordes/sombras no nativos, y un bloque `<style scoped>` con clases duplicadas).

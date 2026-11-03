@@ -1,14 +1,16 @@
 <template>
-    <textarea
-        ref="textareaRef"
-        :id="editorId"
-        class="form-control textarea_editor"
-        :rows="rows"
-        :placeholder="placeholder"
-        :value="modelValue"
-        @input="onNativeTextareaInput"
-        @paste="onNativeTextareaPaste"
-    ></textarea>
+    <div class="wysiwyg-editor-wrapper">
+        <textarea
+            ref="textareaRef"
+            :id="editorId"
+            class="form-control textarea_editor"
+            :rows="rows"
+            :placeholder="placeholder"
+            :value="modelValue"
+            @input="onNativeTextareaInput"
+            @paste="onNativeTextareaPaste"
+        ></textarea>
+    </div>
 </template>
 
 <script setup>
@@ -29,6 +31,7 @@ const emit = defineEmits(["update:modelValue"]);
 const textareaRef = ref(null);
 const editorId = `wysiwyg-${++idCounter}`;
 let observer = null;
+let documentClickHandler = null;
 
 /**
  * Maneja la entrada directa en el textarea nativo (modo fallback móvil o previo a wysihtml5).
@@ -136,9 +139,93 @@ function syncEditorValue(rawVal) {
 }
 
 /**
+ * Registra y extiende comandos personalizados en wysihtml5 para soportar:
+ * 1. Selección de familias tipográficas / tipos de letra (fontFamily).
+ * 2. Selección de tamaños de fuente (fontSize) tanto para selecciones activas como posición de cursor.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-03
+ */
+function registerCustomWysihtml5Commands() {
+    if (!window.wysihtml5) return;
+
+    const REG_EXP_FONT = /wysiwyg-font-family-[a-z0-9-]+/g;
+    if (!window.wysihtml5.commands?.fontFamily) {
+        window.wysihtml5.commands.fontFamily = {
+            exec: function (composer, command, font) {
+                const range = composer.selection?.getRange();
+                if (range && !range.collapsed) {
+                    return window.wysihtml5.commands.formatInline.exec(
+                        composer,
+                        command,
+                        "span",
+                        "wysiwyg-font-family-" + font,
+                        REG_EXP_FONT
+                    );
+                } else if (composer.element) {
+                    const node = composer.selection?.getSelectedNode();
+                    const target =
+                        node && node.nodeType === 1 && node !== composer.element
+                            ? node
+                            : composer.element;
+                    target.className =
+                        (target.className || "").replace(REG_EXP_FONT, "").trim() +
+                        " wysiwyg-font-family-" +
+                        font;
+                    return true;
+                }
+                return false;
+            },
+            state: function (composer, command, font) {
+                return window.wysihtml5.commands.formatInline.state(
+                    composer,
+                    command,
+                    "span",
+                    "wysiwyg-font-family-" + font,
+                    REG_EXP_FONT
+                );
+            },
+            value: function () {
+                return undefined;
+            },
+        };
+    }
+
+    if (window.wysihtml5.commands?.fontSize && !window.wysihtml5.commands.fontSize._lidiagPatched) {
+        const originalFontSizeExec = window.wysihtml5.commands.fontSize.exec;
+        const REG_EXP_SIZE = /wysiwyg-font-size-[a-z0-9-]+/g;
+        window.wysihtml5.commands.fontSize = {
+            _lidiagPatched: true,
+            exec: function (composer, command, size) {
+                const range = composer.selection?.getRange();
+                if (range && !range.collapsed) {
+                    return originalFontSizeExec(composer, command, size);
+                } else if (composer.element) {
+                    const node = composer.selection?.getSelectedNode();
+                    const target =
+                        node && node.nodeType === 1 && node !== composer.element
+                            ? node
+                            : composer.element;
+                    target.className =
+                        (target.className || "").replace(REG_EXP_SIZE, "").trim() +
+                        " wysiwyg-font-size-" +
+                        size;
+                    return true;
+                }
+                return false;
+            },
+            state: window.wysihtml5.commands.fontSize.state,
+            value: window.wysihtml5.commands.fontSize.value,
+        };
+    }
+}
+
+/**
  * Inicializa el editor Wysiwyg (wysihtml5) en el textarea,
- * configurando soporte táctil móvil, reglas de parseo con soporte de párrafos y divs,
- * valor inicial, evento load/blur y observer de mutaciones.
+ * configurando soporte táctil móvil, selectores de tipografía (fuente, tamaño, encabezados),
+ * reglas de parseo con soporte de párrafos y divs, valor inicial y observadores.
  *
  * @author Jhon Javer Lozano Arce
  * @date 2026-11-03
@@ -152,10 +239,11 @@ function initEditor() {
     if ($el.prevAll(".wysihtml5-toolbar").length) return;
 
     // wysihtml5 0.3.0 detecta erróneamente Chrome Android como iOS < 5 incompatible.
-    // Habilitamos explícitamente el soporte en navegadores móviles modernos.
     if (window.wysihtml5?.browser) {
         window.wysihtml5.browser.supported = () => true;
     }
+
+    registerCustomWysihtml5Commands();
 
     if (props.modelValue) {
         el.value = props.modelValue;
@@ -164,6 +252,85 @@ function initEditor() {
     $el.wysihtml5({
         stylesheets: ["/lib/css/wysiwyg-color.css"],
         supportTouchDevices: true,
+        "font-styles": true,
+        emphasis: true,
+        lists: true,
+        html: false,
+        link: false,
+        image: false,
+        color: false,
+        customTemplates: {
+            "font-styles": function () {
+                return `
+                    <li class="dropdown">
+                        <a class="btn dropdown-toggle" data-toggle="dropdown" href="javascript:;" role="button" aria-haspopup="true" aria-expanded="false" title="Estilo de párrafo o encabezado">
+                            <i class="fa fa-header"></i>&nbsp;<span class="current-font">Párrafo</span>&nbsp;<b class="caret"></b>
+                        </a>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="formatBlock" data-wysihtml5-command-value="div">Párrafo normal</a>
+                            <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="formatBlock" data-wysihtml5-command-value="h1"><span style="font-size: 1.2rem; font-weight: bold;">Título 1</span></a>
+                            <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="formatBlock" data-wysihtml5-command-value="h2"><span style="font-size: 1.05rem; font-weight: bold;">Título 2</span></a>
+                            <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="formatBlock" data-wysihtml5-command-value="h3"><span style="font-size: 0.95rem; font-weight: bold;">Título 3</span></a>
+                        </div>
+                    </li>
+                `;
+            },
+            emphasis: function () {
+                return `
+                    <li>
+                        <div class="btn-group">
+                            <a class="btn" data-wysihtml5-command="bold" title="Negrita (Ctrl+B)"><i class="fa fa-bold"></i></a>
+                            <a class="btn" data-wysihtml5-command="italic" title="Cursiva (Ctrl+I)"><i class="fa fa-italic"></i></a>
+                            <a class="btn" data-wysihtml5-command="underline" title="Subrayado (Ctrl+U)"><i class="fa fa-underline"></i></a>
+                        </div>
+                    </li>
+                `;
+            },
+            lists: function () {
+                return `
+                    <li>
+                        <div class="btn-group">
+                            <a class="btn" data-wysihtml5-command="insertUnorderedList" title="Viñetas"><i class="fa fa-list-ul"></i></a>
+                            <a class="btn" data-wysihtml5-command="insertOrderedList" title="Lista numerada"><i class="fa fa-list-ol"></i></a>
+                            <a class="btn" data-wysihtml5-command="Outdent" title="Reducir sangría"><i class="fa fa-outdent"></i></a>
+                            <a class="btn" data-wysihtml5-command="Indent" title="Aumentar sangría"><i class="fa fa-indent"></i></a>
+                        </div>
+                    </li>
+                `;
+            },
+        },
+        toolbar: {
+            "font-family": `
+                <li class="dropdown">
+                    <a class="btn dropdown-toggle" data-toggle="dropdown" href="javascript:;" role="button" aria-haspopup="true" aria-expanded="false" title="Tipo de fuente">
+                        <i class="fa fa-font"></i>&nbsp;<span class="current-font-family">Fuente</span>&nbsp;<b class="caret"></b>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontFamily" data-wysihtml5-command-value="arial" style="font-family: Arial, sans-serif;">Arial</a>
+                        <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontFamily" data-wysihtml5-command-value="calibri" style="font-family: Calibri, sans-serif;">Calibri</a>
+                        <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontFamily" data-wysihtml5-command-value="times" style="font-family: 'Times New Roman', serif;">Times New Roman</a>
+                        <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontFamily" data-wysihtml5-command-value="roboto" style="font-family: Roboto, sans-serif;">Roboto</a>
+                        <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontFamily" data-wysihtml5-command-value="verdana" style="font-family: Verdana, sans-serif;">Verdana</a>
+                        <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontFamily" data-wysihtml5-command-value="tahoma" style="font-family: Tahoma, sans-serif;">Tahoma</a>
+                        <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontFamily" data-wysihtml5-command-value="courier" style="font-family: 'Courier New', monospace;">Courier New</a>
+                    </div>
+                </li>
+            `,
+            "font-size": `
+                <li class="dropdown">
+                    <a class="btn dropdown-toggle" data-toggle="dropdown" href="javascript:;" role="button" aria-haspopup="true" aria-expanded="false" title="Tamaño de fuente">
+                        <i class="fa fa-text-height"></i>&nbsp;<span class="current-font-size">Tamaño</span>&nbsp;<b class="caret"></b>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontSize" data-wysihtml5-command-value="small" style="font-size: 11px;">Pequeño (11px)</a>
+                        <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontSize" data-wysihtml5-command-value="normal" style="font-size: 14px;">Normal (14px)</a>
+                        <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontSize" data-wysihtml5-command-value="medium" style="font-size: 16px;">Mediano (16px)</a>
+                        <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontSize" data-wysihtml5-command-value="large" style="font-size: 20px;">Grande (20px)</a>
+                        <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontSize" data-wysihtml5-command-value="xlarge" style="font-size: 24px;">Muy grande (24px)</a>
+                    </div>
+                </li>
+            `,
+        },
         parserRules: {
             classes: {
                 "wysiwyg-color-silver": 1,
@@ -182,6 +349,22 @@ function initEditor() {
                 "wysiwyg-color-teal": 1,
                 "wysiwyg-color-aqua": 1,
                 "wysiwyg-color-orange": 1,
+
+                // Clases de tamaño de fuente
+                "wysiwyg-font-size-small": 1,
+                "wysiwyg-font-size-normal": 1,
+                "wysiwyg-font-size-medium": 1,
+                "wysiwyg-font-size-large": 1,
+                "wysiwyg-font-size-xlarge": 1,
+
+                // Clases de familia tipográfica
+                "wysiwyg-font-family-arial": 1,
+                "wysiwyg-font-family-calibri": 1,
+                "wysiwyg-font-family-times": 1,
+                "wysiwyg-font-family-roboto": 1,
+                "wysiwyg-font-family-verdana": 1,
+                "wysiwyg-font-family-tahoma": 1,
+                "wysiwyg-font-family-courier": 1,
             },
             tags: {
                 b: {},
@@ -206,6 +389,8 @@ function initEditor() {
 
     const inst = $el.data("wysihtml5");
     if (inst?.editor) {
+        setupToolbarInteractions($el);
+
         const onEditorReady = () => {
             syncEditorValue(props.modelValue);
             attachObserver(inst.editor);
@@ -228,6 +413,66 @@ function initEditor() {
 
         nextTick(onEditorReady);
     }
+}
+
+/**
+ * Configura los eventos de clic e interacciones de los menús desplegables
+ * de la barra de herramientas (Fuentes, Tamaños y Estilos de encabezado).
+ *
+ * @param {Object} $el - Elemento jQuery del textarea.
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-03
+ */
+function setupToolbarInteractions($el) {
+    const $toolbar = $el.prev(".wysihtml5-toolbar");
+    if (!$toolbar.length) return;
+
+    $toolbar.find("a[data-wysihtml5-command='fontFamily']").on("click", function () {
+        const text = $(this).text().trim();
+        $toolbar.find(".current-font-family").text(text);
+        $toolbar.find(".dropdown.show, .dropdown-menu.show").removeClass("show");
+    });
+
+    $toolbar.find("a[data-wysihtml5-command='fontSize']").on("click", function () {
+        const text = $(this).text().trim();
+        $toolbar.find(".current-font-size").text(text);
+        $toolbar.find(".dropdown.show, .dropdown-menu.show").removeClass("show");
+    });
+
+    $toolbar.find("a[data-wysihtml5-command='formatBlock']").on("click", function () {
+        const text = $(this).text().trim();
+        $toolbar.find(".current-font").text(text);
+        $toolbar.find(".dropdown.show, .dropdown-menu.show").removeClass("show");
+    });
+
+    $toolbar.find("[data-toggle='dropdown']").on("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const $parent = $(this).closest(".dropdown");
+        const $menu = $parent.find(".dropdown-menu");
+        const isOpen = $parent.hasClass("show");
+
+        $toolbar.find(".dropdown.show, .dropdown-menu.show").removeClass("show");
+
+        if (!isOpen) {
+            $parent.addClass("show");
+            $menu.addClass("show");
+        }
+    });
+
+    if (documentClickHandler) {
+        $(document).off("click", documentClickHandler);
+    }
+
+    documentClickHandler = (e) => {
+        if (!window.$) return;
+        if (!$(e.target).closest(".wysihtml5-toolbar .dropdown").length) {
+            $toolbar.find(".dropdown.show, .dropdown-menu.show").removeClass("show");
+        }
+    };
+    $(document).on("click", documentClickHandler);
 }
 
 /**
@@ -258,15 +503,21 @@ function applyHeight() {
 }
 
 /**
- * Destruye el editor Wysiwyg: desconecta el observer, elimina la barra
- * de herramientas, el sandbox y los elementos auxiliares del DOM.
+ * Destruye el editor Wysiwyg: desconecta el observer, remueve escuchadores globales,
+ * elimina la barra de herramientas, el sandbox y los elementos auxiliares del DOM.
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-18
+ * @date 2026-11-03
  */
 function destroyEditor() {
     const el = textareaRef.value;
     if (!el) return;
+
+    if (documentClickHandler && window.$) {
+        $(document).off("click", documentClickHandler);
+        documentClickHandler = null;
+    }
+
     const $el = $(el);
     const inst = $el.data("wysihtml5");
 
@@ -321,6 +572,16 @@ function attachObserver(editor) {
             subtree: true,
             characterData: true,
         });
+
+        if (iframe.contentWindow && window.$) {
+            $(iframe.contentWindow).on("focus.wysihtml5_dropdown", () => {
+                $(textareaRef.value?.parentElement)
+                    .find(
+                        ".wysihtml5-toolbar .dropdown.show, .wysihtml5-toolbar .dropdown-menu.show"
+                    )
+                    .removeClass("show open");
+            });
+        }
 
         attachKeydownForwarding(iframe);
         attachPasteForwarding(iframe, editor);
@@ -463,6 +724,7 @@ watch(
  * @date 2026-08-18
  */
 onMounted(() => nextTick(initEditor));
+
 /**
  * Lifecycle hook que destruye el editor Wysiwyg al desmontar el componente.
  *
@@ -471,3 +733,94 @@ onMounted(() => nextTick(initEditor));
  */
 onBeforeUnmount(destroyEditor);
 </script>
+
+<style scoped>
+.wysihtml5-editor-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+:deep(.wysihtml5-toolbar) {
+    margin: 0;
+    padding: 6px 8px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-bottom: 0;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    list-style: none;
+}
+
+:deep(.wysihtml5-toolbar > li) {
+    float: none;
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+    list-style: none;
+}
+
+:deep(.wysihtml5-toolbar .btn) {
+    padding: 5px 10px;
+    font-size: 13px;
+    border: 1px solid #ced4da;
+    background-color: #ffffff;
+    color: #495057;
+    border-radius: 4px;
+    line-height: 1.4;
+    transition: all 0.15s ease-in-out;
+}
+
+:deep(.wysihtml5-toolbar .btn:hover) {
+    background-color: #e2e6ea;
+    border-color: #dae0e5;
+    color: #212529;
+}
+
+:deep(.wysihtml5-toolbar .btn.wysihtml5-command-active) {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: #ffffff;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+:deep(.wysihtml5-toolbar .dropdown-menu) {
+    min-width: 180px;
+    max-height: 280px;
+    overflow-y: auto;
+    font-size: 13px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    padding: 4px 0;
+    z-index: 1050;
+}
+
+:deep(.wysihtml5-toolbar .dropdown-item) {
+    display: block;
+    width: 100%;
+    padding: 6px 14px;
+    clear: both;
+    font-weight: 400;
+    color: #212529;
+    text-align: inherit;
+    white-space: nowrap;
+    background-color: transparent;
+    border: 0;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+:deep(.wysihtml5-toolbar .dropdown-item:hover) {
+    background-color: #f1f3f5;
+    color: #16181b;
+}
+
+:deep(.wysihtml5-sandbox) {
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+}
+</style>
