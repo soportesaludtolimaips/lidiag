@@ -161,7 +161,23 @@ La aplicación está compuesta por los siguientes módulos especializados:
     -   **Eventos de Soporte y Seguridad:** `cambio_estado_ticket`, `reasignar_ticket`, creación/edición de roles y sincronización de permisos.
     -   **Filtros y Búsqueda Fulltext:** Filtrado por tipo de evento, usuario, rango de fechas y búsqueda textual por descripción, modelo, IP y nombre de usuario.
     -   **Exportación:** Descarga de registros a Excel, CSV, PDF, Portapapeles e Impresión con DataTables.
--   **UI y Rutas:** Pantallas web en `/seguridad.usuarios.listar`, `/seguridad.roles.listar`, `/seguridad.perfil`, `/seguridad-auditoria`, `/seguridad-backups`.
+-   **UI y Rutas:** Pantallas web en `/seguridad.usuarios.listar`, `/seguridad.roles.listar`, `/seguridad.perfil`, `/seguridad-auditoria`, `/seguridad-backups`, `/seguridad-tokens`.
+
+#### 🔑 Gestor de Tokens por Sede para Agentes Edge (`/seguridad-tokens`)
+
+Módulo administrativo para la emisión, rotación segura y monitorización de credenciales de acceso API Sanctum utilizadas por los Agentes Edge distribuidos en los servidores hospitalarios (Backups de BD, Sincronización de Imágenes y Dosimetría Radiológica).
+
+**Paso a paso para generar y desplegar tokens por sede:**
+1. **Acceso:** En el menú lateral, dirígete a **Administración → Seguridad → Tokens de Sedes** (ruta `/seguridad-tokens`).
+2. **Localización:** En la tabla principal, identifica la sede hospitalaria deseada (ej. *Espinal - Hospital San Rafael*).
+3. **Generación / Rotación:**
+   - Haz clic en **`Generar`** si la sede no posee credenciales activas, o en **`Rotar`** si requieres revocar el token previo e instaurar uno nuevo (política de 1 token activo por sede).
+   - Confirma la acción en la ventana emergente de SweetAlert.
+4. **Descarga de Configuración:**
+   - En el modal de entrega, haz clic en **`Descargar config.json`** para obtener el archivo completo preconfigurado con el nuevo Bearer Token incrustado y los parámetros de red de la sede (o copia el token en texto plano con **`Copiar Token`**).
+   - *Nota:* Por seguridad criptográfica de Sanctum, este valor no volverá a mostrarse tras cerrar el modal.
+5. **Despliegue Local:** Copia el archivo en el servidor local de la sede dentro de `C:\agente_backups_dcm\config.json`.
+6. **Monitoreo en Tiempo Real:** Verifica en la tabla del panel central que los semáforos de las columnas **DB DCM**, **Img Dicom** y **Dosi** cambien a **`OK`** con sus respectivos tiempos de reporte.
 
 ### 11. Contratación
 

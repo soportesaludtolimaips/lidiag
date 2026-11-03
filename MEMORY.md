@@ -37,6 +37,14 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-03 — Documentación Paso a Paso de Generación de Tokens por Sede en READMEs:**
+  - **Diagnóstico y Necesidad:**
+    * Los administradores de sistemas y técnicos de soporte requerían una guía clara y paso a paso para la generación, rotación y despliegue del archivo `config.json` con credenciales Sanctum en los servidores locales de los hospitales.
+  - **Solución Implementada:**
+    * **`storage/app_lidiag/agente_backups_dcm/README.md`:** Se incorporó en la Sección 3 el tutorial paso a paso con las opciones de descarga directa de `config.json` o copiado de token, advertencia de seguridad sobre el hash irreversible y la verificación en vivo en las columnas **DB DCM**, **Img Dicom** y **Dosi**.
+    * **`README.md` (Raíz):** Se añadió bajo la Sección 10 (*Seguridad y Auditoría*) la subsección *Gestor de Tokens por Sede para Agentes Edge (`/seguridad-tokens`)* con el flujo operativo completo.
+    * **Formato:** Normalización estricta a LF.
+  - **Verificaciones:** Consistencia de enlaces y formato Markdown verificados ✅.
 - [x] **2026-11-03 — Desglose de Telemetría por Agente (DB DCM, Img Dicom, Dosi) en Gestión de Tokens por Sede:**
   - **Diagnóstico y Necesidad:**
     * El módulo `/seguridad-tokens` mostraba una sola columna genérica de "Última Transmisión", impidiendo identificar cuál de los 3 agentes Edge distribuidos (`backup_dcm_agent.py`, `sync_dcm_images.py`, `agente_dosimetria.py`) estaba transmitiendo correctamente y cuál requería atención técnica.

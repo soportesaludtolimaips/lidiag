@@ -39,7 +39,53 @@ Combina en un solo paquete y bajo un único archivo de configuración (`config.j
 Descomprime el paquete en una ruta fija del servidor del hospital (por ejemplo en `C:\agente_backups_dcm\`).
 
 ### 3. Configurar `config.json`
-Copia `config.json.example` y renómbralo a `config.json`. Ajusta los parámetros de la sede:
+
+El archivo `config.json` contiene los parámetros de red, base de datos local y credenciales de acceso hacia LIDiag Central. Puedes generarlo y descargarlo automáticamente desde la plataforma web o configurarlo manualmente a partir de la plantilla `config.json.example`.
+
+#### 🔐 Paso a Paso: Generar Token y Descargar `config.json` desde LIDiag Central
+
+Para garantizar la seguridad de la red y evitar tokens desactualizados, LIDiag cuenta con un módulo centralizado de emisión de credenciales Sanctum con rotación automática (1 token activo por sede):
+
+1. **Ingresar al Panel de Seguridad:**
+   - Inicia sesión en LIDiag con un usuario administrador.
+   - En el menú lateral izquierdo, dirígete a **Administración → Seguridad → Tokens de Sedes** (o navega directamente a `https://<servidor_central>/seguridad-tokens`).
+
+2. **Identificar la Sede Hospitalaria:**
+   - En la tabla principal, ubica la fila correspondiente al hospital donde se desplegará el agente (ej. *Espinal - Hospital San Rafael*).
+   - Observa el estado actual del token:
+     - <span style="color:#28a745">**Activo**</span>: Ya existe una credencial emitida previamente.
+     - <span style="color:#dc3545">**Sin Token**</span>: Aún no se ha generado credencial para esta sede.
+
+3. **Emitir o Rotar la Credencial:**
+   - Si la sede no tiene credencial, haz clic en el botón verde **`Generar`** (ícono de llave).
+   - Si la sede ya tiene credencial y deseas renovarla, haz clic en el botón amarillo **`Rotar`** (ícono de recarga).
+   - Aparecerá una ventana de confirmación SweetAlert advirtiendo que, en caso de rotación, el token previo quedará revocado inmediatamente. Haz clic en **Aceptar**.
+
+4. **Obtención del Token y Descarga Directa:**
+   - Se abrirá el modal **"Token de Acceso — Sede [Nombre]"**.
+   - **Opción A (Recomendada):** Haz clic en el botón verde **`Descargar config.json`**. El sistema descargará automáticamente el archivo `config_sede_{id}.json` con todos los parámetros de red institucionales y el nuevo Bearer Token incrustado.
+   - **Opción B (Manual):** Haz clic en **`Copiar Token`** para copiar la cadena del Bearer Token al portapapeles y pegarla manualmente en el campo `"api_token"` de tu `config.json`.
+   > [!WARNING]
+   > Por estrictos motivos de seguridad criptográfica en Laravel Sanctum (hash irreversible en base de datos), **el valor en texto plano del token no podrá volver a ser visualizado jamás** una vez cerrado este modal. Descárgalo o cópialo antes de presionar *Cerrar*.
+
+5. **Instalación del Archivo en el Servidor Edge del Hospital:**
+   - Transfiere el archivo descargado al servidor local del hospital.
+   - Renómbralo exactamente a **`config.json`** y colócalo en la raíz de la carpeta del agente:
+     ```text
+     C:\agente_backups_dcm\config.json
+     ```
+   - Si se requiere, ajusta las contraseñas locales de la base de datos (`db_password`) y de la NAS QNAP (`qnap_password`).
+
+6. **Verificación de Transmisión en Vivo:**
+   - Ejecuta una prueba de dosimetría o backup en la consola del servidor:
+     ```powershell
+     python agente_dosimetria.py --dias 7 --limit 100
+     ```
+   - Regresa a `https://<servidor_central>/seguridad-tokens` y verifica que la columna correspondiente (**DB DCM**, **Img Dicom** o **Dosi**) cambie de *Sin datos* a **`OK`** en verde con la hora actual.
+
+---
+
+#### 📄 Estructura del Archivo `config.json`
 
 ```json
 {
@@ -65,7 +111,7 @@ Copia `config.json.example` y renómbralo a `config.json`. Ajusta los parámetro
     "threads": 8,
     "min_free_space_gb": 10,
 
-    "api_url": "https://10.35.47.4/lidiag-update/public/api/dosimetria/registros",
+    "api_url": "https://10.35.47.4/lidiag/public/api/dosimetria/registros",
     "api_token": "TOKEN_BEARER_LIDIAG_AQUI"
 }
 ```
