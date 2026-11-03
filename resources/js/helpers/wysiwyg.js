@@ -167,3 +167,23 @@ export function htmlToPlain(html) {
 
     return text.trim();
 }
+
+/**
+ * Catálogo de Macros y Snippets de Texto Clínico para Radiología.
+ * Permite expandir párrafos estándar al escribir la clave (ej. .normal, .torax)
+ * y presionar Espacio, Tab o Enter, o seleccionarla desde el menú de macros.
+ */
+export const CLINICAL_MACROS = {
+    ".normal":
+        "Estudio dentro de los límites normales. No se observan alteraciones morfológicas ni de densidad.",
+    ".torax":
+        "HALLAZGOS:\nLos tejidos blandos y estructuras óseas sin alteraciones.\nParénquima pulmonar con adecuada radiotransparencia, sin infiltrados ni áreas de consolidación.\nHilios y trama vascular de morfología y distribución normal.\nSilueta cardíaca y grandes vasos de configuración anatómica normal.\nSenos costofrénicos y cardiofrénicos libres.",
+    ".craneo":
+        "HALLAZGOS:\nAdecuada diferenciación entre sustancia gris y blanca.\nNo se observan colecciones hemáticas intra ni extraaxiales.\nSistema ventricular y cisternas basales de morfología y amplitud normal.\nLínea media centrada.\nEstructuras de fosa posterior sin alteraciones.",
+    ".abdomen":
+        "HALLAZGOS:\nDistribución habitual del patrón de gas intestinal sin evidencia de dilatación de asas.\nNo se observan niveles hidroaéreos patológicos ni neumoperitoneo.\nSiluetas viscerales y líneas del psoas conservadas.\nEstructuras óseas evaluadas sin alteraciones focales.",
+    ".columna":
+        "HALLAZGOS:\nAlineación vertebral y curvaturas fisiológicas conservadas.\nCuerpos vertebrales de altura y densidad normales.\nEspacios discales intervertebrales conservados.\nElementos posteriores sin alteraciones ni evidencia de fracturas.",
+    ".sinpatologia": "Sin evidencia de alteraciones patológicas agudas en el presente estudio.",
+    ".conclusion": "CONCLUSIÓN:\nEstudio sin hallazgos patológicos significativos.",
+};

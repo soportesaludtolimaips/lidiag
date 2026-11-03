@@ -5,6 +5,7 @@ namespace App\Services\Telegram;
 use App\Exports\ProduccionDetalladaExport;
 use App\Exports\ReportesEstudioPAC;
 use App\Models\Configuracion\ConfigSede;
+use App\Services\Seguridad\TokenSedeService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -1326,6 +1327,50 @@ class TelegramBotHandlerService
         ];
 
         $this->telegramService->sendMessage($chatId, implode("\n", $lineas), "HTML", $navMarkup);
+    }
+
+    /**
+     * Genera y envía un informe de alerta sobre los Agentes Edge y copias de seguridad de las sedes.
+     *
+     * Flujo del proceso:
+     * 1. Consulta el estado consolidado de sedes y tokens desde TokenSedeService.
+     * 2. Detecta sedes con agentes en estado ERROR, ADVERTENCIA o sin tokens configurados.
+     * 3. Despacha mensaje estructurado a Telegram alertando a soporte técnico.
+     *
+     * @param  string  $chatId  Identificador del chat destinatario.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-03
+     */
+    public function generarYEnviarAlertaAgentesSedes(string $chatId): void
+    {
+        $this->telegramService->sendChatAction($chatId, "typing");
+
+        /** @var TokenSedeService $tokenService */
+        $tokenService = app(TokenSedeService::class);
+        $res = $tokenService->listarSedesConTokens();
+        $sedes = $res["data"]["sedes"] ?? [];
+
+        $sedesCriticas = [];
+        foreach ($sedes as $sede) {
+            $backup = $sede["agente_backup_db"]["estado"] ?? "SIN_DATOS";
+            $sync = $sede["agente_sync_imagenes"]["estado"] ?? "SIN_DATOS";
+            $dosi = $sede["agente_dosimetria"]["estado"] ?? "SIN_DATOS";
+
+            if ($backup === "ERROR" || $sync === "ERROR" || $dosi === "ERROR" || ! $sede["tiene_token"]) {
+                $sedesCriticas[] = "🔴 <b>{$sede['nom_sede']}</b>\n  • BD: {$backup} | Img: {$sync} | Dosi: {$dosi}";
+            }
+        }
+
+        if (! empty($sedesCriticas)) {
+            $mensaje = "⚠️ <b>ALERTA DE INFRAESTRUCTURA — AGENTES EDGE</b>\n\n"
+                ."Se han detectado anomalías o falta de telemetría en las siguientes sedes:\n\n"
+                .implode("\n\n", $sedesCriticas)."\n\n"
+                ."<i>Revise el panel de control en: /seguridad-backups</i>";
+
+            $this->telegramService->sendMessage($chatId, $mensaje);
+        }
     }
 
     /**

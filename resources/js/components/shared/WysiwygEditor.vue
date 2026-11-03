@@ -1,5 +1,37 @@
 <template>
     <div class="wysiwyg-editor-wrapper">
+        <!-- Banner de recuperación de borrador automático -->
+        <div
+            v-if="showDraftBanner"
+            class="alert alert-info draft-banner d-flex align-items-center justify-content-between p-2 mb-2"
+        >
+            <div class="d-flex align-items-center">
+                <i class="fa fa-history mr-2 text-info"></i>
+                <span class="small">
+                    Se encontró un <strong>borrador no guardado</strong> ({{ draftTimestamp }}).
+                    ¿Deseas restaurarlo?
+                </span>
+            </div>
+            <div class="draft-actions">
+                <button
+                    type="button"
+                    class="btn btn-xs btn-info mr-1"
+                    @click="restoreDraft"
+                    title="Restaurar el texto del borrador automático"
+                >
+                    <i class="fa fa-undo mr-1"></i> Restaurar
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-xs btn-outline-secondary"
+                    @click="discardDraft"
+                    title="Descartar este borrador"
+                >
+                    <i class="fa fa-times"></i> Descartar
+                </button>
+            </div>
+        </div>
+
         <textarea
             ref="textareaRef"
             :id="editorId"
@@ -9,13 +41,14 @@
             :value="modelValue"
             @input="onNativeTextareaInput"
             @paste="onNativeTextareaPaste"
+            @keydown="onNativeTextareaKeydown"
         ></textarea>
     </div>
 </template>
 
 <script setup>
 import { onMounted, onBeforeUnmount, ref, watch, nextTick } from "vue";
-import { cleanPastedHtml, htmlToPlain, plainToHtml } from "@/helpers/wysiwyg.js";
+import { cleanPastedHtml, htmlToPlain, plainToHtml, CLINICAL_MACROS } from "@/helpers/wysiwyg.js";
 
 let idCounter = 0;
 
@@ -24,14 +57,20 @@ const props = defineProps({
     placeholder: { type: String, default: "" },
     rows: { type: Number, default: 4 },
     height: { type: String, default: "" },
+    draftKey: { type: String, default: "" },
 });
 
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits(["update:modelValue", "draft-restored"]);
 
 const textareaRef = ref(null);
 const editorId = `wysiwyg-${++idCounter}`;
 let observer = null;
 let documentClickHandler = null;
+
+// Estados reactivos para autoguardado de borradores
+const showDraftBanner = ref(false);
+const draftTimestamp = ref("");
+let pendingDraftText = "";
 
 /**
  * Maneja la entrada directa en el textarea nativo (modo fallback móvil o previo a wysihtml5).
@@ -43,7 +82,45 @@ let documentClickHandler = null;
  * @date 2026-10-30
  */
 function onNativeTextareaInput(event) {
-    emit("update:modelValue", event?.target?.value ?? "");
+    const val = event?.target?.value ?? "";
+    emit("update:modelValue", val);
+    saveDraft(val);
+}
+
+/**
+ * Intercepta pulsaciones en el textarea nativo para expandir macros al pulsar Espacio, Tab o Enter.
+ *
+ * @param {KeyboardEvent} e - Evento keydown nativo.
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-03
+ */
+function onNativeTextareaKeydown(e) {
+    if (e.key === " " || e.key === "Tab" || e.key === "Enter") {
+        const textarea = textareaRef.value;
+        if (!textarea) return;
+
+        const cursor = textarea.selectionStart ?? 0;
+        const textBefore = textarea.value.substring(0, cursor);
+        const match = textBefore.match(/(\.[a-z0-9_-]+)$/i);
+        if (match) {
+            const trigger = match[1].toLowerCase();
+            if (CLINICAL_MACROS[trigger]) {
+                e.preventDefault();
+                const expansion = CLINICAL_MACROS[trigger];
+                const startIdx = cursor - trigger.length;
+                const before = textarea.value.substring(0, startIdx);
+                const after = textarea.value.substring(cursor);
+
+                textarea.value = before + expansion + (e.key === "Enter" ? "\n" : " ") + after;
+                const newPos = startIdx + expansion.length + 1;
+                textarea.selectionStart = textarea.selectionEnd = newPos;
+                emit("update:modelValue", textarea.value);
+                saveDraft(textarea.value);
+            }
+        }
+    }
 }
 
 /**
@@ -82,6 +159,7 @@ function onNativeTextareaPaste(e) {
         textarea.value = val.substring(0, start) + textToInsert + val.substring(end);
         textarea.selectionStart = textarea.selectionEnd = start + textToInsert.length;
         emit("update:modelValue", textarea.value);
+        saveDraft(textarea.value);
     }
 }
 
@@ -139,6 +217,104 @@ function syncEditorValue(rawVal) {
 }
 
 /**
+ * Guarda en localStorage el contenido actual del editor de forma silenciosa.
+ *
+ * @param {string} content - Texto plano a respaldar.
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-03
+ */
+function saveDraft(content) {
+    if (!props.draftKey || !content || !content.trim()) return;
+    try {
+        localStorage.setItem(
+            `lidiag_draft_${props.draftKey}`,
+            JSON.stringify({ text: content, timestamp: Date.now() })
+        );
+    } catch (_) {
+        /* noop */
+    }
+}
+
+/**
+ * Verifica si existe un borrador previo no guardado en localStorage para la clave activa.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-03
+ */
+function checkDraft() {
+    if (!props.draftKey) return;
+    try {
+        const stored = localStorage.getItem(`lidiag_draft_${props.draftKey}`);
+        if (!stored) return;
+
+        const parsed = JSON.parse(stored);
+        if (parsed?.text && parsed.text.trim() !== (props.modelValue || "").trim()) {
+            pendingDraftText = parsed.text;
+            draftTimestamp.value = new Date(parsed.timestamp).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+            });
+            showDraftBanner.value = true;
+        }
+    } catch (_) {
+        /* noop */
+    }
+}
+
+/**
+ * Restaura el borrador automático recuperado en el editor.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-03
+ */
+function restoreDraft() {
+    if (!pendingDraftText) return;
+    syncEditorValue(pendingDraftText);
+    emit("update:modelValue", pendingDraftText);
+    emit("draft-restored", pendingDraftText);
+    showDraftBanner.value = false;
+}
+
+/**
+ * Descarta y elimina el borrador automático de localStorage.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-03
+ */
+function discardDraft() {
+    if (props.draftKey) {
+        try {
+            localStorage.removeItem(`lidiag_draft_${props.draftKey}`);
+        } catch (_) {
+            /* noop */
+        }
+    }
+    showDraftBanner.value = false;
+    pendingDraftText = "";
+}
+
+/**
+ * Limpia el borrador tras guardar exitosamente en backend.
+ * Expuesto a través de defineExpose para ser llamado por el componente padre.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-03
+ */
+function clearDraft() {
+    discardDraft();
+}
+
+/**
  * Registra y extiende comandos personalizados en wysihtml5 para soportar:
  * 1. Selección de familias tipográficas / tipos de letra (fontFamily).
  * 2. Selección de tamaños de fuente (fontSize) tanto para selecciones activas como posición de cursor.
@@ -161,7 +337,7 @@ function registerCustomWysihtml5Commands() {
                         composer,
                         command,
                         "span",
-                        "wysiwyg-font-family-" + font,
+                        `wysiwyg-font-family-${font}`,
                         REG_EXP_FONT
                     );
                 } else if (composer.element) {
@@ -170,10 +346,7 @@ function registerCustomWysihtml5Commands() {
                         node && node.nodeType === 1 && node !== composer.element
                             ? node
                             : composer.element;
-                    target.className =
-                        (target.className || "").replace(REG_EXP_FONT, "").trim() +
-                        " wysiwyg-font-family-" +
-                        font;
+                    target.className = `${(target.className || "").replace(REG_EXP_FONT, "").trim()} wysiwyg-font-family-${font}`;
                     return true;
                 }
                 return false;
@@ -183,7 +356,7 @@ function registerCustomWysihtml5Commands() {
                     composer,
                     command,
                     "span",
-                    "wysiwyg-font-family-" + font,
+                    `wysiwyg-font-family-${font}`,
                     REG_EXP_FONT
                 );
             },
@@ -208,10 +381,7 @@ function registerCustomWysihtml5Commands() {
                         node && node.nodeType === 1 && node !== composer.element
                             ? node
                             : composer.element;
-                    target.className =
-                        (target.className || "").replace(REG_EXP_SIZE, "").trim() +
-                        " wysiwyg-font-size-" +
-                        size;
+                    target.className = `${(target.className || "").replace(REG_EXP_SIZE, "").trim()} wysiwyg-font-size-${size}`;
                     return true;
                 }
                 return false;
@@ -225,7 +395,7 @@ function registerCustomWysihtml5Commands() {
 /**
  * Inicializa el editor Wysiwyg (wysihtml5) en el textarea,
  * configurando soporte táctil móvil, selectores de tipografía (fuente, tamaño, encabezados),
- * reglas de parseo con soporte de párrafos y divs, valor inicial y observadores.
+ * macros clínicas, reglas de parseo y autoguardado de borradores.
  *
  * @author Jhon Javer Lozano Arce
  * @date 2026-11-03
@@ -238,7 +408,6 @@ function initEditor() {
     if ($el.data("wysihtml5")) return;
     if ($el.prevAll(".wysihtml5-toolbar").length) return;
 
-    // wysihtml5 0.3.0 detecta erróneamente Chrome Android como iOS < 5 incompatible.
     if (window.wysihtml5?.browser) {
         window.wysihtml5.browser.supported = () => true;
     }
@@ -330,6 +499,23 @@ function initEditor() {
                     </div>
                 </li>
             `,
+            macros: `
+                <li class="dropdown">
+                    <a class="btn dropdown-toggle" data-toggle="dropdown" href="javascript:;" role="button" aria-haspopup="true" aria-expanded="false" title="Plantillas y Macros Rápidas">
+                        <i class="fa fa-magic text-warning"></i>&nbsp;<span class="current-macro">Macros</span>&nbsp;<b class="caret"></b>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right" style="min-width: 250px;">
+                        <h6 class="dropdown-header text-muted" style="font-size: 11px; padding: 4px 14px;">Escribe el atajo o haz clic:</h6>
+                        <a class="dropdown-item macro-item" href="javascript:;" data-macro-key=".normal"><strong>.normal</strong> — Normal estándar</a>
+                        <a class="dropdown-item macro-item" href="javascript:;" data-macro-key=".torax"><strong>.torax</strong> — Tórax normal</a>
+                        <a class="dropdown-item macro-item" href="javascript:;" data-macro-key=".craneo"><strong>.craneo</strong> — Cráneo simple normal</a>
+                        <a class="dropdown-item macro-item" href="javascript:;" data-macro-key=".abdomen"><strong>.abdomen</strong> — Abdomen normal</a>
+                        <a class="dropdown-item macro-item" href="javascript:;" data-macro-key=".columna"><strong>.columna</strong> — Columna normal</a>
+                        <a class="dropdown-item macro-item" href="javascript:;" data-macro-key=".sinpatologia"><strong>.sinpatologia</strong> — Sin patología aguda</a>
+                        <a class="dropdown-item macro-item" href="javascript:;" data-macro-key=".conclusion"><strong>.conclusion</strong> — Conclusión estándar</a>
+                    </div>
+                </li>
+            `,
         },
         parserRules: {
             classes: {
@@ -389,12 +575,13 @@ function initEditor() {
 
     const inst = $el.data("wysihtml5");
     if (inst?.editor) {
-        setupToolbarInteractions($el);
+        setupToolbarInteractions($el, inst.editor);
 
         const onEditorReady = () => {
             syncEditorValue(props.modelValue);
             attachObserver(inst.editor);
             applyHeight();
+            checkDraft();
             setTimeout(applyHeight, 300);
         };
 
@@ -405,6 +592,7 @@ function initEditor() {
                 ? htmlToPlain(inst.editor.composer.getValue(false))
                 : el.value || "";
             emit("update:modelValue", val);
+            saveDraft(val);
         });
 
         inst.editor.on("change_view", () => {
@@ -417,15 +605,16 @@ function initEditor() {
 
 /**
  * Configura los eventos de clic e interacciones de los menús desplegables
- * de la barra de herramientas (Fuentes, Tamaños y Estilos de encabezado).
+ * de la barra de herramientas (Fuentes, Tamaños, Estilos y Macros clínicas).
  *
  * @param {Object} $el - Elemento jQuery del textarea.
+ * @param {Object} editor - Instancia de wysihtml5.Editor.
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
  * @date 2026-11-03
  */
-function setupToolbarInteractions($el) {
+function setupToolbarInteractions($el, editor) {
     const $toolbar = $el.prev(".wysihtml5-toolbar");
     if (!$toolbar.length) return;
 
@@ -444,6 +633,13 @@ function setupToolbarInteractions($el) {
     $toolbar.find("a[data-wysihtml5-command='formatBlock']").on("click", function () {
         const text = $(this).text().trim();
         $toolbar.find(".current-font").text(text);
+        $toolbar.find(".dropdown.show, .dropdown-menu.show").removeClass("show");
+    });
+
+    // Inserción interactiva de macros desde el menú desplegable
+    $toolbar.find("a[data-macro-key]").on("click", function () {
+        const key = $(this).data("macro-key");
+        insertMacroAtCaret(key, editor);
         $toolbar.find(".dropdown.show, .dropdown-menu.show").removeClass("show");
     });
 
@@ -473,6 +669,56 @@ function setupToolbarInteractions($el) {
         }
     };
     $(document).on("click", documentClickHandler);
+}
+
+/**
+ * Inserta el contenido expandido de una macro clínica en la posición del cursor
+ * dentro del composer de wysihtml5 o textarea nativo.
+ *
+ * @param {string} triggerKey - Clave de la macro (ej. .torax, .normal).
+ * @param {Object} editor - Instancia del editor wysihtml5.
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-03
+ */
+function insertMacroAtCaret(triggerKey, editor) {
+    const text = CLINICAL_MACROS[triggerKey];
+    if (!text) return;
+
+    const iframe = textareaRef.value?.parentElement?.querySelector(".wysihtml5-sandbox");
+    const htmlExpansion = plainToHtml(text);
+
+    let inserted = false;
+    try {
+        if (editor?.composer?.commands?.support?.("insertHTML")) {
+            const separator = editor.composer.getValue(false) ? "<br>" : "";
+            editor.composer.commands.exec("insertHTML", `${separator + htmlExpansion} `);
+            inserted = true;
+        } else if (iframe?.contentDocument?.execCommand) {
+            iframe.contentDocument.execCommand("insertHTML", false, `${htmlExpansion} `);
+            inserted = true;
+        }
+    } catch (_) {
+        inserted = false;
+    }
+
+    if (!inserted) {
+        const val = textareaRef.value?.value || "";
+        const newVal = (val ? `${val}\n` : "") + text;
+        if (textareaRef.value) textareaRef.value.value = newVal;
+        emit("update:modelValue", newVal);
+        saveDraft(newVal);
+        return;
+    }
+
+    nextTick(() => {
+        const current = editor?.composer?.element
+            ? htmlToPlain(editor.composer.getValue(false))
+            : textareaRef.value?.value || "";
+        emit("update:modelValue", current);
+        saveDraft(current);
+    });
 }
 
 /**
@@ -541,7 +787,7 @@ function destroyEditor() {
 
 /**
  * Adjunta un MutationObserver al body del iframe del editor para detectar
- * cambios en el contenido y sincronizarlos con el modelo v-model.
+ * cambios en el contenido y sincronizarlos con el modelo v-model y con el borrador local.
  *
  * @param {Object} editor - Instancia del editor wysihtml5.
  *
@@ -562,7 +808,9 @@ function attachObserver(editor) {
                 const rawHtml = editor.composer?.element
                     ? editor.composer.getValue(false)
                     : editor.getValue(false);
-                emit("update:modelValue", htmlToPlain(rawHtml));
+                const plain = htmlToPlain(rawHtml);
+                emit("update:modelValue", plain);
+                saveDraft(plain);
                 pending = false;
             }, 300);
         });
@@ -583,7 +831,7 @@ function attachObserver(editor) {
             });
         }
 
-        attachKeydownForwarding(iframe);
+        attachKeydownForwarding(iframe, editor);
         attachPasteForwarding(iframe, editor);
     } catch (_) {
         /* noop */
@@ -646,6 +894,7 @@ function attachPasteForwarding(iframe, editor) {
                         ? htmlToPlain(editor.composer.getValue(false))
                         : textareaRef.value?.value || "";
                     emit("update:modelValue", current);
+                    saveDraft(current);
                 });
             }
         });
@@ -655,14 +904,16 @@ function attachPasteForwarding(iframe, editor) {
 }
 
 /**
- * Reenvía atajos de teclado clínicos (Ctrl+S, F2, Esc) desde el iframe hacia window.
+ * Reenvía atajos de teclado clínicos (Ctrl+S, F2, Esc) desde el iframe hacia window
+ * e intercepta macros clínicas (Espacio, Tab, Enter precedidos de .clave).
  *
  * @param {HTMLIFrameElement} iframe Elemento iframe del sandbox wysihtml5.
+ * @param {Object} editor Instancia del editor wysihtml5.
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-10-19
+ * @date 2026-11-03
  */
-function attachKeydownForwarding(iframe) {
+function attachKeydownForwarding(iframe, editor) {
     try {
         if (!iframe?.contentDocument) return;
         iframe.contentDocument.addEventListener("keydown", (e) => {
@@ -683,6 +934,60 @@ function attachKeydownForwarding(iframe) {
                     cancelable: true,
                 });
                 window.dispatchEvent(evt);
+                return;
+            }
+
+            // Expansión de macro al presionar Espacio, Tab o Enter
+            if (e.key === " " || e.key === "Tab" || e.key === "Enter") {
+                const sel = iframe.contentWindow?.getSelection();
+                if (!sel || !sel.rangeCount) return;
+
+                const range = sel.getRangeAt(0);
+                const node = range.startContainer;
+                if (node && node.nodeType === 3) {
+                    const text = node.nodeValue || "";
+                    const cursorOffset = range.startOffset;
+                    const textBefore = text.substring(0, cursorOffset);
+                    const match = textBefore.match(/(\.[a-z0-9_-]+)$/i);
+
+                    if (match) {
+                        const trigger = match[1].toLowerCase();
+                        if (CLINICAL_MACROS[trigger]) {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            const expansion = CLINICAL_MACROS[trigger];
+                            const startIdx = cursorOffset - trigger.length;
+
+                            // Crear rango sobre la palabra clave de la macro
+                            const macroRange = iframe.contentDocument.createRange();
+                            macroRange.setStart(node, startIdx);
+                            macroRange.setEnd(node, cursorOffset);
+                            sel.removeAllRanges();
+                            sel.addRange(macroRange);
+
+                            const htmlExpansion = `${plainToHtml(expansion) + (e.key === "Enter" ? "<br>" : " ")}&nbsp;`;
+
+                            if (editor?.composer?.commands?.support?.("insertHTML")) {
+                                editor.composer.commands.exec("insertHTML", htmlExpansion);
+                            } else {
+                                iframe.contentDocument.execCommand(
+                                    "insertHTML",
+                                    false,
+                                    htmlExpansion
+                                );
+                            }
+
+                            nextTick(() => {
+                                const current = editor?.composer?.element
+                                    ? htmlToPlain(editor.composer.getValue(false))
+                                    : "";
+                                emit("update:modelValue", current);
+                                saveDraft(current);
+                            });
+                        }
+                    }
+                }
             }
         });
     } catch (_) {
@@ -718,6 +1023,25 @@ watch(
 );
 
 /**
+ * Watcher que evalúa la clave de borrador si cambia dinámicamente al abrir otro estudio.
+ */
+watch(
+    () => props.draftKey,
+    () => {
+        checkDraft();
+    }
+);
+
+/**
+ * Expone métodos útiles al componente padre (limpiar borrador, restaurar, descartar).
+ */
+defineExpose({
+    clearDraft,
+    restoreDraft,
+    discardDraft,
+});
+
+/**
  * Lifecycle hook que inicializa el editor Wysiwyg después del nextTick.
  *
  * @author Jhon Javer Lozano Arce
@@ -738,6 +1062,20 @@ onBeforeUnmount(destroyEditor);
 .wysihtml5-editor-wrapper {
     position: relative;
     width: 100%;
+}
+
+.draft-banner {
+    background-color: #e8f4fd;
+    border: 1px solid #b8daff;
+    border-radius: 4px;
+    color: #0c5460;
+}
+
+.btn-xs {
+    padding: 2px 7px;
+    font-size: 11px;
+    border-radius: 3px;
+    line-height: 1.3;
 }
 
 :deep(.wysihtml5-toolbar) {

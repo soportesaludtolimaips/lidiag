@@ -519,7 +519,13 @@
                                         <div class="col-12">
                                             <div class="form-group">
                                                 <WysiwygEditor
+                                                    ref="wysiwygEditorRef"
                                                     v-model="registro.lectura"
+                                                    :draft-key="
+                                                        registro.id_estudio
+                                                            ? `estudio_${registro.id_estudio}`
+                                                            : ''
+                                                    "
                                                     :rows="20"
                                                     placeholder="Ingrese aquí la lectura del estudio ..."
                                                 />
@@ -877,6 +883,7 @@ const loadingGuardar = ref(false);
 const loadingAbrirRegistroId = ref(null);
 const loadingAnularId = ref(null);
 const sidebarVisible = ref(false);
+const wysiwygEditorRef = ref(null);
 
 const contadorRegistros = computed(() => {
     return registros.value.length;
@@ -1065,6 +1072,7 @@ async function guardarRegistro() {
         const res = await axios.post("/api/estudio-guardarTranscripcion", payload);
 
         if (res.status == 200) {
+            wysiwygEditorRef.value?.clearDraft();
             const rowTargetId = idRow.value;
 
             btnCerrarModalForm();

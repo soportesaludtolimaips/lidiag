@@ -37,6 +37,27 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-03 — Implementación Fase 1: Autoguardado de Borradores, Macros Clínicas y Alertas Telegram de Sedes:**
+  - **Diagnóstico y Necesidad:**
+    * Los médicos radiólogos requerían protección contra pérdida de informes en redacción ante cortes imprevistos de energía o cierres de navegador, así como mecanismos de autocompletado rápido de párrafos diagnósticos estándar.
+    * Además, el equipo técnico requería que el bot de Telegram alertara de forma proactiva en el resumen matutino sobre sedes con agentes en estado crítico o sin copias de seguridad recientes.
+  - **Solución Implementada:**
+    * **Autoguardado en LocalStorage (`WysiwygEditor.vue`, `transcribirEstudioComponent.vue`, `leerEstudioComponent.vue`):**
+      - Se implementó `saveDraft(content)` con debounce silencioso en `localStorage` indexado por `draftKey` (`estudio_${id}`).
+      - Al abrir el estudio, si existe un borrador no guardado más reciente, se despliega un banner superior interactivo que permite restaurar o descartar el borrador en 1 clic.
+      - Al guardar exitosamente el informe médico en el backend, el borrador local se purga automáticamente mediante `clearDraft()`.
+    * **Macros y Snippets de Expansión Clínica (`wysiwyg.js`, `WysiwygEditor.vue`):**
+      - Se creó el catálogo `CLINICAL_MACROS` con atajos diagnósticos estándar (`.normal`, `.torax`, `.craneo`, `.abdomen`, `.columna`, `.sinpatologia`, `.conclusion`).
+      - Detección reactiva en el teclado: al escribir la clave con punto y presionar `Espacio`, `Tab` o `Enter`, el editor expande inmediatamente el párrafo clínico completo sin perder el foco.
+      - Se incorporó en la barra de herramientas el menú interactivo desplegable de macros con ícono de varita mágica para inserción directa en 1 clic.
+    * **Alertas de Infraestructura en Telegram (`TelegramBotHandlerService.php`, `TelegramDailyDigestCommand.php`):**
+      - Se implementó `generarYEnviarAlertaAgentesSedes(chatId)` que consulta el estado en vivo de los agentes de base de datos, imágenes y dosimetría de cada sede hospitalaria, emitiendo alertas destacadas sobre sedes con anomalías o sin telemetría en el resumen diario matutino.
+  - **Verificaciones:**
+    * ESLint validado sin errores (`npx eslint`) ✅.
+    * Laravel Pint verificado al 100% passed (`vendor\bin\pint.bat --test`) ✅.
+    * Compilación Vite completada sin errores (`npm run build` en 1.35s) ✅.
+    * Formato LF verificado sin BOM ✅.
+
 - [x] **2026-11-03 — Soporte Dual SMB (Puerto 445 y 139 NetBIOS) en Agentes Edge (`backup_dcm_agent.py`, `sync_dcm_images.py`, `restore_dcm_images.py`):**
   - **Diagnóstico y Causa Raíz:**
     * Al ejecutar el agente de backups en la sede Espinal (`10.35.47.3`), el paso de transmisión a la NAS QNAP (`10.35.47.21`) reportaba `Estado QNAP : OFFLINE (QNAP 10.35.47.21:445 no responde)`.

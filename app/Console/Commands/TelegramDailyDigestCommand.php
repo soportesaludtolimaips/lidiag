@@ -77,6 +77,9 @@ class TelegramDailyDigestCommand extends Command
                 // 3. Semáforo asistencial de estudios represados (>24h) y urgencias
                 $botHandlerService->generarYEnviarReporteRetrasados($chatIdStr);
 
+                // 4. Alerta de infraestructura de agentes edge y copias de seguridad
+                $botHandlerService->generarYEnviarAlertaAgentesSedes($chatIdStr);
+
                 $this->info("✅ Entregado exitosamente a {$chatIdStr}.");
             } catch (\Throwable $e) {
                 $this->error("❌ Error enviando a {$chatIdStr}: ".$e->getMessage());

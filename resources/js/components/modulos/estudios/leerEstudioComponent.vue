@@ -619,7 +619,13 @@
                                     <div class="col-12">
                                         <div class="form-group">
                                             <WysiwygEditor
+                                                ref="wysiwygEditorRef"
                                                 v-model="registro.lectura"
+                                                :draft-key="
+                                                    registro.estudio_producto_id
+                                                        ? `estudio_prod_${registro.estudio_producto_id}`
+                                                        : ''
+                                                "
                                                 :rows="18"
                                                 placeholder="Ingrese aquí la lectura del estudio ..."
                                             />
@@ -1488,6 +1494,7 @@ let lockHeartbeatTimer = null;
 const loadingVistoId = ref(null);
 const sidebarVisible = ref(false);
 const isZenMode = ref(false);
+const wysiwygEditorRef = ref(null);
 
 useKeyboardShortcuts({
     onSave: guardarRegistro,
@@ -1779,6 +1786,7 @@ async function guardarRegistro() {
                 }
             }
 
+            wysiwygEditorRef.value?.clearDraft();
             cerrarSidebar();
             limpiar();
         }
