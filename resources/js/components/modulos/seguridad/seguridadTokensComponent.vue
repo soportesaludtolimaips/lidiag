@@ -46,6 +46,100 @@
         <!-- ============================================================== -->
 
         <!-- ============================================================== -->
+        <!-- Tarjetas de Resumen KPI -->
+        <!-- ============================================================== -->
+        <div class="row">
+            <div class="col-lg-3 col-md-6">
+                <div class="card card-outline-info">
+                    <div class="card-body">
+                        <div
+                            class="d-flex flex-row align-items-center justify-content-between mb-2"
+                        >
+                            <span class="round round-info"
+                                ><i class="fa fa-hospital-o font-20"></i
+                            ></span>
+                            <span class="badge badge-info">{{ resumen.total_sedes }} Sedes</span>
+                        </div>
+                        <h6 class="text-muted mb-1 text-uppercase font-12 font-weight-bold">
+                            Total Sedes Hospitalarias
+                        </h6>
+                        <h4 class="font-weight-bold mb-0 text-dark">
+                            {{ resumen.total_sedes }} Red Asistencial
+                        </h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="card card-outline-success">
+                    <div class="card-body">
+                        <div
+                            class="d-flex flex-row align-items-center justify-content-between mb-2"
+                        >
+                            <span class="round round-success"
+                                ><i class="fa fa-check-circle font-20"></i
+                            ></span>
+                            <span class="badge badge-success"
+                                >{{ resumen.sedes_con_token }} / {{ resumen.total_sedes }}</span
+                            >
+                        </div>
+                        <h6 class="text-muted mb-1 text-uppercase font-12 font-weight-bold">
+                            Sedes con Token Activo
+                        </h6>
+                        <h4 class="font-weight-bold mb-0 text-success">
+                            {{ porcentajeActivos }}% Conectadas
+                        </h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="card card-outline-warning">
+                    <div class="card-body">
+                        <div
+                            class="d-flex flex-row align-items-center justify-content-between mb-2"
+                        >
+                            <span class="round round-warning"
+                                ><i class="fa fa-exclamation-triangle font-20"></i
+                            ></span>
+                            <span class="badge badge-warning">{{ sedesSinToken }} Pendientes</span>
+                        </div>
+                        <h6 class="text-muted mb-1 text-uppercase font-12 font-weight-bold">
+                            Sedes sin Token
+                        </h6>
+                        <h4 class="font-weight-bold mb-0 text-warning">
+                            {{ sedesSinToken }} Por Configurar
+                        </h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="card card-outline-primary">
+                    <div class="card-body">
+                        <div
+                            class="d-flex flex-row align-items-center justify-content-between mb-2"
+                        >
+                            <span class="round round-primary"
+                                ><i class="fa fa-user-secret font-20"></i
+                            ></span>
+                            <span class="badge badge-primary">Sanctum</span>
+                        </div>
+                        <h6 class="text-muted mb-1 text-uppercase font-12 font-weight-bold">
+                            Cuenta de Servicio Central
+                        </h6>
+                        <h5
+                            class="font-weight-bold mb-0 text-truncate text-dark"
+                            :title="usuarioServicio.email"
+                        >
+                            {{ usuarioServicio.name || "Agente Edge LIDiag" }}
+                        </h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================== -->
         <!-- Start Page Content -->
         <!-- ============================================================== -->
         <div class="row">
@@ -58,7 +152,7 @@
                             dosimetría y copias de seguridad de imágenes diagnósticas.
                         </h6>
 
-                        <table-skeleton-loader :visible="cargando" :rows="5" :columns="6" />
+                        <table-skeleton-loader :visible="cargando" :rows="5" :columns="8" />
 
                         <empty-state-component
                             v-if="!cargando && sedes.length === 0"
@@ -82,7 +176,9 @@
                                         <th>Host PACS / BD</th>
                                         <th>Estado</th>
                                         <th>Identificador de Token</th>
-                                        <th>Última Transmisión</th>
+                                        <th class="text-center">DB DCM</th>
+                                        <th class="text-center">Img Dicom</th>
+                                        <th class="text-center">Dosi</th>
                                         <th class="text-nowrap text-center">Acciones</th>
                                     </tr>
                                 </thead>
@@ -116,17 +212,109 @@
                                             }}</code>
                                             <span v-else class="text-muted">No emitido</span>
                                         </td>
-                                        <td>
-                                            <span v-if="sede.last_used_at">
-                                                {{ sede.ultimo_uso_legible }}
-                                                <small class="text-muted d-block">{{
-                                                    sede.last_used_at
-                                                }}</small>
-                                            </span>
+
+                                        <!-- DB DCM (Backup de Base de Datos) -->
+                                        <td class="text-center">
+                                            <div
+                                                v-if="
+                                                    sede.agente_backup_db &&
+                                                    sede.agente_backup_db.fecha
+                                                "
+                                            >
+                                                <span
+                                                    :class="[
+                                                        'label',
+                                                        sede.agente_backup_db.estado === 'OK'
+                                                            ? 'label-success'
+                                                            : sede.agente_backup_db.estado ===
+                                                                'ADVERTENCIA'
+                                                              ? 'label-warning'
+                                                              : 'label-danger',
+                                                    ]"
+                                                    :title="
+                                                        sede.agente_backup_db.mensaje ||
+                                                        'Backup Base de Datos'
+                                                    "
+                                                >
+                                                    {{ sede.agente_backup_db.estado }}
+                                                </span>
+                                                <small class="text-muted d-block mt-1">
+                                                    {{ sede.agente_backup_db.tiempo_humano }}
+                                                </small>
+                                            </div>
                                             <span v-else class="label label-light-inverse"
-                                                >Nunca</span
+                                                >Sin datos</span
                                             >
                                         </td>
+
+                                        <!-- Img Dicom (Sincronización de Imágenes) -->
+                                        <td class="text-center">
+                                            <div
+                                                v-if="
+                                                    sede.agente_sync_imagenes &&
+                                                    sede.agente_sync_imagenes.fecha
+                                                "
+                                            >
+                                                <span
+                                                    :class="[
+                                                        'label',
+                                                        sede.agente_sync_imagenes.estado === 'OK'
+                                                            ? 'label-success'
+                                                            : sede.agente_sync_imagenes.estado ===
+                                                                'ADVERTENCIA'
+                                                              ? 'label-warning'
+                                                              : 'label-danger',
+                                                    ]"
+                                                    :title="
+                                                        sede.agente_sync_imagenes.mensaje ||
+                                                        'Sincronización de Imágenes DICOM'
+                                                    "
+                                                >
+                                                    {{ sede.agente_sync_imagenes.estado }}
+                                                </span>
+                                                <small class="text-muted d-block mt-1">
+                                                    {{ sede.agente_sync_imagenes.tiempo_humano }}
+                                                </small>
+                                            </div>
+                                            <span v-else class="label label-light-inverse"
+                                                >Sin datos</span
+                                            >
+                                        </td>
+
+                                        <!-- Dosi (Agente de Dosimetría) -->
+                                        <td class="text-center">
+                                            <div
+                                                v-if="
+                                                    sede.agente_dosimetria &&
+                                                    sede.agente_dosimetria.fecha
+                                                "
+                                            >
+                                                <span
+                                                    :class="[
+                                                        'label',
+                                                        sede.agente_dosimetria.estado === 'OK'
+                                                            ? 'label-success'
+                                                            : sede.agente_dosimetria.estado ===
+                                                                'ADVERTENCIA'
+                                                              ? 'label-warning'
+                                                              : 'label-danger',
+                                                    ]"
+                                                    :title="
+                                                        sede.agente_dosimetria.mensaje ||
+                                                        'Dosimetría Radiológica'
+                                                    "
+                                                >
+                                                    {{ sede.agente_dosimetria.estado }}
+                                                </span>
+                                                <small class="text-muted d-block mt-1">
+                                                    {{ sede.agente_dosimetria.tiempo_humano }}
+                                                </small>
+                                            </div>
+                                            <span v-else class="label label-light-inverse"
+                                                >Sin datos</span
+                                            >
+                                        </td>
+
                                         <td class="text-nowrap text-center">
                                             <button
                                                 type="button"
@@ -305,14 +493,29 @@
  * @date 2026-11-03
  */
 
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import axios from "axios";
 import { confirmAction, alertError, alertSuccess } from "@/helpers/alerts";
 
-// Estado de la tabla
+// Estado de la tabla y resumen KPI
 const cargando = ref(false);
 const sedes = ref([]);
 const procesandoSedeId = ref(null);
+const usuarioServicio = ref({});
+const resumen = ref({
+    total_sedes: 0,
+    sedes_con_token: 0,
+});
+
+// Computados de resumen
+const porcentajeActivos = computed(() => {
+    if (!resumen.value.total_sedes) return 0;
+    return Math.round((resumen.value.sedes_con_token / resumen.value.total_sedes) * 100);
+});
+
+const sedesSinToken = computed(() => {
+    return Math.max(0, resumen.value.total_sedes - resumen.value.sedes_con_token);
+});
 
 // Estado del modal de entrega de token
 const modalTokenVisible = ref(false);
@@ -334,7 +537,13 @@ async function cargarDatos() {
     try {
         const res = await axios.get("/api/seguridad-tokens");
         if (res.data && res.data.success) {
-            sedes.value = res.data.data?.sedes || [];
+            const data = res.data.data;
+            sedes.value = data?.sedes || [];
+            usuarioServicio.value = data?.usuario_servicio || {};
+            resumen.value = {
+                total_sedes: data?.total_sedes || sedes.value.length,
+                sedes_con_token: data?.sedes_con_token || 0,
+            };
         }
     } catch (error) {
         alertError(

@@ -37,6 +37,23 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-03 — Desglose de Telemetría por Agente (DB DCM, Img Dicom, Dosi) en Gestión de Tokens por Sede:**
+  - **Diagnóstico y Necesidad:**
+    * El módulo `/seguridad-tokens` mostraba una sola columna genérica de "Última Transmisión", impidiendo identificar cuál de los 3 agentes Edge distribuidos (`backup_dcm_agent.py`, `sync_dcm_images.py`, `agente_dosimetria.py`) estaba transmitiendo correctamente y cuál requería atención técnica.
+  - **Solución Implementada:**
+    * **Persistencia de Telemetría en Central:**
+      - En `BackupUploadController::telemetria`, se persiste en memoria caché (`Cache::put("telemetria_sede_{$sedeId}_{$servicio}")`) el estado, mensaje y timestamp de los servicios `backup_db` e `sync_imagenes`.
+      - En `BackupUploadController::uploadDcm`, al recibir exitosamente un `.zip`, se actualiza la telemetría de `backup_db` con el nombre del archivo y tamaño.
+      - En `DosimetriaService::registrarHeartbeat` y `guardarLote`, se actualiza la telemetría de `dosimetria` con el conteo de pendientes en cola o registros procesados.
+    * **Consolidación en `TokenSedeService.php`:**
+      - Se implementó `obtenerEstadoAgente($sedeId, $servicio)` con resolución en caché de telemetría y fallbacks directos (archivos `.zip` en disco para `backup_db`, latido `dosimetria_heartbeat` y registros de dosis para `dosimetria`).
+      - Se exponen `agente_backup_db`, `agente_sync_imagenes` y `agente_dosimetria` por cada sede en la respuesta JSON.
+    * **Frontend Vue 3 (`seguridadTokensComponent.vue`):**
+      - Se preservaron las 4 tarjetas KPI de resumen (Total Sedes, Sedes con Token Activo, Sedes sin Token y Cuenta de Servicio Central) construidas con clases nativas AdminWrap (`card card-outline-*`, `.round round-*` y `badge`).
+      - Se reemplazó la columna única por 3 columnas claras y centradas: **DB DCM**, **Img Dicom** y **Dosi**.
+      - Cada columna visualiza el semáforo nativo (`label label-success` / `label label-warning` / `label label-danger` / `label label-light-inverse` para "Sin datos") junto con el tiempo relativo (`tiempo_humano`) y tooltip con el mensaje de diagnóstico.
+    * **Compilación y Estilo:** Formato LF verificado, Laravel Pint pasado al 100% y Vite empaquetado exitosamente.
+  - **Verificaciones:** `vendor/bin/pint.bat --test` passed, `npx eslint` passed y `npm run build` verificado ✅.
 - [x] **2026-11-03 — Incorporación de Estilos de Fuente y Tipografía en el Editor WYSIWYG (`WysiwygEditor.vue`, `wysiwyg-color.css`):**
   - **Diagnóstico y Necesidad:**
     * Los médicos radiólogos y operadores de transcripción requerían selectores de tipos de fuente (familia tipográfica como Arial, Calibri, Times New Roman, Roboto, etc.) y tamaños de fuente (Pequeño, Normal, Mediano, Grande, Muy grande), así como estilos de encabezado (Párrafo, Título 1, Título 2, Título 3) directamente en la barra de herramientas del editor WYSIWYG.

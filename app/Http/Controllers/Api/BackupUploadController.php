@@ -8,6 +8,7 @@ use App\Services\Backup\BackupDcmService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -133,6 +134,17 @@ class BackupUploadController extends Controller
                 "purgados_retencion" => $purgados,
             ];
 
+            Cache::put("telemetria_sede_{$sedeId}_backup_db", [
+                "servicio" => "backup_db",
+                "estado" => "OK",
+                "mensaje" => "Archivo {$nombreFinal} recibido ({$tamanoHumano})",
+                "detalles" => [
+                    "archivo" => $nombreFinal,
+                    "tamano" => $tamanoHumano,
+                ],
+                "fecha" => now()->toIso8601String(),
+            ], now()->addDays(30));
+
             Log::channel("backups")->info("Backup DCM recibido y almacenado con éxito vía Webhook", $datosRespuesta);
 
             return response()->json([
@@ -200,6 +212,14 @@ class BackupUploadController extends Controller
 
         $sede = ConfigSede::find($validated["sede_id"]);
         $sedeNombre = $sede?->nom_sede ?? "Sede #{$validated['sede_id']}";
+
+        Cache::put("telemetria_sede_{$validated['sede_id']}_{$validated['servicio']}", [
+            "servicio" => $validated["servicio"],
+            "estado" => strtoupper($validated["estado"]),
+            "mensaje" => $validated["mensaje"] ?? "OK",
+            "detalles" => $validated["detalles"] ?? [],
+            "fecha" => now()->toIso8601String(),
+        ], now()->addDays(30));
 
         Log::channel("backups")->info(
             "[Telemetría {$validated['servicio']}] {$sedeNombre}: Estado {$validated['estado']} - ".($validated["mensaje"] ?? "OK"),

@@ -136,6 +136,14 @@ class DosimetriaService extends BaseService
                 Cache::put("dosimetria_batch_{$sedeId}_{$batchHash}", $resultadoData, now()->addHours(24));
             }
 
+            Cache::put("telemetria_sede_{$sedeId}_dosimetria", [
+                'servicio' => 'dosimetria',
+                'estado' => 'OK',
+                'mensaje' => "Lote de {$totalProcesados} registros procesado exitosamente.",
+                'detalles' => $resultadoData,
+                'fecha' => now()->toIso8601String(),
+            ], now()->addDays(30));
+
             return $this->success(
                 $resultadoData,
                 "Se procesaron {$totalProcesados} mediciones de dosis exitosamente.",
@@ -659,6 +667,13 @@ class DosimetriaService extends BaseService
         ];
 
         Cache::put($cacheKey, $payload, now()->addDays(7));
+        Cache::put("telemetria_sede_{$sedeId}_dosimetria", [
+            'servicio' => 'dosimetria',
+            'estado' => strtoupper($datos['estado_cola'] ?? 'OK'),
+            'mensaje' => 'Latido recibido. Pendientes: '.((int) ($datos['pendientes'] ?? 0)),
+            'detalles' => $payload,
+            'fecha' => now()->toIso8601String(),
+        ], now()->addDays(30));
 
         return $this->success($payload, 'Heartbeat registrado exitosamente', 200);
     }

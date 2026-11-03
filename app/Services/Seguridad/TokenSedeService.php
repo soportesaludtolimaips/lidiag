@@ -4,8 +4,12 @@ namespace App\Services\Seguridad;
 
 use App\Helpers\AuditLogger;
 use App\Models\Configuracion\ConfigSede;
+use App\Models\Dosimetria\RegistroDosisRadiacion;
 use App\Models\User;
 use App\Services\BaseService;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -100,6 +104,9 @@ class TokenSedeService extends BaseService
                 "last_used_at" => $token?->last_used_at?->format("Y-m-d H:i:s"),
                 "ultimo_uso_legible" => $token?->last_used_at ? $token->last_used_at->diffForHumans() : "Nunca",
                 "estado_sede" => (bool) $sede->estado,
+                "agente_backup_db" => $this->obtenerEstadoAgente($sede->id, "backup_db"),
+                "agente_sync_imagenes" => $this->obtenerEstadoAgente($sede->id, "sync_imagenes"),
+                "agente_dosimetria" => $this->obtenerEstadoAgente($sede->id, "dosimetria"),
             ];
         });
 
@@ -113,6 +120,87 @@ class TokenSedeService extends BaseService
                 "email" => $usuarioServicio->email,
             ],
         ], "Consolidado de tokens por sede obtenido con éxito.");
+    }
+
+    /**
+     * Resuelve el estado de telemetría y última transmisión para un agente específico de la sede.
+     *
+     * @param  int  $sedeId  Identificador institucional de la sede
+     * @param  string  $servicio  Identificador ('backup_db', 'sync_imagenes', 'dosimetria')
+     * @return array Estado, fecha formateada, tiempo relativo y mensaje de diagnóstico
+     */
+    protected function obtenerEstadoAgente(int $sedeId, string $servicio): array
+    {
+        $telemetria = Cache::get("telemetria_sede_{$sedeId}_{$servicio}");
+
+        // 1. Telemetría directa en caché
+        if ($telemetria && ! empty($telemetria["fecha"])) {
+            $fecha = Carbon::parse($telemetria["fecha"]);
+
+            return [
+                "estado" => strtoupper($telemetria["estado"] ?? "OK"),
+                "fecha" => $fecha->format("Y-m-d H:i:s"),
+                "tiempo_humano" => $fecha->diffForHumans(),
+                "mensaje" => $telemetria["mensaje"] ?? "OK",
+            ];
+        }
+
+        // 2. Fallbacks específicos por servicio
+        if ($servicio === "backup_db") {
+            $dir = config("backup.dcm_destination_path", "C:\\Backups_Lidiag\\dcm_sedes");
+            if (File::exists($dir)) {
+                $archivos = File::glob("{$dir}/backup_dcm_sede_{$sedeId}_*.zip");
+                if (! empty($archivos)) {
+                    usort($archivos, fn ($a, $b) => filemtime($b) - filemtime($a));
+                    $mtime = filemtime($archivos[0]);
+                    if ($mtime) {
+                        $fecha = Carbon::createFromTimestamp($mtime);
+
+                        return [
+                            "estado" => "OK",
+                            "fecha" => $fecha->format("Y-m-d H:i:s"),
+                            "tiempo_humano" => $fecha->diffForHumans(),
+                            "mensaje" => "Archivo en disco Central: ".basename($archivos[0]),
+                        ];
+                    }
+                }
+            }
+        } elseif ($servicio === "dosimetria") {
+            $hb = Cache::get("dosimetria_heartbeat_{$sedeId}");
+            if ($hb && ! empty($hb["timestamp"])) {
+                $fecha = Carbon::parse($hb["timestamp"]);
+
+                return [
+                    "estado" => strtoupper($hb["estado_cola"] ?? "OK"),
+                    "fecha" => $fecha->format("Y-m-d H:i:s"),
+                    "tiempo_humano" => $fecha->diffForHumans(),
+                    "mensaje" => "Latido recibido. Pendientes: ".($hb["pendientes"] ?? 0),
+                ];
+            }
+
+            try {
+                $ultimoDosi = RegistroDosisRadiacion::where("sede_id", $sedeId)
+                    ->latest("created_at")
+                    ->first();
+                if ($ultimoDosi && $ultimoDosi->created_at) {
+                    return [
+                        "estado" => "OK",
+                        "fecha" => $ultimoDosi->created_at->format("Y-m-d H:i:s"),
+                        "tiempo_humano" => $ultimoDosi->created_at->diffForHumans(),
+                        "mensaje" => "Último registro dosimétrico guardado",
+                    ];
+                }
+            } catch (\Throwable) {
+                // Fallback silencioso ante ausencia de tabla
+            }
+        }
+
+        return [
+            "estado" => "SIN_DATOS",
+            "fecha" => null,
+            "tiempo_humano" => "Nunca",
+            "mensaje" => "Sin telemetría reportada",
+        ];
     }
 
     /**
