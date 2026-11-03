@@ -187,13 +187,15 @@ def get_free_disk_space_gb(path: str) -> float:
         return 999.0
 
 
-def check_qnap_port(ip: str, port: int = 445, timeout: float = 3.0) -> bool:
-    """Verifica si el puerto SMB (445) de la QNAP responde."""
-    try:
-        with socket.create_connection((ip, port), timeout=timeout):
-            return True
-    except (socket.timeout, socket.error, OSError):
-        return False
+def check_qnap_port(ip: str, ports: tuple = (445, 139), timeout: float = 3.0) -> bool:
+    """Verifica si alguno de los puertos SMB (445 o 139) de la QNAP responde."""
+    for p in ports:
+        try:
+            with socket.create_connection((ip, p), timeout=timeout):
+                return True
+        except (socket.timeout, socket.error, OSError):
+            continue
+    return False
 
 
 def authenticate_smb(qnap_ip: str, share: str, user: str, password: str) -> bool:
@@ -368,10 +370,10 @@ def main():
     print(" Orden de Prioridad : CRONOLÓGICO DESCENDENTE (Más reciente al más antiguo)")
     print("=========================================================================\n")
 
-    # 1. Comprobar socket 445 de la QNAP
-    logger.info(f"[1/4] Verificando conectividad con el almacenamiento QNAP ({qnap_ip}:445)...")
-    if not check_qnap_port(qnap_ip, port=445):
-        logger.critical(f"La NAS QNAP no responde en {qnap_ip}:445. Verifica la red y que la NAS esté encendida.")
+    # 1. Comprobar conectividad SMB de la QNAP (puertos 445 o 139)
+    logger.info(f"[1/4] Verificando conectividad con el almacenamiento QNAP ({qnap_ip} en puertos 445/139)...")
+    if not check_qnap_port(qnap_ip, ports=(445, 139)):
+        logger.critical(f"La NAS QNAP no responde en {qnap_ip} (puertos 445 ni 139). Verifica la red y que la NAS esté encendida.")
         sys.exit(1)
     logger.info("      [OK] Conexión TCP con QNAP establecida exitosamente.")
 

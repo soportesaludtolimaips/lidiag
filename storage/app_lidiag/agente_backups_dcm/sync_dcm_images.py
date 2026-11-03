@@ -178,13 +178,15 @@ def parse_tolerant_json(file_path: str) -> dict:
         return json.loads("\n".join(fixed_lines))
 
 
-def check_qnap_port(ip: str, port: int = 445, timeout: float = 3.0) -> bool:
-    """Verifica rápidamente si el puerto SMB (445) del QNAP responde."""
-    try:
-        with socket.create_connection((ip, port), timeout=timeout):
-            return True
-    except (socket.timeout, socket.error, OSError):
-        return False
+def check_qnap_port(ip: str, ports: tuple = (445, 139), timeout: float = 3.0) -> bool:
+    """Verifica rápidamente si alguno de los puertos SMB (445 o 139) del QNAP responde."""
+    for p in ports:
+        try:
+            with socket.create_connection((ip, p), timeout=timeout):
+                return True
+        except (socket.timeout, socket.error, OSError):
+            continue
+    return False
 
 
 def authenticate_smb(qnap_ip: str, share: str, user: str, password: str) -> bool:
@@ -313,10 +315,10 @@ def sync_cycle(config: dict) -> bool:
     if free_gb < min_space:
         logger.warning(f"Espacio libre en disco bajo ({free_gb} GB < {min_space} GB). Alerta de almacenamiento.")
 
-    # 3. Conectividad TCP al QNAP
-    if not check_qnap_port(qnap_ip, port=445):
-        logger.warning(f"QNAP no alcanzable en {qnap_ip}:445. Se reintentará en el siguiente ciclo.")
-        emit_status(config, status="OFFLINE", msg=f"QNAP {qnap_ip}:445 inalcanzable")
+    # 3. Conectividad TCP al QNAP (puertos 445 o 139)
+    if not check_qnap_port(qnap_ip, ports=(445, 139)):
+        logger.warning(f"QNAP no alcanzable en {qnap_ip} (puertos 445 ni 139). Se reintentará en el siguiente ciclo.")
+        emit_status(config, status="OFFLINE", msg=f"QNAP {qnap_ip} inalcanzable en puertos 445 ni 139")
         return False
 
     # 4. Asegurar sesión SMB autenticada

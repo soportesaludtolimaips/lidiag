@@ -37,6 +37,16 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-03 — Soporte Dual SMB (Puerto 445 y 139 NetBIOS) en Agentes Edge (`backup_dcm_agent.py`, `sync_dcm_images.py`, `restore_dcm_images.py`):**
+  - **Diagnóstico y Causa Raíz:**
+    * Al ejecutar el agente de backups en la sede Espinal (`10.35.47.3`), el paso de transmisión a la NAS QNAP (`10.35.47.21`) reportaba `Estado QNAP : OFFLINE (QNAP 10.35.47.21:445 no responde)`.
+    * La prueba de red `Test-NetConnection -ComputerName 10.35.47.21 -Port 139` confirmó `TcpTestSucceeded : True`, evidenciando que la NAS QNAP tiene activo y escuchando el protocolo SMB a través de NetBIOS (puerto 139), mientras que el puerto 445 se encuentra restringido por perfil de firewall de QTS o enlace de servicio.
+    * Los scripts de Python evaluaban exclusivamente el puerto 445 mediante `check_qnap_port(qnap_ip, port=445)`, abortando erróneamente la copia a la NAS a pesar de que el transporte SMB por el puerto 139 y el comando `net use` de Windows estaban 100% operativos.
+  - **Solución Implementada:**
+    * Se actualizó la función `check_qnap_port` en `backup_dcm_agent.py`, `sync_dcm_images.py` y `restore_dcm_images.py` para evaluar una tupla de puertos `ports=(445, 139)`.
+    * Si el puerto 445 no responde, el socket comprueba de inmediato el puerto 139; al responder cualquiera de los dos, se procede con la autenticación SMB y copia a la NAS QNAP sin interrupción.
+    * Formato LF y validación sintáctica verificados en los 3 scripts.
+  - **Verificaciones:** `python -m py_compile` sin errores y formato LF validado ✅.
 - [x] **2026-11-03 — Documentación Paso a Paso de Generación de Tokens por Sede en READMEs:**
   - **Diagnóstico y Necesidad:**
     * Los administradores de sistemas y técnicos de soporte requerían una guía clara y paso a paso para la generación, rotación y despliegue del archivo `config.json` con credenciales Sanctum en los servidores locales de los hospitales.

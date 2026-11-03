@@ -460,13 +460,15 @@ def write_status_manifest(dest_dir, sede_id, status_data):
         return None
 
 
-def check_qnap_port(ip: str, port: int = 445, timeout: float = 3.0) -> bool:
-    """Verifica si el puerto SMB (445) del QNAP responde dentro del timeout."""
-    try:
-        with socket.create_connection((ip, port), timeout=timeout):
-            return True
-    except (socket.timeout, socket.error, OSError):
-        return False
+def check_qnap_port(ip: str, ports: tuple = (445, 139), timeout: float = 3.0) -> bool:
+    """Verifica si alguno de los puertos SMB (445 o 139) del QNAP responde dentro del timeout."""
+    for p in ports:
+        try:
+            with socket.create_connection((ip, p), timeout=timeout):
+                return True
+        except (socket.timeout, socket.error, OSError):
+            continue
+    return False
 
 
 def authenticate_smb(qnap_ip: str, share: str, user: str, password: str) -> bool:
@@ -496,9 +498,9 @@ def transfer_backup_to_qnap(config: dict, files_to_transfer: list, retention_day
     unc_dest = f"\\\\{qnap_ip}\\{share}"
     print(f"\n[QNAP] Transmitiendo backup inmediatamente al NAS ({unc_dest})...")
 
-    # 1. Probar puerto 445
-    if not check_qnap_port(qnap_ip, port=445):
-        err = f"QNAP {qnap_ip}:445 no responde. Se conserva el backup local intacto."
+    # 1. Probar conectividad SMB (puertos 445 o 139)
+    if not check_qnap_port(qnap_ip, ports=(445, 139)):
+        err = f"QNAP {qnap_ip} no responde en puertos SMB (445 ni 139). Se conserva el backup local intacto."
         print(f"      [ADVERTENCIA] {err}")
         return {"estado": "OFFLINE", "error": err}
 
