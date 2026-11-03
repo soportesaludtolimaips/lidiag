@@ -158,6 +158,13 @@ export function alertWarning(title = "Advertencia", text = "", icon = "warning")
  * @date 2026-02-03
  */
 export function confirmAction(options) {
+    if (typeof options === "string") {
+        options = {
+            title: "¿Confirmar Acción?",
+            text: options,
+            icon: typeof arguments[1] === "string" ? arguments[1] : "warning",
+        };
+    }
     const swal = getSwal();
     if (!swal) {
         return Promise.resolve(window.confirm(options.text || "¿Estás seguro?"));

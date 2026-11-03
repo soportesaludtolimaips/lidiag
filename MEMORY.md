@@ -37,6 +37,23 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-03 — Refactorización UI/UX del Módulo Tokens de Sedes y Resiliencia en confirmAction:**
+  - **Diagnóstico y Necesidad:**
+    * El módulo de generación de tokens (`/seguridad-tokens`) presentaba inconsistencias visuales frente al estándar AdminWrap y Bootstrap 4 de LIDiag (tarjetas KPI ajenas con estilos utilitarios no usados en los módulos de administración, cabeceras con íconos directos en `<h3>`, modal con cabeceras `bg-success` y bordes/sombras no nativos, y un bloque `<style scoped>` con clases duplicadas).
+    * Además, la llamada a `confirmAction` al generar/rotar el token fallaba al recibir cadenas simples en ciertos flujos debido a que la función asistente en `alerts.js` esperaba un objeto de opciones `{ title, text, icon }`.
+  - **Solución Implementada:**
+    * **Resiliencia en `resources/js/helpers/alerts.js`:** Se adaptó `confirmAction` para que soporte de forma transparente tanto objetos `{ title, text, icon }` como llamadas con firma legado `(mensaje, icon)`, garantizando la ejecución del diálogo SweetAlert sin excepciones.
+    * **Refactorización Integral de `seguridadTokensComponent.vue`:**
+      - Se eliminaron las 4 tarjetas KPI artificiales para seguir el diseño de tarjeta única de `/usuarios`, `/roles` y `/configuracion-sedes`.
+      - Migas de pan y cabecera normalizadas a `col-md-5 align-self-center` y `col-md-7 text-right d-none d-md-block` con `text-themecolor`.
+      - Tabla canónica `display nowrap table table-hover table-striped table-bordered` con `table-responsive m-t-40`.
+      - Botones de acción estandarizados a `btn waves-effect waves-light btn-rounded btn-sm m-r-5` con clases `btn-outline-*`.
+      - Indicadores de estado con etiquetas nativas `label label-success`, `label label-danger` y `label label-light-inverse`.
+      - Integración de `<table-skeleton-loader :visible="cargando" />` y `<empty-state-component>`.
+      - Modal de entrega de token 100% nativo de AdminWrap (`modal-header` limpio, `modal-title` con `<h4>`, `modal-body`, `alert alert-warning`, `form-group` y botón `btn btn-inverse waves-effect`).
+      - Remoción total de bloques `<style scoped>`.
+    * **Compilación de Assets:** Ejecución limpia de `npm run build` con Vite.
+  - **Verificaciones:** `npx eslint --fix` sin advertencias, Vite compilado al 100% y formato LF verificado ✅.
 - [x] **2026-11-03 — Corrección y Preservación de Saltos de Línea al Pegar Texto de Word en el Editor WYSIWYG (`wysiwyg.js`, `WysiwygEditor.vue`):**
   - **Diagnóstico y Causa Raíz:**
     * Al copiar texto desde Microsoft Word y pegarlo en el editor (utilizado en Transcripción y Lectura de Estudios), el texto perdía todos los saltos de línea y párrafos quedando en una sola línea continua.
