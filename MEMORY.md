@@ -37,6 +37,29 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-03 — Rediseño Integral UI/UX del Dashboard de Dosimetría (`/dosimetria/dashboard`) con Estándar AdminWrap:**
+  - **Diagnóstico y Necesidad:**
+    * El dashboard de dosimetría médica y control de radiación (Resolución 482 de 2018) presentaba un contenedor redundante `container-fluid`, estilos scoped manuales y widgets que no aprovechaban los componentes visuales nativos de la plantilla AdminWrap (`index.html`, `index2.html`, `index3.html`).
+    * Se requería estructurar las métricas de radiación avanzada ($CTDI_{vol}$, $DLP$, $SSDE$, Dosis Efectiva $E$ [ICRP 103], $DGM$, $DAP$, $EI$, $DI$ IEC 62494-1) en paneles acordes a la identidad gráfica institucional.
+  - **Solución Implementada:**
+    * **Header y Breadcrumb Canónico:** Implementado con `row page-titles`, títulos corporativos `text-themecolor`, ruta de navegación y acciones rápidas (`Recargar`, `Catálogo NRD`).
+    * **Tarjetas de Resumen (Info-Boxes):** Reescritas usando `.d-flex.p-10.no-block` con `.round` temáticos (`round-primary`, `round-success`, `round-warning`, `round-danger`), indicadores tipográficos `.display-6` y barras de progreso `.progress-bar`.
+    * **Monitor de Agentes Edge (Heartbeat):** Transformado en tarjeta informativa con insignia de estado en vivo (`.label.label-rounded`), telemetría de sedes y botón de reinicio/recarga.
+    * **Gráficos Avanzados Chart.js:**
+      - Gráfico de barras de Dosis Medida vs NRD por modalidad y protocolo.
+      - Gráfico de dona de Conformidad NRD con leyendas personalizadas `list-inline`.
+      - Gráfico de líneas con evolución y tendencia temporal de dosis acumulada.
+      - Gráfico de dona con distribución de disparos por modalidad (CT, DX, MG, CR, XA).
+    * **Ranking de Equipos Emisores:** Adaptado fielmente de "Projects of the Month" (`index.html`) con `.table.vm.no-th-brd.pro-of-month`, avatares `round`, badges de estado y cálculo de dosis promedio por tubo emisor.
+    * **Timeline de Auditoría Clínica:** Adaptado del componente "Today's Schedule" (`index3.html`) con estructura `.steamline` y `.sl-item`, reportando desviaciones de umbrales y alertas en tiempo real.
+    * **Tabla Maestra de Registros:** Reorganizada con `.table.table-hover` nativa, identificadores seudonimizados HMAC y badges estandarizados.
+    * **Backend (`DosimetriaService.php`):** Se integraron agregaciones de `equipos_ranking`, `eventos_timeline`, `tasa_conformidad`, `dosis_efectiva_promedio` y `total_pacientes`.
+  - **Verificaciones:**
+    * ESLint en `DashboardDosimetria.vue` y `app.js` pasó con 0 errores y 0 advertencias ✅.
+    * Laravel Pint en `DosimetriaService.php` validado al 100% passed ✅.
+    * Compilación Vite (`npm run build`) completada con éxito en 1.26s ✅.
+    * Formato LF verificado sin BOM ✅.
+
 - [x] **2026-11-03 — Refactorización UI/UX de Monitoreo de Backups (`/seguridad-backups`) con Estándar AdminWrap:**
   - **Diagnóstico y Necesidad:**
     * La vista de monitoreo de backups (`backupMonitorComponent.vue`) utilizaba estilos no corporativos / inventados (sombras artificiales `shadow-sm`, badges redondeados tipo píldora `badge-pill`, temas `thead-light`, alturas fijas `h-100` y estilos scoped con scrollbars personalizados) que rompían la consistencia visual y de diseño con el resto del panel AdminWrap de LIDiag.

@@ -402,7 +402,100 @@ class DosimetriaService extends BaseService
                 ];
             });
 
-            // 8. Resumen de KPIs
+            // 8. Ranking de Equipos Emisores (Adaptado a plantilla "Projects of the Month")
+            $equiposRanking = DB::table('medicion_dosis_equipos_emisores as e')
+                ->join('config_sedes as s', 's.id', '=', 'e.sede_id')
+                ->leftJoin('medicion_dosis_radiacion as r', function ($join) use ($fechaDesde, $fechaHasta) {
+                    $join->on('r.equipo_emisor_id', '=', 'e.id')
+                        ->whereBetween('r.fecha_estudio', [$fechaDesde, $fechaHasta]);
+                })
+                ->when($sedeId, fn ($q) => $q->where('e.sede_id', $sedeId))
+                ->when($modalidad, fn ($q) => $q->where('e.modalidad', $modalidad))
+                ->select(
+                    'e.id',
+                    'e.nombre',
+                    'e.modalidad',
+                    'e.marca',
+                    'e.modelo',
+                    'e.aet_title',
+                    'e.estado',
+                    's.nom_sede',
+                    DB::raw('COUNT(r.id) as total_estudios'),
+                    DB::raw('ROUND(AVG(r.valor_dosis), 2) as dosis_promedio'),
+                    DB::raw("COALESCE(MAX(r.unidad_medida), 'mGy') as unidad_medida"),
+                    DB::raw('MAX(r.fecha_estudio) as ultimo_disparo')
+                )
+                ->groupBy('e.id', 'e.nombre', 'e.modalidad', 'e.marca', 'e.modelo', 'e.aet_title', 'e.estado', 's.nom_sede')
+                ->orderByDesc('total_estudios')
+                ->limit(8)
+                ->get()
+                ->map(function ($eq) use ($alertasDeriva, $alertas) {
+                    $tieneDeriva = collect($alertasDeriva)->firstWhere('equipo_nombre', $eq->nombre);
+                    $tieneAlertaNrd = collect($alertas)->firstWhere('modalidad', $eq->modalidad);
+
+                    if ($tieneAlertaNrd) {
+                        $eq->estado_evaluacion = 'SUPERA NRD';
+                        $eq->badge_class = 'label-danger';
+                    } elseif ($tieneDeriva) {
+                        $eq->estado_evaluacion = 'DERIVA (+20%)';
+                        $eq->badge_class = 'label-warning';
+                    } elseif ($eq->total_estudios > 0) {
+                        $eq->estado_evaluacion = 'CONFORME';
+                        $eq->badge_class = 'label-success';
+                    } else {
+                        $eq->estado_evaluacion = 'SIN DATOS';
+                        $eq->badge_class = 'label-inverse';
+                    }
+
+                    return $eq;
+                });
+
+            // 9. Timeline de Auditoría y Eventos Dosimétricos ("Today's Schedule")
+            $eventosTimeline = [];
+            foreach (array_slice($alertas, 0, 4) as $al) {
+                $eventosTimeline[] = [
+                    'tipo' => 'NRD',
+                    'clase_bg' => 'bg-danger',
+                    'icono' => 'fa fa-exclamation-triangle',
+                    'titulo' => "Superó Límite NRD ({$al['modalidad']})",
+                    'descripcion' => "{$al['nom_sede']}: Promedio {$al['dosis_promedio']} {$al['unidad_medida']} vs límite {$al['limite_nrd']}.",
+                    'tiempo' => $al['mes_periodo'],
+                ];
+            }
+            foreach (array_slice($alertasDeriva, 0, 3) as $ad) {
+                $eventosTimeline[] = [
+                    'tipo' => 'DERIVA',
+                    'clase_bg' => 'bg-warning',
+                    'icono' => 'fa fa-wrench',
+                    'titulo' => "Deriva Técnica en {$ad['equipo_nombre']}",
+                    'descripcion' => "+{$ad['cambio_porcentaje']}% de incremento en {$ad['tipo_metrica']} ({$ad['nom_sede']}).",
+                    'tiempo' => 'Reciente',
+                ];
+            }
+            foreach ($ultimosRegistros as $ur) {
+                if ($ur->es_rdsr && count($eventosTimeline) < 8) {
+                    $eventosTimeline[] = [
+                        'tipo' => 'RDSR',
+                        'clase_bg' => 'bg-info',
+                        'icono' => 'fa fa-certificate',
+                        'titulo' => "Informe RDSR ({$ur->modalidad})",
+                        'descripcion' => "{$ur->nom_sede}: {$ur->tipo_metrica}={$ur->valor_dosis} {$ur->unidad_medida} en {$ur->region_anatomica}.",
+                        'tiempo' => Carbon::parse($ur->fecha_estudio)->diffForHumans(),
+                    ];
+                }
+            }
+            if (empty($eventosTimeline)) {
+                $eventosTimeline[] = [
+                    'tipo' => 'INFO',
+                    'clase_bg' => 'bg-success',
+                    'icono' => 'fa fa-check-circle',
+                    'titulo' => 'Operación Dosimétrica Conforme',
+                    'descripcion' => 'Todas las sedes operan dentro de los Niveles de Referencia para Diagnóstico.',
+                    'tiempo' => 'Al día',
+                ];
+            }
+
+            // 10. Resumen de KPIs Ampliado
             $totalEstudiosPeriodo = DB::table('medicion_dosis_radiacion')
                 ->whereBetween('fecha_estudio', [$fechaDesde, $fechaHasta])
                 ->when($sedeId, fn ($q) => $q->where('sede_id', $sedeId))
@@ -414,10 +507,37 @@ class DosimetriaService extends BaseService
 
             $sedesOnline = $sedesConEstado->where('estado_conexion', 'ONLINE')->count();
 
+            $totalPacientes = DB::table('medicion_dosis_radiacion')
+                ->whereBetween('fecha_estudio', [$fechaDesde, $fechaHasta])
+                ->when($sedeId, fn ($q) => $q->where('sede_id', $sedeId))
+                ->distinct()
+                ->count('patient_id_hashed');
+
+            $dosisEfectivaMedia = DB::table('medicion_dosis_radiacion as r')
+                ->leftJoin('medicion_dosis_equipos_emisores as e', 'e.id', '=', 'r.equipo_emisor_id')
+                ->whereBetween('r.fecha_estudio', [$fechaDesde, $fechaHasta])
+                ->when($sedeId, fn ($q) => $q->where('r.sede_id', $sedeId))
+                ->when($modalidad, fn ($q) => $q->where('e.modalidad', $modalidad))
+                ->select(DB::raw("ROUND(AVG(
+                    CASE 
+                        WHEN r.tipo_metrica = 'DLP' THEN r.valor_dosis * 0.015
+                        WHEN r.tipo_metrica = 'DAP' THEN r.valor_dosis * 0.001
+                        WHEN r.tipo_metrica = 'CTDIvol' THEN r.valor_dosis * 0.010
+                        ELSE r.valor_dosis * 0.005
+                    END
+                ), 2) as e_media"))
+                ->value('e_media') ?? '0.00';
+
+            $totalGrupos = count($filas);
+            $totalAlertasCount = count($alertas);
+            $tasaConformidad = $totalGrupos > 0 ? round(max(0, ($totalGrupos - $totalAlertasCount) / $totalGrupos) * 100, 1) : 100.0;
+
             return $this->success([
                 'consolidado' => $filas,
                 'alertas' => $alertas,
                 'alertas_deriva' => $alertasDeriva,
+                'equipos_ranking' => $equiposRanking,
+                'eventos_timeline' => $eventosTimeline,
                 'distribucion_regiones' => $conteoRegiones,
                 'ultimos_registros' => $ultimosRegistros,
                 'umbrales_nrd' => $umbrales->values(),
@@ -430,8 +550,11 @@ class DosimetriaService extends BaseService
                 'kpis' => [
                     'total_estudios' => $totalEstudiosPeriodo,
                     'total_equipos' => $totalEquiposActivos,
-                    'total_alertas' => count($alertas),
+                    'total_alertas' => $totalAlertasCount,
                     'total_derivas' => count($alertasDeriva),
+                    'total_pacientes' => $totalPacientes,
+                    'dosis_efectiva_promedio' => $dosisEfectivaMedia,
+                    'tasa_conformidad' => $tasaConformidad,
                     'sedes_online' => $sedesOnline,
                     'sedes_total' => $sedesConEstado->count(),
                 ],
