@@ -1,12 +1,11 @@
 <template>
     <div>
-        <!-- Cabecera de Página -->
+        <!-- ============================================================== -->
+        <!-- Bread crumb and right sidebar toggle -->
+        <!-- ============================================================== -->
         <div class="row page-titles">
-            <div class="col-md-7 col-8 align-self-center">
-                <h3 class="text-themecolor mb-0 mt-0">
-                    <i class="fa fa-database mr-2 text-primary"></i> Monitoreo de Backups y
-                    Sincronización
-                </h3>
+            <div class="col-md-5 align-self-center">
+                <h3 class="text-themecolor">Seguridad</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
                         <button
@@ -29,53 +28,58 @@
                     <li class="breadcrumb-item active">Monitoreo de Backups</li>
                 </ol>
             </div>
-            <div class="col-md-5 col-4 align-self-center text-right">
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
-                    class="btn btn-outline-secondary waves-effect waves-light m-r-5"
-                    @click="consultarEstado()"
+                    class="btn btn-sm btn-outline-secondary waves-effect waves-light m-r-5"
+                    @click="consultarEstado"
                     :disabled="cargando"
                     title="Actualizar estado"
                 >
-                    <i :class="['fa fa-refresh mr-1', { 'fa-spin': cargando }]"></i>
+                    <i class="fa" :class="cargando ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
                     Refrescar
                 </button>
                 <button
                     type="button"
-                    class="btn btn-info waves-effect waves-light"
-                    @click="confirmarEjecucionManual()"
+                    class="btn btn-sm btn-info waves-effect waves-light"
+                    @click="confirmarEjecucionManual"
                     :disabled="ejecutandoManual || cargando"
                     title="Generar backup de base de datos inmediatamente"
                 >
-                    <i :class="['fa fa-play mr-1', { 'fa-spin': ejecutandoManual }]"></i>
+                    <i class="fa" :class="ejecutandoManual ? 'fa-spinner fa-spin' : 'fa-play'"></i>
                     {{ ejecutandoManual ? "Generando Backup..." : "Hacer Backup BD Ahora" }}
                 </button>
             </div>
         </div>
+        <!-- ============================================================== -->
+        <!-- End Bread crumb and right sidebar toggle -->
+        <!-- ============================================================== -->
 
+        <!-- ============================================================== -->
         <!-- Tarjetas KPI de Estado General -->
+        <!-- ============================================================== -->
         <div class="row">
             <!-- 1. Estado de Almacenamiento / Disco QNAP -->
             <div class="col-lg-3 col-md-6">
-                <div class="card card-outline-primary shadow-sm h-100">
+                <div class="card card-outline-primary">
                     <div class="card-body">
                         <div
                             class="d-flex flex-row align-items-center justify-content-between mb-2"
                         >
-                            <span class="round round-primary"
-                                ><i class="fa fa-hdd-o font-20"></i
-                            ></span>
-                            <span :class="['badge badge-pill', badgeClaseEspacio]">
+                            <span class="round round-primary">
+                                <i class="fa fa-hdd-o font-20"></i>
+                            </span>
+                            <span :class="['label', badgeClaseEspacio]">
                                 {{ infoAlmacenamiento.porcentaje_usado }}% Ocupado
                             </span>
                         </div>
-                        <h6 class="text-muted mb-1 text-uppercase font-12 font-weight-bold">
+                        <h6 class="text-muted mb-1 text-uppercase font-12">
                             Espacio en Disco (Backups)
                         </h6>
-                        <h4 class="font-weight-bold mb-1 text-dark">
+                        <h4 class="text-dark mb-1">
                             {{ infoAlmacenamiento.espacio_libre_humano }} libres
                         </h4>
-                        <div class="progress mt-2 mb-1" style="height: 6px">
+                        <div class="progress m-t-10 m-b-5" style="height: 6px">
                             <div
                                 :class="['progress-bar', barraClaseEspacio]"
                                 role="progressbar"
@@ -85,7 +89,7 @@
                                 aria-valuemax="100"
                             ></div>
                         </div>
-                        <small class="text-muted d-block mt-1">
+                        <small class="text-muted d-block m-t-5">
                             Total: {{ infoAlmacenamiento.espacio_total_humano }} en unidad
                             {{ infoAlmacenamiento.unidad || "C:" }}
                         </small>
@@ -95,20 +99,20 @@
 
             <!-- 2. Último Backup Base de Datos MySQL -->
             <div class="col-lg-3 col-md-6">
-                <div class="card card-outline-success shadow-sm h-100">
+                <div class="card card-outline-success">
                     <div class="card-body">
                         <div
                             class="d-flex flex-row align-items-center justify-content-between mb-2"
                         >
-                            <span class="round round-success"
-                                ><i class="fa fa-database font-20"></i
-                            ></span>
+                            <span class="round round-success">
+                                <i class="fa fa-database font-20"></i>
+                            </span>
                             <span
                                 :class="[
-                                    'badge badge-pill',
+                                    'label',
                                     ultimoDb && ultimoDb.estado === 'al_dia'
-                                        ? 'badge-success'
-                                        : 'badge-warning',
+                                        ? 'label-success'
+                                        : 'label-warning',
                                 ]"
                             >
                                 {{
@@ -118,15 +122,15 @@
                                 }}
                             </span>
                         </div>
-                        <h6 class="text-muted mb-1 text-uppercase font-12 font-weight-bold">
+                        <h6 class="text-muted mb-1 text-uppercase font-12">
                             Backup BD Central (MySQL)
                         </h6>
-                        <h5
-                            class="font-weight-bold mb-1 text-dark text-truncate"
+                        <h4
+                            class="text-dark mb-1 text-truncate"
                             :title="ultimoDb?.archivo || 'Sin registros'"
                         >
                             {{ ultimoDb ? ultimoDb.tamano_humano : "N/D" }}
-                        </h5>
+                        </h4>
                         <p class="text-muted mb-0 font-12">
                             <i class="fa fa-clock-o mr-1"></i>
                             {{ ultimoDb ? ultimoDb.hace : "Sin registros recientes" }}
@@ -143,43 +147,42 @@
 
             <!-- 3. Salud de Sedes Hospitalarias (DCM / PACS) -->
             <div class="col-lg-3 col-md-6">
-                <div class="card card-outline-info shadow-sm h-100">
+                <div class="card card-outline-info">
                     <div class="card-body">
                         <div
                             class="d-flex flex-row align-items-center justify-content-between mb-2"
                         >
-                            <span class="round round-info"
-                                ><i class="fa fa-hospital-o font-20"></i
-                            ></span>
+                            <span class="round round-info">
+                                <i class="fa fa-hospital-o font-20"></i>
+                            </span>
                             <span
                                 :class="[
-                                    'badge badge-pill',
-                                    resumenSedes.critico === 0 ? 'badge-info' : 'badge-danger',
+                                    'label',
+                                    resumenSedes.critico === 0 ? 'label-info' : 'label-danger',
                                 ]"
                             >
                                 {{ resumenSedes.salud_porcentaje }}% Salud
                             </span>
                         </div>
-                        <h6 class="text-muted mb-1 text-uppercase font-12 font-weight-bold">
+                        <h6 class="text-muted mb-1 text-uppercase font-12">
                             Sedes PACS Conectadas
                         </h6>
-                        <h4 class="font-weight-bold mb-1 text-dark">
+                        <h4 class="text-dark mb-1">
                             {{ resumenSedes.al_dia }} / {{ resumenSedes.total }}
-                            <span class="font-14 text-muted font-weight-normal">al día</span>
+                            <small class="text-muted">al día</small>
                         </h4>
-                        <div class="d-flex mt-2 font-12">
-                            <span class="text-success mr-2 font-weight-bold"
-                                ><i class="fa fa-check-circle"></i>
-                                {{ resumenSedes.al_dia }} Ok</span
-                            >
-                            <span class="text-warning mr-2 font-weight-bold"
-                                ><i class="fa fa-exclamation-triangle"></i>
-                                {{ resumenSedes.advertencia }} Adv</span
-                            >
-                            <span class="text-danger font-weight-bold"
-                                ><i class="fa fa-times-circle"></i>
-                                {{ resumenSedes.critico }} Crítico</span
-                            >
+                        <div class="d-flex m-t-10 font-12">
+                            <span class="text-success mr-2 font-weight-bold">
+                                <i class="fa fa-check-circle"></i> {{ resumenSedes.al_dia }} Ok
+                            </span>
+                            <span class="text-warning mr-2 font-weight-bold">
+                                <i class="fa fa-exclamation-triangle"></i>
+                                {{ resumenSedes.advertencia }} Adv
+                            </span>
+                            <span class="text-danger font-weight-bold">
+                                <i class="fa fa-times-circle"></i>
+                                {{ resumenSedes.critico }} Crítico
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -187,22 +190,22 @@
 
             <!-- 4. Respaldo de Archivos de Storage -->
             <div class="col-lg-3 col-md-6">
-                <div class="card card-outline-warning shadow-sm h-100">
+                <div class="card card-outline-warning">
                     <div class="card-body">
                         <div
                             class="d-flex flex-row align-items-center justify-content-between mb-2"
                         >
-                            <span class="round round-warning"
-                                ><i class="fa fa-folder-open-o font-20"></i
-                            ></span>
-                            <span class="badge badge-pill badge-secondary">Storage</span>
+                            <span class="round round-warning">
+                                <i class="fa fa-folder-open-o font-20"></i>
+                            </span>
+                            <span class="label label-light-inverse">Storage</span>
                         </div>
-                        <h6 class="text-muted mb-1 text-uppercase font-12 font-weight-bold">
+                        <h6 class="text-muted mb-1 text-uppercase font-12">
                             Archivos Storage LIDiag
                         </h6>
-                        <h5 class="font-weight-bold mb-1 text-dark">
+                        <h4 class="text-dark mb-1">
                             {{ ultimoStorage ? ultimoStorage.tamano_humano : "N/D" }}
-                        </h5>
+                        </h4>
                         <p class="text-muted mb-0 font-12">
                             <i class="fa fa-clock-o mr-1"></i>
                             {{ ultimoStorage ? ultimoStorage.hace : "Sin registros" }}
@@ -218,20 +221,20 @@
             </div>
         </div>
 
-        <!-- Tabla de Estado por Sede Hospitalaria (DCM / PACS) -->
+        <!-- ============================================================== -->
+        <!-- Tabla de Estado por Sede y Bitácora -->
+        <!-- ============================================================== -->
         <div class="row">
             <div class="col-lg-8 col-12">
-                <div class="card shadow-sm">
+                <div class="card">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h4 class="card-title mb-0 font-weight-bold text-dark">
-                                <i class="fa fa-server mr-2 text-primary"></i> Sincronización de
-                                Sedes Hospitalarias (DCM Sedes)
-                            </h4>
-                            <span class="text-muted font-12">
-                                Destino: <code>{{ infoAlmacenamiento.directorio }}\dcm_sedes</code>
-                            </span>
-                        </div>
+                        <h4 class="card-title">
+                            Sincronización de Sedes Hospitalarias (DCM Sedes)
+                        </h4>
+                        <h6 class="card-subtitle">
+                            Destino en almacenamiento:
+                            <code>{{ infoAlmacenamiento.directorio }}\dcm_sedes</code>
+                        </h6>
 
                         <table-skeleton-loader
                             :visible="cargando && sedes.length === 0"
@@ -245,12 +248,16 @@
                             description="No se encontraron sedes hospitalarias configuradas en el sistema."
                             action-text="Recargar telemetría"
                             action-icon="fa fa-refresh"
-                            @action="consultarEstado()"
+                            @action="consultarEstado"
                         />
 
-                        <div class="table-responsive" v-show="sedes.length > 0">
-                            <table class="table table-hover table-striped align-middle mb-0">
-                                <thead class="thead-light">
+                        <div class="table-responsive m-t-40" v-show="sedes.length > 0">
+                            <table
+                                class="display nowrap table table-hover table-striped table-bordered"
+                                cellspacing="0"
+                                width="100%"
+                            >
+                                <thead>
                                     <tr>
                                         <th>Sede Hospitalaria</th>
                                         <th>Estado de Salud</th>
@@ -262,17 +269,16 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="sede in sedes" :key="sede.sede_id">
-                                        <td class="font-weight-bold">
-                                            <i class="fa fa-hospital-o mr-2 text-muted"></i>
-                                            {{ sede.nombre_sede }}
-                                            <small class="text-muted d-block font-11"
+                                        <td>
+                                            <strong>{{ sede.nombre_sede }}</strong>
+                                            <small class="text-muted d-block"
                                                 >ID: #{{ sede.sede_id }}</small
                                             >
                                         </td>
                                         <td>
                                             <span
                                                 :class="[
-                                                    'badge badge-pill font-11 px-2 py-1',
+                                                    'label',
                                                     obtenerClaseBadgeSemaforo(sede.semaforo),
                                                 ]"
                                             >
@@ -286,31 +292,28 @@
                                             </span>
                                         </td>
                                         <td>
-                                            <span
-                                                v-if="sede.tiene_backup"
-                                                class="font-12 text-dark font-weight-bold d-block"
-                                            >
+                                            <span v-if="sede.tiene_backup">
                                                 {{ sede.fecha }}
+                                                <small
+                                                    class="text-muted d-block text-truncate"
+                                                    style="max-width: 220px"
+                                                    :title="sede.archivo"
+                                                >
+                                                    {{ sede.archivo || "N/A" }}
+                                                </small>
                                             </span>
-                                            <span v-else class="text-danger font-12 font-italic">
+                                            <span v-else class="label label-danger">
                                                 Sin sincronizaciones
                                             </span>
-                                            <small
-                                                class="text-muted font-11 text-truncate d-block"
-                                                style="max-width: 200px"
-                                                :title="sede.archivo"
-                                            >
-                                                {{ sede.archivo || "N/A" }}
-                                            </small>
                                         </td>
-                                        <td class="font-12">
+                                        <td>
                                             {{ sede.hace }}
                                         </td>
-                                        <td class="font-12 font-weight-bold text-dark">
+                                        <td>
                                             {{ sede.tamano_humano }}
                                         </td>
-                                        <td class="text-center font-12">
-                                            <span class="badge badge-secondary badge-pill">
+                                        <td class="text-center">
+                                            <span class="label label-light-inverse">
                                                 {{ sede.total_archivos }} zips
                                             </span>
                                         </td>
@@ -324,22 +327,25 @@
 
             <!-- Bitácora de Eventos y Actividad (backups.log) -->
             <div class="col-lg-4 col-12">
-                <div class="card shadow-sm h-100">
-                    <div class="card-body d-flex flex-column">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h4 class="card-title mb-0 font-weight-bold text-dark">
-                                <i class="fa fa-list-alt mr-2 text-info"></i> Bitácora de Eventos
-                            </h4>
-                            <span class="badge badge-light text-muted">Últimos eventos</span>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h4 class="card-title mb-0">Bitácora de Eventos</h4>
+                            <span class="label label-light-inverse">Últimos eventos</span>
                         </div>
-                        <p class="text-muted font-12 mb-3">
+                        <h6 class="card-subtitle">
                             Registro en tiempo real de operaciones de respaldo central y recepción
-                            remota de sedes hospitalarias.
-                        </p>
+                            remota.
+                        </h6>
 
                         <div
-                            class="log-container flex-grow-1 p-2 rounded bg-dark text-white font-11"
-                            style="max-height: 480px; overflow-y: auto; font-family: monospace"
+                            class="p-3 bg-dark text-white rounded"
+                            style="
+                                max-height: 480px;
+                                overflow-y: auto;
+                                font-family: monospace;
+                                font-size: 11px;
+                            "
                         >
                             <div v-if="logs.length === 0" class="text-center text-muted py-4">
                                 No hay registros recientes en la bitácora.
@@ -405,9 +411,9 @@ const logs = ref([]);
 
 const badgeClaseEspacio = computed(() => {
     const estado = infoAlmacenamiento.value.estado_espacio;
-    if (estado === "critico") return "badge-danger";
-    if (estado === "advertencia") return "badge-warning";
-    return "badge-success";
+    if (estado === "critico") return "label-danger";
+    if (estado === "advertencia") return "label-warning";
+    return "label-success";
 });
 
 const barraClaseEspacio = computed(() => {
@@ -418,9 +424,9 @@ const barraClaseEspacio = computed(() => {
 });
 
 function obtenerClaseBadgeSemaforo(semaforo) {
-    if (semaforo === "verde") return "badge-success";
-    if (semaforo === "amarillo") return "badge-warning";
-    return "badge-danger";
+    if (semaforo === "verde") return "label-success";
+    if (semaforo === "amarillo") return "label-warning";
+    return "label-danger";
 }
 
 function obtenerIconoSemaforo(semaforo) {
@@ -464,8 +470,7 @@ async function confirmarEjecucionManual() {
     const ok = await confirmAction({
         title: "¿Generar Backup Inmediato?",
         text: "Se iniciará la exportación completa de la base de datos MySQL central y su empaquetado en C:\\Backups_Lidiag.",
-        confirmButtonText: "Sí, generar ahora",
-        cancelButtonText: "Cancelar",
+        icon: "warning",
     });
 
     if (!ok) return;
@@ -509,13 +514,3 @@ onBeforeUnmount(() => {
     window.removeEventListener("keydown", onKeyDown);
 });
 </script>
-
-<style scoped>
-.log-container::-webkit-scrollbar {
-    width: 6px;
-}
-.log-container::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
-}
-</style>

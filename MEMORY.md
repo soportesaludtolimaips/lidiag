@@ -37,6 +37,21 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-03 — Refactorización UI/UX de Monitoreo de Backups (`/seguridad-backups`) con Estándar AdminWrap:**
+  - **Diagnóstico y Necesidad:**
+    * La vista de monitoreo de backups (`backupMonitorComponent.vue`) utilizaba estilos no corporativos / inventados (sombras artificiales `shadow-sm`, badges redondeados tipo píldora `badge-pill`, temas `thead-light`, alturas fijas `h-100` y estilos scoped con scrollbars personalizados) que rompían la consistencia visual y de diseño con el resto del panel AdminWrap de LIDiag.
+  - **Solución Implementada:**
+    * **Estandarización de Encabezado y Breadcrumbs:** Alineado a la estructura canónica de AdminWrap (`col-md-5 align-self-center` y `col-md-7 text-right d-none d-md-block`) con botones compactos `btn-sm btn-outline-secondary` y `btn-sm btn-info`.
+    * **Depuración de Estilos Inventados:**
+      - Se eliminaron todas las clases `shadow-sm`, `h-100`, `thead-light`, `badge-pill`, `align-middle` y utilidades de fuente innecesarias.
+      - Se migraron los badges al estándar de AdminWrap: `.label.label-success`, `.label.label-warning`, `.label.label-danger` y `.label.label-light-inverse`.
+      - Se adaptó la tabla de sedes remotas a la clase canónica `table table-hover table-striped table-bordered` envuelta en `table-responsive m-t-40`.
+      - Se eliminó por completo el bloque `<style scoped>` y el scrollbar artificial.
+    * **Normalización de Confirmaciones:** Se limpió el llamado de `confirmAction` para utilizar los parámetros soportados (`title`, `text`, `icon`).
+  - **Verificaciones:**
+    * ESLint validado sin errores (`npx eslint`) ✅.
+    * Compilación Vite completada sin errores (`npm run build` en 1.23s) ✅.
+    * Formato LF verificado sin BOM ✅.
 - [x] **2026-11-03 — Implementación Fase 1: Autoguardado de Borradores, Macros Clínicas y Alertas Telegram de Sedes:**
   - **Diagnóstico y Necesidad:**
     * Los médicos radiólogos requerían protección contra pérdida de informes en redacción ante cortes imprevistos de energía o cierres de navegador, así como mecanismos de autocompletado rápido de párrafos diagnósticos estándar.
