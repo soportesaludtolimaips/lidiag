@@ -213,7 +213,7 @@
                         regulatorio:
                     </p>
                 </div>
-                <div v-if="alertasCriticas.length > 4" class="m-t-10 m-sm-t-0">
+                <div v-if="alertasCriticas.length > 5" class="m-t-10 m-sm-t-0">
                     <button
                         type="button"
                         class="btn btn-sm btn-outline-danger"
@@ -234,59 +234,63 @@
                 </div>
             </div>
 
-            <!-- Grid de Tarjetas de Alerta Crítica -->
-            <div class="row m-t-10">
-                <div
-                    v-for="(al, idx) in alertasCriticasVisibles"
-                    :key="'crit-' + idx"
-                    class="col-lg-3 col-md-6 m-b-10"
-                >
-                    <div
-                        class="card card-body p-15 m-b-0 bg-white"
-                        style="
-                            border-left: 4px solid #ef4444;
-                            border-radius: 4px;
-                            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-                        "
-                    >
-                        <div class="d-flex justify-content-between align-items-center m-b-5">
-                            <span :class="getModalidadBadgeClass(al.modalidad)">{{
-                                al.modalidad
-                            }}</span>
-                            <span class="label label-danger font-10 font-weight-bold">
-                                +{{
-                                    Math.round(
-                                        (parseFloat(al.dosis_promedio) / parseFloat(al.limite_nrd) -
-                                            1) *
-                                            100
-                                    )
-                                }}% NRD
-                            </span>
-                        </div>
-                        <div class="font-medium text-dark text-truncate" :title="al.nom_sede">
-                            {{ getNombreCortoSede(al.nom_sede) }} ·
-                            <span class="text-muted">{{ al.region_anatomica || "GENERAL" }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-baseline m-t-5">
-                            <div>
-                                <span class="font-18 font-weight-bold text-danger">{{
-                                    al.dosis_promedio
+            <!-- Tabla Nativa AdminWrap de Superaciones Críticas -->
+            <div class="table-responsive bg-white m-t-10">
+                <table class="table table-sm table-hover vm m-b-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Sede</th>
+                            <th>Modalidad</th>
+                            <th>Región Anatómica</th>
+                            <th>Métrica</th>
+                            <th>Periodo</th>
+                            <th class="text-right">Dosis Promedio</th>
+                            <th class="text-right">Límite NRD</th>
+                            <th class="text-center">Exceso NRD</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(al, idx) in alertasCriticasVisibles" :key="'crit-' + idx">
+                            <td>
+                                <strong>{{ getNombreCortoSede(al.nom_sede) }}</strong>
+                            </td>
+                            <td>
+                                <span :class="getModalidadBadgeClass(al.modalidad)">{{
+                                    al.modalidad
                                 }}</span>
+                            </td>
+                            <td>
+                                <span :class="getRegionBadgeClass(al.region_anatomica)">{{
+                                    al.region_anatomica || "GENERAL"
+                                }}</span>
+                            </td>
+                            <td>
+                                <span class="font-medium">{{ al.tipo_metrica }}</span>
+                            </td>
+                            <td class="text-nowrap">{{ al.mes_periodo }}</td>
+                            <td class="text-right">
+                                <strong class="text-danger font-14">{{ al.dosis_promedio }}</strong>
                                 <small class="text-muted m-l-5">{{ al.unidad_medida }}</small>
-                            </div>
-                            <div class="text-muted font-12">
-                                NRD: <strong class="text-dark">{{ al.limite_nrd }}</strong>
-                            </div>
-                        </div>
-                        <div
-                            class="text-muted font-10 m-t-5 text-truncate"
-                            :title="al.tipo_metrica + ' | Periodo: ' + al.mes_periodo"
-                        >
-                            <i class="fa fa-calendar-o m-r-5"></i>{{ al.mes_periodo }} ·
-                            {{ al.tipo_metrica }}
-                        </div>
-                    </div>
-                </div>
+                            </td>
+                            <td class="text-right">
+                                <span>{{ al.limite_nrd }}</span>
+                                <small class="text-muted m-l-5">{{ al.unidad_medida }}</small>
+                            </td>
+                            <td class="text-center">
+                                <span class="label label-danger font-weight-bold">
+                                    +{{
+                                        Math.round(
+                                            (parseFloat(al.dosis_promedio) /
+                                                parseFloat(al.limite_nrd) -
+                                                1) *
+                                                100
+                                        )
+                                    }}%
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -325,53 +329,58 @@
                 </div>
             </div>
 
-            <!-- Grid de Tarjetas Preventivas (colapsable) -->
-            <div v-if="mostrarTodasPreventivas" class="row m-t-15">
-                <div
-                    v-for="(al, idx) in alertasPreventivas"
-                    :key="'prev-' + idx"
-                    class="col-lg-3 col-md-6 m-b-10"
-                >
-                    <div
-                        class="card card-body p-15 m-b-0 bg-white"
-                        style="
-                            border-left: 4px solid #f59e0b;
-                            border-radius: 4px;
-                            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-                        "
-                    >
-                        <div class="d-flex justify-content-between align-items-center m-b-5">
-                            <span :class="getModalidadBadgeClass(al.modalidad)">{{
-                                al.modalidad
-                            }}</span>
-                            <span class="label label-warning font-10 font-weight-bold">
-                                {{ al.porcentaje_nrd }}% del NRD
-                            </span>
-                        </div>
-                        <div class="font-medium text-dark text-truncate" :title="al.nom_sede">
-                            {{ getNombreCortoSede(al.nom_sede) }} ·
-                            <span class="text-muted">{{ al.region_anatomica || "GENERAL" }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-baseline m-t-5">
-                            <div>
-                                <span class="font-18 font-weight-bold text-warning">{{
-                                    al.dosis_promedio
+            <!-- Tabla Nativa AdminWrap de Advertencias Preventivas (Colapsable) -->
+            <div v-if="mostrarTodasPreventivas" class="table-responsive bg-white m-t-15">
+                <table class="table table-sm table-hover vm m-b-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Sede</th>
+                            <th>Modalidad</th>
+                            <th>Región Anatómica</th>
+                            <th>Métrica</th>
+                            <th>Periodo</th>
+                            <th class="text-right">Dosis Promedio</th>
+                            <th class="text-right">Límite NRD</th>
+                            <th class="text-center">Nivel Preventivo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(al, idx) in alertasPreventivas" :key="'prev-' + idx">
+                            <td>
+                                <strong>{{ getNombreCortoSede(al.nom_sede) }}</strong>
+                            </td>
+                            <td>
+                                <span :class="getModalidadBadgeClass(al.modalidad)">{{
+                                    al.modalidad
                                 }}</span>
+                            </td>
+                            <td>
+                                <span :class="getRegionBadgeClass(al.region_anatomica)">{{
+                                    al.region_anatomica || "GENERAL"
+                                }}</span>
+                            </td>
+                            <td>
+                                <span class="font-medium">{{ al.tipo_metrica }}</span>
+                            </td>
+                            <td class="text-nowrap">{{ al.mes_periodo }}</td>
+                            <td class="text-right">
+                                <strong class="text-warning font-14">{{
+                                    al.dosis_promedio
+                                }}</strong>
                                 <small class="text-muted m-l-5">{{ al.unidad_medida }}</small>
-                            </div>
-                            <div class="text-muted font-12">
-                                NRD: <strong class="text-dark">{{ al.limite_nrd }}</strong>
-                            </div>
-                        </div>
-                        <div
-                            class="text-muted font-10 m-t-5 text-truncate"
-                            :title="al.tipo_metrica + ' | Periodo: ' + al.mes_periodo"
-                        >
-                            <i class="fa fa-calendar-o m-r-5"></i>{{ al.mes_periodo }} ·
-                            {{ al.tipo_metrica }}
-                        </div>
-                    </div>
-                </div>
+                            </td>
+                            <td class="text-right">
+                                <span>{{ al.limite_nrd }}</span>
+                                <small class="text-muted m-l-5">{{ al.unidad_medida }}</small>
+                            </td>
+                            <td class="text-center">
+                                <span class="label label-warning font-weight-bold">
+                                    {{ al.porcentaje_nrd }}% del NRD
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -1056,7 +1065,7 @@ const alertasPreventivas = computed(() =>
     alertas.value.filter((a) => a.gravedad === "ALERTA_PREVENTIVA")
 );
 const alertasCriticasVisibles = computed(() => {
-    return mostrarTodasCriticas.value ? alertasCriticas.value : alertasCriticas.value.slice(0, 4);
+    return mostrarTodasCriticas.value ? alertasCriticas.value : alertasCriticas.value.slice(0, 5);
 });
 
 // Helper para obtener nombre corto y legible de la sede (ej. "Espinal - Hospital..." -> "Espinal")

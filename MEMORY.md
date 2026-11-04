@@ -37,6 +37,18 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-04 — Corrección de Expiración Prematura de Tokens Sanctum para Agentes Edge M2M (`config/sanctum.php`):**
+  - **Diagnóstico y Causa Raíz:**
+    * El usuario reportó: *"He notado que los tokens expiran pronto"*, tras experimentar caídas intermitentes con HTTP 401 (`{"message":"Unauthenticated."}`) en los agentes de las sedes (Espinal, Chaparral, Ibagué).
+    * Al inspeccionar `config/sanctum.php`, se descubrió que la clave `'expiration' => 60` estaba fijada en **60 minutos (1 hora)**. A pesar de que en base de datos los tokens de sede tenían `expires_at = null` (diseñados para ser permanentes M2M y rotados solo a voluntad en `/seguridad-tokens`), el `Guard` de Sanctum invalidaba cualquier token cuya fecha `created_at` tuviera más de 60 minutos de antigüedad (`$accessToken->created_at->gt(now()->subMinutes(60))`).
+  - **Solución Implementada:**
+    * En `config/sanctum.php`, se modificó la directiva a `'expiration' => env('SANCTUM_EXPIRATION', null)`.
+    * Esto restaura el comportamiento canónico de Laravel Sanctum: los tokens emitidos para agentes hospitalarios son permanentes y de larga duración por defecto, permaneciendo activos hasta que el administrador decida revocarlos o rotarlos desde la interfaz web.
+    * Se ejecutó `php artisan config:clear` para refrescar la configuración en caliente.
+  - **Verificaciones:**
+    * `vendor\bin\pint.bat --test config/sanctum.php` 100% passed ✅.
+    * Verificación de base de datos (`personal_access_tokens`): los tokens existentes de las sedes 1, 3 y 4 volvieron a ser válidos inmediatamente sin necesidad de reconfigurarlos ✅.
+
 - [x] **2026-11-04 — Refactorización UI/UX de Alertas Dosimétricas y Dead Man's Switch (`DashboardDosimetria.vue`, `DosimetriaService.php`):**
   - **Diagnóstico y Necesidad:**
     * Tras activar los umbrales NRD por región anatómica, el banner rojo de alertas (`alert alert-danger`) acumulaba 24 etiquetas horizontales apelotonadas e ilegibles, mezclando falsas alarmas (valores por debajo del límite marcados como "superó NRD") con infracciones reales.
@@ -47,8 +59,8 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
       - Se incorporó `porcentaje_nrd` y `valor_alerta` en el payload analítico.
     * **2. Rediseño Visual Nativo AdminWrap (`DashboardDosimetria.vue`):**
       - **Dead Man's Switch Compacto:** Función `getNombreCortoSede()` que reduce nombres extensos al municipio sede (`Espinal`, `Honda`, `Chaparral`, `Ibagué`, etc.) y despliega el nombre completo y telemetría en el tooltip flotante, eliminando desbordamientos.
-      - **Alertas Críticas (`PELIGRO_NRD`):** Banner rojo (`alert-danger`) organizado en un grid responsivo de tarjetas compactas (`col-lg-3 col-md-6`), mostrando la modalidad, porcentaje de exceso (`+X% NRD`), región anatómica, dosis vs NRD y periodo. Incluye paginación colapsable `[Ver Todas (11)] / [Ver Menos]` mostrando las 4 principales por defecto.
-      - **Advertencias Preventivas (`ALERTA_PREVENTIVA`):** Banner ámbar (`alert-warning`) separado y colapsado por defecto, mostrando el porcentaje del límite (`93% del NRD`) con botón `[Ver Detalles (13)]`, evitando alarma falsa a gerencia.
+      - **Alertas Críticas (`PELIGRO_NRD`):** Banner rojo (`alert-danger`) con tabla nativa AdminWrap (`table table-sm table-hover vm bg-white`) con las clases estándar de la aplicación, mostrando la modalidad, región anatómica, métrica, dosis vs NRD y porcentaje de exceso. Incluye paginación colapsable `[Ver Todas (11)] / [Ver Menos]` mostrando las 5 principales por defecto. Cero estilos inline inventados.
+      - **Advertencias Preventivas (`ALERTA_PREVENTIVA`):** Banner ámbar (`alert-warning`) con tabla nativa AdminWrap colapsada por defecto, mostrando el porcentaje del límite (`93% del NRD`) con botón `[Ver Detalles (13)]`.
       - **KPI Card Superaciones NRD:** Añadido subtítulo informativo que discrimina las advertencias preventivas.
   - **Verificaciones:**
     * Laravel Pint (`vendor\bin\pint.bat --test`) 100% passed ✅.
