@@ -1379,7 +1379,10 @@
                                     <span
                                         v-if="reg.es_rdsr"
                                         class="label label-info m-l-5"
+                                        data-toggle="tooltip"
+                                        data-placement="top"
                                         title="Objeto DICOM Radiation Dose Structured Report (RDSR PS3.16)"
+                                        style="cursor: help"
                                     >
                                         <i class="fa fa-certificate m-r-5"></i>RDSR
                                     </span>
@@ -1392,7 +1395,13 @@
                                     <small class="text-muted m-l-5">{{ reg.unidad_medida }}</small>
                                 </td>
                                 <td>
-                                    <code class="text-muted small" :title="reg.patient_id_hashed">
+                                    <code
+                                        class="text-muted small"
+                                        data-toggle="tooltip"
+                                        data-placement="top"
+                                        :title="`Identificador protegido HMAC-SHA256: ${reg.patient_id_hashed}`"
+                                        style="cursor: help"
+                                    >
                                         {{ reg.patient_id_hashed.substring(0, 10) }}...
                                     </code>
                                 </td>
