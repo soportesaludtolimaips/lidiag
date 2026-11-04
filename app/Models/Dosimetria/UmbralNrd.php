@@ -17,6 +17,7 @@ class UmbralNrd extends Model
         'sede_id',
         'modalidad',
         'tipo_metrica',
+        'region_anatomica',
         'valor_alerta',
         'valor_limite_nrd',
         'unidad_medida',

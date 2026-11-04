@@ -101,6 +101,7 @@ class DosimetriaEstadisticasSheet implements FromCollection, WithCharts, WithCol
             'Sede Hospitalaria',
             'Período (Mes)',
             'Modalidad',
+            'Región Anatómica',
             'Tipo Métrica',
             'Unidad',
             'Total Estudios',
@@ -125,6 +126,7 @@ class DosimetriaEstadisticasSheet implements FromCollection, WithCharts, WithCol
             $fila->nom_sede ?? '',
             $fila->mes_periodo ?? '',
             $fila->modalidad ?? '',
+            $fila->region_anatomica ?? 'GENERAL',
             $fila->tipo_metrica ?? '',
             $fila->unidad_medida ?? 'mGy',
             (int) ($fila->total_estudios ?? 0),
@@ -148,15 +150,16 @@ class DosimetriaEstadisticasSheet implements FromCollection, WithCharts, WithCol
             'A' => 28, // Sede
             'B' => 16, // Mes
             'C' => 14, // Modalidad
-            'D' => 16, // Tipo Métrica
-            'E' => 14, // Unidad
-            'F' => 16, // Total Estudios
-            'G' => 18, // Dosis Promedio
-            'H' => 16, // Dosis Mínima
-            'I' => 16, // Dosis Máxima
-            'J' => 22, // Límite NRD
-            'K' => 22, // Alerta Preventiva
-            'L' => 26, // Estado
+            'D' => 18, // Región Anatómica
+            'E' => 16, // Tipo Métrica
+            'F' => 14, // Unidad
+            'G' => 16, // Total Estudios
+            'H' => 18, // Dosis Promedio
+            'I' => 16, // Dosis Mínima
+            'J' => 16, // Dosis Máxima
+            'K' => 22, // Límite NRD
+            'L' => 22, // Alerta Preventiva
+            'M' => 26, // Estado
         ];
     }
 

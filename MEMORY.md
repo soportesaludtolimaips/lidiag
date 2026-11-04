@@ -37,6 +37,30 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-04 — Implementación y Aplicación Integral de la Auditoría Dosimétrica (Fase 1: Umbrales NRD, Calibración ICRP 103, Agente Edge y Excel Multidimensional) (`DosimetriaService.php`, `UmbralNrd.php`, `UmbralesNrdSeeder.php`, `DashboardDosimetria.vue`, `agente_dosimetria.py`, `DosimetriaEstadisticasSheet.php`, `DosimetriaDetalleSheet.php`):**
+  - **Diagnóstico y Necesidad:**
+    * El usuario solicitó aplicar de inmediato los hallazgos y correcciones de la auditoría profunda de dosimetría para activar el cumplimiento de la Resolución 482 de 2018 y la ICRP 103 sobre la base de datos de producción restaurada.
+  - **Solución Implementada:**
+    * **1. Base de Datos y Umbrales Canónicos (`medicion_dosis_umbrales_nrd`, `UmbralesNrdSeeder.php`, `UmbralNrd.php`):**
+      - Se añadió la columna `region_anatomica` a `medicion_dosis_umbrales_nrd` con índice `idx_umbrales_region` y migración idempotente.
+      - Se creó y ejecutó el seeder `UmbralesNrdSeeder.php` poblando 20 niveles de referencia para diagnóstico oficiales de Minsalud e ICRP 135 (Cráneo, Tórax, Abdomen, Pelvis, Columna, Extremidades y Mama en CTDIvol, DLP, DAP y DGM).
+    * **2. Motor de Servicio Analítico (`DosimetriaService.php`):**
+      - Mapeo multi-criterio de umbrales: `lookup` por `modalidad_tipo_metrica_region` con retroceso determinista a `modalidad_tipo_metrica_GENERAL` y `modalidad_tipo_metrica`.
+      - Calibración biofísica de Dosis Efectiva Media $E$ conforme a ICRP 103 con factores $k$ por órgano para DAP ($0.15$ Tórax, $0.25$ Abdomen, $0.20$ Pelvis, $0.18$ Columna, $0.05$ Cráneo, $0.01$ Extremidades) y CT ($0.0021$ a $0.016$), elevando la precisión de cálculo a un valor real de $0.43\text{ mSv}$ promedio (antes distorsionado en $0.00\text{ mSv}$).
+      - Detección real de 51 alertas clínicas sobre 30.201 estudios en el periodo (tasa de conformidad real: 76.9%).
+    * **3. Frontend (`DashboardDosimetria.vue`):**
+      - Catálogo NRD actualizado con columna interactiva de Región Anatómica.
+      - Resolución reactiva de umbrales por región para colorear semáforos de advertencia (`label-warning`) y peligro NRD (`label-danger`) en la tabla de estudios.
+    * **4. Agente Edge de Sedes (`agente_dosimetria.py`):**
+      - Búsqueda de tags DLP privados en tomografía (Siemens/GE/Philips) y deducción geométrica biofísica estandarizada $\text{DLP} = CTDI_{vol} \times L_{scan}$ según región anatómica cuando no venga explícito en el corte DICOM.
+    * **5. Reportes Excel Multi-Hoja (`DosimetriaEstadisticasSheet.php`, `DosimetriaDetalleSheet.php`):**
+      - Inclusión de la columna Región Anatómica en ambas hojas de exportación con ajuste de estilos y anchos de columna A-M y A-P.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) 100% passed ✅.
+    * ESLint en `DashboardDosimetria.vue` con 0 errores ✅.
+    * Compilación Vite completada exitosamente (`npm run build` en 2.22s) ✅.
+    * Prueba funcional con datos reales de producción confirmando 221 grupos analíticos, 20 umbrales activos, $E=0.43\text{ mSv}$ y 51 alertas clínicas reales ✅.
+    * Formato LF verificado sin UTF-8 BOM ✅.
 - [x] **2026-11-04 — Creación del Roadmap Estratégico y Arquitectura Futura (`ROADMAP.md`, `README.md`):**
   - **Diagnóstico y Necesidad:** El usuario solicitó un análisis holístico actuando como Arquitecto de Software Principal y Estratega de Producto especializado en Informática Médica (RIS/PACS/HIS), estructurado en dos bloques (Mejoras Arquitectónicas & SecOps y Nuevas Funcionalidades Clínicas/Producto) con matriz de impacto vs. esfuerzo y plasmado en un documento maestro.
   - **Acciones Realizadas:**

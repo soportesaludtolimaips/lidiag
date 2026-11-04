@@ -178,12 +178,29 @@ class DosimetriaService extends BaseService
             $fechaDesde = ! empty($filtros['fecha_desde']) ? Carbon::parse($filtros['fecha_desde'])->startOfDay() : Carbon::now()->subMonths(6)->startOfMonth();
             $fechaHasta = ! empty($filtros['fecha_hasta']) ? Carbon::parse($filtros['fecha_hasta'])->endOfDay() : Carbon::now()->endOfDay();
 
-            // 1. Cargar umbrales NRD regulatorios
-            $umbrales = UmbralNrd::where('estado', true)->get()->keyBy(function ($item) {
-                return "{$item->modalidad}_{$item->tipo_metrica}";
-            });
+            // 1. Cargar umbrales NRD regulatorios con soporte multidimensional (Modalidad + Métrica + Región)
+            $umbralesTodos = UmbralNrd::where('estado', true)->get();
+            $mapaUmbrales = [];
+            foreach ($umbralesTodos as $u) {
+                $regKey = ! empty($u->region_anatomica) ? "_{$u->region_anatomica}" : '';
+                $mapaUmbrales["{$u->modalidad}_{$u->tipo_metrica}{$regKey}"] = $u;
+                if (! isset($mapaUmbrales["{$u->modalidad}_{$u->tipo_metrica}"]) || $u->region_anatomica === 'GENERAL') {
+                    $mapaUmbrales["{$u->modalidad}_{$u->tipo_metrica}"] = $u;
+                }
+            }
 
-            // 2. Consulta agrupada por Sede, Modalidad y Mes
+            // 2. Consulta agrupada por Sede, Modalidad, Región y Mes
+            $sqlRegionCase = "CASE 
+                WHEN r.study_desc LIKE '%[CRANEO]%' THEN 'CRANEO'
+                WHEN r.study_desc LIKE '%[TORAX]%' THEN 'TORAX'
+                WHEN r.study_desc LIKE '%[ABDOMEN]%' THEN 'ABDOMEN'
+                WHEN r.study_desc LIKE '%[PELVIS]%' THEN 'PELVIS'
+                WHEN r.study_desc LIKE '%[COLUMNA]%' THEN 'COLUMNA'
+                WHEN r.study_desc LIKE '%[EXTREMIDADES]%' THEN 'EXTREMIDADES'
+                WHEN r.study_desc LIKE '%[MAMA]%' THEN 'MAMA'
+                ELSE 'GENERAL'
+            END";
+
             $query = DB::table('medicion_dosis_radiacion as r')
                 ->join('config_sedes as s', 's.id', '=', 'r.sede_id')
                 ->leftJoin('medicion_dosis_equipos_emisores as e', 'e.id', '=', 'r.equipo_emisor_id')
@@ -193,6 +210,7 @@ class DosimetriaService extends BaseService
                     's.nom_sede',
                     DB::raw("COALESCE(e.modalidad, 'OTRA') as modalidad"),
                     'r.tipo_metrica',
+                    DB::raw("{$sqlRegionCase} as region_anatomica"),
                     DB::raw("DATE_FORMAT(r.fecha_estudio, '%Y-%m') as mes_periodo"),
                     DB::raw('COUNT(*) as total_estudios'),
                     DB::raw('ROUND(AVG(r.valor_dosis), 2) as dosis_promedio'),
@@ -200,7 +218,7 @@ class DosimetriaService extends BaseService
                     DB::raw('ROUND(MIN(r.valor_dosis), 2) as dosis_minima'),
                     'r.unidad_medida'
                 )
-                ->groupBy('r.sede_id', 's.nom_sede', 'modalidad', 'r.tipo_metrica', 'mes_periodo', 'r.unidad_medida')
+                ->groupBy('r.sede_id', 's.nom_sede', 'modalidad', 'r.tipo_metrica', DB::raw($sqlRegionCase), 'mes_periodo', 'r.unidad_medida')
                 ->orderBy('mes_periodo', 'ASC');
 
             if ($sedeId) {
@@ -212,10 +230,13 @@ class DosimetriaService extends BaseService
             if ($tipoMetrica) {
                 $query->where('r.tipo_metrica', $tipoMetrica);
             }
+            if ($regionAnatomica && $regionAnatomica !== 'TODAS') {
+                $query->where('r.study_desc', 'like', "%[{$regionAnatomica}]%");
+            }
 
             $filas = $query->get();
 
-            // 3. Evaluar alertas de superación de NRD
+            // 3. Evaluar alertas de superación de NRD con discriminación anatómica
             $alertas = [];
             $seriesChart = [];
             $mesesSet = [];
@@ -225,8 +246,12 @@ class DosimetriaService extends BaseService
                 $mesesSet[$fila->mes_periodo] = true;
                 $sedesSet[$fila->sede_id] = $fila->nom_sede;
 
-                $nrdKey = "{$fila->modalidad}_{$fila->tipo_metrica}";
-                $umbral = $umbrales->get($nrdKey);
+                $regFila = $fila->region_anatomica ?? 'GENERAL';
+                $keyConRegion = "{$fila->modalidad}_{$fila->tipo_metrica}_{$regFila}";
+                $keyGeneral = "{$fila->modalidad}_{$fila->tipo_metrica}_GENERAL";
+                $keyBase = "{$fila->modalidad}_{$fila->tipo_metrica}";
+
+                $umbral = $mapaUmbrales[$keyConRegion] ?? $mapaUmbrales[$keyGeneral] ?? $mapaUmbrales[$keyBase] ?? null;
 
                 $superaNrd = false;
                 $superaAlerta = false;
@@ -253,14 +278,15 @@ class DosimetriaService extends BaseService
                         'nom_sede' => $fila->nom_sede,
                         'modalidad' => $fila->modalidad,
                         'tipo_metrica' => $fila->tipo_metrica,
+                        'region_anatomica' => $fila->region_anatomica,
                         'mes_periodo' => $fila->mes_periodo,
                         'dosis_promedio' => $fila->dosis_promedio,
                         'limite_nrd' => $limiteNrd,
                         'unidad_medida' => $fila->unidad_medida,
                         'gravedad' => $superaNrd ? 'PELIGRO_NRD' : 'ALERTA_PREVENTIVA',
                         'mensaje' => $superaNrd
-                            ? "Sede {$fila->nom_sede} superó el Nivel de Referencia ({$fila->dosis_promedio} >= {$limiteNrd} {$fila->unidad_medida}) en {$fila->modalidad} ({$fila->tipo_metrica})."
-                            : "Sede {$fila->nom_sede} en nivel de advertencia ({$fila->dosis_promedio} {$fila->unidad_medida}) para {$fila->modalidad}.",
+                            ? "Sede {$fila->nom_sede} superó el Nivel de Referencia ({$fila->dosis_promedio} >= {$limiteNrd} {$fila->unidad_medida}) en {$fila->modalidad} {$fila->region_anatomica} ({$fila->tipo_metrica})."
+                            : "Sede {$fila->nom_sede} en nivel de advertencia ({$fila->dosis_promedio} {$fila->unidad_medida}) para {$fila->modalidad} {$fila->region_anatomica}.",
                     ];
                 }
             }
@@ -316,6 +342,15 @@ class DosimetriaService extends BaseService
                 $region = self::clasificarRegionAnatomica($reg->study_desc, $reg->modalidad);
                 $reg->region_anatomica = $region;
                 $reg->es_rdsr = str_contains($reg->study_desc ?? '', '[RDSR]') || str_contains($reg->equipo_nombre ?? '', 'RDSR');
+
+                $keyConRegion = "{$reg->modalidad}_{$reg->tipo_metrica}_{$region}";
+                $keyGeneral = "{$reg->modalidad}_{$reg->tipo_metrica}_GENERAL";
+                $keyBase = "{$reg->modalidad}_{$reg->tipo_metrica}";
+                $umbralReg = $mapaUmbrales[$keyConRegion] ?? $mapaUmbrales[$keyGeneral] ?? $mapaUmbrales[$keyBase] ?? null;
+
+                $reg->limite_nrd = $umbralReg ? (float) $umbralReg->valor_limite_nrd : null;
+                $reg->valor_alerta = $umbralReg ? (float) $umbralReg->valor_alerta : null;
+
                 if (isset($conteoRegiones[$region])) {
                     $conteoRegiones[$region]++;
                 } else {
@@ -549,10 +584,35 @@ class DosimetriaService extends BaseService
                 ->when($modalidad, fn ($q) => $q->where('e.modalidad', $modalidad))
                 ->select(DB::raw("ROUND(AVG(
                     CASE 
-                        WHEN r.tipo_metrica = 'DLP' THEN r.valor_dosis * 0.015
-                        WHEN r.tipo_metrica = 'DAP' THEN r.valor_dosis * 0.001
-                        WHEN r.tipo_metrica = 'CTDIvol' THEN r.valor_dosis * 0.010
-                        ELSE r.valor_dosis * 0.005
+                        -- 1. Tomografía con DLP (mGy*cm -> mSv mediante coeficientes k de ICRP 103)
+                        WHEN r.tipo_metrica = 'DLP' AND r.study_desc LIKE '%[CRANEO]%' THEN r.valor_dosis * 0.0021
+                        WHEN r.tipo_metrica = 'DLP' AND r.study_desc LIKE '%[TORAX]%' THEN r.valor_dosis * 0.0140
+                        WHEN r.tipo_metrica = 'DLP' AND r.study_desc LIKE '%[ABDOMEN]%' THEN r.valor_dosis * 0.0150
+                        WHEN r.tipo_metrica = 'DLP' AND r.study_desc LIKE '%[PELVIS]%' THEN r.valor_dosis * 0.0150
+                        WHEN r.tipo_metrica = 'DLP' AND r.study_desc LIKE '%[COLUMNA]%' THEN r.valor_dosis * 0.0160
+                        WHEN r.tipo_metrica = 'DLP' THEN r.valor_dosis * 0.0150
+                        
+                        -- 2. Tomografía con CTDIvol (Estimación normalizada E = CTDIvol * L_aprox * k_DLP)
+                        WHEN r.tipo_metrica = 'CTDIvol' AND r.study_desc LIKE '%[CRANEO]%' THEN r.valor_dosis * 0.0315
+                        WHEN r.tipo_metrica = 'CTDIvol' AND r.study_desc LIKE '%[TORAX]%' THEN r.valor_dosis * 0.4200
+                        WHEN r.tipo_metrica = 'CTDIvol' AND r.study_desc LIKE '%[ABDOMEN]%' THEN r.valor_dosis * 0.5250
+                        WHEN r.tipo_metrica = 'CTDIvol' AND r.study_desc LIKE '%[PELVIS]%' THEN r.valor_dosis * 0.3750
+                        WHEN r.tipo_metrica = 'CTDIvol' AND r.study_desc LIKE '%[COLUMNA]%' THEN r.valor_dosis * 0.3200
+                        WHEN r.tipo_metrica = 'CTDIvol' THEN r.valor_dosis * 0.2500
+                        
+                        -- 3. Radiología Convencional y Digital con DAP (Gy*cm2 -> mSv mediante coeficientes ICRP 103)
+                        WHEN r.tipo_metrica = 'DAP' AND r.study_desc LIKE '%[TORAX]%' THEN r.valor_dosis * 0.1500
+                        WHEN r.tipo_metrica = 'DAP' AND r.study_desc LIKE '%[ABDOMEN]%' THEN r.valor_dosis * 0.2500
+                        WHEN r.tipo_metrica = 'DAP' AND r.study_desc LIKE '%[PELVIS]%' THEN r.valor_dosis * 0.2000
+                        WHEN r.tipo_metrica = 'DAP' AND r.study_desc LIKE '%[COLUMNA]%' THEN r.valor_dosis * 0.1800
+                        WHEN r.tipo_metrica = 'DAP' AND r.study_desc LIKE '%[CRANEO]%' THEN r.valor_dosis * 0.0500
+                        WHEN r.tipo_metrica = 'DAP' AND r.study_desc LIKE '%[EXTREMIDADES]%' THEN r.valor_dosis * 0.0100
+                        WHEN r.tipo_metrica = 'DAP' THEN r.valor_dosis * 0.1400
+                        
+                        -- 4. Mamografía Digital DGM (mGy glandular -> mSv ponderado)
+                        WHEN r.tipo_metrica = 'DGM' THEN r.valor_dosis * 0.1200
+                        
+                        ELSE r.valor_dosis * 0.0500
                     END
                 ), 2) as e_media"))
                 ->value('e_media') ?? '0.00';
@@ -569,7 +629,7 @@ class DosimetriaService extends BaseService
                 'eventos_timeline' => $eventosTimeline,
                 'distribucion_regiones' => $conteoRegiones,
                 'ultimos_registros' => $ultimosRegistros,
-                'umbrales_nrd' => $umbrales->values(),
+                'umbrales_nrd' => $umbralesTodos,
                 'sedes' => $sedesConEstado,
                 'periodo' => [
                     'desde' => $fechaDesde->format('Y-m-d'),
@@ -630,12 +690,29 @@ class DosimetriaService extends BaseService
             $nomSede = $sede ? $sede->nom_sede : "Sede #{$sedeId}";
         }
 
-        // 2. Cargar catálogo de umbrales NRD activos
-        $umbrales = UmbralNrd::where('estado', true)->get()->keyBy(function ($item) {
-            return "{$item->modalidad}_{$item->tipo_metrica}";
-        });
+        // 2. Cargar catálogo de umbrales NRD activos con mapeo multidimensional
+        $umbralesTodos = UmbralNrd::where('estado', true)->get();
+        $mapaUmbrales = [];
+        foreach ($umbralesTodos as $u) {
+            $regKey = ! empty($u->region_anatomica) ? "_{$u->region_anatomica}" : '';
+            $mapaUmbrales["{$u->modalidad}_{$u->tipo_metrica}{$regKey}"] = $u;
+            if (! isset($mapaUmbrales["{$u->modalidad}_{$u->tipo_metrica}"]) || $u->region_anatomica === 'GENERAL') {
+                $mapaUmbrales["{$u->modalidad}_{$u->tipo_metrica}"] = $u;
+            }
+        }
 
-        // 3. Consulta de Estadísticas Agrupadas por Sede, Mes, Modalidad y Métrica
+        $sqlRegionCase = "CASE 
+            WHEN r.study_desc LIKE '%[CRANEO]%' THEN 'CRANEO'
+            WHEN r.study_desc LIKE '%[TORAX]%' THEN 'TORAX'
+            WHEN r.study_desc LIKE '%[ABDOMEN]%' THEN 'ABDOMEN'
+            WHEN r.study_desc LIKE '%[PELVIS]%' THEN 'PELVIS'
+            WHEN r.study_desc LIKE '%[COLUMNA]%' THEN 'COLUMNA'
+            WHEN r.study_desc LIKE '%[EXTREMIDADES]%' THEN 'EXTREMIDADES'
+            WHEN r.study_desc LIKE '%[MAMA]%' THEN 'MAMA'
+            ELSE 'GENERAL'
+        END";
+
+        // 3. Consulta de Estadísticas Agrupadas por Sede, Mes, Modalidad, Región y Métrica
         $queryEstadisticas = DB::table('medicion_dosis_radiacion as r')
             ->join('config_sedes as s', 's.id', '=', 'r.sede_id')
             ->leftJoin('medicion_dosis_equipos_emisores as e', 'e.id', '=', 'r.equipo_emisor_id')
@@ -645,6 +722,7 @@ class DosimetriaService extends BaseService
                 's.nom_sede',
                 DB::raw("COALESCE(e.modalidad, 'OTRA') as modalidad"),
                 'r.tipo_metrica',
+                DB::raw("{$sqlRegionCase} as region_anatomica"),
                 DB::raw("DATE_FORMAT(r.fecha_estudio, '%Y-%m') as mes_periodo"),
                 DB::raw('COUNT(*) as total_estudios'),
                 DB::raw('ROUND(AVG(r.valor_dosis), 2) as dosis_promedio'),
@@ -652,7 +730,7 @@ class DosimetriaService extends BaseService
                 DB::raw('ROUND(MAX(r.valor_dosis), 2) as dosis_maxima'),
                 'r.unidad_medida'
             )
-            ->groupBy('r.sede_id', 's.nom_sede', 'modalidad', 'r.tipo_metrica', 'mes_periodo', 'r.unidad_medida')
+            ->groupBy('r.sede_id', 's.nom_sede', 'modalidad', 'r.tipo_metrica', DB::raw($sqlRegionCase), 'mes_periodo', 'r.unidad_medida')
             ->orderBy('s.nom_sede', 'ASC')
             ->orderBy('mes_periodo', 'DESC')
             ->orderBy('modalidad', 'ASC');
@@ -674,9 +752,13 @@ class DosimetriaService extends BaseService
         $totalAlertas = 0;
         $totalConformes = 0;
 
-        $estadisticasProcesadas = $filasEstadisticas->map(function ($fila) use ($umbrales, &$totalSuperaciones, &$totalAlertas, &$totalConformes) {
-            $nrdKey = "{$fila->modalidad}_{$fila->tipo_metrica}";
-            $umbral = $umbrales->get($nrdKey);
+        $estadisticasProcesadas = $filasEstadisticas->map(function ($fila) use ($mapaUmbrales, &$totalSuperaciones, &$totalAlertas, &$totalConformes) {
+            $regFila = $fila->region_anatomica ?? 'GENERAL';
+            $keyConRegion = "{$fila->modalidad}_{$fila->tipo_metrica}_{$regFila}";
+            $keyGeneral = "{$fila->modalidad}_{$fila->tipo_metrica}_GENERAL";
+            $keyBase = "{$fila->modalidad}_{$fila->tipo_metrica}";
+
+            $umbral = $mapaUmbrales[$keyConRegion] ?? $mapaUmbrales[$keyGeneral] ?? $mapaUmbrales[$keyBase] ?? null;
 
             $limiteNrd = $umbral ? (float) $umbral->valor_limite_nrd : null;
             $valorAlerta = $umbral ? (float) $umbral->valor_alerta : null;
@@ -734,9 +816,15 @@ class DosimetriaService extends BaseService
         $filasDetalles = $queryDetalles->get();
 
         // 6. Mapeo y contraste de registros individuales
-        $detallesProcesados = $filasDetalles->map(function ($reg) use ($umbrales) {
-            $nrdKey = "{$reg->modalidad}_{$reg->tipo_metrica}";
-            $umbral = $umbrales->get($nrdKey);
+        $detallesProcesados = $filasDetalles->map(function ($reg) use ($mapaUmbrales) {
+            $region = self::clasificarRegionAnatomica($reg->study_desc, $reg->modalidad);
+            $reg->region_anatomica = $region;
+
+            $keyConRegion = "{$reg->modalidad}_{$reg->tipo_metrica}_{$region}";
+            $keyGeneral = "{$reg->modalidad}_{$reg->tipo_metrica}_GENERAL";
+            $keyBase = "{$reg->modalidad}_{$reg->tipo_metrica}";
+
+            $umbral = $mapaUmbrales[$keyConRegion] ?? $mapaUmbrales[$keyGeneral] ?? $mapaUmbrales[$keyBase] ?? null;
 
             $limiteNrd = $umbral ? (float) $umbral->valor_limite_nrd : null;
             $valorAlerta = $umbral ? (float) $umbral->valor_alerta : null;

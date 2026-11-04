@@ -765,6 +765,7 @@
                                     <tr>
                                         <th>Modalidad</th>
                                         <th>Métrica</th>
+                                        <th>Región Anatómica</th>
                                         <th>Nivel Alerta (Preventivo)</th>
                                         <th>Límite NRD Regulatorio</th>
                                         <th>Unidad</th>
@@ -780,6 +781,11 @@
                                         </td>
                                         <td>
                                             <strong>{{ u.tipo_metrica }}</strong>
+                                        </td>
+                                        <td>
+                                            <span class="label label-info">{{
+                                                u.region_anatomica || "GENERAL"
+                                            }}</span>
                                         </td>
                                         <td class="text-warning font-bold">{{ u.valor_alerta }}</td>
                                         <td class="text-danger font-bold font-14">
@@ -884,11 +890,15 @@ const ultimosRegistros = ref([]);
 const umbralesNrd = ref([]);
 const sedes = ref([]);
 
-// Mapa reactivo de umbrales para lookup rápido
+// Mapa reactivo de umbrales para lookup rápido multidimensional (Modalidad + Métrica + Región)
 const mapaUmbrales = computed(() => {
     const map = {};
     umbralesNrd.value.forEach((u) => {
-        map[`${u.modalidad}_${u.tipo_metrica}`] = u;
+        const reg = u.region_anatomica ? `_${u.region_anatomica}` : "";
+        map[`${u.modalidad}_${u.tipo_metrica}${reg}`] = u;
+        if (!map[`${u.modalidad}_${u.tipo_metrica}`] || u.region_anatomica === "GENERAL") {
+            map[`${u.modalidad}_${u.tipo_metrica}`] = u;
+        }
     });
     return map;
 });
@@ -981,9 +991,23 @@ function getRegionBadgeClass(region) {
     }
 }
 
+// Resuelve el umbral correspondiente con discriminación anatómica
+function getUmbralParaRegistro(reg) {
+    if (!reg) return null;
+    const keyConRegion = `${reg.modalidad}_${reg.tipo_metrica}_${reg.region_anatomica}`;
+    if (mapaUmbrales.value[keyConRegion]) {
+        return mapaUmbrales.value[keyConRegion];
+    }
+    const keyGeneral = `${reg.modalidad}_${reg.tipo_metrica}_GENERAL`;
+    if (mapaUmbrales.value[keyGeneral]) {
+        return mapaUmbrales.value[keyGeneral];
+    }
+    return mapaUmbrales.value[`${reg.modalidad}_${reg.tipo_metrica}`] || null;
+}
+
 // Helper de estado NRD para filas individuales
 function getEstadoNrdClass(reg) {
-    const umbral = mapaUmbrales.value[`${reg.modalidad}_${reg.tipo_metrica}`];
+    const umbral = getUmbralParaRegistro(reg);
     if (!umbral) return "label label-rounded label-success";
 
     const valor = parseFloat(reg.valor_dosis);
@@ -997,7 +1021,7 @@ function getEstadoNrdClass(reg) {
 }
 
 function getEstadoNrdLabel(reg) {
-    const umbral = mapaUmbrales.value[`${reg.modalidad}_${reg.tipo_metrica}`];
+    const umbral = getUmbralParaRegistro(reg);
     if (!umbral) return "NORMAL";
 
     const valor = parseFloat(reg.valor_dosis);

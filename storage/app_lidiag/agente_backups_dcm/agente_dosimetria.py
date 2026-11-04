@@ -828,29 +828,49 @@ def extraer_metricas_dosis(dcm_path: str, modalidad: str) -> Optional[List[Dict[
         if ctdivol is None and (0x0018, 0x9345) in ds:
             ctdivol = ds[0x0018, 0x9345].value
 
-        # Tag de producto dosis-área / longitud
+        # Tag de producto dosis-longitud (DLP en mGy*cm)
         dlp = None
-        if hasattr(ds, "ImageAndFluoroscopyAreaDoseProduct"):
-            dlp = ds.ImageAndFluoroscopyAreaDoseProduct
 
-        # Tags privados frecuentes de CT (GE, Siemens, Philips)
-        if ctdivol is None:
-            for elem in ds.elements():
-                try:
-                    desc = getattr(elem, "name", None)
-                    if not desc and hasattr(elem, "tag"):
-                        try:
-                            desc = pydicom.datadict.keyword_for_tag(elem.tag)
-                        except Exception:
-                            desc = ""
-                    desc = str(desc or "").lower()
-                    if "ctdi" in desc:
-                        val_num = getattr(elem, "value", None)
-                        if isinstance(val_num, (int, float)):
-                            ctdivol = val_num
-                            break
-                except Exception:
-                    continue
+        # Tags privados y elementos frecuentes de CT (GE, Siemens, Philips, Canon)
+        for elem in ds.elements():
+            try:
+                desc = getattr(elem, "name", None)
+                if not desc and hasattr(elem, "tag"):
+                    try:
+                        desc = pydicom.datadict.keyword_for_tag(elem.tag)
+                    except Exception:
+                        desc = ""
+                desc = str(desc or "").lower()
+                if ctdivol is None and "ctdi" in desc:
+                    val_num = getattr(elem, "value", None)
+                    if isinstance(val_num, (int, float)) and val_num > 0:
+                        ctdivol = val_num
+                if dlp is None and ("dlp" in desc or "dose length product" in desc):
+                    val_num = getattr(elem, "value", None)
+                    if isinstance(val_num, (int, float)) and val_num > 0:
+                        dlp = val_num
+            except Exception:
+                continue
+
+        # Si no existe tag explícito de DLP pero sí CTDIvol,
+        # deducir DLP biofísico según longitud de escaneo de la región (DLP = CTDIvol * L_scan)
+        if dlp is None and ctdivol is not None:
+            try:
+                c_val = float(ctdivol)
+                if c_val >= 1.0:
+                    study_desc_upper = str(getattr(ds, "StudyDescription", "") or "").upper()
+                    region_est = clasificar_region_anatomica(study_desc_upper, "CT")
+                    longitudes_scan = {
+                        "CRANEO": 15.0,     # ~15 cm (base a vértice)
+                        "TORAX": 30.0,      # ~30 cm (ápices a bases pulmonares)
+                        "ABDOMEN": 30.0,    # ~30 cm (cúpulas a crestas ilíacas)
+                        "PELVIS": 25.0,     # ~25 cm (crestas a sínfisis púbica)
+                        "COLUMNA": 20.0,    # ~20 cm (segmento lumbar/cervical)
+                    }
+                    l_scan = longitudes_scan.get(region_est, 25.0)
+                    dlp = c_val * l_scan
+            except Exception:
+                pass
 
         if ctdivol is not None:
             try:

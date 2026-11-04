@@ -98,6 +98,7 @@ class DosimetriaDetalleSheet implements FromCollection, WithColumnWidths, WithCu
             'Fecha y Hora Estudio',
             'Accession No.',
             'Descripción del Procedimiento',
+            'Región Anatómica',
             'Métrica',
             'Dosis Medida',
             'Unidad',
@@ -131,6 +132,7 @@ class DosimetriaDetalleSheet implements FromCollection, WithColumnWidths, WithCu
             $fechaFormateada,
             $reg->accession_no ?? 'N/A',
             $reg->study_desc ?? 'Sin descripción',
+            $reg->region_anatomica ?? 'GENERAL',
             $reg->tipo_metrica ?? '',
             (float) ($reg->valor_dosis ?? 0),
             $reg->unidad_medida ?? 'mGy',
@@ -157,13 +159,14 @@ class DosimetriaDetalleSheet implements FromCollection, WithColumnWidths, WithCu
             'F' => 20, // Fecha Estudio
             'G' => 18, // Accession No
             'H' => 36, // Estudio Desc
-            'I' => 14, // Métrica
-            'J' => 16, // Valor Dosis
-            'K' => 12, // Unidad
-            'L' => 14, // Límite NRD
-            'M' => 16, // Evaluación
-            'N' => 32, // Patient ID Hash
-            'O' => 38, // Study UID
+            'I' => 18, // Región Anatómica
+            'J' => 14, // Métrica
+            'K' => 16, // Valor Dosis
+            'L' => 12, // Unidad
+            'M' => 14, // Límite NRD
+            'N' => 16, // Evaluación
+            'O' => 32, // Patient ID Hash
+            'P' => 38, // Study UID
         ];
     }
 
@@ -177,7 +180,7 @@ class DosimetriaDetalleSheet implements FromCollection, WithColumnWidths, WithCu
     {
         // 1. Título Corporativo Principal
         $sheet->setCellValue('A1', 'SALUD TOLIMA IPS - REGISTRO DETALLADO DE EXPOSICIÓN A RADIACIÓN IONIZANTE');
-        $sheet->mergeCells('A1:O1');
+        $sheet->mergeCells('A1:P1');
         $sheet->getStyle('A1')->applyFromArray([
             'font' => [
                 'bold' => true,
@@ -199,7 +202,7 @@ class DosimetriaDetalleSheet implements FromCollection, WithColumnWidths, WithCu
         // 2. Subtítulo con Metadatos de Trazabilidad
         $metaTexto = "Trazabilidad Clínica Individual | Sede: {$this->filtros['nom_sede']} | Total Evaluaciones: {$this->totalFilas} | Período: {$this->filtros['fecha_desde']} al {$this->filtros['fecha_hasta']} | Protección PHI: ISO/IEC 27001";
         $sheet->setCellValue('A2', $metaTexto);
-        $sheet->mergeCells('A2:O2');
+        $sheet->mergeCells('A2:P2');
         $sheet->getStyle('A2')->applyFromArray([
             'font' => [
                 'bold' => false,
@@ -219,7 +222,7 @@ class DosimetriaDetalleSheet implements FromCollection, WithColumnWidths, WithCu
         $sheet->getRowDimension(2)->setRowHeight(20);
 
         // 3. Encabezados de la Tabla de Datos (Fila 4)
-        $sheet->getStyle('A4:O4')->applyFromArray([
+        $sheet->getStyle('A4:P4')->applyFromArray([
             'font' => [
                 'bold' => true,
                 'color' => ['rgb' => 'FFFFFF'],
@@ -248,36 +251,36 @@ class DosimetriaDetalleSheet implements FromCollection, WithColumnWidths, WithCu
             $sheet->getStyle("B5:E{$filaFin}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
             $sheet->getStyle("F5:G{$filaFin}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle("H5:H{$filaFin}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
-            $sheet->getStyle("I5:I{$filaFin}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("J5:L{$filaFin}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-            $sheet->getStyle("M5:M{$filaFin}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("N5:O{$filaFin}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+            $sheet->getStyle("I5:J{$filaFin}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("K5:M{$filaFin}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $sheet->getStyle("N5:N{$filaFin}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("O5:P{$filaFin}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
 
             // Formato de números decimales de dosis (4 decimales para precisión en Gy*cm2 y mGy)
-            $sheet->getStyle("J5:L{$filaFin}")->getNumberFormat()->setFormatCode('#,##0.0000');
+            $sheet->getStyle("K5:M{$filaFin}")->getNumberFormat()->setFormatCode('#,##0.0000');
 
             // Bordes finos
-            $sheet->getStyle("A5:O{$filaFin}")->applyFromArray([
+            $sheet->getStyle("A5:P{$filaFin}")->applyFromArray([
                 'borders' => [
                     'allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'E0E0E0']],
                 ],
             ]);
 
-            // Resaltado de evaluación condicional en columna M
+            // Resaltado de evaluación condicional en columna N
             for ($r = 5; $r <= $filaFin; $r++) {
-                $eval = (string) $sheet->getCell("M{$r}")->getValue();
+                $eval = (string) $sheet->getCell("N{$r}")->getValue();
                 if ($eval === 'SUPERA NRD') {
-                    $sheet->getStyle("M{$r}")->applyFromArray([
+                    $sheet->getStyle("N{$r}")->applyFromArray([
                         'font' => ['bold' => true, 'color' => ['rgb' => '721C24']],
                         'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F8D7DA']],
                     ]);
                 } elseif ($eval === 'ALERTA') {
-                    $sheet->getStyle("M{$r}")->applyFromArray([
+                    $sheet->getStyle("N{$r}")->applyFromArray([
                         'font' => ['bold' => true, 'color' => ['rgb' => '856404']],
                         'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFF3CD']],
                     ]);
                 } else {
-                    $sheet->getStyle("M{$r}")->applyFromArray([
+                    $sheet->getStyle("N{$r}")->applyFromArray([
                         'font' => ['bold' => true, 'color' => ['rgb' => '155724']],
                         'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'D4EDDA']],
                     ]);
