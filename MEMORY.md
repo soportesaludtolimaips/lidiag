@@ -70,6 +70,17 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * `vendor\bin\pint.bat --test config/sanctum.php` 100% passed ✅.
     * Verificación de base de datos (`personal_access_tokens`): los tokens existentes de las sedes 1, 3 y 4 volvieron a ser válidos inmediatamente sin necesidad de reconfigurarlos ✅.
 
+- [x] **2026-11-04 — Tooltip para Monitor de Latidos Edge y Clarificación Semántica de Grupos NRD (`DashboardDosimetria.vue`):**
+  - **Diagnóstico y Solicitud del Usuario:**
+    * El usuario solicitó agregar el tooltip informativo al *"Monitor de Latidos Edge (Dead Man's Switch)"* y clarificar la terminología de "grupos" en el banner de superaciones críticas NRD.
+  - **Solución Implementada:**
+    * Se integró el icono de ayuda `<i class="fa fa-info-circle text-info"></i>` en el título del Dead Man's Switch, detallando la supervisión de latidos periódicos, detección temprana de cortes de red/energía/PACS local conforme a **ISO/IEC 27001 (Control A.12)** y la **Resolución 3100 de 2019**.
+    * Se clarificó la redacción del banner de alertas críticas: *"Se detectaron X grupos de procedimientos (consolidados por sede, modalidad y región) cuyo promedio supera el límite regulatorio NRD"*, explicando que la norma evalúa cohortes estadísticas institucionales y no estudios aislados (Res. 482 / ICRP 135).
+  - **Verificaciones:**
+    * ESLint validado con 0 errores (`npx eslint`) ✅.
+    * Compilación Vite exitosa (`npm run build` en 1.28s) ✅.
+    * Formato LF verificado sin UTF-8 BOM ✅.
+
 - [x] **2026-11-04 — Integración de Tooltips Clínicos, Funcionales y Normativos en Todas las Secciones del Dashboard de Dosimetría (`DashboardDosimetria.vue`):**
   - **Diagnóstico y Solicitud del Usuario:**
     * El usuario solicitó: *"Hizo falta agregar la info a: Superación Crítica de Niveles de Referencia (NRD), Advertencias Preventivas de Radiación (>80% del NRD), Equipos Emisores y Consolas, Auditoría y Eventos Clínicos, Últimas Mediciones de Dosis Recibidas (Edge). A estos agreguémosle una descripción, su funcionalidad para que los usuarios comprendan la estadística"*.

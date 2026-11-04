@@ -193,6 +193,13 @@
                         <div>
                             <h6 class="card-title m-b-0 font-medium">
                                 Monitor de Latidos Edge (Dead Man's Switch)
+                                <i
+                                    class="fa fa-info-circle text-info font-14 m-l-5"
+                                    data-toggle="tooltip"
+                                    data-placement="top"
+                                    :title="tooltipsSecciones.deadMansSwitch"
+                                    style="cursor: help"
+                                ></i>
                             </h6>
                             <small class="text-muted">
                                 {{ kpis.sedes_online || 0 }} de
@@ -245,8 +252,8 @@
                     </h4>
                     <p class="font-14 text-danger m-b-0 m-t-5">
                         Resolución 482 de 2018 (ICRP 135) — Se detectaron
-                        {{ alertasCriticas.length }} grupos con promedios por encima del límite
-                        regulatorio:
+                        {{ alertasCriticas.length }} grupos de procedimientos (consolidados por
+                        sede, modalidad y región) cuyo promedio supera el límite regulatorio NRD:
                     </p>
                 </div>
                 <div v-if="alertasCriticas.length > 5" class="m-t-10 m-sm-t-0">
@@ -1216,6 +1223,8 @@ const tooltipsSecciones = {
         "DESCRIPCIÓN:\nLínea de tiempo cronológica e inmutable que registra eventos dosimétricos, superaciones de umbrales y derivas técnicas.\n\nFUNCIONALIDAD:\nProporciona trazabilidad legal y clínica en tiempo real para auditorías de entes de control y comités hospitalarios de seguridad del paciente.\n\nNORMATIVIDAD:\nNorma ISO/IEC 27001 (Seguridad de la Información), Ley 1581 de 2012 y Resolución 3100 de 2019 (Habilitación en Salud).",
     ultimasMediciones:
         "DESCRIPCIÓN:\nMuestreo en tiempo real de los últimos 50 estudios capturados por los agentes Edge locales de cada hospital desde los metadatos de las imágenes DICOM.\n\nFUNCIONALIDAD:\nPermite auditar a nivel individual los valores de radiación (CTDIvol, DLP, DAP, DGM) asociados al identificador anónimo del paciente (HMAC-SHA256) y su semáforo NRD.\n\nNORMATIVIDAD:\nResolución 482 de 2018 (Artículo 23: Registro de Dosis Individual) y Estándar DICOM PS3.16 (Radiation Dose Structured Reports - RDSR).",
+    deadMansSwitch:
+        "DESCRIPCIÓN:\nMecanismo de hombre muerto (Dead Man's Switch) que supervisa la recepción periódica de latidos de vida (heartbeats) emitidos por los agentes de cada hospital.\n\nFUNCIONALIDAD:\nDetecta caídas de red, cortes eléctricos, bloqueos de firewall o fallas en el PACS de la sede, alertando si un hospital supera 60 minutos sin emitir telemetría.\n\nNORMATIVIDAD:\nEstándar de Disponibilidad y Resiliencia ISO/IEC 27001 (Control A.12) y Resolución 3100 de 2019 de Habilitación en Salud.",
 };
 const tooltipsGraficas = tooltipsSecciones;
 
