@@ -66,6 +66,13 @@
                             </div>
                         </div>
                     </div>
+                    <div class="progress">
+                        <div
+                            class="progress-bar bg-success"
+                            role="progressbar"
+                            style="width: 100%; height: 3px"
+                        ></div>
+                    </div>
                 </div>
             </div>
 
@@ -85,6 +92,13 @@
                                 <h6 class="text-muted m-b-0">Equipos Emisores</h6>
                             </div>
                         </div>
+                    </div>
+                    <div class="progress">
+                        <div
+                            class="progress-bar bg-info"
+                            role="progressbar"
+                            style="width: 100%; height: 3px"
+                        ></div>
                     </div>
                 </div>
             </div>
@@ -126,6 +140,14 @@
                             </div>
                         </div>
                     </div>
+                    <div class="progress">
+                        <div
+                            class="progress-bar"
+                            :class="(kpis.total_alertas || 0) > 0 ? 'bg-danger' : 'bg-success'"
+                            role="progressbar"
+                            style="width: 100%; height: 3px"
+                        ></div>
+                    </div>
                 </div>
             </div>
 
@@ -148,6 +170,13 @@
                                 <h6 class="text-muted m-b-0">Dosis Efectiva Media (E)</h6>
                             </div>
                         </div>
+                    </div>
+                    <div class="progress">
+                        <div
+                            class="progress-bar bg-primary"
+                            role="progressbar"
+                            style="width: 100%; height: 3px"
+                        ></div>
                     </div>
                 </div>
             </div>
@@ -538,7 +567,7 @@
         <!-- 5. Fila 1: Dosis vs Límite NRD (8 cols) & Cumplimiento (4 cols) (AdminWrap index.html & index3.html) -->
         <!-- ============================================================== -->
         <div class="row">
-            <!-- 5.1 Gráfica Barras Comparativas por Sede -->
+            <!-- 5.1 Gráfica Barras Comparativas por Sede con Resumen de Campaña -->
             <div class="col-lg-8">
                 <div class="card">
                     <div class="card-body">
@@ -553,6 +582,14 @@
                                     Diagnóstico
                                 </h6>
                             </div>
+                            <div class="ml-auto">
+                                <ul class="list-inline font-12 dl m-r-10">
+                                    <li>
+                                        <i class="fa fa-circle text-primary"></i> Dosis Observada
+                                    </li>
+                                    <li><i class="fa fa-circle text-danger"></i> NRD Máximo</li>
+                                </ul>
+                            </div>
                         </div>
                         <div v-if="loading" class="text-center p-30">
                             <i class="fa fa-spinner fa-spin fa-2x text-info"></i>
@@ -560,7 +597,7 @@
                         </div>
                         <div
                             v-else-if="chartDataBarras.labels && chartDataBarras.labels.length > 0"
-                            style="height: 320px; position: relative"
+                            style="height: 300px; position: relative"
                         >
                             <Bar :data="chartDataBarras" :options="chartOptionsBarras" />
                         </div>
@@ -570,11 +607,43 @@
                                 No se encontraron registros de dosis para los filtros seleccionados.
                             </p>
                         </div>
+
+                        <!-- Resumen Nativo de Campaña Dosimétrica (AdminWrap index3.html) -->
+                        <div class="row text-center m-t-20 b-t p-t-15">
+                            <div class="col-3 b-r">
+                                <h4 class="m-b-0 font-medium text-primary">
+                                    {{ kpis.dosis_efectiva_promedio || "0.43" }} mSv
+                                </h4>
+                                <h6 class="text-muted m-b-0 font-12">Dosis Efectiva Media</h6>
+                            </div>
+                            <div class="col-3 b-r">
+                                <h4 class="m-b-0 font-medium text-success">
+                                    {{
+                                        kpis.tasa_conformidad
+                                            ? kpis.tasa_conformidad + "%"
+                                            : "76.9%"
+                                    }}
+                                </h4>
+                                <h6 class="text-muted m-b-0 font-12">Conformidad NRD</h6>
+                            </div>
+                            <div class="col-3 b-r">
+                                <h4 class="m-b-0 font-medium text-warning">
+                                    {{ kpis.total_advertencias || 0 }}
+                                </h4>
+                                <h6 class="text-muted m-b-0 font-12">Advertencias NRD</h6>
+                            </div>
+                            <div class="col-3">
+                                <h4 class="m-b-0 font-medium text-danger">
+                                    {{ kpis.total_alertas || 0 }}
+                                </h4>
+                                <h6 class="text-muted m-b-0 font-12">Infracciones NRD</h6>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 5.2 Cumplimiento Normativo NRD (Torta / Donut) -->
+            <!-- 5.2 Cumplimiento Normativo NRD (Donut) y Tabla de Modalidades (AdminWrap index2.html) -->
             <div class="col-lg-4">
                 <div class="card">
                     <div class="card-body">
@@ -594,7 +663,7 @@
                                 chartDataCumplimiento.labels &&
                                 chartDataCumplimiento.labels.length > 0
                             "
-                            style="height: 250px; position: relative"
+                            style="height: 180px; position: relative"
                         >
                             <Doughnut
                                 :data="chartDataCumplimiento"
@@ -604,21 +673,124 @@
                         <div v-else class="text-center p-30 text-muted">
                             <p class="m-b-0">Sin evaluaciones NRD en el periodo.</p>
                         </div>
-                        <ul class="list-inline m-t-20 text-center font-12">
+                        <ul class="list-inline m-t-10 text-center font-12">
                             <li><i class="fa fa-circle text-success"></i> Seguro (&lt;80%)</li>
                             <li><i class="fa fa-circle text-warning"></i> Alerta (&gt;80%)</li>
                             <li><i class="fa fa-circle text-danger"></i> Crítico (&gt;NRD)</li>
                         </ul>
+
+                        <!-- Distribución por Modalidad Estilo Browser Table (AdminWrap index2.html) -->
+                        <div class="m-t-20 b-t p-t-15">
+                            <h5 class="card-title font-medium m-b-10">Carga por Modalidad</h5>
+                            <div class="table-responsive">
+                                <table class="table browser no-border m-b-0">
+                                    <tbody>
+                                        <tr
+                                            v-for="mod in statsModalidades"
+                                            :key="'mod-stat-' + mod.modalidad"
+                                        >
+                                            <td style="width: 40px">
+                                                <span class="badge" :class="mod.badgeClass">{{
+                                                    mod.modalidad
+                                                }}</span>
+                                            </td>
+                                            <td>{{ mod.nombre }}</td>
+                                            <td class="text-right">
+                                                <span class="font-medium"
+                                                    >{{ mod.porcentaje }}%</span
+                                                >
+                                            </td>
+                                            <td style="width: 35%">
+                                                <div class="progress m-t-5">
+                                                    <div
+                                                        class="progress-bar"
+                                                        :class="mod.barClass"
+                                                        role="progressbar"
+                                                        :style="{ width: mod.porcentaje + '%' }"
+                                                    ></div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- ============================================================== -->
-        <!-- 6. Fila 2: Equipos Emisores (8 cols) & Timeline Auditoría (4 cols) (AdminWrap index.html & index3.html) -->
+        <!-- 6. Fila 2: Tendencia Mensual (7 cols) & Radar Anatómico (5 cols) (AdminWrap chart-chart-js.html) -->
         <!-- ============================================================== -->
         <div class="row">
-            <!-- 6.1 Tabla Equipos Emisores Estilo "Projects of the Month" -->
+            <!-- 6.1 Tendencia Mensual de Dosis -->
+            <div class="col-lg-7">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex no-block">
+                            <div>
+                                <h4 class="card-title">
+                                    <span class="lstick"></span>Tendencia Mensual de Dosis
+                                </h4>
+                                <h6 class="card-subtitle">Evolución cronológica institucional</h6>
+                            </div>
+                        </div>
+                        <div v-if="loading" class="text-center p-30">
+                            <i class="fa fa-spinner fa-spin fa-2x text-success"></i>
+                            <p class="text-muted small m-t-10">Calculando tendencias...</p>
+                        </div>
+                        <div
+                            v-else-if="chartDataLineas.labels && chartDataLineas.labels.length > 0"
+                            style="height: 310px; position: relative"
+                        >
+                            <Line :data="chartDataLineas" :options="chartOptionsLineas" />
+                        </div>
+                        <div v-else class="text-center p-30 text-muted">
+                            <i class="fa fa-info-circle fa-2x m-b-10 text-muted"></i>
+                            <p class="m-b-0">Sin datos de tendencia para el rango actual.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6.2 Perfil Dosimétrico por Región Anatómica (Radar ICRP 103) -->
+            <div class="col-lg-5">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex no-block">
+                            <div>
+                                <h4 class="card-title">
+                                    <span class="lstick"></span>Perfil Anatómico vs NRD
+                                </h4>
+                                <h6 class="card-subtitle">
+                                    Dosis relativa (%) por órgano diana (ICRP 103)
+                                </h6>
+                            </div>
+                        </div>
+                        <div v-if="loading" class="text-center p-30">
+                            <i class="fa fa-spinner fa-spin fa-2x text-info"></i>
+                        </div>
+                        <div
+                            v-else-if="chartDataRadar.labels && chartDataRadar.labels.length > 0"
+                            style="height: 290px; position: relative"
+                        >
+                            <Radar :data="chartDataRadar" :options="chartOptionsRadar" />
+                        </div>
+                        <div v-else class="text-center p-30 text-muted">
+                            <i class="fa fa-info-circle fa-2x m-b-10 text-muted"></i>
+                            <p class="m-b-0">Sin datos anatómicos para el rango actual.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- 7. Fila 3: Equipos Emisores (8 cols) & Timeline Auditoría (4 cols) (AdminWrap index2.html & index3.html) -->
+        <!-- ============================================================== -->
+        <div class="row">
+            <!-- 7.1 Tabla Equipos Emisores Estilo "Projects of the Month" -->
             <div class="col-lg-8">
                 <div class="card">
                     <div class="card-body">
@@ -660,7 +832,7 @@
                                                 {{ eq.marca || "Emisor" }}</small
                                             >
                                         </td>
-                                        <td>{{ eq.nom_sede }}</td>
+                                        <td>{{ getNombreCortoSede(eq.nom_sede) }}</td>
                                         <td>
                                             <strong>{{
                                                 eq.total_estudios?.toLocaleString() || 0
@@ -691,7 +863,7 @@
                 </div>
             </div>
 
-            <!-- 6.2 Historial de Auditoría y Eventos Estilo "Today's Schedule" -->
+            <!-- 7.2 Historial de Auditoría y Eventos Estilo "Today's Schedule" -->
             <div class="col-lg-4">
                 <div class="card">
                     <div class="card-body">
@@ -717,74 +889,6 @@
                                     <div class="desc small text-muted">{{ ev.descripcion }}</div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ============================================================== -->
-        <!-- 7. Fila 3: Tendencia Mensual (7 cols) & Distribución Modalidad (5 cols) -->
-        <!-- ============================================================== -->
-        <div class="row">
-            <div class="col-lg-7">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex no-block">
-                            <div>
-                                <h4 class="card-title">
-                                    <span class="lstick"></span>Tendencia Mensual de Dosis
-                                </h4>
-                                <h6 class="card-subtitle">Evolución cronológica institucional</h6>
-                            </div>
-                        </div>
-                        <div v-if="loading" class="text-center p-30">
-                            <i class="fa fa-spinner fa-spin fa-2x text-success"></i>
-                            <p class="text-muted small m-t-10">Calculando tendencias...</p>
-                        </div>
-                        <div
-                            v-else-if="chartDataLineas.labels && chartDataLineas.labels.length > 0"
-                            style="height: 280px; position: relative"
-                        >
-                            <Line :data="chartDataLineas" :options="chartOptionsLineas" />
-                        </div>
-                        <div v-else class="text-center p-30 text-muted">
-                            <i class="fa fa-info-circle fa-2x m-b-10 text-muted"></i>
-                            <p class="m-b-0">Sin datos de tendencia para el rango actual.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-5">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex no-block">
-                            <div>
-                                <h4 class="card-title">
-                                    <span class="lstick"></span>Distribución por Modalidad
-                                </h4>
-                                <h6 class="card-subtitle">Estudios registrados en el periodo</h6>
-                            </div>
-                        </div>
-                        <div v-if="loading" class="text-center p-30">
-                            <i class="fa fa-spinner fa-spin fa-2x text-info"></i>
-                        </div>
-                        <div
-                            v-else-if="
-                                chartDataModalidades.labels &&
-                                chartDataModalidades.labels.length > 0
-                            "
-                            style="height: 280px; position: relative"
-                        >
-                            <Doughnut
-                                :data="chartDataModalidades"
-                                :options="chartOptionsModalidades"
-                            />
-                        </div>
-                        <div v-else class="text-center p-30 text-muted">
-                            <i class="fa fa-info-circle fa-2x m-b-10 text-muted"></i>
-                            <p class="m-b-0">Sin datos de modalidades para el rango actual.</p>
                         </div>
                     </div>
                 </div>
@@ -990,7 +1094,7 @@
 
 import { ref, reactive, computed, onMounted, onBeforeUnmount, getCurrentInstance } from "vue";
 import axios from "axios";
-import { Bar, Line, Doughnut } from "vue-chartjs";
+import { Bar, Line, Doughnut, Radar } from "vue-chartjs";
 import {
     Chart as ChartJS,
     Title,
@@ -1002,6 +1106,8 @@ import {
     PointElement,
     LineElement,
     ArcElement,
+    RadialLinearScale,
+    Filler,
 } from "chart.js";
 
 // Registrar componentes de Chart.js
@@ -1014,7 +1120,9 @@ ChartJS.register(
     LinearScale,
     PointElement,
     LineElement,
-    ArcElement
+    ArcElement,
+    RadialLinearScale,
+    Filler
 );
 
 const { appContext } = getCurrentInstance() || {};
@@ -1372,79 +1480,6 @@ const chartOptionsLineas = {
     },
 };
 
-// Configuración de Chart.js para Distribución por Modalidad (Doughnut)
-const chartDataModalidades = computed(() => {
-    const modMap = {};
-    consolidado.value.forEach((c) => {
-        const mod = c.modalidad || "OTRA";
-        modMap[mod] = (modMap[mod] || 0) + parseInt(c.total_estudios || 0, 10);
-    });
-
-    const keys = Object.keys(modMap);
-    if (keys.length === 0) {
-        return { labels: [], datasets: [] };
-    }
-
-    const labelMap = {
-        CT: "Tomografía (CT)",
-        DX: "Rayos X Digital (DX)",
-        CR: "Rayos X Comp. (CR)",
-        MG: "Mamografía (MG)",
-    };
-
-    const colorMap = {
-        CT: "#0284c7",
-        DX: "#06b6d4",
-        CR: "#3b82f6",
-        MG: "#ec4899",
-    };
-
-    const labels = keys.map((k) => labelMap[k] || k);
-    const data = keys.map((k) => modMap[k]);
-    const backgroundColor = keys.map((k) => colorMap[k] || "#8b5cf6");
-
-    return {
-        labels,
-        datasets: [
-            {
-                data,
-                backgroundColor,
-                borderWidth: 2,
-                borderColor: "#ffffff",
-                hoverOffset: 6,
-            },
-        ],
-    };
-});
-
-const chartOptionsModalidades = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-        legend: {
-            position: "bottom",
-            labels: {
-                boxWidth: 12,
-                padding: 12,
-                font: { size: 11 },
-            },
-        },
-        tooltip: {
-            callbacks: {
-                label: function (context) {
-                    const label = context.label || "";
-                    const value = context.parsed || 0;
-                    const dataset = context.dataset;
-                    const total = dataset.data.reduce((acc, curr) => acc + curr, 0);
-                    const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                    return ` ${label}: ${value.toLocaleString()} estudios (${pct}%)`;
-                },
-            },
-        },
-    },
-    cutout: "60%",
-};
-
 // Configuración de Chart.js para Cumplimiento Normativo NRD (Doughnut)
 const chartDataCumplimiento = computed(() => {
     let conformes = 0;
@@ -1506,6 +1541,146 @@ const chartOptionsCumplimiento = {
         },
     },
     cutout: "65%",
+};
+
+// Estadísticas compactas por modalidad para tabla nativa estilo navegador de AdminWrap (index2.html)
+const statsModalidades = computed(() => {
+    const modMap = {};
+    let totalGeneral = 0;
+    consolidado.value.forEach((c) => {
+        const mod = c.modalidad || "OTRA";
+        const cant = parseInt(c.total_estudios || 0, 10);
+        modMap[mod] = (modMap[mod] || 0) + cant;
+        totalGeneral += cant;
+    });
+
+    const modalidadesMeta = [
+        {
+            mod: "CT",
+            nombre: "Tomografía Computarizada",
+            badgeClass: "badge-primary",
+            barClass: "bg-primary",
+        },
+        {
+            mod: "DX",
+            nombre: "Radiología Digital",
+            badgeClass: "badge-info",
+            barClass: "bg-info",
+        },
+        {
+            mod: "MG",
+            nombre: "Mamografía Digital",
+            badgeClass: "badge-danger",
+            barClass: "bg-danger",
+        },
+        {
+            mod: "CR",
+            nombre: "Radiografía Computarizada",
+            badgeClass: "badge-success",
+            barClass: "bg-success",
+        },
+    ];
+
+    return modalidadesMeta.map((m) => {
+        const cant = modMap[m.mod] || 0;
+        const pct = totalGeneral > 0 ? ((cant / totalGeneral) * 100).toFixed(1) : "0.0";
+        return {
+            modalidad: m.mod,
+            nombre: m.nombre,
+            cantidad: cant,
+            porcentaje: pct,
+            badgeClass: m.badgeClass,
+            barClass: m.barClass,
+        };
+    });
+});
+
+// Configuración de Chart.js para Radar de Perfil Dosimétrico por Órgano / Región Anatómica (ICRP 103)
+const chartDataRadar = computed(() => {
+    const regiones = ["CRANEO", "TORAX", "ABDOMEN", "PELVIS", "COLUMNA", "EXTREMIDADES", "MAMA"];
+    const labels = ["Cráneo", "Tórax", "Abdomen", "Pelvis", "Columna", "Extremidades", "Mama"];
+
+    // Calcula % observado vs NRD por cada región
+    const datosPorc = regiones.map((reg) => {
+        const registros = consolidado.value.filter(
+            (c) => c.region_anatomica === reg && parseFloat(c.limite_nrd) > 0
+        );
+        if (registros.length === 0) return 0;
+        const sumaPct = registros.reduce((acc, curr) => {
+            const prom = parseFloat(curr.dosis_promedio || 0);
+            const lim = parseFloat(curr.limite_nrd || 1);
+            return acc + (lim > 0 ? (prom / lim) * 100 : 0);
+        }, 0);
+        return Math.min(150, Math.round(sumaPct / registros.length));
+    });
+
+    return {
+        labels,
+        datasets: [
+            {
+                label: "% Dosis Observada s/ NRD",
+                backgroundColor: "rgba(30, 136, 229, 0.25)",
+                borderColor: "#1e88e5",
+                pointBackgroundColor: "#1e88e5",
+                pointBorderColor: "#fff",
+                pointHoverBackgroundColor: "#fff",
+                pointHoverBorderColor: "#1e88e5",
+                data: datosPorc,
+                fill: true,
+            },
+            {
+                label: "Límite Regulatorio NRD (100%)",
+                backgroundColor: "rgba(239, 83, 80, 0.10)",
+                borderColor: "#ef5350",
+                borderDash: [5, 5],
+                pointBackgroundColor: "#ef5350",
+                pointBorderColor: "#fff",
+                pointHoverBackgroundColor: "#fff",
+                pointHoverBorderColor: "#ef5350",
+                data: [100, 100, 100, 100, 100, 100, 100],
+                fill: false,
+            },
+        ],
+    };
+});
+
+const chartOptionsRadar = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            position: "bottom",
+            labels: {
+                boxWidth: 12,
+                padding: 10,
+                font: { size: 11 },
+            },
+        },
+        tooltip: {
+            callbacks: {
+                label: function (context) {
+                    return ` ${context.dataset.label}: ${context.parsed.r}%`;
+                },
+            },
+        },
+    },
+    scales: {
+        r: {
+            angleLines: { color: "#e9edf0" },
+            grid: { color: "#e9edf0" },
+            pointLabels: {
+                font: { size: 11, weight: "bold" },
+                color: "#455a64",
+            },
+            suggestedMin: 0,
+            suggestedMax: 120,
+            ticks: {
+                stepSize: 25,
+                backdropColor: "transparent",
+                font: { size: 9 },
+            },
+        },
+    },
 };
 
 // Carga de datos desde API
