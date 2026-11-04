@@ -1281,6 +1281,46 @@
                             </div>
                         </div>
 
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div
+                                    class="p-2 rounded border border-danger d-flex align-items-center justify-content-between"
+                                    style="background-color: #fff5f5; border: 1px solid #f5c2c7"
+                                >
+                                    <div class="d-flex align-items-center">
+                                        <i
+                                            class="fa fa-exclamation-triangle fa-2x text-danger mr-3"
+                                        ></i>
+                                        <div>
+                                            <h6 class="mb-0 text-danger font-weight-bold">
+                                                Hallazgo Crítico en Urgencias / UCI
+                                            </h6>
+                                            <small class="text-muted">
+                                                Escala a prioridad máxima y emite alerta inmediata a
+                                                Telegram asistencial.
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="custom-control custom-checkbox custom-control-inline m-0"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            id="check_es_critico_leer"
+                                            v-model="registro.es_critico"
+                                            class="custom-control-input"
+                                        />
+                                        <label
+                                            class="custom-control-label text-danger font-weight-bold"
+                                            for="check_es_critico_leer"
+                                        >
+                                            Marcar Crítico
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="form-actions mt-3">
                             <button
                                 type="button"
@@ -1460,6 +1500,7 @@ const soportesHC = ref([]);
 const tituloModal = ref("Nuevo registro");
 const registro = ref({
     estudio_producto_id: 0,
+    es_critico: false,
     lectura: "",
     fec_estudio: "",
     accession_no: "",
@@ -1741,6 +1782,7 @@ async function guardarRegistro() {
         const res = await axios.post("/api/estudio-leerEstudio", {
             estudio_producto_id: registro.value.estudio_producto_id,
             lectura: registro.value.lectura,
+            es_critico: Boolean(registro.value.es_critico),
         });
 
         if (res.status >= 200 && res.status < 300) {
@@ -2004,6 +2046,9 @@ async function mostrarRegistro(data = {}) {
     registro.value.accession_no = data.accession_no;
     registro.value.study_desc = data.study_desc;
     registro.value.observaciones = data.observaciones;
+    registro.value.es_critico = Boolean(
+        data.observaciones?.includes("HALLAZGO CRÍTICO") || data.prioridad_id === 1
+    );
     registro.value.motivo_examen = data.motivo_examen;
     registro.value.num_docu = data.num_docu;
     registro.value.nom_pacien = data.nom_pacien;
@@ -2066,6 +2111,7 @@ function establecerSede() {
 function limpiar() {
     tituloModal.value = "";
     id.value = 0;
+    registro.value.es_critico = false;
     registro.value.estudio_producto_id = "";
     registro.value.fec_estudio = "";
     registro.value.accession_no = "";

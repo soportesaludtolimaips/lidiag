@@ -37,6 +37,46 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-04 — Rebalanceo y Optimización del Ancho de Columnas en Tabla de Transcripción (`transcribirEstudioComponent.vue`):**
+  - **Diagnóstico y Causa Raíz:**
+    * En `transcribirEstudioComponent.vue`, las cabeceras `Lectura`, `Medico` y `Paciente` tenían estilos inline `width="50%"` heredados (`50% + 50% + 50% = 150%`), lo que causaba que la columna `Lectura` (que solo muestra una fecha y hora corta) acaparara la mitad de la pantalla, dejando vacíos gigantescos y comprimiendo excesivamente columnas esenciales como `Sede` (apilada en 4 líneas), `Toma`, `Asignación` y `Quien Asigno`.
+  - **Solución Implementada:**
+    * **Eliminación de Anchos Artificiales `50%`:** Se suprimieron todos los atributos `width="50%"` del `<thead>`.
+    * **Distribución Proporcional de Anchos:**
+      - Columna `P` (Prioridad): `35px` centrada.
+      - Columna `Sede`: `140px` con texto destacado en negrita.
+      - Columnas de fechas (`Toma`, `Lectura`, `Asignación`): `110px` con `text-nowrap` y alineación vertical limpia para evitar que las fechas se partan en renglones.
+      - Columna `Quien Asignó`: `130px`.
+      - Columna `Médico`: `150px`.
+      - Columna `Paciente`: `170px` con tipografía jerárquica (nombre arriba en negrita y documento con ícono abajo).
+      - Columna `Detalle`: `160px` con badges e información de atención, accession y descripción clínica.
+      - Columna `Producto`: `160px` en negrita.
+      - Columna `Acciones`: `80px` centrada.
+    * **Integración en DataTables:** En `safeInitDataTable`, se configuró `autoWidth: false` y `columnDefs` con anchos definidos y deshabilitación de ordenamiento en columnas no ordenables (prioridad y acciones).
+  - **Verificaciones:**
+    * ESLint validado sin errores ni advertencias (`npx eslint`) ✅.
+    * Compilación Vite completada exitosamente (`npm run build` en 1.27s) ✅.
+    * Formato LF verificado sin BOM ✅.
+- [x] **2026-11-04 — Flexibilización de Filtros de Búsqueda en Transcripción de Estudios (`transcribirEstudioComponent.vue`, `EstudioQueryService.php`):**
+  - **Diagnóstico y Necesidad:**
+    * El módulo de transcribir estudios prellenaba automáticamente las fechas de inicio y fin con el primer y último día del mes actual (`dayjs().startOf('month')` y `dayjs().endOf('month')`). Esto ocultaba estudios pendientes de meses anteriores y obligaba a limpiar o ajustar fechas manualmente para buscar pacientes por número de documento o nombre.
+    * En el backend, la consulta (`applyTranscripcionFilters`) requería obligatoriamente ambas fechas simultáneas para aplicar cualquier filtro temporal (`!empty(bus_fech_ini) && !empty(bus_fecha_fin)`), ignorando búsquedas donde solo se especificara una fecha de inicio o una fecha de fin.
+  - **Solución Implementada:**
+    * **Filtros por Defecto Vacíos (`transcribirEstudioComponent.vue`):**
+      - Se eliminaron las fechas por defecto `fechaDefectoIni` y `fechaDefectoFin`, inicializando `bus_fech_ini: ""` y `bus_fecha_fin: ""` en blanco.
+      - En `btnLimpiar()`, se normalizó el reseteo de fechas a vacío `""` (antes forzaba el inicio del año y fecha actual).
+      - En `listarPendientesTrascribir()`, se envían valores limpios con trim o `null` si están vacíos.
+      - Se retiró la importación no utilizada de `dayjs` corrigiendo advertencias de ESLint.
+    * **Consulta Flexible Multi-Criterio (`EstudioQueryService.php`):**
+      - Se adaptó la cláusula de fechas: si se envían ambas, aplica `whereBetween`; si solo se envía fecha de inicio, filtra `>= $inicio`; si solo se envía fecha de fin, filtra `<= $fin`.
+      - Si las fechas están vacías, la consulta no restringe por rango temporal y permite listar todos los pendientes de la sede o filtrar por cualquiera de los otros criterios (médico, asignador, documento/nombre).
+      - Se flexibilizó el buscador de texto (`bus_nom_num_docu`) para admitir coincidencias parciales (`LIKE %search%`) sobre número de documento, nombre de paciente, número de accession (`accession_no`) y número de atención (`atencion`).
+  - **Verificaciones:**
+    * Laravel Pint validado al 100% passed (`vendor\bin\pint.bat --test`) ✅.
+    * ESLint validado con 0 errores y 0 advertencias (`npx eslint`) ✅.
+    * Compilación Vite completada exitosamente (`npm run build` en 1.49s) ✅.
+    * Pruebas de consulta con sede sola, fecha inicio sola, fecha fin sola, rango y sin fechas ejecutadas con éxito ✅.
+    * Formato LF verificado sin BOM ✅.
 - [x] **2026-11-04 — Soporte de Alto Volumen (>15.000 estudios/mes) y Cargas Ilimitadas en Agente de Dosimetría:**
   - **Diagnóstico y Necesidad:**
     * Sedes hospitalarias de alta complejidad procesan más de 15.000 estudios mensuales. El límite por defecto de 200 truncaba las cargas masivas anuales y los administradores requerían la capacidad de realizar importaciones históricas completas sin límite artificial.

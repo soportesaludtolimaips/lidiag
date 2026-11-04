@@ -17,6 +17,7 @@ use App\Models\Worklist\WorklistOrden;
 use App\Services\BaseService;
 use App\Services\Interfaces\SAHITranscibirService;
 use App\Services\Liquidacion\LiquidacionService;
+use App\Services\Telegram\TelegramService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -194,7 +195,7 @@ class EstudioService extends BaseService
      *
      * @date 2026-07-14
      */
-    public function leerEstudio(int $estudioProductoId, string $lectura): array
+    public function leerEstudio(int $estudioProductoId, string $lectura, bool $esCritico = false): array
     {
         // Validación de reserva: otro usuario con el estudio abierto bloquea el guardado.
         $conflicto = $this->lockService->verificar('lectura', $this->lockService->claveLectura($estudioProductoId));
@@ -203,7 +204,10 @@ class EstudioService extends BaseService
         }
 
         try {
-            return DB::transaction(function () use ($estudioProductoId, $lectura) {
+            $estudioRef = null;
+            $itemRef = null;
+
+            $response = DB::transaction(function () use ($estudioProductoId, $lectura, $esCritico, &$estudioRef, &$itemRef) {
                 $item = EstudioProducto::lockForUpdate()->findOrFail($estudioProductoId);
 
                 $estudio = $item->estudio;
@@ -224,10 +228,21 @@ class EstudioService extends BaseService
                 $item->fechor_lectura = Carbon::now();
                 $item->save();
 
+                if ($esCritico) {
+                    $estudio->prioridad_id = 1;
+                    if (! str_contains($estudio->observaciones ?? '', 'HALLAZGO CRÍTICO')) {
+                        $estudio->observaciones = trim('[HALLAZGO CRÍTICO] '.($estudio->observaciones ?? ''));
+                    }
+                    $estudio->save();
+                }
+
+                $estudioRef = $estudio;
+                $itemRef = $item;
+
                 AuditLogger::log(
-                    'lectura_estudio',
+                    $esCritico ? 'hallazgo_critico' : 'lectura_estudio',
                     $item,
-                    "Lectura médica registrada para producto de estudio #{$item->id} (Estudio #{$estudio->id}) por médico: ".(Auth::user()?->name ?? ('ID: '.Auth::id()))
+                    ($esCritico ? '[HALLAZGO CRÍTICO] ' : '')."Lectura médica registrada para producto de estudio #{$item->id} (Estudio #{$estudio->id}) por médico: ".(Auth::user()?->name ?? ('ID: '.Auth::id()))
                 );
 
                 // Guardado exitoso: se libera la reserva del médico.
@@ -241,6 +256,12 @@ class EstudioService extends BaseService
 
                 return $this->updated(null, 'La lectura se realizo correctamente.');
             });
+
+            if ($esCritico && $estudioRef && $itemRef && ($response['success'] ?? false)) {
+                $this->notificarHallazgoCriticoTelegram($estudioRef, $itemRef);
+            }
+
+            return $response;
         } catch (\Throwable $e) {
             Log::error('Error al leer estudio: '.$e->getMessage());
 
@@ -421,10 +442,19 @@ class EstudioService extends BaseService
                 $producto->visto = 1;
                 $producto->save();
 
+                $esCritico = ! empty($data['es_critico']);
+                if ($esCritico && $estudio) {
+                    $estudio->prioridad_id = 1;
+                    if (! str_contains($estudio->observaciones ?? '', 'HALLAZGO CRÍTICO')) {
+                        $estudio->observaciones = trim('[HALLAZGO CRÍTICO] '.($estudio->observaciones ?? ''));
+                    }
+                    $estudio->save();
+                }
+
                 AuditLogger::log(
-                    'transcripcion_estudio',
+                    $esCritico ? 'hallazgo_critico' : 'transcripcion_estudio',
                     $producto,
-                    "Transcripción clínica registrada para producto de estudio #{$producto->id} (Estudio #{$producto->estudio_id}) por transcriptor: ".(Auth::user()?->name ?? ('ID: '.Auth::id()))
+                    ($esCritico ? '[HALLAZGO CRÍTICO] ' : '')."Transcripción clínica registrada para producto de estudio #{$producto->id} (Estudio #{$producto->estudio_id}) por transcriptor: ".(Auth::user()?->name ?? ('ID: '.Auth::id()))
                 );
 
                 if (! empty($data['destino_estudio']) && $data['destino_estudio'] === self::DESTINO_TELE_RADIOLOGIA && $estudio) {
@@ -441,6 +471,7 @@ class EstudioService extends BaseService
                     'interface_software' => $sede->interface_software,
                     'cod_cups' => $producto->cod_cups,
                     'lectura' => $producto->lectura,
+                    'es_critico' => $esCritico,
                 ], 'La transcripción se guardó correctamente.');
             });
 
@@ -543,6 +574,62 @@ class EstudioService extends BaseService
             }
         } catch (\Throwable $e) {
             Log::warning('Error al enviar al portal de pacientes post-transcripción: '.$e->getMessage());
+        }
+
+        // 3. Notificación de Hallazgo Crítico en Urgencias vía Telegram
+        if (! empty($info['es_critico']) && ! empty($info['producto_id'])) {
+            try {
+                $producto = EstudioProducto::with(['estudio.paciente', 'estudio.sede'])->find($info['producto_id']);
+                if ($producto && $producto->estudio) {
+                    $this->notificarHallazgoCriticoTelegram($producto->estudio, $producto, $data['nombres_medico'] ?? null);
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Error notificando hallazgo crítico post-transcripción: '.$e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * Envía una alerta de hallazgo crítico a través del bot institucional de Telegram.
+     *
+     * @param  Estudio  $estudio  Instancia del estudio priorizado
+     * @param  EstudioProducto  $producto  Producto de estudio asociado
+     * @param  string|null  $medicoNombre  Nombre del médico radiólogo firmante
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-03
+     */
+    private function notificarHallazgoCriticoTelegram(Estudio $estudio, EstudioProducto $producto, ?string $medicoNombre = null): void
+    {
+        try {
+            $telegramService = app(TelegramService::class);
+            $allowedChats = config('telegram.allowed_chat_ids', []);
+            if (empty($allowedChats)) {
+                return;
+            }
+
+            $sede = $estudio->sede ? $estudio->sede->nom_sede : 'Sede Principal';
+            $paciente = $estudio->paciente;
+            $pacienteNombre = $paciente ? $paciente->nombres : 'N/A';
+            $doc = $paciente ? ($paciente->num_docu ?? 'N/A') : 'N/A';
+            $estudioNombre = $producto->nom_produc ?: ($estudio->study_desc ?: 'Estudio Radiológico');
+            $medico = $medicoNombre ?: (Auth::user()?->name ?? 'Médico Radiólogo');
+            $fecha = Carbon::now()->format('d/m/Y H:i');
+
+            $mensaje = "🚨 <b>ALERTA: HALLAZGO CRÍTICO EN URGENCIAS</b> 🚨\n\n"
+                ."🏥 <b>Sede:</b> {$sede}\n"
+                ."👤 <b>Paciente:</b> {$pacienteNombre} (Doc: {$doc})\n"
+                ."📋 <b>Estudio:</b> {$estudioNombre}\n"
+                ."👨‍⚕️ <b>Radiólogo:</b> {$medico}\n"
+                ."⏰ <b>Fecha y Hora:</b> {$fecha}\n\n"
+                ."⚠️ <i>El estudio fue priorizado a nivel MÁXIMO (Urgencias / UCI). Se requiere valoración clínica inmediata del paciente.</i>";
+
+            foreach ($allowedChats as $chatId) {
+                $telegramService->sendMessage($chatId, $mensaje);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Error enviando alerta de hallazgo crítico por Telegram: '.$e->getMessage());
         }
     }
 

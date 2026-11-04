@@ -57,6 +57,7 @@ class GuardarTranscripcionRequest extends FormRequest
             'fechor_lectura' => 'nullable|date',
             'fec_lectura' => 'nullable|date',
             'fechor_trascrito' => 'nullable|date',
+            'es_critico' => 'sometimes|boolean',
             // Datos del médico para generar la plantilla PDF
             'nombres_medico' => 'nullable|string|max:255',
             'reg_medico' => 'nullable|string|max:100',

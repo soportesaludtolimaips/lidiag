@@ -87,6 +87,41 @@ class WhatsAppFlowService
 
             $this->logMensaje($conv, 'paciente', $tipoMensaje, $mensaje ?: null, $mediaPath);
 
+            // Interceptación de botones interactivos de recordatorio de citas
+            if (str_starts_with($mensajeLower, 'cita_confirmar_')) {
+                $citaId = (int) str_replace('cita_confirmar_', '', $mensajeLower);
+                $cita = AgendaCita::with(['paciente', 'sede'])->find($citaId);
+                if ($cita) {
+                    $cita->update([
+                        'estado' => 'confirmada',
+                        'recordatorio_24h_enviado' => true,
+                    ]);
+                    $fecha = $cita->fecha_hora_inicio ? $cita->fecha_hora_inicio->format('d/m/Y') : '';
+                    $hora = $cita->fecha_hora_inicio ? $cita->fecha_hora_inicio->format('H:i') : '';
+                    $sede = $cita->sede?->nom_sede ?? 'Sede principal';
+
+                    $resp = $this->text("✅ ¡Excelente! Su cita para el *{$fecha}* a las *{$hora}* en *{$sede}* ha sido *CONFIRMADA* exitosamente.\n\nLe recordamos presentarse con 15 minutos de anticipación y su documento de identidad original.");
+                    $this->logMensaje($conv, 'bot', 'text', $resp['text']);
+
+                    return $resp;
+                }
+            }
+
+            if (str_starts_with($mensajeLower, 'cita_cancelar_')) {
+                $citaId = (int) str_replace('cita_cancelar_', '', $mensajeLower);
+                $cita = AgendaCita::find($citaId);
+                if ($cita) {
+                    $cita->update([
+                        'estado' => 'cancelada',
+                        'motivo_rechazo' => 'Cancelada por el paciente vía botón interactivo WhatsApp',
+                    ]);
+                    $resp = $this->text("❌ Su cita ha sido *CANCELADA* según su solicitud.\n\nSi desea agendar una nueva cita en el futuro, escriba *hola* en este chat para iniciar el asistente.");
+                    $this->logMensaje($conv, 'bot', 'text', $resp['text']);
+
+                    return $resp;
+                }
+            }
+
             $navCommands = ['0', 'menu', 'menú', 'atras', 'volver', 'atrás', 'hola', 'hi', 'inicio'];
 
             if (in_array($mensajeLower, $navCommands, true)) {
@@ -1534,13 +1569,16 @@ class WhatsAppFlowService
         }
 
         $mensajeR .= self::SEPARADOR;
-        $mensajeR .= "¿*Desea enviar la solicitud?*\n\n";
-        $mensajeR .= "• *1* o *Si* — Confirmar y enviar\n";
-        $mensajeR .= "• *0* o *No* — Cancelar\n";
-        $mensajeR .= "• *menu* — Reiniciar\n";
-        $mensajeR .= "• *atras* — Volver a documentos";
 
-        return $this->text($mensajeR);
+        return [
+            'type' => 'button',
+            'body' => $mensajeR."¿Desea enviar y confirmar su solicitud de cita?",
+            'buttons' => [
+                ['id' => 'btn_confirmar_solicitud', 'title' => 'Confirmar Cita'],
+                ['id' => 'btn_cancelar_solicitud', 'title' => 'Cancelar'],
+            ],
+            'footer' => 'O responda 1 para confirmar / 0 para cancelar',
+        ];
     }
 
     /**
@@ -1563,8 +1601,8 @@ class WhatsAppFlowService
 
         $respuesta = trim(mb_strtolower($respuesta));
 
-        if (! in_array($respuesta, ['1', 'si', 'sí', 'confirmar', 'enviar'], true)) {
-            if (in_array($respuesta, ['0', 'no', 'cancelar'], true)) {
+        if (! in_array($respuesta, ['1', 'si', 'sí', 'confirmar', 'enviar', 'btn_confirmar', 'btn_confirmar_solicitud'], true)) {
+            if (in_array($respuesta, ['0', 'no', 'cancelar', 'btn_cancelar', 'btn_cancelar_solicitud'], true)) {
                 $this->resetearConversacion($conv);
                 $this->whatsAppService->enviarMensaje($conv->telefono, "❌ Solicitud cancelada. Puede iniciar de nuevo cuando desee.");
 

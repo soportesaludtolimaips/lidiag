@@ -46,6 +46,7 @@ use App\Http\Controllers\Auth\PasswordChangeController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Configuracion\ConfigSedeController;
 use App\Http\Controllers\Liquidacion\LiquidacionController;
+use App\Http\Controllers\Publico\VerificacionInformeController;
 
 Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])
     ->name('password.reset')
@@ -397,6 +398,12 @@ Route::view('/liquidacion', 'modulos.liquidacion.liquidacion')
 Route::view('/productividad', 'modulos.liquidacion.productividad')
     ->name('productividad.ver')
     ->middleware(['auth', 'permission:liquidacion.index']);
+
+/**
+ * Verificación Pública de Firma Digital de Informes Médicos (QR / Token)
+ */
+Route::get('/validar-informe/{token}', [VerificacionInformeController::class, 'validar'])
+    ->name('informe.validar');
 
 require __DIR__.'/files.php';
 

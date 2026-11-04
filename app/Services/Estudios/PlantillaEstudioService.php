@@ -3,6 +3,7 @@
 namespace App\Services\Estudios;
 
 use App\Helpers\PdfConverterHelper;
+use App\Helpers\QrCodeHelper;
 use App\Models\Configuracion\ConfigSede;
 use App\Services\BaseService;
 use Carbon\Carbon;
@@ -81,6 +82,24 @@ class PlantillaEstudioService extends BaseService
             $textRun->addText($line, $isBold ? ['bold' => true] : []);
             $textRun->addTextBreak();
         }
+
+        // Generación de Token y URL de Verificación Digital Pública
+        $productoId = (int) ($data['estudio_producto_id'] ?? 0);
+        $signature = substr(hash_hmac('sha256', "lidiag_estudio_{$productoId}", (string) config('app.key')), 0, 16);
+        $tokenPayload = json_encode(['p' => $productoId, 's' => $signature]);
+        $token = strtr(base64_encode($tokenPayload ?: ''), '+/', '-_');
+        $token = rtrim($token, '=');
+        $urlValidacion = url("/validar-informe/{$token}");
+        $timestampFirma = Carbon::now()->format('d/m/Y H:i:s');
+
+        // Pie de firma digital dentro del cuerpo del informe
+        $textRun->addTextBreak();
+        $textRun->addText('_________________________________________________________________________________', ['color' => 'CCCCCC', 'size' => 7]);
+        $textRun->addTextBreak();
+        $textRun->addText('DOCUMENTO FIRMADO DIGITALMENTE — RESOLUCIÓN 1995 DE 1999 Y LEY 527 DE 1999', ['bold' => true, 'size' => 8, 'color' => '334155']);
+        $textRun->addTextBreak();
+        $textRun->addText("Certificación Digital: {$timestampFirma} • Verifique autenticidad en: {$urlValidacion}", ['size' => 8, 'color' => '0284C7']);
+
         $template->setComplexValue('lectura', $textRun);
 
         $template->setValue('nom_sede', $data['nom_sede'] ?? '');
@@ -89,6 +108,26 @@ class PlantillaEstudioService extends BaseService
         $template->setValue('nombres_medico', $data['nombres_medico'] ?? '');
         $template->setValue('reg_medico', $data['reg_medico'] ?? '');
         $template->setValue('num_docu_medico', $data['num_docu_medico'] ?? '');
+        $template->setValue('url_validacion', $urlValidacion);
+        $template->setValue('timestamp_firma', $timestampFirma);
+        $template->setValue('token_validacion', $token);
+
+        // Generar código QR PNG temporal para incrustar en plantillas que posean ${qr_validacion}
+        $qrTempPath = storage_path("app/reporte_lecturas/qr_{$productoId}_".time().'.png');
+        $qrGenerado = QrCodeHelper::generatePng($urlValidacion, $qrTempPath, 5, 2);
+
+        if ($qrGenerado && file_exists($qrTempPath)) {
+            try {
+                $template->setImageValue('qr_validacion', [
+                    'path' => $qrTempPath,
+                    'width' => 75,
+                    'height' => 75,
+                    'ratio' => false,
+                ]);
+            } catch (\Throwable $e) {
+                // Etiqueta opcional en plantilla Word
+            }
+        }
 
         if (! empty($data['firma_medico'])) {
             $firmaPath = storage_path('app/'.$data['firma_medico']);
@@ -105,6 +144,10 @@ class PlantillaEstudioService extends BaseService
         $nomArchivo = trim(($data['estudio_producto_id'] ?? 'temp').'-'.($data['num_docu'] ?? '0').'-'.$safePaciente);
         $outputDocx = storage_path('app/reporte_lecturas/'.$nomArchivo.'.docx');
         $template->saveAs($outputDocx);
+
+        if ($qrGenerado && file_exists($qrTempPath)) {
+            @unlink($qrTempPath);
+        }
 
         $converted = $this->convertDocxToPdf($nomArchivo);
         if (! $converted) {

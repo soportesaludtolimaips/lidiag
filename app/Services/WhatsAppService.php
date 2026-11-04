@@ -158,14 +158,32 @@ class WhatsAppService
         $hora = $cita->fecha_hora_inicio->format('H:i');
         $sede = $cita->sede?->nom_sede ?? 'Sede principal';
 
-        $mensaje = "⏰ *Recordatorio de Cita*\n\n";
-        $mensaje .= "Su cita está programada para mañana.\n\n";
-        $mensaje .= "📅 *Fecha:* {$fecha}\n";
-        $mensaje .= "🕐 *Hora:* {$hora}\n";
-        $mensaje .= "🏥 *Sede:* {$sede}\n\n";
-        $mensaje .= "Si necesita reprogramar, comuníquese con nosotros.";
+        $mensaje = "⏰ *Recordatorio de Cita*\n\n"
+            ."Su cita está programada para mañana.\n\n"
+            ."📅 *Fecha:* {$fecha}\n"
+            ."🕐 *Hora:* {$hora}\n"
+            ."🏥 *Sede:* {$sede}\n\n"
+            ."Por favor seleccione una opción para gestionar su asistencia:";
 
-        return $this->enviarMensaje($cita->paciente?->cel ?? '', $mensaje);
+        $buttons = [
+            ['id' => 'cita_confirmar_'.$cita->id, 'title' => 'Confirmar Cita'],
+            ['id' => 'cita_cancelar_'.$cita->id, 'title' => 'Cancelar Cita'],
+        ];
+
+        $resultado = $this->enviarBotones($cita->paciente?->cel ?? '', $mensaje, $buttons);
+        if (! ($resultado['success'] ?? false)) {
+            // Fallback a mensaje estándar de texto plano
+            $fallback = "⏰ *Recordatorio de Cita*\n\n"
+                ."Su cita está programada para mañana.\n\n"
+                ."📅 *Fecha:* {$fecha}\n"
+                ."🕐 *Hora:* {$hora}\n"
+                ."🏥 *Sede:* {$sede}\n\n"
+                ."Responda con *1* para confirmar o *0* para cancelar.";
+
+            return $this->enviarMensaje($cita->paciente?->cel ?? '', $fallback);
+        }
+
+        return $resultado;
     }
 
     /**

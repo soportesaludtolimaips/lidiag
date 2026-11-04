@@ -113,6 +113,7 @@ class EstudioController extends Controller
         $result = $this->estudioService->leerEstudio(
             (int) $data['estudio_producto_id'],
             $data['lectura'],
+            (bool) ($data['es_critico'] ?? false),
         );
 
         return response()->json($result, $result['status']);

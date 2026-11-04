@@ -214,17 +214,17 @@
                             >
                                 <thead>
                                     <tr>
-                                        <th></th>
-                                        <th>Sede</th>
-                                        <th>Toma</th>
-                                        <th width="50%">Lectura</th>
-                                        <th>Asignación</th>
-                                        <th>Quien Asigno</th>
-                                        <th width="50%">Medico</th>
-                                        <th width="50%">Paciente</th>
-                                        <th>Detalle</th>
-                                        <th>Producto</th>
-                                        <th></th>
+                                        <th style="width: 35px" class="text-center">P</th>
+                                        <th style="width: 140px">Sede</th>
+                                        <th style="width: 110px">Toma</th>
+                                        <th style="width: 110px">Lectura</th>
+                                        <th style="width: 110px">Asignación</th>
+                                        <th style="width: 130px">Quien Asigno</th>
+                                        <th style="width: 150px">Medico</th>
+                                        <th style="width: 170px">Paciente</th>
+                                        <th style="width: 160px">Detalle</th>
+                                        <th style="width: 160px">Producto</th>
+                                        <th style="width: 80px" class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -233,7 +233,7 @@
                                         :key="item.estudio_producto_id"
                                         :id="'row-' + item.estudio_producto_id"
                                     >
-                                        <td>
+                                        <td class="text-center align-middle">
                                             <button
                                                 type="button"
                                                 v-if="item.priori_id == 1"
@@ -267,23 +267,54 @@
                                                 S
                                             </button>
                                         </td>
-                                        <td>{{ item.nom_sede }}</td>
-                                        <td>{{ item.fec_estudio }}</td>
-                                        <td>{{ item.fechor_lectura }}</td>
-                                        <td>{{ formatDate(item.created_at) }}</td>
-                                        <td>{{ item.quien_registro }}</td>
-                                        <td>{{ item.nombres_medico || item.medico }}</td>
-                                        <td>
-                                            # Docu: {{ item.num_docu }} <br />
-                                            Nombres: {{ item.nom_pacien }}
+                                        <td class="align-middle font-weight-bold">
+                                            {{ item.nom_sede }}
                                         </td>
-                                        <td>
-                                            Atención: {{ item.atencion }} <br />
-                                            Descrip: {{ item.study_desc }} <br />
-                                            {{ item.accession_no }}
+                                        <td class="align-middle text-nowrap">
+                                            {{ item.fec_estudio }}
                                         </td>
-                                        <td>{{ item.nom_produc }}</td>
-                                        <td class="text-nowrap">
+                                        <td class="align-middle text-nowrap">
+                                            {{ item.fechor_lectura }}
+                                        </td>
+                                        <td class="align-middle text-nowrap">
+                                            {{ formatDate(item.created_at) }}
+                                        </td>
+                                        <td class="align-middle">{{ item.quien_registro }}</td>
+                                        <td class="align-middle">
+                                            {{ item.nombres_medico || item.medico }}
+                                        </td>
+                                        <td class="align-middle">
+                                            <div class="font-weight-bold text-dark">
+                                                {{ item.nom_pacien }}
+                                            </div>
+                                            <small class="text-muted"
+                                                ><i class="fa fa-id-card-o"></i>
+                                                {{ item.num_docu }}</small
+                                            >
+                                        </td>
+                                        <td class="align-middle">
+                                            <div v-if="item.atencion">
+                                                <small
+                                                    ><strong>Atención:</strong>
+                                                    {{ item.atencion }}</small
+                                                >
+                                            </div>
+                                            <div v-if="item.accession_no">
+                                                <small class="text-muted"
+                                                    ><strong>Acc:</strong>
+                                                    {{ item.accession_no }}</small
+                                                >
+                                            </div>
+                                            <div v-if="item.study_desc">
+                                                <small class="text-info">{{
+                                                    item.study_desc
+                                                }}</small>
+                                            </div>
+                                        </td>
+                                        <td class="align-middle font-weight-bold">
+                                            {{ item.nom_produc }}
+                                        </td>
+                                        <td class="text-nowrap text-center align-middle">
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
@@ -721,6 +752,47 @@
                                 </div>
                             </div>
 
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div
+                                        class="p-2 rounded border border-danger d-flex align-items-center justify-content-between"
+                                        style="background-color: #fff5f5; border: 1px solid #f5c2c7"
+                                    >
+                                        <div class="d-flex align-items-center">
+                                            <i
+                                                class="fa fa-exclamation-triangle fa-2x text-danger mr-3"
+                                            ></i>
+                                            <div>
+                                                <h6 class="mb-0 text-danger font-weight-bold">
+                                                    Hallazgo Crítico en Urgencias / UCI
+                                                </h6>
+                                                <small class="text-muted">
+                                                    Escala automáticamente a prioridad urgente y
+                                                    alerta de inmediato al equipo asistencial por
+                                                    Telegram.
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <div
+                                            class="custom-control custom-checkbox custom-control-inline m-0"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                id="check_es_critico_transcribir"
+                                                v-model="registro.es_critico"
+                                                class="custom-control-input"
+                                            />
+                                            <label
+                                                class="custom-control-label text-danger font-weight-bold"
+                                                for="check_es_critico_transcribir"
+                                            >
+                                                Marcar Crítico
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="form-actions mt-3">
                                 <button
                                     type="button"
@@ -772,7 +844,6 @@ import { listarUsuariosYSedes } from "@/helpers/usuarios";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { confirmAction, getUserSafeError, toastMessage } from "@/helpers/alerts";
 import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
-import dayjs from "dayjs";
 import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
 import { useFormValidation } from "@/composables/useFormValidation";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
@@ -805,6 +876,7 @@ const tituloModal = ref("Transcribir estudio");
 const registro = ref({
     id_estudio: 0,
     estudio_producto_id: 0,
+    es_critico: false,
     lectura: "",
     fec_lectura: "",
     fec_estudio: "",
@@ -835,16 +907,14 @@ const registro = ref({
     tap_oviyam: null,
     study_iuid: null,
 });
-const fechaDefectoIni = dayjs().startOf("month").format("YYYY-MM-DD");
-const fechaDefectoFin = dayjs().endOf("month").format("YYYY-MM-DD");
 const busqueda = ref({
     estudioParaTranscribir: "si",
     quien_asigno_id: "",
     medico_id: "",
     sede_id: "",
     bus_nom_num_docu: "",
-    bus_fech_ini: fechaDefectoIni,
-    bus_fecha_fin: fechaDefectoFin,
+    bus_fech_ini: "",
+    bus_fecha_fin: "",
     destino_estudio: "Salud Tolima",
 });
 const datosImagen = ref({ urlOviyam: "", patientId: "", studyUID: "", serverName: "" });
@@ -938,13 +1008,11 @@ function destroyDataTable() {
 }
 
 function btnLimpiar() {
-    const hoy = new Date();
-    const yearActual = hoy.getFullYear();
     busqueda.value.quien_asigno_id = "";
     busqueda.value.medico_id = "";
     busqueda.value.bus_nom_num_docu = "";
-    busqueda.value.bus_fech_ini = yearActual + "-01-01";
-    busqueda.value.bus_fecha_fin = hoy.toISOString().slice(0, 10);
+    busqueda.value.bus_fech_ini = "";
+    busqueda.value.bus_fecha_fin = "";
     errores.value = {};
     destroyDataTable();
     registros.value = [];
@@ -976,6 +1044,11 @@ async function listarPendientesTrascribir() {
                 sede_id: sedeActual,
                 quien_asigno_id: busqueda.value.quien_asigno_id || null,
                 medico_id: busqueda.value.medico_id || null,
+                bus_fech_ini: busqueda.value.bus_fech_ini || null,
+                bus_fecha_fin: busqueda.value.bus_fecha_fin || null,
+                bus_nom_num_docu: busqueda.value.bus_nom_num_docu
+                    ? String(busqueda.value.bus_nom_num_docu).trim()
+                    : null,
             };
             const res = await axios.post("/api/estudio-listarPendientesTrascribir", payload);
             registros.value = Array.isArray(res?.data?.data) ? res.data.data : [];
@@ -985,6 +1058,19 @@ async function listarPendientesTrascribir() {
                     safeInitDataTable(dt.value || "#tablaTranscribirEstudio", {
                         dom: "Bfrtip",
                         buttons: ["copy", "csv", "excel", "pdf", "print"],
+                        autoWidth: false,
+                        columnDefs: [
+                            { targets: [0, 10], orderable: false },
+                            { targets: 0, width: "35px", className: "text-center" },
+                            { targets: 1, width: "140px" },
+                            { targets: [2, 3, 4], width: "110px", className: "text-nowrap" },
+                            { targets: 5, width: "130px" },
+                            { targets: 6, width: "150px" },
+                            { targets: 7, width: "170px" },
+                            { targets: 8, width: "160px" },
+                            { targets: 9, width: "160px" },
+                            { targets: 10, width: "80px", className: "text-center text-nowrap" },
+                        ],
                     });
                 }
             });
@@ -1064,6 +1150,7 @@ async function guardarRegistro() {
             fec_naci: registro.value.fec_naci,
             fec_estudio: registro.value.fec_estudio,
             fec_lectura: registro.value.fec_lectura,
+            es_critico: Boolean(registro.value.es_critico),
             nombres_medico: registro.value.nombres_medico ?? null,
             reg_medico: registro.value.reg_medico ?? null,
             num_docu_medico: registro.value.num_docu_medico ?? null,
@@ -1295,6 +1382,9 @@ async function mostrarRegistro(data = {}) {
         soportesHC.value = resSoportesHC.data.data;
 
         audiosDeEstudio.value = [];
+        registro.value.es_critico = Boolean(
+            data.observaciones?.includes("HALLAZGO CRÍTICO") || data.prioridad_id === 1
+        );
         abrirModal();
 
         await listarAudios(registro.value.estudio_producto_id);

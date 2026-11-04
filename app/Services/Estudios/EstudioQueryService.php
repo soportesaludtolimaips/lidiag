@@ -360,13 +360,21 @@ class EstudioQueryService extends BaseService
             $inicio = Carbon::parse($filters['bus_fech_ini'])->startOfDay();
             $fin = Carbon::parse($filters['bus_fecha_fin'])->endOfDay();
             $query->whereBetween('estudios.fec_estudio', [$inicio, $fin]);
+        } elseif (! empty($filters['bus_fech_ini'])) {
+            $inicio = Carbon::parse($filters['bus_fech_ini'])->startOfDay();
+            $query->where('estudios.fec_estudio', '>=', $inicio);
+        } elseif (! empty($filters['bus_fecha_fin'])) {
+            $fin = Carbon::parse($filters['bus_fecha_fin'])->endOfDay();
+            $query->where('estudios.fec_estudio', '<=', $fin);
         }
 
         if (! empty($filters['bus_nom_num_docu'])) {
-            $search = $filters['bus_nom_num_docu'];
+            $search = trim($filters['bus_nom_num_docu']);
             $query->where(function ($q) use ($search) {
-                $q->where('pacien.num_docu', $search)
-                    ->orWhere('pacien.nombres', 'LIKE', "%{$search}%");
+                $q->where('pacien.num_docu', 'LIKE', "%{$search}%")
+                    ->orWhere('pacien.nombres', 'LIKE', "%{$search}%")
+                    ->orWhere('estudios.accession_no', 'LIKE', "%{$search}%")
+                    ->orWhere('estudios.atencion', 'LIKE', "%{$search}%");
             });
         }
 
@@ -406,13 +414,19 @@ class EstudioQueryService extends BaseService
                 $filters['bus_fech_ini'].' 00:00:00',
                 $filters['bus_fecha_fin'].' 23:59:59',
             ]);
+        } elseif (! empty($filters['bus_fech_ini'])) {
+            $query->where('estudios.fec_estudio', '>=', $filters['bus_fech_ini'].' 00:00:00');
+        } elseif (! empty($filters['bus_fecha_fin'])) {
+            $query->where('estudios.fec_estudio', '<=', $filters['bus_fecha_fin'].' 23:59:59');
         }
 
         if (! empty($filters['bus_nom_num_docu'])) {
-            $search = $filters['bus_nom_num_docu'];
+            $search = trim($filters['bus_nom_num_docu']);
             $query->where(function ($q) use ($search) {
-                $q->where('pacien.num_docu', $search)
-                    ->orWhere('pacien.nombres', 'LIKE', "%{$search}%");
+                $q->where('pacien.num_docu', 'LIKE', "%{$search}%")
+                    ->orWhere('pacien.nombres', 'LIKE', "%{$search}%")
+                    ->orWhere('estudios.accession_no', 'LIKE', "%{$search}%")
+                    ->orWhere('estudios.atencion', 'LIKE', "%{$search}%");
             });
         }
 
