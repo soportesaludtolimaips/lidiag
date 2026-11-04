@@ -37,6 +37,30 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-04 — Enriquecimiento y Justificación Clínica Explícita de Alertas de Hallazgos Críticos en Telegram (`EstudioService.php`, `LeerEstudioRequest.php`, `GuardarTranscripcionRequest.php`, `EstudioController.php`, `leerEstudioComponent.vue`, `transcribirEstudioComponent.vue`):**
+  - **Diagnóstico y Solicitud del Usuario:**
+    * El usuario recibió la alerta de hallazgo crítico en Telegram para un paciente de urgencias pero observó: *"Me gustó, pero debe ser más explícita; dice que se requiere valoración pero no el porqué se requiere la valoración"*.
+    * El mensaje anterior solo indicaba genéricamente que el estudio fue priorizado a nivel MÁXIMO (Urgencias / UCI) sin incluir la conclusión radiológica, el hallazgo patológico urgente ni el motivo de examen o diagnóstico CIE-10 del paciente.
+  - **Solución Implementada:**
+    * **Backend (`EstudioService.php`):**
+      - Se implementó el método helper `extraerConclusionOImpresion(?string $lectura): string`, el cual limpia etiquetas HTML, normaliza saltos de línea de bloques `<p>`, `<div>`, `<li>` o `<br>` y detecta automáticamente mediante expresiones regulares secciones clave de informes radiológicos: `Opinión:`, `Conclusión:`, `Impresión diagnóstica:`, `Hallazgo crítico:`, o el último párrafo patológico relevante del informe (truncado sanamente si excede los límites de legibilidad).
+      - En `notificarHallazgoCriticoTelegram`, se cargan las relaciones `paciente`, `sede`, `diagnosticos`.
+      - Se reestructuró la plantilla del mensaje de Telegram con sanitización estricta (`htmlspecialchars`) para evitar roturas del parser HTML de Telegram:
+        * 🚨 Encabezado y datos del estudio: Sede, Paciente (con documento), Estudio, Radiólogo, Fecha y Hora, Servicio / Destino.
+        * 🩺 Bloque explícito: **¿POR QUÉ SE REQUIERE VALORACIÓN INMEDIATA?**
+        * 🔴 Hallazgo puntual / Alerta médica o Conclusión radiológica extraída.
+        * 📝 Motivo del Examen / Sospecha Clínica (`$estudio->motivo_examen`).
+        * 🏷️ Diagnósticos CIE-10 asociados (`$estudio->diagnosticos`).
+        * ⚠️ Acción asistencial requerida urgente.
+    * **FormRequests y Controlador (`LeerEstudioRequest.php`, `GuardarTranscripcionRequest.php`, `EstudioController.php`):**
+      - Añadida regla `'motivo_critico' => 'nullable|string|max:500'` en ambos requests para recibir opcionalmente la precisión del médico radiólogo o transcriptor y propagarla a través de `leerEstudio` y `guardarTranscripcion`.
+    * **Frontend (`leerEstudioComponent.vue`, `transcribirEstudioComponent.vue`):**
+      - Al marcar la casilla `[x] Marcar Crítico`, se despliega un campo de entrada condicional (`v-if="registro.es_critico"`) con advertencia visual elegante: *¿Por qué se requiere valoración inmediata? (Hallazgo puntual opcional)* con placeholder y nota explicativa indicando que si se deja en blanco el sistema extrae automáticamente la conclusión del informe.
+  - **Verificaciones:**
+    * PHP: Laravel Pint (`vendor\bin\pint.bat --test`) 100% passed ✅.
+    * Pruebas de extracción de conclusiones regex con HTML y texto plano ejecutadas y validadas ✅.
+    * JS/Vue: ESLint (`npx eslint`) 100% passed sin errores ni advertencias ✅.
+    * Build: `npm run build` ejecutado exitosamente en 1.20s ✅.
 - [x] **2026-11-04 — Corrección de Timeout de Red cURL Error 28 y Blindaje de Conexión Telegram (`config/telegram.php`, `TelegramService.php`, `TelegramPollCommand.php`):**
   - **Diagnóstico y Causa Raíz:**
     * En producción al ejecutar `php artisan telegram:poll` se producía el error fatal: `cURL error 28: Connection timed out after 10016 milliseconds ... for https://api.telegram.org/bot<TOKEN>/getMe`.

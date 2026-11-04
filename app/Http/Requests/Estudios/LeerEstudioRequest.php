@@ -34,6 +34,7 @@ class LeerEstudioRequest extends FormRequest
             'estudio_producto_id' => 'required|integer|exists:estudios_productos,id',
             'lectura' => 'required|string|min:3',
             'es_critico' => 'sometimes|boolean',
+            'motivo_critico' => 'nullable|string|max:500',
         ];
     }
 

@@ -195,7 +195,7 @@ class EstudioService extends BaseService
      *
      * @date 2026-07-14
      */
-    public function leerEstudio(int $estudioProductoId, string $lectura, bool $esCritico = false): array
+    public function leerEstudio(int $estudioProductoId, string $lectura, bool $esCritico = false, ?string $motivoCritico = null): array
     {
         // Validación de reserva: otro usuario con el estudio abierto bloquea el guardado.
         $conflicto = $this->lockService->verificar('lectura', $this->lockService->claveLectura($estudioProductoId));
@@ -258,7 +258,7 @@ class EstudioService extends BaseService
             });
 
             if ($esCritico && $estudioRef && $itemRef && ($response['success'] ?? false)) {
-                $this->notificarHallazgoCriticoTelegram($estudioRef, $itemRef);
+                $this->notificarHallazgoCriticoTelegram($estudioRef, $itemRef, null, $motivoCritico);
             }
 
             return $response;
@@ -472,6 +472,7 @@ class EstudioService extends BaseService
                     'cod_cups' => $producto->cod_cups,
                     'lectura' => $producto->lectura,
                     'es_critico' => $esCritico,
+                    'motivo_critico' => $data['motivo_critico'] ?? null,
                 ], 'La transcripción se guardó correctamente.');
             });
 
@@ -579,9 +580,14 @@ class EstudioService extends BaseService
         // 3. Notificación de Hallazgo Crítico en Urgencias vía Telegram
         if (! empty($info['es_critico']) && ! empty($info['producto_id'])) {
             try {
-                $producto = EstudioProducto::with(['estudio.paciente', 'estudio.sede'])->find($info['producto_id']);
+                $producto = EstudioProducto::with(['estudio.paciente', 'estudio.sede', 'estudio.diagnosticos'])->find($info['producto_id']);
                 if ($producto && $producto->estudio) {
-                    $this->notificarHallazgoCriticoTelegram($producto->estudio, $producto, $data['nombres_medico'] ?? null);
+                    $this->notificarHallazgoCriticoTelegram(
+                        $producto->estudio,
+                        $producto,
+                        $data['nombres_medico'] ?? null,
+                        $info['motivo_critico'] ?? $data['motivo_critico'] ?? null
+                    );
                 }
             } catch (\Throwable $e) {
                 Log::warning('Error notificando hallazgo crítico post-transcripción: '.$e->getMessage());
@@ -590,24 +596,82 @@ class EstudioService extends BaseService
     }
 
     /**
-     * Envía una alerta de hallazgo crítico a través del bot institucional de Telegram.
+     * Extrae la conclusión, opinión o impresión diagnóstica de un informe radiológico.
+     *
+     * @param  string|null  $lectura  Texto o HTML del informe radiológico
+     * @return string Resumen conciso del hallazgo o conclusión
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-04
+     */
+    protected function extraerConclusionOImpresion(?string $lectura): string
+    {
+        if (empty($lectura)) {
+            return '';
+        }
+
+        // Normalizar saltos de línea de bloques HTML
+        $lecturaConSaltos = preg_replace('/<\/(?:p|div|li|tr|h[1-6])>/i', "\n", $lectura);
+        $lecturaConSaltos = preg_replace('/<br\s*\/?>/i', "\n", $lecturaConSaltos ?? $lectura);
+
+        // Decodificar entidades HTML y remover tags
+        $texto = trim(html_entity_decode(strip_tags($lecturaConSaltos ?? $lectura), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+        $texto = str_replace(["\xc2\xa0", '&nbsp;'], ' ', $texto);
+        $texto = preg_replace('/[ \t]+/', ' ', $texto) ?? $texto;
+
+        // 1. Buscar sección específica de conclusión / opinión / impresión diagnóstica
+        if (preg_match('/(?:opinión|opinion|conclusión|conclusiones|conclusion|impresión diagnóstica|impresion diagnostica|impresión|impresion|hallazgo crítico|hallazgos críticos|concepto)\s*[:\-]\s*(.+)$/si', $texto, $matches)) {
+            $seccion = trim($matches[1]);
+            if (mb_strlen($seccion) > 450) {
+                return mb_substr($seccion, 0, 447).'...';
+            }
+
+            return $seccion;
+        }
+
+        // 2. Si no tiene encabezado explícito, extraer el último párrafo relevante
+        $lineas = array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', $texto) ?: []), fn ($l) => mb_strlen($l) > 5));
+        if (! empty($lineas)) {
+            $ultimo = end($lineas);
+            if (mb_strlen($ultimo) > 400) {
+                return mb_substr($ultimo, 0, 397).'...';
+            }
+
+            return $ultimo;
+        }
+
+        // 3. Fallback: últimos 300 caracteres del texto
+        return mb_strlen($texto) > 300 ? '...'.mb_substr($texto, -297) : $texto;
+    }
+
+    /**
+     * Envía una alerta de hallazgo crítico a través del bot institucional de Telegram,
+     * detallando el motivo clínico, conclusiones o hallazgos radiológicos urgentes.
      *
      * @param  Estudio  $estudio  Instancia del estudio priorizado
      * @param  EstudioProducto  $producto  Producto de estudio asociado
      * @param  string|null  $medicoNombre  Nombre del médico radiólogo firmante
+     * @param  string|null  $motivoCritico  Motivo o alerta específica ingresada por el usuario
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-11-03
+     * @date 2026-11-04
      */
-    private function notificarHallazgoCriticoTelegram(Estudio $estudio, EstudioProducto $producto, ?string $medicoNombre = null): void
-    {
+    private function notificarHallazgoCriticoTelegram(
+        Estudio $estudio,
+        EstudioProducto $producto,
+        ?string $medicoNombre = null,
+        ?string $motivoCritico = null
+    ): void {
         try {
             $telegramService = app(TelegramService::class);
             $allowedChats = config('telegram.allowed_chat_ids', []);
             if (empty($allowedChats)) {
                 return;
             }
+
+            $estudio->loadMissing(['sede', 'paciente', 'diagnosticos']);
 
             $sede = $estudio->sede ? $estudio->sede->nom_sede : 'Sede Principal';
             $paciente = $estudio->paciente;
@@ -617,13 +681,63 @@ class EstudioService extends BaseService
             $medico = $medicoNombre ?: (Auth::user()?->name ?? 'Médico Radiólogo');
             $fecha = Carbon::now()->format('d/m/Y H:i');
 
+            // Determinar la justificación clínica explícita del hallazgo crítico
+            $motivoEspecifico = trim($motivoCritico ?? '');
+            $conclusionLectura = $this->extraerConclusionOImpresion($producto->lectura);
+
+            // Escapar entidades HTML de los textos médicos para evitar romper el formato HTML de Telegram
+            $escapeHtml = fn (?string $text) => htmlspecialchars($text ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+            $sedeSafe = $escapeHtml($sede);
+            $pacienteSafe = $escapeHtml($pacienteNombre);
+            $docSafe = $escapeHtml($doc);
+            $estudioSafe = $escapeHtml($estudioNombre);
+            $medicoSafe = $escapeHtml($medico);
+
             $mensaje = "🚨 <b>ALERTA: HALLAZGO CRÍTICO EN URGENCIAS</b> 🚨\n\n"
-                ."🏥 <b>Sede:</b> {$sede}\n"
-                ."👤 <b>Paciente:</b> {$pacienteNombre} (Doc: {$doc})\n"
-                ."📋 <b>Estudio:</b> {$estudioNombre}\n"
-                ."👨‍⚕️ <b>Radiólogo:</b> {$medico}\n"
-                ."⏰ <b>Fecha y Hora:</b> {$fecha}\n\n"
-                ."⚠️ <i>El estudio fue priorizado a nivel MÁXIMO (Urgencias / UCI). Se requiere valoración clínica inmediata del paciente.</i>";
+                ."🏥 <b>Sede:</b> {$sedeSafe}\n"
+                ."👤 <b>Paciente:</b> {$pacienteSafe} (Doc: {$docSafe})\n"
+                ."📋 <b>Estudio:</b> {$estudioSafe}\n"
+                ."👨‍⚕️ <b>Radiólogo:</b> {$medicoSafe}\n"
+                ."⏰ <b>Fecha y Hora:</b> {$fecha}\n";
+
+            if (! empty($estudio->servicio) || ! empty($estudio->destino_estudio)) {
+                $ubicacion = $escapeHtml($estudio->servicio ?: $estudio->destino_estudio);
+                $mensaje .= "📍 <b>Servicio / Destino:</b> {$ubicacion}\n";
+            }
+
+            $mensaje .= "\n🩺 <b>¿POR QUÉ SE REQUIERE VALORACIÓN INMEDIATA?</b>\n";
+
+            if ($motivoEspecifico !== '') {
+                $motivoSafe = $escapeHtml($motivoEspecifico);
+                $mensaje .= "🔴 <b>Alerta / Hallazgo Crítico Reportado:</b>\n<i>{$motivoSafe}</i>\n";
+
+                if ($conclusionLectura !== '' && mb_stripos($conclusionLectura, $motivoEspecifico) === false) {
+                    $conclusionSafe = $escapeHtml($conclusionLectura);
+                    $mensaje .= "\n📑 <b>Conclusión Radiológica:</b>\n<i>{$conclusionSafe}</i>\n";
+                }
+            } elseif ($conclusionLectura !== '') {
+                $conclusionSafe = $escapeHtml($conclusionLectura);
+                $mensaje .= "🔴 <b>Conclusión / Hallazgo Radiológico:</b>\n<i>{$conclusionSafe}</i>\n";
+            } else {
+                $mensaje .= "🔴 <b>Hallazgo:</b> <i>Priorizado con hallazgo de alto riesgo clínico durante el informe radiológico.</i>\n";
+            }
+
+            if (! empty($estudio->motivo_examen)) {
+                $motivoExamenSafe = $escapeHtml(trim($estudio->motivo_examen));
+                $mensaje .= "\n📝 <b>Motivo de Examen / Sospecha Clínica:</b>\n{$motivoExamenSafe}\n";
+            }
+
+            if ($estudio->diagnosticos && $estudio->diagnosticos->isNotEmpty()) {
+                $mensaje .= "\n🏷️ <b>Diagnóstico(s) CIE-10:</b>\n";
+                foreach ($estudio->diagnosticos->take(3) as $diag) {
+                    $cod = $escapeHtml($diag->cod_diagnos);
+                    $nom = $escapeHtml($diag->nom_diagnos);
+                    $mensaje .= " • {$cod} - {$nom}\n";
+                }
+            }
+
+            $mensaje .= "\n⚠️ <b>Acción Requerida:</b>\nEstudio priorizado a nivel <b>MÁXIMO (Urgencias / UCI)</b>. Se requiere valoración clínica e intervención médica urgente del paciente.";
 
             foreach ($allowedChats as $chatId) {
                 $telegramService->sendMessage($chatId, $mensaje);

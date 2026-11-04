@@ -789,6 +789,34 @@
                                                 Marcar Crítico
                                             </label>
                                         </div>
+                                        <div
+                                            v-if="registro.es_critico"
+                                            class="w-100 mt-2 pt-2 border-top border-danger"
+                                        >
+                                            <label
+                                                class="small font-weight-bold text-danger mb-1"
+                                                for="input_motivo_critico_transcribir"
+                                            >
+                                                <i class="fa fa-stethoscope mr-1"></i>
+                                                ¿Por qué se requiere valoración inmediata? (Hallazgo
+                                                puntual opcional):
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="input_motivo_critico_transcribir"
+                                                v-model="registro.motivo_critico"
+                                                class="form-control form-control-sm border-danger"
+                                                placeholder="Ej: Neumotórax a tensión derecho / Hemorragia subaracnoidea aguda..."
+                                                maxlength="500"
+                                            />
+                                            <small
+                                                class="text-muted d-block mt-1"
+                                                style="font-size: 11px"
+                                            >
+                                                Si se deja en blanco, el sistema extraerá
+                                                automáticamente la conclusión u opinión del informe.
+                                            </small>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -877,6 +905,7 @@ const registro = ref({
     id_estudio: 0,
     estudio_producto_id: 0,
     es_critico: false,
+    motivo_critico: "",
     lectura: "",
     fec_lectura: "",
     fec_estudio: "",
@@ -1151,6 +1180,7 @@ async function guardarRegistro() {
             fec_estudio: registro.value.fec_estudio,
             fec_lectura: registro.value.fec_lectura,
             es_critico: Boolean(registro.value.es_critico),
+            motivo_critico: registro.value.motivo_critico || null,
             nombres_medico: registro.value.nombres_medico ?? null,
             reg_medico: registro.value.reg_medico ?? null,
             num_docu_medico: registro.value.num_docu_medico ?? null,
@@ -1382,6 +1412,7 @@ async function mostrarRegistro(data = {}) {
         soportesHC.value = resSoportesHC.data.data;
 
         audiosDeEstudio.value = [];
+        registro.value.motivo_critico = "";
         registro.value.es_critico = Boolean(
             data.observaciones?.includes("HALLAZGO CRÍTICO") || data.prioridad_id === 1
         );
@@ -1404,6 +1435,8 @@ async function mostrarRegistro(data = {}) {
 }
 function limpiar() {
     tituloModal.value = "Nuevo registro";
+    registro.value.es_critico = false;
+    registro.value.motivo_critico = "";
     registro.value.email_reportar = "";
     registro.value.email = "";
     registro.value.nom_pacien = "";

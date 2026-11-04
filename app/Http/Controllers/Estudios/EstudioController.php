@@ -114,6 +114,7 @@ class EstudioController extends Controller
             (int) $data['estudio_producto_id'],
             $data['lectura'],
             (bool) ($data['es_critico'] ?? false),
+            $data['motivo_critico'] ?? null,
         );
 
         return response()->json($result, $result['status']);
