@@ -302,6 +302,18 @@ app.component(
         () => import("./components/modulos/reportes/reporteProduccionComponent.vue")
     )
 );
+app.component(
+    "ReportesEstudiosPACComponent",
+    defineAsyncComponent(
+        () => import("./components/modulos/reportes/reporteEstudiosPACComponent.vue")
+    )
+);
+app.component(
+    "ReportesEstudiosPacComponent",
+    defineAsyncComponent(
+        () => import("./components/modulos/reportes/reporteEstudiosPACComponent.vue")
+    )
+);
 
 /**
  * Helpdesk (Asíncrono)

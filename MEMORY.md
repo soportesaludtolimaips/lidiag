@@ -37,6 +37,20 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-04 — Restauración y Modernización de Componente Reporte Estudios PACS (`reportes-estudios-pac`):**
+  - **Diagnóstico y Causa Raíz:**
+    * Al acceder a la URL `/reportes-estudios-pac` (enlace en sidebar "Gestión y Reportes -> Reportes -> Estudios PACS"), la página no cargaba y se mostraba completamente en blanco.
+    * En un commit anterior (`dd90362795b4b0bcdae58487a5e0bc79ba627558`), el archivo `reporteEstudiosPACComponent.vue` había sido eliminado y desregistrado de `app.js` pensando que se consumiría exclusivamente desde el modal de producción. Sin embargo, la ruta `reportes-estudios-pac`, la vista Blade `reportes-estudios-pac.blade.php` y el enlace en `sidebar.blade.php` continuaban activos invocando a `<reportes-estudios-p-a-c-component />`.
+  - **Solución Implementada:**
+    * **Creación de `reporteEstudiosPACComponent.vue`:**
+      - Se implementó el componente Vue 3 con diseño moderno AdminWrap, formulario con selector dinámico de sedes activas (`/api/config-sedes/listar/sedes/activas`), rango de fechas (Desde/Hasta) con validaciones completas y botón de descarga directa de Excel conectado a `/descarga-reportes-estudios-pac`.
+      - Se añadió panel informativo detallando las columnas del reporte extraídas directamente de la base de datos PACS Dcm4chee (documento, paciente, fecha/hora estudio, descripción y modalidades).
+    * **Registro en `resources/js/app.js`:**
+      - Se registraron los alias asíncronos `ReportesEstudiosPACComponent` y `ReportesEstudiosPacComponent` para asegurar resolución tanto en PascalCase como en kebab-case en Blade.
+  - **Verificaciones:**
+    * ESLint validado sin errores (`npx eslint`) ✅.
+    * Compilación Vite completada exitosamente (`npm run build` en 1.21s) ✅.
+    * Formato LF verificado sin BOM ✅.
 - [x] **2026-11-04 — Estandarización de Cards de Estadísticas / KPIs a Estilo Nativo AdminWrap (`DashboardDosimetria.vue`, `backupMonitorComponent.vue`, `seguridadTokensComponent.vue`):**
   - **Diagnóstico y Causa Raíz:**
     * Varias vistas de estadísticas y paneles de telemetría contenían estilos no nativos o inventados (`card-outline-*`, `round round-*`, barras de micro-progreso `<div class="progress">` adheridas a la base de las tarjetas, badges arbitrarios y tipografías personalizadas) que rompían la consistencia visual del tema AdminWrap del proyecto.
