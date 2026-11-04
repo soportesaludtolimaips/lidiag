@@ -737,7 +737,7 @@ def clasificar_region_anatomica(study_desc: Optional[str], modalidad: str = "CT"
     mod = (modalidad or "").upper()
     if mod == "MG":
         return "MAMA"
-    if re.search(r"CRANEO|CEREBRO|ENCEFALO|SILLA TURCA|SENOS PARANASALES|FACIAL|MACIZO|OIDO|ORBITAS|CUELLO", desc):
+    if re.search(r"CRANEO|CEREBRO|ENCEFALO|SILLA TURCA|SENO(S)?\s*PARANAS|FACIAL|MACIZO|OIDO|ORBITAS|CUELLO", desc):
         return "CRANEO"
     if re.search(r"TORAX|PULMON|MEDIASTINO|REJA COSTAL|CARDIO|CORONARI|ANGIOTAC TORACICO", desc):
         return "TORAX"
@@ -749,7 +749,7 @@ def clasificar_region_anatomica(study_desc: Optional[str], modalidad: str = "CT"
         return "COLUMNA"
     if re.search(r"RODILLA|HOMBRO|CODO|MU[NÑ]ECA|TOBILLO|PIE|MANO|FEMUR|TIBIA|HUMERO|RADIO|ANTEBRAZO|PIERNA|EXTREMID", desc):
         return "EXTREMIDADES"
-    if re.search(r"MAMA|SENOS", desc):
+    if re.search(r"MAMA|MAMOGRAF|SENO(S)?\s*(MAMARI|BILATERAL|IZQ|DER)", desc):
         return "MAMA"
     return "GENERAL"
 

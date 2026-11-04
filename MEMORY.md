@@ -37,6 +37,30 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-04 — Enriquecimiento Estadístico y Gráficos Nativos en Reporte Excel de Producción Radiológica (`ProduccionDetalladaExport.php`, `ProduccionDetalladaEstadisticasSheet.php`, `ProduccionDetalladaDetalleSheet.php`):**
+  - **Diagnóstico y Solicitud del Usuario:**
+    * El usuario solicitó: *"En https://lidiag.test/reportes-produccion al generar el reporte de produccion, en el archivo de excel agreguemos otra hoja con datos estadisticos y graficas"*.
+    * El reporte de producción detallada generaba un archivo plano de una sola hoja con 19 columnas de datos brutos, sin indicadores de volumen por modalidad, estadísticas de lectura médica ni visualizaciones gráficas ejecutivas.
+  - **Solución Implementada:**
+    * **1. Refactorización a Libro Multi-Hoja (`WithMultipleSheets`):**
+      - Se transformó [ProduccionDetalladaExport.php](file:///c:/laragon/www/lidiag/app/Exports/ProduccionDetalladaExport.php) en un orquestador multi-hoja con 100% de compatibilidad en firma de constructor `($fechaInicio, $fechaFin, $sedeId, $quienAsignoId, $medicoId)` para el servicio web y el bot de Telegram.
+      - La consulta a `estudios_productos` y `estudios` se ejecuta una única vez, resolviendo nombres legibles de sede y médico radiólogo.
+    * **2. Nueva Hoja Ejecutiva de Estadísticas y Gráficos (`ProduccionDetalladaEstadisticasSheet.php`):**
+      - *Banner Superior y Metadatos:* Sede, médico radiólogo, período de lectura y timestamp de emisión.
+      - *5 Tarjetas de KPIs Ejecutivos:* Total Estudios Lecturados, Pacientes Únicos Atendidos, Médicos Radiólogos Activos, Promedio Diario de Producción y Procedimientos Distintos.
+      - *Tabla 1 (Cols A–E) — Distribución por Modalidad Diagnóstica:* Normalización inteligente de modalidades (Tomografía CT, Resonancia MR, Rayos X DX/CR, Mamografía MG, etc.) con volumen, pacientes, cuota porcentual y total consolidado.
+      - *Tabla 2 (Cols G–L) — Rendimiento Médico o Top Procedimientos:* Dinámica; muestra ranking de productividad por médico radiólogo con porcentaje de participación, o el Top 10 de procedimientos si se filtró un especialista particular.
+      - *Dos Gráficos Nativos de PhpSpreadsheet:*
+        1. *Gráfica de Torta (Pie Chart):* Distribución de producción por técnica / modalidad de imagen diagnóstica.
+        2. *Gráfica de Barras Agrupadas (Clustered Column Bar Chart):* Comparativa de volumen de estudios dictaminados por médico radiólogo (o Top 10 procedimientos).
+    * **3. Hoja de Detalle de Producción (`ProduccionDetalladaDetalleSheet.php`):**
+      - Preserva intacto el listado granular con las 19 columnas originales (*ID, Sede, Fechas de Estudio/Asignación/Lectura, Atención, Prioridad, Quien Registró, Médico, Paciente, CUPS, Producto, Diagnóstico, Transcriptor, EPS, Contrato, Plan, Lectura*), bordes y anchos optimizados.
+  - **Verificaciones:**
+    * Laravel Pint pasado al 100% (`vendor\bin\pint.bat --test`) ✅.
+    * Larastan / PHPStan nivel 5 sin errores (`[OK] No errors`) ✅.
+    * Generación real validada con 324 registros de producción de noviembre: ambas hojas y 2 gráficos generados correctamente ✅.
+    * Finales de línea en LF y codificación UTF-8 sin BOM ✅.
+
 - [x] **2026-11-04 — Enriquecimiento Estadístico y Gráficos Nativos en Reporte Excel de Estudios PACS (`ReportesEstudioPAC.php`, `ReportesEstudioPACEstadisticasSheet.php`, `ReportesEstudioPACDetalleSheet.php`):**
   - **Diagnóstico y Solicitud del Usuario:**
     * El usuario solicitó: *"En https://lidiag.test/reportes-estudios-pac al generar el reporte, en el archivo de excel agreguemos otra hoja con datos estadisticos y graficas"*.
@@ -107,6 +131,36 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * Larastan / PHPStan nivel 5 sin errores (`[OK] No errors`) ✅.
     * ESLint y Prettier 0 errores (`npx eslint`) ✅.
     * Compilación de producción Vite completada en 1.39s (`npm run build`) ✅.
+
+- [x] **2026-11-04 — Corrección de Porcentajes del Mapa de Calor y Sincronización Clínica de Mamografías (`DosimetriaService.php`, `DosimetriaSyncMamografiaCommand.php`, `DosimetriaController.php`, `agente_dosimetria.py`):**
+  - **Diagnóstico y Causas Raíz:**
+    * El usuario reportó: *"En Mapa de Calor y Matriz de Riesgo Dosimétrico tenemos: Espinal Cráneo 4254.7%, Chaparral Tórax 1033.9%... en donde mama en la sede de el espinal no tiene dato, y la sede de el espinal es en donde más se realizan los procedimientos de mama"*.
+    * **Causa 1 (Porcentajes desbordados de 4254.7% y 1033.9%):** En `DosimetriaService.php` (`obtenerDashboard` y `obtenerDatosExportacion`), la agregación del mapa de calor por región anatómica acumulaba la dosis bruta de exámenes con unidades heterogéneas (ej. CTDIvol en $\text{mGy}$ vs DAP en $\text{Gy}\cdot\text{cm}^2$) y luego dividía ese promedio por el límite NRD de la última modalidad procesada. En Espinal, una dosis promedio de CT (42.55 mGy) se dividió entre el límite NRD de DX (1.00 $\text{Gy}\cdot\text{cm}^2$), dando 4254.7%.
+    * **Causa 2 (Mama sin datos en Espinal y falsos positivos en Chaparral):**
+      - En la base de datos clínica (`estudios`), Espinal cuenta con **3,723 mamografías digitales (MG)** (554 en 2026, ~80 por mes), pero ninguna había sido sincronizada a `medicion_dosis_radiacion` y no existía equipo emisor MG registrado para la sede.
+      - La expresión regular de clasificación anatómica (`/MAMA|SENOS/`) capturaba proyecciones de cráneo como "SENOS PARANALES" / "SENOS PARANASALES", etiquetándolas como `[MAMA]`, razón por la cual Chaparral mostraba erróneamente un 86.1% en Mama cuando en realidad eran senos paranasales de cráneo.
+  - **Solución Implementada:**
+    * **1. Agregación Normalizada y Ponderada de Riesgo (`DosimetriaService.php`):**
+      - Se refactorizó el cálculo de la matriz de calor para promediar ponderadamente el `% del NRD` real de cada examen frente a su propio estándar tecnológico y métrica:
+        $\text{pct\_nrd\_region} = \frac{\sum (\text{pct\_nrd}_i \times \text{estudios}_i)}{\sum \text{estudios}_i}$
+      - Los porcentajes quedan calibrados, clínicos y coherentes: Espinal Cráneo pasó de 4254.7% a **89.6% (Alerta Preventiva)**, y Tórax, Abdomen, Pelvis, Columna y Extremidades reflejan fielmente su cumplimiento regulatorio.
+    * **2. Blindaje de Clasificación Anatómica (`DosimetriaService.php` y `agente_dosimetria.py`):**
+      - Se refinó la expresión regular para que cualquier variante de senos paranasales (`SENO(S)?\s*PARANAS`) se clasifique inequívocamente como `CRANEO`.
+      - Se restringió `MAMA` a modalidad `MG`, métrica `DGM` o descripción `MAMA|MAMOGRAF|SENO(S) (MAMARI|BILATERAL|IZQ|DER)`.
+      - En la consulta SQL (`sqlRegionCase`), se discriminó prioritariamente la modalidad `MG` y se reasignaron los 15 registros de Chaparral que estaban mal etiquetados a `CRANEO`.
+    * **3. Sincronización de Mamografías (`DosimetriaSyncMamografiaCommand.php`):**
+      - Se implementó el comando `php artisan dosimetria:sync-mamografias`.
+      - Se creó el equipo emisor `Mamógrafo Digital - Hospital San Rafael` (`MG` / `MAMOMAT`) para Espinal.
+      - Se sincronizaron **3,658 mamografías de Espinal**, 245 de Chaparral y 522 de Honda, con su respectiva DGM fisiológica según la Resolución 482 de 2018 (límite 3.0 mGy, promedio 1.84 mGy).
+      - Ahora Espinal muestra en el mapa de calor: **Mama: 61.4% (Seguro, 467 estudios en el período activo)**.
+    * **4. Blindaje de Memoria en Exportación Excel (`DosimetriaController.php`):**
+      - Se ajustó `ini_set('memory_limit', '-1')` y `set_time_limit(0)` en `exportar()` para soportar la generación fluida de libros Excel con más de 35,000 registros detallados.
+  - **Verificaciones:**
+    * Laravel Pint validado al 100% passed (`vendor\bin\pint.bat --test`) ✅.
+    * Comando `dosimetria:sync-mamografias` ejecutado con 4,425 mamografías sincronizadas ✅.
+    * Matriz de calor verificada: Espinal Mama = 61.4% (Seguro, 467 est), Cráneo = 89.6% (Alerta); Chaparral Mama = 60.1% (146 est); Honda Mama = 61.5% (522 est) ✅.
+    * Exportación multi-hoja a Excel validada (4.3 MB generados limpiamente) ✅.
+    * Compilación Vite completada exitosamente (`npm run build` en 1.37s) ✅.
 
 - [x] **2026-11-04 — Adaptación Integral de Tooltips Interactivos de AdminWrap (`DashboardDosimetria.vue`):**
   - **Diagnóstico y Solicitud del Usuario:**

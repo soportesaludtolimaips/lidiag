@@ -133,6 +133,9 @@ class DosimetriaController extends Controller
      */
     public function exportar(DosimetriaFiltroRequest $request): BinaryFileResponse
     {
+        ini_set('memory_limit', '-1');
+        set_time_limit(0);
+
         $filtros = $request->validated();
         $timestamp = Carbon::now()->format('Ymd_His');
         $nombreArchivo = "Reporte_Dosimetria_Radiologica_{$timestamp}.xlsx";

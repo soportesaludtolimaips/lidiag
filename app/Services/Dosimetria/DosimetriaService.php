@@ -191,13 +191,13 @@ class DosimetriaService extends BaseService
 
             // 2. Consulta agrupada por Sede, Modalidad, Región y Mes
             $sqlRegionCase = "CASE 
-                WHEN r.study_desc LIKE '%[CRANEO]%' THEN 'CRANEO'
+                WHEN e.modalidad = 'MG' OR r.tipo_metrica = 'DGM' OR (r.study_desc LIKE '%[MAMA]%' AND r.study_desc NOT LIKE '%PARAN%') OR r.study_desc LIKE '%MAMOGRAF%' THEN 'MAMA'
+                WHEN r.study_desc LIKE '%[CRANEO]%' OR r.study_desc LIKE '%PARANAS%' OR r.study_desc LIKE '%PARANAL%' THEN 'CRANEO'
                 WHEN r.study_desc LIKE '%[TORAX]%' THEN 'TORAX'
                 WHEN r.study_desc LIKE '%[ABDOMEN]%' THEN 'ABDOMEN'
                 WHEN r.study_desc LIKE '%[PELVIS]%' THEN 'PELVIS'
                 WHEN r.study_desc LIKE '%[COLUMNA]%' THEN 'COLUMNA'
                 WHEN r.study_desc LIKE '%[EXTREMIDADES]%' THEN 'EXTREMIDADES'
-                WHEN r.study_desc LIKE '%[MAMA]%' THEN 'MAMA'
                 ELSE 'GENERAL'
             END";
 
@@ -644,6 +644,8 @@ class DosimetriaService extends BaseService
                     foreach ($regionesCatalogo as $rc) {
                         $sedesAgrupadas[$sId]['regiones'][$rc] = [
                             'total_estudios' => 0,
+                            'pct_suma' => 0,
+                            'pct_estudios' => 0,
                             'dosis_suma' => 0,
                             'limite_nrd' => null,
                             'porcentaje_nrd' => null,
@@ -657,10 +659,13 @@ class DosimetriaService extends BaseService
                     $cant = (int) $fila->total_estudios;
                     $prom = (float) $fila->dosis_promedio;
                     $lim = $fila->limite_nrd ? (float) $fila->limite_nrd : null;
+                    $pctFila = ($lim !== null && $lim > 0) ? round(($prom / $lim) * 100, 1) : null;
 
                     $sedesAgrupadas[$sId]['regiones'][$reg]['total_estudios'] += $cant;
-                    $sedesAgrupadas[$sId]['regiones'][$reg]['dosis_suma'] += ($prom * $cant);
-                    if ($lim !== null) {
+                    if ($pctFila !== null) {
+                        $sedesAgrupadas[$sId]['regiones'][$reg]['pct_suma'] += ($pctFila * $cant);
+                        $sedesAgrupadas[$sId]['regiones'][$reg]['pct_estudios'] += $cant;
+                        $sedesAgrupadas[$sId]['regiones'][$reg]['dosis_suma'] += ($prom * $cant);
                         $sedesAgrupadas[$sId]['regiones'][$reg]['limite_nrd'] = $lim;
                     }
                 }
@@ -692,14 +697,14 @@ class DosimetriaService extends BaseService
 
                 foreach ($regionesCatalogo as $rc) {
                     $rData = $sData['regiones'][$rc];
-                    if ($rData['total_estudios'] > 0 && $rData['limite_nrd'] !== null && $rData['limite_nrd'] > 0) {
-                        $promDosis = $rData['dosis_suma'] / $rData['total_estudios'];
-                        $pctNrd = round(($promDosis / $rData['limite_nrd']) * 100, 1);
+                    if ($rData['pct_estudios'] > 0 && $rData['limite_nrd'] !== null && $rData['limite_nrd'] > 0) {
+                        $pctNrd = round($rData['pct_suma'] / $rData['pct_estudios'], 1);
+                        $promDosis = round($rData['dosis_suma'] / $rData['pct_estudios'], 2);
                         $estado = ($pctNrd >= 100) ? 'CRÍTICO' : (($pctNrd >= 80) ? 'ALERTA' : 'SEGURO');
 
                         $filaMatriz['regiones'][$rc] = [
                             'pct_nrd' => $pctNrd,
-                            'promedio_dosis' => round($promDosis, 2),
+                            'promedio_dosis' => $promDosis,
                             'limite_nrd' => $rData['limite_nrd'],
                             'total_estudios' => $rData['total_estudios'],
                             'estado' => $estado,
@@ -812,13 +817,13 @@ class DosimetriaService extends BaseService
         }
 
         $sqlRegionCase = "CASE 
-            WHEN r.study_desc LIKE '%[CRANEO]%' THEN 'CRANEO'
+            WHEN e.modalidad = 'MG' OR r.tipo_metrica = 'DGM' OR (r.study_desc LIKE '%[MAMA]%' AND r.study_desc NOT LIKE '%PARAN%') OR r.study_desc LIKE '%MAMOGRAF%' THEN 'MAMA'
+            WHEN r.study_desc LIKE '%[CRANEO]%' OR r.study_desc LIKE '%PARANAS%' OR r.study_desc LIKE '%PARANAL%' THEN 'CRANEO'
             WHEN r.study_desc LIKE '%[TORAX]%' THEN 'TORAX'
             WHEN r.study_desc LIKE '%[ABDOMEN]%' THEN 'ABDOMEN'
             WHEN r.study_desc LIKE '%[PELVIS]%' THEN 'PELVIS'
             WHEN r.study_desc LIKE '%[COLUMNA]%' THEN 'COLUMNA'
             WHEN r.study_desc LIKE '%[EXTREMIDADES]%' THEN 'EXTREMIDADES'
-            WHEN r.study_desc LIKE '%[MAMA]%' THEN 'MAMA'
             ELSE 'GENERAL'
         END";
 
@@ -1039,6 +1044,8 @@ class DosimetriaService extends BaseService
                 foreach ($regionesCatalogo as $rc) {
                     $sedesAgrupadas[$sId]['regiones'][$rc] = [
                         'total_estudios' => 0,
+                        'pct_suma' => 0,
+                        'pct_estudios' => 0,
                         'dosis_suma' => 0,
                         'limite_nrd' => null,
                         'porcentaje_nrd' => null,
@@ -1052,10 +1059,13 @@ class DosimetriaService extends BaseService
                 $cant = (int) $est->total_estudios;
                 $prom = (float) $est->dosis_promedio;
                 $lim = $est->limite_nrd ? (float) $est->limite_nrd : null;
+                $pctFila = ($lim !== null && $lim > 0) ? round(($prom / $lim) * 100, 1) : null;
 
                 $sedesAgrupadas[$sId]['regiones'][$reg]['total_estudios'] += $cant;
-                $sedesAgrupadas[$sId]['regiones'][$reg]['dosis_suma'] += ($prom * $cant);
-                if ($lim !== null) {
+                if ($pctFila !== null) {
+                    $sedesAgrupadas[$sId]['regiones'][$reg]['pct_suma'] += ($pctFila * $cant);
+                    $sedesAgrupadas[$sId]['regiones'][$reg]['pct_estudios'] += $cant;
+                    $sedesAgrupadas[$sId]['regiones'][$reg]['dosis_suma'] += ($prom * $cant);
                     $sedesAgrupadas[$sId]['regiones'][$reg]['limite_nrd'] = $lim;
                 }
             }
@@ -1087,14 +1097,14 @@ class DosimetriaService extends BaseService
 
             foreach ($regionesCatalogo as $rc) {
                 $rData = $sData['regiones'][$rc];
-                if ($rData['total_estudios'] > 0 && $rData['limite_nrd'] !== null && $rData['limite_nrd'] > 0) {
-                    $promDosis = $rData['dosis_suma'] / $rData['total_estudios'];
-                    $pctNrd = round(($promDosis / $rData['limite_nrd']) * 100, 1);
+                if ($rData['pct_estudios'] > 0 && $rData['limite_nrd'] !== null && $rData['limite_nrd'] > 0) {
+                    $pctNrd = round($rData['pct_suma'] / $rData['pct_estudios'], 1);
+                    $promDosis = round($rData['dosis_suma'] / $rData['pct_estudios'], 2);
                     $estado = ($pctNrd >= 100) ? 'CRÍTICO' : (($pctNrd >= 80) ? 'ALERTA' : 'SEGURO');
 
                     $filaMatriz['regiones'][$rc] = [
                         'pct_nrd' => $pctNrd,
-                        'promedio_dosis' => round($promDosis, 2),
+                        'promedio_dosis' => $promDosis,
                         'limite_nrd' => $rData['limite_nrd'],
                         'total_estudios' => $rData['total_estudios'],
                         'estado' => $estado,
@@ -1209,7 +1219,8 @@ class DosimetriaService extends BaseService
             return 'MAMA';
         }
 
-        if (preg_match('/CRANEO|CEREBRO|ENCEFALO|SILLA TURCA|SENOS PARANASALES|FACIAL|MACIZO|OIDO|ORBITAS|CUELLO/', $desc)) {
+        // Cráneo y Macizo Facial (incluyendo variantes ortográficas de senos paranasales)
+        if (preg_match('/CRANEO|CEREBRO|ENCEFALO|SILLA TURCA|SENO(S)?\s*PARANAS|FACIAL|MACIZO|OIDO|ORBITAS|CUELLO/', $desc)) {
             return 'CRANEO';
         }
         if (preg_match('/TORAX|PULMON|MEDIASTINO|REJA COSTAL|CARDIO|CORONARI|ANGIOTAC TORACICO/', $desc)) {
@@ -1227,7 +1238,8 @@ class DosimetriaService extends BaseService
         if (preg_match('/RODILLA|HOMBRO|CODO|MU[NÑ]ECA|TOBILLO|PIE|MANO|FEMUR|TIBIA|HUMERO|RADIO|ANTEBRAZO|PIERNA|EXTREMID/', $desc)) {
             return 'EXTREMIDADES';
         }
-        if (preg_match('/MAMA|SENOS/', $desc)) {
+        // Mama / Senos mamarios (excluyendo senos paranasales)
+        if (preg_match('/MAMA|MAMOGRAF|SENO(S)?\s*(MAMARI|BILATERAL|IZQ|DER)/', $desc)) {
             return 'MAMA';
         }
 
