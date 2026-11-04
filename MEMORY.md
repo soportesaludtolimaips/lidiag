@@ -37,6 +37,22 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-04 — Estandarización de Cards de Estadísticas / KPIs a Estilo Nativo AdminWrap (`DashboardDosimetria.vue`, `backupMonitorComponent.vue`, `seguridadTokensComponent.vue`):**
+  - **Diagnóstico y Causa Raíz:**
+    * Varias vistas de estadísticas y paneles de telemetría contenían estilos no nativos o inventados (`card-outline-*`, `round round-*`, barras de micro-progreso `<div class="progress">` adheridas a la base de las tarjetas, badges arbitrarios y tipografías personalizadas) que rompían la consistencia visual del tema AdminWrap del proyecto.
+  - **Solución Implementada:**
+    * **Aplicación del Patrón Canónico AdminWrap (`dashboardComponent.vue` / `reporteProduccionComponent.vue`):**
+      - Contenedor canónico: `<div class="card"><div class="card-body"><div class="d-flex p-10 no-block">`.
+      - Columna izquierda de icono: `<div class="align-self-center display-6 m-r-20"><i class="text-[color] [fa / icon-*]"></i></div>`.
+      - Columna derecha de métrica: `<div class="align-slef-center"><h2 class="m-b-0">{{ valor }}</h2><h6 class="text-muted m-b-0">{{ etiqueta }}</h6></div>`.
+    * **Depuración de Estilos Ajenos:**
+      - Se suprimieron todas las clases `card-outline-primary`, `card-outline-success`, `card-outline-info`, `card-outline-warning`.
+      - Se eliminaron las clases `round round-*` y las barras de progreso `<div class="progress">` en tarjetas de resumen de dosimetría y backups.
+      - Se refactorizaron las propiedades computadas innecesarias y se conservó únicamente el mapeo semántico de colores de texto (`text-success`, `text-info`, `text-warning`, `text-primary`, `text-danger`).
+  - **Verificaciones:**
+    * ESLint validado con 0 errores y 0 advertencias (`npx eslint`) ✅.
+    * Compilación Vite completada exitosamente (`npm run build` en 1.48s) ✅.
+    * Formato LF verificado sin BOM ✅.
 - [x] **2026-11-04 — Rebalanceo y Optimización del Ancho de Columnas en Tabla de Estudios Asignados (`estudioAsignadosComponent.vue`):**
   - **Diagnóstico y Causa Raíz:**
     * En `estudioAsignadosComponent.vue`, la tabla `#tablaEstudiosAsignados` carecía de especificación de anchos en `<thead>` y no tenía `autoWidth: false` ni `columnDefs` en DataTables (`initDataTable`). Esto provocaba que DataTables comprimiera y deformara las 12 columnas, apilara textos sin espaciado y permitiera ordenar columnas de prioridad o botones de acción.

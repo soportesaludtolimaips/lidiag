@@ -56,133 +56,86 @@
         <!-- ============================================================== -->
 
         <!-- ============================================================== -->
-        <!-- Tarjetas KPI de Estado General -->
+        <!-- Tarjetas KPI de Estado General (Nativo AdminWrap) -->
         <!-- ============================================================== -->
         <div class="row">
             <!-- 1. Estado de Almacenamiento / Disco QNAP -->
             <div class="col-lg-3 col-md-6">
-                <div class="card card-outline-primary">
+                <div class="card">
                     <div class="card-body">
-                        <div
-                            class="d-flex flex-row align-items-center justify-content-between mb-2"
-                        >
-                            <span class="round round-primary">
-                                <i class="fa fa-hdd-o font-20"></i>
-                            </span>
-                            <span :class="['label', badgeClaseEspacio]">
-                                {{ infoAlmacenamiento.porcentaje_usado }}% Ocupado
-                            </span>
+                        <div class="d-flex p-10 no-block">
+                            <div class="align-self-center display-6 m-r-20">
+                                <i :class="['fa fa-hdd-o', colorIconoEspacio]"></i>
+                            </div>
+                            <div class="align-slef-center">
+                                <h2 class="m-b-0">
+                                    <span v-if="cargando">...</span>
+                                    <span v-else>{{
+                                        infoAlmacenamiento.espacio_libre_humano
+                                    }}</span>
+                                </h2>
+                                <h6 class="text-muted m-b-0">
+                                    Espacio libre ({{ infoAlmacenamiento.porcentaje_usado }}% usado)
+                                </h6>
+                            </div>
                         </div>
-                        <h6 class="text-muted mb-1 text-uppercase font-12">
-                            Espacio en Disco (Backups)
-                        </h6>
-                        <h4 class="text-dark mb-1">
-                            {{ infoAlmacenamiento.espacio_libre_humano }} libres
-                        </h4>
-                        <div class="progress m-t-10 m-b-5" style="height: 6px">
-                            <div
-                                :class="['progress-bar', barraClaseEspacio]"
-                                role="progressbar"
-                                :style="{ width: infoAlmacenamiento.porcentaje_usado + '%' }"
-                                :aria-valuenow="infoAlmacenamiento.porcentaje_usado"
-                                aria-valuemin="0"
-                                aria-valuemax="100"
-                            ></div>
-                        </div>
-                        <small class="text-muted d-block m-t-5">
-                            Total: {{ infoAlmacenamiento.espacio_total_humano }} en unidad
-                            {{ infoAlmacenamiento.unidad || "C:" }}
-                        </small>
                     </div>
                 </div>
             </div>
 
             <!-- 2. Último Backup Base de Datos MySQL -->
             <div class="col-lg-3 col-md-6">
-                <div class="card card-outline-success">
+                <div class="card">
                     <div class="card-body">
-                        <div
-                            class="d-flex flex-row align-items-center justify-content-between mb-2"
-                        >
-                            <span class="round round-success">
-                                <i class="fa fa-database font-20"></i>
-                            </span>
-                            <span
-                                :class="[
-                                    'label',
-                                    ultimoDb && ultimoDb.estado === 'al_dia'
-                                        ? 'label-success'
-                                        : 'label-warning',
-                                ]"
-                            >
-                                {{
-                                    ultimoDb && ultimoDb.estado === "al_dia"
-                                        ? "Al día"
-                                        : "Requiere atención"
-                                }}
-                            </span>
+                        <div class="d-flex p-10 no-block">
+                            <div class="align-self-center display-6 m-r-20">
+                                <i
+                                    :class="[
+                                        'fa fa-database',
+                                        ultimoDb && ultimoDb.estado === 'al_dia'
+                                            ? 'text-success'
+                                            : 'text-warning',
+                                    ]"
+                                ></i>
+                            </div>
+                            <div class="align-slef-center">
+                                <h2 class="m-b-0">
+                                    <span v-if="cargando">...</span>
+                                    <span v-else>{{
+                                        ultimoDb ? ultimoDb.tamano_humano : "N/D"
+                                    }}</span>
+                                </h2>
+                                <h6 class="text-muted m-b-0">Backup BD Central (MySQL)</h6>
+                            </div>
                         </div>
-                        <h6 class="text-muted mb-1 text-uppercase font-12">
-                            Backup BD Central (MySQL)
-                        </h6>
-                        <h4
-                            class="text-dark mb-1 text-truncate"
-                            :title="ultimoDb?.archivo || 'Sin registros'"
-                        >
-                            {{ ultimoDb ? ultimoDb.tamano_humano : "N/D" }}
-                        </h4>
-                        <p class="text-muted mb-0 font-12">
-                            <i class="fa fa-clock-o mr-1"></i>
-                            {{ ultimoDb ? ultimoDb.hace : "Sin registros recientes" }}
-                        </p>
-                        <small
-                            class="text-muted d-block text-truncate"
-                            :title="ultimoDb?.fecha || ''"
-                        >
-                            {{ ultimoDb?.fecha || "Nunca generado" }}
-                        </small>
                     </div>
                 </div>
             </div>
 
             <!-- 3. Salud de Sedes Hospitalarias (DCM / PACS) -->
             <div class="col-lg-3 col-md-6">
-                <div class="card card-outline-info">
+                <div class="card">
                     <div class="card-body">
-                        <div
-                            class="d-flex flex-row align-items-center justify-content-between mb-2"
-                        >
-                            <span class="round round-info">
-                                <i class="fa fa-hospital-o font-20"></i>
-                            </span>
-                            <span
-                                :class="[
-                                    'label',
-                                    resumenSedes.critico === 0 ? 'label-info' : 'label-danger',
-                                ]"
-                            >
-                                {{ resumenSedes.salud_porcentaje }}% Salud
-                            </span>
-                        </div>
-                        <h6 class="text-muted mb-1 text-uppercase font-12">
-                            Sedes PACS Conectadas
-                        </h6>
-                        <h4 class="text-dark mb-1">
-                            {{ resumenSedes.al_dia }} / {{ resumenSedes.total }}
-                            <small class="text-muted">al día</small>
-                        </h4>
-                        <div class="d-flex m-t-10 font-12">
-                            <span class="text-success mr-2 font-weight-bold">
-                                <i class="fa fa-check-circle"></i> {{ resumenSedes.al_dia }} Ok
-                            </span>
-                            <span class="text-warning mr-2 font-weight-bold">
-                                <i class="fa fa-exclamation-triangle"></i>
-                                {{ resumenSedes.advertencia }} Adv
-                            </span>
-                            <span class="text-danger font-weight-bold">
-                                <i class="fa fa-times-circle"></i>
-                                {{ resumenSedes.critico }} Crítico
-                            </span>
+                        <div class="d-flex p-10 no-block">
+                            <div class="align-self-center display-6 m-r-20">
+                                <i
+                                    :class="[
+                                        'fa fa-hospital-o',
+                                        resumenSedes.critico === 0 ? 'text-info' : 'text-danger',
+                                    ]"
+                                ></i>
+                            </div>
+                            <div class="align-slef-center">
+                                <h2 class="m-b-0">
+                                    <span v-if="cargando">...</span>
+                                    <span v-else
+                                        >{{ resumenSedes.al_dia }} / {{ resumenSedes.total }}</span
+                                    >
+                                </h2>
+                                <h6 class="text-muted m-b-0">
+                                    Sedes al día ({{ resumenSedes.salud_porcentaje }}% salud)
+                                </h6>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -190,32 +143,22 @@
 
             <!-- 4. Respaldo de Archivos de Storage -->
             <div class="col-lg-3 col-md-6">
-                <div class="card card-outline-warning">
+                <div class="card">
                     <div class="card-body">
-                        <div
-                            class="d-flex flex-row align-items-center justify-content-between mb-2"
-                        >
-                            <span class="round round-warning">
-                                <i class="fa fa-folder-open-o font-20"></i>
-                            </span>
-                            <span class="label label-light-inverse">Storage</span>
+                        <div class="d-flex p-10 no-block">
+                            <div class="align-self-center display-6 m-r-20">
+                                <i class="text-primary fa fa-folder-open-o"></i>
+                            </div>
+                            <div class="align-slef-center">
+                                <h2 class="m-b-0">
+                                    <span v-if="cargando">...</span>
+                                    <span v-else>{{
+                                        ultimoStorage ? ultimoStorage.tamano_humano : "N/D"
+                                    }}</span>
+                                </h2>
+                                <h6 class="text-muted m-b-0">Archivos Storage LIDiag</h6>
+                            </div>
                         </div>
-                        <h6 class="text-muted mb-1 text-uppercase font-12">
-                            Archivos Storage LIDiag
-                        </h6>
-                        <h4 class="text-dark mb-1">
-                            {{ ultimoStorage ? ultimoStorage.tamano_humano : "N/D" }}
-                        </h4>
-                        <p class="text-muted mb-0 font-12">
-                            <i class="fa fa-clock-o mr-1"></i>
-                            {{ ultimoStorage ? ultimoStorage.hace : "Sin registros" }}
-                        </p>
-                        <small
-                            class="text-muted d-block text-truncate"
-                            :title="ultimoStorage?.fecha || ''"
-                        >
-                            {{ ultimoStorage?.fecha || "Sin respaldo reciente" }}
-                        </small>
                     </div>
                 </div>
             </div>
@@ -409,18 +352,11 @@ const resumenSedes = ref({
 const sedes = ref([]);
 const logs = ref([]);
 
-const badgeClaseEspacio = computed(() => {
+const colorIconoEspacio = computed(() => {
     const estado = infoAlmacenamiento.value.estado_espacio;
-    if (estado === "critico") return "label-danger";
-    if (estado === "advertencia") return "label-warning";
-    return "label-success";
-});
-
-const barraClaseEspacio = computed(() => {
-    const estado = infoAlmacenamiento.value.estado_espacio;
-    if (estado === "critico") return "bg-danger";
-    if (estado === "advertencia") return "bg-warning";
-    return "bg-success";
+    if (estado === "critico") return "text-danger";
+    if (estado === "advertencia") return "text-warning";
+    return "text-primary";
 });
 
 function obtenerClaseBadgeSemaforo(semaforo) {

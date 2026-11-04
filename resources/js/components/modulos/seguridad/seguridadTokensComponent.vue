@@ -50,90 +50,77 @@
         <!-- ============================================================== -->
         <div class="row">
             <div class="col-lg-3 col-md-6">
-                <div class="card card-outline-info">
+                <div class="card">
                     <div class="card-body">
-                        <div
-                            class="d-flex flex-row align-items-center justify-content-between mb-2"
-                        >
-                            <span class="round round-info"
-                                ><i class="fa fa-hospital-o font-20"></i
-                            ></span>
-                            <span class="badge badge-info">{{ resumen.total_sedes }} Sedes</span>
+                        <div class="d-flex p-10 no-block">
+                            <div class="align-self-center display-6 m-r-20">
+                                <i class="text-info fa fa-hospital-o"></i>
+                            </div>
+                            <div class="align-slef-center">
+                                <h2 class="m-b-0">
+                                    <span v-if="cargando">...</span>
+                                    <span v-else>{{ resumen.total_sedes || 0 }}</span>
+                                </h2>
+                                <h6 class="text-muted m-b-0">Total sedes hospitalarias</h6>
+                            </div>
                         </div>
-                        <h6 class="text-muted mb-1 text-uppercase font-12 font-weight-bold">
-                            Total Sedes Hospitalarias
-                        </h6>
-                        <h4 class="font-weight-bold mb-0 text-dark">
-                            {{ resumen.total_sedes }} Red Asistencial
-                        </h4>
                     </div>
                 </div>
             </div>
 
             <div class="col-lg-3 col-md-6">
-                <div class="card card-outline-success">
+                <div class="card">
                     <div class="card-body">
-                        <div
-                            class="d-flex flex-row align-items-center justify-content-between mb-2"
-                        >
-                            <span class="round round-success"
-                                ><i class="fa fa-check-circle font-20"></i
-                            ></span>
-                            <span class="badge badge-success"
-                                >{{ resumen.sedes_con_token }} / {{ resumen.total_sedes }}</span
-                            >
+                        <div class="d-flex p-10 no-block">
+                            <div class="align-self-center display-6 m-r-20">
+                                <i class="text-success fa fa-check-circle"></i>
+                            </div>
+                            <div class="align-slef-center">
+                                <h2 class="m-b-0">
+                                    <span v-if="cargando">...</span>
+                                    <span v-else>{{ resumen.sedes_con_token || 0 }}</span>
+                                </h2>
+                                <h6 class="text-muted m-b-0">Sedes con token activo</h6>
+                            </div>
                         </div>
-                        <h6 class="text-muted mb-1 text-uppercase font-12 font-weight-bold">
-                            Sedes con Token Activo
-                        </h6>
-                        <h4 class="font-weight-bold mb-0 text-success">
-                            {{ porcentajeActivos }}% Conectadas
-                        </h4>
                     </div>
                 </div>
             </div>
 
             <div class="col-lg-3 col-md-6">
-                <div class="card card-outline-warning">
+                <div class="card">
                     <div class="card-body">
-                        <div
-                            class="d-flex flex-row align-items-center justify-content-between mb-2"
-                        >
-                            <span class="round round-warning"
-                                ><i class="fa fa-exclamation-triangle font-20"></i
-                            ></span>
-                            <span class="badge badge-warning">{{ sedesSinToken }} Pendientes</span>
+                        <div class="d-flex p-10 no-block">
+                            <div class="align-self-center display-6 m-r-20">
+                                <i class="text-warning fa fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="align-slef-center">
+                                <h2 class="m-b-0">
+                                    <span v-if="cargando">...</span>
+                                    <span v-else>{{ sedesSinToken || 0 }}</span>
+                                </h2>
+                                <h6 class="text-muted m-b-0">Sedes sin token</h6>
+                            </div>
                         </div>
-                        <h6 class="text-muted mb-1 text-uppercase font-12 font-weight-bold">
-                            Sedes sin Token
-                        </h6>
-                        <h4 class="font-weight-bold mb-0 text-warning">
-                            {{ sedesSinToken }} Por Configurar
-                        </h4>
                     </div>
                 </div>
             </div>
 
             <div class="col-lg-3 col-md-6">
-                <div class="card card-outline-primary">
+                <div class="card">
                     <div class="card-body">
-                        <div
-                            class="d-flex flex-row align-items-center justify-content-between mb-2"
-                        >
-                            <span class="round round-primary"
-                                ><i class="fa fa-user-secret font-20"></i
-                            ></span>
-                            <span class="badge badge-primary">Sanctum</span>
+                        <div class="d-flex p-10 no-block">
+                            <div class="align-self-center display-6 m-r-20">
+                                <i class="text-primary fa fa-key"></i>
+                            </div>
+                            <div class="align-slef-center">
+                                <h2 class="m-b-0">
+                                    <span v-if="cargando">...</span>
+                                    <span v-else>{{ porcentajeActivos }}%</span>
+                                </h2>
+                                <h6 class="text-muted m-b-0">Cobertura de tokens</h6>
+                            </div>
                         </div>
-                        <h6 class="text-muted mb-1 text-uppercase font-12 font-weight-bold">
-                            Cuenta de Servicio Central
-                        </h6>
-                        <h5
-                            class="font-weight-bold mb-0 text-truncate text-dark"
-                            :title="usuarioServicio.email"
-                        >
-                            {{ usuarioServicio.name || "Agente Edge LIDiag" }}
-                        </h5>
                     </div>
                 </div>
             </div>

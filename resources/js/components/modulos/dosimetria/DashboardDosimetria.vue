@@ -44,7 +44,7 @@
         </div>
 
         <!-- ============================================================== -->
-        <!-- 1. Info Boxes con Micro-Progreso (AdminWrap index.html) -->
+        <!-- 1. Info Boxes (Nativo AdminWrap) -->
         <!-- ============================================================== -->
         <div class="row">
             <!-- 1.1 Total Estudios Monitoreados -->
@@ -52,26 +52,19 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex p-10 no-block">
-                            <div class="align-self-center">
+                            <div class="align-self-center display-6 m-r-20">
+                                <i class="text-success icon-Target-Market"></i>
+                            </div>
+                            <div class="align-slef-center">
                                 <h2 class="m-b-0">
-                                    {{ kpis.total_estudios?.toLocaleString() || 0 }}
+                                    <span v-if="loading">...</span>
+                                    <span v-else>{{
+                                        kpis.total_estudios?.toLocaleString() || 0
+                                    }}</span>
                                 </h2>
                                 <h6 class="text-muted m-b-0">Estudios Monitoreados</h6>
                             </div>
-                            <div class="align-self-center display-6 ml-auto">
-                                <i class="text-success icon-Target-Market"></i>
-                            </div>
                         </div>
-                    </div>
-                    <div class="progress">
-                        <div
-                            class="progress-bar bg-success"
-                            role="progressbar"
-                            :style="{
-                                width: Math.min(100, kpis.tasa_conformidad || 100) + '%',
-                                height: '3px',
-                            }"
-                        ></div>
                     </div>
                 </div>
             </div>
@@ -81,26 +74,17 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex p-10 no-block">
-                            <div class="align-self-center">
-                                <h2 class="m-b-0">{{ kpis.total_equipos || 0 }}</h2>
-                                <h6 class="text-muted m-b-0">Equipos Emisores</h6>
-                            </div>
-                            <div class="align-self-center display-6 ml-auto">
+                            <div class="align-self-center display-6 m-r-20">
                                 <i class="text-info icon-Desktop-Monitor"></i>
                             </div>
+                            <div class="align-slef-center">
+                                <h2 class="m-b-0">
+                                    <span v-if="loading">...</span>
+                                    <span v-else>{{ kpis.total_equipos || 0 }}</span>
+                                </h2>
+                                <h6 class="text-muted m-b-0">Equipos Emisores</h6>
+                            </div>
                         </div>
-                    </div>
-                    <div class="progress">
-                        <div
-                            class="progress-bar bg-info"
-                            role="progressbar"
-                            :style="{
-                                width:
-                                    (kpis.sedes_online / Math.max(1, kpis.sedes_total || 1)) * 100 +
-                                    '%',
-                                height: '3px',
-                            }"
-                        ></div>
                     </div>
                 </div>
             </div>
@@ -110,7 +94,17 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex p-10 no-block">
-                            <div class="align-self-center">
+                            <div class="align-self-center display-6 m-r-20">
+                                <i
+                                    class="icon-Contrast"
+                                    :class="
+                                        (kpis.total_alertas || 0) > 0
+                                            ? 'text-danger'
+                                            : 'text-success'
+                                    "
+                                ></i>
+                            </div>
+                            <div class="align-slef-center">
                                 <h2
                                     class="m-b-0"
                                     :class="
@@ -119,31 +113,12 @@
                                             : 'text-success'
                                     "
                                 >
-                                    {{ kpis.total_alertas || 0 }}
+                                    <span v-if="loading">...</span>
+                                    <span v-else>{{ kpis.total_alertas || 0 }}</span>
                                 </h2>
                                 <h6 class="text-muted m-b-0">Superaciones NRD</h6>
                             </div>
-                            <div class="align-self-center display-6 ml-auto">
-                                <i
-                                    :class="
-                                        (kpis.total_alertas || 0) > 0
-                                            ? 'text-danger icon-Contrast'
-                                            : 'text-success icon-Yes'
-                                    "
-                                ></i>
-                            </div>
                         </div>
-                    </div>
-                    <div class="progress">
-                        <div
-                            class="progress-bar"
-                            :class="(kpis.total_alertas || 0) > 0 ? 'bg-danger' : 'bg-success'"
-                            role="progressbar"
-                            :style="{
-                                width: (kpis.total_alertas || 0) > 0 ? '100%' : '0%',
-                                height: '3px',
-                            }"
-                        ></div>
                     </div>
                 </div>
             </div>
@@ -153,24 +128,20 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex p-10 no-block">
-                            <div class="align-self-center">
+                            <div class="align-self-center display-6 m-r-20">
+                                <i class="text-primary icon-Pulse"></i>
+                            </div>
+                            <div class="align-slef-center">
                                 <h2 class="m-b-0">
-                                    {{ kpis.dosis_efectiva_promedio || "0.00" }}
-                                    <small class="font-14 text-muted">mSv</small>
+                                    <span v-if="loading">...</span>
+                                    <span v-else>
+                                        {{ kpis.dosis_efectiva_promedio || "0.00" }}
+                                        <small class="font-14 text-muted">mSv</small>
+                                    </span>
                                 </h2>
                                 <h6 class="text-muted m-b-0">Dosis Efectiva Media (E)</h6>
                             </div>
-                            <div class="align-self-center display-6 ml-auto">
-                                <i class="text-purple icon-Pulse"></i>
-                            </div>
                         </div>
-                    </div>
-                    <div class="progress">
-                        <div
-                            class="progress-bar bg-purple"
-                            role="progressbar"
-                            style="width: 100%; height: 3px"
-                        ></div>
                     </div>
                 </div>
             </div>
