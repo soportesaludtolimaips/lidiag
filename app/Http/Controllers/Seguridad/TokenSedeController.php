@@ -113,8 +113,8 @@ class TokenSedeController extends Controller
     public function descargarConfigJson(int $sedeId): Response
     {
         $sede = ConfigSede::find($sedeId);
-        if (! $sede) {
-            return response()->json(["message" => "Sede no encontrada"], 404);
+        if (! $sede || ! $sede->estado) {
+            return response()->json(["message" => "Sede no encontrada o inactiva"], 404);
         }
 
         $configData = $this->tokenService->construirConfigJson($sede, "[REEMPLAZAR_POR_TOKEN_ACTUAL]");

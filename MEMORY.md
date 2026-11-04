@@ -37,6 +37,27 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-04 — Filtrado Exclusivo de Sedes Activas en Panel de Tokens de Seguridad (`seguridadTokensComponent.vue`, `TokenSedeService.php`, `TokenSedeController.php`):**
+  - **Diagnóstico y Causa Raíz:**
+    * En el panel de gestión de tokens (`/seguridad-tokens`), la consulta de sedes (`TokenSedeService::listarSedesConTokens`) realizaba un `ConfigSede::select(...)->get()` sin filtrar por la columna `estado`.
+    * Esto provocaba que sedes inactivas (ej. Sede 2: *"La Dorada - Hospital San Félix"*, con `estado = false`) se mostraran en la tabla de credenciales, contaran en los totales de los KPIs de sedes hospitalarias y permitieran la generación de tokens y descarga de `config.json`.
+  - **Solución Implementada:**
+    * **Filtrado en Backend (`TokenSedeService.php`):**
+      - En `listarSedesConTokens()`, se agregó la cláusula `where(fn($q) => $q->where("estado", 1)->orWhere("estado", true))` para restringir el listado y los contadores KPI únicamente a sedes activas (6 sedes en lugar de 7).
+      - En `generarTokenSede(int $sedeId)`, se añadió validación que rechaza la emisión de tokens para sedes inactivas con error 400.
+    * **Validación en Controlador (`TokenSedeController.php`):**
+      - En `descargarConfigJson(int $sedeId)`, se bloqueó la descarga de plantillas de configuración si la sede solicitada está inactiva.
+    * **Ajustes en Frontend (`seguridadTokensComponent.vue`):**
+      - Se actualizó el título de la tarjeta KPI a *"Total sedes activas"*.
+      - Se blindó la asignación reactiva con filtro defensivo: `sedes.value = (data?.sedes || []).filter((s) => s.estado_sede !== false);`.
+      - Se ajustaron los mensajes del estado vacío a *"No hay sedes activas"*.
+  - **Verificaciones:**
+    * Laravel Pint validado al 100% passed (`vendor\bin\pint.bat --test`) ✅.
+    * ESLint validado con 0 errores y 0 advertencias (`npx eslint`) ✅.
+    * Compilación Vite completada exitosamente (`npm run build` en 1.22s) ✅.
+    * Verificación directa del servicio: total sedes activas reducidas a 6 (excluyendo sede inactiva #2) ✅.
+    * Formato LF verificado sin BOM ✅.
+
 - [x] **2026-11-04 — Corrección de Expiración Prematura de Tokens Sanctum para Agentes Edge M2M (`config/sanctum.php`):**
   - **Diagnóstico y Causa Raíz:**
     * El usuario reportó: *"He notado que los tokens expiran pronto"*, tras experimentar caídas intermitentes con HTTP 401 (`{"message":"Unauthenticated."}`) en los agentes de las sedes (Espinal, Chaparral, Ibagué).
@@ -48,6 +69,28 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Verificaciones:**
     * `vendor\bin\pint.bat --test config/sanctum.php` 100% passed ✅.
     * Verificación de base de datos (`personal_access_tokens`): los tokens existentes de las sedes 1, 3 y 4 volvieron a ser válidos inmediatamente sin necesidad de reconfigurarlos ✅.
+
+- [x] **2026-11-04 — Modernización Visual Nativa del Dashboard de Dosimetría con Patrones AdminWrap (`DashboardDosimetria.vue`):**
+  - **Diagnóstico y Directriz del Usuario:**
+    * El usuario instruyó: *"no inventes estilos, utiliza los estilos de la aplicacion... mira los dashboard de la plantilla (mini-sidebar/index.html, index2.html, index3.html, index4.html) y los gráficos (chart-chart-js, chartist, echart, etc.). Tu, decide. Debemos hacer un modulo super robusto y atractivo"*.
+  - **Solución Implementada:**
+    * **1. Tarjetas Superiores de KPIs (Signature Micro-Progress Bars):**
+      - Se incorporó la barra de progreso inferior de 3px (`<div class="progress"><div class="progress-bar..." style="height: 3px;"></div></div>`) debajo de cada tarjeta de KPI (`bg-success`, `bg-info`, `bg-danger`, `bg-primary`), replicando el patrón visual distintivo de AdminWrap (`mini-sidebar/index2.html`).
+    * **2. Fila 1: Dosis vs NRD por Sede + Resumen de Campaña + Cumplimiento y Modalidades:**
+      - **Gráfica de Barras (`col-lg-8`):** Comparativa de Dosis Promedio vs Límite NRD Máximo con leyenda superior nativa (`<ul class="list-inline font-12 dl">`) y pie de tarjeta con bloque resumen de campaña (`<div class="row text-center m-t-20 b-t p-t-15">` extraído de `index3.html`) reflejando Dosis Efectiva Media $E$ ($0.43\text{ mSv}$), Conformidad NRD ($76.9\%$), Advertencias NRD ($13$) e Infracciones Críticas ($11$).
+      - **Doughnut + Browser Table (`col-lg-4`):** Gráfico de cumplimiento normativo (seguro, alerta, crítico) combinado con tabla de carga por modalidad estilo navegador (`table browser no-border m-b-0` extraído de `index2.html`) con badges por modalidad (`CT`, `DX`, `MG`, `CR`), porcentajes y barras de progreso proporcionales de 5px.
+    * **3. Fila 2: Tendencia Mensual + Perfil Dosimétrico por Órgano (Radar Chart ICRP 103):**
+      - **Evolución Temporal (`col-lg-7`):** Gráfico de líneas mensual con curvas bezier suaves (`tension: 0.3`) por modalidad.
+      - **Radar Anatómico (`col-lg-5`):** Implementación de gráfico de Radar (`vue-chartjs` + `RadialLinearScale, Filler` de `chart.js`) conforme a `chart-chart-js.html`, mapeando 7 órganos y regiones diana (Cráneo, Tórax, Abdomen, Pelvis, Columna, Extremidades, Mama) contrastando el porcentaje de radiación entregado frente al polígono de referencia del 100% NRD.
+    * **4. Fila 3: Carga de Equipos Emisores + Línea de Tiempo de Auditoría Clínica:**
+      - **Ranking de Equipos (`col-lg-8`):** Tabla nativa estilo "Projects of the Month" (`table vm no-th-brd pro-of-month` de `index2.html`) con avatar circular por modalidad (`round round-primary`, `round-danger`, etc.), sede compacta (`getNombreCortoSede`), disparos acumulados, dosis promedio y etiquetas de calibración.
+      - **Timeline de Auditoría (`col-lg-4`):** Línea de tiempo vertical (`steamline` con `sl-item`, `sl-left` y `sl-right` de `index.html`) con iconos y badges de auditoría clínica en tiempo real.
+    * **5. Cero Estilos Inventados:**
+      - 100% clases nativas AdminWrap / Bootstrap 4 (`label label-*`, `round round-*`, `progress-bar`, `b-t`, `b-r`, `p-t-15`, `font-medium`, `font-12`, `lstick`, `dl`, etc.).
+  - **Verificaciones:**
+    * ESLint validado con 0 errores (`npx eslint --fix resources/js/components/modulos/dosimetria/DashboardDosimetria.vue`) ✅.
+    * Compilación Vite exitosa (`npm run build` en 1.14s) generando el bundle de producción ✅.
+    * Normalización de terminaciones de línea a LF sin UTF-8 BOM ✅.
 
 - [x] **2026-11-04 — Refactorización UI/UX de Alertas Dosimétricas y Dead Man's Switch (`DashboardDosimetria.vue`, `DosimetriaService.php`):**
   - **Diagnóstico y Necesidad:**

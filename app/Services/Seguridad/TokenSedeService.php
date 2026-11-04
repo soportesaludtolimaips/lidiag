@@ -74,6 +74,9 @@ class TokenSedeService extends BaseService
             "usuario_dcm",
             "estado",
         ])
+            ->where(function ($q) {
+                $q->where("estado", 1)->orWhere("estado", true);
+            })
             ->orderBy("id", "asc")
             ->get();
 
@@ -225,6 +228,10 @@ class TokenSedeService extends BaseService
         $sede = ConfigSede::find($sedeId);
         if (! $sede) {
             return $this->error("La sede con ID {$sedeId} no existe en el sistema.", 404);
+        }
+
+        if (! $sede->estado) {
+            return $this->error("No es posible emitir tokens para una sede inactiva.", 400);
         }
 
         $usuarioServicio = $this->obtenerUsuarioServicio();

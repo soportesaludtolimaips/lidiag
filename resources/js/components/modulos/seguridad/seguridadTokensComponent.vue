@@ -61,7 +61,7 @@
                                     <span v-if="cargando">...</span>
                                     <span v-else>{{ resumen.total_sedes || 0 }}</span>
                                 </h2>
-                                <h6 class="text-muted m-b-0">Total sedes hospitalarias</h6>
+                                <h6 class="text-muted m-b-0">Total sedes activas</h6>
                             </div>
                         </div>
                     </div>
@@ -144,8 +144,8 @@
                         <empty-state-component
                             v-if="!cargando && sedes.length === 0"
                             icon="fa fa-key"
-                            title="No hay sedes registradas"
-                            description="No se encontraron sedes configuradas en el sistema para gestionar tokens."
+                            title="No hay sedes activas"
+                            description="No se encontraron sedes activas configuradas en el sistema para gestionar tokens."
                             action-text="Recargar datos"
                             action-icon="fa fa-refresh"
                             @action="cargarDatos"
@@ -525,7 +525,7 @@ async function cargarDatos() {
         const res = await axios.get("/api/seguridad-tokens");
         if (res.data && res.data.success) {
             const data = res.data.data;
-            sedes.value = data?.sedes || [];
+            sedes.value = (data?.sedes || []).filter((s) => s.estado_sede !== false);
             usuarioServicio.value = data?.usuario_servicio || {};
             resumen.value = {
                 total_sedes: data?.total_sedes || sedes.value.length,
