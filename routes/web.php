@@ -234,6 +234,18 @@ Route::get('descarga-reportes-tat', [ReporteProduccion::class, 'reporteTAT'])
 Route::get('descarga-reportes-agentes', [ReporteProduccion::class, 'reporteAgentes'])
     ->name('descarga.reportes.agentes')
     ->middleware(['auth', 'permission:reportes.detallados|reportes.indicadores|seguridad.backups.index']);
+Route::get('descarga-reportes-consolidado-red', [ReporteProduccion::class, 'reporteConsolidadoRed'])
+    ->name('descarga.reportes.consolidado.red')
+    ->middleware(['auth', 'permission:reportes.detallados|reportes.indicadores']);
+Route::get('descarga-reportes-represados', [ReporteProduccion::class, 'reporteRepresados'])
+    ->name('descarga.reportes.represados')
+    ->middleware(['auth', 'permission:reportes.detallados|reportes.indicadores']);
+Route::get('descarga-reportes-citas-whatsapp', [ReporteProduccion::class, 'reporteCitasWhatsApp'])
+    ->name('descarga.reportes.citas.whatsapp')
+    ->middleware(['auth', 'permission:reportes.detallados|reportes.indicadores']);
+Route::get('descarga-reportes-almacenamiento', [ReporteProduccion::class, 'reporteAlmacenamiento'])
+    ->name('descarga.reportes.almacenamiento')
+    ->middleware(['auth', 'permission:reportes.detallados|reportes.indicadores|seguridad.backups.index']);
 
 /**
  * Configuración

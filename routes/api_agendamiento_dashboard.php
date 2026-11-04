@@ -3,6 +3,7 @@
 use App\Http\Controllers\Agenda\AgendaDisponibilidaController;
 use App\Http\Controllers\Agenda\AgendaDisponibilidaDetalleController;
 use App\Http\Controllers\Dashboard\DashBoardController;
+use App\Http\Controllers\Reportes\ReporteProduccion;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -32,4 +33,16 @@ Route::middleware(['auth'])->group(function () {
      */
     Route::get('/reportes.dashboard', [DashBoardController::class, 'dashboard'])
         ->name('api.reportes.dashboard');
+
+    /*
+     * Reportes Operativos Interactivos (Consolidados y Semáforos)
+     */
+    Route::get('/reportes-resumen-red', [ReporteProduccion::class, 'apiResumenRed'])
+        ->name('api.reportes.resumen.red');
+    Route::get('/reportes-semaforo-represados', [ReporteProduccion::class, 'apiSemaforoRepresados'])
+        ->name('api.reportes.semaforo.represados');
+    Route::get('/reportes-citas-whatsapp', [ReporteProduccion::class, 'apiCitasWhatsApp'])
+        ->name('api.reportes.citas.whatsapp');
+    Route::get('/reportes-almacenamiento', [ReporteProduccion::class, 'apiAlmacenamiento'])
+        ->name('api.reportes.almacenamiento');
 });

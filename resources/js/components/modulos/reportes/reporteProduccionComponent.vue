@@ -131,6 +131,12 @@
                                     Producción detallada (Ecografias)
                                 </a>
                             </div>
+                            <div class="col-12">
+                                <a href="javascript:void(0)" @click="abrirModalConsolidadoRed()">
+                                    <i class="fa fa-globe text-info"></i>
+                                    Consolidado red hospitalaria (Ranking, Modalidades, TAT)
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -212,6 +218,15 @@
                                     Tiempos de respuesta y entrega (TAT)
                                 </a>
                             </div>
+                            <div class="col-12">
+                                <a
+                                    href="javascript:void(0)"
+                                    @click="abrirModalSemaforoRepresados()"
+                                >
+                                    <i class="fa fa-exclamation-triangle text-warning"></i>
+                                    Semáforo de oportunidad y represamiento (>24h y Urgencias)
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -228,6 +243,13 @@
                                 <a href="javascript:void(0)" @click="abrirModalAusentismo()">
                                     <i class="fa fa-check text-info"></i>
                                     Ausentismo y cancelaciones (No-Show)
+                                </a>
+                            </div>
+                            <div class="col-12">
+                                <a href="javascript:void(0)" @click="abrirModalCitasWhatsApp()">
+                                    <i class="fa fa-whatsapp text-success"></i>
+                                    Estadísticas de citas y canal WhatsApp (Atención Hoy y
+                                    Conversión)
                                 </a>
                             </div>
                         </div>
@@ -282,6 +304,12 @@
                                 <a href="javascript:void(0)" @click="abrirModalAgentes()">
                                     <i class="fa fa-check text-info"></i>
                                     Salud y telemetría de agentes hospitalarios
+                                </a>
+                            </div>
+                            <div class="col-12">
+                                <a href="javascript:void(0)" @click="abrirModalAlmacenamiento()">
+                                    <i class="fa fa-hdd-o text-info"></i>
+                                    Monitor de almacenamiento y servidores PACS (Discos y Sedes)
                                 </a>
                             </div>
                             <div
@@ -1256,6 +1284,984 @@
             </div>
         </div>
         <div v-if="modalAgentesVisible" class="modal-backdrop fade show"></div>
+
+        <!-- Modal 10: Consolidado Red Hospitalaria -->
+        <div
+            class="modal fade"
+            :class="{ show: modalConsolidadoRedVisible }"
+            :style="{ display: modalConsolidadoRedVisible ? 'block' : 'none' }"
+            tabindex="-1"
+            role="dialog"
+            aria-hidden="true"
+            @click.self="modalConsolidadoRedVisible = false"
+        >
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Consolidado de Producción — Red Hospitalaria</h4>
+                        <button
+                            type="button"
+                            class="close"
+                            aria-label="Cerrar modal"
+                            @click="modalConsolidadoRedVisible = false"
+                        >
+                            ×
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Selector de Período Rápido -->
+                        <div class="btn-group btn-group-sm mb-3 w-100" role="group">
+                            <button
+                                type="button"
+                                class="btn"
+                                :class="
+                                    datosConsolidadoRed.periodo === 'hoy'
+                                        ? 'btn-info'
+                                        : 'btn-secondary'
+                                "
+                                @click="cambiarPeriodoConsolidadoRed('hoy')"
+                            >
+                                Hoy
+                            </button>
+                            <button
+                                type="button"
+                                class="btn"
+                                :class="
+                                    datosConsolidadoRed.periodo === 'ayer'
+                                        ? 'btn-info'
+                                        : 'btn-secondary'
+                                "
+                                @click="cambiarPeriodoConsolidadoRed('ayer')"
+                            >
+                                Ayer
+                            </button>
+                            <button
+                                type="button"
+                                class="btn"
+                                :class="
+                                    datosConsolidadoRed.periodo === 'semana'
+                                        ? 'btn-info'
+                                        : 'btn-secondary'
+                                "
+                                @click="cambiarPeriodoConsolidadoRed('semana')"
+                            >
+                                Últimos 7 días
+                            </button>
+                            <button
+                                type="button"
+                                class="btn"
+                                :class="
+                                    datosConsolidadoRed.periodo === 'mes'
+                                        ? 'btn-info'
+                                        : 'btn-secondary'
+                                "
+                                @click="cambiarPeriodoConsolidadoRed('mes')"
+                            >
+                                Mes Actual
+                            </button>
+                            <button
+                                type="button"
+                                class="btn"
+                                :class="
+                                    datosConsolidadoRed.periodo === 'custom'
+                                        ? 'btn-info'
+                                        : 'btn-secondary'
+                                "
+                                @click="cambiarPeriodoConsolidadoRed('custom')"
+                            >
+                                Rango Manual
+                            </button>
+                        </div>
+
+                        <!-- Filtro de fechas manual si aplica -->
+                        <div v-if="datosConsolidadoRed.periodo === 'custom'" class="row mb-3">
+                            <div class="col-5">
+                                <label class="control-label">Desde</label>
+                                <input
+                                    class="form-control form-control-sm"
+                                    type="date"
+                                    v-model="datosConsolidadoRed.fechaIni"
+                                />
+                            </div>
+                            <div class="col-5">
+                                <label class="control-label">Hasta</label>
+                                <input
+                                    class="form-control form-control-sm"
+                                    type="date"
+                                    v-model="datosConsolidadoRed.fechaFin"
+                                />
+                            </div>
+                            <div class="col-2 d-flex align-items-end">
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-info w-100"
+                                    @click="consultarConsolidadoRed()"
+                                    :disabled="loadingConsolidadoRed"
+                                >
+                                    <i class="fa fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Cargando estado -->
+                        <div v-if="loadingConsolidadoRed" class="text-center py-4">
+                            <i class="fa fa-spinner fa-spin fa-2x text-info"></i>
+                            <p class="text-muted mt-2 mb-0">
+                                Consultando producción de toda la red hospitalaria...
+                            </p>
+                        </div>
+
+                        <!-- Resumen interactivo en vivo -->
+                        <div v-else-if="resumenConsolidadoRed">
+                            <!-- Métricas destacadas -->
+                            <div class="row mb-3 text-center">
+                                <div class="col-3">
+                                    <div class="card card-body bg-light p-2 mb-0">
+                                        <h4 class="mb-0 text-info">
+                                            {{ resumenConsolidadoRed.totalProcedimientos }}
+                                        </h4>
+                                        <small class="text-muted">Procedimientos Red</small>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="card card-body bg-light p-2 mb-0">
+                                        <h4 class="mb-0 text-primary">
+                                            {{ resumenConsolidadoRed.totalPacientes }}
+                                        </h4>
+                                        <small class="text-muted">Pacientes Únicos</small>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="card card-body bg-light p-2 mb-0">
+                                        <h4 class="mb-0">
+                                            <span
+                                                class="badge"
+                                                :class="'badge-' + resumenConsolidadoRed.tatClase"
+                                            >
+                                                {{ resumenConsolidadoRed.tatTexto }}
+                                            </span>
+                                        </h4>
+                                        <small class="text-muted">TAT Clínico Real</small>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="card card-body bg-light p-2 mb-0">
+                                        <h4 class="mb-0 text-warning">
+                                            {{ resumenConsolidadoRed.pendientesRed }}
+                                        </h4>
+                                        <small class="text-muted">Pendientes en Red</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Ranking de Producción por Sede -->
+                            <h5 class="box-title mb-2">
+                                <i class="fa fa-hospital-o text-info"></i> Ranking de Producción por
+                                Sede Hospitalaria
+                            </h5>
+                            <div
+                                class="table-responsive mb-3"
+                                style="max-height: 180px; overflow-y: auto"
+                            >
+                                <table class="table table-sm table-striped table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Sede Hospitalaria</th>
+                                            <th class="text-center">Estudios</th>
+                                            <th class="text-center">% Red</th>
+                                            <th style="width: 35%">Distribución</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr
+                                            v-for="sede in resumenConsolidadoRed.rankingSedes"
+                                            :key="sede.sede_id"
+                                        >
+                                            <td>
+                                                <strong>{{ sede.nom_sede }}</strong>
+                                            </td>
+                                            <td class="text-center font-weight-bold">
+                                                {{ sede.cantidad }}
+                                            </td>
+                                            <td class="text-center">{{ sede.porcentaje }}%</td>
+                                            <td>
+                                                <div class="progress" style="height: 10px">
+                                                    <div
+                                                        class="progress-bar bg-info"
+                                                        role="progressbar"
+                                                        :style="{ width: sede.porcentaje + '%' }"
+                                                    ></div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr v-if="!resumenConsolidadoRed.rankingSedes.length">
+                                            <td colspan="4" class="text-center text-muted">
+                                                Sin lecturas registradas en este período.
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Desglose de Modalidades -->
+                            <h5 class="box-title mb-2">
+                                <i class="fa fa-cubes text-info"></i> Modalidades Diagnósticas
+                            </h5>
+                            <div class="row">
+                                <div
+                                    class="col-4 mb-2"
+                                    v-for="mod in resumenConsolidadoRed.modalidades"
+                                    :key="mod.mod_codigo"
+                                >
+                                    <div class="d-flex align-items-center p-2 border rounded">
+                                        <i :class="mod.icono + ' text-info mr-2 fa-lg'"></i>
+                                        <div class="w-100">
+                                            <div class="d-flex justify-content-between">
+                                                <small class="font-weight-bold">{{
+                                                    mod.mod_nombre
+                                                }}</small>
+                                                <small class="text-muted"
+                                                    >{{ mod.cantidad }} ({{
+                                                        mod.porcentaje
+                                                    }}%)</small
+                                                >
+                                            </div>
+                                            <div class="progress mt-1" style="height: 6px">
+                                                <div
+                                                    class="progress-bar bg-success"
+                                                    :style="{ width: mod.porcentaje + '%' }"
+                                                ></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-default waves-effect"
+                            @click="modalConsolidadoRedVisible = false"
+                        >
+                            Cerrar
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-info waves-effect waves-light"
+                            @click="descargarConsolidadoRed()"
+                            :disabled="loadingDescargarConsolidadoRed"
+                        >
+                            <i
+                                v-if="loadingDescargarConsolidadoRed"
+                                class="fa fa-spinner fa-spin"
+                            ></i>
+                            <i v-else class="fa fa-download"></i>
+                            Descargar reporte
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-if="modalConsolidadoRedVisible" class="modal-backdrop fade show"></div>
+
+        <!-- Modal 11: Semáforo de Represamiento Asistencial y Urgencias -->
+        <div
+            class="modal fade"
+            :class="{ show: modalSemaforoRepresadosVisible }"
+            :style="{ display: modalSemaforoRepresadosVisible ? 'block' : 'none' }"
+            tabindex="-1"
+            role="dialog"
+            aria-hidden="true"
+            @click.self="modalSemaforoRepresadosVisible = false"
+        >
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">
+                            Semáforo de Represamiento Asistencial y Urgencias
+                        </h4>
+                        <button
+                            type="button"
+                            class="close"
+                            aria-label="Cerrar modal"
+                            @click="modalSemaforoRepresadosVisible = false"
+                        >
+                            ×
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Filtro de Sede -->
+                        <div class="row align-items-center mb-3">
+                            <div class="col-8">
+                                <label class="control-label mb-1">Filtrar por Sede</label>
+                                <select
+                                    class="form-control custom-select form-control-sm"
+                                    v-model="datosSemaforoRepresados.sedeId"
+                                    @change="consultarSemaforoRepresados()"
+                                >
+                                    <option value="0">
+                                        ...::: Toda la Red Hospitalaria :::...
+                                    </option>
+                                    <option v-for="sede in sedes" :key="sede.id" :value="sede.id">
+                                        {{ sede.nom_sede }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-4 text-right pt-3">
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-info"
+                                    @click="consultarSemaforoRepresados()"
+                                    :disabled="loadingSemaforoRepresados"
+                                >
+                                    <i
+                                        class="fa fa-refresh mr-1"
+                                        :class="{ 'fa-spin': loadingSemaforoRepresados }"
+                                    ></i>
+                                    Actualizar
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Cargando estado -->
+                        <div v-if="loadingSemaforoRepresados" class="text-center py-4">
+                            <i class="fa fa-spinner fa-spin fa-2x text-warning"></i>
+                            <p class="text-muted mt-2 mb-0">
+                                Evaluando estudios represados y tiempos de urgencias...
+                            </p>
+                        </div>
+
+                        <!-- Resumen en vivo -->
+                        <div v-else-if="resumenSemaforoRepresados">
+                            <div
+                                class="alert alert-secondary py-1 px-3 small d-flex justify-content-between mb-3"
+                            >
+                                <span
+                                    ><i class="fa fa-clock-o mr-1"></i> Corte en tiempo real:
+                                    <strong>{{ resumenSemaforoRepresados.corte }}</strong></span
+                                >
+                                <span class="text-muted"
+                                    >Prioridad: Atender urgencias &gt;30m y estudios en rango rojo
+                                    (&gt;72h)</span
+                                >
+                            </div>
+
+                            <!-- Tarjetas Semáforo de Criticidad -->
+                            <div class="row text-center mb-3">
+                                <div class="col-3">
+                                    <div class="card card-body border-warning p-2 mb-0">
+                                        <h3 class="mb-0 text-warning">
+                                            {{ resumenSemaforoRepresados.tot24_48 }}
+                                        </h3>
+                                        <small class="text-muted">🟡 24h a 48h (Preventivo)</small>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="card card-body border-danger p-2 mb-0">
+                                        <h3 class="mb-0 text-danger">
+                                            {{ resumenSemaforoRepresados.tot48_72 }}
+                                        </h3>
+                                        <small class="text-muted">🟠 48h a 72h (Crítico)</small>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="card card-body bg-danger text-white p-2 mb-0">
+                                        <h3 class="mb-0 text-white">
+                                            {{ resumenSemaforoRepresados.totMas72 }}
+                                        </h3>
+                                        <small class="text-white"
+                                            >🔴 &gt; 72h (Severo / Glosa)</small
+                                        >
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="card card-body border-dark p-2 mb-0">
+                                        <h3 class="mb-0 text-dark">
+                                            {{ resumenSemaforoRepresados.totalUrgentes }}
+                                            <small
+                                                v-if="
+                                                    resumenSemaforoRepresados.totalUrgentes30m > 0
+                                                "
+                                                class="text-danger"
+                                            >
+                                                ({{ resumenSemaforoRepresados.totalUrgentes30m }}
+                                                &gt;30m)
+                                            </small>
+                                        </h3>
+                                        <small class="text-muted">🚑 Urgencias Pendientes</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tabla de Detalle por Sede -->
+                            <h5 class="box-title mb-2">
+                                <i class="fa fa-list-alt text-info"></i> Detalle de Represamiento
+                                por Sede
+                            </h5>
+                            <div
+                                class="table-responsive"
+                                style="max-height: 200px; overflow-y: auto"
+                            >
+                                <table class="table table-sm table-striped table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Sede Hospitalaria</th>
+                                            <th class="text-center text-warning">🟡 24-48h</th>
+                                            <th class="text-center text-danger">🟠 48-72h</th>
+                                            <th class="text-center font-weight-bold text-danger">
+                                                🔴 &gt;72h
+                                            </th>
+                                            <th class="text-center">Total Represados</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr
+                                            v-for="rep in resumenSemaforoRepresados.represadosPorSede"
+                                            :key="rep.sede_id"
+                                        >
+                                            <td>
+                                                <strong>{{ rep.nom_sede }}</strong>
+                                            </td>
+                                            <td class="text-center">{{ rep.rango_24_48 }}</td>
+                                            <td class="text-center">{{ rep.rango_48_72 }}</td>
+                                            <td class="text-center font-weight-bold text-danger">
+                                                {{ rep.rango_mas_72 }}
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge badge-secondary"
+                                                    >{{ rep.cantidad }} ({{
+                                                        rep.porcentaje
+                                                    }}%)</span
+                                                >
+                                            </td>
+                                        </tr>
+                                        <tr
+                                            v-if="
+                                                !resumenSemaforoRepresados.represadosPorSede.length
+                                            "
+                                        >
+                                            <td colspan="5" class="text-center text-success py-2">
+                                                <i class="fa fa-check-circle mr-1"></i> No se
+                                                registran estudios con retraso mayor a 24 horas.
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-default waves-effect"
+                            @click="modalSemaforoRepresadosVisible = false"
+                        >
+                            Cerrar
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-info waves-effect waves-light"
+                            @click="descargarSemaforoRepresados()"
+                            :disabled="loadingDescargarSemaforoRepresados"
+                        >
+                            <i
+                                v-if="loadingDescargarSemaforoRepresados"
+                                class="fa fa-spinner fa-spin"
+                            ></i>
+                            <i v-else class="fa fa-download"></i>
+                            Descargar reporte
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-if="modalSemaforoRepresadosVisible" class="modal-backdrop fade show"></div>
+
+        <!-- Modal 12: Estadísticas de Citas y Canal WhatsApp -->
+        <div
+            class="modal fade"
+            :class="{ show: modalCitasWhatsAppVisible }"
+            :style="{ display: modalCitasWhatsAppVisible ? 'block' : 'none' }"
+            tabindex="-1"
+            role="dialog"
+            aria-hidden="true"
+            @click.self="modalCitasWhatsAppVisible = false"
+        >
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Estadísticas de Citas y Canal WhatsApp</h4>
+                        <button
+                            type="button"
+                            class="close"
+                            aria-label="Cerrar modal"
+                            @click="modalCitasWhatsAppVisible = false"
+                        >
+                            ×
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Filtros: Período y Sede -->
+                        <div class="row mb-3">
+                            <div class="col-7">
+                                <label class="control-label mb-1">Período de Solicitudes</label>
+                                <div class="btn-group btn-group-sm w-100" role="group">
+                                    <button
+                                        type="button"
+                                        class="btn"
+                                        :class="
+                                            datosCitasWhatsApp.periodo === 'hoy'
+                                                ? 'btn-info'
+                                                : 'btn-secondary'
+                                        "
+                                        @click="cambiarPeriodoCitasWhatsApp('hoy')"
+                                    >
+                                        Hoy
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="btn"
+                                        :class="
+                                            datosCitasWhatsApp.periodo === 'semana'
+                                                ? 'btn-info'
+                                                : 'btn-secondary'
+                                        "
+                                        @click="cambiarPeriodoCitasWhatsApp('semana')"
+                                    >
+                                        7 Días
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="btn"
+                                        :class="
+                                            datosCitasWhatsApp.periodo === 'mes'
+                                                ? 'btn-info'
+                                                : 'btn-secondary'
+                                        "
+                                        @click="cambiarPeriodoCitasWhatsApp('mes')"
+                                    >
+                                        Este Mes
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="btn"
+                                        :class="
+                                            datosCitasWhatsApp.periodo === 'custom'
+                                                ? 'btn-info'
+                                                : 'btn-secondary'
+                                        "
+                                        @click="cambiarPeriodoCitasWhatsApp('custom')"
+                                    >
+                                        Manual
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-5">
+                                <label class="control-label mb-1">Sede</label>
+                                <select
+                                    class="form-control custom-select form-control-sm"
+                                    v-model="datosCitasWhatsApp.sedeId"
+                                    @change="consultarCitasWhatsApp()"
+                                >
+                                    <option value="0">...::: Todas las sedes :::...</option>
+                                    <option v-for="sede in sedes" :key="sede.id" :value="sede.id">
+                                        {{ sede.nom_sede }}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Rango de fechas manual si aplica -->
+                        <div v-if="datosCitasWhatsApp.periodo === 'custom'" class="row mb-3">
+                            <div class="col-5">
+                                <label class="control-label">Desde</label>
+                                <input
+                                    class="form-control form-control-sm"
+                                    type="date"
+                                    v-model="datosCitasWhatsApp.fechaIni"
+                                />
+                            </div>
+                            <div class="col-5">
+                                <label class="control-label">Hasta</label>
+                                <input
+                                    class="form-control form-control-sm"
+                                    type="date"
+                                    v-model="datosCitasWhatsApp.fechaFin"
+                                />
+                            </div>
+                            <div class="col-2 d-flex align-items-end">
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-info w-100"
+                                    @click="consultarCitasWhatsApp()"
+                                    :disabled="loadingCitasWhatsApp"
+                                >
+                                    <i class="fa fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Cargando estado -->
+                        <div v-if="loadingCitasWhatsApp" class="text-center py-4">
+                            <i class="fa fa-spinner fa-spin fa-2x text-success"></i>
+                            <p class="text-muted mt-2 mb-0">
+                                Consultando métricas de citas y canal WhatsApp...
+                            </p>
+                        </div>
+
+                        <!-- Resumen en vivo -->
+                        <div v-else-if="resumenCitasWhatsApp">
+                            <!-- Bloque 1: Citas del Día -->
+                            <div class="card border-info mb-3">
+                                <div class="card-header bg-info text-white py-1 px-3">
+                                    <i class="fa fa-calendar-check-o mr-1"></i> Citas Programadas
+                                    para Atención HOY
+                                </div>
+                                <div class="card-body p-2">
+                                    <div class="row text-center">
+                                        <div class="col-4">
+                                            <h4 class="mb-0 text-info">
+                                                {{ resumenCitasWhatsApp.citasHoy.total }}
+                                            </h4>
+                                            <small class="text-muted">Total Citas Hoy</small>
+                                        </div>
+                                        <div class="col-4">
+                                            <h4 class="mb-0 text-success">
+                                                {{ resumenCitasWhatsApp.citasHoy.confirmadas }}
+                                                <small
+                                                    >({{
+                                                        resumenCitasWhatsApp.citasHoy.pctAsistencia
+                                                    }}%)</small
+                                                >
+                                            </h4>
+                                            <small class="text-muted"
+                                                >Confirmadas / Asignadas</small
+                                            >
+                                        </div>
+                                        <div class="col-4">
+                                            <h4 class="mb-0 text-danger">
+                                                {{ resumenCitasWhatsApp.citasHoy.canceladas }}
+                                            </h4>
+                                            <small class="text-muted"
+                                                >Canceladas / Rechazadas</small
+                                            >
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Bloque 2: Tráfico WhatsApp en el período -->
+                            <div class="card border-success mb-3">
+                                <div class="card-header bg-success text-white py-1 px-3">
+                                    <i class="fa fa-whatsapp mr-1"></i> Tráfico Canal WhatsApp en el
+                                    Período ({{ resumenCitasWhatsApp.etiquetaPeriodo }})
+                                </div>
+                                <div class="card-body p-2">
+                                    <div class="row text-center">
+                                        <div class="col-3">
+                                            <h4 class="mb-0 text-dark">
+                                                {{
+                                                    resumenCitasWhatsApp.whatsappPeriodo
+                                                        .totalSolicitudes
+                                                }}
+                                            </h4>
+                                            <small class="text-muted">Solicitudes Recibidas</small>
+                                        </div>
+                                        <div class="col-3">
+                                            <h4 class="mb-0 text-success">
+                                                {{ resumenCitasWhatsApp.whatsappPeriodo.aprobadas }}
+                                            </h4>
+                                            <small class="text-muted">Aprobadas / Agendadas</small>
+                                        </div>
+                                        <div class="col-3">
+                                            <h4 class="mb-0 text-info">
+                                                {{
+                                                    resumenCitasWhatsApp.whatsappPeriodo
+                                                        .tasaConversion
+                                                }}%
+                                            </h4>
+                                            <small class="text-muted">Tasa de Conversión</small>
+                                        </div>
+                                        <div class="col-3">
+                                            <h4 class="mb-0 text-warning">
+                                                {{
+                                                    resumenCitasWhatsApp.whatsappPeriodo
+                                                        .pendientesRevision
+                                                }}
+                                            </h4>
+                                            <small class="text-muted">Pendientes por Revisar</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Desglose de Estados -->
+                            <h6 class="box-title mb-2">Desglose de Estados de Gestión</h6>
+                            <div class="row">
+                                <div
+                                    class="col-4 mb-2"
+                                    v-for="st in resumenCitasWhatsApp.desgloseEstados"
+                                    :key="st.estado"
+                                >
+                                    <div class="d-flex justify-content-between p-2 border rounded">
+                                        <span>{{ st.estado }}</span>
+                                        <strong>{{ st.cantidad }} ({{ st.porcentaje }}%)</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-default waves-effect"
+                            @click="modalCitasWhatsAppVisible = false"
+                        >
+                            Cerrar
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-info waves-effect waves-light"
+                            @click="descargarCitasWhatsApp()"
+                            :disabled="loadingDescargarCitasWhatsApp"
+                        >
+                            <i
+                                v-if="loadingDescargarCitasWhatsApp"
+                                class="fa fa-spinner fa-spin"
+                            ></i>
+                            <i v-else class="fa fa-download"></i>
+                            Descargar reporte
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-if="modalCitasWhatsAppVisible" class="modal-backdrop fade show"></div>
+
+        <!-- Modal 13: Monitor de Almacenamiento y Servidores PACS -->
+        <div
+            class="modal fade"
+            :class="{ show: modalAlmacenamientoVisible }"
+            :style="{ display: modalAlmacenamientoVisible ? 'block' : 'none' }"
+            tabindex="-1"
+            role="dialog"
+            aria-hidden="true"
+            @click.self="modalAlmacenamientoVisible = false"
+        >
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Monitor de Almacenamiento y Servidores PACS</h4>
+                        <button
+                            type="button"
+                            class="close"
+                            aria-label="Cerrar modal"
+                            @click="modalAlmacenamientoVisible = false"
+                        >
+                            ×
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Filtro de Sede y botón actualizar -->
+                        <div class="row align-items-center mb-3">
+                            <div class="col-8">
+                                <label class="control-label mb-1">Filtrar Sede</label>
+                                <select
+                                    class="form-control custom-select form-control-sm"
+                                    v-model="datosAlmacenamiento.sedeId"
+                                    @change="consultarAlmacenamiento()"
+                                >
+                                    <option value="0">...::: Todas las sedes :::...</option>
+                                    <option v-for="sede in sedes" :key="sede.id" :value="sede.id">
+                                        {{ sede.nom_sede }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-4 text-right pt-3">
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-info"
+                                    @click="consultarAlmacenamiento()"
+                                    :disabled="loadingAlmacenamiento"
+                                >
+                                    <i
+                                        class="fa fa-refresh mr-1"
+                                        :class="{ 'fa-spin': loadingAlmacenamiento }"
+                                    ></i>
+                                    Actualizar
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Cargando estado -->
+                        <div v-if="loadingAlmacenamiento" class="text-center py-4">
+                            <i class="fa fa-spinner fa-spin fa-2x text-info"></i>
+                            <p class="text-muted mt-2 mb-0">
+                                Consultando unidades de disco y estado de servidores...
+                            </p>
+                        </div>
+
+                        <!-- Resumen en vivo -->
+                        <div v-else-if="resumenAlmacenamiento">
+                            <!-- Servidor Central -->
+                            <div class="card border-secondary mb-3">
+                                <div
+                                    class="card-header bg-dark text-white py-1 px-3 d-flex justify-content-between align-items-center"
+                                >
+                                    <span
+                                        ><i class="fa fa-server mr-1"></i> Servidor Central (LIDiag
+                                        Cloud Web)</span
+                                    >
+                                    <span
+                                        class="badge"
+                                        :class="
+                                            'badge-' +
+                                            resumenAlmacenamiento.servidorCentral.iconoClase
+                                        "
+                                    >
+                                        {{ resumenAlmacenamiento.servidorCentral.freeGb }} GB Libres
+                                        ({{ resumenAlmacenamiento.servidorCentral.freePct }}%)
+                                    </span>
+                                </div>
+                                <div class="card-body p-2">
+                                    <div
+                                        class="d-flex justify-content-between small text-muted mb-1"
+                                    >
+                                        <span
+                                            >Usado:
+                                            <strong
+                                                >{{
+                                                    resumenAlmacenamiento.servidorCentral.usedGb
+                                                }}
+                                                GB</strong
+                                            >
+                                            ({{
+                                                resumenAlmacenamiento.servidorCentral.usedPct
+                                            }}%)</span
+                                        >
+                                        <span
+                                            >Capacidad Total:
+                                            <strong
+                                                >{{
+                                                    resumenAlmacenamiento.servidorCentral.totalGb
+                                                }}
+                                                GB</strong
+                                            ></span
+                                        >
+                                    </div>
+                                    <div class="progress" style="height: 12px">
+                                        <div
+                                            class="progress-bar"
+                                            :class="
+                                                'bg-' +
+                                                resumenAlmacenamiento.servidorCentral.iconoClase
+                                            "
+                                            role="progressbar"
+                                            :style="{
+                                                width:
+                                                    resumenAlmacenamiento.servidorCentral.usedPct +
+                                                    '%',
+                                            }"
+                                        ></div>
+                                    </div>
+                                    <small class="text-muted d-block mt-1">
+                                        <i class="fa fa-info-circle mr-1"></i> Umbrales PACS: 🟡
+                                        Advertencia &lt;15% o 50GB | 🔴 Crítico &lt;5% o 20GB.
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Sedes y Agentes Edge -->
+                            <h5 class="box-title mb-2">
+                                <i class="fa fa-cubes text-info"></i> Salud de Agentes Edge y
+                                Respaldos en Sedes
+                            </h5>
+                            <div
+                                class="table-responsive"
+                                style="max-height: 200px; overflow-y: auto"
+                            >
+                                <table class="table table-sm table-striped table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Sede Hospitalaria</th>
+                                            <th class="text-center">IP DCM</th>
+                                            <th class="text-center">Respaldos DB</th>
+                                            <th class="text-center">Sync PACS</th>
+                                            <th class="text-center">Dosimetría</th>
+                                            <th>Último Backup</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr
+                                            v-for="sede in resumenAlmacenamiento.sedes"
+                                            :key="sede.id"
+                                        >
+                                            <td>
+                                                <strong>{{ sede.nom_sede }}</strong>
+                                            </td>
+                                            <td class="text-center small">
+                                                {{ sede.ip_dcm || "N/D" }}
+                                            </td>
+                                            <td class="text-center">
+                                                <span
+                                                    class="badge"
+                                                    :class="'badge-' + sede.backup_clase"
+                                                    >{{ sede.backup_estado }}</span
+                                                >
+                                            </td>
+                                            <td class="text-center">
+                                                <span
+                                                    class="badge"
+                                                    :class="'badge-' + sede.sync_clase"
+                                                    >{{ sede.sync_estado }}</span
+                                                >
+                                            </td>
+                                            <td class="text-center">
+                                                <span
+                                                    class="badge"
+                                                    :class="'badge-' + sede.dosimetria_clase"
+                                                    >{{ sede.dosimetria_estado }}</span
+                                                >
+                                            </td>
+                                            <td class="small">{{ sede.backup_tiempo }}</td>
+                                        </tr>
+                                        <tr v-if="!resumenAlmacenamiento.sedes.length">
+                                            <td colspan="6" class="text-center text-muted">
+                                                No se registran sedes activas configuradas.
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-default waves-effect"
+                            @click="modalAlmacenamientoVisible = false"
+                        >
+                            Cerrar
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-info waves-effect waves-light"
+                            @click="descargarAlmacenamiento()"
+                            :disabled="loadingDescargarAlmacenamiento"
+                        >
+                            <i
+                                v-if="loadingDescargarAlmacenamiento"
+                                class="fa fa-spinner fa-spin"
+                            ></i>
+                            <i v-else class="fa fa-download"></i>
+                            Descargar reporte
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-if="modalAlmacenamientoVisible" class="modal-backdrop fade show"></div>
     </div>
 </template>
 
@@ -1287,6 +2293,10 @@ const datosLiquidacion = ref({ sedeId: 0, fechaIni: "", fechaFin: "" });
 const datosProductividad = ref({ sedeId: 0, periodo: "" });
 const datosTAT = ref({ sedeId: 0, fechaIni: "", fechaFin: "", modalidad: "todas" });
 const datosAgentes = ref({ sedeId: 0 });
+const datosConsolidadoRed = ref({ periodo: "hoy", fechaIni: "", fechaFin: "" });
+const datosSemaforoRepresados = ref({ sedeId: 0 });
+const datosCitasWhatsApp = ref({ periodo: "hoy", sedeId: 0, fechaIni: "", fechaFin: "" });
+const datosAlmacenamiento = ref({ sedeId: 0 });
 const quienes_asignaron = ref([]);
 const medicos = ref([]);
 const tipoReporte = ref("Rx");
@@ -1301,6 +2311,14 @@ const loadingDescargarLiquidacion = ref(false);
 const loadingDescargarProductividad = ref(false);
 const loadingDescargarTAT = ref(false);
 const loadingDescargarAgentes = ref(false);
+const loadingDescargarConsolidadoRed = ref(false);
+const loadingDescargarSemaforoRepresados = ref(false);
+const loadingDescargarCitasWhatsApp = ref(false);
+const loadingDescargarAlmacenamiento = ref(false);
+const loadingConsolidadoRed = ref(false);
+const loadingSemaforoRepresados = ref(false);
+const loadingCitasWhatsApp = ref(false);
+const loadingAlmacenamiento = ref(false);
 const modalProduccionVisible = ref(false);
 const modalPACVisible = ref(false);
 const modalDosimetriaVisible = ref(false);
@@ -1310,6 +2328,15 @@ const modalLiquidacionVisible = ref(false);
 const modalProductividadVisible = ref(false);
 const modalTATVisible = ref(false);
 const modalAgentesVisible = ref(false);
+const modalConsolidadoRedVisible = ref(false);
+const modalSemaforoRepresadosVisible = ref(false);
+const modalCitasWhatsAppVisible = ref(false);
+const modalAlmacenamientoVisible = ref(false);
+
+const resumenConsolidadoRed = ref(null);
+const resumenSemaforoRepresados = ref(null);
+const resumenCitasWhatsApp = ref(null);
+const resumenAlmacenamiento = ref(null);
 
 const indicadores = ref({
     estudiosAsignados: 0,
@@ -1905,6 +2932,250 @@ function abrirModalAgentes() {
     });
 }
 
+function abrirModalConsolidadoRed() {
+    modalConsolidadoRedVisible.value = true;
+    if (!resumenConsolidadoRed.value) {
+        consultarConsolidadoRed();
+    }
+}
+
+function cambiarPeriodoConsolidadoRed(nuevoPeriodo) {
+    datosConsolidadoRed.value.periodo = nuevoPeriodo;
+    if (nuevoPeriodo !== "custom") {
+        consultarConsolidadoRed();
+    }
+}
+
+async function consultarConsolidadoRed() {
+    if (loadingConsolidadoRed.value) return;
+    loadingConsolidadoRed.value = true;
+    try {
+        const params = new URLSearchParams({
+            periodo: datosConsolidadoRed.value.periodo,
+            fechaIni: datosConsolidadoRed.value.fechaIni || "",
+            fechaFin: datosConsolidadoRed.value.fechaFin || "",
+        });
+        const res = await axios.get(`/api/reportes-resumen-red?${params.toString()}`);
+        resumenConsolidadoRed.value = res.data;
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible consultar el consolidado de la red.",
+            icon: "error",
+        });
+    } finally {
+        loadingConsolidadoRed.value = false;
+    }
+}
+
+async function descargarConsolidadoRed() {
+    if (loadingDescargarConsolidadoRed.value) return;
+    loadingDescargarConsolidadoRed.value = true;
+    try {
+        const params = new URLSearchParams({
+            periodo: datosConsolidadoRed.value.periodo,
+            fechaIni: datosConsolidadoRed.value.fechaIni || "",
+            fechaFin: datosConsolidadoRed.value.fechaFin || "",
+        });
+        const url = `/descarga-reportes-consolidado-red?${params.toString()}`;
+        const newWindow = window.open(url, "_blank", "noopener,noreferrer");
+        if (!newWindow) {
+            toastMessage({
+                heading: "Atención",
+                text: "El navegador bloqueó la apertura de la ventana. Permita pop-ups para este sitio.",
+                icon: "warning",
+            });
+        }
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible descargar el consolidado de la red.",
+            icon: "error",
+        });
+    } finally {
+        setTimeout(() => {
+            loadingDescargarConsolidadoRed.value = false;
+        }, 700);
+    }
+}
+
+function abrirModalSemaforoRepresados() {
+    modalSemaforoRepresadosVisible.value = true;
+    consultarSemaforoRepresados();
+}
+
+async function consultarSemaforoRepresados() {
+    if (loadingSemaforoRepresados.value) return;
+    loadingSemaforoRepresados.value = true;
+    try {
+        const params = new URLSearchParams({
+            sedeId: String(datosSemaforoRepresados.value.sedeId || 0),
+        });
+        const res = await axios.get(`/api/reportes-semaforo-represados?${params.toString()}`);
+        resumenSemaforoRepresados.value = res.data;
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible consultar el semáforo de represamientos.",
+            icon: "error",
+        });
+    } finally {
+        loadingSemaforoRepresados.value = false;
+    }
+}
+
+async function descargarSemaforoRepresados() {
+    if (loadingDescargarSemaforoRepresados.value) return;
+    loadingDescargarSemaforoRepresados.value = true;
+    try {
+        const params = new URLSearchParams({
+            sedeId: String(datosSemaforoRepresados.value.sedeId || 0),
+        });
+        const url = `/descarga-reportes-represados?${params.toString()}`;
+        const newWindow = window.open(url, "_blank", "noopener,noreferrer");
+        if (!newWindow) {
+            toastMessage({
+                heading: "Atención",
+                text: "El navegador bloqueó la apertura de la ventana. Permita pop-ups para este sitio.",
+                icon: "warning",
+            });
+        }
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible descargar el reporte de represamientos.",
+            icon: "error",
+        });
+    } finally {
+        setTimeout(() => {
+            loadingDescargarSemaforoRepresados.value = false;
+        }, 700);
+    }
+}
+
+function abrirModalCitasWhatsApp() {
+    modalCitasWhatsAppVisible.value = true;
+    if (!resumenCitasWhatsApp.value) {
+        consultarCitasWhatsApp();
+    }
+}
+
+function cambiarPeriodoCitasWhatsApp(nuevoPeriodo) {
+    datosCitasWhatsApp.value.periodo = nuevoPeriodo;
+    if (nuevoPeriodo !== "custom") {
+        consultarCitasWhatsApp();
+    }
+}
+
+async function consultarCitasWhatsApp() {
+    if (loadingCitasWhatsApp.value) return;
+    loadingCitasWhatsApp.value = true;
+    try {
+        const params = new URLSearchParams({
+            periodo: datosCitasWhatsApp.value.periodo,
+            sedeId: String(datosCitasWhatsApp.value.sedeId || 0),
+            fechaIni: datosCitasWhatsApp.value.fechaIni || "",
+            fechaFin: datosCitasWhatsApp.value.fechaFin || "",
+        });
+        const res = await axios.get(`/api/reportes-citas-whatsapp?${params.toString()}`);
+        resumenCitasWhatsApp.value = res.data;
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible consultar estadísticas de citas y WhatsApp.",
+            icon: "error",
+        });
+    } finally {
+        loadingCitasWhatsApp.value = false;
+    }
+}
+
+async function descargarCitasWhatsApp() {
+    if (loadingDescargarCitasWhatsApp.value) return;
+    loadingDescargarCitasWhatsApp.value = true;
+    try {
+        const params = new URLSearchParams({
+            periodo: datosCitasWhatsApp.value.periodo,
+            sedeId: String(datosCitasWhatsApp.value.sedeId || 0),
+            fechaIni: datosCitasWhatsApp.value.fechaIni || "",
+            fechaFin: datosCitasWhatsApp.value.fechaFin || "",
+        });
+        const url = `/descarga-reportes-citas-whatsapp?${params.toString()}`;
+        const newWindow = window.open(url, "_blank", "noopener,noreferrer");
+        if (!newWindow) {
+            toastMessage({
+                heading: "Atención",
+                text: "El navegador bloqueó la apertura de la ventana. Permita pop-ups para este sitio.",
+                icon: "warning",
+            });
+        }
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible descargar el reporte de citas WhatsApp.",
+            icon: "error",
+        });
+    } finally {
+        setTimeout(() => {
+            loadingDescargarCitasWhatsApp.value = false;
+        }, 700);
+    }
+}
+
+function abrirModalAlmacenamiento() {
+    modalAlmacenamientoVisible.value = true;
+    consultarAlmacenamiento();
+}
+
+async function consultarAlmacenamiento() {
+    if (loadingAlmacenamiento.value) return;
+    loadingAlmacenamiento.value = true;
+    try {
+        const params = new URLSearchParams({
+            sedeId: String(datosAlmacenamiento.value.sedeId || 0),
+        });
+        const res = await axios.get(`/api/reportes-almacenamiento?${params.toString()}`);
+        resumenAlmacenamiento.value = res.data;
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible consultar el almacenamiento de servidores.",
+            icon: "error",
+        });
+    } finally {
+        loadingAlmacenamiento.value = false;
+    }
+}
+
+async function descargarAlmacenamiento() {
+    if (loadingDescargarAlmacenamiento.value) return;
+    loadingDescargarAlmacenamiento.value = true;
+    try {
+        const params = new URLSearchParams({
+            sedeId: String(datosAlmacenamiento.value.sedeId || 0),
+        });
+        const url = `/descarga-reportes-almacenamiento?${params.toString()}`;
+        const newWindow = window.open(url, "_blank", "noopener,noreferrer");
+        if (!newWindow) {
+            toastMessage({
+                heading: "Atención",
+                text: "El navegador bloqueó la apertura de la ventana. Permita pop-ups para este sitio.",
+                icon: "warning",
+            });
+        }
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible descargar el reporte de almacenamiento.",
+            icon: "error",
+        });
+    } finally {
+        setTimeout(() => {
+            loadingDescargarAlmacenamiento.value = false;
+        }, 700);
+    }
+}
+
 onMounted(() => {
     listarSedes();
     cargarIndicadores();
@@ -1922,6 +3193,10 @@ useKeyboardShortcuts({
             !modalProductividadVisible.value &&
             !modalTATVisible.value &&
             !modalAgentesVisible.value &&
+            !modalConsolidadoRedVisible.value &&
+            !modalSemaforoRepresadosVisible.value &&
+            !modalCitasWhatsAppVisible.value &&
+            !modalAlmacenamientoVisible.value &&
             !loadingSedes.value
         ) {
             refrescarTodo();
@@ -1946,6 +3221,17 @@ useKeyboardShortcuts({
             descargarReporteTAT();
         } else if (modalAgentesVisible.value && !loadingDescargarAgentes.value) {
             descargarReporteAgentes();
+        } else if (modalConsolidadoRedVisible.value && !loadingDescargarConsolidadoRed.value) {
+            descargarConsolidadoRed();
+        } else if (
+            modalSemaforoRepresadosVisible.value &&
+            !loadingDescargarSemaforoRepresados.value
+        ) {
+            descargarSemaforoRepresados();
+        } else if (modalCitasWhatsAppVisible.value && !loadingDescargarCitasWhatsApp.value) {
+            descargarCitasWhatsApp();
+        } else if (modalAlmacenamientoVisible.value && !loadingDescargarAlmacenamiento.value) {
+            descargarAlmacenamiento();
         }
     },
     onEscape: () => {
@@ -1976,6 +3262,14 @@ useKeyboardShortcuts({
         } else if (modalAgentesVisible.value) {
             resetearFormularioAgentes();
             modalAgentesVisible.value = false;
+        } else if (modalConsolidadoRedVisible.value) {
+            modalConsolidadoRedVisible.value = false;
+        } else if (modalSemaforoRepresadosVisible.value) {
+            modalSemaforoRepresadosVisible.value = false;
+        } else if (modalCitasWhatsAppVisible.value) {
+            modalCitasWhatsAppVisible.value = false;
+        } else if (modalAlmacenamientoVisible.value) {
+            modalAlmacenamientoVisible.value = false;
         }
     },
 });

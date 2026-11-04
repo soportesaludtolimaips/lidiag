@@ -4,6 +4,7 @@ namespace App\Exports\Dosimetria;
 
 use App\Exports\Dosimetria\Sheets\DosimetriaDetalleSheet;
 use App\Exports\Dosimetria\Sheets\DosimetriaEstadisticasSheet;
+use App\Exports\Dosimetria\Sheets\DosimetriaMatrizRiesgoSheet;
 use App\Services\Dosimetria\DosimetriaService;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
@@ -14,12 +15,13 @@ use Maatwebsite\Excel\Concerns\WithMultipleSheets;
  * 1. Recibe los filtros de consulta (sede, modalidad, métrica, fechas) en el constructor.
  * 2. Delega la consolidación y auditoría analítica a DosimetriaService::obtenerDatosExportacion().
  * 3. Compone un libro multi-hoja con:
- *    - Hoja 1: Estadísticas y NRD (Resumen Ejecutivo, KPIs y cumplimiento normativo mensual).
- *    - Hoja 2: Registros Detallados (Trazabilidad clínica individual con PHI anonimizado por SHA-256).
+ *    - Hoja 1: Estadísticas y NRD (Resumen Ejecutivo, 6 KPIs, gráficos nativos y cumplimiento por grupo).
+ *    - Hoja 2: Mapa de Calor - Riesgo NRD (Matriz bidimensional de Sede vs. Región Anatómica con semaforización).
+ *    - Hoja 3: Registros Detallados (Trazabilidad clínica individual con PHI anonimizado por SHA-256).
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-10-26
+ * @date 2026-11-04
  */
 class DosimetriaExport implements WithMultipleSheets
 {
@@ -32,7 +34,7 @@ class DosimetriaExport implements WithMultipleSheets
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-10-26
+     * @date 2026-11-04
      */
     public function __construct(array $filtros)
     {
@@ -46,12 +48,13 @@ class DosimetriaExport implements WithMultipleSheets
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-10-26
+     * @date 2026-11-04
      */
     public function sheets(): array
     {
         return [
             new DosimetriaEstadisticasSheet($this->datosExportacion),
+            new DosimetriaMatrizRiesgoSheet($this->datosExportacion),
             new DosimetriaDetalleSheet($this->datosExportacion),
         ];
     }

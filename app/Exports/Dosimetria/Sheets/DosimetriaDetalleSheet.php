@@ -20,14 +20,14 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
  * Hoja de Registros Detallados e Histórico de Telemetría Dosimétrica Individual.
  *
  * Flujo del proceso:
- * 1. Presenta encabezado institucional con metadatos de trazabilidad.
- * 2. Mapea cada disparo radiológico con sus parámetros físicos (kVp, mAs, DAP, CTDIvol).
+ * 1. Presenta encabezado institucional con metadatos de trazabilidad y protección de datos.
+ * 2. Mapea cada disparo radiológico con sus parámetros físicos (kVp, mAs, DAP, CTDIvol) y región anatómica.
  * 3. Expone el hash criptográfico SHA-256 del paciente cumpliendo la norma ISO/IEC 27001.
- * 4. Aplica contrastes de evaluación individuales frente a los Niveles de Referencia Nacionales.
+ * 4. Aplica contrastes de evaluación individuales frente a los Niveles de Referencia Nacionales (Res. 482 de 2018).
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-10-26
+ * @date 2026-11-04
  */
 class DosimetriaDetalleSheet implements FromCollection, WithColumnWidths, WithCustomStartCell, WithHeadings, WithMapping, WithStyles, WithTitle
 {
@@ -44,12 +44,12 @@ class DosimetriaDetalleSheet implements FromCollection, WithColumnWidths, WithCu
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-10-26
+     * @date 2026-11-04
      */
     public function __construct(protected array $datosExportacion)
     {
-        $this->filtros = $datosExportacion['filtros'] ?? [];
-        $this->totalFilas = count($datosExportacion['detalles'] ?? []);
+        $this->filtros = $datosExportacion["filtros"] ?? [];
+        $this->totalFilas = count($datosExportacion["detalles"] ?? []);
     }
 
     /**
@@ -59,7 +59,7 @@ class DosimetriaDetalleSheet implements FromCollection, WithColumnWidths, WithCu
      */
     public function title(): string
     {
-        return 'Registros Detallados';
+        return "Registros Detallados";
     }
 
     /**
@@ -69,7 +69,7 @@ class DosimetriaDetalleSheet implements FromCollection, WithColumnWidths, WithCu
      */
     public function startCell(): string
     {
-        return 'A4';
+        return "A4";
     }
 
     /**
@@ -79,33 +79,34 @@ class DosimetriaDetalleSheet implements FromCollection, WithColumnWidths, WithCu
      */
     public function collection()
     {
-        return collect($this->datosExportacion['detalles'] ?? []);
+        return collect($this->datosExportacion["detalles"] ?? []);
     }
 
     /**
-     * Encabezados de la grilla detallada.
+     * Encabezados de la grilla detallada (17 columnas A a Q).
      *
      * @return array Lista de encabezados de columna
      */
     public function headings(): array
     {
         return [
-            '#',
-            'Sede',
-            'Modalidad',
-            'Equipo Emisor',
-            'AET Title',
-            'Fecha y Hora Estudio',
-            'Accession No.',
-            'Descripción del Procedimiento',
-            'Región Anatómica',
-            'Métrica',
-            'Dosis Medida',
-            'Unidad',
-            'Límite NRD',
-            'Evaluación',
-            'Paciente Anonimizado (SHA-256)',
-            'Study Instance UID (DICOM)',
+            "#",
+            "Sede",
+            "Modalidad",
+            "Equipo Emisor",
+            "AET Title",
+            "Fecha y Hora Estudio",
+            "Accession No.",
+            "Descripción del Procedimiento",
+            "Región Anatómica",
+            "Métrica",
+            "Dosis Medida",
+            "Unidad",
+            "Límite NRD",
+            "% del NRD",
+            "Evaluación",
+            "Paciente Anonimizado (SHA-256)",
+            "Study Instance UID (DICOM)",
         ];
     }
 
@@ -120,53 +121,60 @@ class DosimetriaDetalleSheet implements FromCollection, WithColumnWidths, WithCu
         $this->consecutivo++;
 
         $fechaFormateada = $reg->fecha_estudio
-            ? Carbon::parse($reg->fecha_estudio)->format('d/m/Y H:i:s')
-            : '';
+            ? Carbon::parse($reg->fecha_estudio)->format("d/m/Y H:i:s")
+            : "";
+
+        $pctNrd = null;
+        if ($reg->porcentaje_nrd !== null) {
+            $pctNrd = round($reg->porcentaje_nrd / 100, 3);
+        }
 
         return [
             $this->consecutivo,
-            $reg->nom_sede ?? '',
-            $reg->modalidad ?? '',
-            $reg->equipo_nombre ?? '',
-            $reg->aet_title ?? '',
+            $reg->nom_sede ?? "",
+            $reg->modalidad ?? "",
+            $reg->equipo_nombre ?? "",
+            $reg->aet_title ?? "",
             $fechaFormateada,
-            $reg->accession_no ?? 'N/A',
-            $reg->study_desc ?? 'Sin descripción',
-            $reg->region_anatomica ?? 'GENERAL',
-            $reg->tipo_metrica ?? '',
+            $reg->accession_no ?? "N/A",
+            $reg->study_desc ?? "Sin descripción",
+            $reg->region_anatomica ?? "GENERAL",
+            $reg->tipo_metrica ?? "",
             (float) ($reg->valor_dosis ?? 0),
-            $reg->unidad_medida ?? 'mGy',
-            $reg->limite_nrd !== null ? (float) $reg->limite_nrd : 'N/A',
-            $reg->estado_evaluacion ?? 'CONFORME',
-            $reg->patient_id_hashed ?? '',
-            $reg->study_uid ?? '',
+            $reg->unidad_medida ?? "mGy",
+            $reg->limite_nrd !== null ? (float) $reg->limite_nrd : "N/A",
+            $pctNrd !== null ? $pctNrd : "N/A",
+            $reg->estado_evaluacion ?? "CONFORME",
+            $reg->patient_id_hashed ?? "",
+            $reg->study_uid ?? "",
         ];
     }
 
     /**
-     * Anchos de columna óptimos para auditoría técnica y biomédica.
+     * Anchos de columna óptimos para auditoría técnica y biomédica (A hasta Q).
      *
      * @return array Anchos por columna
      */
     public function columnWidths(): array
     {
         return [
-            'A' => 8,  // Consecutivo
-            'B' => 22, // Sede
-            'C' => 12, // Modalidad
-            'D' => 24, // Equipo Emisor
-            'E' => 16, // AET Title
-            'F' => 20, // Fecha Estudio
-            'G' => 18, // Accession No
-            'H' => 36, // Estudio Desc
-            'I' => 18, // Región Anatómica
-            'J' => 14, // Métrica
-            'K' => 16, // Valor Dosis
-            'L' => 12, // Unidad
-            'M' => 14, // Límite NRD
-            'N' => 16, // Evaluación
-            'O' => 32, // Patient ID Hash
-            'P' => 38, // Study UID
+            "A" => 8,  // Consecutivo
+            "B" => 22, // Sede
+            "C" => 12, // Modalidad
+            "D" => 24, // Equipo Emisor
+            "E" => 16, // AET Title
+            "F" => 20, // Fecha Estudio
+            "G" => 18, // Accession No
+            "H" => 36, // Estudio Desc
+            "I" => 18, // Región Anatómica
+            "J" => 14, // Métrica
+            "K" => 16, // Valor Dosis
+            "L" => 12, // Unidad
+            "M" => 16, // Límite NRD
+            "N" => 14, // % del NRD
+            "O" => 16, // Evaluación
+            "P" => 32, // Patient ID Hash
+            "Q" => 38, // Study UID
         ];
     }
 
@@ -179,67 +187,67 @@ class DosimetriaDetalleSheet implements FromCollection, WithColumnWidths, WithCu
     public function styles(Worksheet $sheet): array
     {
         // 1. Título Corporativo Principal
-        $sheet->setCellValue('A1', 'SALUD TOLIMA IPS - REGISTRO DETALLADO DE EXPOSICIÓN A RADIACIÓN IONIZANTE');
-        $sheet->mergeCells('A1:P1');
-        $sheet->getStyle('A1')->applyFromArray([
-            'font' => [
-                'bold' => true,
-                'color' => ['rgb' => 'FFFFFF'],
-                'size' => 13,
-                'name' => 'Segoe UI',
+        $sheet->setCellValue("A1", "SALUD TOLIMA IPS - REGISTRO DETALLADO DE EXPOSICIÓN A RADIACIÓN IONIZANTE");
+        $sheet->mergeCells("A1:Q1");
+        $sheet->getStyle("A1")->applyFromArray([
+            "font" => [
+                "bold" => true,
+                "color" => ["rgb" => "FFFFFF"],
+                "size" => 13,
+                "name" => "Segoe UI",
             ],
-            'fill' => [
-                'fillType' => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '1A2274'],
+            "fill" => [
+                "fillType" => Fill::FILL_SOLID,
+                "startColor" => ["rgb" => "1A2274"],
             ],
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical' => Alignment::VERTICAL_CENTER,
+            "alignment" => [
+                "horizontal" => Alignment::HORIZONTAL_CENTER,
+                "vertical" => Alignment::VERTICAL_CENTER,
             ],
         ]);
         $sheet->getRowDimension(1)->setRowHeight(30);
 
         // 2. Subtítulo con Metadatos de Trazabilidad
         $metaTexto = "Trazabilidad Clínica Individual | Sede: {$this->filtros['nom_sede']} | Total Evaluaciones: {$this->totalFilas} | Período: {$this->filtros['fecha_desde']} al {$this->filtros['fecha_hasta']} | Protección PHI: ISO/IEC 27001";
-        $sheet->setCellValue('A2', $metaTexto);
-        $sheet->mergeCells('A2:P2');
-        $sheet->getStyle('A2')->applyFromArray([
-            'font' => [
-                'bold' => false,
-                'color' => ['rgb' => '333333'],
-                'size' => 10,
-                'name' => 'Segoe UI',
+        $sheet->setCellValue("A2", $metaTexto);
+        $sheet->mergeCells("A2:Q2");
+        $sheet->getStyle("A2")->applyFromArray([
+            "font" => [
+                "bold" => false,
+                "color" => ["rgb" => "333333"],
+                "size" => 10,
+                "name" => "Segoe UI",
             ],
-            'fill' => [
-                'fillType' => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => 'E9ECEF'],
+            "fill" => [
+                "fillType" => Fill::FILL_SOLID,
+                "startColor" => ["rgb" => "E9ECEF"],
             ],
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical' => Alignment::VERTICAL_CENTER,
+            "alignment" => [
+                "horizontal" => Alignment::HORIZONTAL_CENTER,
+                "vertical" => Alignment::VERTICAL_CENTER,
             ],
         ]);
         $sheet->getRowDimension(2)->setRowHeight(20);
 
         // 3. Encabezados de la Tabla de Datos (Fila 4)
-        $sheet->getStyle('A4:P4')->applyFromArray([
-            'font' => [
-                'bold' => true,
-                'color' => ['rgb' => 'FFFFFF'],
-                'size' => 10,
-                'name' => 'Segoe UI',
+        $sheet->getStyle("A4:Q4")->applyFromArray([
+            "font" => [
+                "bold" => true,
+                "color" => ["rgb" => "FFFFFF"],
+                "size" => 10,
+                "name" => "Segoe UI",
             ],
-            'fill' => [
-                'fillType' => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '203A43'],
+            "fill" => [
+                "fillType" => Fill::FILL_SOLID,
+                "startColor" => ["rgb" => "203A43"],
             ],
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical' => Alignment::VERTICAL_CENTER,
-                'wrapText' => true,
+            "alignment" => [
+                "horizontal" => Alignment::HORIZONTAL_CENTER,
+                "vertical" => Alignment::VERTICAL_CENTER,
+                "wrapText" => true,
             ],
-            'borders' => [
-                'allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'FFFFFF']],
+            "borders" => [
+                "allBorders" => ["borderStyle" => Border::BORDER_THIN, "color" => ["rgb" => "FFFFFF"]],
             ],
         ]);
         $sheet->getRowDimension(4)->setRowHeight(26);
@@ -253,37 +261,42 @@ class DosimetriaDetalleSheet implements FromCollection, WithColumnWidths, WithCu
             $sheet->getStyle("H5:H{$filaFin}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
             $sheet->getStyle("I5:J{$filaFin}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle("K5:M{$filaFin}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-            $sheet->getStyle("N5:N{$filaFin}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("O5:P{$filaFin}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+            $sheet->getStyle("N5:N{$filaFin}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $sheet->getStyle("O5:O{$filaFin}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("P5:Q{$filaFin}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
 
-            // Formato de números decimales de dosis (4 decimales para precisión en Gy*cm2 y mGy)
-            $sheet->getStyle("K5:M{$filaFin}")->getNumberFormat()->setFormatCode('#,##0.0000');
+            // Formato de números decimales de dosis y porcentajes
+            $sheet->getStyle("K5:M{$filaFin}")->getNumberFormat()->setFormatCode("#,##0.0000");
+            $sheet->getStyle("N5:N{$filaFin}")->getNumberFormat()->setFormatCode("0.0%");
 
             // Bordes finos
-            $sheet->getStyle("A5:P{$filaFin}")->applyFromArray([
-                'borders' => [
-                    'allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'E0E0E0']],
+            $sheet->getStyle("A5:Q{$filaFin}")->applyFromArray([
+                "borders" => [
+                    "allBorders" => ["borderStyle" => Border::BORDER_THIN, "color" => ["rgb" => "E0E0E0"]],
                 ],
             ]);
 
-            // Resaltado de evaluación condicional en columna N
+            // Resaltado de evaluación condicional en columna O y % NRD en columna N
             for ($r = 5; $r <= $filaFin; $r++) {
-                $eval = (string) $sheet->getCell("N{$r}")->getValue();
-                if ($eval === 'SUPERA NRD') {
-                    $sheet->getStyle("N{$r}")->applyFromArray([
-                        'font' => ['bold' => true, 'color' => ['rgb' => '721C24']],
-                        'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F8D7DA']],
+                $eval = (string) $sheet->getCell("O{$r}")->getValue();
+                if (str_contains($eval, "SUPERA")) {
+                    $sheet->getStyle("O{$r}")->applyFromArray([
+                        "font" => ["bold" => true, "color" => ["rgb" => "721C24"]],
+                        "fill" => ["fillType" => Fill::FILL_SOLID, "startColor" => ["rgb" => "F8D7DA"]],
                     ]);
-                } elseif ($eval === 'ALERTA') {
-                    $sheet->getStyle("N{$r}")->applyFromArray([
-                        'font' => ['bold' => true, 'color' => ['rgb' => '856404']],
-                        'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFF3CD']],
+                    $sheet->getStyle("N{$r}")->getFont()->setBold(true)->getColor()->setRGB("721C24");
+                } elseif (str_contains($eval, "ALERTA")) {
+                    $sheet->getStyle("O{$r}")->applyFromArray([
+                        "font" => ["bold" => true, "color" => ["rgb" => "856404"]],
+                        "fill" => ["fillType" => Fill::FILL_SOLID, "startColor" => ["rgb" => "FFF3CD"]],
                     ]);
+                    $sheet->getStyle("N{$r}")->getFont()->setBold(true)->getColor()->setRGB("856404");
                 } else {
-                    $sheet->getStyle("N{$r}")->applyFromArray([
-                        'font' => ['bold' => true, 'color' => ['rgb' => '155724']],
-                        'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'D4EDDA']],
+                    $sheet->getStyle("O{$r}")->applyFromArray([
+                        "font" => ["bold" => true, "color" => ["rgb" => "155724"]],
+                        "fill" => ["fillType" => Fill::FILL_SOLID, "startColor" => ["rgb" => "D4EDDA"]],
                     ]);
+                    $sheet->getStyle("N{$r}")->getFont()->getColor()->setRGB("155724");
                 }
             }
         }

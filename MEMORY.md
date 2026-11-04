@@ -37,6 +37,66 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-04 — Homologación e Integración de los Reportes del Bot de Telegram en el Módulo Web de Reportes (`reporteProduccionComponent.vue`, `ReporteProduccionService.php`, `ReporteProduccion.php`):**
+  - **Diagnóstico y Solicitud del Usuario:**
+    * El usuario solicitó: *"Mira los reportes que implementamos en el bot de telegram e implementémoslos en el módulo de reportes"*.
+    * Tras analizar `TelegramBotHandlerService.php` y `TelegramDailyDigestCommand.php`, se identificaron 4 reportes operativos de alto impacto que operaban en Telegram pero no contaban con tarjeta, modal interactivo ni exportación en la interfaz web de Reportes:
+      1. *Consolidado de Toda la Red Hospitalaria (`/red`):* Ranking de producción por sede con %, desglose consolidado de modalidades con barras, TAT promedio clínico de red, procedimientos vs pacientes únicos y pendientes acumulados.
+      2. *Semáforo de Represamiento Asistencial y Urgencias fuera de SLA (`/retrasados`):* Detección de estudios >24h sin informe radiológico categorizados por severidad (🟡 Preventivo 24-48h, 🟠 Crítico 48-72h, 🔴 Severo >72h) y urgencias pendientes evaluadas con SLA de 30 minutos.
+      3. *Estadísticas de Citas y Canal WhatsApp (`/citas`):* Balance de citas agendadas para hoy (asistencia y cancelaciones) y tráfico del canal WhatsApp (solicitudes recibidas, aprobadas, tasa de conversión y pendientes por revisar).
+      4. *Monitor de Almacenamiento, Discos y Servidores PACS (`/dd` o `/discos`):* Medición en vivo del disco del servidor central (usado, libre en GB y %, barra y semáforo 🟢 >15%, 🟡 <15%, 🔴 <5%) y telemetría de sedes (backup BD, sync PACS, dosimetría).
+  - **Solución Implementada:**
+    * **1. Backend y Servicios (`ReporteProduccionService.php`, `ReporteProduccion.php`):**
+      - Se implementaron los métodos de datos interactivos: `obtenerResumenConsolidadoRed`, `obtenerSemaforoRepresados`, `obtenerEstadisticasCitas`, `obtenerMonitorAlmacenamiento` y el helper `resolverRangoFechas`.
+      - Se implementaron los métodos de descarga: `generateReporteConsolidadoRed`, `generateReporteRepresados`, `generateReporteCitasWhatsApp`, `generateReporteAlmacenamiento`.
+      - Se crearon 4 FormRequests con validación defensiva: `ReporteConsolidadoRedRequest`, `ReporteRepresadosRequest`, `ReporteCitasWhatsAppRequest`, `ReporteAlmacenamientoRequest`.
+      - Se implementaron 4 clases de exportación Excel institucionales con PhpSpreadsheet: `ReporteConsolidadoRedExport`, `ReporteRepresadosOportunidadExport`, `ReporteCitasWhatsAppExport`, `ReporteAlmacenamientoServidoresExport`.
+      - Se registraron las rutas API en `routes/api_agendamiento_dashboard.php` y las rutas de descarga en `routes/web.php` bajo `permission:reportes.detallados|reportes.indicadores`.
+    * **2. Interfaz Web Vue 3 (`reporteProduccionComponent.vue`):**
+      - Se incorporaron los 4 accesos directos en sus respectivas tarjetas temáticas:
+        * Card *Producción*: "Consolidado red hospitalaria (Ranking, Modalidades, TAT)".
+        * Card *Calidad y Oportunidad*: "Semáforo de oportunidad y represamiento (>24h y Urgencias)".
+        * Card *Citas y Agenda*: "Estadísticas de citas y canal WhatsApp (Atención Hoy y Conversión)".
+        * Card *Agentes y Telemetría*: "Monitor de almacenamiento y servidores PACS (Discos y Sedes)".
+      - Se construyeron 4 modales interactivos con visualización en tiempo real (badges, progress bars, tablas) y botones para descarga en Excel.
+      - Respeto estricto a las directrices de diseño: Cero clases CSS personalizadas, 100% Bootstrap/AdminWrap nativo, encabezados sin negrita (`h4.modal-title`), botones clásicos `btn-default` y `btn-info`, atajos de teclado (`Esc`, `Ctrl+S`).
+  - **Verificaciones:**
+    * Laravel Pint pasado al 100% (`vendor\bin\pint.bat --test`) ✅.
+    * Larastan / PHPStan nivel 5 sin errores (`[OK] No errors`) ✅.
+    * ESLint y Prettier 0 errores (`npx eslint`) ✅.
+    * Compilación de producción Vite completada en 1.39s (`npm run build`) ✅.
+
+- [x] **2026-11-04 — Implementación Integral del Mapa de Calor Dosimétrico (Web & Excel) y Mejoras Clínicas/Normativas (`DashboardDosimetria.vue`, `DosimetriaService.php`, `DosimetriaExport.php`, `DosimetriaEstadisticasSheet.php`, `DosimetriaMatrizRiesgoSheet.php`, `DosimetriaDetalleSheet.php`):**
+  - **Diagnóstico y Solicitud del Usuario:**
+    * El usuario solicitó: *"Analiza si sería buena práctica implementar un mapa de calor"*, seguido de: *"Ten en cuenta las mejoras que hemos adoptado e implementémoslas en el reporte de Excel"* y *"Sí, implementa el mapa de calor"*.
+  - **Solución Implementada:**
+    * **1. Backend Analítico Unificado (`DosimetriaService.php`):**
+      - Se implementó la matriz bidimensional `matriz_riesgo` tanto en `obtenerDashboard()` como en `obtenerDatosExportacion()`. Cruza cada sede hospitalaria frente a los 7 órganos y regiones diana (*Cráneo, Tórax, Abdomen, Pelvis, Columna, Extremidades y Mama*), calculando el `% del NRD` ponderado, la tasa de conformidad institucional y el nivel de riesgo global (*Bajo, Moderado, Alto*).
+      - Se calcularon e incorporaron la Dosis Efectiva Media $E$ (ICRP 103), el total de pacientes únicos (`total_pacientes`) y el porcentaje de cumplimiento normativo individual y colectivo.
+    * **2. Mapa de Calor en Dashboard Web (`DashboardDosimetria.vue`):**
+      - Se integró una tarjeta nativa AdminWrap de Mapa de Calor ubicada entre las gráficas de evolución/radar y la tabla de equipos emisores.
+      - Dispone de encabezado con tooltip clínico-normativo (`tooltipsSecciones.mapaCalor`), leyenda cromática superior (🟢 Seguro $<80\%$, 🟡 Precaución $80\%–99\%$, 🔴 Superación Crítica $\ge 100\%$, ⚪ Sin Datos), tabla interactiva con badges pastel por órgano con tooltips dinámicos (dosis media, límite NRD y disparos), barra de progreso de conformidad institucional y etiqueta redondeada de nivel de riesgo.
+      - 100% clases nativas AdminWrap / Bootstrap 4 (`card`, `table table-hover vm`, `label`, `progress-bar bg-info`, etc.).
+    * **3. Hoja 2 del Reporte Excel: Mapa de Calor - Riesgo NRD (`DosimetriaMatrizRiesgoSheet.php`):**
+      - Pestaña dedicada en Excel con formato condicional pastel semántico de mapa de calor, leyenda metodológica de semaforización y marco regulatorio al pie (Resolución 482 de 2018, ICRP 135, ICRP 103 y principio ALARA).
+    * **4. Modernización de Hoja 1 (Estadísticas) y Hoja 3 (Detalles) (`DosimetriaEstadisticasSheet.php`, `DosimetriaDetalleSheet.php`, `DosimetriaExport.php`):**
+      - Corrección de desfase de columnas (14 columnas A-N), 6 tarjetas KPI ejecutivas, corrección de series de gráficos nativos (barras y torta) e incorporación de la columna `% del NRD` con semáforo condicional.
+  - **Verificaciones:**
+    * Laravel Pint validado al 100% passed (`vendor\bin\pint.bat --test`) ✅.
+    * ESLint y Prettier 100% pasados sin errores (`npx eslint`) ✅.
+    * Compilación Vite completada exitosamente (`npm run build` en 1.34s) ✅.
+    * Verificación directa con datos reales de producción (Espinal 78.6%, Chaparral 66.7%, Ibagué 100%) y exportación Excel validada (679 KB) ✅.
+    * Formato LF verificado sin UTF-8 BOM ✅.
+      - Se corrigieron los rangos de celdas en los gráficos nativos de Excel (Barras comparativas Dosis Promedio Col H vs NRD Col K, y Torta de Estudios Col G por Modalidad Col C).
+    * **4. Hoja 3: Registros Detallados (`DosimetriaDetalleSheet.php`):**
+      - Se incorporó la columna `% del NRD` (Col N) con formato porcentual y semaforización condicional junto a la columna de Evaluación (Col O).
+    * **5. Registro del Libro Multi-Hoja (`DosimetriaExport.php`):**
+      - Compilación unificada de 3 hojas complementarias: Estadísticas y NRD, Mapa de Calor - Riesgo NRD, y Registros Detallados.
+  - **Verificaciones:**
+    * Laravel Pint validado al 100% passed (`vendor\bin\pint.bat --test`) ✅.
+    * Generación real de exportación Excel de prueba multi-hoja ejecutada y verificada contra base de datos de producción (679 KB, 3 hojas completas) ✅.
+    * Formato LF verificado sin UTF-8 BOM ✅.
+
 - [x] **2026-11-04 — Filtrado Exclusivo de Sedes Activas en Panel de Tokens de Seguridad (`seguridadTokensComponent.vue`, `TokenSedeService.php`, `TokenSedeController.php`):**
   - **Diagnóstico y Causa Raíz:**
     * En el panel de gestión de tokens (`/seguridad-tokens`), la consulta de sedes (`TokenSedeService::listarSedesConTokens`) realizaba un `ConfigSede::select(...)->get()` sin filtrar por la columna `estado`.

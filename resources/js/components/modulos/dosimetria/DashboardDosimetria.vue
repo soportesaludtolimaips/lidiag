@@ -883,6 +883,224 @@
         </div>
 
         <!-- ============================================================== -->
+        <!-- 6.5 Mapa de Calor: Matriz de Riesgo Dosimétrico por Sede y Órgano (Res. 482 / ICRP 135) -->
+        <!-- ============================================================== -->
+        <div class="card m-b-20">
+            <div class="card-body">
+                <div class="d-flex flex-wrap align-items-center justify-content-between m-b-15">
+                    <div>
+                        <h4 class="card-title m-b-0">
+                            <span class="lstick"></span>Mapa de Calor y Matriz de Riesgo Dosimétrico
+                            <i
+                                class="fa fa-info-circle text-info font-14 m-l-5"
+                                data-toggle="tooltip"
+                                data-placement="top"
+                                :title="tooltipsSecciones.mapaCalor"
+                                style="cursor: help"
+                            ></i>
+                        </h4>
+                        <h6 class="card-subtitle m-t-5 m-b-0">
+                            Vigilancia de radiación: porcentaje respecto al límite NRD (100%) por
+                            sede y región corporal diana
+                        </h6>
+                    </div>
+                    <div class="m-t-10 m-sm-t-0">
+                        <ul class="list-inline font-12 dl m-b-0">
+                            <li><i class="fa fa-circle text-success"></i> Seguro (&lt;80% NRD)</li>
+                            <li><i class="fa fa-circle text-warning"></i> Precaución (80%–99%)</li>
+                            <li><i class="fa fa-circle text-danger"></i> Superó NRD (&ge;100%)</li>
+                            <li><i class="fa fa-circle text-muted"></i> Sin Datos</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div v-if="loading" class="text-center p-30">
+                    <i class="fa fa-spinner fa-spin fa-2x text-info"></i>
+                    <p class="text-muted small m-t-10">Calculando matriz de calor dosimétrica...</p>
+                </div>
+                <div v-else-if="matrizRiesgo.length > 0" class="table-responsive">
+                    <table class="table table-hover vm bg-white no-wrap m-b-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>Sede Hospitalaria</th>
+                                <th class="text-center">Cráneo</th>
+                                <th class="text-center">Tórax</th>
+                                <th class="text-center">Abdomen</th>
+                                <th class="text-center">Pelvis</th>
+                                <th class="text-center">Columna</th>
+                                <th class="text-center">Extremidades</th>
+                                <th class="text-center">Mama</th>
+                                <th class="text-center" style="width: 140px">Conformidad</th>
+                                <th class="text-center">Nivel de Riesgo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="sede in matrizRiesgo" :key="'matriz-' + sede.sede_id">
+                                <td>
+                                    <strong class="font-medium text-dark">{{
+                                        getNombreCortoSede(sede.nom_sede)
+                                    }}</strong>
+                                    <br />
+                                    <small class="text-muted" :title="sede.nom_sede">
+                                        {{ sede.total_estudios?.toLocaleString() || 0 }} estudios
+                                    </small>
+                                </td>
+                                <td class="text-center">
+                                    <span
+                                        class="label"
+                                        :class="getHeatmapBadgeClass(sede.regiones?.CRANEO?.estado)"
+                                        :title="
+                                            getHeatmapCellTooltip(sede.regiones?.CRANEO, 'Cráneo')
+                                        "
+                                        style="cursor: help; min-width: 62px; display: inline-block"
+                                    >
+                                        {{
+                                            sede.regiones?.CRANEO?.pct_nrd
+                                                ? sede.regiones.CRANEO.pct_nrd + "%"
+                                                : "N/A"
+                                        }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span
+                                        class="label"
+                                        :class="getHeatmapBadgeClass(sede.regiones?.TORAX?.estado)"
+                                        :title="
+                                            getHeatmapCellTooltip(sede.regiones?.TORAX, 'Tórax')
+                                        "
+                                        style="cursor: help; min-width: 62px; display: inline-block"
+                                    >
+                                        {{
+                                            sede.regiones?.TORAX?.pct_nrd
+                                                ? sede.regiones.TORAX.pct_nrd + "%"
+                                                : "N/A"
+                                        }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span
+                                        class="label"
+                                        :class="
+                                            getHeatmapBadgeClass(sede.regiones?.ABDOMEN?.estado)
+                                        "
+                                        :title="
+                                            getHeatmapCellTooltip(sede.regiones?.ABDOMEN, 'Abdomen')
+                                        "
+                                        style="cursor: help; min-width: 62px; display: inline-block"
+                                    >
+                                        {{
+                                            sede.regiones?.ABDOMEN?.pct_nrd
+                                                ? sede.regiones.ABDOMEN.pct_nrd + "%"
+                                                : "N/A"
+                                        }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span
+                                        class="label"
+                                        :class="getHeatmapBadgeClass(sede.regiones?.PELVIS?.estado)"
+                                        :title="
+                                            getHeatmapCellTooltip(sede.regiones?.PELVIS, 'Pelvis')
+                                        "
+                                        style="cursor: help; min-width: 62px; display: inline-block"
+                                    >
+                                        {{
+                                            sede.regiones?.PELVIS?.pct_nrd
+                                                ? sede.regiones.PELVIS.pct_nrd + "%"
+                                                : "N/A"
+                                        }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span
+                                        class="label"
+                                        :class="
+                                            getHeatmapBadgeClass(sede.regiones?.COLUMNA?.estado)
+                                        "
+                                        :title="
+                                            getHeatmapCellTooltip(sede.regiones?.COLUMNA, 'Columna')
+                                        "
+                                        style="cursor: help; min-width: 62px; display: inline-block"
+                                    >
+                                        {{
+                                            sede.regiones?.COLUMNA?.pct_nrd
+                                                ? sede.regiones.COLUMNA.pct_nrd + "%"
+                                                : "N/A"
+                                        }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span
+                                        class="label"
+                                        :class="
+                                            getHeatmapBadgeClass(
+                                                sede.regiones?.EXTREMIDADES?.estado
+                                            )
+                                        "
+                                        :title="
+                                            getHeatmapCellTooltip(
+                                                sede.regiones?.EXTREMIDADES,
+                                                'Extremidades'
+                                            )
+                                        "
+                                        style="cursor: help; min-width: 62px; display: inline-block"
+                                    >
+                                        {{
+                                            sede.regiones?.EXTREMIDADES?.pct_nrd
+                                                ? sede.regiones.EXTREMIDADES.pct_nrd + "%"
+                                                : "N/A"
+                                        }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span
+                                        class="label"
+                                        :class="getHeatmapBadgeClass(sede.regiones?.MAMA?.estado)"
+                                        :title="getHeatmapCellTooltip(sede.regiones?.MAMA, 'Mama')"
+                                        style="cursor: help; min-width: 62px; display: inline-block"
+                                    >
+                                        {{
+                                            sede.regiones?.MAMA?.pct_nrd
+                                                ? sede.regiones.MAMA.pct_nrd + "%"
+                                                : "N/A"
+                                        }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="font-medium text-dark"
+                                        >{{ sede.tasa_conformidad }}%</span
+                                    >
+                                    <div class="progress m-t-5" style="height: 4px">
+                                        <div
+                                            class="progress-bar bg-info"
+                                            role="progressbar"
+                                            :style="{ width: sede.tasa_conformidad + '%' }"
+                                        ></div>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span
+                                        class="label label-rounded"
+                                        :class="sede.badge_riesgo || 'label-success'"
+                                    >
+                                        {{ sede.nivel_riesgo }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div v-else class="text-center p-30 text-muted">
+                    <i class="fa fa-info-circle fa-2x m-b-10 text-muted"></i>
+                    <p class="m-b-0">
+                        No hay datos suficientes para construir la matriz de calor en el periodo
+                        seleccionado.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================== -->
         <!-- 7. Fila 3: Equipos Emisores (8 cols) & Timeline Auditoría (4 cols) (AdminWrap index2.html & index3.html) -->
         <!-- ============================================================== -->
         <div class="row">
@@ -1281,6 +1499,8 @@ const tooltipsSecciones = {
         "Cantidad de grupos de exámenes (consolidados por sede, modalidad y región) cuya dosis promedio superó el límite NRD regulatorio de la Resolución 482 de 2018.",
     kpiDosisEfectiva:
         "Estimación del impacto biológico promedio de radiación en el cuerpo humano por paciente, medido en milisieverts (mSv) bajo el estándar ICRP 103.",
+    mapaCalor:
+        "DESCRIPCIÓN:\nMatriz de calor bidimensional que mapea el porcentaje de radiación administrado respecto al límite regulatorio NRD (100%) por cada sede hospitalaria y región anatómica.\n\nFUNCIONALIDAD:\nPermite aislar rápidamente qué hospital o territorio anatómico opera en franja segura (<80%), precaución preventiva (80%–99%) o superación crítica (≥100%), orientando la intervención técnica y auditoría médica focalizada.\n\nNORMATIVIDAD:\nResolución 482 de 2018 (Título III), ICRP 135 y principio de optimización ALARA (OIEA GSR Part 3).",
 };
 const tooltipsGraficas = tooltipsSecciones;
 
@@ -1314,6 +1534,7 @@ const eventosTimeline = ref([]);
 const ultimosRegistros = ref([]);
 const umbralesNrd = ref([]);
 const sedes = ref([]);
+const matrizRiesgo = ref([]);
 
 // Estado y filtros para visualización agrupada y colapsable de alertas
 const mostrarTodasCriticas = ref(false);
@@ -1433,6 +1654,27 @@ function getRegionBadgeClass(region) {
         default:
             return "label label-light-inverse";
     }
+}
+
+// Helpers de estilo para Mapa de Calor y Matriz de Riesgo Dosimétrico
+function getHeatmapBadgeClass(estado) {
+    switch (estado) {
+        case "CRÍTICO":
+            return "label-danger font-weight-bold";
+        case "ALERTA":
+            return "label-warning font-weight-bold";
+        case "SEGURO":
+            return "label-success font-weight-bold";
+        default:
+            return "label-light font-12 text-muted";
+    }
+}
+
+function getHeatmapCellTooltip(r, region) {
+    if (!r || r.pct_nrd === null || r.pct_nrd === undefined) {
+        return `${region}: Sin exámenes registrados en este periodo`;
+    }
+    return `${region}: ${r.pct_nrd}% del NRD | Dosis Promedio: ${r.promedio_dosis} | Límite NRD: ${r.limite_nrd} | Estudios: ${r.total_estudios}`;
 }
 
 // Resuelve el umbral correspondiente con discriminación anatómica
@@ -1860,6 +2102,7 @@ async function cargarDatos() {
         ultimosRegistros.value = resData.ultimos_registros || [];
         umbralesNrd.value = resData.umbrales_nrd || [];
         sedes.value = resData.sedes || [];
+        matrizRiesgo.value = resData.matriz_riesgo || [];
         kpis.value = resData.kpis || {
             total_estudios: 0,
             total_equipos: 0,

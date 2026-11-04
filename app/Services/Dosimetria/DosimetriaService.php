@@ -625,6 +625,110 @@ class DosimetriaService extends BaseService
             $totalAdvertenciasCount = collect($alertas)->where('gravedad', 'ALERTA_PREVENTIVA')->count();
             $tasaConformidad = $totalGrupos > 0 ? round(max(0, ($totalGrupos - $totalSuperacionesCount) / $totalGrupos) * 100, 1) : 100.0;
 
+            // 11. Matriz de Riesgo Dosimétrico y Mapa de Calor (Sede vs. Región Anatómica)
+            $regionesCatalogo = ['CRANEO', 'TORAX', 'ABDOMEN', 'PELVIS', 'COLUMNA', 'EXTREMIDADES', 'MAMA'];
+            $sedesAgrupadas = [];
+
+            foreach ($filas as $fila) {
+                $sId = $fila->sede_id;
+                if (! isset($sedesAgrupadas[$sId])) {
+                    $sedesAgrupadas[$sId] = [
+                        'sede_id' => $sId,
+                        'nom_sede' => $fila->nom_sede,
+                        'regiones' => [],
+                        'total_estudios' => 0,
+                        'conformes' => 0,
+                        'superaciones' => 0,
+                        'alertas' => 0,
+                    ];
+                    foreach ($regionesCatalogo as $rc) {
+                        $sedesAgrupadas[$sId]['regiones'][$rc] = [
+                            'total_estudios' => 0,
+                            'dosis_suma' => 0,
+                            'limite_nrd' => null,
+                            'porcentaje_nrd' => null,
+                            'estado' => 'SIN_DATOS',
+                        ];
+                    }
+                }
+
+                $reg = $fila->region_anatomica ?? 'GENERAL';
+                if (isset($sedesAgrupadas[$sId]['regiones'][$reg])) {
+                    $cant = (int) $fila->total_estudios;
+                    $prom = (float) $fila->dosis_promedio;
+                    $lim = $fila->limite_nrd ? (float) $fila->limite_nrd : null;
+
+                    $sedesAgrupadas[$sId]['regiones'][$reg]['total_estudios'] += $cant;
+                    $sedesAgrupadas[$sId]['regiones'][$reg]['dosis_suma'] += ($prom * $cant);
+                    if ($lim !== null) {
+                        $sedesAgrupadas[$sId]['regiones'][$reg]['limite_nrd'] = $lim;
+                    }
+                }
+
+                $sedesAgrupadas[$sId]['total_estudios'] += (int) $fila->total_estudios;
+                if ($fila->supera_nrd) {
+                    $sedesAgrupadas[$sId]['superaciones']++;
+                } elseif ($fila->supera_alerta) {
+                    $sedesAgrupadas[$sId]['alertas']++;
+                } else {
+                    $sedesAgrupadas[$sId]['conformes']++;
+                }
+            }
+
+            $matrizRiesgo = [];
+            foreach ($sedesAgrupadas as $sId => $sData) {
+                $totalEvaluados = $sData['conformes'] + $sData['superaciones'] + $sData['alertas'];
+                $tasaConf = $totalEvaluados > 0
+                    ? round(($sData['conformes'] / $totalEvaluados) * 100, 1)
+                    : 100.0;
+
+                $filaMatriz = [
+                    'sede_id' => $sId,
+                    'nom_sede' => $sData['nom_sede'],
+                    'total_estudios' => $sData['total_estudios'],
+                    'tasa_conformidad' => $tasaConf,
+                    'regiones' => [],
+                ];
+
+                foreach ($regionesCatalogo as $rc) {
+                    $rData = $sData['regiones'][$rc];
+                    if ($rData['total_estudios'] > 0 && $rData['limite_nrd'] !== null && $rData['limite_nrd'] > 0) {
+                        $promDosis = $rData['dosis_suma'] / $rData['total_estudios'];
+                        $pctNrd = round(($promDosis / $rData['limite_nrd']) * 100, 1);
+                        $estado = ($pctNrd >= 100) ? 'CRÍTICO' : (($pctNrd >= 80) ? 'ALERTA' : 'SEGURO');
+
+                        $filaMatriz['regiones'][$rc] = [
+                            'pct_nrd' => $pctNrd,
+                            'promedio_dosis' => round($promDosis, 2),
+                            'limite_nrd' => $rData['limite_nrd'],
+                            'total_estudios' => $rData['total_estudios'],
+                            'estado' => $estado,
+                        ];
+                    } else {
+                        $filaMatriz['regiones'][$rc] = [
+                            'pct_nrd' => null,
+                            'promedio_dosis' => null,
+                            'limite_nrd' => null,
+                            'total_estudios' => 0,
+                            'estado' => 'SIN_DATOS',
+                        ];
+                    }
+                }
+
+                if ($sData['superaciones'] > 0) {
+                    $filaMatriz['nivel_riesgo'] = 'ALTO (Superó NRD)';
+                    $filaMatriz['badge_riesgo'] = 'label-danger';
+                } elseif ($sData['alertas'] > 0) {
+                    $filaMatriz['nivel_riesgo'] = 'MEDIO (En Alerta)';
+                    $filaMatriz['badge_riesgo'] = 'label-warning';
+                } else {
+                    $filaMatriz['nivel_riesgo'] = 'BAJO (Seguro)';
+                    $filaMatriz['badge_riesgo'] = 'label-success';
+                }
+
+                $matrizRiesgo[] = $filaMatriz;
+            }
+
             return $this->success([
                 'consolidado' => $filas,
                 'alertas' => $alertas,
@@ -634,6 +738,7 @@ class DosimetriaService extends BaseService
                 'distribucion_regiones' => $conteoRegiones,
                 'ultimos_registros' => $ultimosRegistros,
                 'umbrales_nrd' => $umbralesTodos,
+                'matriz_riesgo' => $matrizRiesgo,
                 'sedes' => $sedesConEstado,
                 'periodo' => [
                     'desde' => $fechaDesde->format('Y-m-d'),
@@ -779,8 +884,13 @@ class DosimetriaService extends BaseService
                 $totalConformes++;
             }
 
+            $porcentajeNrd = ($limiteNrd !== null && $limiteNrd > 0)
+                ? round(((float) $fila->dosis_promedio / $limiteNrd) * 100, 1)
+                : null;
+
             $fila->limite_nrd = $limiteNrd;
             $fila->valor_alerta = $valorAlerta;
+            $fila->porcentaje_nrd = $porcentajeNrd;
             $fila->estado_regulatorio = $estadoRegulatorio;
 
             return $fila;
@@ -841,23 +951,175 @@ class DosimetriaService extends BaseService
                 $estadoIndividual = 'ALERTA';
             }
 
+            $porcentajeNrdIndividual = ($limiteNrd !== null && $limiteNrd > 0)
+                ? round(((float) $reg->valor_dosis / $limiteNrd) * 100, 1)
+                : null;
+
             $reg->limite_nrd = $limiteNrd;
             $reg->valor_alerta = $valorAlerta;
+            $reg->porcentaje_nrd = $porcentajeNrdIndividual;
             $reg->estado_evaluacion = $estadoIndividual;
 
             return $reg;
         });
 
-        // 7. KPIs consolidados
+        // 7. KPIs consolidados y Dosis Efectiva Media (ICRP 103)
         $totalGrupos = count($estadisticasProcesadas);
         $totalEstudios = count($detallesProcesados);
         $totalEquipos = EquipoEmisor::where('estado', true)
             ->when($sedeId, fn ($q) => $q->where('sede_id', $sedeId))
             ->count();
 
+        $totalPacientes = DB::table('medicion_dosis_radiacion as r')
+            ->whereBetween('r.fecha_estudio', [$fechaDesde, $fechaHasta])
+            ->when($sedeId, fn ($q) => $q->where('r.sede_id', $sedeId))
+            ->distinct()
+            ->count('r.patient_id_hashed');
+
+        $dosisEfectivaMedia = DB::table('medicion_dosis_radiacion as r')
+            ->leftJoin('medicion_dosis_equipos_emisores as e', 'e.id', '=', 'r.equipo_emisor_id')
+            ->whereBetween('r.fecha_estudio', [$fechaDesde, $fechaHasta])
+            ->when($sedeId, fn ($q) => $q->where('r.sede_id', $sedeId))
+            ->when($modalidad, fn ($q) => $q->where('e.modalidad', $modalidad))
+            ->select(DB::raw("ROUND(AVG(
+                CASE 
+                    -- 1. Tomografía con DLP (mGy*cm -> mSv mediante coeficientes k de ICRP 103)
+                    WHEN r.tipo_metrica = 'DLP' AND r.study_desc LIKE '%[CRANEO]%' THEN r.valor_dosis * 0.0021
+                    WHEN r.tipo_metrica = 'DLP' AND r.study_desc LIKE '%[TORAX]%' THEN r.valor_dosis * 0.0140
+                    WHEN r.tipo_metrica = 'DLP' AND r.study_desc LIKE '%[ABDOMEN]%' THEN r.valor_dosis * 0.0150
+                    WHEN r.tipo_metrica = 'DLP' AND r.study_desc LIKE '%[PELVIS]%' THEN r.valor_dosis * 0.0150
+                    WHEN r.tipo_metrica = 'DLP' AND r.study_desc LIKE '%[COLUMNA]%' THEN r.valor_dosis * 0.0160
+                    WHEN r.tipo_metrica = 'DLP' THEN r.valor_dosis * 0.0150
+                    
+                    -- 2. Tomografía con CTDIvol (Estimación normalizada E = CTDIvol * L_aprox * k_DLP)
+                    WHEN r.tipo_metrica = 'CTDIvol' AND r.study_desc LIKE '%[CRANEO]%' THEN r.valor_dosis * 0.0315
+                    WHEN r.tipo_metrica = 'CTDIvol' AND r.study_desc LIKE '%[TORAX]%' THEN r.valor_dosis * 0.4200
+                    WHEN r.tipo_metrica = 'CTDIvol' AND r.study_desc LIKE '%[ABDOMEN]%' THEN r.valor_dosis * 0.5250
+                    WHEN r.tipo_metrica = 'CTDIvol' AND r.study_desc LIKE '%[PELVIS]%' THEN r.valor_dosis * 0.3750
+                    WHEN r.tipo_metrica = 'CTDIvol' AND r.study_desc LIKE '%[COLUMNA]%' THEN r.valor_dosis * 0.3200
+                    WHEN r.tipo_metrica = 'CTDIvol' THEN r.valor_dosis * 0.2500
+                    
+                    -- 3. Radiología Convencional y Digital con DAP (Gy*cm2 -> mSv mediante coeficientes ICRP 103)
+                    WHEN r.tipo_metrica = 'DAP' AND r.study_desc LIKE '%[TORAX]%' THEN r.valor_dosis * 0.1500
+                    WHEN r.tipo_metrica = 'DAP' AND r.study_desc LIKE '%[ABDOMEN]%' THEN r.valor_dosis * 0.2500
+                    WHEN r.tipo_metrica = 'DAP' AND r.study_desc LIKE '%[PELVIS]%' THEN r.valor_dosis * 0.2000
+                    WHEN r.tipo_metrica = 'DAP' AND r.study_desc LIKE '%[COLUMNA]%' THEN r.valor_dosis * 0.1800
+                    WHEN r.tipo_metrica = 'DAP' AND r.study_desc LIKE '%[CRANEO]%' THEN r.valor_dosis * 0.0500
+                    WHEN r.tipo_metrica = 'DAP' AND r.study_desc LIKE '%[EXTREMIDADES]%' THEN r.valor_dosis * 0.0100
+                    WHEN r.tipo_metrica = 'DAP' THEN r.valor_dosis * 0.1400
+                    
+                    -- 4. Mamografía Digital DGM (mGy glandular -> mSv ponderado)
+                    WHEN r.tipo_metrica = 'DGM' THEN r.valor_dosis * 0.1200
+                    
+                    ELSE r.valor_dosis * 0.0500
+                END
+            ), 2) as e_media"))
+            ->value('e_media') ?? '0.00';
+
         $cumplimientoPct = $totalGrupos > 0
             ? round(($totalConformes / $totalGrupos) * 100, 1)
             : 100.0;
+
+        // 8. Construcción de Matriz de Riesgo y Mapa de Calor (Sede vs. Región Anatómica)
+        $regionesCatalogo = ['CRANEO', 'TORAX', 'ABDOMEN', 'PELVIS', 'COLUMNA', 'EXTREMIDADES', 'MAMA'];
+        $sedesAgrupadas = [];
+
+        foreach ($estadisticasProcesadas as $est) {
+            $sId = $est->sede_id;
+            if (! isset($sedesAgrupadas[$sId])) {
+                $sedesAgrupadas[$sId] = [
+                    'sede_id' => $sId,
+                    'nom_sede' => $est->nom_sede,
+                    'regiones' => [],
+                    'total_estudios' => 0,
+                    'conformes' => 0,
+                    'superaciones' => 0,
+                    'alertas' => 0,
+                ];
+                foreach ($regionesCatalogo as $rc) {
+                    $sedesAgrupadas[$sId]['regiones'][$rc] = [
+                        'total_estudios' => 0,
+                        'dosis_suma' => 0,
+                        'limite_nrd' => null,
+                        'porcentaje_nrd' => null,
+                        'estado' => 'SIN_DATOS',
+                    ];
+                }
+            }
+
+            $reg = $est->region_anatomica ?? 'GENERAL';
+            if (isset($sedesAgrupadas[$sId]['regiones'][$reg])) {
+                $cant = (int) $est->total_estudios;
+                $prom = (float) $est->dosis_promedio;
+                $lim = $est->limite_nrd ? (float) $est->limite_nrd : null;
+
+                $sedesAgrupadas[$sId]['regiones'][$reg]['total_estudios'] += $cant;
+                $sedesAgrupadas[$sId]['regiones'][$reg]['dosis_suma'] += ($prom * $cant);
+                if ($lim !== null) {
+                    $sedesAgrupadas[$sId]['regiones'][$reg]['limite_nrd'] = $lim;
+                }
+            }
+
+            $sedesAgrupadas[$sId]['total_estudios'] += (int) $est->total_estudios;
+            if ($est->estado_regulatorio === 'SUPERA NRD (CRÍTICO)') {
+                $sedesAgrupadas[$sId]['superaciones']++;
+            } elseif ($est->estado_regulatorio === 'ALERTA PREVENTIVA') {
+                $sedesAgrupadas[$sId]['alertas']++;
+            } else {
+                $sedesAgrupadas[$sId]['conformes']++;
+            }
+        }
+
+        $matrizRiesgo = [];
+        foreach ($sedesAgrupadas as $sId => $sData) {
+            $totalEvaluados = $sData['conformes'] + $sData['superaciones'] + $sData['alertas'];
+            $tasaConf = $totalEvaluados > 0
+                ? round(($sData['conformes'] / $totalEvaluados) * 100, 1)
+                : 100.0;
+
+            $filaMatriz = [
+                'sede_id' => $sId,
+                'nom_sede' => $sData['nom_sede'],
+                'total_estudios' => $sData['total_estudios'],
+                'tasa_conformidad' => $tasaConf,
+                'regiones' => [],
+            ];
+
+            foreach ($regionesCatalogo as $rc) {
+                $rData = $sData['regiones'][$rc];
+                if ($rData['total_estudios'] > 0 && $rData['limite_nrd'] !== null && $rData['limite_nrd'] > 0) {
+                    $promDosis = $rData['dosis_suma'] / $rData['total_estudios'];
+                    $pctNrd = round(($promDosis / $rData['limite_nrd']) * 100, 1);
+                    $estado = ($pctNrd >= 100) ? 'CRÍTICO' : (($pctNrd >= 80) ? 'ALERTA' : 'SEGURO');
+
+                    $filaMatriz['regiones'][$rc] = [
+                        'pct_nrd' => $pctNrd,
+                        'promedio_dosis' => round($promDosis, 2),
+                        'limite_nrd' => $rData['limite_nrd'],
+                        'total_estudios' => $rData['total_estudios'],
+                        'estado' => $estado,
+                    ];
+                } else {
+                    $filaMatriz['regiones'][$rc] = [
+                        'pct_nrd' => null,
+                        'promedio_dosis' => null,
+                        'limite_nrd' => null,
+                        'total_estudios' => 0,
+                        'estado' => 'SIN_DATOS',
+                    ];
+                }
+            }
+
+            if ($sData['superaciones'] > 0) {
+                $filaMatriz['nivel_riesgo'] = 'ALTO (Superó NRD)';
+            } elseif ($sData['alertas'] > 0) {
+                $filaMatriz['nivel_riesgo'] = 'MEDIO (En Alerta)';
+            } else {
+                $filaMatriz['nivel_riesgo'] = 'BAJO (Seguro)';
+            }
+
+            $matrizRiesgo[] = $filaMatriz;
+        }
 
         return [
             'filtros' => [
@@ -871,6 +1133,8 @@ class DosimetriaService extends BaseService
             'kpis' => [
                 'total_estudios' => $totalEstudios,
                 'total_equipos' => $totalEquipos,
+                'total_pacientes' => $totalPacientes,
+                'dosis_efectiva_media' => (float) $dosisEfectivaMedia,
                 'total_grupos' => $totalGrupos,
                 'total_conformes' => $totalConformes,
                 'total_alertas' => $totalAlertas,
@@ -878,6 +1142,7 @@ class DosimetriaService extends BaseService
                 'cumplimiento_pct' => $cumplimientoPct,
             ],
             'estadisticas' => $estadisticasProcesadas,
+            'matriz_riesgo' => $matrizRiesgo,
             'detalles' => $detallesProcesados,
         ];
     }
