@@ -183,3 +183,24 @@ mysql -u root -p -e "SELECT modality, COUNT(*) AS total FROM pacsdb.series WHERE
   * El agente incluye un retardo de 150 ms entre bloques y 5 reintentos con backoff exponencial. Además, la API Central de LIDiag tiene un cupo ampliado de 1.200 peticiones/minuto para los endpoints de dosimetría. Si ocurre un fallo temporal, los registros permanecen en la cola SQLite y se enviarán automáticamente en el siguiente ciclo.
 * **Estudio sin dosis (`None`):**
   * Algunos estudios de Rayos X análogos digitalizados o reconstrucciones secundarias no contienen cabeceras DICOM de dosis. El agente los identifica, los registra en la caché para no reevaluarlos y continúa con el siguiente estudio sin detenerse.
+
+---
+
+## 9. Procesamiento Central y Detección de Deriva Técnica (*Machine Drift*)
+
+Una vez que el Agente Edge transmite las dosis al servidor central (`POST /api/dosimetria/registros`), el backend en Laravel (`DosimetriaService.php`) procesa y audita los datos automáticamente:
+
+### 1. Upsert Idempotente y Desduplicación:
+Los registros se insertan mediante clave única compuesta (`study_uid` + `tipo_metrica`). Si el agente retransmite estudios pasados o recupera la cola tras una desconexión, el sistema no duplica las mediciones ni altera los históricos.
+
+### 2. Detección Predictiva de Deriva Técnica (*Machine Drift Detection*):
+El sistema divide el período de análisis en dos mitades temporales para comparar la media inicial histórica frente a la media reciente de cada equipo emisor:
+* **Alerta Predictiva (+20%):** Si un equipo registra un incremento sostenido $\ge +20\%$, se emite una alerta temprana en el Dashboard institucional sugiriendo posible descalibración física, colimación deficiente o fatiga del tubo emisor de rayos X.
+* **Calibración y Mitigación de Falsos Positivos (*Noise Floor*):**
+  Para prevenir falsas alarmas provocadas por el "sesgo de base pequeña" (por ejemplo, scout views / topogramas de TC con dosis basales de $0.2\text{ mGy}$ que suben a $0.32\text{ mGy}$ representando $+60\%$ relativo pero solo $0.12\text{ mGy}$ de diferencia absoluta):
+  * **Filtro de suelo de ruido:** Se descartan del cálculo de drift disparos no diagnósticos (`CTDIvol < 1.0 mGy`, `DLP < 20 mGy·cm`, `DGM < 0.4 mGy`, `DAP < 0.05 Gy·cm²`).
+  * **Umbral de incremento neto absoluto ($\Delta$ mínimo):** La alerta requiere superar un incremento neto representativo ($\Delta \ge 1.5\text{ mGy}$ en CT, $\Delta \ge 25\text{ mGy·cm}$ en DLP, $\Delta \ge 0.3\text{ mGy}$ en DGM).
+  * **Muestra estadística mínima:** Se exige un mínimo de al menos 3 disparos en cada mitad temporal para que la media sea matemáticamente representativa.
+
+### 3. Visualización en el Dashboard Central (`/dosimetria/dashboard`):
+El personal de radioprotección e ingeniería biomédica puede supervisar el estado de todas las sedes en tiempo real, visualizar el ranking de tubos emisores, la línea de tiempo de auditoría de informes RDSR y exportar el informe legal en formato Excel para las Secretarías de Salud.

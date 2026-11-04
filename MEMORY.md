@@ -37,6 +37,18 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-04 — Actualización Integral de Documentación Arquitectónica y Dosimétrica (`README.md`, `README_DOSIMETRIA.md`):**
+  - **Diagnóstico y Necesidad:**
+    * Tras el rediseño del Dashboard de Dosimetría con estándar nativo AdminWrap y la calibración clínica del detector de deriva técnica (*Machine Drift Detection*), era indispensable sincronizar la documentación técnica central y el manual del agente Edge de dosimetría para los ingenieros y físicos médicos.
+  - **Solución Implementada:**
+    * **`README.md` (Raíz):**
+      - Se actualizó la Sección 14 (*Dosimetría y Control de Radiación*) detallando la arquitectura Edge-to-Cloud con anonimización HMAC-SHA256, el nuevo Dashboard alineado al estándar AdminWrap (`row page-titles`, Info-Boxes con micro-barras y métricas ICRP 103, ranking de equipos emisores "Projects of the Month", timeline de eventos "Today's Schedule" y catálogo NRD).
+      - Se documentó el algoritmo de Machine Drift con su filtro de suelo de ruido (*noise floor*) y los umbrales absolutos ($\Delta$).
+    * **`README_DOSIMETRIA.md` (storage/app_lidiag/agente_backups_dcm/):**
+      - Se añadió la Sección 9 (*Procesamiento Central y Detección de Deriva Técnica*), explicando el upsert idempotente por `study_uid`, la lógica matemática de comparación de ventanas temporales en el servidor central, la mitigación de falsos positivos en scouts/topogramas y la supervisión en vivo en `/dosimetria/dashboard`.
+  - **Verificaciones:**
+    * Formato Markdown y consistencia de terminaciones de línea LF verificados sin BOM ✅.
+
 - [x] **2026-11-04 — Fase 1 de Optimización de Reportes del Bot de Telegram (Consistencia de Datos, TAT Clínico Real, Semáforo Escalonado y Monitor de Discos en Vivo) (`TelegramBotHandlerService.php`):**
   - **Diagnóstico y Problemas de Consistencia Detectados:**
     * **TAT Distorsionado:** El tiempo promedio de lectura se calculaba con `estudios.created_at` (fecha de inserción técnica en la BD web de LIDiag), ignorando que un estudio tomado hace 17 horas y sincronizado hoy arrojaba un TAT falso de 30 minutos, cuando el paciente y hospital esperaron 17 horas y media.

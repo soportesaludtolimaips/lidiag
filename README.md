@@ -219,22 +219,30 @@ Módulo administrativo para la emisión, rotación segura y monitorización de c
 
 ### 14. Dosimetría y Control de Radiación (Resolución 482 de 2018 / ISO/IEC 27001)
 
-**Propósito:** Monitoreo automatizado Edge-to-Cloud de dosis de radiación ionizante y cumplimiento normativo de Niveles de Referencia para Diagnóstico (NRD) por sede hospitalaria.
+**Propósito:** Monitoreo automatizado Edge-to-Cloud de dosis de radiación ionizante, evaluación de Niveles de Referencia para Diagnóstico (NRD) y detección predictiva de derivas técnicas de tubos emisores por sede hospitalaria.
 
 -   **Modelo Edge-to-Cloud:** Agente desatendido en Python 3 (`agente_dosimetria.py`) que se ejecuta localmente en cada sede, consulta `pacsdb` de Dcm4chee y extrae los metadatos dosimétricos directamente desde las cabeceras DICOM sin saturar la red ni exponer puertos entrantes.
--   **Seguridad de Grado Clínico (ISO 27001):** Anonimización irreversible del `PatientID` con hash SHA-256 antes de transmitir; ninguna Información de Salud Protegida (PHI) viaja por la red ni se almacena en el servidor central.
+-   **Seguridad de Grado Clínico (ISO 27001 / Ley 1581):** Anonimización irreversible del `PatientID` con hash HMAC-SHA256 salado (`dosimetria_salt` único por hospital) antes de transmitir; ninguna Información de Salud Protegida (PHI) viaja por la red ni se almacena en el servidor central, permitiendo calcular la dosis efectiva acumulada por paciente anónimo.
 -   **Métricas Multimodales:**
-    -   **Tomografía Computarizada (CT):** `CTDIvol` (mGy) y `DLP` (mGy·cm).
-    -   **Mamografía (MG):** `DGM` (mGy).
-    -   **Radiografía Digital / Computarizada (DX / CR):** `DAP` (Gy·cm²).
--   **Resiliencia y Lotes:** Transmisión HTTPS autenticada mediante Bearer Token (`/api/dosimetria/registros`) con política de reintentos (`HTTPAdapter` con backoff exponencial) y upsert masivo en bloques de 200 para evitar duplicidad de `study_uid`.
--   **Dashboard Analítico (Vue 3 + Chart.js):**
-    -   Barras comparativas de dosis promedio institucional frente a los límites NRD regulatorios.
-    -   Líneas de tendencia temporal mensual para evaluación de optimización de dosis (ALARA).
-    -   Alertas visuales semánticas (badges `.bg-danger` y paneles de advertencia) ante superación de umbrales.
-    -   Soporte nativo para Modo Oscuro Radiológico (Slate Clínico) y `TableSkeletonLoader` (CLS = 0).
--   **UI y Rutas:** Pantalla web en `/dosimetria/dashboard`, API en `/api/dosimetria/*` (permisos `dosimetria.*`). Agente local en `storage/app_lidiag/agente_backups_dcm/`.
--   **Alto Volumen y Cargas Históricas:** Soporte para sedes con >15.000 estudios/mes mediante bandera `--sin-limite`, cola persistente SQLite local y transmisión en micro-lotes. Guía de comandos en `storage/app_lidiag/agente_backups_dcm/README.md`.
+    -   **Tomografía Computarizada (CT):** Índice de Dosis en TC por Volumen (`CTDIvol` en mGy) y Producto Dosis-Longitud (`DLP` en mGy·cm).
+    -   **Mamografía Digital (MG):** Dosis Glandular Media (`DGM` en mGy) y Entrada en Superficie (`ESD`).
+    -   **Radiografía Digital / Computarizada (DX / CR / XA):** Producto Dosis-Área (`DAP` / `KAP` en Gy·cm² o dGy·cm²).
+    -   **Dosis Efectiva Media ($E$ en mSv):** Cálculo automatizado basado en factores de ponderación tisular según la publicación ICRP 103 ($E = \text{DLP} \times k$).
+-   **Resiliencia y Tolerancia a Fallos:** Cola persistente transaccional SQLite local (`logs/cola_dosimetria.db`), transmisión HTTPS autenticada mediante Bearer Token Sanctum (`/api/dosimetria/registros`), reintentos con backoff exponencial y micro-lotes de 50 registros para evitar errores HTTP 429.
+-   **Detección Predictiva de Deriva Técnica (*Machine Drift Detection*):**
+    -   Algoritmo heurístico que compara ventanas temporales históricas dentro del período de consulta para alertar oportunamente sobre desgastes físicos del ánodo o descalibraciones del emisor (+20% de incremento).
+    -   **Calibración y Filtro de Suelo de Ruido (*Noise Floor*):** Descarte automático de topogramas, scouts y disparos residuales insignificantes (`CTDIvol < 1.0 mGy`, `DLP < 20 mGy·cm`, etc.) y exigencia de umbrales absolutos mínimos ($\Delta \ge 1.5\text{ mGy}$ en CT, $\Delta \ge 25\text{ mGy}\cdot\text{cm}$ en DLP) y al menos 3 disparos por ventana temporal, erradicando falsos positivos por sesgo de base pequeña.
+-   **Dashboard Analítico Institucional (Vue 3 + Chart.js con Estándar AdminWrap):**
+    -   **Header y Acciones Canónicas:** Ruta de navegación con `row page-titles`, botón de exportación a Excel y modal interactivo del Catálogo NRD regulatorio.
+    -   **Info-Boxes Superiores (Estilo `index.html`):** Tarjetas con indicadores `.display-6`, íconos temáticos (`icon-Target-Market`, `icon-Desktop-Monitor`, `icon-Contrast`, `icon-Pulse`) y micro-barras de progreso de 3px para Estudios Monitoreados, Equipos Emisores, Cumplimiento NRD y Dosis Efectiva Media ($E$).
+    -   **Monitor de Latidos Edge (*Dead Man's Switch*):** Panel de telemetría en vivo con badges `.label.label-rounded` para supervisar la conectividad continua de los agentes en cada hospital.
+    -   **Alertas Semánticas de Radioprotección:** Paneles nativos `.alert.alert-danger` y `.alert.alert-warning` ante superaciones de NRD o advertencias de deriva técnica con delta absoluto y porcentual.
+    -   **Gráficos Clínicos Comparativos:** Gráfico de barras de Dosis Medida vs Límite NRD por sede, gráfico de dona de Conformidad Normativa (Seguro, Alerta, Crítico), gráfico de líneas de Tendencia Mensual (ALARA) y dona de Distribución por Modalidad.
+    -   **Ranking de Equipos Emisores (Estilo "Projects of the Month"):** Tabla estructurada con `.table.vm.no-th-brd.pro-of-month`, avatares circulares `.round`, estado clínico y dosis media por emisor.
+    -   **Timeline de Auditoría Clínica (Estilo "Today's Schedule"):** Línea de tiempo interactiva con `.steamline` y `.sl-item` para trazabilidad de informes RDSR y eventos.
+    -   **Tabla Maestra de Mediciones:** Historial reciente de muestreo con identificador anonimizado HMAC, parámetros técnicos ($kV_p$, $mA$, $ms$) y estado de verificación.
+-   **UI y Rutas:** Pantalla web en `/dosimetria/dashboard`, API en `/api/dosimetria/*` (permisos `dosimetria.*`).
+-   **Documentación Especializada:** Manuales dedicados en `storage/app_lidiag/agente_backups_dcm/README_DOSIMETRIA.md` e informe para proveedores en `storage/app_lidiag/agente_backups_dcm/INFORME_TECNICO_DOSIMETRIA_PROVEEDORES.md`.
 
 ### 15. Tele-Radiología
 
