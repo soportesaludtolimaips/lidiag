@@ -37,6 +37,19 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-04 — Desacoplamiento y Modularización de Documentación de Agentes PACS y Dosimetría por Sede (`README.md`, `README_BACKUP_DB.md`, `README_SYNC_IMAGENES.md`, `README_DOSIMETRIA.md`, `README_RESTORE_IMAGENES.md`):**
+  - **Diagnóstico y Solicitud del Usuario:**
+    * El usuario solicitó separar la documentación del paquete de agentes (que se encontraba condensada en un solo `README.md` masivo) en manuales dedicados e independientes para cada uno de los cuatro agentes/servicios, facilitando el despliegue, consulta y resolución de incidentes en sedes hospitalarias.
+  - **Solución Implementada:**
+    * **Creación de `README_BACKUP_DB.md`:** Manual exhaustivo del Agente de Respaldo de Base de Datos MySQL (`backup_dcm_agent.py` / `ejecutar_backup_db.bat`), incluyendo parámetros CLI (`--dry-run`, `--retention-days`), montaje SMB a QNAP, validación CRC32/SHA-256 y diagnósticos de socket y bitácoras.
+    * **Creación de `README_SYNC_IMAGENES.md`:** Manual detallado del Agente de Sincronización Continua de Imágenes DICOM (`sync_dcm_images.py` / `ejecutar_sync_imagenes.bat`), explicando el motor Robocopy multi-hilo, política de respaldo seguro sin borrado en destino, parámetros (`--once`, `--threads`, `--interval`), monitoreo en vivo de `robocopy_scan.log` y gestión del lockfile.
+    * **Creación de `README_DOSIMETRIA.md`:** Manual especializado del Agente Edge de Dosimetría Radiológica (`agente_dosimetria.py` / `ejecutar_dosimetria.bat`), con cumplimiento de la Resolución 482 / ISO 27001, tags DICOM por modalidad (CT, MG, DX/CR/XA), justificación de `dosimetria_salt` y anonimización HMAC-SHA256, autenticación multi-canal, cola persistente SQLite (`cola_dosimetria.db`), estrategia para hospitales de alto volumen (>15.000 estudios/mes) y resolución de errores HTTP 401 y 429.
+    * **Creación de `README_RESTORE_IMAGENES.md`:** Manual del Agente de Recuperación ante Desastres (`restore_dcm_images.py` / `ejecutar_restore_imagenes.bat`), documentando el procedimiento de restauración cronológica inversa (`2026` -> `2025` -> `2024`...) para reanudar urgencias en < 3 horas con 100% de tolerancia a fallos.
+    * **Refactorización de `README.md` como Portal Maestro:** Reestructurado como portal unificado con diagrama de arquitectura, matriz de enlaces a los 4 manuales, guía rápida de despliegue en 1 clic (`install.bat`, generación de token y `instalar_tareas_sede.bat`), catálogo de `sede_id` y monitoreo consolidado.
+  - **Verificaciones:**
+    * Formato Markdown validado con enlaces relativos funcionales ✅.
+    * Sintaxis Python de agentes verificada con `py_compile` ✅.
+    * Sintaxis y estilo verificado sin BOM con terminaciones de línea correctas ✅.
 - [x] **2026-11-04 — Enriquecimiento y Justificación Clínica Explícita de Alertas de Hallazgos Críticos en Telegram (`EstudioService.php`, `LeerEstudioRequest.php`, `GuardarTranscripcionRequest.php`, `EstudioController.php`, `leerEstudioComponent.vue`, `transcribirEstudioComponent.vue`):**
   - **Diagnóstico y Solicitud del Usuario:**
     * El usuario recibió la alerta de hallazgo crítico en Telegram para un paciente de urgencias pero observó: *"Me gustó, pero debe ser más explícita; dice que se requiere valoración pero no el porqué se requiere la valoración"*.
