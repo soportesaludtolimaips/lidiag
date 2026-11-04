@@ -37,6 +37,30 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-04 — Enriquecimiento Estadístico y Gráficos Nativos en Reporte Excel de Estudios PACS (`ReportesEstudioPAC.php`, `ReportesEstudioPACEstadisticasSheet.php`, `ReportesEstudioPACDetalleSheet.php`):**
+  - **Diagnóstico y Solicitud del Usuario:**
+    * El usuario solicitó: *"En https://lidiag.test/reportes-estudios-pac al generar el reporte, en el archivo de excel agreguemos otra hoja con datos estadisticos y graficas"*.
+    * El reporte de estudios PACS originalmente generaba un archivo plano de una sola hoja con el listado tabular de estudios sin indicadores agregados, métricas de rendimiento ni visualizaciones gráficas.
+  - **Solución Implementada:**
+    * **1. Refactorización a Libro Multi-Hoja (`WithMultipleSheets`):**
+      - Se transformó [ReportesEstudioPAC.php](file:///c:/laragon/www/lidiag/app/Exports/ReportesEstudioPAC.php) en un orquestador multi-hoja manteniendo 100% retrocompatibilidad de constructor `($fechaInicio, $fechaFin, $sedeId, $sedeNombre, $conexionOriginal)` para el módulo web (`ReporteProduccionService`) y para el bot de Telegram (`TelegramBotHandlerService`).
+      - Optimización de latencia y red: La conexión dinámica a la sucursal remota (`mysql_sucursal`) y la consulta unificada (`study` JOIN `patient`) se ejecutan exactamente una vez en el constructor, inyectando la colección de registros en ambas hojas.
+    * **2. Nueva Hoja Ejecutiva de Estadísticas y Gráficos (`ReportesEstudioPACEstadisticasSheet.php`):**
+      - *Bloque Superior Corporativo y Metadatos:* Banner azul institucional `#1A2274`, sede hospitalaria, rango de fechas y timestamp de emisión.
+      - *5 Tarjetas de KPIs Ejecutivos:* Total Estudios Adquiridos, Pacientes Únicos Atendidos, Modalidades Diagnósticas Activas, Promedio Diario de Adquisición (`est/día`) y Procedimientos Radiológicos Distintos.
+      - *Tabla 1 (Cols A–E) — Distribución por Modalidad Diagnóstica:* Código (`CT`, `MR`, `DX`, `CR`, `MG`, `US`, `XA`), nombre descriptivo completo, total de estudios, pacientes únicos atendidos, porcentaje de cuota y fila de Total Consolidado al pie.
+      - *Tabla 2 (Cols G–L) — Top 10 Procedimientos Más Frecuentes:* Ranking (#1 al #10), descripción del estudio, modalidad principal, cantidad, pacientes únicos, porcentaje del total y fila de Subtotal Top 10.
+      - *Dos Gráficos Nativos de PhpSpreadsheet:*
+        1. *Gráfica de Torta (Pie Chart):* Distribución porcentual limpia por modalidad diagnóstica, posicionada debajo de la Tabla 1.
+        2. *Gráfica de Barras Agrupadas (Clustered Column Bar Chart):* Ranking de demanda de los procedimientos más frecuentes en el período, posicionada debajo de la Tabla 2.
+    * **3. Hoja de Detalle de Estudios (`ReportesEstudioPACDetalleSheet.php`):**
+      - Preserva intacto el listado granular de estudios con las 6 columnas originales: *Sede, Fecha de Estudio, Documento del Paciente, Paciente, Descripción del Estudio y Modalidad*, respetando anchos de columna y bordes institucionales.
+  - **Verificaciones:**
+    * Laravel Pint pasado al 100% (`vendor\bin\pint.bat --test`) ✅.
+    * Larastan / PHPStan nivel 5 sin errores (`[OK] No errors`) ✅.
+    * Verificación de generación de libro multi-hoja con PhpSpreadsheet Reader validando presencia de ambas hojas y 2 gráficos nativos incrustados ✅.
+    * Respeto estricto a finales de línea LF y codificación UTF-8 sin BOM ✅.
+
 - [x] **2026-11-04 — Refactorización Arquitectónica de Gráficos Ejecutivos en Reporte Excel de Dosimetría (`DosimetriaEstadisticasSheet.php`):**
   - **Diagnóstico y Reporte Visual del Usuario:**
     * El usuario compartió captura de pantalla del Excel indicando: *"Mira cómo se ven las gráficas del reporte de Excel, no se entienden, no se aprecia la distribución de las mediciones"*.

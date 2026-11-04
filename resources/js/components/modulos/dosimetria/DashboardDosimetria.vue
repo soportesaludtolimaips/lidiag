@@ -18,6 +18,8 @@
                     type="button"
                     class="btn btn-sm btn-outline-success m-r-5"
                     :disabled="loading || exportando"
+                    data-toggle="tooltip"
+                    data-placement="bottom"
                     title="Exportar informe institucional a Excel (.xlsx)"
                     @click="exportarExcel"
                 >
@@ -27,6 +29,8 @@
                     type="button"
                     class="btn btn-sm btn-outline-secondary m-r-5"
                     :disabled="loading"
+                    data-toggle="tooltip"
+                    data-placement="bottom"
                     title="Actualizar datos del dashboard"
                     @click="cargarDatos"
                 >
@@ -35,6 +39,8 @@
                 <button
                     type="button"
                     class="btn btn-sm btn-info"
+                    data-toggle="tooltip"
+                    data-placement="bottom"
                     title="Ver catálogo de Niveles de Referencia para Diagnóstico"
                     @click="mostrarModalUmbrales = true"
                 >
@@ -250,7 +256,10 @@
                             :key="'hb-' + s.id"
                             class="label label-rounded m-r-5 m-b-5"
                             :class="getSedeConexionLabelClass(s.estado_conexion)"
+                            data-toggle="tooltip"
+                            data-placement="bottom"
                             :title="s.nom_sede + ' — ' + getSedeConexionTooltip(s)"
+                            style="cursor: help"
                         >
                             <i
                                 class="fa fa-circle font-10 m-r-5"
@@ -296,7 +305,14 @@
                     <button
                         type="button"
                         class="btn btn-sm btn-outline-danger"
-                        @click="mostrarTodasCriticas = !mostrarTodasCriticas"
+                        data-toggle="tooltip"
+                        data-placement="left"
+                        :title="
+                            mostrarTodasCriticas
+                                ? 'Colapsar a los 5 casos principales'
+                                : 'Expandir la lista completa de superaciones NRD'
+                        "
+                        @click="toggleTodasCriticas"
                     >
                         <i
                             :class="
@@ -399,7 +415,14 @@
                     <button
                         type="button"
                         class="btn btn-sm btn-outline-warning"
-                        @click="mostrarTodasPreventivas = !mostrarTodasPreventivas"
+                        data-toggle="tooltip"
+                        data-placement="left"
+                        :title="
+                            mostrarTodasPreventivas
+                                ? 'Ocultar desglose detallado'
+                                : 'Mostrar desglose de exámenes en rango preventivo'
+                        "
+                        @click="toggleTodasPreventivas"
                     >
                         <i
                             :class="
@@ -479,6 +502,13 @@
             <h4 class="card-title text-info m-b-5">
                 <i class="fa fa-wrench m-r-10"></i>Alerta Predictiva de Deriva Técnica (Machine
                 Drift Detection)
+                <i
+                    class="fa fa-info-circle text-info font-14 m-l-5"
+                    data-toggle="tooltip"
+                    data-placement="top"
+                    title="Incremento sostenido >20% en la dosis promedio respecto al histórico, sugiriendo desgaste de tubo o descalibración física del equipo emisor."
+                    style="cursor: help"
+                ></i>
             </h4>
             <p class="font-14 text-muted m-b-10">
                 Se detectaron equipos emisores con incremento atípico (+20% sobre la línea base
@@ -611,6 +641,8 @@
                         <button
                             type="button"
                             class="btn btn-sm btn-secondary waves-effect btn-block"
+                            data-toggle="tooltip"
+                            data-placement="top"
                             title="Limpiar filtros de búsqueda"
                             @click="limpiarFiltros"
                         >
@@ -675,7 +707,13 @@
 
                         <!-- Resumen Nativo de Campaña Dosimétrica (AdminWrap index3.html) -->
                         <div class="row text-center m-t-20 b-t p-t-15">
-                            <div class="col-3 b-r">
+                            <div
+                                class="col-3 b-r"
+                                data-toggle="tooltip"
+                                data-placement="top"
+                                title="Impacto biológico promedio ponderado por tejido bajo ICRP 103"
+                                style="cursor: help"
+                            >
                                 <h4 class="m-b-0 font-medium text-primary">
                                     {{ kpis.dosis_efectiva_promedio || "0.43" }} mSv
                                 </h4>
@@ -684,7 +722,13 @@
                                     >Impacto corporal (ICRP 103)</small
                                 >
                             </div>
-                            <div class="col-3 b-r">
+                            <div
+                                class="col-3 b-r"
+                                data-toggle="tooltip"
+                                data-placement="top"
+                                title="Porcentaje de grupos de exámenes que operan estrictamente dentro de los límites NRD (<100%)"
+                                style="cursor: help"
+                            >
                                 <h4 class="m-b-0 font-medium text-success">
                                     {{
                                         kpis.tasa_conformidad
@@ -695,14 +739,26 @@
                                 <h6 class="text-muted m-b-0 font-12">Conformidad Segura</h6>
                                 <small class="text-muted font-10">Grupos dentro de norma</small>
                             </div>
-                            <div class="col-3 b-r">
+                            <div
+                                class="col-3 b-r"
+                                data-toggle="tooltip"
+                                data-placement="top"
+                                title="Grupos de procedimientos que alcanzaron entre el 80% y 99% del límite NRD"
+                                style="cursor: help"
+                            >
                                 <h4 class="m-b-0 font-medium text-warning">
                                     {{ kpis.total_advertencias || 0 }}
                                 </h4>
                                 <h6 class="text-muted m-b-0 font-12">Grupos en Alerta</h6>
                                 <small class="text-muted font-10">Cerca de límite (80%–99%)</small>
                             </div>
-                            <div class="col-3">
+                            <div
+                                class="col-3"
+                                data-toggle="tooltip"
+                                data-placement="top"
+                                title="Grupos de procedimientos cuya dosis promedio superó el límite NRD regulatorio (Resolución 482 de 2018)"
+                                style="cursor: help"
+                            >
                                 <h4 class="m-b-0 font-medium text-danger">
                                     {{ kpis.total_alertas || 0 }}
                                 </h4>
@@ -941,7 +997,13 @@
                                         getNombreCortoSede(sede.nom_sede)
                                     }}</strong>
                                     <br />
-                                    <small class="text-muted" :title="sede.nom_sede">
+                                    <small
+                                        class="text-muted"
+                                        data-toggle="tooltip"
+                                        data-placement="right"
+                                        :title="sede.nom_sede"
+                                        style="cursor: help"
+                                    >
                                         {{ sede.total_estudios?.toLocaleString() || 0 }} estudios
                                     </small>
                                 </td>
@@ -949,6 +1011,8 @@
                                     <span
                                         class="label"
                                         :class="getHeatmapBadgeClass(sede.regiones?.CRANEO?.estado)"
+                                        data-toggle="tooltip"
+                                        data-placement="top"
                                         :title="
                                             getHeatmapCellTooltip(sede.regiones?.CRANEO, 'Cráneo')
                                         "
@@ -965,6 +1029,8 @@
                                     <span
                                         class="label"
                                         :class="getHeatmapBadgeClass(sede.regiones?.TORAX?.estado)"
+                                        data-toggle="tooltip"
+                                        data-placement="top"
                                         :title="
                                             getHeatmapCellTooltip(sede.regiones?.TORAX, 'Tórax')
                                         "
@@ -983,6 +1049,8 @@
                                         :class="
                                             getHeatmapBadgeClass(sede.regiones?.ABDOMEN?.estado)
                                         "
+                                        data-toggle="tooltip"
+                                        data-placement="top"
                                         :title="
                                             getHeatmapCellTooltip(sede.regiones?.ABDOMEN, 'Abdomen')
                                         "
@@ -999,6 +1067,8 @@
                                     <span
                                         class="label"
                                         :class="getHeatmapBadgeClass(sede.regiones?.PELVIS?.estado)"
+                                        data-toggle="tooltip"
+                                        data-placement="top"
                                         :title="
                                             getHeatmapCellTooltip(sede.regiones?.PELVIS, 'Pelvis')
                                         "
@@ -1017,6 +1087,8 @@
                                         :class="
                                             getHeatmapBadgeClass(sede.regiones?.COLUMNA?.estado)
                                         "
+                                        data-toggle="tooltip"
+                                        data-placement="top"
                                         :title="
                                             getHeatmapCellTooltip(sede.regiones?.COLUMNA, 'Columna')
                                         "
@@ -1037,6 +1109,8 @@
                                                 sede.regiones?.EXTREMIDADES?.estado
                                             )
                                         "
+                                        data-toggle="tooltip"
+                                        data-placement="top"
                                         :title="
                                             getHeatmapCellTooltip(
                                                 sede.regiones?.EXTREMIDADES,
@@ -1056,6 +1130,8 @@
                                     <span
                                         class="label"
                                         :class="getHeatmapBadgeClass(sede.regiones?.MAMA?.estado)"
+                                        data-toggle="tooltip"
+                                        data-placement="top"
                                         :title="getHeatmapCellTooltip(sede.regiones?.MAMA, 'Mama')"
                                         style="cursor: help; min-width: 62px; display: inline-block"
                                     >
@@ -1067,7 +1143,12 @@
                                     </span>
                                 </td>
                                 <td class="text-center">
-                                    <span class="font-medium text-dark"
+                                    <span
+                                        class="font-medium text-dark"
+                                        data-toggle="tooltip"
+                                        data-placement="top"
+                                        :title="`Tasa de conformidad: ${sede.tasa_conformidad}% de estudios dentro de límites NRD`"
+                                        style="cursor: help"
                                         >{{ sede.tasa_conformidad }}%</span
                                     >
                                     <div class="progress m-t-5" style="height: 4px">
@@ -1082,6 +1163,10 @@
                                     <span
                                         class="label label-rounded"
                                         :class="sede.badge_riesgo || 'label-success'"
+                                        data-toggle="tooltip"
+                                        data-placement="left"
+                                        :title="`Nivel de riesgo institucional: ${sede.nivel_riesgo}`"
+                                        style="cursor: help"
                                     >
                                         {{ sede.nivel_riesgo }}
                                     </span>
