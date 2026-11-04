@@ -62,7 +62,16 @@
                                         kpis.total_estudios?.toLocaleString() || 0
                                     }}</span>
                                 </h2>
-                                <h6 class="text-muted m-b-0">Estudios Monitoreados</h6>
+                                <h6 class="text-muted m-b-0">
+                                    Estudios Monitoreados
+                                    <i
+                                        class="fa fa-info-circle text-muted font-12 m-l-5"
+                                        data-toggle="tooltip"
+                                        data-placement="top"
+                                        :title="tooltipsSecciones.kpiEstudios"
+                                        style="cursor: help"
+                                    ></i>
+                                </h6>
                             </div>
                         </div>
                     </div>
@@ -89,7 +98,16 @@
                                     <span v-if="loading">...</span>
                                     <span v-else>{{ kpis.total_equipos || 0 }}</span>
                                 </h2>
-                                <h6 class="text-muted m-b-0">Equipos Emisores</h6>
+                                <h6 class="text-muted m-b-0">
+                                    Equipos Emisores
+                                    <i
+                                        class="fa fa-info-circle text-muted font-12 m-l-5"
+                                        data-toggle="tooltip"
+                                        data-placement="top"
+                                        :title="tooltipsSecciones.kpiEquipos"
+                                        style="cursor: help"
+                                    ></i>
+                                </h6>
                             </div>
                         </div>
                     </div>
@@ -130,12 +148,21 @@
                                     <span v-if="loading">...</span>
                                     <span v-else>{{ kpis.total_alertas || 0 }}</span>
                                 </h2>
-                                <h6 class="text-muted m-b-0">Superaciones NRD</h6>
+                                <h6 class="text-muted m-b-0">
+                                    Grupos sobre NRD
+                                    <i
+                                        class="fa fa-info-circle text-muted font-12 m-l-5"
+                                        data-toggle="tooltip"
+                                        data-placement="top"
+                                        :title="tooltipsSecciones.kpiSuperaciones"
+                                        style="cursor: help"
+                                    ></i>
+                                </h6>
                                 <small
                                     v-if="(kpis.total_advertencias || 0) > 0"
                                     class="text-warning font-10 d-block m-t-5"
                                 >
-                                    {{ kpis.total_advertencias }} advertencias preventivas
+                                    {{ kpis.total_advertencias }} en alerta preventiva (80%–99%)
                                 </small>
                             </div>
                         </div>
@@ -167,7 +194,16 @@
                                         <small class="font-14 text-muted">mSv</small>
                                     </span>
                                 </h2>
-                                <h6 class="text-muted m-b-0">Dosis Efectiva Media (E)</h6>
+                                <h6 class="text-muted m-b-0">
+                                    Dosis Media Paciente (E)
+                                    <i
+                                        class="fa fa-info-circle text-muted font-12 m-l-5"
+                                        data-toggle="tooltip"
+                                        data-placement="top"
+                                        :title="tooltipsSecciones.kpiDosisEfectiva"
+                                        style="cursor: help"
+                                    ></i>
+                                </h6>
                             </div>
                         </div>
                     </div>
@@ -353,9 +389,10 @@
                         ></i>
                     </h5>
                     <small class="text-muted">
-                        {{ alertasPreventivas.length }} grupos operan en rango de precaución
-                        preventiva (80%–99% del NRD). No constituyen infracción pero requieren
-                        seguimiento.
+                        {{ alertasPreventivas.length }} grupos de procedimientos (consolidados por
+                        sede, modalidad y región) operan cerca del límite (80%–99% del NRD). No son
+                        infracciones pero requieren ajustar parámetros antes de que sobrepasen la
+                        norma.
                     </small>
                 </div>
                 <div class="m-t-10 m-sm-t-0">
@@ -642,7 +679,10 @@
                                 <h4 class="m-b-0 font-medium text-primary">
                                     {{ kpis.dosis_efectiva_promedio || "0.43" }} mSv
                                 </h4>
-                                <h6 class="text-muted m-b-0 font-12">Dosis Efectiva Media</h6>
+                                <h6 class="text-muted m-b-0 font-12">Dosis Media Paciente</h6>
+                                <small class="text-muted font-10"
+                                    >Impacto corporal (ICRP 103)</small
+                                >
                             </div>
                             <div class="col-3 b-r">
                                 <h4 class="m-b-0 font-medium text-success">
@@ -652,19 +692,22 @@
                                             : "76.9%"
                                     }}
                                 </h4>
-                                <h6 class="text-muted m-b-0 font-12">Conformidad NRD</h6>
+                                <h6 class="text-muted m-b-0 font-12">Conformidad Segura</h6>
+                                <small class="text-muted font-10">Grupos dentro de norma</small>
                             </div>
                             <div class="col-3 b-r">
                                 <h4 class="m-b-0 font-medium text-warning">
                                     {{ kpis.total_advertencias || 0 }}
                                 </h4>
-                                <h6 class="text-muted m-b-0 font-12">Advertencias NRD</h6>
+                                <h6 class="text-muted m-b-0 font-12">Grupos en Alerta</h6>
+                                <small class="text-muted font-10">Cerca de límite (80%–99%)</small>
                             </div>
                             <div class="col-3">
                                 <h4 class="m-b-0 font-medium text-danger">
                                     {{ kpis.total_alertas || 0 }}
                                 </h4>
-                                <h6 class="text-muted m-b-0 font-12">Infracciones NRD</h6>
+                                <h6 class="text-muted m-b-0 font-12">Grupos en Exceso NRD</h6>
+                                <small class="text-muted font-10">Superaron límite legal</small>
                             </div>
                         </div>
                     </div>
@@ -716,7 +759,10 @@
 
                         <!-- Distribución por Modalidad Estilo Browser Table (AdminWrap index2.html) -->
                         <div class="m-t-20 b-t p-t-15">
-                            <h5 class="card-title font-medium m-b-10">Carga por Modalidad</h5>
+                            <h5 class="card-title font-medium m-b-5">Carga por Modalidad</h5>
+                            <h6 class="card-subtitle text-muted font-12 m-b-10">
+                                Porcentaje de exámenes según el tipo de equipo
+                            </h6>
                             <div class="table-responsive">
                                 <table class="table browser no-border m-b-0">
                                     <tbody>
@@ -813,7 +859,8 @@
                                     ></i>
                                 </h4>
                                 <h6 class="card-subtitle">
-                                    Dosis relativa (%) por órgano diana (ICRP 103)
+                                    % de radiación frente al límite permitido (100% NRD) por zona
+                                    corporal
                                 </h6>
                             </div>
                         </div>
@@ -856,8 +903,8 @@
                                     ></i>
                                 </h4>
                                 <h6 class="card-subtitle">
-                                    Carga de trabajo dosimétrica y calibración de tubos en el
-                                    periodo
+                                    Volumen de disparos, dosis promedio y estado de calibración de
+                                    cada máquina
                                 </h6>
                             </div>
                         </div>
@@ -976,7 +1023,8 @@
                             ></i>
                         </h4>
                         <h6 class="card-subtitle">
-                            Muestreo reciente de telemetría anonimizada (HMAC-SHA256)
+                            Últimos 50 exámenes capturados en tiempo real (documento de paciente
+                            protegido por privacidad)
                         </h6>
                     </div>
                     <div class="ml-auto">
@@ -1225,6 +1273,14 @@ const tooltipsSecciones = {
         "DESCRIPCIÓN:\nMuestreo en tiempo real de los últimos 50 estudios capturados por los agentes Edge locales de cada hospital desde los metadatos de las imágenes DICOM.\n\nFUNCIONALIDAD:\nPermite auditar a nivel individual los valores de radiación (CTDIvol, DLP, DAP, DGM) asociados al identificador anónimo del paciente (HMAC-SHA256) y su semáforo NRD.\n\nNORMATIVIDAD:\nResolución 482 de 2018 (Artículo 23: Registro de Dosis Individual) y Estándar DICOM PS3.16 (Radiation Dose Structured Reports - RDSR).",
     deadMansSwitch:
         "DESCRIPCIÓN:\nMecanismo de hombre muerto (Dead Man's Switch) que supervisa la recepción periódica de latidos de vida (heartbeats) emitidos por los agentes de cada hospital.\n\nFUNCIONALIDAD:\nDetecta caídas de red, cortes eléctricos, bloqueos de firewall o fallas en el PACS de la sede, alertando si un hospital supera 60 minutos sin emitir telemetría.\n\nNORMATIVIDAD:\nEstándar de Disponibilidad y Resiliencia ISO/IEC 27001 (Control A.12) y Resolución 3100 de 2019 de Habilitación en Salud.",
+    kpiEstudios:
+        "Total de exámenes y disparos diagnósticos con telemetría de radiación capturada en el periodo seleccionado.",
+    kpiEquipos:
+        "Cantidad de tubos de rayos X, tomógrafos (CT) y mamógrafos (MG) activos que reportan dosis a la plataforma.",
+    kpiSuperaciones:
+        "Cantidad de grupos de exámenes (consolidados por sede, modalidad y región) cuya dosis promedio superó el límite NRD regulatorio de la Resolución 482 de 2018.",
+    kpiDosisEfectiva:
+        "Estimación del impacto biológico promedio de radiación en el cuerpo humano por paciente, medido en milisieverts (mSv) bajo el estándar ICRP 103.",
 };
 const tooltipsGraficas = tooltipsSecciones;
 

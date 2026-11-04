@@ -70,6 +70,19 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * `vendor\bin\pint.bat --test config/sanctum.php` 100% passed ✅.
     * Verificación de base de datos (`personal_access_tokens`): los tokens existentes de las sedes 1, 3 y 4 volvieron a ser válidos inmediatamente sin necesidad de reconfigurarlos ✅.
 
+- [x] **2026-11-04 — Simplificación Semántica de Métricas y Tooltips Educativos en KPIs de Dosimetría (`DashboardDosimetria.vue`):**
+  - **Diagnóstico y Solicitud del Usuario:**
+    * El usuario solicitó: *"Si, y apliquemos lo mismo a las demás métricas, sencillo para que cualquier usuario lo entienda"*.
+  - **Solución Implementada:**
+    * **KPIs Superiores:** Se agregaron tooltips explicativos `<i class="fa fa-info-circle text-muted font-12"></i>` en cada una de las 4 tarjetas principales con lenguaje cotidiano (Estudios Monitoreados, Equipos Emisores, Grupos sobre NRD y Dosis Media Paciente E).
+    * **Banner de Advertencias Preventivas:** Subtítulo simplificado aclarando que se trata de grupos de exámenes operando en franja de precaución (80%–99% del NRD) para optimizar parámetros antes de incurrir en infracción.
+    * **Resumen de Campaña en Pie de Gráfica:** Términos adaptados a lenguaje amigable con micro-subtítulos explicativos (*Dosis Media Paciente - Impacto corporal ICRP 103*, *Conformidad Segura - Grupos dentro de norma*, *Grupos en Alerta - Cerca de límite 80%–99%*, *Grupos en Exceso NRD - Superaron límite legal*).
+    * **Subtítulos de Secciones:** Adaptados en *Carga por Modalidad* ("Porcentaje de exámenes según el tipo de equipo"), *Perfil Anatómico* ("% de radiación frente al límite permitido 100% NRD por zona corporal"), *Equipos Emisores* ("Volumen de disparos, dosis promedio y estado de calibración de cada máquina") y *Últimas Mediciones* ("Últimos 50 exámenes capturados en tiempo real con documento de paciente protegido por privacidad").
+  - **Verificaciones:**
+    * ESLint validado con 0 errores y 0 warnings (`npx eslint`) ✅.
+    * Compilación Vite exitosa (`npm run build` en 1.22s) ✅.
+    * Formato LF verificado sin UTF-8 BOM ✅.
+
 - [x] **2026-11-04 — Tooltip para Monitor de Latidos Edge y Clarificación Semántica de Grupos NRD (`DashboardDosimetria.vue`):**
   - **Diagnóstico y Solicitud del Usuario:**
     * El usuario solicitó agregar el tooltip informativo al *"Monitor de Latidos Edge (Dead Man's Switch)"* y clarificar la terminología de "grupos" en el banner de superaciones críticas NRD.
