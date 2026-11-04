@@ -216,7 +216,8 @@ def parse_arguments():
     parser.add_argument("--dias", type=int, default=1, help="Ventana de días hacia atrás para consultar (default: 1)")
     parser.add_argument("--desde", type=str, help="Fecha inicio fija (formato YYYY-MM-DD)")
     parser.add_argument("--hasta", type=str, help="Fecha fin fija (formato YYYY-MM-DD)")
-    parser.add_argument("--limit", type=int, default=200, help="Límite máximo de estudios a procesar por ciclo (default: 200)")
+    parser.add_argument("--limit", type=int, default=200, help="Límite máximo de estudios a procesar por ciclo (default: 200, usa 0 o --sin-limite para ilimitado)")
+    parser.add_argument("--sin-limite", action="store_true", help="Procesa todos los estudios candidatos sin límite de cantidad")
     parser.add_argument("--dry-run", action="store_true", help="Extrae métricas sin enviarlas a la API central")
     parser.add_argument("--forzar", "--force", action="store_true", help="Fuerza el re-procesamiento ignorando la caché local de estudios ya transmitidos")
     parser.add_argument("--limpiar-cache", action="store_true", help="Elimina el archivo de caché local de estudios procesados y sale")
@@ -519,20 +520,30 @@ def encolar_estudios_sqlite(registros: List[Dict[str, Any]], db_path: str = SQLI
     return insertados
 
 
-def obtener_pendientes_sqlite(limit: int = 200, db_path: str = SQLITE_COLA_FILE) -> List[Dict[str, Any]]:
+def obtener_pendientes_sqlite(limit: Optional[int] = 200, db_path: str = SQLITE_COLA_FILE) -> List[Dict[str, Any]]:
     """Obtiene los registros pendientes de sincronización (o fallidos con < 5 intentos)."""
     with sqlite3.connect(db_path) as conn:
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
-        cur.execute("""
-            SELECT id, study_uid, patient_id_hashed, modalidad, aet_title,
-                   tipo_metrica, valor_dosis, unidad_medida, fecha_estudio,
-                   accession_no, study_desc, intentos
-            FROM cola_dosimetria
-            WHERE estado = 'PENDING' OR (estado = 'FAILED' AND intentos < 5)
-            ORDER BY id ASC
-            LIMIT ?
-        """, (limit,))
+        if limit and limit > 0:
+            cur.execute("""
+                SELECT id, study_uid, patient_id_hashed, modalidad, aet_title,
+                       tipo_metrica, valor_dosis, unidad_medida, fecha_estudio,
+                       accession_no, study_desc, intentos
+                FROM cola_dosimetria
+                WHERE estado = 'PENDING' OR (estado = 'FAILED' AND intentos < 5)
+                ORDER BY id ASC
+                LIMIT ?
+            """, (limit,))
+        else:
+            cur.execute("""
+                SELECT id, study_uid, patient_id_hashed, modalidad, aet_title,
+                       tipo_metrica, valor_dosis, unidad_medida, fecha_estudio,
+                       accession_no, study_desc, intentos
+                FROM cola_dosimetria
+                WHERE estado = 'PENDING' OR (estado = 'FAILED' AND intentos < 5)
+                ORDER BY id ASC
+            """)
         filas = cur.fetchall()
         return [dict(f) for f in filas]
 
@@ -632,7 +643,7 @@ def enviar_heartbeat(api_url: str, api_token: str, sede_id: int, pendientes: int
         logger.warning(f"[HEARTBEAT] No se pudo emitir latido a Central: {e}")
 
 
-def buscar_estudios_candidatos(conn, dias: int = 1, limit: int = 200, desde: Optional[str] = None, hasta: Optional[str] = None) -> List[Dict[str, Any]]:
+def buscar_estudios_candidatos(conn, dias: int = 1, limit: Optional[int] = 200, desde: Optional[str] = None, hasta: Optional[str] = None) -> List[Dict[str, Any]]:
     """
     Localiza una instancia representativa por cada estudio reciente de modalidades
     que emiten radiación ionizante (CT, MG, DX, CR).
@@ -641,11 +652,17 @@ def buscar_estudios_candidatos(conn, dias: int = 1, limit: int = 200, desde: Opt
         fecha_desde = f"{desde} 00:00:00"
         fecha_hasta = f"{hasta} 23:59:59" if hasta else datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         where_fecha = "(st.study_datetime BETWEEN %s AND %s OR st.created_time BETWEEN %s AND %s)"
-        params = (fecha_desde, fecha_hasta, fecha_desde, fecha_hasta, limit)
+        params = [fecha_desde, fecha_hasta, fecha_desde, fecha_hasta]
     else:
         fecha_limite = (datetime.datetime.now() - datetime.timedelta(days=dias)).strftime("%Y-%m-%d %H:%M:%S")
         where_fecha = "(st.created_time >= %s OR st.study_datetime >= %s)"
-        params = (fecha_limite, fecha_limite, limit)
+        params = [fecha_limite, fecha_limite]
+
+    if limit and limit > 0:
+        limit_clause = "LIMIT %s"
+        params.append(limit)
+    else:
+        limit_clause = ""
 
     query = f"""
         SELECT 
@@ -676,7 +693,7 @@ def buscar_estudios_candidatos(conn, dias: int = 1, limit: int = 200, desde: Opt
           )
         GROUP BY st.study_iuid, s.modality
         ORDER BY created_time DESC
-        LIMIT %s
+        {limit_clause}
     """
 
     logger.info("[2/4] Ejecutando consulta de estudios candidatos en pacsdb (puede tardar si la ventana es amplia)...")
@@ -1042,7 +1059,8 @@ def main():
     dias = args.dias
     desde = args.desde
     hasta = args.hasta
-    limit = args.limit
+    limit = None if (args.sin_limite or (args.limit is not None and args.limit <= 0)) else args.limit
+    limit_desc = "Sin límite" if limit is None else str(limit)
 
     ventana_desc = f"Desde {desde} hasta {hasta or 'ahora'}" if desde else f"Últimos {dias} día(s)"
 
@@ -1053,7 +1071,9 @@ def main():
     logger.info(f" Base de Datos    : {config['db_name']} @ {config['db_host']}:{config['db_port']} (READ UNCOMMITTED)")
     logger.info(f" Directorio DICOM : {local_images_dir}")
     logger.info(f" Endpoint API     : {api_url}")
-    logger.info(f" Ventana Temporal : {ventana_desc} (Límite: {limit})")
+    logger.info(f" Ventana Temporal : {ventana_desc} (Límite: {limit_desc})")
+    if limit is not None and dias >= 30 and limit <= 200:
+        logger.info(f" NOTA: La ventana es de {dias} días pero el límite está en {limit}. Para procesar volúmenes masivos, usa --sin-limite o --limit 20000.")
     logger.info(f" Cola SQLite      : {SQLITE_COLA_FILE}")
     logger.info("=================================================================")
 
@@ -1078,6 +1098,10 @@ def main():
     # 3. Procesar y extraer métricas DICOM
     registros_extraidos = []
     sin_metricas = []
+    omitidos_cache = 0
+    no_encontrados_disco = 0
+    sin_metricas_count = 0
+    estudios_procesados_con_dosis = 0
 
     if candidatos:
         logger.info("[3/4] Extrayendo métricas de radiación ionizante...")
@@ -1088,17 +1112,22 @@ def main():
                 cache_key = f"{study_uid}_{modality}"
 
                 if cache_key in cache_procesados:
+                    omitidos_cache += 1
                     continue
 
                 dcm_path = resolver_ruta_archivo(item.get("dirpath") or "", item.get("filepath") or "", local_images_dir)
                 metricas = extraer_metricas_dosis(dcm_path, modality)
 
                 if metricas is None:
+                    no_encontrados_disco += 1
                     continue
 
                 if not metricas:
                     sin_metricas.append(cache_key)
+                    sin_metricas_count += 1
                     continue
+
+                estudios_procesados_con_dosis += 1
 
                 # Anonimización criptográfica estricta con HMAC-SHA256 y salt dinámico por sede
                 try:
@@ -1138,6 +1167,15 @@ def main():
             except Exception as e:
                 logger.warning(f"Error procesando estudio {item.get('study_iuid', 'DESCONOCIDO')}: {e}")
                 continue
+
+        if omitidos_cache > 0:
+            logger.info(f"      - {omitidos_cache} estudio(s) ya habían sido evaluados previamente (omitidos por caché anti-duplicados). Usa --forzar para reprocesarlos.")
+        if no_encontrados_disco > 0:
+            logger.warning(f"      - {no_encontrados_disco} archivo(s) no se pudieron localizar en disco local '{local_images_dir}'.")
+        if sin_metricas_count > 0:
+            logger.info(f"      - {sin_metricas_count} estudio(s) leídos sin etiquetas de radiación ionizante (registrados en caché).")
+        if estudios_procesados_con_dosis > 0:
+            logger.info(f"      - {estudios_procesados_con_dosis} nuevo(s) estudio(s) procesados exitosamente con {len(registros_extraidos)} métrica(s) de dosis.")
 
         # Encolar en la base de datos persistente SQLite local
         if registros_extraidos:

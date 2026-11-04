@@ -37,6 +37,18 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-04 — Soporte de Alto Volumen (>15.000 estudios/mes) y Cargas Ilimitadas en Agente de Dosimetría:**
+  - **Diagnóstico y Necesidad:**
+    * Sedes hospitalarias de alta complejidad procesan más de 15.000 estudios mensuales. El límite por defecto de 200 truncaba las cargas masivas anuales y los administradores requerían la capacidad de realizar importaciones históricas completas sin límite artificial.
+  - **Solución Implementada:**
+    * **Bandera `--sin-limite` y Soporte de `--limit 0` (`agente_dosimetria.py`):**
+      - Se implementó la bandera `--sin-limite` y el soporte para `--limit 0` en `agente_dosimetria.py`.
+      - En `buscar_estudios_candidatos` y `obtener_pendientes_sqlite`, la cláusula `LIMIT %s` se omite dinámicamente si se solicita procesamiento ilimitado.
+      - Se agregaron contadores y métricas de logging detalladas en el paso `[3/4]` para informar con total transparencia cuántos estudios fueron omitidos por caché anti-duplicados, cuántos no se encontraron en disco y cuántos se procesaron con éxito.
+    * **Documentación Oficial en READMEs:**
+      - Se incorporó en `storage/app_lidiag/agente_backups_dcm/README.md` la subsección dedicada *Estrategia para Hospitales de Alto Volumen (>15.000 estudios/mes) y Cargas Históricas* con los flujos de carga masiva mes a mes (`--desde/--hasta --sin-limite`), carga anual forzada (`--dias 365 --sin-limite --forzar`) y la explicación matemática de la operación horaria en producción (~20-30 estudios/hora).
+      - Se documentó la capacidad en el `README.md` raíz bajo la Sección 14 (*Dosimetría*).
+  - **Verificaciones:** `python -m py_compile` validado al 100% y formato LF sin BOM verificado ✅.
 - [x] **2026-11-03 — Enriquecimiento y Documentación Integral de Comandos por Agente (`storage/app_lidiag/agente_backups_dcm/README.md`):**
   - **Diagnóstico y Necesidad:**
     * Los administradores de sistemas y técnicos de soporte en las sedes hospitalarias requerían un catálogo exhaustivo y estandarizado con todos los comandos de consola, banderas (flags CLI), comandos de diagnóstico/red y monitoreo de logs para cada uno de los agentes Edge.

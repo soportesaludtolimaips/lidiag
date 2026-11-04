@@ -234,6 +234,7 @@ Módulo administrativo para la emisión, rotación segura y monitorización de c
     -   Alertas visuales semánticas (badges `.bg-danger` y paneles de advertencia) ante superación de umbrales.
     -   Soporte nativo para Modo Oscuro Radiológico (Slate Clínico) y `TableSkeletonLoader` (CLS = 0).
 -   **UI y Rutas:** Pantalla web en `/dosimetria/dashboard`, API en `/api/dosimetria/*` (permisos `dosimetria.*`). Agente local en `storage/app_lidiag/agente_backups_dcm/`.
+-   **Alto Volumen y Cargas Históricas:** Soporte para sedes con >15.000 estudios/mes mediante bandera `--sin-limite`, cola persistente SQLite local y transmisión en micro-lotes. Guía de comandos en `storage/app_lidiag/agente_backups_dcm/README.md`.
 
 ### 15. Tele-Radiología
 

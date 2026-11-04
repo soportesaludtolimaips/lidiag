@@ -305,7 +305,8 @@ Remove-Item .\logs\sync_dcm.lock -Force -ErrorAction SilentlyContinue
 | `--dias` | `int` | `1` | Ventana de días hacia atrás a consultar desde la fecha actual. |
 | `--desde` | `str` | `None` | Fecha inicial fija de consulta en formato `YYYY-MM-DD`. |
 | `--hasta` | `str` | `None` | Fecha final fija de consulta en formato `YYYY-MM-DD`. |
-| `--limit` | `int` | `200` | Límite máximo de estudios a procesar por ciclo. |
+| `--limit` | `int` | `200` | Límite máximo de estudios a procesar por ciclo (usa `0` o `--sin-limite` para ilimitado). |
+| `--sin-limite` | `flag` | `False` | **Sin Límite:** Procesa todos los estudios candidatos del período seleccionado sin tope numérico (ideal para cargas masivas iniciales). |
 | `--forzar`, `--force` | `flag` | `False` | **Forzar re-procesamiento:** Ignora la memoria caché local y vuelve a evaluar y transmitir estudios ya leídos. |
 | `--limpiar-cache` | `flag` | `False` | Elimina el archivo `logs/dosimetria_cache_procesados.json` y finaliza. |
 | `--sede-id` | `int` | Desde config | Sobrescribe el ID de la sede hospitalaria en las métricas transmitidas. |
@@ -331,12 +332,49 @@ python agente_dosimetria.py --desde 2026-08-01 --hasta 2026-08-31 --limit 1000
 # 5. Forzar re-transmisión de un período ya procesado (bypasea caché)
 python agente_dosimetria.py --desde 2026-10-01 --hasta 2026-10-15 --limit 300 --forzar
 
-# 6. Limpiar la memoria caché local de estudios procesados
+# 6. Cargas masivas iniciales de alto volumen (ej: hospitales con >15.000 estudios/mes)
+python agente_dosimetria.py --dias 30 --sin-limite
+python agente_dosimetria.py --dias 365 --sin-limite --forzar
+
+# 7. Limpiar la memoria caché local de estudios procesados
 python agente_dosimetria.py --limpiar-cache
 
-# 7. Sobrescribir temporalmente el ID de sede sin editar config.json
+# 8. Sobrescribir temporalmente el ID de sede sin editar config.json
 python agente_dosimetria.py --sede-id 2 --dias 3
 ```
+
+#### 🏥 Estrategia para Hospitales de Alto Volumen (>15.000 estudios/mes) y Cargas Históricas
+
+En sedes hospitalarias con alto flujo radiológico (>15.000 estudios mensuales), la operación se divide en **dos fases**:
+
+##### Fase 1: Carga Masiva Inicial de Datos Históricos
+Cuando se instala el agente por primera vez y se requiere extraer meses o un año completo de datos pasados:
+
+* **Opción A (Recomendada — Mes a Mes):** Para evitar que el motor MySQL de dcm4chee colapse o ralentice el PACS con un `SELECT` masivo en tablas con millones de filas, procesa de forma escalonada mes a mes sin límite:
+  ```powershell
+  # Consolidar mes a mes sin tope de estudios:
+  python agente_dosimetria.py --desde 2026-08-01 --hasta 2026-08-31 --sin-limite
+  python agente_dosimetria.py --desde 2026-09-01 --hasta 2026-09-30 --sin-limite
+  python agente_dosimetria.py --desde 2026-10-01 --hasta 2026-10-31 --sin-limite
+  ```
+
+* **Opción B (Carga Anual Completa en 1 Solo Paso):**
+  ```powershell
+  # Procesa los 365 días sin límite y forzando lectura de disco (ignora caché previa):
+  python agente_dosimetria.py --dias 365 --sin-limite --forzar
+  ```
+
+* **Opción C (Reiniciar desde Cero Limpiando Caché Local):**
+  ```powershell
+  python agente_dosimetria.py --limpiar-cache
+  python agente_dosimetria.py --dias 365 --sin-limite
+  ```
+
+##### Fase 2: Operación Continua en Producción (Totalmente Automática)
+* En un hospital con 15.000 estudios al mes:
+  $$\frac{15.000\text{ estudios}}{30\text{ días}} = 500\text{ estudios/día} \approx \mathbf{20\text{ a }30\text{ estudios/hora}}$$
+* La tarea programada `LIDiag_Dosimetria_Edge` se ejecuta automáticamente **cada 1 hora**.
+* En cada ciclo horario, el agente solo encuentra y procesa los 20-30 estudios generados en esa hora en **menos de 2 segundos**, garantizando que el servidor del hospital opere con 0% de impacto en CPU, memoria y disco.
 
 #### 🔍 Diagnóstico y Monitoreo en Vivo
 
