@@ -2,59 +2,80 @@
 
 namespace App\Exports;
 
+use App\Exports\Sheets\ReporteAusentismoCitasDetalleSheet;
+use App\Exports\Sheets\ReporteAusentismoCitasEstadisticasSheet;
+use App\Models\Configuracion\ConfigSede;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithColumnWidths;
-use Maatwebsite\Excel\Concerns\WithCustomStartCell;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class ReporteAusentismoCitasExport implements FromCollection, WithColumnWidths, WithCustomStartCell, WithHeadings, WithMapping, WithStyles
+/**
+ * Exportador institucional de Excel para el reporte de Ausentismo y Cancelaciones de Citas.
+ *
+ * Flujo del proceso:
+ * 1. Consulta las citas no atendidas, canceladas o rechazadas en el rango de fechas.
+ * 2. Cruza con sedes, pacientes, servicios y motivos de rechazo.
+ * 3. Compone un libro multi-hoja con:
+ *    - Hoja 1: Estadísticas y Gráficas (KPIs de ausentismo, distribución por estado, top motivos y gráficos nativos).
+ *    - Hoja 2: Detalle de Inasistencias (Listado completo con motivos y observaciones).
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-11-04
+ */
+class ReporteAusentismoCitasExport implements WithMultipleSheets
 {
-    protected $fechaInicio;
+    protected string $fechaInicio;
 
-    protected $fechaFin;
+    protected string $fechaFin;
 
-    protected $sedeId;
+    protected mixed $sedeId;
 
-    protected $estado;
+    protected mixed $estado;
+
+    protected string $sedeNombre = "Todas las Sedes";
+
+    protected Collection $citas;
 
     /**
      * Constructor del reporte de ausentismo y cancelaciones de citas.
      *
-     * @param  string  $fechaInicio  Fecha de inicio (YYYY-MM-DD).
-     * @param  string  $fechaFin  Fecha de fin (YYYY-MM-DD).
-     * @param  int|null  $sedeId  Identificador de la sede o null.
-     * @param  string|null  $estado  Filtro específico de estado.
+     * @param  mixed  $fechaInicio  Fecha de inicio (YYYY-MM-DD).
+     * @param  mixed  $fechaFin  Fecha de fin (YYYY-MM-DD).
+     * @param  mixed  $sedeId  Identificador de la sede o null.
+     * @param  mixed  $estado  Filtro específico de estado.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-10-27
+     * @date 2026-11-04
      */
     public function __construct($fechaInicio, $fechaFin, $sedeId = null, $estado = null)
     {
-        $this->fechaInicio = $fechaInicio;
-        $this->fechaFin = $fechaFin;
+        $this->fechaInicio = (string) $fechaInicio;
+        $this->fechaFin = (string) $fechaFin;
         $this->sedeId = $sedeId;
         $this->estado = $estado;
+
+        if ($this->sedeId) {
+            $sede = ConfigSede::find($this->sedeId);
+            if ($sede) {
+                $this->sedeNombre = (string) $sede->nom_sede;
+            }
+        }
+
+        $this->citas = $this->consultarAusentismo();
     }
 
     /**
      * Consulta las citas canceladas, rechazadas o con inasistencia (no-show).
      *
-     * @return Collection
+     * @returns Collection
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-10-27
+     * @date 2026-11-04
      */
-    public function collection()
+    protected function consultarAusentismo(): Collection
     {
         return DB::table("citas")
             ->leftJoin("config_sedes", "citas.sede_id", "=", "config_sedes.id")
@@ -94,161 +115,26 @@ class ReporteAusentismoCitasExport implements FromCollection, WithColumnWidths, 
     }
 
     /**
-     * Encabezados de columnas del reporte de ausentismo.
+     * Define las hojas que conforman el libro Excel.
+     *
+     * @returns array<int, object>
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-10-27
+     * @date 2026-11-04
      */
-    public function headings(): array
+    public function sheets(): array
     {
         return [
-            "ID Cita",
-            "Sede Hospitalaria",
-            "Fecha/Hora Programada",
-            "Doc. Paciente",
-            "Nombre Paciente",
-            "Teléfono Contacto",
-            "Servicio / Especialidad",
-            "Código CUPS",
-            "Procedimiento",
-            "Estado de la Cita",
-            "Motivo de Inasistencia / Rechazo",
-            "Observaciones del Motivo",
-            "Estado Notificación WhatsApp",
-        ];
-    }
-
-    /**
-     * Mapeo de la fila de datos.
-     *
-     * @param  mixed  $row  Fila del registro de cita.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-10-27
-     */
-    public function map($row): array
-    {
-        $estadoLabel = match ($row->estado) {
-            "no_asistio" => "No Asistió (Ausente)",
-            "cancelada" => "Cancelada",
-            "rechazada" => "Rechazada",
-            default => ucfirst((string) $row->estado),
-        };
-
-        return [
-            $row->id ?? "N/A",
-            $row->nom_sede ?? "Sin sede",
-            $row->fecha_hora_inicio ?? "N/A",
-            $row->num_docu ?? "N/A",
-            $row->paciente ?? "N/A",
-            $row->telefono ?? "N/A",
-            $row->nom_servicio ?? "N/A",
-            $row->cod_cups ?? "N/A",
-            $row->nom_produc ?? "N/A",
-            $estadoLabel,
-            $row->motivo_rechazo ?? "No especificado",
-            $row->rechazo_observacion ?? "",
-            $row->whatsapp_estado ?? "No enviado",
-        ];
-    }
-
-    /**
-     * Celda de inicio de datos.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-10-27
-     */
-    public function startCell(): string
-    {
-        return "A3";
-    }
-
-    /**
-     * Estilos de encabezado y bordes institucionales.
-     *
-     * @param  Worksheet  $sheet  Hoja de cálculo.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-10-27
-     */
-    public function styles(Worksheet $sheet)
-    {
-        $sheet->setCellValue("A1", "Salud Tolima - Reporte de Ausentismo y Cancelaciones de Citas (No-Show)");
-        $sheet->mergeCells("A1:M1");
-        $sheet->getStyle("A1")->applyFromArray([
-            "font" => [
-                "bold" => true,
-                "color" => ["rgb" => "FFFFFF"],
-                "size" => 14,
-            ],
-            "fill" => [
-                "fillType" => Fill::FILL_SOLID,
-                "startColor" => ["rgb" => "1A2274"],
-            ],
-            "alignment" => [
-                "horizontal" => Alignment::HORIZONTAL_CENTER,
-            ],
-        ]);
-
-        $sheet->getStyle("A3:M3")->applyFromArray([
-            "font" => [
-                "bold" => true,
-                "color" => ["rgb" => "FFFFFF"],
-            ],
-            "fill" => [
-                "fillType" => Fill::FILL_SOLID,
-                "startColor" => ["rgb" => "1A2274"],
-            ],
-            "alignment" => [
-                "horizontal" => Alignment::HORIZONTAL_CENTER,
-            ],
-        ]);
-
-        $highestRow = $sheet->getHighestRow();
-        if ($highestRow >= 4) {
-            $sheet->getStyle("A4:M".$highestRow)->applyFromArray([
-                "borders" => [
-                    "allBorders" => [
-                        "borderStyle" => Border::BORDER_THIN,
-                        "color" => ["rgb" => "CCCCCC"],
-                    ],
-                ],
-            ]);
-        }
-
-        return [
-            1 => ["font" => ["bold" => true]],
-            3 => ["font" => ["bold" => true]],
-        ];
-    }
-
-    /**
-     * Anchos de columna.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-10-27
-     */
-    public function columnWidths(): array
-    {
-        return [
-            "A" => 12,
-            "B" => 22,
-            "C" => 22,
-            "D" => 18,
-            "E" => 30,
-            "F" => 18,
-            "G" => 25,
-            "H" => 14,
-            "I" => 35,
-            "J" => 22,
-            "K" => 30,
-            "L" => 35,
-            "M" => 22,
+            new ReporteAusentismoCitasEstadisticasSheet(
+                $this->citas,
+                $this->sedeNombre,
+                $this->fechaInicio,
+                $this->fechaFin
+            ),
+            new ReporteAusentismoCitasDetalleSheet(
+                $this->citas
+            ),
         ];
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Configuracion\ConfigProducto;
+use App\Models\Configuracion\ConfigSede;
 use App\Models\Contratacion\Contrato;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -117,7 +118,7 @@ class ContratoDetallePlantillaExport implements FromCollection, WithColumnWidths
      * Estilos del Excel: encabezados en negrita con fondo.
      *
      * @param  Worksheet  $sheet  Hoja de cálculo.
-     * @return array<string, array<string, mixed>> Estilos aplicados por fila.
+     * @return array<int|string, mixed> Estilos aplicados por fila.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -126,10 +127,10 @@ class ContratoDetallePlantillaExport implements FromCollection, WithColumnWidths
     public function styles(Worksheet $sheet): array
     {
         return [
-            3 => [
-                'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
-                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1A2274']],
-                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+            "3" => [
+                "font" => ["bold" => true, "color" => ["rgb" => "FFFFFF"]],
+                "fill" => ["fillType" => Fill::FILL_SOLID, "startColor" => ["rgb" => "1A2274"]],
+                "alignment" => ["horizontal" => Alignment::HORIZONTAL_CENTER],
             ],
         ];
     }
@@ -171,7 +172,9 @@ class ContratoDetallePlantillaExport implements FromCollection, WithColumnWidths
 
                 // ── FILA 2: INFO DEL CONTRATO (C2 = Contrato ID, validado al importar) ──
                 $contrato = Contrato::with('sede:id,nom_sede')->find($this->contratoId);
-                $nomSede = $contrato?->sede?->nom_sede ?? 'N/A';
+                /** @var ConfigSede|null $sede */
+                $sede = $contrato?->sede;
+                $nomSede = $sede ? $sede->nom_sede : 'N/A';
                 $inicio = $contrato?->fecha_inicio instanceof Carbon
                     ? $contrato->fecha_inicio->format('d/m/Y')
                     : 'N/A';

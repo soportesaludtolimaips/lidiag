@@ -2,19 +2,12 @@
 
 namespace App\Exports;
 
+use App\Exports\Sheets\ProductividadDetalleSheet;
+use App\Exports\Sheets\ProductividadEstadisticasSheet;
 use App\Models\Configuracion\ConfigSede;
 use App\Services\Liquidacion\LiquidacionService;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithColumnFormatting;
-use Maatwebsite\Excel\Concerns\WithColumnWidths;
-use Maatwebsite\Excel\Concerns\WithCustomStartCell;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
 /**
  * Exportación a Excel del Reporte de Productividad Médica y Honorarios por corte mensual.
@@ -22,20 +15,30 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
  * Flujo del proceso:
  * 1. Recibe la sede y el periodo (YYYY-MM) a liquidar.
  * 2. Consulta la producción congelada mediante LiquidacionService::productividad().
- * 3. Aplana las líneas de producción y lecturas excluidas organizadas por médico.
- * 4. Aplica diseño institucional Salud Tolima con formatos numéricos y subtotales.
+ * 3. Genera un libro Excel con 2 hojas: Estadísticas Ejecutivas y Detalle de Productividad.
+ * 4. Aplica diseño institucional Salud Tolima con formatos numéricos y gráficos nativos.
  *
  * @author Jhon Javer Lozano Arce
  *
  * @date 2026-10-21
  */
-class ProductividadExport implements FromCollection, WithColumnFormatting, WithColumnWidths, WithCustomStartCell, WithHeadings, WithMapping, WithStyles
+class ProductividadExport implements WithMultipleSheets
 {
     protected string $nomSede = "";
 
     protected float $granTotal = 0.0;
 
+    /**
+     * @var array<int, int>
+     */
     protected array $filasResaltadas = [];
+
+    /**
+     * @var array<int, mixed>|null
+     */
+    protected ?array $cachedMedicosData = null;
+
+    protected ?Collection $cachedColeccion = null;
 
     /**
      * Inicializa el exportador con los filtros de sede y periodo.
@@ -56,18 +59,50 @@ class ProductividadExport implements FromCollection, WithColumnFormatting, WithC
     }
 
     /**
-     * Construye la colección de datos a exportar, aplanando lecturas y subtotales.
+     * Retorna las hojas del libro de cálculo institucional.
      *
-     * @returns \Illuminate\Support\Collection<int, array>
+     * @return array<int, mixed>
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-10-21
+     * @date 2026-11-04
      */
-    public function collection()
+    public function sheets(): array
     {
+        $this->loadData();
+
+        return [
+            new ProductividadEstadisticasSheet(
+                $this->cachedMedicosData ?? [],
+                $this->nomSede,
+                $this->periodo,
+                $this->granTotal
+            ),
+            new ProductividadDetalleSheet(
+                $this->cachedColeccion ?? collect(),
+                $this->nomSede,
+                $this->periodo,
+                $this->filasResaltadas
+            ),
+        ];
+    }
+
+    /**
+     * Carga y procesa la productividad médica.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-04
+     */
+    protected function loadData(): void
+    {
+        if ($this->cachedColeccion !== null) {
+            return;
+        }
+
         $result = app(LiquidacionService::class)->productividad($this->sedeId, $this->periodo);
         $medicos = $result["data"]["medicos"] ?? [];
+        $this->cachedMedicosData = $medicos;
         $this->granTotal = (float) ($result["data"]["gran_total"] ?? 0.0);
 
         $filas = [];
@@ -134,200 +169,21 @@ class ProductividadExport implements FromCollection, WithColumnFormatting, WithC
             $this->filasResaltadas[] = $numeroFila;
         }
 
-        return collect($filas);
+        $this->cachedColeccion = collect($filas);
     }
 
     /**
-     * Celda inicial donde se ubicarán los encabezados de los datos.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-10-21
-     */
-    public function startCell(): string
-    {
-        return "A4";
-    }
-
-    /**
-     * Encabezados de la tabla.
-     *
-     * @returns array<int, string>
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-10-21
-     */
-    public function headings(): array
-    {
-        return [
-            "Médico Radiólogo",
-            "Fecha Lectura",
-            "CUPS",
-            "Procedimiento",
-            "Clase / Modalidad",
-            "Tarifa Liquidada",
-            "Estado / Observación",
-        ];
-    }
-
-    /**
-     * Mapeo de una fila a columnas de Excel.
-     *
-     * @param  array  $fila
-     * @return array<int, mixed>
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-10-21
-     */
-    public function map($fila): array
-    {
-        return [
-            $fila["medico"],
-            $fila["fecha"],
-            $fila["cod_cups"],
-            $fila["nom_produc"],
-            $fila["clase"],
-            $fila["valor"],
-            $fila["observacion"],
-        ];
-    }
-
-    /**
-     * Anchos de columna optimizados.
-     *
-     * @returns array<string, float>
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-10-21
-     */
-    public function columnWidths(): array
-    {
-        return [
-            "A" => 35,
-            "B" => 15,
-            "C" => 14,
-            "D" => 45,
-            "E" => 18,
-            "F" => 18,
-            "G" => 35,
-        ];
-    }
-
-    /**
-     * Formatos de columna numéricos.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-10-21
-     */
-    public function columnFormats(): array
-    {
-        return [
-            "F" => '"$"#,##0',
-        ];
-    }
-
-    /**
-     * Estilos visuales institucionales.
+     * Construye la colección de datos a exportar, aplanando lecturas y subtotales.
      *
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-10-21
      */
-    public function styles(Worksheet $sheet): array
+    public function collection(): Collection
     {
-        // Título institucional superior
-        $sheet->setCellValue("A1", "Salud Tolima - Reporte de Productividad Médica y Honorarios");
-        $sheet->mergeCells("A1:G1");
-        $sheet->getStyle("A1")->applyFromArray([
-            "font" => [
-                "bold" => true,
-                "color" => ["rgb" => "FFFFFF"],
-                "size" => 13,
-            ],
-            "fill" => [
-                "fillType" => Fill::FILL_SOLID,
-                "startColor" => ["rgb" => "1A2274"],
-            ],
-            "alignment" => [
-                "horizontal" => Alignment::HORIZONTAL_CENTER,
-                "vertical" => Alignment::VERTICAL_CENTER,
-            ],
-        ]);
-        $sheet->getRowDimension(1)->setRowHeight(28);
+        $this->loadData();
 
-        // Subtítulo con sede y periodo
-        $sheet->setCellValue("A2", "Sede: {$this->nomSede}  |  Periodo de Corte: {$this->periodo}");
-        $sheet->mergeCells("A2:G2");
-        $sheet->getStyle("A2")->applyFromArray([
-            "font" => [
-                "bold" => true,
-                "color" => ["rgb" => "333333"],
-                "size" => 10,
-            ],
-            "fill" => [
-                "fillType" => Fill::FILL_SOLID,
-                "startColor" => ["rgb" => "E9ECEF"],
-            ],
-            "alignment" => [
-                "horizontal" => Alignment::HORIZONTAL_CENTER,
-                "vertical" => Alignment::VERTICAL_CENTER,
-            ],
-        ]);
-        $sheet->getRowDimension(2)->setRowHeight(20);
-
-        // Encabezados (fila 4)
-        $sheet->getStyle("A4:G4")->applyFromArray([
-            "font" => [
-                "bold" => true,
-                "color" => ["rgb" => "FFFFFF"],
-                "size" => 10,
-            ],
-            "fill" => [
-                "fillType" => Fill::FILL_SOLID,
-                "startColor" => ["rgb" => "1A2274"],
-            ],
-            "alignment" => [
-                "horizontal" => Alignment::HORIZONTAL_CENTER,
-                "vertical" => Alignment::VERTICAL_CENTER,
-            ],
-        ]);
-        $sheet->getRowDimension(4)->setRowHeight(22);
-
-        $highestRow = $sheet->getHighestRow();
-
-        if ($highestRow >= 5) {
-            $sheet->getStyle("A4:G{$highestRow}")->applyFromArray([
-                "borders" => [
-                    "allBorders" => [
-                        "borderStyle" => Border::BORDER_THIN,
-                        "color" => ["rgb" => "CCCCCC"],
-                    ],
-                ],
-            ]);
-
-            // Resaltar filas de subtotales y gran total
-            foreach ($this->filasResaltadas as $filaNum) {
-                if ($filaNum <= $highestRow) {
-                    $sheet->getStyle("A{$filaNum}:G{$filaNum}")->applyFromArray([
-                        "font" => [
-                            "bold" => true,
-                        ],
-                        "fill" => [
-                            "fillType" => Fill::FILL_SOLID,
-                            "startColor" => ["rgb" => "E8F4FD"],
-                        ],
-                    ]);
-                }
-            }
-        }
-
-        return [
-            4 => ["font" => ["bold" => true]],
-        ];
+        return $this->cachedColeccion ?? collect();
     }
 }

@@ -2,21 +2,12 @@
 
 namespace App\Exports;
 
+use App\Exports\Sheets\ReporteAlmacenamientoDetalleSheet;
+use App\Exports\Sheets\ReporteAlmacenamientoEstadisticasSheet;
 use App\Models\Configuracion\ConfigSede;
 use App\Services\Seguridad\TokenSedeService;
-use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithColumnWidths;
-use Maatwebsite\Excel\Concerns\WithCustomStartCell;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Color;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
 /**
  * Exportador institucional de Excel para el Monitor de Almacenamiento, Discos y Servidores PACS.
@@ -25,15 +16,20 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
  * 1. Mide el almacenamiento del Servidor Central (total, libre, usado, porcentaje de disco).
  * 2. Consulta la telemetría en vivo de las sedes (respaldos de bases de datos, sync de imágenes y dosimetría).
  * 3. Mapea la salud integral de la infraestructura tecnológica de la red hospitalaria.
- * 4. Aplica estilos institucionales de monitoreo de sistemas.
+ * 4. Genera un libro Excel con 2 hojas: Estadísticas Ejecutivas y Detalle Completo de Servidores.
  *
  * @author Jhon Javer Lozano Arce
  *
  * @date 2026-11-04
  */
-class ReporteAlmacenamientoServidoresExport implements FromCollection, WithColumnWidths, WithCustomStartCell, WithHeadings, WithMapping, WithStyles
+class ReporteAlmacenamientoServidoresExport implements WithMultipleSheets
 {
     protected ?int $sedeId;
+
+    /**
+     * Cache de datos consolidados.
+     */
+    protected ?Collection $cachedData = null;
 
     /**
      * Constructor del reporte de almacenamiento y servidores.
@@ -50,14 +46,37 @@ class ReporteAlmacenamientoServidoresExport implements FromCollection, WithColum
     }
 
     /**
+     * Genera las hojas del libro de cálculo institucional.
+     *
+     * @return array<int, mixed>
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-04
+     */
+    public function sheets(): array
+    {
+        $data = $this->getData();
+
+        return [
+            new ReporteAlmacenamientoEstadisticasSheet($data),
+            new ReporteAlmacenamientoDetalleSheet($data),
+        ];
+    }
+
+    /**
      * Consolida los datos de almacenamiento y telemetría de servidores.
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-11-04
      */
-    public function collection(): Collection
+    public function getData(): Collection
     {
+        if ($this->cachedData !== null) {
+            return $this->cachedData;
+        }
+
         $filas = [];
 
         // 1. Fila del Servidor Central LIDiag Cloud
@@ -121,7 +140,7 @@ class ReporteAlmacenamientoServidoresExport implements FromCollection, WithColum
                     "observacion" => $s["tiene_token"] ? "Sede sincronizada" : "Pendiente generación de token",
                 ];
             }
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             // Fallback con ConfigSede si el servicio no responde
             $sedes = ConfigSede::where("estado", true)->get();
             foreach ($sedes as $s) {
@@ -143,131 +162,20 @@ class ReporteAlmacenamientoServidoresExport implements FromCollection, WithColum
             }
         }
 
-        return collect($filas);
+        $this->cachedData = collect($filas);
+
+        return $this->cachedData;
     }
 
     /**
-     * Mapea cada fila a las columnas de Excel.
-     *
-     * @param  mixed  $row
+     * Compatibilidad con colecciones directas.
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-11-04
      */
-    public function map($row): array
+    public function collection(): Collection
     {
-        return [
-            $row->tipo,
-            $row->nombre,
-            $row->ip,
-            $row->almacenamiento,
-            $row->estado_disco,
-            $row->backup_estado,
-            $row->backup_tiempo,
-            $row->sync_estado,
-            $row->dosimetria_estado,
-            $row->observacion,
-        ];
-    }
-
-    /**
-     * Encabezados de columnas.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-11-04
-     */
-    public function headings(): array
-    {
-        return [
-            "Tipo Nodo",
-            "Servidor / Sede",
-            "Dirección IP / Host",
-            "Almacenamiento / Capacidad",
-            "Estado Disco / Token",
-            "Agente Backup DB",
-            "Último Respaldo Recibido",
-            "Agente Sync PACS",
-            "Agente Dosimetría",
-            "Diagnóstico / Observación",
-        ];
-    }
-
-    /**
-     * Celda inicial.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-11-04
-     */
-    public function startCell(): string
-    {
-        return "A4";
-    }
-
-    /**
-     * Anchos de columna.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-11-04
-     */
-    public function columnWidths(): array
-    {
-        return [
-            "A" => 20, // Tipo
-            "B" => 30, // Servidor / Sede
-            "C" => 24, // IP
-            "D" => 40, // Almacenamiento
-            "E" => 24, // Estado Disco
-            "F" => 20, // Backup DB
-            "G" => 30, // Último Respaldo
-            "H" => 20, // Sync PACS
-            "I" => 20, // Dosimetría
-            "J" => 35, // Observación
-        ];
-    }
-
-    /**
-     * Estilos del reporte.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-11-04
-     */
-    public function styles(Worksheet $sheet): array
-    {
-        // Banner institucional
-        $sheet->mergeCells("A1:J1");
-        $sheet->setCellValue("A1", "SALUD TOLIMA / LIDIAG — MONITOR DE ALMACENAMIENTO, DISCOS Y SERVIDORES PACS");
-        $sheet->getStyle("A1")->getFont()->setBold(true)->setSize(14)->setColor(new Color("FFFFFFFF"));
-        $sheet->getStyle("A1")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB("FF263238"); // Blue Grey
-        $sheet->getStyle("A1")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
-        $sheet->getRowDimension(1)->setRowHeight(32);
-
-        // Subtítulo
-        $sheet->mergeCells("A2:J2");
-        $sheet->setCellValue("A2", "Corte en tiempo real: ".Carbon::now()->format("d/m/Y H:i:s")." | Umbrales: Advertencia <15% (50GB), Crítico <5% (20GB)");
-        $sheet->getStyle("A2")->getFont()->setItalic(true)->setSize(10)->setColor(new Color("FF333333"));
-        $sheet->getStyle("A2")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getRowDimension(2)->setRowHeight(20);
-
-        // Encabezados tabla (Fila 4)
-        $sheet->getStyle("A4:J4")->getFont()->setBold(true)->setColor(new Color("FFFFFFFF"));
-        $sheet->getStyle("A4:J4")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB("FF455A64");
-        $sheet->getStyle("A4:J4")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
-        $sheet->getRowDimension(4)->setRowHeight(26);
-
-        // Bordes
-        $highestRow = $sheet->getHighestRow();
-        if ($highestRow >= 5) {
-            $sheet->getStyle("A4:J{$highestRow}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setARGB("FFCCCCCC");
-            $sheet->getStyle("A5:A{$highestRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("C5:C{$highestRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("E5:I{$highestRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        }
-
-        return [];
+        return $this->getData();
     }
 }

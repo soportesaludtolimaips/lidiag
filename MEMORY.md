@@ -37,6 +37,34 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-04 — Consolidación y Compilación de Informe de Propuesta de Mejoras a PDF (`INFORME_PROPUESTA_MEJORAS.md` y `INFORME_PROPUESTA_MEJORAS.pdf`):**
+  - **Solicitud del Usuario:** *"en donde esta el informe de propuesta mejoras"* y *"covierte a Pdf los informes"*.
+  - **Ejecución y Ubicación de Entregables:**
+    * Se localizó y consolidó el documento de propuestas estratégicas en el repositorio y en la carpeta de artefactos:
+      - **Markdown en repositorio:** [`docs/INFORME_PROPUESTA_MEJORAS.md`](file:///c:/laragon/www/lidiag/docs/INFORME_PROPUESTA_MEJORAS.md).
+      - **PDF en repositorio:** [`docs/INFORME_PROPUESTA_MEJORAS.pdf`](file:///c:/laragon/www/lidiag/docs/INFORME_PROPUESTA_MEJORAS.pdf) (96 KB).
+      - **Artefactos en sesión:** [`informe-propuestas-mejoras-nuevas-funcionalidades.md`](file:///C:/Users/Jhon/.gemini/antigravity/brain/cbf060cd-3090-472b-91b2-fd73ca06be5c/informe-propuestas-mejoras-nuevas-funcionalidades.md) y [`informe-propuestas-mejoras.pdf`](file:///C:/Users/Jhon/.gemini/antigravity/brain/cbf060cd-3090-472b-91b2-fd73ca06be5c/informe-propuestas-mejoras.pdf).
+    * El documento estructura de manera ejecutiva:
+      1. *Visión Global:* Evolución de LIDiag de sistema de transcripción a Ecosistema Radiológico Integral RIS/PACS.
+      2. *6 Nuevos Módulos:* RADPEER (Control de calidad y doble lectura), Farmacovigilancia y Medios de Contraste, Mantenimiento Biomédico y Desgaste de Tubos de Rayos X, Portal Web para Médicos Remitentes, Facturación y RIPS JSON (Res. 2275 de 2023), y Pipeline Pre-Triage asistido por IA.
+      3. *Nuevas Funcionalidades en Módulos Existentes:* Autoguardado en LocalStorage, Snippets diagnósticos, Streaming de audio, Visor DICOM Split-Screen, reintentos SAHI y portal de auto-consulta de pacientes.
+      4. *Matriz Maestra de Priorización:* Estimación en días/semanas dividida en Fases 1 a 5 con badges semánticos de esfuerzo e impacto.
+    * Compilado mediante Dompdf con tipografía Helvetica institucional, encabezado y pie de página en canvas con numeración dinámica `Página X de Y` y aviso de confidencialidad institucional.
+  - **Verificaciones:** PDF compilado y verificado (96,016 bytes) ✅.
+
+- [x] **2026-11-04 — Regeneración y Compilación de Informe Consolidado para Gerencia a PDF (`INFORME_ACTUALIZACIONES_GERENCIA.pdf`):**
+  - **Solicitud del Usuario:** *"covierte a Pdf los informes C:\laragon\www\lidiag\docs\INFORME_ACTUALIZACIONES_GERENCIA.md"*.
+  - **Ejecución y Mejoras del Documento:**
+    * Se procesó el archivo Markdown actualizado [`docs/INFORME_ACTUALIZACIONES_GERENCIA.md`](file:///c:/laragon/www/lidiag/docs/INFORME_ACTUALIZACIONES_GERENCIA.md) (45 KB, 391 líneas con las 14 secciones completas del ecosistema LIDiag).
+    * Se compiló a PDF mediante Dompdf institucional con diseño ejecutivo de Salud Tolima:
+      - Encabezado formal con línea divisoria y marca institucional en cada página.
+      - Paginación dinámica `Página X de Y` y aviso de confidencialidad en el pie de página.
+      - Fichas visuales con etiqueta `MEJORA` y `page-break-inside: avoid` para evitar quiebres huérfanos entre páginas.
+      - Renderizado de listas clínicas, fórmulas matemáticas ($mGy \cdot cm^2$) y bloques de código de trazabilidad.
+    * Se generó el archivo en [`docs/INFORME_ACTUALIZACIONES_GERENCIA.pdf`](file:///c:/laragon/www/lidiag/docs/INFORME_ACTUALIZACIONES_GERENCIA.pdf) (386 KB).
+    * Se sincronizó en la carpeta de artefactos de la sesión: [`informe-actualizaciones-gerencia.pdf`](file:///C:/Users/Jhon/.gemini/antigravity/brain/cbf060cd-3090-472b-91b2-fd73ca06be5c/informe-actualizaciones-gerencia.pdf).
+  - **Verificaciones:** Archivo PDF generado y verificado (386,767 bytes) ✅.
+
 - [x] **2026-11-04 — Enriquecimiento Estadístico y Gráficos Nativos en Reporte Excel de Producción Radiológica (`ProduccionDetalladaExport.php`, `ProduccionDetalladaEstadisticasSheet.php`, `ProduccionDetalladaDetalleSheet.php`):**
   - **Diagnóstico y Solicitud del Usuario:**
     * El usuario solicitó: *"En https://lidiag.test/reportes-produccion al generar el reporte de produccion, en el archivo de excel agreguemos otra hoja con datos estadisticos y graficas"*.
@@ -60,6 +88,32 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * Larastan / PHPStan nivel 5 sin errores (`[OK] No errors`) ✅.
     * Generación real validada con 324 registros de producción de noviembre: ambas hojas y 2 gráficos generados correctamente ✅.
     * Finales de línea en LF y codificación UTF-8 sin BOM ✅.
+
+- [x] **2026-11-04 — Transformación Universal Multi-Hoja con Métricas, Estadísticas y Gráficos Nativos en Todos los Reportes Excel de LIDiag:**
+  - **Diagnóstico y Solicitud del Usuario:**
+    * El usuario solicitó: *"Mira todos los reportes que se generan y agrega una hoja con métricas, estadísticas y gráficas"*.
+    * Previamente, la mayoría de reportes generaban una sola hoja tabular sin métricas de nivel gerencial ni gráficos.
+  - **Solución Implementada:**
+    * Se convirtió la totalidad de los reportes exportables del sistema a la interfaz `WithMultipleSheets`, agregando a cada uno una hoja ejecutiva con tarjetas KPI, tablas de agregación ordenadas y gráficos nativos de PhpSpreadsheet (`PieChart` y `BarChart`/`ColumnChart`), preservando en la segunda hoja el detalle completo con retrocompatibilidad 100% de constructores:
+      1. **`ReportesEstudioPAC`:** Hoja Estadísticas (5 KPIs, tabla de modalidades con cuotas %, ranking top 10 procedimientos, gráfico de torta de modalidades y gráfico de columnas de procedimientos) + Hoja Detalle de Estudios.
+      2. **`ProduccionDetalladaExport`:** Hoja Estadísticas (5 KPIs de volumen, tabla de modalidades con inferencia inteligente, ranking de radiólogos o top estudios del médico, gráfico de torta y gráfico de barras) + Hoja Detalle de Producción (19 columnas).
+      3. **`ReporteTATExport`:** Hoja Estadísticas (KPIs de oportunidad clínica y cumplimiento global, tabla SLA por modalidad, categorías de tiempo, gráfico de torta y gráfico de barras) + Hoja Detalle Oportunidad (17 columnas).
+      4. **`ReporteTeleRadiologiaExport`:** Hoja Estadísticas (KPIs de asignación/lectura, tabla de derivación por modalidad, estado de transcripciones, gráfico de torta y gráfico de barras) + Hoja Detalle Teleradiología (15 columnas).
+      5. **`ReporteConsolidadoRedExport`:** Hoja Estadísticas (KPIs corporativos de red, ranking de producción por sede hospitalaria, cuotas de modalidad, gráfico de torta y gráfico de barras) + Hoja Detalle Red (12 columnas).
+      6. **`ReporteRepresadosOportunidadExport`:** Hoja Estadísticas (KPIs de mora crítica, semáforo de severidad 24h-48h-72h, backlog por sede, gráfico de torta y gráfico de barras) + Hoja Detalle Represados (12 columnas).
+      7. **`ReporteAusentismoCitasExport`:** Hoja Estadísticas (KPIs de ausentismo y deserción, balance asistió/no asistió/canceló, top causales de inasistencia, gráfico de torta y gráfico de barras) + Hoja Detalle Citas (13 columnas).
+      8. **`ReporteCitasWhatsAppExport`:** Hoja Estadísticas (KPIs del embudo conversacional, demanda por servicio clínico, conversión de citas, gráfico de torta y gráfico de barras) + Hoja Detalle Canal WhatsApp (12 columnas).
+      9. **`ReporteAlmacenamientoServidoresExport`:** Hoja Estadísticas (Medición central en vivo GB usado/libre/%, telemetría de sedes, gráfico de torta de ocupación de disco y barras de infraestructura) + Hoja Detalle Servidores (10 columnas).
+      10. **`ReporteAgentesTelemetriaExport`:** Hoja Estadísticas (KPIs de infraestructura periférica, estado de backups MySQL/PACS, latidos de dosimetría edge, top sedes por equipos emisores, gráfico de torta y gráfico de barras) + Hoja Detalle Agentes (12 columnas).
+      11. **`LiquidacionExport`:** Hoja Estadísticas (Total honorarios $, estudios, promedio por estudio, ranking de honorarios por radiólogo, distribución por clase Consulta/Urgencias, gráfico de barras y gráfico de torta) + Hoja Detalle Liquidación (7 columnas y fila total).
+      12. **`ProductividadExport`:** Hoja Estadísticas (KPIs de productividad, ranking de producción y honorarios por especialista, comparativo Consulta vs Urgencias, gráfico de barras y gráfico de torta) + Hoja Detalle Productividad (7 columnas, subtotales y total general).
+      13. **`ProduccionDetalladaEcografiasExport`:** Hoja Estadísticas (KPIs asistenciales, top 10 estudios de ecografía, producción por ecografista, gráfico de barras y gráfico de torta) + Hoja Detalle Ecografías (17 columnas).
+      14. **`HelpDeskTicketsDetalladoExport`:** Hoja Estadísticas (KPIs de soporte, promedio de horas de resolución, top categorías de incidencias, distribución por estado, gráfico de barras y gráfico de torta) + Hoja Detalle Tickets (15 columnas).
+  - **Verificaciones:**
+    * Pint 100% passed en todo `app/Exports/` y `app/Exports/Sheets/` (`vendor\bin\pint.bat --test`) ✅.
+    * Larastan / PHPStan nivel 5: `47/47 [100%] [OK] No errors` en todo `app/Exports/` ✅.
+    * Manejo defensivo en todas las hojas cuando las colecciones están vacías (previene corrupción XML en PhpSpreadsheet al evitar gráficos sin series) ✅.
+    * Respeto estricto a codificación UTF-8 sin BOM y finales de línea LF ✅.
 
 - [x] **2026-11-04 — Enriquecimiento Estadístico y Gráficos Nativos en Reporte Excel de Estudios PACS (`ReportesEstudioPAC.php`, `ReportesEstudioPACEstadisticasSheet.php`, `ReportesEstudioPACDetalleSheet.php`):**
   - **Diagnóstico y Solicitud del Usuario:**

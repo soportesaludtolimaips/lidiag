@@ -2,6 +2,8 @@
 
 namespace App\Exports;
 
+use App\Exports\Sheets\ReporteAgentesTelemetriaDetalleSheet;
+use App\Exports\Sheets\ReporteAgentesTelemetriaEstadisticasSheet;
 use App\Models\Configuracion\ConfigSede;
 use App\Services\Backup\BackupMonitorService;
 use App\Services\Backup\BackupService;
@@ -9,16 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithColumnWidths;
-use Maatwebsite\Excel\Concerns\WithCustomStartCell;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
 /**
  * Exportador institucional de Excel para el reporte de Salud y Telemetría de Agentes Periféricos.
@@ -27,15 +20,20 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
  * 1. Consulta las sedes activas hospitalarias.
  * 2. Cruza el estado de recepción de backups de bases de datos DCM mediante BackupMonitorService.
  * 3. Cruza los latidos (heartbeats) de telemetría de los agentes Edge de dosimetría y equipos emisores.
- * 4. Mapea la salud integral de la red de agentes con formato institucional Salud Tolima.
+ * 4. Genera un libro Excel con 2 hojas: Estadísticas Ejecutivas y Detalle de Agentes.
  *
  * @author Jhon Javer Lozano Arce
  *
  * @date 2026-10-27
  */
-class ReporteAgentesTelemetriaExport implements FromCollection, WithColumnWidths, WithCustomStartCell, WithHeadings, WithMapping, WithStyles
+class ReporteAgentesTelemetriaExport implements WithMultipleSheets
 {
     protected ?int $sedeId;
+
+    /**
+     * Cache de datos de telemetría.
+     */
+    protected ?Collection $cachedData = null;
 
     /**
      * Constructor del reporte de telemetría de agentes periféricos.
@@ -52,15 +50,37 @@ class ReporteAgentesTelemetriaExport implements FromCollection, WithColumnWidths
     }
 
     /**
-     * Consolida la colección de telemetría de agentes por sede hospitalaria.
+     * Retorna las hojas del libro de cálculo.
      *
+     * @return array<int, mixed>
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-04
+     */
+    public function sheets(): array
+    {
+        $data = $this->getData();
+
+        return [
+            new ReporteAgentesTelemetriaEstadisticasSheet($data),
+            new ReporteAgentesTelemetriaDetalleSheet($data),
+        ];
+    }
+
+    /**
+     * Consolida la colección de telemetría de agentes por sede hospitalaria.
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-10-27
      */
-    public function collection(): Collection
+    public function getData(): Collection
     {
+        if ($this->cachedData !== null) {
+            return $this->cachedData;
+        }
+
         $monitorService = new BackupMonitorService(new BackupService);
         $directorioDcm = config("backup.dcm_destination_path", "C:\\Backups_Lidiag\\dcm_sedes");
 
@@ -138,7 +158,7 @@ class ReporteAgentesTelemetriaExport implements FromCollection, WithColumnWidths
             }
 
             // 3. Conteo de equipos emisores de radiación
-            $equiposConteo = method_exists($sede, "equiposEmisores") ? $sede->equiposEmisores()->count() : 0;
+            $equiposConteo = $sede->equiposEmisores()->count();
 
             $filas[] = (object) [
                 "sede_id" => $sedeId,
@@ -156,151 +176,20 @@ class ReporteAgentesTelemetriaExport implements FromCollection, WithColumnWidths
             ];
         }
 
-        return collect($filas);
+        $this->cachedData = collect($filas);
+
+        return $this->cachedData;
     }
 
     /**
-     * Encabezados de columnas del reporte de agentes.
-     *
-     * @return array<string>
+     * Compatibilidad con colecciones directas.
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-10-27
      */
-    public function headings(): array
+    public function collection(): Collection
     {
-        return [
-            "ID Sede",
-            "Sede Hospitalaria",
-            "Último Archivo de Respaldo",
-            "Fecha/Hora Respaldo",
-            "Tamaño Archivo",
-            "Antigüedad Respaldo",
-            "Estado Agente Backups",
-            "Versión Agente Dosis",
-            "Último Latido (Heartbeat)",
-            "Estado Agente Dosis",
-            "Cola Dosis Pendiente",
-            "Equipos Emisores Registrados",
-        ];
-    }
-
-    /**
-     * Mapeo de datos para cada fila del reporte Excel.
-     *
-     * @param  mixed  $row
-     * @return array<mixed>
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-10-27
-     */
-    public function map($row): array
-    {
-        return [
-            $row->sede_id,
-            $row->nombre_sede,
-            $row->backup_archivo,
-            $row->backup_fecha,
-            $row->backup_tamano,
-            $row->backup_antiguedad,
-            $row->backup_estado,
-            $row->dosimetria_version,
-            $row->dosimetria_contacto,
-            $row->dosimetria_estado,
-            $row->dosimetria_pendientes,
-            $row->equipos_emisores,
-        ];
-    }
-
-    /**
-     * Anchos de columna.
-     *
-     * @return array<string, int>
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-10-27
-     */
-    public function columnWidths(): array
-    {
-        return [
-            "A" => 10,
-            "B" => 28,
-            "C" => 36,
-            "D" => 20,
-            "E" => 16,
-            "F" => 18,
-            "G" => 22,
-            "H" => 18,
-            "I" => 22,
-            "J" => 22,
-            "K" => 18,
-            "L" => 24,
-        ];
-    }
-
-    /**
-     * Celda inicial para los datos.
-     *
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-10-27
-     */
-    public function startCell(): string
-    {
-        return "A6";
-    }
-
-    /**
-     * Aplica los estilos institucionales de Salud Tolima.
-     *
-     * @return array<mixed>
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-10-27
-     */
-    public function styles(Worksheet $sheet): array
-    {
-        $sheet->setShowGridLines(true);
-
-        // Membrete institucional
-        $sheet->mergeCells("A2:L2");
-        $sheet->setCellValue("A2", "SALUD TOLIMA S.A.S. — TELEMETRÍA Y ESTADO DE AGENTES HOSPITALARIOS");
-        $sheet->getStyle("A2")->getFont()->setBold(true)->setSize(14)->getColor()->setARGB("FFFFFFFF");
-        $sheet->getStyle("A2")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle("A2:L2")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB("FF0F172A");
-
-        $sheet->mergeCells("A3:L3");
-        $sheet->setCellValue("A3", "Consolidado de Salud Periférica: Respaldos de Base de Datos, Imágenes PACS y Agentes Edge de Dosimetría");
-        $sheet->getStyle("A3")->getFont()->setItalic(true)->setSize(11)->getColor()->setARGB("FFFFFFFF");
-        $sheet->getStyle("A3")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle("A3:L3")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB("FF334155");
-
-        $sheet->mergeCells("A4:L4");
-        $sheet->setCellValue("A4", "Generado el: ".date("Y-m-d H:i:s")." | Sistema LIDiag — Auditoría de Infraestructura y Agentes");
-        $sheet->getStyle("A4")->getFont()->setSize(9)->getColor()->setARGB("FF475569");
-        $sheet->getStyle("A4")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-
-        // Encabezados de tabla
-        $sheet->getStyle("A6:L6")->getFont()->setBold(true)->getColor()->setARGB("FFFFFFFF");
-        $sheet->getStyle("A6:L6")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB("FF1E293B");
-        $sheet->getStyle("A6:L6")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle("A6:L6")->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-        $sheet->getRowDimension(6)->setRowHeight(28);
-
-        // Bordes y alineación de datos
-        $highestRow = $sheet->getHighestRow();
-        if ($highestRow >= 7) {
-            $sheet->getStyle("A6:L{$highestRow}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->getColor()->setARGB("FFE2E8F0");
-            $sheet->getStyle("A7:A{$highestRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("D7:G{$highestRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("H7:L{$highestRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        }
-
-        return [];
+        return $this->getData();
     }
 }
