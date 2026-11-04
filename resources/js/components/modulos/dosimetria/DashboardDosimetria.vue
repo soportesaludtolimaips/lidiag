@@ -576,6 +576,13 @@
                                 <h4 class="card-title">
                                     <span class="lstick"></span>Dosis Promedio por Sede vs Límite
                                     NRD
+                                    <i
+                                        class="fa fa-info-circle text-info font-14 m-l-5"
+                                        data-toggle="tooltip"
+                                        data-placement="top"
+                                        :title="tooltipsGraficas.barrasSedes"
+                                        style="cursor: help"
+                                    ></i>
                                 </h4>
                                 <h6 class="card-subtitle">
                                     Contraste institucional frente a los Niveles de Referencia para
@@ -651,6 +658,13 @@
                             <div>
                                 <h4 class="card-title">
                                     <span class="lstick"></span>Cumplimiento NRD
+                                    <i
+                                        class="fa fa-info-circle text-info font-14 m-l-5"
+                                        data-toggle="tooltip"
+                                        data-placement="top"
+                                        :title="tooltipsGraficas.cumplimientoNrd"
+                                        style="cursor: help"
+                                    ></i>
                                 </h4>
                                 <h6 class="card-subtitle">Resolución 482 de 2018</h6>
                             </div>
@@ -732,6 +746,13 @@
                             <div>
                                 <h4 class="card-title">
                                     <span class="lstick"></span>Tendencia Mensual de Dosis
+                                    <i
+                                        class="fa fa-info-circle text-info font-14 m-l-5"
+                                        data-toggle="tooltip"
+                                        data-placement="top"
+                                        :title="tooltipsGraficas.tendenciaMensual"
+                                        style="cursor: help"
+                                    ></i>
                                 </h4>
                                 <h6 class="card-subtitle">Evolución cronológica institucional</h6>
                             </div>
@@ -762,6 +783,13 @@
                             <div>
                                 <h4 class="card-title">
                                     <span class="lstick"></span>Perfil Anatómico vs NRD
+                                    <i
+                                        class="fa fa-info-circle text-info font-14 m-l-5"
+                                        data-toggle="tooltip"
+                                        data-placement="top"
+                                        :title="tooltipsGraficas.radarAnatomico"
+                                        style="cursor: help"
+                                    ></i>
                                 </h4>
                                 <h6 class="card-subtitle">
                                     Dosis relativa (%) por órgano diana (ICRP 103)
@@ -1132,6 +1160,18 @@ const emitter = appContext?.config?.globalProperties?.emitter;
 const loading = ref(false);
 const exportando = ref(false);
 const mostrarModalUmbrales = ref(false);
+
+// Descripciones clínicas y normativas para tooltips de ayuda en cada gráfica
+const tooltipsGraficas = {
+    barrasSedes:
+        "DESCRIPCIÓN:\nContrasta la dosis promedio administrada en cada hospital frente al límite NRD regulatorio.\n\n¿POR QUÉ SE MIDE?:\nDetecta asimetrías operativas, sobreexposiciones y necesidad de calibración o unificación de protocolos técnicos entre sedes.\n\nNORMATIVIDAD:\nResolución 482 de 2018 (MinSalud Colombia, Título III: Garantía de Calidad) y Recomendaciones ICRP 135 (Diagnostic Reference Levels).",
+    cumplimientoNrd:
+        "DESCRIPCIÓN:\nDistribución porcentual de los estudios según su franja de dosis: Seguro (<80% NRD), Alerta Preventiva (80%-99% NRD) y Superación Crítica (≥100% NRD).\n\n¿POR QUÉ SE MIDE?:\nSupervisa la adherencia institucional al principio ALARA (tan bajo como sea razonablemente posible) y evalúa el riesgo radiológico global.\n\nNORMATIVIDAD:\nResolución 482 de 2018 (Artículos 21 y 22: Control de Calidad y Niveles Guía) y OIEA / IAEA GSR Part 3.",
+    tendenciaMensual:
+        "DESCRIPCIÓN:\nEvolución temporal mes a mes de la dosis promedio administrada por modalidad técnica (CT, DX, MG, CR).\n\n¿POR QUÉ SE MIDE?:\nEvalúa el impacto longitudinal del mantenimiento y calibración de tubos emisores, ajustes de protocolos y capacitaciones al personal.\n\nNORMATIVIDAD:\nResolución 482 de 2018 (Capítulo V: Auditoría Dosimétrica Periódica) e ICRP 103 (Vigilancia de Dosis Colectiva Institucional).",
+    radarAnatomico:
+        "DESCRIPCIÓN:\nPerfil poligonal que compara el porcentaje de radiación entregado frente al 100% de referencia NRD en 7 regiones corporales (Cráneo, Tórax, Abdomen, Pelvis, Columna, Extremidades y Mama).\n\n¿POR QUÉ SE MIDE?:\nPermite identificar de un vistazo qué territorios anatómicos y órganos diana presentan mayor susceptibilidad o exceso de dosis relativa.\n\nNORMATIVIDAD:\nPublicación ICRP 103 (Factores de Ponderación Tisular WT) y Resolución 482 de 2018 (Tabla de Dosis Típicas por Región Anatómica).",
+};
 
 const filtros = reactive({
     sede_id: "",

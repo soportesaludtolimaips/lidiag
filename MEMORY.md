@@ -70,6 +70,21 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * `vendor\bin\pint.bat --test config/sanctum.php` 100% passed ✅.
     * Verificación de base de datos (`personal_access_tokens`): los tokens existentes de las sedes 1, 3 y 4 volvieron a ser válidos inmediatamente sin necesidad de reconfigurarlos ✅.
 
+- [x] **2026-11-04 — Tooltips Clínicos y Normativos en Gráficas de Dosimetría (`DashboardDosimetria.vue`):**
+  - **Diagnóstico y Solicitud del Usuario:**
+    * El usuario solicitó: *"a cada grafica colocale un icono de info con un toltip con la descripcion de la grafica y el porq y en q normatividad se apoya"*.
+  - **Solución Implementada:**
+    * Se incorporó en el encabezado de cada una de las 4 gráficas un icono de ayuda interactivo `<i class="fa fa-info-circle text-info font-14 m-l-5" data-toggle="tooltip" :title="..." style="cursor: help;"></i>`.
+    * Se definió en `<script setup>` el diccionario reactivo `tooltipsGraficas` estructurado en tres bloques clave (DESCRIPCIÓN, ¿POR QUÉ SE MIDE?, NORMATIVIDAD):
+      1. **Dosis vs NRD por Sede:** Contrasta dosis promedio frente a límites institucionales para detectar asimetrías operativas y descalibración; fundamentado en la **Resolución 482 de 2018 (Título III)** y **ICRP 135**.
+      2. **Cumplimiento NRD:** Proporción de estudios en rango Seguro (<80%), Alerta (80-99%) y Crítico (≥100%) para vigilar el principio ALARA; basado en la **Resolución 482 de 2018 (Arts. 21 y 22)** y el estándar **OIEA/IAEA GSR Part 3**.
+      3. **Tendencia Mensual:** Evolución temporal por modalidad técnica (CT, DX, MG, CR) para verificar la eficacia de mantenimientos y ajustes de protocolos; sustentado en la **Resolución 482 de 2018 (Cap. V)** e **ICRP 103**.
+      4. **Perfil Anatómico vs NRD (Radar):** Polígono radial que mapea los 7 órganos diana frente al 100% NRD para aislar sobredosis tisular focalizada; regido por **ICRP 103 (Factores de Ponderación Tisular WT)** y la **Resolución 482 de 2018**.
+  - **Verificaciones:**
+    * ESLint validado con 0 errores y 0 warnings (`npx eslint`) ✅.
+    * Compilación Vite exitosa (`npm run build` en 1.22s) ✅.
+    * Formato LF verificado sin UTF-8 BOM ✅.
+
 - [x] **2026-11-04 — Modernización Visual Nativa del Dashboard de Dosimetría con Patrones AdminWrap (`DashboardDosimetria.vue`):**
   - **Diagnóstico y Directriz del Usuario:**
     * El usuario instruyó: *"no inventes estilos, utiliza los estilos de la aplicacion... mira los dashboard de la plantilla (mini-sidebar/index.html, index2.html, index3.html, index4.html) y los gráficos (chart-chart-js, chartist, echart, etc.). Tu, decide. Debemos hacer un modulo super robusto y atractivo"*.
