@@ -621,14 +621,20 @@ def enviar_heartbeat(api_url: str, api_token: str, sede_id: int, pendientes: int
     """Emite un latido (Heartbeat / Dead Man's Switch) hacia la API Central."""
     hb_url = resolve_api_endpoint(api_url, "dosimetria/heartbeat")
 
+    clean_token = str(api_token or "").strip()
+    if clean_token.lower().startswith("bearer "):
+        clean_token = clean_token[7:].strip()
+
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
-        "Authorization": f"Bearer {api_token}",
+        "Authorization": f"Bearer {clean_token}",
+        "X-API-TOKEN": clean_token,
         "X-Requested-With": "XMLHttpRequest",
     }
     payload = {
         "sede_id": sede_id,
+        "api_token": clean_token,
         "version": version,
         "pendientes": pendientes,
         "estado_cola": "OK" if pendientes == 0 else f"PENDIENTES_{pendientes}",
@@ -946,10 +952,15 @@ def enviar_lote_a_central(api_url: str, api_token: str, sede_id: int, registros_
     if not registros_con_id:
         return True, [], []
 
+    clean_token = str(api_token or "").strip()
+    if clean_token.lower().startswith("bearer "):
+        clean_token = clean_token[7:].strip()
+
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
-        "Authorization": f"Bearer {api_token}",
+        "Authorization": f"Bearer {clean_token}",
+        "X-API-TOKEN": clean_token,
         "X-Requested-With": "XMLHttpRequest",
     }
 
@@ -983,6 +994,7 @@ def enviar_lote_a_central(api_url: str, api_token: str, sede_id: int, registros_
 
         payload = {
             "sede_id": sede_id,
+            "api_token": clean_token,
             "batch_hash": batch_hash,
             "registros": chunk_limpio,
         }

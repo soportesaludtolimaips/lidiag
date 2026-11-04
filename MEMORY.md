@@ -37,6 +37,22 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-04 — Documentación y Blindaje de Autenticación de Dosimetría y Atributo `dosimetria_salt` (`README.md`, `agente_dosimetria.py`, `AppServiceProvider.php`):**
+  - **Diagnóstico y Necesidad:**
+    * El usuario requirió documentar en el manual técnico del paquete de agentes (`README.md`) la función exacta del atributo criptográfico `dosimetria_salt` en `config.json` para la anonimización de pacientes (Ley 1581 de 2012 / ISO 27001).
+    * Además, se blindó la autenticación del agente de dosimetría para admitir fallback con triple vía (cabecera estándar `Authorization: Bearer`, cabecera alternativa `X-API-TOKEN` y parámetro en body `api_token`), previniendo que servidores web Apache en sedes o Central que deshabilitan el reenvío de cabeceras de autorización arrojen HTTP 401.
+  - **Solución Implementada:**
+    * **Documentación en `README.md` y `config.json.example`:**
+      - Se añadió la sección dedicada *🛡️ Anonimización Criptográfica y el Atributo dosimetria_salt*, explicando su rol en PHI, mitigación de Rainbow Tables y consistencia de dosis acumulada por paciente.
+    * **Blindaje en `agente_dosimetria.py`:**
+      - Normalización automática de tokens (elimina `"Bearer "` y espacios en blanco si se configuran accidentalmente en el JSON).
+      - Envío multicanal en cabeceras `Authorization`, `X-API-TOKEN` y body de la petición.
+    * **Resolución en Central (`AppServiceProvider.php`):**
+      - `Sanctum::getAccessTokenFromRequestUsing()` configurado para resolución flexible y tolerante a proxies.
+  - **Verificaciones:**
+    * `vendor\bin\pint.bat --test` validado al 100% passed ✅.
+    * `python -m py_compile` validado sin errores sintácticos ✅.
+    * Validación en vivo: transmisión masiva de lotes y latidos confirmada con éxito por Central (HTTP 200) ✅.
 - [x] **2026-11-04 — Restauración y Modernización de Componente Reporte Estudios PACS (`reportes-estudios-pac`):**
   - **Diagnóstico y Causa Raíz:**
     * Al acceder a la URL `/reportes-estudios-pac` (enlace en sidebar "Gestión y Reportes -> Reportes -> Estudios PACS"), la página no cargaba y se mostraba completamente en blanco.

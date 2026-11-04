@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -53,6 +54,14 @@ class AppServiceProvider extends ServiceProvider
             return $user->hasRole('Super Admin') ? true : null;
         });
         Gate::policy(User::class, UserPolicy::class);
+
+        Sanctum::getAccessTokenFromRequestUsing(function (Request $request) {
+            return $request->bearerToken()
+                ?? $request->header('X-API-TOKEN')
+                ?? $request->header('x-api-token')
+                ?? $request->query('api_token')
+                ?? $request->input('api_token');
+        });
 
         $this->configureRateLimiting();
         $this->registerGlobalActivityLog();

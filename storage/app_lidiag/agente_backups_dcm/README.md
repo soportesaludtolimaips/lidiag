@@ -112,7 +112,8 @@ Para garantizar la seguridad de la red y evitar tokens desactualizados, LIDiag c
     "min_free_space_gb": 10,
 
     "api_url": "https://10.35.47.4/lidiag/public/api/dosimetria/registros",
-    "api_token": "TOKEN_BEARER_LIDIAG_AQUI"
+    "api_token": "TOKEN_BEARER_LIDIAG_AQUI",
+    "dosimetria_salt": "GENERADO_AUTOMATICO_64_HEX"
 }
 ```
 
@@ -295,6 +296,22 @@ Remove-Item .\logs\sync_dcm.lock -Force -ErrorAction SilentlyContinue
 
 * **Lanzador por lotes:** `.\ejecutar_dosimetria.bat` (Procesa las últimas 24 horas cada hora).
 * **Función:** Extracción de dosis ionizantes (`CTDIvol`, `DLP`, `DGM`, `DAP`) de cabeceras DICOM de Tomografía, Mamografía y Rayos X en cumplimiento de la **Resolución 482 de 2018**, con anonimización SHA-256 de identificadores y envío a LIDiag Central.
+
+#### 🛡️ Anonimización Criptográfica y el Atributo `dosimetria_salt`
+
+¿Para qué se utiliza exactamente en `config.json`?
+
+* **Privacidad y Protección de Datos Clínicos (PHI / Ley 1581 de 2012 e ISO 27001):**
+  El agente extrae las métricas de radiación (`CTDIvol`, `DLP`, `mSv`, etc.), pero nunca transmite la cédula ni el nombre real del paciente a Central. En su lugar, el agente convierte el `PatientID` en un código hash irreversible mediante el algoritmo HMAC-SHA256.
+
+* **Protección contra Ataques de Diccionario (Rainbow Tables):**
+  Si solo se usara un SHA-256 plano sobre la cédula, un atacante con una lista de documentos colombianos podría generar los hashes y descubrir a qué persona corresponde cada estudio. Al agregar el `dosimetria_salt` (una clave única de 64 caracteres generada automáticamente por el agente), el hash resultante es completamente indescifrable desde el exterior.
+
+* **Cálculo de Dosis Acumulada por Paciente:**
+  Al mantenerse el mismo salt en la sede, si el mismo paciente se toma 3 tomografías en diferentes meses, el agente generará el mismo identificador anónimo. Esto le permite al Dashboard en Central calcular la Dosis Efectiva Acumulada de ese paciente sin necesidad de almacenar su número de cédula en texto plano.
+
+> [!NOTE]
+> **Generación automática:** Si el archivo `config.json` no contiene `dosimetria_salt`, el agente lo genera aleatoriamente en su primera ejecución (`secrets.token_hex(32)`) y lo persiste automáticamente en el archivo. No es necesario crearlo a mano, pero debe conservarse para mantener la consistencia histórica de los pacientes de la sede.
 
 #### 📋 Tabla de Argumentos de Línea de Comandos (`agente_dosimetria.py`)
 
