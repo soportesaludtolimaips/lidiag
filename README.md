@@ -742,9 +742,13 @@ Además de `public`, el proyecto define múltiples discos públicos (driver `loc
 
 Al ejecutar `php artisan storage:link` se crean symlinks en `public/` para cada uno (por eso es un paso obligatorio en local/producción).
 
-## Documentación del Código
+## Documentación del Código y Roadmap
 
-El proyecto cuenta con documentación detallada para facilitar el mantenimiento y comprensión del código:
+El proyecto cuenta con documentación detallada para facilitar el mantenimiento, la comprensión técnica y la evolución estratégica del sistema:
+
+### Roadmap Estratégico y Arquitectura Futura
+
+-   **[`ROADMAP.md`](ROADMAP.md)**: Plan maestro de arquitectura de software y estrategia de producto médico. Incluye matriz de impacto vs. esfuerzo, optimizaciones de resiliencia (Outbox, Circuit Breaker), protección de datos de salud (PHI / ISO 27001), innovaciones asistenciales (IA, hallazgos críticos, informes estructurados RSNA, visor OHIF) y cronograma de fases PHVA.
 
 ### Estándares de Codificación
 

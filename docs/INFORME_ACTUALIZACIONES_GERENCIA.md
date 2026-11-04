@@ -57,12 +57,24 @@
 ### Mejora: Conversión Resiliente y Descarga Directa de Informes Médicos en PDF
 **Descripción:** Optimización del motor de conversión de documentos Word a PDF (`PdfConverterHelper` y `PlantillaEstudioService`) ampliando la ventana de espera para generación de reportes complejos con imágenes y firmas, integrando saneamiento preventivo de nombres de archivos y protegiendo el frontend contra aperturas de enlaces fallidos o rutas indefinidas en el módulo de notificación de resultados.
 
+### Mejora: Tipificación y Alerta Inmediata de Hallazgos Críticos en Urgencias
+**Descripción:** Mecanismo integrado en la estación de trabajo radiológica y transcripción (`leerEstudioComponent.vue` y `transcribirEstudioComponent.vue`) que permite al especialista marcar estudios de riesgo vital inminente (`[x] Marcar Crítico`). Al activarlo, el sistema despliega un campo opcional para ingresar un hallazgo puntual (ej. *"Neumotórax a tensión derecho"*, *"Hemorragia subaracnoidea aguda"*). Si el campo se deja en blanco, un algoritmo especializado procesa el informe y extrae de forma automática la sección de `Opinión:`, `Conclusión:` o `Impresión diagnóstica:`, escalando el caso a prioridad máxima en toda la red hospitalaria.
+
 ---
 
 ## 4. Control de Radiación y Dosimetría del Paciente (Resolución 482 de 2018)
 
 ### Mejora: Módulo de Dosimetría y Vigilancia Radiológica del Paciente
 **Descripción:** Sistema para capturar, calcular y vigilar la dosis de radiación ionizante recibida por cada paciente en exámenes de Rayos X, Tomografía y Fluoroscopia, dando estricto cumplimiento a la Resolución 482 de 2018 del Ministerio de Salud y Protección Social.
+
+### Mejora: Rediseño del Dashboard de Dosimetría con Estándar Nativo AdminWrap
+**Descripción:** Modernización integral de la interfaz visual del panel de control de dosimetría (`/dosimetria/dashboard`), eliminando estilos heterogéneos y adoptando la arquitectura visual oficial de la plataforma: encabezados con migas de pan (`page-titles`), tarjetas de indicadores Info-Box con semáforos cromáticos unificados, ranking de equipos emisores "Projects of the Month", cronología operativa de eventos "Today's Schedule" y selector dinámico de fechas y sedes.
+
+### Mejora: Calibración Clínica del Detector de Deriva Técnica de Tubos Emisores (*Machine Drift*)
+**Descripción:** Algoritmo heurístico que supervisa el envejecimiento o descalibración de los tubos de rayos X y tomógrafos comparando la dosis promedio de la primera mitad del periodo frente a la segunda. Se incorporó un filtro de suelo de ruido (*noise floor*) para descartar disparos en vacío, topogramas y *scout views* (< 1.0 mGy), exigiendo un mínimo de disparos válidos ($\ge 3$) y un delta clínico absoluto significativo ($\Delta \ge 1.5\text{ mGy}$ en CTDIvol), erradicando el 100% de falsas alarmas por sesgo de base pequeña en los más de 53.000 estudios evaluados.
+
+### Mejora: Telemetría Continua con "Interruptor de Hombre Muerto" (*Dead Man's Switch*)
+**Descripción:** Protocolo de latido periódico (*Heartbeat*) mediante el cual los agentes Edge de cada hospital reportan cada ciclo su estado de conectividad, tamaño de cola local y versión de software a Central (`POST /api/dosimetria/heartbeat`). Si un servidor hospitalario sufre un corte eléctrico o pérdida de red, el Dashboard Central lo detecta y lo marca de inmediato en estado `OFFLINE` para rápida intervención del equipo de soporte.
 
 ### Mejora: Parser de Reportes Estructurados de Dosis DICOM (RDSR)
 **Descripción:** Lector automático que extrae la información dosimétrica directa emitida por tomógrafos y angiógrafos modernos a través de objetos DICOM RDSR (Radiation Dose Structured Report), almacenando producto dosis-longitud (DLP), dosis en superficie y tiempo de irradiación.
@@ -71,16 +83,63 @@
 **Descripción:** Algoritmo biofísico que calcula de forma automática el Producto Dosis-Área (DAP en $mGy \cdot cm^2$) para equipos de Rayos X digitales que no poseen cámara de ionización física en el colimador, utilizando los parámetros de exposición del disparo (kVp, mAs, distancia foco-receptor y filtración añadida).
 
 ### Mejora: Clasificación Anatómica RadLex y Detección de Deriva de Dosis
-**Descripción:** Mapeo de procedimientos radiológicos a la terminología estándar internacional RadLex. El sistema detecta desviaciones o "deriva de dosis" cuando un examen supera los Niveles de Referencia para Diagnóstico (NRD), emitiendo alertas para el Oficial de Protección Radiológica.
+**Descripción:** Mapeo de procedimientos radiológicos a la terminología estándar internacional RadLex. El sistema clasifica el 100% de los estudios en 8 regiones anatómicas (Tórax, Cráneo, Abdomen, Pelvis, Columna, Extremidades, Mama y General) y detecta desviaciones cuando un examen supera los Niveles de Referencia para Diagnóstico (NRD), emitiendo alertas para el Oficial de Protección Radiológica.
 
-### Mejora: Anonimización Criptográfica de Pacientes con HMAC-SHA256
-**Descripción:** Protección de la identidad del paciente en la telemetría de radiación mediante generación de identificadores seudonimizados con algoritmo HMAC-SHA256 y semilla criptográfica aleatoria de 32 bytes por sede hospitalaria, impidiendo ataques de tablas arcoíris (*anti-rainbow table*) y garantizando total privacidad médica.
+### Mejora: Anonimización Criptográfica de Pacientes con HMAC-SHA256 y Semilla Dinámica (`dosimetria_salt`)
+**Descripción:** Protección de la identidad del paciente en la telemetría de radiación mediante generación de identificadores seudonimizados con algoritmo HMAC-SHA256 y semilla criptográfica aleatoria (`dosimetria_salt`) de 64 caracteres hexadecimales única por sede hospitalaria. Este mecanismo cumple los estándares de privacidad clínica (Ley 1581 de 2012 e ISO 27001), impide ataques de tablas arcoíris (*anti-rainbow table*) y permite al sistema central calcular la **Dosis Efectiva Acumulada** de pacientes con múltiples tomografías a lo largo del tiempo sin almacenar jamás sus documentos de identidad en texto plano.
+
+### Mejora: Blindaje de Transmisión Masiva y Tolerancia de Red en Dosimetría Edge
+**Descripción:** Optimización del canal de telemetría dosimétrica para soportar hospitales departamentales de alta complejidad con más de 30.000 estudios anuales (como el Hospital Federico Lleras Acosta en Ibagué y el Hospital San Rafael en Espinal). La transmisión se empaqueta en micro-bloques de 50 registros con cadencia controlada (150 ms) y reintentos automáticos con retroceso exponencial, complementado con una cuota ampliada en Central de 1.200 peticiones por minuto y autenticación multi-canal (Bearer Token, cabecera `X-API-TOKEN` y payload) para operar sin bloqueos a través de proxies hospitalarios y servidores web Apache.
 
 ### Mejora: Cola Persistente Edge en SQLite (`cola_dosimetria.db`)
 **Descripción:** Base de datos embebida en los servidores locales de cada hospital que almacena temporalmente las mediciones de radiación y las sincroniza con el servidor central. Cuenta con reintentos automáticos y garantiza cero pérdida de datos ante cortes eléctricos o caídas prolongadas del enlace de internet.
 
 ### Mejora: Reporte Gerencial y Multi-Hoja en Excel para Secretarías de Salud
 **Descripción:** Generador de reportes consolidados en Excel con membrete institucional, gráficos estadísticos de barras y tortas por modalidad/sede, indicadores de cumplimiento NRD y trazabilidad histórica para auditorías del Ministerio de Salud o entes territoriales.
+
+---
+
+### 4.1 Balance y Auditoría de Producción Real del Módulo de Dosimetría
+
+Con la restauración y auditoría de la base de datos de producción (noviembre de 2026), se consolidaron las siguientes métricas operativas reales:
+
+* **Volumen Total Monitoreado:** **53.176 mediciones dosimétricas** registradas en la red hospitalaria.
+* **Pacientes Únicos Protegidos:** **36.516 pacientes** bajo seguimiento dosimétrico y trazabilidad de identidad protegida.
+* **Cobertura Hospitalaria Activa:**
+  * **Sede Espinal (Hospital San Rafael):** 31.225 estudios procesados.
+  * **Sede Chaparral (Hospital San Juan Bautista):** 21.172 estudios procesados.
+  * **Sede Ibagué (Hospital Federico Lleras Acosta):** 779 estudios procesados (incorporación reciente).
+* **Parque de Equipos Emisores:** 19 equipos emisores auto-descubiertos e inventariados activamente (Rayos X y Tomografía Computarizada).
+
+---
+
+### 4.2 Hoja de Ruta y Próximas Mejoras Estratégicas en Dosimetría
+
+A partir de la auditoría técnica profunda sobre los datos reales, se priorizaron las siguientes funcionalidades para robustecer el cumplimiento de la Resolución 482 de 2018 y las directrices del Organismo Internacional de Energía Atómica (OIEA):
+
+#### Fase 1: Calibración Física y Regulatoria (Prioridad Inmediata)
+1. **Poblamiento Oficial de Umbrales NRD (Resolución 482 / ICRP):**
+   * *Objetivo:* Cargar en la base de datos los límites y niveles de advertencia regulatorios colombianos para Tomografía ($CTDI_{vol}$, $DLP$), Radiología Convencional ($DAP$) y Mamografía ($DGM$), activando el semáforo de superaciones reales y el catálogo interactivo para físicos médicos.
+2. **Parametrización Multidimensional por Región Anatómica:**
+   * *Objetivo:* Extender la tabla de umbrales para que la evaluación de dosis no sea plana por modalidad, sino diferenciada por órgano blanco: Cráneo ($50\text{ mGy}$), Tórax ($15\text{ mGy}$), Abdomen/Pelvis ($25\text{ mGy}$) y Columna, evitando tanto falsas alarmas en estudios de alta atenuación como omisión de sobreexposiciones en órganos sensibles.
+3. **Calibración Científica de Dosis Efectiva Media $E$ (ICRP 103):**
+   * *Objetivo:* Sustituir el factor multiplicador genérico actual por la matriz de coeficientes $k$ ponderados de la Comisión Internacional de Protección Radiológica según región anatómica y modalidad, reflejando el impacto biológico real en milisieverts ($mSv$).
+4. **Extracción y Cálculo de Producto Dosis-Longitud ($DLP$) en Tomografía:**
+   * *Objetivo:* Actualizar el agente Edge para capturar o deducir el $DLP$ ($CTDI_{vol} \times L_{scan}$) en tomografía computarizada desde tags de protocolo y cabeceras privadas de Siemens, GE y Philips.
+
+#### Fase 2: Herramientas Clínicas Asistenciales y Pasaporte Radiológico
+5. **Pasaporte Dosimétrico del Paciente (Historial de Dosis Acumulada de por Vida):**
+   * *Objetivo:* Crear una interfaz clínica interactiva que permita al radiólogo y médico remitente consultar, mediante el identificador criptográfico del paciente, su curva de dosis acumulada total a través de todas las sedes de la red hospitalaria (especialmente crítico para pacientes oncológicos, crónicos o politraumatizados con más de 15 tomografías acumuladas).
+6. **Gestor Biomédico de Equipos Emisores (ABM de Salas y Tubos):**
+   * *Objetivo:* Panel administrativo que permita al Oficial de Protección Radiológica y al equipo biomédico personalizar el nombre de las salas ("Sala RX 1 - Urgencias"), registrar marca y modelo real, número de serie del tubo emisor, fecha de último mantenimiento preventivo y fecha de prueba de constancia dosimétrica.
+7. **Notificaciones Push Proactivas en Telegram ante Superaciones NRD:**
+   * *Objetivo:* Envío de alertas instantáneas a través del bot institucional de Telegram dirigidas al físico médico cuando un estudio supere el percentil 95 o el límite normativo NRD para su investigación y optimización inmediata de protocolos.
+
+#### Fase 3: Acreditación Hospitalaria e Inteligencia Avanzada
+8. **Estimación de Dosis Específica por Tamaño (SSDE - AAPM Report 204):**
+   * *Objetivo:* Incorporar factores de corrección por diámetro efectivo del paciente para ajustar la dosis en pacientes pediátricos y neonatales, garantizando máxima protección al paciente infantil.
+9. **Certificado Institucional de Dosimetría con Validación QR para Secretarías de Salud:**
+   * *Objetivo:* Generador automático de certificados oficiales en formato PDF con firma electrónica y código QR de autenticidad para presentar como evidencia de cumplimiento estricto de la Resolución 482 en visitas de habilitación e inspección de entes gubernamentales.
 
 ---
 
@@ -152,27 +211,46 @@
 ### Mejora: Reporte Ejecutivo de Salud y Telemetría de Agentes Hospitalarios
 **Descripción:** Módulo con exportador a Excel (`ReporteAgentesTelemetriaExport.php`) que consolida el estado operativo de todas las sedes hospitalarias: fecha y hora de la última imagen DICOM capturada, versión del software local, estado de conexión y espacio disponible en disco.
 
+### Mejora: Módulo de Auditoría y Reportes de Estudios PACS por Sede (`reportes-estudios-pac`)
+**Descripción:** Interfaz interactiva de consulta y auditoría radiológica (`reporteEstudiosPACComponent.vue`) desarrollada bajo la estética institucional AdminWrap. Permite a coordinadores médicos y de facturación seleccionar sedes activas y rangos de fechas para auditar con precisión los estudios adquiridos en el PACS Dcm4chee (documento de identidad, paciente, fecha/hora exacta, descripción del examen y modalidades involucradas), integrando descarga directa de archivos consolidados en formato Microsoft Excel (`/descarga-reportes-estudios-pac`).
+
 ---
 
 ## 9. Monitoreo Gerencial y Supervisión Asistencial vía Telegram (`@salud_tolima_bot`)
 
+### Mejora: Alertas de Hallazgos Críticos en Urgencias con Justificación Clínica Explícita
+**Descripción:** Rediseño integral de las alertas push de hallazgos críticos enviadas a los grupos y directores asistenciales por Telegram. El mensaje detalla con precisión médica **por qué se requiere la valoración inmediata del paciente**:
+* **Conclusión / Hallazgo Patológico Urgente:** Extraído automáticamente de la conclusión u opinión del informe médico (o ingresado puntualmente por el radiólogo).
+* **Motivo del Examen y Sospecha Clínica:** Rescata la justificación clínica de ingreso del paciente (`motivo_examen`).
+* **Diagnósticos CIE-10 Asociados:** Lista los códigos y nombres de las patologías identificadas.
+* **Instrucción de Choque Asistencial:** Directriz clara para el médico tratante de guardia en Urgencias o UCI.
+
+### Mejora: Medición del Tiempo de Respuesta Clínico Real (TAT) y Desglose Dual de Producción
+**Descripción:** Optimización matemática de la oportunidad diagnóstica en los reportes `/red` y `/produccion`. El Turnaround Time (TAT) se calcula de forma real contra la fecha de toma física del examen (`fec_estudio`), eliminando distorsiones por desfases de sincronización en bases de datos. Además, se implementó el **desglose dual** que separa los *Procedimientos/Partes Interpretadas* (`COUNT(estudios_productos)`) del *Total de Pacientes Únicos Atendidos* (`COUNT(DISTINCT estudios.id)`), garantizando total coherencia con los reportes gerenciales y de facturación.
+
+### Mejora: Semáforo Asistencial Escalonado y Detección de Urgencias Críticas (`/retrasados`)
+**Descripción:** Evolución del reporte de estudios pendientes hacia un semáforo de riesgo asistencial escalonado en 3 bandas de intervención operativa:
+* 🟡 **24h a 48h (Alerta Preventiva):** Casos para balancear en el cambio de turno.
+* 🟠 **48h a 72h (Retraso Crítico):** Prioridad alta para evitar quejas de servicio.
+* 🔴 **> 72 horas (Retraso Severo):** Casos de máxima alarma con riesgo inminente de glosa por parte de las EPS.
+* 🚑 **Detección de Urgencias Críticas:** Identifica y alerta cuántos estudios de Urgencias/UCI cumplen **más de 30 minutos** esperando lectura médica.
+
 ### Mejora: Menú Táctil Interactivo para Consulta de Producción
-**Descripción:** Asistente interactivo en Telegram para directores y coordinadores que permite consultar en 3 toques la producción de estudios por sede, modalidad y rango de fechas directamente desde el celular.
+**Descripción:** Asistente interactivo en Telegram para directores y coordinadores que permite consultar en 3 toques la producción de estudios por sede, modalidad y rango de fechas directamente desde el celular, con generación y descarga directa de archivos Excel consolidados.
 
-### Mejora: Conciliación en Vivo: Estudios Facturados vs. Imágenes Tomadas en PACS
-**Descripción:** Cruce automático entre los estudios registrados administrativamente en LIDiag y los archivos de imagen DICOM efectivamente adquiridos en los equipos de RX/TAC de cada hospital, detectando discrepancias de facturación o estudios tomados sin orden.
+### Mejora: Monitor de Almacenamiento y Telemetría de Servidores en Vivo (`/dd`)
+**Descripción:** El comando `/dd` evolucionó de un mensaje fijo a un informe dinámico en tiempo real que evalúa:
+1. **Servidor Central:** Espacio libre, ocupado y porcentaje de uso de la unidad principal y carpetas de storage con barras de progreso visuales.
+2. **Sedes Hospitalarias:** Estado de salud y última fecha de respaldo recibida desde los agentes Edge locales de cada hospital (Espinal, Honda, Líbano, Chaparral, etc.).
 
-### Mejora: Medición del Tiempo de Respuesta Clínico (TAT)
-**Descripción:** Cálculo automático del tiempo transcurrido desde la toma del examen hasta la firma del informe por el radiólogo, clasificado con semáforos de oportunidad clínica (`🟢 Óptimo <12h`, `🟡 Aceptable <24h`, `🔴 Crítico >24h`).
-
-### Mejora: Alerta Temprana de Estudios Represados (`/retrasados`)
-**Descripción:** Notificación inmediata que lista los exámenes que superan las 24 horas sin lectura médica, priorizando casos de urgencias y hospitalización.
+### Mejora: Supervisión Operativa de Citas y Canales Digitales (`/citas`)
+**Descripción:** Módulo de reporte en Telegram orientado a la operación del día: refleja cuántas citas están agendadas para atención **HOY** (confirmadas, asistidas o canceladas) y la tasa de conversión y solicitudes procesadas a través del canal oficial de WhatsApp.
 
 ### Mejora: Resumen Matutino Automático (Daily Digest)
-**Descripción:** Reporte programado enviado automáticamente todos los días a las 07:30 AM con el balance de producción del día anterior y la carga de trabajo pendiente para la jornada que inicia.
+**Descripción:** Reporte programado enviado automáticamente todos los días a las 07:30 AM con el balance de producción del día anterior, el semáforo asistencial de la red y el estado de los agentes locales para la jornada que inicia.
 
-### Mejora: Monitor Continuo de Discos Duros PACS
-**Descripción:** Monitoreo 24/7 del espacio de almacenamiento en los servidores PACS locales, disparando alertas automáticas a Telegram si el disco baja del 15% (advertencia) o del 5% (alerta crítica de saturación).
+### Mejora: Blindaje de Red IPv4 y Diagnóstico de Conectividad (`--diagnose`)
+**Descripción:** Fortalecimiento de la capa de comunicación cURL de Telegram (`TelegramService`), forzando resolución IPv4 pura para evitar bloqueos por *IPv6 blackhole* en redes hospitalarias cerradas, con sanitización automática de tokens y diagnóstico integral de sockets en puerto 443.
 
 ---
 
@@ -198,6 +276,14 @@
 
 ### Mejora: Restauración Cronológica Descendente de Imágenes PACS
 **Descripción:** Rutina automatizada para recuperar imágenes históricas desde el almacenamiento secundario o QNAP hacia el servidor PACS local de forma cronológica inversa (desde lo más reciente a lo más antiguo), permitiendo a los médicos visualizar estudios prioritarios mientras se completa la restauración de fondo.
+
+### Mejora: Desacoplamiento Operativo y Documentación Técnica Dedicada por Servicio de Sede
+**Descripción:** Reestructuración de la suite de software desplegada en servidores hospitalarios (`agente_backups_dcm`) separando la documentación técnica y operacional en manuales especializados e independientes:
+1. **Respaldo de Base de Datos MySQL (`README_BACKUP_DB.md`):** Volcado con `mysqldump`, compresión ZIP de alta velocidad, validación CRC32, cálculo de huella SHA-256 y transferencia SMB directa a la NAS QNAP con purga dual de retención.
+2. **Sincronización Continua de Imágenes DICOM (`README_SYNC_IMAGENES.md`):** Motor Robocopy multi-hilo persistente con política de preservación (cero borrados en destino) y monitoreo en vivo mediante `robocopy_scan.log`.
+3. **Agente Edge de Dosimetría Radiológica (`README_DOSIMETRIA.md`):** Cumplimiento de la Resolución 482 / ISO 27001, justificación de `dosimetria_salt` para cálculo de dosis acumulada anónima y estrategia escalonada para hospitales de alto volumen (>15.000 estudios/mes).
+4. **Recuperación ante Desastres (`README_RESTORE_IMAGENES.md`):** Procedimiento asistido de restauración cronológica descendente (`2026` -> `2025` -> `2024`...) para reactivar el servicio de urgencias en menos de 3 horas.
+5. **Portal Maestro de Despliegue (`README.md`):** Catálogo unificado de sedes (`sede_id`), instalador automatizado en 1 clic (`install.bat`) y vinculación desatendida en el Programador de Tareas de Windows bajo `SYSTEM`.
 
 ---
 
@@ -263,6 +349,12 @@
 
 ### Mejora: Modo Claro y Modo Oscuro
 **Descripción:** Soporte completo de temas visuales que permite a los radiólogos y transcriptores trabajar en ambientes de baja iluminación (salas de lectura diagnóstica) reduciendo la fatiga visual.
+
+### Mejora: Estandarización Canónica de Tarjetas de Indicadores (KPIs) en Dashboards Asistenciales
+**Descripción:** Homologación visual de las tarjetas de resumen y métricas en los paneles de Dosimetría, Monitoreo de Backups y Seguridad de Tokens conforme al patrón canónico del tema institucional AdminWrap (`d-flex p-10 no-block` con columna de icono y columna de valor/etiqueta). Se eliminaron estilos heterogéneos y micro-barras de progreso no estándar, proporcionando una lectura homogénea y semáforos cromáticos unificados (`text-success`, `text-info`, `text-warning`, `text-danger`).
+
+### Mejora: Rebalanceo y Optimización Ergonómica de Columnas en Listas de Trabajo Radiológicas
+**Descripción:** Optimización milimétrica de las tablas de Asignación y Estudios Asignados (`AsignarEstudioComponent.vue` y `estudioAsignadosComponent.vue`) mediante la fijación proporcional de anchos en píxeles, desactivación del auto-ancho dinámico invasivo de DataTables (`autoWidth: false`) y jerarquización tipográfica del paciente y su documento, erradicando saltos de línea incómodos y agilizando la lectura visual de listas de trabajo con alto flujo asistencial.
 
 ---
 

@@ -37,6 +37,40 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-04 — Creación del Roadmap Estratégico y Arquitectura Futura (`ROADMAP.md`, `README.md`):**
+  - **Diagnóstico y Necesidad:** El usuario solicitó un análisis holístico actuando como Arquitecto de Software Principal y Estratega de Producto especializado en Informática Médica (RIS/PACS/HIS), estructurado en dos bloques (Mejoras Arquitectónicas & SecOps y Nuevas Funcionalidades Clínicas/Producto) con matriz de impacto vs. esfuerzo y plasmado en un documento maestro.
+  - **Acciones Realizadas:**
+    * *Generación de `ROADMAP.md`:* Elaboración de un documento de arquitectura integral con diagnóstico del estado del arte de LIDiag, matriz de Impacto vs. Esfuerzo (Quick Wins, Core Upgrades, Fill-Ins, Moonshots), propuestas arquitectónicas (desacople a colas Redis/Horizon, Outbox Pattern transaccional y Circuit Breaker para HIS/PACS, cifrado en reposo PHI con Blind Indexing, auditoría inmutable con Hash Chaining, 2FA/TOTP), innovaciones asistenciales (detección de hallazgos críticos asistida por LLM, informes estructurados RSNA, visor DICOM zero-footprint OHIF v3 + Cornerstone3D, RIPS JSON Res. 2275, portal web del paciente vía token temporal de WhatsApp), cronograma táctico de ejecución por fases (Q1-Q4 bajo ciclo PHVA) y métricas de éxito (TAT, Uptime, P95).
+    * *Vinculación en `README.md`:* Incorporado enlace destacado al nuevo `ROADMAP.md` en la sección de Documentación del Código.
+  - **Verificaciones:** Formateo Markdown estricto y enlaces validados ✅.
+
+- [x] **2026-11-04 — Restauración de DB de Producción, Auditoría Exhaustiva de Dosimetría e Incorporación de Mejoras en el Informe Gerencial (`INFORME_ACTUALIZACIONES_GERENCIA.md`):**
+  - **Diagnóstico y Necesidad:**
+    * El usuario solicitó restaurar el respaldo de base de datos de producción (`Backups LIDIAG Produc 04-11-2026 Tarde.sql`, 376 MB) para auditar a fondo el módulo de dosimetría médica y plasmar el diagnóstico y la hoja de ruta estratégica en el informe para la alta gerencia (`docs/INFORME_ACTUALIZACIONES_GERENCIA.md`).
+  - **Resultados de la Auditoría Cuantitativa:**
+    * 53.176 mediciones dosimétricas, 36.516 pacientes únicos seudonimizados y 19 equipos emisores auto-descubiertos en 3 sedes (Espinal: 31.225, Chaparral: 21.172, Ibagué: 779).
+    * Se identificó que la tabla `medicion_dosis_umbrales_nrd` se encuentra desierta en producción (0 registros), impidiendo disparar alertas reales NRD y dejando el modal del catálogo vacío.
+    * Se constató que falta la columna `region_anatomica` en los umbrales NRD para admitir límites diferenciados (cráneo vs. tórax).
+    * Se detectó la ausencia de registros DLP en tomografía (el agente consultaba el tag de rayos X DAP).
+    * Se evidenció que el factor de conversión de Dosis Efectiva Media $E$ para DAP (`0.001`) está subestimado frente al estándar ICRP 103 ($0.12 - 0.26$).
+  - **Actualización Documental Realizada:**
+    * Se enriqueció la Sección 4 (*Control de Radiación y Dosimetría del Paciente*) de `docs/INFORME_ACTUALIZACIONES_GERENCIA.md` incorporando:
+      - Las mejoras recientes implementadas: Rediseño AdminWrap, Calibración de Machine Drift sin falsos positivos, Dead Man's Switch y transmisión tolerante a fallos.
+      - El balance y volumetría real de producción (Sección 4.1).
+      - La hoja de ruta estratégica dividida en Fase 1 (Calibración física y regulatoria: seeder NRD, umbrales por región, calibración $E$ ICRP y captura DLP), Fase 2 (Herramientas clínicas: Pasaporte Dosimétrico del Paciente, Gestor biomédico de salas/tubos y alertas Telegram), y Fase 3 (Acreditación: SSDE pediátrico y Certificado oficial de dosimetría en PDF con validación QR).
+  - **Verificaciones:**
+    * Terminaciones LF sin BOM validadas ✅.
+
+- [x] **2026-11-04 — Resolución de Autenticación HTTP 401 y Validación en Campo del Agente de Dosimetría (Sede 4 - Chaparral):**
+  - **Diagnóstico y Reporte en Producción:**
+    * Al ejecutar el agente en el servidor hospitalario de Chaparral (`python agente_dosimetria.py --sin-limite`), el ciclo de extracción DICOM y la cola SQLite concluyeron de forma impecable (40 estudios evaluados, 0 pendientes), pero el latido final arrojó `[WARNING] [HEARTBEAT] Central respondió con HTTP 401 al latido`.
+    * **Causa Raíz:** Desincronización del token Bearer de Sanctum en `C:\agente_backups_dcm\config.json` de la sede respecto a la tabla `personal_access_tokens` en Central (`https://lidiag.com`).
+  - **Solución y Validación Operativa:**
+    * Se instruyó la sincronización del token mediante el panel de seguridad institucional (`https://lidiag.com/seguridad-tokens`) para la Sede 4 (Chaparral).
+    * Al actualizar el `api_token` en `config.json` y relanzar el agente, Central validó exitosamente las credenciales respondiendo HTTP 200:
+      `[INFO] [HEARTBEAT] Latido emitido con éxito a Central (https://lidiag.com/api/dosimetria/heartbeat). Pendientes en cola: 0.`
+    * Se confirmó la operatividad en vivo del Dead Man's Switch y la telemetría periódica en el servidor central.
+
 - [x] **2026-11-04 — Actualización Integral de Documentación Arquitectónica y Dosimétrica (`README.md`, `README_DOSIMETRIA.md`):**
   - **Diagnóstico y Necesidad:**
     * Tras el rediseño del Dashboard de Dosimetría con estándar nativo AdminWrap y la calibración clínica del detector de deriva técnica (*Machine Drift Detection*), era indispensable sincronizar la documentación técnica central y el manual del agente Edge de dosimetría para los ingenieros y físicos médicos.
