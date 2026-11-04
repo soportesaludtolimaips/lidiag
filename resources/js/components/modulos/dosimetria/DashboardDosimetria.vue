@@ -1522,7 +1522,15 @@
  * @date 2026-11-03
  */
 
-import { ref, reactive, computed, onMounted, onBeforeUnmount, getCurrentInstance } from "vue";
+import {
+    ref,
+    reactive,
+    computed,
+    onMounted,
+    onBeforeUnmount,
+    nextTick,
+    getCurrentInstance,
+} from "vue";
 import axios from "axios";
 import { Bar, Line, Doughnut, Radar } from "vue-chartjs";
 import {
@@ -1633,6 +1641,16 @@ const matrizRiesgo = ref([]);
 // Estado y filtros para visualización agrupada y colapsable de alertas
 const mostrarTodasCriticas = ref(false);
 const mostrarTodasPreventivas = ref(false);
+
+function toggleTodasCriticas() {
+    mostrarTodasCriticas.value = !mostrarTodasCriticas.value;
+    inicializarTooltips();
+}
+
+function toggleTodasPreventivas() {
+    mostrarTodasPreventivas.value = !mostrarTodasPreventivas.value;
+    inicializarTooltips();
+}
 
 const alertasCriticas = computed(() => alertas.value.filter((a) => a.gravedad === "PELIGRO_NRD"));
 const alertasPreventivas = computed(() =>
@@ -2213,6 +2231,7 @@ async function cargarDatos() {
         console.error("Error al cargar telemetría de dosimetría:", error);
     } finally {
         loading.value = false;
+        inicializarTooltips();
     }
 }
 
@@ -2224,6 +2243,27 @@ function limpiarFiltros() {
     filtros.fecha_desde = "";
     filtros.fecha_hasta = "";
     cargarDatos();
+}
+
+/**
+ * Inicializa y refresca los tooltips interactivos de Bootstrap 4 (AdminWrap).
+ * Se ejecuta dentro de nextTick para garantizar que el DOM reactivo de Vue esté renderizado.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-04
+ */
+function inicializarTooltips() {
+    nextTick(() => {
+        if (typeof window !== "undefined" && window.$ && window.$.fn && window.$.fn.tooltip) {
+            window.$(".tooltip").remove();
+            window.$('[data-toggle="tooltip"]').tooltip("dispose");
+            window.$('[data-toggle="tooltip"]').tooltip({
+                container: "body",
+                boundary: "window",
+                trigger: "hover",
+            });
+        }
+    });
 }
 
 /**
@@ -2273,11 +2313,35 @@ onMounted(() => {
     }
 
     cargarDatos();
+    inicializarTooltips();
 });
 
 onBeforeUnmount(() => {
+    if (typeof window !== "undefined" && window.$ && window.$.fn && window.$.fn.tooltip) {
+        window.$(".tooltip").remove();
+        window.$('[data-toggle="tooltip"]').tooltip("dispose");
+    }
     if (emitter) {
         emitter.off("sedeSeleccionada", onSedeSeleccionada);
     }
 });
 </script>
+
+<style>
+/* ============================================================== */
+/* Tooltips Interactivos de AdminWrap para Dosimetría              */
+/* ============================================================== */
+.tooltip {
+    pointer-events: none;
+}
+.tooltip-inner {
+    max-width: 380px;
+    text-align: left;
+    white-space: pre-line;
+    padding: 8px 12px;
+    font-size: 12px;
+    line-height: 1.45;
+    border-radius: 4px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+}
+</style>

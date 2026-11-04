@@ -108,6 +108,32 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * ESLint y Prettier 0 errores (`npx eslint`) ✅.
     * Compilación de producción Vite completada en 1.39s (`npm run build`) ✅.
 
+- [x] **2026-11-04 — Adaptación Integral de Tooltips Interactivos de AdminWrap (`DashboardDosimetria.vue`):**
+  - **Diagnóstico y Solicitud del Usuario:**
+    * El usuario solicitó: *"mira los tooltip de la plantilla file:///C:/laragon/www/lidiag/Documentos/Plantilla%20lidiag/mini-sidebar/ui-tooltip-popover.html. Adaptemos estos, los de leccion Interactive demo"*.
+    * En `DashboardDosimetria.vue`, varios botones (Exportar Excel, Refrescar, Catálogo NRD, Limpiar Filtros) y celdas interactivas (badges de Dead Man's Switch, celdas del Mapa de Calor, badges RDSR y Hashes) o bien usaban el tooltip nativo del navegador (`title="..."` sin atributos `data-toggle="tooltip"` / `data-placement="..."`) o bien no se inicializaban porque el plugin de Bootstrap 4 (`$('[data-toggle="tooltip"]').tooltip()`) en `custom.js` solo se ejecuta una vez al cargar el documento jQuery, omitiendo elementos reactivos montados por Vue 3.
+  - **Solución Implementada:**
+    * **1. Estructura HTML conforme a la demo interactiva de AdminWrap (`mini-sidebar/ui-tooltip-popover.html`):**
+      - **Botones de encabezado:** Adaptados con `data-toggle="tooltip"` y `data-placement="bottom"` (*Exportar Excel, Refrescar, Catálogo NRD*).
+      - **Monitor Dead Man's Switch:** Adaptadas las píldoras de estado de cada sede con `data-toggle="tooltip"`, `data-placement="bottom"`, y `style="cursor: help"`.
+      - **Alertas clínicas y deriva técnica:** Botones de alternancia de vista colapsable ("Ver Menos" / "Ver Todas") con `data-toggle="tooltip"` y `data-placement="left"`, e icono de información en cabecera de Machine Drift.
+      - **Filtros de búsqueda:** Botón de limpieza de filtros con `data-toggle="tooltip"` y `data-placement="top"`.
+      - **Resumen de campaña:** 4 tarjetas de métricas clave (*Dosis Media, Conformidad Segura, Alerta, Exceso NRD*) con `data-toggle="tooltip"` y `data-placement="top"`.
+      - **Mapa de Calor (Matriz de Riesgo):** Celdas de las 7 regiones corporales (*Cráneo, Tórax, Abdomen, Pelvis, Columna, Extremidades, Mama*) adaptadas con `data-toggle="tooltip"` y `data-placement="top"`, además de la tasa de conformidad y la etiqueta de nivel de riesgo institucional.
+      - **Telemetría Edge en vivo:** Etiquetas DICOM RDSR y códigos de Patient ID anonimizado adaptados con `data-toggle="tooltip"` y `data-placement="top"`.
+    * **2. Ciclo de Vida Reactivo de Vue 3 (`nextTick`):**
+      - Se implementó la función `inicializarTooltips()` que limpia tooltips huérfanos (`$('.tooltip').remove()`), destruye instancias previas (`tooltip('dispose')`) y reinicializa los tooltips de Bootstrap 4 mediante `nextTick()`.
+      - Se invoca dinámicamente en:
+        * `onMounted()`: al montar el dashboard.
+        * `cargarDatos().finally`: tras recibir nueva telemetría y renderizar las tablas/gráficas.
+        * `toggleTodasCriticas()` y `toggleTodasPreventivas()`: al expandir/colapsar alertas.
+      - Se destruyen e invalidan limpiamente en `onBeforeUnmount()` previniendo fugas de memoria en el DOM.
+    * **3. Tipografía y Estilo de Tooltip:**
+      - Bloque de estilo con `.tooltip-inner { max-width: 380px; text-align: left; white-space: pre-line; padding: 8px 12px; }` para renderizar con formato legible los tooltips técnicos y normativos multilínea de la Resolución 482 y las recomendaciones ICRP 103/135.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% pasados (`npx eslint`) ✅.
+    * Compilación Vite completada exitosamente (`npm run build` en 1.26s) ✅.
+
 - [x] **2026-11-04 — Implementación Integral del Mapa de Calor Dosimétrico (Web & Excel) y Mejoras Clínicas/Normativas (`DashboardDosimetria.vue`, `DosimetriaService.php`, `DosimetriaExport.php`, `DosimetriaEstadisticasSheet.php`, `DosimetriaMatrizRiesgoSheet.php`, `DosimetriaDetalleSheet.php`):**
   - **Diagnóstico y Solicitud del Usuario:**
     * El usuario solicitó: *"Analiza si sería buena práctica implementar un mapa de calor"*, seguido de: *"Ten en cuenta las mejoras que hemos adoptado e implementémoslas en el reporte de Excel"* y *"Sí, implementa el mapa de calor"*.
