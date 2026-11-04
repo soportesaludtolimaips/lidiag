@@ -239,10 +239,11 @@
                     class="label label-warning m-r-5 m-b-5"
                 >
                     <strong>{{ ad.equipo_nombre }}</strong> ({{ ad.nom_sede }}) |
-                    {{ ad.tipo_metrica }}: +{{ ad.cambio_porcentaje }}% ({{
-                        ad.media_inicial
-                    }}
-                    &rarr; {{ ad.media_reciente }} {{ ad.unidad_medida }})
+                    {{ ad.tipo_metrica }}: +{{ ad.cambio_porcentaje }}%
+                    <span v-if="ad.delta_absoluto"
+                        >(+{{ ad.delta_absoluto }} {{ ad.unidad_medida }})</span
+                    >
+                    ({{ ad.media_inicial }} &rarr; {{ ad.media_reciente }} {{ ad.unidad_medida }})
                 </span>
             </div>
         </div>

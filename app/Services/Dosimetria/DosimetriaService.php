@@ -328,6 +328,7 @@ class DosimetriaService extends BaseService
             }
 
             // 6. Detección heurística de Deriva Técnica (Drift) en Equipos Emisores
+            // Filtrado clínico contra "sesgo de base pequeña" (scout views / topogramas < 1.0 mGy)
             $alertasDeriva = [];
             $diasPeriodo = $fechaDesde->diffInDays($fechaHasta);
             if ($diasPeriodo >= 14) {
@@ -339,25 +340,50 @@ class DosimetriaService extends BaseService
                     ->whereBetween('r.fecha_estudio', [$fechaDesde, $fechaHasta])
                     ->when($sedeId, fn ($q) => $q->where('r.sede_id', $sedeId))
                     ->when($modalidad, fn ($q) => $q->where('e.modalidad', $modalidad))
+                    ->where(function ($q) {
+                        $q->where(function ($sub) {
+                            $sub->where('r.tipo_metrica', 'CTDIvol')->where('r.valor_dosis', '>=', 1.0);
+                        })->orWhere(function ($sub) {
+                            $sub->where('r.tipo_metrica', 'DLP')->where('r.valor_dosis', '>=', 20.0);
+                        })->orWhere(function ($sub) {
+                            $sub->where('r.tipo_metrica', 'DGM')->where('r.valor_dosis', '>=', 0.4);
+                        })->orWhere(function ($sub) {
+                            $sub->where('r.tipo_metrica', 'DAP')->where('r.valor_dosis', '>=', 0.05);
+                        })->orWhereNotIn('r.tipo_metrica', ['CTDIvol', 'DLP', 'DGM', 'DAP']);
+                    })
                     ->select(
                         'r.equipo_emisor_id',
                         'e.nombre as equipo_nombre',
                         'e.modalidad',
                         's.nom_sede',
                         'r.tipo_metrica',
+                        'r.unidad_medida',
                         DB::raw("ROUND(AVG(CASE WHEN r.fecha_estudio < '{$puntoCorte->format('Y-m-d H:i:s')}' THEN r.valor_dosis ELSE NULL END), 2) as media_inicial"),
                         DB::raw("ROUND(AVG(CASE WHEN r.fecha_estudio >= '{$puntoCorte->format('Y-m-d H:i:s')}' THEN r.valor_dosis ELSE NULL END), 2) as media_reciente"),
-                        DB::raw('COUNT(*) as total_disparos'),
-                        'r.unidad_medida'
+                        DB::raw("COUNT(CASE WHEN r.fecha_estudio < '{$puntoCorte->format('Y-m-d H:i:s')}' THEN 1 ELSE NULL END) as disparos_iniciales"),
+                        DB::raw("COUNT(CASE WHEN r.fecha_estudio >= '{$puntoCorte->format('Y-m-d H:i:s')}' THEN 1 ELSE NULL END) as disparos_recientes"),
+                        DB::raw('COUNT(*) as total_disparos')
                     )
                     ->groupBy('r.equipo_emisor_id', 'e.nombre', 'e.modalidad', 's.nom_sede', 'r.tipo_metrica', 'r.unidad_medida')
-                    ->having('total_disparos', '>=', 5)
+                    ->having('disparos_iniciales', '>=', 3)
+                    ->having('disparos_recientes', '>=', 3)
                     ->get();
 
                 foreach ($equiposDosis as $eq) {
                     if ($eq->media_inicial && $eq->media_reciente && (float) $eq->media_inicial > 0) {
-                        $porcentajeCambio = round((((float) $eq->media_reciente - (float) $eq->media_inicial) / (float) $eq->media_inicial) * 100, 1);
-                        if ($porcentajeCambio >= 20.0) {
+                        $deltaAbsoluto = round((float) $eq->media_reciente - (float) $eq->media_inicial, 3);
+                        $porcentajeCambio = round(($deltaAbsoluto / (float) $eq->media_inicial) * 100, 1);
+
+                        // Umbral clínico absoluto según métrica para erradicar ruido estadístico
+                        $umbralDeltaMinimo = match ($eq->tipo_metrica) {
+                            'CTDIvol' => 1.5,
+                            'DLP' => 25.0,
+                            'DGM' => 0.3,
+                            'DAP' => 0.04,
+                            default => 0.1,
+                        };
+
+                        if ($porcentajeCambio >= 20.0 && $deltaAbsoluto >= $umbralDeltaMinimo) {
                             $alertasDeriva[] = [
                                 'equipo_nombre' => $eq->equipo_nombre,
                                 'nom_sede' => $eq->nom_sede,
@@ -365,9 +391,12 @@ class DosimetriaService extends BaseService
                                 'tipo_metrica' => $eq->tipo_metrica,
                                 'media_inicial' => (float) $eq->media_inicial,
                                 'media_reciente' => (float) $eq->media_reciente,
+                                'delta_absoluto' => $deltaAbsoluto,
                                 'cambio_porcentaje' => $porcentajeCambio,
                                 'unidad_medida' => $eq->unidad_medida,
-                                'mensaje' => "El equipo {$eq->equipo_nombre} ({$eq->nom_sede}) registra un incremento del {$porcentajeCambio}% en {$eq->tipo_metrica} (de {$eq->media_inicial} a {$eq->media_reciente} {$eq->unidad_medida}), lo que sugiere posible descalibración o fatiga del tubo.",
+                                'disparos_iniciales' => (int) $eq->disparos_iniciales,
+                                'disparos_recientes' => (int) $eq->disparos_recientes,
+                                'mensaje' => "El equipo {$eq->equipo_nombre} ({$eq->nom_sede}) registra un incremento atípico del {$porcentajeCambio}% (+{$deltaAbsoluto} {$eq->unidad_medida}) en {$eq->tipo_metrica} (de {$eq->media_inicial} a {$eq->media_reciente} {$eq->unidad_medida}), sugiriendo posible descalibración o fatiga del tubo.",
                             ];
                         }
                     }

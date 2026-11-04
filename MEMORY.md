@@ -37,6 +37,24 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-04 — Calibración Clínica del Detector de Deriva Técnica de Tubos Emisores (Machine Drift) (`DosimetriaService.php`, `DashboardDosimetria.vue`):**
+  - **Diagnóstico y Análisis Radiológico:**
+    * El usuario reportó una alerta en el dashboard: *"Alerta Predictiva de Deriva Técnica (Machine Drift Detection) — Equipo CT - CT140914 (Chaparral - Hospital San Juan Bautista) | CTDIvol: +60% (0.2 -> 0.32 mGy)"*.
+    * **Causa Raíz:** Se identificó un falso positivo por "sesgo de base pequeña" (*small base bias*). En tomografía (CT), dosis de $0.20$ a $0.32\text{ mGy}$ corresponden a topogramas o scout views de posicionamiento (no a cortes axiales/helicoidales diagnósticos, que rondan $10 - 60\text{ mGy}$). Una variación de $+60\%$ sobre una base tan baja representa un delta insignificante de apenas $0.12\text{ mGy}$, generado por ruido estadístico o disparos residuales.
+  - **Solución Implementada:**
+    * **Backend (`DosimetriaService.php`):**
+      - Se incorporó un filtro de suelo de ruido (*noise floor*) en la consulta SQL para descartar topogramas o disparos en vacío irrelevantes para drift general (`CTDIvol >= 1.0 mGy`, `DLP >= 20.0 mGy·cm`, `DGM >= 0.4 mGy`, `DAP >= 0.05 Gy·cm²`).
+      - Se exigió un mínimo estadístico de al menos 3 disparos en cada mitad temporal del periodo analizado (`disparos_iniciales >= 3`, `disparos_recientes >= 3`).
+      - Se agregó validación de umbral clínico absoluto ($\Delta$ mínimo): para CTDIvol $\Delta \ge 1.5\text{ mGy}$, DLP $\Delta \ge 25\text{ mGy·cm}$, DGM $\Delta \ge 0.3\text{ mGy}$ y DAP $\Delta \ge 0.04\text{ Gy·cm²}$, erradicando falsas alarmas por variaciones despreciables.
+      - Se enriqueció la estructura de `alertasDeriva` con `delta_absoluto`, `disparos_iniciales` y `disparos_recientes`.
+    * **Frontend (`DashboardDosimetria.vue`):**
+      - Se actualizó el badge de alerta de deriva para reflejar el incremento porcentual y el delta absoluto en su unidad de medida.
+  - **Verificaciones:**
+    * Laravel Pint validado al 100% passed (`vendor\bin\pint --test`) ✅.
+    * ESLint en `DashboardDosimetria.vue` validado con 0 errores ✅.
+    * Compilación Vite completada sin errores (`npm run build` en 1.31s) ✅.
+    * Formato LF verificado sin BOM ✅.
+
 - [x] **2026-11-04 — Desacoplamiento y Modularización de Documentación de Agentes PACS y Dosimetría por Sede (`README.md`, `README_BACKUP_DB.md`, `README_SYNC_IMAGENES.md`, `README_DOSIMETRIA.md`, `README_RESTORE_IMAGENES.md`):**
   - **Diagnóstico y Solicitud del Usuario:**
     * El usuario solicitó separar la documentación del paquete de agentes (que se encontraba condensada en un solo `README.md` masivo) en manuales dedicados e independientes para cada uno de los cuatro agentes/servicios, facilitando el despliegue, consulta y resolución de incidentes en sedes hospitalarias.
