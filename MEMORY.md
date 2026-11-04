@@ -37,6 +37,22 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-04 — Fase 1 de Optimización de Reportes del Bot de Telegram (Consistencia de Datos, TAT Clínico Real, Semáforo Escalonado y Monitor de Discos en Vivo) (`TelegramBotHandlerService.php`):**
+  - **Diagnóstico y Problemas de Consistencia Detectados:**
+    * **TAT Distorsionado:** El tiempo promedio de lectura se calculaba con `estudios.created_at` (fecha de inserción técnica en la BD web de LIDiag), ignorando que un estudio tomado hace 17 horas y sincronizado hoy arrojaba un TAT falso de 30 minutos, cuando el paciente y hospital esperaron 17 horas y media.
+    * **Ambigüedad Procedimientos vs. Pacientes:** El reporte decía `Total Estudios Leídos: X`, contando filas de `estudios_productos` (partes/procedimientos). Al contrastar con pacientes únicos, generaba discrepancias con la gerencia.
+    * **Semáforo Plano (>24h):** Todos los estudios atrasados caían en una sola bolsa global sin diferenciar urgencias inmediatas de mora de 5 días con riesgo de glosa.
+    * **Comando `/dd` Inerte:** Respondía con un texto fijo sin consultar el almacenamiento del servidor ni los agentes de las sedes.
+  - **Solución Implementada:**
+    * **Cálculo de TAT Clínico Real:** Se sustituyó `created_at` por `COALESCE(estudios.fec_estudio, estudios.created_at)`, filtrando outliers extremos (>45 días o fechas futuras) y calificando semánticamente con badges: `🟢 Excelente (<2h)`, `🟢 Óptimo (<12h)`, `🟡 Aceptable (<24h)` o `🔴 Demorado (>24h)`.
+    * **Desglose Dual en `/red` y `/produccion`:** Se calcula y muestra simultáneamente `COUNT(estudios_productos.id)` (procedimientos) y `COUNT(DISTINCT estudios.id)` (pacientes únicos), e.g.: `Procedimientos Leídos: 4,651 (en 3,977 pacientes)`.
+    * **Semáforo Asistencial Escalonado en `/retrasados`:** Se dividió el represamiento en 3 bandas operativas: 🟡 24h a 48h (Preventivo), 🟠 48h a 72h (Crítico) y 🔴 >72 horas (Severo / Riesgo de Glosa), detallando además urgencias pendientes con más de 30 minutos de espera.
+    * **Monitoreo Vivo en `/dd`:** Se implementó `processDiscosCommand()`, el cual mide el espacio libre y usado del servidor central (disco C:\ y repositorio storage con barras de progreso) y consulta en tiempo real la salud de los agentes Edge y backups de cada hospital mediante `TokenSedeService`.
+    * **Orientación Operativa en `/citas`:** Se incorporó el bloque de citas programadas para atención **HOY** (atendidas, confirmadas y canceladas) y la tasa de conversión efectiva del canal WhatsApp.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) 100% passed ✅.
+    * Pruebas de consola ejecutadas con mock de Telegram validando el formato de salida de `/retrasados`, `/red`, `/dd` y `/citas` ✅.
+    * Suite automatizada completa de pruebas PHPUnit (53 tests, 230 aserciones) ejecutada y pasando al 100% ✅.
 - [x] **2026-11-04 — Calibración Clínica del Detector de Deriva Técnica de Tubos Emisores (Machine Drift) (`DosimetriaService.php`, `DashboardDosimetria.vue`):**
   - **Diagnóstico y Análisis Radiológico:**
     * El usuario reportó una alerta en el dashboard: *"Alerta Predictiva de Deriva Técnica (Machine Drift Detection) — Equipo CT - CT140914 (Chaparral - Hospital San Juan Bautista) | CTDIvol: +60% (0.2 -> 0.32 mGy)"*.

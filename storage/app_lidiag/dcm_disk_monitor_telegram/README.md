@@ -1,6 +1,6 @@
 # 🤖 Monitor de Espacio en Discos DICOM con Bot de Telegram
 
-Sistema autónomo en Python (100% librería estándar, **sin necesidad de `pip install`**) para vigilar el almacenamiento de los servidores de imágenes diagnósticas (PACS / dcm4chee) en las diferentes sedes hospitalarias.
+Sistema autónomo en Python (100% librería estándar, **sin necesidad de `pip install`**) para vigilar el almacenamiento de los servidores de imágenes diagnósticas (PACS / dcm4chee) en las diferentes sedes hospitalarias de LIDiag.
 
 ---
 
@@ -8,100 +8,82 @@ Sistema autónomo en Python (100% librería estándar, **sin necesidad de `pip i
 
 1. **Alertas Proactivas Automáticas:**
    - 🟡 **Advertencia:** Al bajar del 15% libre o menos de 50 GB.
-   - 🔴 **Crítico:** Al bajar del 5% libre o menos de 20 GB (riesgo de rechazo C-STORE en PACS).
+   - 🔴 **Crítico:** Al bajar del 5% libre o menos de 20 GB (riesgo inminente de rechazo C-STORE en PACS).
    - ✅ **Recuperación:** Notificación automática cuando se libera espacio en el repositorio.
-2. **Control Anti-Spam (Cooldown):**
-   - Si un disco entra en estado crítico, alerta de inmediato y luego solo recuerda cada 4 horas mientras siga lleno, evitando saturar el chat.
-3. **Bot Interactivo de Telegram (Comandos):**
-   - Escribe `/discos` o `/estado` desde tu celular para recibir el reporte visual con barras de progreso y porcentaje de uso.
-   - `/alertas` para ver umbrales y estado de riesgo.
-   - `/info` para ver IP, hostname y datos técnicos del servidor.
-4. **Multidestinatario:**
-   - Puede notificar simultáneamente a tu chat personal y a un **Grupo de Telegram** donde esté el equipo de TI e ingeniería.
-5. **Cero Dependencias Externas:**
-   - Utiliza exclusivamente módulos nativos de Python 3.7+ (`urllib`, `shutil`, `json`, `threading`). Corre en cualquier Windows Server sin compilar nada.
+2. **Control Anti-Spam Inteligente (Cooldown):**
+   - Si un disco entra en estado crítico, alerta de inmediato y luego solo recuerda periódicamente (por defecto cada 4 horas mientras persista la condición), evitando saturar el chat asistencial.
+3. **Bot Interactivo de Telegram (Comandos en Tiempo Real):**
+   - Consulta el estado en cualquier momento desde tu teléfono con `/discos` o `/estado`.
+   - Recibe tarjetas visuales con barras de progreso, espacio usado, libre y porcentajes exactos.
+4. **Multidestinatario (Personal y Grupos):**
+   - Notifica simultáneamente a chats individuales (ingenieros/coordinadores) y a **Grupos de Telegram** de soporte asistencial o infraestructura TI.
+5. **Reporte Diario Matutino:**
+   - Resumen consolidado automático a las 08:00 AM con el estado de todas las unidades monitoreadas.
+6. **Cero Dependencias Externas:**
+   - Construido 100% sobre módulos nativos de Python 3.7+ (`urllib`, `shutil`, `json`, `threading`, `socket`). Funciona de inmediato en Windows Server sin compilar ni instalar paquetes adicionales.
 
 ---
 
-## 🚀 Guía Paso a Paso para Ponerlo en Marcha
+## ⚡ Puesta en Marcha Rápida (En 3 Pasos)
 
 ### Paso 1: Crear el Bot en Telegram con @BotFather
 
-1. Abre la aplicación de **Telegram** en tu celular o computador.
-2. En la barra de búsqueda busca a **`@BotFather`** (el bot oficial con la insignia azul de verificado).
-3. Escribe el comando:
+1. En Telegram, busca a **`@BotFather`** (cuenta oficial verificada con insignia azul).
+2. Envía el comando `/newbot`.
+3. Asigna un nombre (ej. `LIDiag Monitor PACS Honda`) y un usuario que termine en `bot` (ej. `lidiag_pacs_honda_bot`).
+4. BotFather te entregará un **Token HTTP API** con el formato:
    ```text
-   /newbot
+   1234567890:ABCdefGHIjklMNOpqrSTUvwxYZ_ejemplo
    ```
-4. BotFather te pedirá un nombre amigable para tu bot. Por ejemplo:
-   ```text
-   Monitor PACS LIDiag
-   ```
-5. Luego te pedirá un **username** único que termine en `bot`. Por ejemplo:
-   ```text
-   lidiag_pacs_monitor_bot
-   ```
-6. **¡Listo!** BotFather te entregará un mensaje con el **Token de la API** (algo similar a: `789654123:AAFnk9s-AbcDeFgHiJkLmNoPqRsTuVwXyZ`). **Copia este Token**.
+5. Guarda este Token.
+
+### Paso 2: Ejecutar el Asistente Interactivo
+
+En la carpeta del monitor, haz doble clic sobre:
+```cmd
+configurar.bat
 ```
-Done! Congratulations on your new bot. You will find it at t.me/salud_tolima_bot. You can now add a description, about section and profile picture for your bot, see /help for a list of commands. By the way, when you've finished creating your cool bot, ping our Bot Support if you want a better username for it. Just make sure the bot is fully operational before you do this.
+*(O ejecuta en consola: `python configurar_interactivo.py`)*
 
-Use this token to access the HTTP API:
-8853202216:AAENnF7kYv9j0pgRDLMgeQuICAnIN44ltKs
-Keep your token secure and store it safely, it can be used by anyone to control your bot.
-```
----
+El asistente automático:
+- 🔍 Detectará las unidades de disco presentes en el servidor (`C:\`, `D:\`, etc.).
+- 🏥 Te solicitará el nombre de la sede y el identificador del servidor.
+- 🔑 Validará tu Token de Telegram en tiempo real.
+- 💬 Detectará automáticamente tu **Chat ID** (o el de un grupo).
+- 💾 Creará el archivo `config.json` y enviará un mensaje de prueba a Telegram.
 
-### Paso 2: Crear el Archivo de Configuración
+### Paso 3: Poner en Marcha el Monitoreo
 
-En la carpeta del monitor:
-1. Haz una copia del archivo `config.json.example` y nómbrala **`config.json`**.
-2. Ábrelo con un editor de texto (Bloc de Notas, VS Code, etc.).
-3. Pega tu Token en la propiedad `bot_token`:
-   ```json
-   "telegram": {
-     "bot_token": "789654123:AAFnk9s-AbcDeFgHiJkLmNoPqRsTuVwXyZ",
-     "chat_ids": []
-   }
-   ```
+Elige una de las formas de ejecución según la necesidad del servidor:
+- **Para dejarlo corriendo 24/7 en segundo plano:** Doble clic en `iniciar_segundo_plano.bat`.
+- **Para registrarlo como servicio del sistema:** Clic derecho en `instalar_tarea_programada.bat` → *Ejecutar como Administrador*.
 
 ---
 
-### Paso 3: Obtener tu Chat ID (o el del Grupo)
+## 🛠️ Configuración Manual (`config.json`)
 
-1. Abre tu bot en Telegram (búscalo por su `@username` o haz clic en el enlace que te dio BotFather).
-2. Presiona el botón **INICIAR** (o envíale un mensaje cualquiera, ej: *"hola"*).
-   - *(Si vas a usar un Grupo de Telegram: crea el grupo, agrega al bot como miembro y escribe un mensaje en el grupo)*.
-3. En la carpeta del monitor, ejecuta el archivo:
-   ```cmd
-   obtener_chat_id.bat
-   ```
-   *(O por consola: `python dcm_disk_monitor.py --get-chat-ids`)*
-4. El script leerá el mensaje que enviaste y te mostrará en pantalla tu **Chat ID** (ej: `123456789` o un número negativo para grupos: `-100987654321`).
-5. Cópialo y pégalo en la lista `chat_ids` dentro de tu `config.json`:
-   ```json
-   "chat_ids": [
-     "123456789",
-     "-100987654321"
-   ]
-   ```
-
----
-
-### Paso 4: Configurar los Discos de la Sede
-
-Dentro de `config.json`, ajusta el nombre de la sede y las rutas que apliquen a ese servidor:
+Si prefieres configurar sin el asistente interactivo:
+1. Copia `config.json.example` y renómbralo como **`config.json`**.
+2. Estructura recomendada:
 
 ```json
 {
-  "SEDE": "Espinal - Hospital San Rafael",
-  "servidor_identificador": "SR-PACS-01",
+  "SEDE": "Honda - Hospital San Juan de Dios de Honda",
+  "servidor_identificador": "HONDA-PACS-01",
+  "telegram": {
+    "bot_token": "TU_TOKEN_DE_TELEGRAM_AQUI",
+    "chat_ids": [
+      "123456789",
+      "-100987654321"
+    ]
+  },
   "rutas_monitoreo": [
     {
       "nombre": "Disco del Sistema (OS)",
       "ruta": "C:\\"
     },
     {
-      "nombre": "Repositorio Imágenes DICOM",
+      "nombre": "Repositorio Imágenes DICOM (PACS)",
       "ruta": "D:\\img_dcm"
     }
   ],
@@ -120,56 +102,94 @@ Dentro de `config.json`, ajusta el nombre de la sede y las rutas que apliquen a 
 }
 ```
 
----
-
-### Paso 5: Probar el Envío
-
-Ejecuta en consola:
-```cmd
-python dcm_disk_monitor.py --test-telegram
-```
-Te llegará inmediatamente una notificación a Telegram confirmando que el bot está conectado y listo.
+> [!TIP]
+> Para obtener el Chat ID de tu cuenta o grupo manualmente:
+> 1. Escribe cualquier mensaje al bot en Telegram.
+> 2. Ejecuta `obtener_chat_id.bat` (o `python dcm_disk_monitor.py --get-chat-ids`).
+> 3. Copia el número resultante en la lista `chat_ids`.
 
 ---
 
-## ⚙️ Formas de Ejecución en los Servidores
+## 📂 Utilidades y Scripts Disponibles
 
-### Opción 1: Bot Residente 24/7 (Recomendado)
-- **Con ventana visible:** Ejecuta `iniciar_bot.bat` (o `python dcm_disk_monitor.py --daemon`).
-- **En segundo plano (sin ventana CMD):** Ejecuta `iniciar_segundo_plano.bat` (usa nativamente `pythonw.exe`).
-- **Para detener el servicio:** Ejecuta `detener_bot.bat`.
-
-**¿Qué hace este modo?**
-- Permite que desde Telegram le puedas pedir el estado en cualquier momento con `/discos`.
-- Revisa los discos cada 15 minutos en segundo plano y dispara la alerta al instante si detecta peligro.
-- Envía un reporte diario matutino automático a las 08:00 AM.
-
----
-
-### Opción 2: Tarea Programada de Windows (Task Scheduler)
-Si prefieres que no haya ninguna ventana abierta de fondo y solo revise los discos puntualmente:
-1. Haz clic derecho sobre **`instalar_tarea_programada.bat`** y selecciona **"Ejecutar como Administrador"**.
-2. El instalador registrará la tarea `LIDiag_DCM_Disk_Monitor` en el Programador de Tareas de Windows para ejecutarse cada 1 hora en silencio (`--check-once`).
+| Archivo `.bat` | Descripción |
+| :--- | :--- |
+| **`configurar.bat`** | Asistente interactivo paso a paso para configurar sede, discos y Telegram. |
+| **`verificar_estado.bat`** | Muestra de inmediato en consola el estado, barras y gigabytes libres de cada disco. |
+| **`iniciar_bot.bat`** | Inicia el monitor interactivo en una ventana de consola visible (útil para pruebas). |
+| **`iniciar_segundo_plano.bat`** | Inicia el bot como demonio residente silencioso (utiliza `pythonw.exe`). |
+| **`detener_bot.bat`** | Detiene de forma segura cualquier proceso del monitor en ejecución. |
+| **`instalar_tarea_programada.bat`** | Registra la tarea programada `LIDiag_DCM_Disk_Monitor` en Windows Task Scheduler. |
+| **`obtener_chat_id.bat`** | Consulta la API de Telegram y lista los usuarios y grupos que han escrito al bot. |
 
 ---
 
 ## 📱 Comandos del Bot en Telegram
 
-### 💾 Módulo de Discos Duros (PACS)
-| Comando | Descripción |
-| :--- | :--- |
-| `/dd` o `/disco` | Muestra tarjeta detallada con barras de uso, espacio libre y estado de cada disco del PACS |
-| `/dd_alertas` | Consulta los umbrales de alerta de disco configurados y el tiempo de cooldown |
-| `/dd_info` | Información técnica del servidor PACS (Hostname, IP local, versión de Python) |
-| `/ayuda` | Menú interactivo de ayuda general del bot |
+Puedes enviar estos comandos en cualquier momento desde un chat privado con el bot o en un grupo autorizado:
 
-*(Nota: Los comandos asistenciales de estadísticas de estudios y citas se integrarán en este mismo bot agrupados por su respectivo prefijo).*
+| Comando | Alias | Descripción |
+| :--- | :--- | :--- |
+| `/discos` | `/disco`, `/dd`, `/estado` | Muestra tarjeta visual detallada con barras de uso, espacio libre y estado de cada disco del PACS. |
+| `/alertas` | `/dd_alertas` | Muestra los umbrales configurados (advertencia/crítico) y el tiempo de cooldown. |
+| `/info` | `/dd_info` | Muestra información del servidor: Hostname, IP local, SO y versión de Python. |
+| `/ayuda` | `/help`, `/start` | Muestra el menú de bienvenida y los comandos disponibles. |
 
 ---
 
-## 📦 Distribución a las Sedes
+## 🔄 Formas de Ejecución en Servidores de Producción
 
-Para llevar esta herramienta a los servidores de cada hospital:
-1. Copia la carpeta `dcm_disk_monitor_telegram` en una memoria USB o descárgala en el servidor.
-2. Copia `config.json.example` a `config.json` y personaliza el nombre de la sede y las letras de unidad (`C:\`, `D:\img_dcm`, `E:\`, etc.).
-3. Ejecuta `iniciar_bot.bat` o `instalar_tarea_programada.bat`.
+### Opción A: Bot Residente 24/7 (Recomendado)
+- **Ejecución:** Doble clic en `iniciar_segundo_plano.bat`.
+- **Comportamiento:**
+  - Responde de inmediato a comandos `/discos` o `/estado` enviados desde Telegram.
+  - Monitorea los discos cada 15 minutos en segundo plano.
+  - Registra eventos y actividad en el archivo `dcm_monitor.log`.
+  - Dispara alertas instantáneas ante cruces de umbrales críticos o de advertencia.
+  - Emite el reporte diario a las 08:00 AM.
+- **Detención:** Doble clic en `detener_bot.bat`.
+
+### Opción B: Tarea Programada de Windows (Task Scheduler)
+- **Ejecución:** Clic derecho sobre `instalar_tarea_programada.bat` → **"Ejecutar como Administrador"**.
+- **Comportamiento:**
+  - Registra una tarea programada llamada `LIDiag_DCM_Disk_Monitor` en Windows.
+  - Se ejecuta periódicamente en modo silencioso (`--check-once`).
+  - Si el espacio de un disco está en umbral crítico o de advertencia, envía la alerta a Telegram y finaliza de inmediato sin consumir memoria de fondo.
+
+---
+
+## 🩺 Diagnóstico y Solución de Problemas (Troubleshooting)
+
+### 1. El script indica error de conexión o timeout con Telegram
+- **Causa:** En algunas redes hospitalarias cerradas con firewall estricto, las conexiones salientes por el puerto 443 a `api.telegram.org` pueden requerir salida IPv4 forzada o proxy corporativo.
+- **Verificación:** Ejecuta en la consola:
+  ```cmd
+  python dcm_disk_monitor.py --test-telegram
+  ```
+- Si tu red utiliza proxy corporativo, puedes definir las variables estándar de Windows antes de iniciar:
+  ```cmd
+  set HTTP_PROXY=http://proxy.hospital.local:8080
+  set HTTPS_PROXY=http://proxy.hospital.local:8080
+  ```
+
+### 2. `obtener_chat_id.bat` no muestra ningún mensaje
+- Abre Telegram, busca tu bot por su username y presiona el botón **INICIAR** (o envíale una palabra cualquiera como *"hola"*).
+- Si es para un grupo, asegúrate de que el bot haya sido añadido al grupo y que alguien haya escrito un mensaje en el grupo recientemente.
+- Vuelve a ejecutar `obtener_chat_id.bat`.
+
+### 3. Revisión de logs en segundo plano
+- Cuando el monitor corre en segundo plano con `pythonw.exe`, cualquier error o evento se guarda automáticamente en:
+  ```text
+  storage\app_lidiag\dcm_disk_monitor_telegram\dcm_monitor.log
+  ```
+
+---
+
+## 📦 Despliegue en Nuevas Sedes
+
+Para instalar este monitor en un nuevo servidor PACS:
+1. Copia toda la carpeta `dcm_disk_monitor_telegram` al servidor de la sede (ej. en `C:\servicios\dcm_disk_monitor_telegram\`).
+2. Abre la carpeta y ejecuta `configurar.bat`.
+3. Sigue las instrucciones del asistente en pantalla (2 minutos).
+4. Ejecuta `iniciar_segundo_plano.bat` o `instalar_tarea_programada.bat`.
+5. ¡Listo! El servidor quedará vigilado y enviará reportes y alertas a Telegram.

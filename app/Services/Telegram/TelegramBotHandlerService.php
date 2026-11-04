@@ -410,13 +410,7 @@ class TelegramBotHandlerService
             case "dd":
             case "disco":
             case "discos":
-                $this->telegramService->sendMessage(
-                    $chatId,
-                    "💾 <b>MONITOR DE DISCOS DUROS (PACS)</b>\n\n"
-                    ."Los repositorios DICOM son monitoreados por el agente autónomo en los servidores de cada hospital.\n\n"
-                    ."🔔 <i>Si un repositorio baja del 15% (advertencia) o del 5% (crítico), el bot te enviará una alerta automática inmediatamente.</i>\n\n"
-                    ."💡 Usa <code>/dd_alertas</code> para consultar los umbrales de riesgo."
-                );
+                $this->processDiscosCommand($chatId);
                 break;
 
             case "dd_alertas":
@@ -743,6 +737,25 @@ class TelegramBotHandlerService
             return;
         }
 
+        // Navegación: Monitor de Almacenamiento y Discos
+        if ($data === "wiz:dd") {
+            if ($callbackQueryId !== "") {
+                $this->telegramService->answerCallbackQuery($callbackQueryId, "💾 Consultando almacenamiento...", false);
+            }
+            $this->processDiscosCommand($chatId);
+
+            return;
+        }
+
+        if ($data === "wiz:dd_alertas") {
+            if ($callbackQueryId !== "") {
+                $this->telegramService->answerCallbackQuery($callbackQueryId);
+            }
+            $this->handleCommand($chatId, "/dd_alertas");
+
+            return;
+        }
+
         // Navegación: Citas WhatsApp
         if (str_starts_with($data, "wiz:citas:")) {
             $periodo = substr($data, 10);
@@ -959,7 +972,7 @@ class TelegramBotHandlerService
         // Resolución de fechas
         [$fechaInicio, $fechaFin, $etiquetaPeriodo] = $this->resolverRangoFechas($periodo, $fechaIniCustom, $fechaFinCustom);
 
-        // 1. Métricas: Total leídos
+        // 1. Métricas: Total procedimientos y pacientes únicos leídos
         $queryBase = DB::table("estudios_productos")
             ->join("estudios", "estudios_productos.estudio_id", "=", "estudios.id")
             ->where("estudios.sede_id", $sedeId)
@@ -969,7 +982,8 @@ class TelegramBotHandlerService
             ])
             ->where("estudios_productos.activo", 1);
 
-        $totalLeidos = (clone $queryBase)->count();
+        $totalProcedimientos = (clone $queryBase)->count();
+        $totalPacientes = (clone $queryBase)->distinct("estudios.id")->count("estudios.id");
 
         // 2. Métricas: Desglose por modalidad
         $modalidades = (clone $queryBase)
@@ -978,19 +992,20 @@ class TelegramBotHandlerService
             ->orderByDesc("cantidad")
             ->get();
 
-        // 3. Métricas: Producción por médico radiólogo
+        // 3. Métricas: Producción por médico radiólogo con porcentaje
         $medicos = (clone $queryBase)
             ->join("users as medico", "estudios.medico_id", "=", "medico.id")
             ->selectRaw("medico.name as medico_nombre, count(*) as cantidad")
-            ->groupBy("medico_nombre")
+            ->groupBy("medico.name")
             ->orderByDesc("cantidad")
             ->limit(5)
             ->get();
 
-        // 4. Métricas: Tiempo Promedio de Respuesta (TAT en minutos)
+        // 4. Métricas: Tiempo Promedio de Respuesta Real (TAT Clínico desde toma de estudio)
         $avgMinutos = (clone $queryBase)
-            ->whereNotNull("estudios.created_at")
-            ->selectRaw("AVG(TIMESTAMPDIFF(MINUTE, estudios.created_at, estudios_productos.fechor_lectura)) as avg_min")
+            ->whereRaw("COALESCE(estudios.fec_estudio, estudios.created_at) <= estudios_productos.fechor_lectura")
+            ->whereRaw("TIMESTAMPDIFF(DAY, COALESCE(estudios.fec_estudio, estudios.created_at), estudios_productos.fechor_lectura) <= 45")
+            ->selectRaw("AVG(TIMESTAMPDIFF(MINUTE, COALESCE(estudios.fec_estudio, estudios.created_at), estudios_productos.fechor_lectura)) as avg_min")
             ->value("avg_min");
 
         $tatTexto = "N/D";
@@ -999,7 +1014,9 @@ class TelegramBotHandlerService
             $horas = (int) floor($avgMinutos / 60);
             $mins = (int) round($avgMinutos % 60);
             $tatTexto = $horas > 0 ? "{$horas}h {$mins}m" : "{$mins}m";
-            if ($avgMinutos <= 720) {
+            if ($avgMinutos <= 120) {
+                $tatIcono = "🟢 (Excelente &lt;2h)";
+            } elseif ($avgMinutos <= 720) {
                 $tatIcono = "🟢 (Óptimo &lt;12h)";
             } elseif ($avgMinutos <= 1440) {
                 $tatIcono = "🟡 (Aceptable &lt;24h)";
@@ -1016,13 +1033,13 @@ class TelegramBotHandlerService
             ->where("estudios_productos.activo", 1)
             ->count();
 
-        // 6. Métricas: Pendientes represados con más de 24 horas sin informe
+        // 6. Métricas: Pendientes represados con más de 24 horas sin informe (fecha real)
         $represados24h = DB::table("estudios_productos")
             ->join("estudios", "estudios_productos.estudio_id", "=", "estudios.id")
             ->where("estudios.sede_id", $sedeId)
             ->whereNull("estudios_productos.fechor_lectura")
             ->where("estudios_productos.activo", 1)
-            ->whereRaw("TIMESTAMPDIFF(HOUR, estudios.created_at, NOW()) > 24")
+            ->whereRaw("TIMESTAMPDIFF(HOUR, COALESCE(estudios.fec_estudio, estudios.created_at), NOW()) > 24")
             ->count();
 
         // Construir mensaje resumen
@@ -1032,13 +1049,14 @@ class TelegramBotHandlerService
             $etiquetaPeriodo,
             $fechaInicio,
             $fechaFin,
-            $totalLeidos,
+            $totalProcedimientos,
             $modalidades,
             $medicos,
             $pendientes,
             $tatTexto,
             $tatIcono,
-            $represados24h
+            $represados24h,
+            $totalPacientes
         );
 
         // Teclado con botones de navegación rápida post-reporte
@@ -1137,7 +1155,8 @@ class TelegramBotHandlerService
                 "{$fechaFin} 23:59:59",
             ]);
 
-        $totalRedLeidos = (clone $queryBase)->count();
+        $totalRedProcedimientos = (clone $queryBase)->count();
+        $totalRedPacientes = (clone $queryBase)->distinct("estudios.id")->count("estudios.id");
 
         // Producción por sede
         $sedesData = (clone $queryBase)
@@ -1162,34 +1181,50 @@ class TelegramBotHandlerService
             ->where("estudios_productos.activo", 1)
             ->count();
 
-        // TAT promedio en la red
+        // TAT promedio clínico real en la red (desde fec_estudio)
         $avgMinutos = (clone $queryBase)
-            ->whereNotNull("estudios.created_at")
-            ->selectRaw("AVG(TIMESTAMPDIFF(MINUTE, estudios.created_at, estudios_productos.fechor_lectura)) as avg_min")
+            ->whereRaw("COALESCE(estudios.fec_estudio, estudios.created_at) <= estudios_productos.fechor_lectura")
+            ->whereRaw("TIMESTAMPDIFF(DAY, COALESCE(estudios.fec_estudio, estudios.created_at), estudios_productos.fechor_lectura) <= 45")
+            ->selectRaw("AVG(TIMESTAMPDIFF(MINUTE, COALESCE(estudios.fec_estudio, estudios.created_at), estudios_productos.fechor_lectura)) as avg_min")
             ->value("avg_min");
 
         $tatTexto = "N/D";
+        $tatIcono = "⚪";
         if ($avgMinutos !== null && $avgMinutos > 0) {
             $horas = (int) floor($avgMinutos / 60);
             $mins = (int) round($avgMinutos % 60);
             $tatTexto = $horas > 0 ? "{$horas}h {$mins}m" : "{$mins}m";
+            if ($avgMinutos <= 120) {
+                $tatIcono = "🟢 (Excelente &lt;2h)";
+            } elseif ($avgMinutos <= 720) {
+                $tatIcono = "🟢 (Óptimo &lt;12h)";
+            } elseif ($avgMinutos <= 1440) {
+                $tatIcono = "🟡 (Aceptable &lt;24h)";
+            } else {
+                $tatIcono = "🔴 (Retrasado &gt;24h)";
+            }
         }
+
+        $etiquetaProcedimientos = $totalRedPacientes > 0 && $totalRedPacientes !== $totalRedProcedimientos
+            ? "<b>{$totalRedProcedimientos}</b> <small>(en {$totalRedPacientes} pacientes)</small>"
+            : "<b>{$totalRedProcedimientos}</b>";
 
         // Construcción del texto
         $lineas = [
             "🌐 <b>CONSOLIDADO RED HOSPITALARIA — LIDIAG</b>",
             "📅 <b>Período:</b> {$etiquetaPeriodo}",
             "────────────────────────",
-            "🏥 <b>Total Estudios Leídos (Red):</b> <b>{$totalRedLeidos}</b>",
-            "⏱️ <b>Tiempo Promedio Lectura (TAT):</b> <b>{$tatTexto}</b>",
+            "🩺 <b>Procedimientos Leídos (Red):</b> {$etiquetaProcedimientos}",
+            "⏱️ <b>Tiempo de Respuesta (TAT Real):</b> <b>{$tatTexto}</b> {$tatIcono}",
         ];
 
-        if ($totalRedLeidos > 0) {
+        if ($totalRedProcedimientos > 0) {
             $lineas[] = "\n🏆 <b>Ranking de Producción por Sede:</b>";
             foreach ($sedesData as $s) {
                 $nomCorto = trim(explode("-", $s->nom_sede)[0]);
-                $barra = $this->generarBarraProgreso($s->cantidad, $totalRedLeidos, 7);
-                $lineas[] = "• <b>{$nomCorto}:</b>\n  <code>{$barra}</code> (<b>{$s->cantidad}</b>)";
+                $pct = round(($s->cantidad / max(1, $totalRedProcedimientos)) * 100, 1);
+                $barra = $this->generarBarraProgreso($s->cantidad, $totalRedProcedimientos, 7);
+                $lineas[] = "• <b>{$nomCorto}:</b> <b>{$s->cantidad}</b> ({$pct}%)\n  <code>{$barra}</code>";
             }
 
             $lineas[] = "\n🔬 <b>Modalidades en la Red:</b>";
@@ -1210,8 +1245,9 @@ class TelegramBotHandlerService
                     "US" => "Ecografía",
                     default => $m->mod_nombre,
                 };
-                $barraMod = $this->generarBarraProgreso($m->cantidad, $totalRedLeidos, 7);
-                $lineas[] = "  {$icono} {$nomMod}: <code>{$barraMod}</code> (<b>{$m->cantidad}</b>)";
+                $pctMod = round(($m->cantidad / max(1, $totalRedProcedimientos)) * 100, 1);
+                $barraMod = $this->generarBarraProgreso($m->cantidad, $totalRedProcedimientos, 7);
+                $lineas[] = "  {$icono} {$nomMod}: <b>{$m->cantidad}</b> ({$pctMod}%)\n  <code>{$barraMod}</code>";
             }
         } else {
             $lineas[] = "\nℹ️ <i>No se registraron lecturas en la red durante este período.</i>";
@@ -1255,20 +1291,27 @@ class TelegramBotHandlerService
     {
         $this->telegramService->sendChatAction($chatId, "typing");
 
-        // Represados (>24h) por sede
+        // Represados (>24h) escalonados por sede evaluados según fecha clínica real
         $represadosPorSede = DB::table("estudios_productos")
             ->join("estudios", "estudios_productos.estudio_id", "=", "estudios.id")
             ->join("config_sedes", "estudios.sede_id", "=", "config_sedes.id")
             ->where("config_sedes.estado", 1)
             ->whereNull("estudios_productos.fechor_lectura")
             ->where("estudios_productos.activo", 1)
-            ->whereRaw("TIMESTAMPDIFF(HOUR, estudios.created_at, NOW()) > 24")
-            ->selectRaw("config_sedes.id as sede_id, config_sedes.nom_sede, count(*) as cantidad")
+            ->whereRaw("TIMESTAMPDIFF(HOUR, COALESCE(estudios.fec_estudio, estudios.created_at), NOW()) > 24")
+            ->selectRaw("
+                config_sedes.id as sede_id,
+                config_sedes.nom_sede,
+                COUNT(*) as cantidad,
+                SUM(CASE WHEN TIMESTAMPDIFF(HOUR, COALESCE(estudios.fec_estudio, estudios.created_at), NOW()) BETWEEN 25 AND 48 THEN 1 ELSE 0 END) as rango_24_48,
+                SUM(CASE WHEN TIMESTAMPDIFF(HOUR, COALESCE(estudios.fec_estudio, estudios.created_at), NOW()) BETWEEN 49 AND 72 THEN 1 ELSE 0 END) as rango_48_72,
+                SUM(CASE WHEN TIMESTAMPDIFF(HOUR, COALESCE(estudios.fec_estudio, estudios.created_at), NOW()) > 72 THEN 1 ELSE 0 END) as rango_mas_72
+            ")
             ->groupBy("config_sedes.id", "config_sedes.nom_sede")
             ->orderByDesc("cantidad")
             ->get();
 
-        // Urgentes / Prioridad Alta pendientes
+        // Urgentes / Prioridad Alta pendientes evaluados con SLA de 30 minutos
         $urgentesPendientes = DB::table("estudios_productos")
             ->join("estudios", "estudios_productos.estudio_id", "=", "estudios.id")
             ->join("config_sedes", "estudios.sede_id", "=", "config_sedes.id")
@@ -1276,43 +1319,63 @@ class TelegramBotHandlerService
             ->whereNull("estudios_productos.fechor_lectura")
             ->where("estudios_productos.activo", 1)
             ->where("estudios.prioridad_id", 1)
-            ->selectRaw("config_sedes.nom_sede, count(*) as cantidad")
+            ->selectRaw("
+                config_sedes.nom_sede,
+                COUNT(*) as cantidad,
+                SUM(CASE WHEN TIMESTAMPDIFF(MINUTE, COALESCE(estudios.fec_estudio, estudios.created_at), NOW()) > 30 THEN 1 ELSE 0 END) as mas_30m
+            ")
             ->groupBy("config_sedes.nom_sede")
             ->orderByDesc("cantidad")
             ->get();
 
-        $totalRepresados = $represadosPorSede->sum("cantidad");
-        $totalUrgentes = $urgentesPendientes->sum("cantidad");
+        $totalRepresados = (int) $represadosPorSede->sum("cantidad");
+        $tot24_48 = (int) $represadosPorSede->sum("rango_24_48");
+        $tot48_72 = (int) $represadosPorSede->sum("rango_48_72");
+        $totMas72 = (int) $represadosPorSede->sum("rango_mas_72");
+
+        $totalUrgentes = (int) $urgentesPendientes->sum("cantidad");
+        $totalUrgentes30m = (int) $urgentesPendientes->sum("mas_30m");
+
+        $etiquetaUrgentes = $totalUrgentes30m > 0
+            ? "<b>{$totalUrgentes}</b> <small>(🚨 {$totalUrgentes30m} con &gt;30 min)</small>"
+            : "<b>{$totalUrgentes}</b>";
 
         $lineas = [
-            "🚨 <b>SEMÁFORO DE ESTUDIOS REPRESADOS — LIDIAG</b>",
+            "🚨 <b>SEMÁFORO DE OPORTUNIDAD ASISTENCIAL — LIDIAG</b>",
             "⏱️ <b>Corte en tiempo real:</b> ".Carbon::now()->format("d/m/Y H:i"),
             "────────────────────────",
+            "🔴 <b>Urgencias / UCI Pendientes:</b> {$etiquetaUrgentes}",
             "⚠️ <b>Estudios Represados (&gt;24h sin lectura):</b> <b>{$totalRepresados}</b>",
-            "🔴 <b>Estudios Prioridad Alta / Urgencias:</b> <b>{$totalUrgentes}</b>",
         ];
 
         if ($totalRepresados > 0) {
-            $lineas[] = "\n🏥 <b>Represamiento por Sede (>24h):</b>";
+            $lineas[] = "\n📊 <b>Escalonamiento del Represamiento en Red:</b>";
+            $lineas[] = " 🟡 <b>24h a 48h (Preventivo):</b>  <b>{$tot24_48}</b>";
+            $lineas[] = " 🟠 <b>48h a 72h (Crítico):</b>      <b>{$tot48_72}</b>";
+            $lineas[] = " 🔴 <b>&gt; 72 horas (Severo):</b>    <b>{$totMas72}</b>";
+
+            $lineas[] = "\n🏥 <b>Detalle por Sede:</b>";
             foreach ($represadosPorSede as $rep) {
                 $nomCorto = trim(explode("-", $rep->nom_sede)[0]);
-                $barra = $this->generarBarraProgreso($rep->cantidad, $totalRepresados, 7);
-                $lineas[] = "• <b>{$nomCorto}:</b> <code>{$barra}</code> (<b>{$rep->cantidad}</b>)";
+                $pct = round(($rep->cantidad / max(1, $totalRepresados)) * 100, 1);
+                $lineas[] = "• <b>{$nomCorto}:</b> <b>{$rep->cantidad}</b> ({$pct}%)";
+                $lineas[] = "  🟡 24-48h: <b>{$rep->rango_24_48}</b> | 🟠 48-72h: <b>{$rep->rango_48_72}</b> | 🔴 &gt;72h: <b>{$rep->rango_mas_72}</b>";
             }
         } else {
-            $lineas[] = "\n✅ <i>No hay estudios con retraso mayor a 24 horas en la red.</i>";
+            $lineas[] = "\n✅ <i>No hay estudios con retraso mayor a 24 horas en la red hospitalaria.</i>";
         }
 
         if ($totalUrgentes > 0) {
             $lineas[] = "\n🚑 <b>Urgencias Pendientes por Sede:</b>";
             foreach ($urgentesPendientes as $urg) {
                 $nomCorto = trim(explode("-", $urg->nom_sede)[0]);
-                $lineas[] = "  • {$nomCorto}: <b>{$urg->cantidad}</b> estudios";
+                $nota30m = $urg->mas_30m > 0 ? " (🚨 <b>{$urg->mas_30m}</b> con &gt;30m)" : "";
+                $lineas[] = "  • {$nomCorto}: <b>{$urg->cantidad}</b> estudio(s){$nota30m}";
             }
         }
 
         $lineas[] = "────────────────────────";
-        $lineas[] = "💡 <i>Se recomienda priorizar la asignación a radiólogos de turno.</i>";
+        $lineas[] = "💡 <i>Prioridad asistencial: atender primero urgencias &gt;30m y estudios en rango rojo (&gt;72h) para evitar glosas.</i>";
 
         $navMarkup = [
             "inline_keyboard" => [
@@ -1374,6 +1437,102 @@ class TelegramBotHandlerService
     }
 
     /**
+     * Procesa el comando /dd o /discos generando un reporte visual en vivo del almacenamiento
+     * del servidor central y del estado de telemetría de los agentes Edge en las sedes.
+     *
+     * @param  string  $chatId  Identificador del chat destinatario.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-04
+     */
+    public function processDiscosCommand(string $chatId): void
+    {
+        $this->telegramService->sendChatAction($chatId, "typing");
+
+        // 1. Almacenamiento local del servidor central
+        $pathApp = base_path();
+        $totalBytes = @disk_total_space($pathApp);
+        $freeBytes = @disk_free_space($pathApp);
+
+        $lineas = [
+            "💾 <b>MONITOR DE ALMACENAMIENTO Y SERVIDORES — LIDIAG</b>",
+            "⏱️ <b>Corte en tiempo real:</b> ".Carbon::now()->format("d/m/Y H:i"),
+            "────────────────────────",
+            "🖥️ <b>Servidor Central (LIDiag Cloud / Web):</b>",
+        ];
+
+        if ($totalBytes && $totalBytes > 0) {
+            $usedBytes = max(0, $totalBytes - $freeBytes);
+            $totalGb = round($totalBytes / (1024 ** 3), 1);
+            $freeGb = round($freeBytes / (1024 ** 3), 1);
+            $usedGb = round($usedBytes / (1024 ** 3), 1);
+            $usedPct = round(($usedBytes / $totalBytes) * 100, 1);
+            $freePct = round(($freeBytes / $totalBytes) * 100, 1);
+
+            $iconoCentral = $freePct <= 5.0 ? "🔴" : ($freePct <= 15.0 ? "🟡" : "🟢");
+            $barraCentral = $this->generarBarraProgreso((int) $usedBytes, (int) $totalBytes, 7);
+
+            $lineas[] = "• Unidad Principal: {$iconoCentral} <b>{$freeGb} GB libres</b> ({$freePct}%)";
+            $lineas[] = "  Capacidad: {$totalGb} GB | Usado: {$usedGb} GB ({$usedPct}%)";
+            $lineas[] = "  <code>{$barraCentral}</code>";
+        } else {
+            $lineas[] = "• Unidad Principal: <i>Información de disco no disponible en el entorno.</i>";
+        }
+
+        // 2. Telemetría de Agentes Edge y Backups en Sedes
+        /** @var TokenSedeService $tokenService */
+        $tokenService = app(TokenSedeService::class);
+        $resTokens = $tokenService->listarSedesConTokens();
+        $sedes = $resTokens["data"]["sedes"] ?? [];
+
+        $lineas[] = "\n🏥 <b>Salud de Agentes Edge y Respaldos en Sedes:</b>";
+
+        if (! empty($sedes)) {
+            foreach ($sedes as $s) {
+                $nomCorto = trim(explode("-", $s["nom_sede"])[0]);
+                $bk = $s["agente_backup_db"]["estado"] ?? "SIN_DATOS";
+                $bkTiempo = $s["agente_backup_db"]["tiempo_humano"] ?? "Nunca";
+
+                $iconBk = match ($bk) {
+                    "OK" => "🟢",
+                    "ADVERTENCIA" => "🟡",
+                    "ERROR" => "🔴",
+                    default => "⚪",
+                };
+
+                $sync = $s["agente_sync_imagenes"]["estado"] ?? "SIN_DATOS";
+                $iconSync = match ($sync) {
+                    "OK" => "🟢",
+                    "ERROR" => "🔴",
+                    default => "⚪",
+                };
+
+                $lineas[] = "• <b>{$nomCorto}:</b> Respaldos {$iconBk} | Sync PACS {$iconSync}\n  <small>Último backup: {$bkTiempo}</small>";
+            }
+        } else {
+            $lineas[] = "<i>No se registran sedes activas con agentes edge configurados.</i>";
+        }
+
+        $lineas[] = "────────────────────────";
+        $lineas[] = "💡 <i>Umbrales PACS: 🟡 Advertencia &lt;15% o 50GB | 🔴 Crítico &lt;5% o 20GB.</i>";
+
+        $navMarkup = [
+            "inline_keyboard" => [
+                [
+                    ["text" => "🔄 Actualizar Discos", "callback_data" => "wiz:dd"],
+                    ["text" => "⚙️ Ver Umbrales", "callback_data" => "wiz:dd_alertas"],
+                ],
+                [
+                    ["text" => "📋 Menú Principal", "callback_data" => "wiz:menu"],
+                ],
+            ],
+        ];
+
+        $this->telegramService->sendMessage($chatId, implode("\n", $lineas), "HTML", $navMarkup);
+    }
+
+    /**
      * Genera y envía el reporte de estadísticas del módulo de Citas y Agendamiento WhatsApp.
      *
      * Flujo del proceso:
@@ -1395,14 +1554,33 @@ class TelegramBotHandlerService
 
         [$fechaInicio, $fechaFin, $etiquetaPeriodo] = $this->resolverRangoFechas($periodo);
 
-        $query = DB::table("agenda_citas");
-        if ($sedeId) {
-            $query->where("sede_id", $sedeId);
-        }
-        $query->whereBetween("created_at", ["{$fechaInicio} 00:00:00", "{$fechaFin} 23:59:59"]);
+        // 1. Citas programadas para atención HOY
+        $hoy = Carbon::today()->format("Y-m-d");
+        $queryCitasHoy = DB::table("agenda_citas")
+            ->when($sedeId, fn ($q) => $q->where("sede_id", $sedeId))
+            ->where(function ($q) use ($hoy) {
+                $q->whereDate("fecha_hora_ini", $hoy)
+                    ->orWhereDate("fecha_hora_inicio", $hoy);
+            });
 
-        $totalCitas = (clone $query)->count();
-        $estados = (clone $query)
+        $totalCitasHoy = (clone $queryCitasHoy)->count();
+        $estadosHoy = (clone $queryCitasHoy)
+            ->selectRaw("estado, count(*) as cantidad")
+            ->groupBy("estado")
+            ->pluck("cantidad", "estado")
+            ->toArray();
+
+        $confirmadasHoy = $estadosHoy["confirmada"] ?? $estadosHoy["asignada"] ?? 0;
+        $canceladasHoy = $estadosHoy["cancelada"] ?? $estadosHoy["rechazada"] ?? 0;
+        $pctAsistenciaHoy = $totalCitasHoy > 0 ? round(($confirmadasHoy / $totalCitasHoy) * 100, 1) : 0;
+
+        // 2. Tráfico de solicitudes WhatsApp en el período seleccionado
+        $querySolicitudes = DB::table("agenda_citas")
+            ->when($sedeId, fn ($q) => $q->where("sede_id", $sedeId))
+            ->whereBetween("created_at", ["{$fechaInicio} 00:00:00", "{$fechaFin} 23:59:59"]);
+
+        $totalSolicitudes = (clone $querySolicitudes)->count();
+        $estadosPeriodo = (clone $querySolicitudes)
             ->selectRaw("estado, count(*) as cantidad")
             ->groupBy("estado")
             ->pluck("cantidad", "estado")
@@ -1414,31 +1592,36 @@ class TelegramBotHandlerService
             ->where("estado", "solicitada")
             ->count();
 
-        $aprobadas = $estados["asignada"] ?? $estados["confirmada"] ?? 0;
-        $canceladas = $estados["cancelada"] ?? $estados["rechazada"] ?? 0;
+        $aprobadasPeriodo = $estadosPeriodo["asignada"] ?? $estadosPeriodo["confirmada"] ?? 0;
+        $canceladasPeriodo = $estadosPeriodo["cancelada"] ?? $estadosPeriodo["rechazada"] ?? 0;
+        $tasaConversion = $totalSolicitudes > 0 ? round(($aprobadasPeriodo / $totalSolicitudes) * 100, 1) : 0;
 
         $lineas = [
-            "💬 <b>ESTADÍSTICAS CITAS (WHATSAPP) — LIDIAG</b>",
-            "📅 <b>Período:</b> {$etiquetaPeriodo}",
+            "💬 <b>GESTIÓN DE CITAS Y WHATSAPP — LIDIAG</b>",
+            "📅 <b>Período Solicitudes:</b> {$etiquetaPeriodo}",
             "────────────────────────",
-            "📲 <b>Total Solicitudes en el Período:</b> <b>{$totalCitas}</b>",
         ];
 
-        if ($totalCitas > 0) {
-            $lineas[] = "\n📊 <b>Gestión de Citas:</b>";
-            $lineas[] = "  • ✅ Asignadas / Confirmadas: <b>{$aprobadas}</b>";
-            $lineas[] = "  • ❌ Canceladas / Rechazadas: <b>{$canceladas}</b>";
-            foreach ($estados as $est => $cant) {
-                if (! in_array($est, ["asignada", "confirmada", "cancelada", "rechazada"])) {
-                    $lineas[] = "  • 🔹 ".ucfirst($est).": <b>{$cant}</b>";
-                }
+        // Bloque de agenda del día
+        $lineas[] = "📆 <b>Citas Agendadas para Atención HOY:</b> <b>{$totalCitasHoy}</b>";
+        if ($totalCitasHoy > 0) {
+            $lineas[] = "  • ✅ Asignadas / Confirmadas: <b>{$confirmadasHoy}</b> ({$pctAsistenciaHoy}%)";
+            if ($canceladasHoy > 0) {
+                $lineas[] = "  • ❌ Canceladas / Rechazadas: <b>{$canceladasHoy}</b>";
             }
         } else {
-            $lineas[] = "\nℹ️ <i>No se registraron solicitudes de cita en el período seleccionado.</i>";
+            $lineas[] = "  • ℹ️ <i>Sin citas en agenda para la fecha de hoy.</i>";
+        }
+
+        $lineas[] = "\n📲 <b>Tráfico Canal WhatsApp en el Período:</b>";
+        $lineas[] = "  • Solicitudes Recibidas: <b>{$totalSolicitudes}</b>";
+        if ($totalSolicitudes > 0) {
+            $lineas[] = "  • Asignadas / Aprobadas: <b>{$aprobadasPeriodo}</b> ({$tasaConversion}%)";
+            $lineas[] = "  • Canceladas / Rechazadas: <b>{$canceladasPeriodo}</b>";
         }
 
         $lineas[] = "────────────────────────";
-        $lineas[] = "⏳ <b>Solicitudes Pendientes en Bandeja WhatsApp:</b> <b>{$pendientesRevision}</b>";
+        $lineas[] = "⏳ <b>Solicitudes Pendientes por Revisar:</b> <b>{$pendientesRevision}</b>";
 
         $navMarkup = [
             "inline_keyboard" => [
@@ -1747,15 +1930,20 @@ class TelegramBotHandlerService
         int $pendientes,
         string $tatTexto = "N/D",
         string $tatIcono = "⚪",
-        int $represados24h = 0
+        int $represados24h = 0,
+        int $totalPacientes = 0
     ): string {
+        $etiquetaProcedimientos = $totalPacientes > 0 && $totalPacientes !== $totalLeidos
+            ? "<b>{$totalLeidos}</b> <small>(en {$totalPacientes} pacientes)</small>"
+            : "<b>{$totalLeidos}</b>";
+
         $lineas = [
             "📊 <b>REPORTE DE PRODUCCIÓN — LIDIAG</b>",
             "🏥 <b>Sede:</b> {$sedeNombre}",
             "📅 <b>Período:</b> {$etiquetaPeriodo}",
             "────────────────────────",
-            "✅ <b>Total Estudios Leídos:</b> <b>{$totalLeidos}</b>",
-            "⏱️ <b>Tiempo Promedio Lectura (TAT):</b> {$tatTexto} {$tatIcono}",
+            "🩺 <b>Procedimientos Leídos:</b> {$etiquetaProcedimientos}",
+            "⏱️ <b>Tiempo de Respuesta (TAT Real):</b> {$tatTexto} {$tatIcono}",
         ];
 
         if ($totalLeidos > 0) {
@@ -1779,15 +1967,17 @@ class TelegramBotHandlerService
                     default => $m->mod_nombre,
                 };
 
+                $pctMod = round(($m->cantidad / max(1, $totalLeidos)) * 100, 1);
                 $barra = $this->generarBarraProgreso($m->cantidad, $totalLeidos, 7);
-                $lineas[] = "  {$icono} {$nombreMod}:\n  <code>{$barra}</code> (<b>{$m->cantidad}</b>)";
+                $lineas[] = "  {$icono} {$nombreMod}: <b>{$m->cantidad}</b> ({$pctMod}%)\n  <code>{$barra}</code>";
             }
 
             if ($medicos->isNotEmpty()) {
                 $lineas[] = "\n👨‍⚕️ <b>Médicos con Mayor Volumen:</b>";
                 foreach ($medicos as $med) {
+                    $pctMed = round(($med->cantidad / max(1, $totalLeidos)) * 100, 1);
                     $barraMed = $this->generarBarraProgreso($med->cantidad, $totalLeidos, 7);
-                    $lineas[] = "  • {$med->medico_nombre}:\n    <code>{$barraMed}</code> (<b>{$med->cantidad}</b>)";
+                    $lineas[] = "  • {$med->medico_nombre}: <b>{$med->cantidad}</b> ({$pctMed}%)\n    <code>{$barraMed}</code>";
                 }
             }
         } else {
