@@ -37,6 +37,24 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-04 — Refactorización Arquitectónica de Gráficos Ejecutivos en Reporte Excel de Dosimetría (`DosimetriaEstadisticasSheet.php`):**
+  - **Diagnóstico y Reporte Visual del Usuario:**
+    * El usuario compartió captura de pantalla del Excel indicando: *"Mira cómo se ven las gráficas del reporte de Excel, no se entienden, no se aprecia la distribución de las mediciones"*.
+    * **Causa Raíz de la Deformación Gráfica:**
+      1. *Gráfica de Torta (Pie):* Apuntaba directamente al rango de filas sin procesar (`C9:C105` y `G9:G105`), provocando que Excel creara ~100 micro-sectores ilegibles y repitiera la leyenda "CT", "DX", "MG" 100 veces consecutivas.
+      2. *Gráfica de Barras:* Apuntaba a todas las cohortes mensuales mezclando modalidades con unidades incomparables (DAP en $\text{Gy}\cdot\text{cm}^2 \approx 0.5$ vs CTDIvol en $\text{mGy} \approx 50$), generando un "código de barras" ilegible con el 80% de las barras aplastadas en el piso.
+  - **Solución Implementada:**
+    * **1. Tablas de Agregación Ejecutiva al Pie del Reporte:**
+      - *Tabla A (Cols A–E):* Carga de trabajo y mediciones consolidadas por modalidad técnica (`CT`, `DX`, `MG`, `CR`) con conteo de exámenes y porcentaje relativo del total.
+      - *Tabla B (Cols G–N):* Perfil de dosis normalizado por los 7 órganos diana ICRP 103 (*Cráneo, Tórax, Abdomen, Pelvis, Columna, Extremidades y Mama*) con `% Dosis s/ NRD`, límite legal al 100%, franja ALARA y semáforo condicional.
+    * **2. Redirección Inteligente de Series en PhpSpreadsheet:**
+      - *Gráfica 1 (Torta de Modalidades):* Ahora lee de la Tabla A, generando exactamente de 2 a 4 sectores limpios y una leyenda ejecutiva con los nombres y cuotas reales de cada modalidad.
+      - *Gráfica 2 (Columnas Comparativas por Órgano Diana):* Ahora lee de la Tabla B, graficando las 7 regiones normalizadas en porcentaje contra la línea de corte regulatoria del 100% NRD, aislando sobreexposiciones y órganos seguros de un vistazo sin distorsión por unidad de medida.
+  - **Verificaciones:**
+    * Laravel Pint validado al 100% passed (`vendor\bin\pint.bat --test`) ✅.
+    * Generación de libro Excel ejecutada y validada: 2 gráficos limpios incrustados y legibles ✅.
+    * Formato LF verificado sin UTF-8 BOM ✅.
+
 - [x] **2026-11-04 — Homologación e Integración de los Reportes del Bot de Telegram en el Módulo Web de Reportes (`reporteProduccionComponent.vue`, `ReporteProduccionService.php`, `ReporteProduccion.php`):**
   - **Diagnóstico y Solicitud del Usuario:**
     * El usuario solicitó: *"Mira los reportes que implementamos en el bot de telegram e implementémoslos en el módulo de reportes"*.
