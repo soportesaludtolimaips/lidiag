@@ -235,6 +235,13 @@
                     <h4 class="card-title text-danger m-b-0 font-medium">
                         <i class="fa fa-exclamation-triangle m-r-10"></i>Superación Crítica de
                         Niveles de Referencia (NRD)
+                        <i
+                            class="fa fa-info-circle text-danger font-14 m-l-5"
+                            data-toggle="tooltip"
+                            data-placement="top"
+                            :title="tooltipsSecciones.alertasCriticas"
+                            style="cursor: help"
+                        ></i>
                     </h4>
                     <p class="font-14 text-danger m-b-0 m-t-5">
                         Resolución 482 de 2018 (ICRP 135) — Se detectaron
@@ -330,6 +337,13 @@
                     <h5 class="card-title text-warning m-b-0 font-medium">
                         <i class="fa fa-bell-o m-r-10"></i>Advertencias Preventivas de Radiación
                         (>80% del NRD)
+                        <i
+                            class="fa fa-info-circle text-warning font-14 m-l-5"
+                            data-toggle="tooltip"
+                            data-placement="top"
+                            :title="tooltipsSecciones.alertasPreventivas"
+                            style="cursor: help"
+                        ></i>
                     </h5>
                     <small class="text-muted">
                         {{ alertasPreventivas.length }} grupos operan en rango de precaución
@@ -826,6 +840,13 @@
                             <div>
                                 <h4 class="card-title">
                                     <span class="lstick"></span>Equipos Emisores y Consolas
+                                    <i
+                                        class="fa fa-info-circle text-info font-14 m-l-5"
+                                        data-toggle="tooltip"
+                                        data-placement="top"
+                                        :title="tooltipsSecciones.equiposEmisores"
+                                        style="cursor: help"
+                                    ></i>
                                 </h4>
                                 <h6 class="card-subtitle">
                                     Carga de trabajo dosimétrica y calibración de tubos en el
@@ -897,6 +918,13 @@
                     <div class="card-body">
                         <h4 class="card-title">
                             <span class="lstick"></span>Auditoría y Eventos Clínicos
+                            <i
+                                class="fa fa-info-circle text-info font-14 m-l-5"
+                                data-toggle="tooltip"
+                                data-placement="top"
+                                :title="tooltipsSecciones.auditoriaEventos"
+                                style="cursor: help"
+                            ></i>
                         </h4>
                         <h6 class="card-subtitle">
                             Trazabilidad en tiempo real de radioprotección
@@ -932,6 +960,13 @@
                     <div>
                         <h4 class="card-title">
                             <span class="lstick"></span>Últimas Mediciones de Dosis Recibidas (Edge)
+                            <i
+                                class="fa fa-info-circle text-info font-14 m-l-5"
+                                data-toggle="tooltip"
+                                data-placement="top"
+                                :title="tooltipsSecciones.ultimasMediciones"
+                                style="cursor: help"
+                            ></i>
                         </h4>
                         <h6 class="card-subtitle">
                             Muestreo reciente de telemetría anonimizada (HMAC-SHA256)
@@ -1161,8 +1196,8 @@ const loading = ref(false);
 const exportando = ref(false);
 const mostrarModalUmbrales = ref(false);
 
-// Descripciones clínicas y normativas para tooltips de ayuda en cada gráfica
-const tooltipsGraficas = {
+// Descripciones clínicas, funcionales y normativas para tooltips de ayuda
+const tooltipsSecciones = {
     barrasSedes:
         "DESCRIPCIÓN:\nContrasta la dosis promedio administrada en cada hospital frente al límite NRD regulatorio.\n\n¿POR QUÉ SE MIDE?:\nDetecta asimetrías operativas, sobreexposiciones y necesidad de calibración o unificación de protocolos técnicos entre sedes.\n\nNORMATIVIDAD:\nResolución 482 de 2018 (MinSalud Colombia, Título III: Garantía de Calidad) y Recomendaciones ICRP 135 (Diagnostic Reference Levels).",
     cumplimientoNrd:
@@ -1171,7 +1206,18 @@ const tooltipsGraficas = {
         "DESCRIPCIÓN:\nEvolución temporal mes a mes de la dosis promedio administrada por modalidad técnica (CT, DX, MG, CR).\n\n¿POR QUÉ SE MIDE?:\nEvalúa el impacto longitudinal del mantenimiento y calibración de tubos emisores, ajustes de protocolos y capacitaciones al personal.\n\nNORMATIVIDAD:\nResolución 482 de 2018 (Capítulo V: Auditoría Dosimétrica Periódica) e ICRP 103 (Vigilancia de Dosis Colectiva Institucional).",
     radarAnatomico:
         "DESCRIPCIÓN:\nPerfil poligonal que compara el porcentaje de radiación entregado frente al 100% de referencia NRD en 7 regiones corporales (Cráneo, Tórax, Abdomen, Pelvis, Columna, Extremidades y Mama).\n\n¿POR QUÉ SE MIDE?:\nPermite identificar de un vistazo qué territorios anatómicos y órganos diana presentan mayor susceptibilidad o exceso de dosis relativa.\n\nNORMATIVIDAD:\nPublicación ICRP 103 (Factores de Ponderación Tisular WT) y Resolución 482 de 2018 (Tabla de Dosis Típicas por Región Anatómica).",
+    alertasCriticas:
+        "DESCRIPCIÓN:\nRegistros donde el promedio de radiación sobrepasa el límite NRD regulatorio para la región anatómica y modalidad.\n\nFUNCIONALIDAD:\nNotifica inmediatamente al comité de radioprotección para iniciar auditoría médica de protocolos de adquisición y calibración física del equipo emisor.\n\nNORMATIVIDAD:\nResolución 482 de 2018 (MinSalud Colombia, Título III: Niveles Guía) e ICRP 135.",
+    alertasPreventivas:
+        "DESCRIPCIÓN:\nEstudios que operan en la franja de precaución preventiva (entre el 80% y el 99% del límite NRD).\n\nFUNCIONALIDAD:\nFunciona como un sistema de alerta temprana predictiva para optimizar parámetros técnicos antes de incurrir en sobreexposiciones o infracciones regulatorias.\n\nNORMATIVIDAD:\nPrincipio de Optimización ALARA (As Low As Reasonably Achievable) y Estándar OIEA / IAEA GSR Part 3.",
+    equiposEmisores:
+        "DESCRIPCIÓN:\nCenso consolidado de tubos de rayos X, tomógrafos, mamógrafos y consolas DICOM operando en las sedes hospitalarias.\n\nFUNCIONALIDAD:\nSupervisa la carga de trabajo radiológica (número de disparos), la dosis promedio entregada por máquina y el semáforo de calibración física del emisor.\n\nNORMATIVIDAD:\nResolución 482 de 2018 (Capítulo IV: Programa de Tecnovigilancia y Mantenimiento de Equipos Emisores).",
+    auditoriaEventos:
+        "DESCRIPCIÓN:\nLínea de tiempo cronológica e inmutable que registra eventos dosimétricos, superaciones de umbrales y derivas técnicas.\n\nFUNCIONALIDAD:\nProporciona trazabilidad legal y clínica en tiempo real para auditorías de entes de control y comités hospitalarios de seguridad del paciente.\n\nNORMATIVIDAD:\nNorma ISO/IEC 27001 (Seguridad de la Información), Ley 1581 de 2012 y Resolución 3100 de 2019 (Habilitación en Salud).",
+    ultimasMediciones:
+        "DESCRIPCIÓN:\nMuestreo en tiempo real de los últimos 50 estudios capturados por los agentes Edge locales de cada hospital desde los metadatos de las imágenes DICOM.\n\nFUNCIONALIDAD:\nPermite auditar a nivel individual los valores de radiación (CTDIvol, DLP, DAP, DGM) asociados al identificador anónimo del paciente (HMAC-SHA256) y su semáforo NRD.\n\nNORMATIVIDAD:\nResolución 482 de 2018 (Artículo 23: Registro de Dosis Individual) y Estándar DICOM PS3.16 (Radiation Dose Structured Reports - RDSR).",
 };
+const tooltipsGraficas = tooltipsSecciones;
 
 const filtros = reactive({
     sede_id: "",

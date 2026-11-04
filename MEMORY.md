@@ -70,6 +70,21 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * `vendor\bin\pint.bat --test config/sanctum.php` 100% passed ✅.
     * Verificación de base de datos (`personal_access_tokens`): los tokens existentes de las sedes 1, 3 y 4 volvieron a ser válidos inmediatamente sin necesidad de reconfigurarlos ✅.
 
+- [x] **2026-11-04 — Integración de Tooltips Clínicos, Funcionales y Normativos en Todas las Secciones del Dashboard de Dosimetría (`DashboardDosimetria.vue`):**
+  - **Diagnóstico y Solicitud del Usuario:**
+    * El usuario solicitó: *"Hizo falta agregar la info a: Superación Crítica de Niveles de Referencia (NRD), Advertencias Preventivas de Radiación (>80% del NRD), Equipos Emisores y Consolas, Auditoría y Eventos Clínicos, Últimas Mediciones de Dosis Recibidas (Edge). A estos agreguémosle una descripción, su funcionalidad para que los usuarios comprendan la estadística"*.
+  - **Solución Implementada:**
+    * Se integró en los encabezados de estas 5 secciones el icono interactivo `<i class="fa fa-info-circle"></i>` con tooltips multilínea (`tooltipsSecciones`) que desglosan: DESCRIPCIÓN, FUNCIONALIDAD CLÍNICA y NORMATIVIDAD:
+      1. **Superación Crítica NRD:** Explica la detección de valores que sobrepasan el límite legal y la activación de auditoría médica prioritaria por el comité de radioprotección (**Resolución 482 de 2018, Título III** e **ICRP 135**).
+      2. **Advertencias Preventivas (>80% NRD):** Detalla el sistema de alerta temprana para optimizar protocolos antes de incurrir en infracción o sobreexposición (**Principio ALARA**, **OIEA/IAEA GSR Part 3**).
+      3. **Equipos Emisores y Consolas:** Describe el censo de tubos y consolas DICOM, supervisión de carga de disparos y estado de calibración física (**Resolución 482 de 2018, Cap. IV: Tecnovigilancia**).
+      4. **Auditoría y Eventos Clínicos:** Explica la bitácora inmutable de trazabilidad legal en tiempo real ante entes de control y comités hospitalarios (**ISO/IEC 27001**, **Ley 1581 de 2012**, **Resolución 3100 de 2019**).
+      5. **Últimas Mediciones de Dosis (Edge):** Detalla el muestreo de los últimos 50 estudios capturados desde DICOM para auditoría individual con Patient ID seudonimizado HMAC-SHA256 (**Resolución 482 de 2018, Art. 23** y **DICOM PS3.16 RDSR**).
+  - **Verificaciones:**
+    * ESLint validado con 0 errores y 0 warnings (`npx eslint`) ✅.
+    * Compilación Vite exitosa (`npm run build` en 1.31s) ✅.
+    * Formato LF verificado sin UTF-8 BOM ✅.
+
 - [x] **2026-11-04 — Tooltips Clínicos y Normativos en Gráficas de Dosimetría (`DashboardDosimetria.vue`):**
   - **Diagnóstico y Solicitud del Usuario:**
     * El usuario solicitó: *"a cada grafica colocale un icono de info con un toltip con la descripcion de la grafica y el porq y en q normatividad se apoya"*.
