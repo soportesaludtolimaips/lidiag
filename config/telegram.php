@@ -54,4 +54,50 @@ return [
     |
     */
     "ssl_verify" => env("TELEGRAM_SSL_VERIFY", false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | URL Base de la API de Telegram
+    |--------------------------------------------------------------------------
+    |
+    | Permite redirigir a un proxy inverso o servidor local de Bot API si la
+    | red hospitalaria o firewall corporativo bloquea api.telegram.org.
+    |
+    */
+    "base_url" => env("TELEGRAM_BASE_URL", "https://api.telegram.org"),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Forzar Resolución IPv4
+    |--------------------------------------------------------------------------
+    |
+    | En servidores hospitalarios o redes con IPv6 deshabilitado en el router
+    | pero activo en la tarjeta de red, cURL puede colgarse esperando IPv6
+    | causando timeouts (cURL error 28). Forzar IPv4 evita este fallo.
+    |
+    */
+    "force_ipv4" => (bool) env("TELEGRAM_FORCE_IPV4", true),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Proxy HTTP / SOCKS5
+    |--------------------------------------------------------------------------
+    |
+    | Servidor proxy para salida a internet si el servidor de producción está
+    | detrás de un firewall corporativo (ej: http://proxy:8080 o socks5://proxy:1080).
+    |
+    */
+    "proxy" => env("TELEGRAM_PROXY", null),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Timeouts de Red (Segundos)
+    |--------------------------------------------------------------------------
+    |
+    | connect_timeout: Tiempo máximo para establecer el socket TCP.
+    | timeout: Tiempo máximo total de respuesta de la petición HTTP.
+    |
+    */
+    "connect_timeout" => (int) env("TELEGRAM_CONNECT_TIMEOUT", 10),
+    "timeout" => (int) env("TELEGRAM_TIMEOUT", 20),
 ];

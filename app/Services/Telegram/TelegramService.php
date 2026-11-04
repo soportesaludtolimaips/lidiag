@@ -28,8 +28,12 @@ class TelegramService
      */
     public function __construct()
     {
-        $this->token = config("telegram.bot_token");
-        $this->baseUrl = "https://api.telegram.org/bot{$this->token}";
+        $rawToken = (string) config("telegram.bot_token", "");
+        // Sanitizar token eliminando espacios en blanco, saltos de línea o caracteres no imprimibles
+        $this->token = trim(str_replace(["\r", "\n", " ", "\t"], "", $rawToken));
+
+        $baseUrl = rtrim((string) config("telegram.base_url", "https://api.telegram.org"), "/");
+        $this->baseUrl = "{$baseUrl}/bot{$this->token}";
         $this->sslVerify = (bool) config("telegram.ssl_verify", false);
     }
 
@@ -37,8 +41,10 @@ class TelegramService
      * Crea una instancia de cliente HTTP configurada con timeouts y SSL según el entorno.
      *
      * Flujo del proceso:
-     * 1. Inicializa PendingRequest con timeout específico.
-     * 2. Deshabilita verificación SSL si sslVerify es false (útil en Laragon/Windows).
+     * 1. Inicializa PendingRequest con timeout específico y connect_timeout.
+     * 2. Fuerza resolución IPv4 por defecto para evitar bloqueos por IPv6 sin salida.
+     * 3. Configura proxy HTTP/SOCKS si está definido en la configuración.
+     * 4. Deshabilita verificación SSL si sslVerify es false (útil en Laragon/Windows).
      *
      * @param  int  $timeout  Segundos de espera antes de timeout.
      *
@@ -48,7 +54,25 @@ class TelegramService
      */
     protected function client(int $timeout = 15): PendingRequest
     {
-        $client = Http::timeout($timeout);
+        $connectTimeout = (int) config("telegram.connect_timeout", 10);
+        $forceIpv4 = (bool) config("telegram.force_ipv4", true);
+        $proxy = config("telegram.proxy");
+
+        $options = [
+            "connect_timeout" => $connectTimeout,
+        ];
+
+        if ($forceIpv4) {
+            $options["curl"] = [
+                CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+            ];
+        }
+
+        if (! empty($proxy)) {
+            $options["proxy"] = $proxy;
+        }
+
+        $client = Http::withOptions($options)->timeout($timeout);
 
         if (! $this->sslVerify) {
             $client->withoutVerifying();
@@ -335,12 +359,67 @@ class TelegramService
         }
 
         try {
-            $response = $this->client(10)->get("{$this->baseUrl}/getMe");
+            $timeout = (int) config("telegram.timeout", 20);
+            $response = $this->client($timeout)->get("{$this->baseUrl}/getMe");
 
             return $response->json() ?? ["ok" => false];
         } catch (\Throwable $e) {
             return ["ok" => false, "description" => $e->getMessage()];
         }
+    }
+
+    /**
+     * Realiza un diagnóstico completo de conectividad hacia la API de Telegram.
+     *
+     * Flujo del proceso:
+     * 1. Extrae el host de la URL base configurada.
+     * 2. Evalúa resolución de nombres DNS (IPv4).
+     * 3. Prueba la apertura de socket TCP en el puerto 443 con timeout de 3s.
+     * 4. Valida credenciales invocando getMe().
+     *
+     * @return array<string, mixed> Resultados del diagnóstico con detalles técnicos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-04
+     */
+    public function testConnectivity(): array
+    {
+        $baseUrl = (string) config("telegram.base_url", "https://api.telegram.org");
+        $parsed = parse_url($baseUrl);
+        $host = $parsed["host"] ?? "api.telegram.org";
+        $port = (int) ($parsed["port"] ?? 443);
+
+        // 1. DNS
+        $dnsIpv4 = gethostbynamel($host) ?: [];
+        $dnsOk = ! empty($dnsIpv4);
+
+        // 2. TCP Socket Ping
+        $socketStart = microtime(true);
+        $fp = @fsockopen($host, $port, $errno, $errstr, 3.0);
+        $socketTimeMs = round((microtime(true) - $socketStart) * 1000, 1);
+        $socketOk = is_resource($fp);
+        if ($socketOk) {
+            fclose($fp);
+        }
+
+        // 3. API getMe
+        $apiResult = $this->getMe();
+
+        return [
+            "host" => $host,
+            "port" => $port,
+            "dns_ok" => $dnsOk,
+            "dns_ips" => $dnsIpv4,
+            "socket_ok" => $socketOk,
+            "socket_time_ms" => $socketTimeMs,
+            "socket_error" => $socketOk ? null : "({$errno}) {$errstr}",
+            "api_ok" => $apiResult["ok"] ?? false,
+            "api_result" => $apiResult,
+            "token_configured" => ! empty($this->token),
+            "force_ipv4" => (bool) config("telegram.force_ipv4", true),
+            "proxy" => config("telegram.proxy"),
+        ];
     }
 
     /**

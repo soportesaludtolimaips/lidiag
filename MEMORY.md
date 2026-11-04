@@ -37,6 +37,17 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-04 — Corrección de Timeout de Red cURL Error 28 y Blindaje de Conexión Telegram (`config/telegram.php`, `TelegramService.php`, `TelegramPollCommand.php`):**
+  - **Diagnóstico y Causa Raíz:**
+    * En producción al ejecutar `php artisan telegram:poll` se producía el error fatal: `cURL error 28: Connection timed out after 10016 milliseconds ... for https://api.telegram.org/bot<TOKEN>/getMe`.
+    * Causa 1 (IPv6 Blackhole): `api.telegram.org` tiene registros A (IPv4) y AAAA (IPv6). Cuando el adaptador de red del servidor tiene IPv6 habilitado pero la red hospitalaria o ISP no enruta tráfico IPv6 externo, cURL intenta conectar primero por IPv6 y se congela esperando SYN-ACK hasta alcanzar el límite de 10s.
+    * Causa 2 (Tokens con espacios/saltos): En el `.env` de producción se pueden introducir espacios accidentales en `TELEGRAM_BOT_TOKEN`, corrompiendo la URL de Telegram Bot API.
+    * Causa 3 (Falta de soporte para Proxy y timeouts ajustables): En redes hospitalarias cerradas con firewall perimetral o requerimiento de proxy corporativo, `TelegramService` carecía de opciones para configurar `connect_timeout`, `proxy` y forzar IPv4.
+  - **Solución Implementada:**
+    * *Configuración (`config/telegram.php`):* Añadidas opciones `force_ipv4` (por defecto `true`), `proxy` (`TELEGRAM_PROXY`), `connect_timeout` (`TELEGRAM_CONNECT_TIMEOUT`, default 10s), `timeout` (`TELEGRAM_TIMEOUT`, default 20s) y `base_url` (`TELEGRAM_BASE_URL`).
+    * *Servicio (`TelegramService.php`):* En el constructor se sanitiza el token purgado de espacios (`\s`, `\r`, `\n`, `\t`), se inyecta `CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4` para forzar IPv4 en todas las peticiones cURL, se aumenta el timeout en `getMe()` y se implementa `testConnectivity()` que diagnostica DNS, socket TCP en puerto 443 y respuesta de la API.
+    * *Comando Artisan (`TelegramPollCommand.php`):* Incorporada la opción `--diagnose` (`php artisan telegram:poll --diagnose`) y un informe visual en consola con recomendaciones claras ante bloqueos de firewall perimetral, proxy o timeouts.
+  - **Verificaciones:** `php artisan telegram:poll --diagnose` ejecutado exitosamente (DNS OK, Socket TCP 443 conectado en 240ms, Bot autenticado) ✅ | Laravel Pint (`vendor\bin\pint.bat --test`) 100% passed ✅ | Suite completa PHPUnit (53 tests, 230 aserciones) pasando al 100% ✅.
 - [x] **2026-11-04 — Documentación y Blindaje de Autenticación de Dosimetría y Atributo `dosimetria_salt` (`README.md`, `agente_dosimetria.py`, `AppServiceProvider.php`):**
   - **Diagnóstico y Necesidad:**
     * El usuario requirió documentar en el manual técnico del paquete de agentes (`README.md`) la función exacta del atributo criptográfico `dosimetria_salt` en `config.json` para la anonimización de pacientes (Ley 1581 de 2012 / ISO 27001).

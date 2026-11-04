@@ -15,6 +15,7 @@ class TelegramPollCommand extends Command
      */
     protected $signature = "telegram:poll 
                             {--once : Ejecuta una sola consulta de actualizaciones y finaliza}
+                            {--diagnose : Ejecuta diagnóstico de red, DNS y conectividad hacia Telegram}
                             {--delete-webhook : Elimina el webhook activo en Telegram para permitir polling}
                             {--set-webhook= : Registra una URL pública de webhook en Telegram}";
 
@@ -77,9 +78,20 @@ class TelegramPollCommand extends Command
             return self::SUCCESS;
         }
 
+        // Caso: Diagnóstico de conectividad
+        if ($this->option("diagnose")) {
+            $this->ejecutarDiagnostico($telegramService);
+
+            return self::SUCCESS;
+        }
+
         $botInfo = $telegramService->getMe();
         if (! ($botInfo["ok"] ?? false)) {
-            $this->error("❌ No fue posible conectar con Telegram Bot API: ".($botInfo["description"] ?? ""));
+            $errorDesc = $botInfo["description"] ?? "Fallo en conexión";
+            $this->error("❌ No fue posible conectar con Telegram Bot API: {$errorDesc}");
+
+            $this->newLine();
+            $this->ejecutarDiagnostico($telegramService, true);
 
             return self::FAILURE;
         }
@@ -154,5 +166,66 @@ class TelegramPollCommand extends Command
         } while (true);
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Ejecuta e imprime en consola el diagnóstico detallado de conectividad hacia Telegram.
+     *
+     * Flujo del proceso:
+     * 1. Consulta el estado de red, DNS y socket TCP a través de TelegramService.
+     * 2. Imprime resultados de host, IP, socket y respuesta HTTP.
+     * 3. Si hay fallas, detalla las causas más probables en entornos de producción.
+     *
+     * @param  TelegramService  $telegramService  Instancia del servicio de Telegram.
+     * @param  bool  $isFailureReport  Indica si se llama tras un fallo en handle().
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-04
+     */
+    protected function ejecutarDiagnostico(TelegramService $telegramService, bool $isFailureReport = false): void
+    {
+        $this->info("==================================================================");
+        $this->info("🔍 DIAGNÓSTICO DE CONECTIVIDAD TELEGRAM — LIDIAG");
+        $this->info("==================================================================");
+
+        $diag = $telegramService->testConnectivity();
+
+        $this->line("🌐 Host destino:          {$diag['host']}:{$diag['port']}");
+        $this->line("📍 Resolución DNS:        ".($diag['dns_ok'] ? "✅ OK (".implode(", ", $diag['dns_ips']).")" : "❌ FALLÓ (DNS no resuelve)"));
+        $this->line("🔌 Socket TCP (Puerto {$diag['port']}): ".($diag['socket_ok'] ? "✅ Conectado ({$diag['socket_time_ms']}ms)" : "❌ BLOQUEADO ({$diag['socket_error']})"));
+        $this->line("⚡ Forzar IPv4:           ".($diag['force_ipv4'] ? "✅ Activo (evita cuelgues IPv6)" : "⚪ Desactivado"));
+        $this->line("🛡️ Proxy configurado:     ".($diag['proxy'] ?: "⚪ Ninguno (conexión directa)"));
+        $this->line("🔑 Token configurado:     ".($diag['token_configured'] ? "✅ Presente en .env" : "❌ Ausente en .env"));
+        $this->line("🤖 Respuesta Telegram:    ".($diag['api_ok'] ? "✅ OK (Bot autenticado)" : "❌ Falló respuesta HTTP"));
+
+        if (! $diag['socket_ok'] || ! $diag['api_ok']) {
+            $this->newLine();
+            $this->warn("⚠️  CAUSAS FRECUENTES Y SOLUCIONES EN PRODUCCIÓN:");
+
+            if (! $diag['socket_ok']) {
+                $this->line("  1. 🔒 FIREWALL DEL HOSPITAL / SERVIDOR BLOQUEADO:");
+                $this->line("     El cortafuegos perimetral (Fortinet, Sophos, pfSense) o Windows Defender");
+                $this->line("     está bloqueando la salida al puerto 443 hacia servidores de Telegram.");
+                $this->line("     👉 Solución A: Solicitar a infraestructura permitir salida TCP 443 hacia {$diag['host']}.");
+                $this->line("     👉 Solución B: Si el hospital usa proxy corporativo, añadir a .env:");
+                $this->line("        TELEGRAM_PROXY=http://ip-proxy:puerto");
+            } else {
+                $this->line("  1. ⏱️ TIMEOUT DE RED (cURL error 28):");
+                $this->line("     La conexión inicial tardó más del tiempo límite configurado.");
+                $this->line("     👉 Solución: Aumentar timeouts en .env agregando:");
+                $this->line("        TELEGRAM_CONNECT_TIMEOUT=20");
+                $this->line("        TELEGRAM_TIMEOUT=30");
+            }
+
+            $this->line("  2. 📝 ESPACIOS O SALTOS DE LÍNEA EN EL TOKEN:");
+            $this->line("     Verifica en el archivo .env que TELEGRAM_BOT_TOKEN no tenga espacios");
+            $this->line("     accidentales al inicio, en medio o al final.");
+        } else {
+            $this->newLine();
+            $this->info("✅ Todas las pruebas de conectividad pasaron exitosamente.");
+        }
+
+        $this->info("==================================================================");
     }
 }
