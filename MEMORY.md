@@ -37,6 +37,24 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-04 — Refactorización UI/UX de Alertas Dosimétricas y Dead Man's Switch (`DashboardDosimetria.vue`, `DosimetriaService.php`):**
+  - **Diagnóstico y Necesidad:**
+    * Tras activar los umbrales NRD por región anatómica, el banner rojo de alertas (`alert alert-danger`) acumulaba 24 etiquetas horizontales apelotonadas e ilegibles, mezclando falsas alarmas (valores por debajo del límite marcados como "superó NRD") con infracciones reales.
+    * Los nombres de los hospitales en el monitor de latidos edge ("Dead Man's Switch") desbordaban horizontalmente, provocando solapamiento y truncamiento de texto.
+  - **Solución Implementada:**
+    * **1. Segregación Estricta de Severidad (`DosimetriaService.php`):**
+      - Se calcularon por separado `total_alertas` (`PELIGRO_NRD`: 11 casos reales que superan el límite) y `total_advertencias` (`ALERTA_PREVENTIVA`: 13 casos en rango de precaución 80%-99%).
+      - Se incorporó `porcentaje_nrd` y `valor_alerta` en el payload analítico.
+    * **2. Rediseño Visual Nativo AdminWrap (`DashboardDosimetria.vue`):**
+      - **Dead Man's Switch Compacto:** Función `getNombreCortoSede()` que reduce nombres extensos al municipio sede (`Espinal`, `Honda`, `Chaparral`, `Ibagué`, etc.) y despliega el nombre completo y telemetría en el tooltip flotante, eliminando desbordamientos.
+      - **Alertas Críticas (`PELIGRO_NRD`):** Banner rojo (`alert-danger`) organizado en un grid responsivo de tarjetas compactas (`col-lg-3 col-md-6`), mostrando la modalidad, porcentaje de exceso (`+X% NRD`), región anatómica, dosis vs NRD y periodo. Incluye paginación colapsable `[Ver Todas (11)] / [Ver Menos]` mostrando las 4 principales por defecto.
+      - **Advertencias Preventivas (`ALERTA_PREVENTIVA`):** Banner ámbar (`alert-warning`) separado y colapsado por defecto, mostrando el porcentaje del límite (`93% del NRD`) con botón `[Ver Detalles (13)]`, evitando alarma falsa a gerencia.
+      - **KPI Card Superaciones NRD:** Añadido subtítulo informativo que discrimina las advertencias preventivas.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) 100% passed ✅.
+    * ESLint y Prettier 100% pasados sin advertencias ✅.
+    * Compilación Vite exitosa (`npm run build` en 2.00s) ✅.
+
 - [x] **2026-11-04 — Implementación y Aplicación Integral de la Auditoría Dosimétrica (Fase 1: Umbrales NRD, Calibración ICRP 103, Agente Edge y Excel Multidimensional) (`DosimetriaService.php`, `UmbralNrd.php`, `UmbralesNrdSeeder.php`, `DashboardDosimetria.vue`, `agente_dosimetria.py`, `DosimetriaEstadisticasSheet.php`, `DosimetriaDetalleSheet.php`):**
   - **Diagnóstico y Necesidad:**
     * El usuario solicitó aplicar de inmediato los hallazgos y correcciones de la auditoría profunda de dosimetría para activar el cumplimiento de la Resolución 482 de 2018 y la ICRP 103 sobre la base de datos de producción restaurada.

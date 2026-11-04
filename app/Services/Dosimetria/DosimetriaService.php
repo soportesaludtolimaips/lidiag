@@ -273,6 +273,7 @@ class DosimetriaService extends BaseService
                 $fila->limite_nrd = $limiteNrd;
 
                 if ($superaNrd || $superaAlerta) {
+                    $porcentajeNrd = $limiteNrd > 0 ? round(((float) $fila->dosis_promedio / $limiteNrd) * 100, 1) : 100;
                     $alertas[] = [
                         'sede_id' => $fila->sede_id,
                         'nom_sede' => $fila->nom_sede,
@@ -282,11 +283,13 @@ class DosimetriaService extends BaseService
                         'mes_periodo' => $fila->mes_periodo,
                         'dosis_promedio' => $fila->dosis_promedio,
                         'limite_nrd' => $limiteNrd,
+                        'valor_alerta' => $valorAlerta,
+                        'porcentaje_nrd' => $porcentajeNrd,
                         'unidad_medida' => $fila->unidad_medida,
                         'gravedad' => $superaNrd ? 'PELIGRO_NRD' : 'ALERTA_PREVENTIVA',
                         'mensaje' => $superaNrd
                             ? "Sede {$fila->nom_sede} superó el Nivel de Referencia ({$fila->dosis_promedio} >= {$limiteNrd} {$fila->unidad_medida}) en {$fila->modalidad} {$fila->region_anatomica} ({$fila->tipo_metrica})."
-                            : "Sede {$fila->nom_sede} en nivel de advertencia ({$fila->dosis_promedio} {$fila->unidad_medida}) para {$fila->modalidad} {$fila->region_anatomica}.",
+                            : "Sede {$fila->nom_sede} en nivel de advertencia ({$fila->dosis_promedio} {$fila->unidad_medida}, {$porcentajeNrd}% del límite) para {$fila->modalidad} {$fila->region_anatomica}.",
                     ];
                 }
             }
@@ -618,8 +621,9 @@ class DosimetriaService extends BaseService
                 ->value('e_media') ?? '0.00';
 
             $totalGrupos = count($filas);
-            $totalAlertasCount = count($alertas);
-            $tasaConformidad = $totalGrupos > 0 ? round(max(0, ($totalGrupos - $totalAlertasCount) / $totalGrupos) * 100, 1) : 100.0;
+            $totalSuperacionesCount = collect($alertas)->where('gravedad', 'PELIGRO_NRD')->count();
+            $totalAdvertenciasCount = collect($alertas)->where('gravedad', 'ALERTA_PREVENTIVA')->count();
+            $tasaConformidad = $totalGrupos > 0 ? round(max(0, ($totalGrupos - $totalSuperacionesCount) / $totalGrupos) * 100, 1) : 100.0;
 
             return $this->success([
                 'consolidado' => $filas,
@@ -639,7 +643,8 @@ class DosimetriaService extends BaseService
                 'kpis' => [
                     'total_estudios' => $totalEstudiosPeriodo,
                     'total_equipos' => $totalEquiposActivos,
-                    'total_alertas' => $totalAlertasCount,
+                    'total_alertas' => $totalSuperacionesCount,
+                    'total_advertencias' => $totalAdvertenciasCount,
                     'total_derivas' => count($alertasDeriva),
                     'total_pacientes' => $totalPacientes,
                     'dosis_efectiva_promedio' => $dosisEfectivaMedia,

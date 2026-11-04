@@ -117,6 +117,12 @@
                                     <span v-else>{{ kpis.total_alertas || 0 }}</span>
                                 </h2>
                                 <h6 class="text-muted m-b-0">Superaciones NRD</h6>
+                                <small
+                                    v-if="(kpis.total_advertencias || 0) > 0"
+                                    class="text-warning font-10 d-block m-t-5"
+                                >
+                                    {{ kpis.total_advertencias }} advertencias preventivas
+                                </small>
                             </div>
                         </div>
                     </div>
@@ -172,13 +178,13 @@
                             :key="'hb-' + s.id"
                             class="label label-rounded m-r-5 m-b-5"
                             :class="getSedeConexionLabelClass(s.estado_conexion)"
-                            :title="getSedeConexionTooltip(s)"
+                            :title="s.nom_sede + ' — ' + getSedeConexionTooltip(s)"
                         >
                             <i
                                 class="fa fa-circle font-10 m-r-5"
                                 :class="getSedeConexionDotColor(s.estado_conexion)"
                             ></i>
-                            {{ s.nom_sede }}
+                            {{ getNombreCortoSede(s.nom_sede) }}
                             <small
                                 v-if="s.minutos_sin_contacto !== null"
                                 class="m-l-5 font-10 text-muted"
@@ -193,38 +199,188 @@
         <!-- ============================================================== -->
         <!-- 3. Alertas Clínicas (NRD y Deriva Técnica) (Nativo AdminWrap) -->
         <!-- ============================================================== -->
-        <!-- 3.1 Alertas NRD Críticas -->
-        <div v-if="alertas.length > 0" class="alert alert-danger m-b-20">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-            <h4 class="card-title text-danger m-b-5">
-                <i class="fa fa-exclamation-triangle m-r-10"></i>Alerta de Radioprotección — Se
-                detectaron promedios superiores a los Niveles de Referencia para Diagnóstico (NRD)
-            </h4>
-            <p class="font-14 text-danger m-b-10">
-                De acuerdo con la Resolución 482 de 2018, la institución debe revisar los protocolos
-                técnicos de adquisición y calibración de los equipos:
-            </p>
-            <div class="d-flex flex-wrap">
-                <span
-                    v-for="(al, idx) in alertas"
-                    :key="'alert-' + idx"
-                    class="label label-danger m-r-5 m-b-5"
+        <!-- 3.1 Alertas NRD Críticas (Superaciones Reales de Límites Regulatorios) -->
+        <div v-if="alertasCriticas.length > 0" class="alert alert-danger m-b-20">
+            <div class="d-flex flex-wrap align-items-center justify-content-between m-b-10">
+                <div>
+                    <h4 class="card-title text-danger m-b-0 font-medium">
+                        <i class="fa fa-exclamation-triangle m-r-10"></i>Superación Crítica de
+                        Niveles de Referencia (NRD)
+                    </h4>
+                    <p class="font-14 text-danger m-b-0 m-t-5">
+                        Resolución 482 de 2018 (ICRP 135) — Se detectaron
+                        {{ alertasCriticas.length }} grupos con promedios por encima del límite
+                        regulatorio:
+                    </p>
+                </div>
+                <div v-if="alertasCriticas.length > 4" class="m-t-10 m-sm-t-0">
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-outline-danger"
+                        @click="mostrarTodasCriticas = !mostrarTodasCriticas"
+                    >
+                        <i
+                            :class="
+                                mostrarTodasCriticas ? 'fa fa-chevron-up' : 'fa fa-chevron-down'
+                            "
+                            class="m-r-5"
+                        ></i>
+                        {{
+                            mostrarTodasCriticas
+                                ? "Ver Menos"
+                                : `Ver Todas (${alertasCriticas.length})`
+                        }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Grid de Tarjetas de Alerta Crítica -->
+            <div class="row m-t-10">
+                <div
+                    v-for="(al, idx) in alertasCriticasVisibles"
+                    :key="'crit-' + idx"
+                    class="col-lg-3 col-md-6 m-b-10"
                 >
-                    <strong>{{ al.nom_sede }}</strong> | {{ al.modalidad }} ({{ al.tipo_metrica }}):
-                    Promedio {{ al.dosis_promedio }} {{ al.unidad_medida }} (Límite NRD:
-                    {{ al.limite_nrd }} {{ al.unidad_medida }})
-                </span>
+                    <div
+                        class="card card-body p-15 m-b-0 bg-white"
+                        style="
+                            border-left: 4px solid #ef4444;
+                            border-radius: 4px;
+                            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+                        "
+                    >
+                        <div class="d-flex justify-content-between align-items-center m-b-5">
+                            <span :class="getModalidadBadgeClass(al.modalidad)">{{
+                                al.modalidad
+                            }}</span>
+                            <span class="label label-danger font-10 font-weight-bold">
+                                +{{
+                                    Math.round(
+                                        (parseFloat(al.dosis_promedio) / parseFloat(al.limite_nrd) -
+                                            1) *
+                                            100
+                                    )
+                                }}% NRD
+                            </span>
+                        </div>
+                        <div class="font-medium text-dark text-truncate" :title="al.nom_sede">
+                            {{ getNombreCortoSede(al.nom_sede) }} ·
+                            <span class="text-muted">{{ al.region_anatomica || "GENERAL" }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-baseline m-t-5">
+                            <div>
+                                <span class="font-18 font-weight-bold text-danger">{{
+                                    al.dosis_promedio
+                                }}</span>
+                                <small class="text-muted m-l-5">{{ al.unidad_medida }}</small>
+                            </div>
+                            <div class="text-muted font-12">
+                                NRD: <strong class="text-dark">{{ al.limite_nrd }}</strong>
+                            </div>
+                        </div>
+                        <div
+                            class="text-muted font-10 m-t-5 text-truncate"
+                            :title="al.tipo_metrica + ' | Periodo: ' + al.mes_periodo"
+                        >
+                            <i class="fa fa-calendar-o m-r-5"></i>{{ al.mes_periodo }} ·
+                            {{ al.tipo_metrica }}
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- 3.2 Alertas Predictivas de Deriva Técnica de Tubos (Machine Drift) -->
-        <div v-if="alertasDeriva && alertasDeriva.length > 0" class="alert alert-warning m-b-20">
+        <!-- 3.2 Advertencias Preventivas de Dosimetría (>80% de NRD) -->
+        <div v-if="alertasPreventivas.length > 0" class="alert alert-warning m-b-20">
+            <div class="d-flex flex-wrap align-items-center justify-content-between">
+                <div>
+                    <h5 class="card-title text-warning m-b-0 font-medium">
+                        <i class="fa fa-bell-o m-r-10"></i>Advertencias Preventivas de Radiación
+                        (>80% del NRD)
+                    </h5>
+                    <small class="text-muted">
+                        {{ alertasPreventivas.length }} grupos operan en rango de precaución
+                        preventiva (80%–99% del NRD). No constituyen infracción pero requieren
+                        seguimiento.
+                    </small>
+                </div>
+                <div class="m-t-10 m-sm-t-0">
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-outline-warning"
+                        @click="mostrarTodasPreventivas = !mostrarTodasPreventivas"
+                    >
+                        <i
+                            :class="
+                                mostrarTodasPreventivas ? 'fa fa-chevron-up' : 'fa fa-chevron-down'
+                            "
+                            class="m-r-5"
+                        ></i>
+                        {{
+                            mostrarTodasPreventivas
+                                ? "Ocultar Detalles"
+                                : `Ver Detalles (${alertasPreventivas.length})`
+                        }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Grid de Tarjetas Preventivas (colapsable) -->
+            <div v-if="mostrarTodasPreventivas" class="row m-t-15">
+                <div
+                    v-for="(al, idx) in alertasPreventivas"
+                    :key="'prev-' + idx"
+                    class="col-lg-3 col-md-6 m-b-10"
+                >
+                    <div
+                        class="card card-body p-15 m-b-0 bg-white"
+                        style="
+                            border-left: 4px solid #f59e0b;
+                            border-radius: 4px;
+                            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+                        "
+                    >
+                        <div class="d-flex justify-content-between align-items-center m-b-5">
+                            <span :class="getModalidadBadgeClass(al.modalidad)">{{
+                                al.modalidad
+                            }}</span>
+                            <span class="label label-warning font-10 font-weight-bold">
+                                {{ al.porcentaje_nrd }}% del NRD
+                            </span>
+                        </div>
+                        <div class="font-medium text-dark text-truncate" :title="al.nom_sede">
+                            {{ getNombreCortoSede(al.nom_sede) }} ·
+                            <span class="text-muted">{{ al.region_anatomica || "GENERAL" }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-baseline m-t-5">
+                            <div>
+                                <span class="font-18 font-weight-bold text-warning">{{
+                                    al.dosis_promedio
+                                }}</span>
+                                <small class="text-muted m-l-5">{{ al.unidad_medida }}</small>
+                            </div>
+                            <div class="text-muted font-12">
+                                NRD: <strong class="text-dark">{{ al.limite_nrd }}</strong>
+                            </div>
+                        </div>
+                        <div
+                            class="text-muted font-10 m-t-5 text-truncate"
+                            :title="al.tipo_metrica + ' | Periodo: ' + al.mes_periodo"
+                        >
+                            <i class="fa fa-calendar-o m-r-5"></i>{{ al.mes_periodo }} ·
+                            {{ al.tipo_metrica }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3.3 Alertas Predictivas de Deriva Técnica de Tubos (Machine Drift) -->
+        <div v-if="alertasDeriva && alertasDeriva.length > 0" class="alert alert-info m-b-20">
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
-            <h4 class="card-title text-warning m-b-5">
+            <h4 class="card-title text-info m-b-5">
                 <i class="fa fa-wrench m-r-10"></i>Alerta Predictiva de Deriva Técnica (Machine
                 Drift Detection)
             </h4>
@@ -236,10 +392,10 @@
                 <span
                     v-for="(ad, idx) in alertasDeriva"
                     :key="'drift-' + idx"
-                    class="label label-warning m-r-5 m-b-5"
+                    class="label label-info m-r-5 m-b-5"
                 >
-                    <strong>{{ ad.equipo_nombre }}</strong> ({{ ad.nom_sede }}) |
-                    {{ ad.tipo_metrica }}: +{{ ad.cambio_porcentaje }}%
+                    <strong>{{ ad.equipo_nombre }}</strong> ({{ getNombreCortoSede(ad.nom_sede) }})
+                    | {{ ad.tipo_metrica }}: +{{ ad.cambio_porcentaje }}%
                     <span v-if="ad.delta_absoluto"
                         >(+{{ ad.delta_absoluto }} {{ ad.unidad_medida }})</span
                     >
@@ -873,6 +1029,7 @@ const kpis = ref({
     total_estudios: 0,
     total_equipos: 0,
     total_alertas: 0,
+    total_advertencias: 0,
     total_derivas: 0,
     total_pacientes: 0,
     dosis_efectiva_promedio: "0.00",
@@ -889,6 +1046,25 @@ const eventosTimeline = ref([]);
 const ultimosRegistros = ref([]);
 const umbralesNrd = ref([]);
 const sedes = ref([]);
+
+// Estado y filtros para visualización agrupada y colapsable de alertas
+const mostrarTodasCriticas = ref(false);
+const mostrarTodasPreventivas = ref(false);
+
+const alertasCriticas = computed(() => alertas.value.filter((a) => a.gravedad === "PELIGRO_NRD"));
+const alertasPreventivas = computed(() =>
+    alertas.value.filter((a) => a.gravedad === "ALERTA_PREVENTIVA")
+);
+const alertasCriticasVisibles = computed(() => {
+    return mostrarTodasCriticas.value ? alertasCriticas.value : alertasCriticas.value.slice(0, 4);
+});
+
+// Helper para obtener nombre corto y legible de la sede (ej. "Espinal - Hospital..." -> "Espinal")
+function getNombreCortoSede(nomSede) {
+    if (!nomSede) return "Sede";
+    const partes = nomSede.split("-");
+    return partes[0].trim();
+}
 
 // Mapa reactivo de umbrales para lookup rápido multidimensional (Modalidad + Métrica + Región)
 const mapaUmbrales = computed(() => {
@@ -1353,6 +1529,7 @@ async function cargarDatos() {
             total_estudios: 0,
             total_equipos: 0,
             total_alertas: 0,
+            total_advertencias: 0,
             total_derivas: 0,
             total_pacientes: 0,
             dosis_efectiva_promedio: "0.00",
