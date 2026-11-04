@@ -37,6 +37,45 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-04 — Rebalanceo y Optimización del Ancho de Columnas en Tabla de Estudios Asignados (`estudioAsignadosComponent.vue`):**
+  - **Diagnóstico y Causa Raíz:**
+    * En `estudioAsignadosComponent.vue`, la tabla `#tablaEstudiosAsignados` carecía de especificación de anchos en `<thead>` y no tenía `autoWidth: false` ni `columnDefs` en DataTables (`initDataTable`). Esto provocaba que DataTables comprimiera y deformara las 12 columnas, apilara textos sin espaciado y permitiera ordenar columnas de prioridad o botones de acción.
+    * Además, la información del paciente se presentaba con texto plano sin jerarquía (`# Docu: ... <br /> Nombres: ...`) y las etiquetas de estado carecían de centrado vertical uniforme.
+  - **Solución Implementada:**
+    * **Distribución Proporcional de Anchos y Jerarquía Visual:**
+      - Columna `P` (Prioridad): `35px` centrada (`orderable: false`).
+      - Columna `Sede`: `130px` con texto destacado en negrita.
+      - Columna `Toma`: `105px` con `text-nowrap` y alineación vertical media.
+      - Columna `Quien Asignó`: `120px`.
+      - Columna `Médico`: `140px`.
+      - Columna `Paciente`: `160px` con jerarquía tipográfica (nombre en negrita arriba y documento con icono abajo).
+      - Columna `Detalle`: `160px` con etiquetas estructuradas para Atención, Accession, Descripción y badges de estado SAHI.
+      - Columna `Producto`: `150px` en negrita.
+      - Columnas de estado (`Leído` 60px, `Transcrito` 75px, `Activo` 60px): centradas vertical y horizontalmente con labels claros.
+      - Columna `Acciones`: `100px` centrada y `orderable: false`, con espaciado consistente `m-r-5` entre botones.
+    * **Integración en DataTables:** En `initDataTable()`, se configuró `autoWidth: false` y `columnDefs` blindando el comportamiento responsivo.
+  - **Verificaciones:**
+    * ESLint validado sin errores (`npx eslint`) ✅.
+    * Compilación Vite completada exitosamente (`npm run build` en 1.27s) ✅.
+    * Formato LF verificado sin BOM ✅.
+- [x] **2026-11-04 — Rebalanceo y Optimización del Ancho de Columnas en Tabla de Asignación de Estudios (`AsignarEstudioComponent.vue`):**
+  - **Diagnóstico y Causa Raíz:**
+    * En `AsignarEstudioComponent.vue`, la tabla de estudios disponibles (`#tablaAsignarEstudio`) presentaba anchos de cabecera mal configurados con atributos erróneos (`with="5%"`, `with="5%"`, `with="30%"` en lugar de `width`), lo cual causaba que las fechas se partieran en múltiples renglones incómodos, los documentos quedaran comprimidos y el paciente tuviera un espacio desproporcionado.
+    * Además, la inicialización de DataTables no tenía deshabilitado `autoWidth` ni poseía `columnDefs`, permitiendo que el plugin calculara anchos arbitrarios y que las columnas de selección y botones de acción fueran erróneamente ordenables.
+  - **Solución Implementada:**
+    * **Distribución Proporcional de Anchos en `<thead>` y `columnDefs`:**
+      - Columna Checkbox selección: `35px` centrada (`orderable: false`).
+      - Columna `Fecha del Estudio`: `140px` con `text-nowrap` y alineación vertical media.
+      - Columna `# Documento`: `120px` con `text-nowrap`.
+      - Columna `Paciente`: `220px` con tipografía en negrita destacada.
+      - Columna `Accession`: `110px` con `text-nowrap`.
+      - Columna `Descripción`: flexible (espacio restante proporcional).
+      - Columna `Acciones`: `140px` centrada y `orderable: false`, con espaciado consistente `m-r-5` entre los 4 botones redondeados (Asignar, Ver imágenes, Quemar CD y Descargar ZIP).
+    * **Configuración en DataTables:** Se integró `autoWidth: false` y la definición explícita de `columnDefs` para blindar el diseño responsive de la tabla.
+  - **Verificaciones:**
+    * ESLint validado sin errores (`npx eslint`) ✅.
+    * Compilación Vite completada exitosamente (`npm run build` en 1.20s) ✅.
+    * Formato LF verificado sin BOM ✅.
 - [x] **2026-11-04 — Rebalanceo y Optimización del Ancho de Columnas en Tabla de Transcripción (`transcribirEstudioComponent.vue`):**
   - **Diagnóstico y Causa Raíz:**
     * En `transcribirEstudioComponent.vue`, las cabeceras `Lectura`, `Medico` y `Paciente` tenían estilos inline `width="50%"` heredados (`50% + 50% + 50% = 150%`), lo que causaba que la columna `Lectura` (que solo muestra una fecha y hora corta) acaparara la mitad de la pantalla, dejando vacíos gigantescos y comprimiendo excesivamente columnas esenciales como `Sede` (apilada en 4 líneas), `Toma`, `Asignación` y `Quien Asigno`.

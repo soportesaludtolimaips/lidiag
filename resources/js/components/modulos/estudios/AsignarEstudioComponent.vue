@@ -195,7 +195,7 @@
                             >
                                 <thead>
                                     <tr>
-                                        <th style="width: 3%">
+                                        <th style="width: 35px" class="text-center">
                                             <input
                                                 type="checkbox"
                                                 :checked="todoSeleccionado"
@@ -203,12 +203,18 @@
                                                 title="Seleccionar todo"
                                             />
                                         </th>
-                                        <th with="5%">Fecha del Estudio</th>
-                                        <th with="5%"># Documento</th>
-                                        <th with="30%">Paciente</th>
-                                        <th>Accession</th>
+                                        <th style="width: 140px" class="text-nowrap">
+                                            Fecha del Estudio
+                                        </th>
+                                        <th style="width: 120px" class="text-nowrap">
+                                            # Documento
+                                        </th>
+                                        <th style="width: 220px">Paciente</th>
+                                        <th style="width: 110px" class="text-nowrap">Accession</th>
                                         <th>Descripción</th>
-                                        <th></th>
+                                        <th style="width: 140px" class="text-center text-nowrap">
+                                            Acciones
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -221,19 +227,25 @@
                                             'selected-row': estudioSeleccionado(item),
                                         }"
                                     >
-                                        <td class="text-center">
+                                        <td class="text-center align-middle">
                                             <input
                                                 type="checkbox"
                                                 :checked="estudioSeleccionado(item)"
                                                 @change="alternarSeleccion(item)"
                                             />
                                         </td>
-                                        <td>{{ item.study_datetime }}</td>
-                                        <td>{{ item.pat_id }}</td>
-                                        <td>{{ item.pat_name }}</td>
-                                        <td>{{ item.accession_no }}</td>
-                                        <td>{{ item.study_desc }}</td>
-                                        <td class="text-nowrap">
+                                        <td class="text-nowrap align-middle">
+                                            {{ item.study_datetime }}
+                                        </td>
+                                        <td class="text-nowrap align-middle">{{ item.pat_id }}</td>
+                                        <td class="align-middle font-weight-bold">
+                                            {{ item.pat_name }}
+                                        </td>
+                                        <td class="text-nowrap align-middle">
+                                            {{ item.accession_no }}
+                                        </td>
+                                        <td class="align-middle">{{ item.study_desc }}</td>
+                                        <td class="text-nowrap text-center align-middle">
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
@@ -250,7 +262,7 @@
                                             </button>
                                             <button
                                                 type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
                                                 @click="verImagenItem(item)"
                                                 title="Ver imagenes"
                                                 aria-label="Ver imagenes"
@@ -269,7 +281,7 @@
                                             </button>
                                             <button
                                                 type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
                                                 @click="abrirQuemador(item)"
                                                 title="Quemar CD"
                                                 aria-label="Quemar CD"
@@ -1316,6 +1328,21 @@ async function buscarStudy() {
                     safeInitDataTable(dt.value || "#tablaAsignarEstudio", {
                         dom: "Bfrtip",
                         buttons: ["copy", "csv", "excel", "pdf", "print"],
+                        autoWidth: false,
+                        columnDefs: [
+                            { targets: [0, 6], orderable: false },
+                            { targets: 0, width: "35px", className: "text-center align-middle" },
+                            { targets: 1, width: "140px", className: "text-nowrap align-middle" },
+                            { targets: 2, width: "120px", className: "text-nowrap align-middle" },
+                            { targets: 3, width: "220px", className: "align-middle" },
+                            { targets: 4, width: "110px", className: "text-nowrap align-middle" },
+                            { targets: 5, className: "align-middle" },
+                            {
+                                targets: 6,
+                                width: "140px",
+                                className: "text-nowrap text-center align-middle",
+                            },
+                        ],
                     });
                 });
             }

@@ -247,18 +247,26 @@
                             >
                                 <thead>
                                     <tr>
-                                        <th></th>
-                                        <th>Sede</th>
-                                        <th>Fecha de la Toma</th>
-                                        <th>Quien Asigno</th>
-                                        <th>Medico</th>
-                                        <th>Paciente</th>
-                                        <th>Detalle</th>
-                                        <th>Producto</th>
-                                        <th>Leido</th>
-                                        <th>Transcrito</th>
-                                        <th>Activo</th>
-                                        <th></th>
+                                        <th
+                                            style="width: 35px"
+                                            class="text-center"
+                                            title="Prioridad"
+                                        >
+                                            P
+                                        </th>
+                                        <th style="width: 130px">Sede</th>
+                                        <th style="width: 105px" class="text-nowrap">Toma</th>
+                                        <th style="width: 120px">Quien Asignó</th>
+                                        <th style="width: 140px">Médico</th>
+                                        <th style="width: 160px">Paciente</th>
+                                        <th style="width: 160px">Detalle</th>
+                                        <th style="width: 150px">Producto</th>
+                                        <th style="width: 60px" class="text-center">Leído</th>
+                                        <th style="width: 75px" class="text-center">Transcrito</th>
+                                        <th style="width: 60px" class="text-center">Activo</th>
+                                        <th style="width: 100px" class="text-center text-nowrap">
+                                            Acciones
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -267,7 +275,7 @@
                                         :key="item.estudio_producto_id"
                                         :id="'row-' + item.estudio_producto_id"
                                     >
-                                        <td>
+                                        <td class="text-center align-middle">
                                             <button
                                                 type="button"
                                                 v-if="item.priori_id == 1"
@@ -301,18 +309,41 @@
                                                 S
                                             </button>
                                         </td>
-                                        <td>{{ item.nom_sede }}</td>
-                                        <td>{{ item.fec_estudio }}</td>
-                                        <td>{{ item.quien_registro }}</td>
-                                        <td>{{ item.medico }}</td>
-                                        <td>
-                                            # Docu: {{ item.num_docu }} <br />
-                                            Nombres: {{ item.nom_pacien }}
+                                        <td class="align-middle font-weight-bold">
+                                            {{ item.nom_sede }}
                                         </td>
-                                        <td>
-                                            Atención: {{ item.atencion }} <br />
-                                            Descrip: {{ item.study_desc }} <br />
-                                            {{ item.accession_no }}
+                                        <td class="align-middle text-nowrap">
+                                            {{ item.fec_estudio }}
+                                        </td>
+                                        <td class="align-middle">{{ item.quien_registro }}</td>
+                                        <td class="align-middle">{{ item.medico }}</td>
+                                        <td class="align-middle">
+                                            <div class="font-weight-bold text-dark">
+                                                {{ item.nom_pacien }}
+                                            </div>
+                                            <small class="text-muted">
+                                                <i class="fa fa-id-card-o"></i>
+                                                {{ item.num_docu }}
+                                            </small>
+                                        </td>
+                                        <td class="align-middle">
+                                            <div v-if="item.atencion">
+                                                <small
+                                                    ><strong>Atención:</strong>
+                                                    {{ item.atencion }}</small
+                                                >
+                                            </div>
+                                            <div v-if="item.accession_no">
+                                                <small class="text-muted"
+                                                    ><strong>Acc:</strong>
+                                                    {{ item.accession_no }}</small
+                                                >
+                                            </div>
+                                            <div v-if="item.study_desc">
+                                                <small class="text-info">{{
+                                                    item.study_desc
+                                                }}</small>
+                                            </div>
                                             <div
                                                 v-if="item.interface_software === 'SAHI'"
                                                 class="mt-1"
@@ -351,44 +382,34 @@
                                                 </span>
                                             </div>
                                         </td>
-                                        <td>{{ item.nom_produc }}</td>
-                                        <td>
+                                        <td class="align-middle font-weight-bold">
+                                            {{ item.nom_produc }}
+                                        </td>
+                                        <td class="text-center align-middle">
                                             <span
                                                 class="label label-success"
                                                 v-if="item.fechor_lectura != null"
                                                 >Si</span
                                             >
-                                            <span
-                                                class="label label-danger"
-                                                v-if="item.fechor_lectura === null"
-                                                >No</span
-                                            >
+                                            <span class="label label-danger" v-else>No</span>
                                         </td>
-                                        <td>
+                                        <td class="text-center align-middle">
                                             <span
                                                 class="label label-success"
                                                 v-if="item.transcriptor_id != null"
                                                 >Si</span
                                             >
-                                            <span
-                                                class="label label-danger"
-                                                v-if="item.transcriptor_id === null"
-                                                >No</span
-                                            >
+                                            <span class="label label-danger" v-else>No</span>
                                         </td>
-                                        <td>
+                                        <td class="text-center align-middle">
                                             <span
                                                 class="label label-success"
                                                 v-if="item.activo === 1"
                                                 >Si</span
                                             >
-                                            <span
-                                                class="label label-danger"
-                                                v-if="item.activo === 0"
-                                                >No</span
-                                            >
+                                            <span class="label label-danger" v-else>No</span>
                                         </td>
-                                        <td class="text-nowrap">
+                                        <td class="text-nowrap text-center align-middle">
                                             <button
                                                 type="button"
                                                 v-if="item.interface_software === 'SAHI'"
@@ -1091,6 +1112,22 @@ function initDataTable() {
         dom: "Bfrtip",
         buttons: ["copy", "csv", "excel", "pdf", "print"],
         retrieve: true,
+        autoWidth: false,
+        columnDefs: [
+            { targets: [0, 11], orderable: false },
+            { targets: 0, width: "35px", className: "text-center align-middle" },
+            { targets: 1, width: "130px", className: "align-middle font-weight-bold" },
+            { targets: 2, width: "105px", className: "text-nowrap align-middle" },
+            { targets: 3, width: "120px", className: "align-middle" },
+            { targets: 4, width: "140px", className: "align-middle" },
+            { targets: 5, width: "160px", className: "align-middle" },
+            { targets: 6, width: "160px", className: "align-middle" },
+            { targets: 7, width: "150px", className: "align-middle font-weight-bold" },
+            { targets: 8, width: "60px", className: "text-center align-middle" },
+            { targets: 9, width: "75px", className: "text-center align-middle" },
+            { targets: 10, width: "60px", className: "text-center align-middle" },
+            { targets: 11, width: "100px", className: "text-center text-nowrap align-middle" },
+        ],
     });
 }
 function destroyDataTable() {
