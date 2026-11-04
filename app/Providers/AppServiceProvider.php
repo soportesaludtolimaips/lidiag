@@ -77,6 +77,10 @@ class AppServiceProvider extends ServiceProvider
     protected function configureRateLimiting(): void
     {
         RateLimiter::for('api', function (Request $request) {
+            if ($request->is('api/dosimetria/*') || $request->is('api/dosis/*') || $request->is('api/seguridad-backups/*')) {
+                return Limit::perMinute(1200)->by($request->user()?->id ?: $request->ip());
+            }
+
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
 

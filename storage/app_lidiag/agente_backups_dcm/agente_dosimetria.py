@@ -966,8 +966,8 @@ def enviar_lote_a_central(api_url: str, api_token: str, sede_id: int, registros_
 
     session = requests.Session()
     retry_strategy = Retry(
-        total=4,
-        backoff_factor=2,  # espera 2s, 4s, 8s, 16s
+        total=5,
+        backoff_factor=3,  # espera 3s, 6s, 12s, 24s, 48s ante 429/500
         status_forcelist=[429, 500, 502, 503, 504],
         allowed_methods=["POST"],
     )
@@ -1032,6 +1032,9 @@ def enviar_lote_a_central(api_url: str, api_token: str, sede_id: int, registros_
             logger.error(f"      [ERROR RED] Fallo al enviar bloque {idx}/{len(chunks)} a Central: {err_msg}")
             marcar_fallidos_sqlite(chunk_ids, f"Error red: {err_msg}")
             all_success = False
+
+        # Pausa suave de cortesía (150ms) entre bloques masivos para respetar rate-limits
+        time.sleep(0.15)
 
     logger.info(f"[TOTAL TRANSMISIÓN] Central procesó exitosamente {total_guardados} de {len(registros_con_id)} registro(s).")
     return all_success, ids_sincronizados, exitosos_keys
