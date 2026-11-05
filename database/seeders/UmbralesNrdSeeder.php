@@ -219,7 +219,7 @@ class UmbralesNrdSeeder extends Seeder
             ],
 
             // =========================================================================
-            // 4. MAMOGRAFÍA DIGITAL (MG) — DGM (mGy)
+            // 4. MAMOGRAFÍA DIGITAL (MG / DX) — DGM (mGy)
             // =========================================================================
             [
                 'modalidad' => 'MG',
@@ -229,6 +229,15 @@ class UmbralesNrdSeeder extends Seeder
                 'valor_limite_nrd' => 3.0000,
                 'unidad_medida' => 'mGy',
                 'descripcion' => 'Mamografía DGM por proyección (4.5 cm comprimido) — Res. 482 / OIEA',
+            ],
+            [
+                'modalidad' => 'DX',
+                'tipo_metrica' => 'DGM',
+                'region_anatomica' => 'MAMA',
+                'valor_alerta' => 2.4000,
+                'valor_limite_nrd' => 3.0000,
+                'unidad_medida' => 'mGy',
+                'descripcion' => 'Mamografía Digital DX/CR — DGM Res. 482 / OIEA',
             ],
         ];
 

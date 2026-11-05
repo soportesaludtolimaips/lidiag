@@ -10,6 +10,7 @@ use App\Services\BaseService;
 use Carbon\Carbon;
 use Database\Seeders\UmbralesNrdSeeder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -182,6 +183,9 @@ class DosimetriaService extends BaseService
 
             // 1. Cargar umbrales NRD regulatorios con soporte multidimensional (Modalidad + Métrica + Región)
             [$mapaUmbrales, $umbralesTodos] = $this->obtenerCatalogoUmbrales();
+
+            // 1.1 Asegurar sincronización transparente de mamografías clínicas
+            $this->asegurarTelemetriaMamografias();
 
             // 2. Consulta agrupada por Sede, Modalidad, Región y Mes
             $sqlRegionCase = "CASE 
@@ -802,6 +806,9 @@ class DosimetriaService extends BaseService
         // 2. Cargar catálogo de umbrales NRD activos con mapeo multidimensional
         [$mapaUmbrales] = $this->obtenerCatalogoUmbrales();
 
+        // 2.1 Asegurar sincronización transparente de mamografías clínicas
+        $this->asegurarTelemetriaMamografias();
+
         $sqlRegionCase = "CASE 
             WHEN e.modalidad = 'MG' OR r.tipo_metrica = 'DGM' OR (r.study_desc LIKE '%[MAMA]%' AND r.study_desc NOT LIKE '%PARAN%') OR r.study_desc LIKE '%MAMOGRAF%' THEN 'MAMA'
             WHEN r.study_desc LIKE '%[CRANEO]%' OR r.study_desc LIKE '%PARANAS%' OR r.study_desc LIKE '%PARANAL%' THEN 'CRANEO'
@@ -1225,6 +1232,44 @@ class DosimetriaService extends BaseService
         }
 
         return [$mapaUmbrales, $umbralesTodos];
+    }
+
+    /**
+     * Asegura de forma transparente que las mamografías clínicas existentes en la base de datos
+     * estén reflejadas en la telemetría dosimétrica sin requerir comandos de consola manuales.
+     *
+     * Flujo del proceso:
+     * 1. Consulta en caché si ya existen registros de DGM en medicion_dosis_radiacion.
+     * 2. Si no existen, verifica si la tabla principal de estudios contiene exámenes con modalidad MG.
+     * 3. De ser así, ejecuta de forma desatendida el comando dosimetria:sync-mamografias.
+     * 4. Almacena el estado en caché para no incurrir en sobrecarga en solicitudes concurrentes.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-05
+     */
+    protected function asegurarTelemetriaMamografias(): void
+    {
+        $hayMg = Cache::remember('dosimetria_hay_mg', 1800, function () {
+            return DB::table('medicion_dosis_radiacion')
+                ->where('tipo_metrica', 'DGM')
+                ->exists();
+        });
+
+        if (! $hayMg) {
+            try {
+                $hayEnEstudios = DB::table('estudios')
+                    ->where('mods_in_study', 'like', '%MG%')
+                    ->exists();
+
+                if ($hayEnEstudios) {
+                    Artisan::call('dosimetria:sync-mamografias');
+                    Cache::put('dosimetria_hay_mg', true, 86400);
+                }
+            } catch (\Throwable $e) {
+                Log::warning("DosimetriaService: No se pudo auto-sincronizar mamografías: {$e->getMessage()}");
+            }
+        }
     }
 
     /**

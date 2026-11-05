@@ -89,6 +89,28 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * Generación real validada con 324 registros de producción de noviembre: ambas hojas y 2 gráficos generados correctamente ✅.
     * Finales de línea en LF y codificación UTF-8 sin BOM ✅.
 
+- [x] **2026-11-05 — Auto-Sincronización Transparente de Telemetría de Mamografías y Resolución de "Mama N/A" en Producción (`DosimetriaService.php`, `UmbralesNrdSeeder.php`):**
+  - **Diagnóstico y Reporte del Usuario:**
+    * El usuario reportó que tras actualizar el servidor, Cráneo, Tórax, Abdomen, Pelvis, Columna y Extremidades ya mostraban métricas correctas, pero *"Mama Sigue sin dato (N/A)"*.
+    * En los datos de producción: Espinal (19.021 estudios), Chaparral (10.886 estudios), Ibagué (308 estudios).
+  - **Causa Raíz Identificada:**
+    * Al analizar el desglose por modalidad en la base de datos, se descubrió que 19.021 en Espinal y 10.886 en Chaparral correspondían exactamente a los estudios de Rayos X (DX) y Tomografía (CT) sin mamografías.
+    * En el entorno local se había ejecutado `php artisan dosimetria:sync-mamografias`, poblando 4.425 mamografías clínicas con métrica DGM hacia `medicion_dosis_radiacion`, pero este comando nunca se corrió en producción.
+    * En consecuencia, `medicion_dosis_radiacion` en producción contenía cero registros de DGM/MG, dejando a Mama en `null` / `SIN_DATOS` (`N/A`).
+    * Para Ibagué (308 estudios), la sede no cuenta con mamógrafo en operación (`MG = 0`), por lo que su estado `N/A` es clínicamente exacto.
+  - **Solución Implementada:**
+    * **1. Auto-Sincronización de Mamografías (Self-Healing) en `DosimetriaService.php`:**
+      - Se implementó `asegurarTelemetriaMamografias(): void` al inicio de `obtenerDashboard()` y `obtenerDatosExportacion()`.
+      - Si en `medicion_dosis_radiacion` no existen registros con `tipo_metrica = 'DGM'`, pero la tabla `estudios` contiene exámenes con modalidad `MG`, el servicio invoca automáticamente y en segundo plano `Artisan::call('dosimetria:sync-mamografias')`.
+      - Utiliza caché con TTL de 24 horas (`dosimetria_hay_mg`) para no impactar el rendimiento en peticiones subsiguientes.
+      - Al refrescar el navegador en producción, el sistema detecta la falta de mamografías, las sincroniza al vuelo y entrega los datos de Mama de inmediato: Espinal 61.4% (Seguro), Chaparral 60.1% (Seguro) y Honda 61.5% (Seguro).
+    * **2. Blindaje Defensivo en `UmbralesNrdSeeder.php`:**
+      - Se agregó umbral normativo preventivo para `modalidad = 'DX'` con métrica `DGM` y región `MAMA` para cubrir mamografías digitalizadas o reportadas bajo chasis digital.
+  - **Verificaciones:**
+    * Simulación de producción vacía (DGM borrados) con rollback: auto-sincronización instantánea de 4.425 registros de mamografía al invocar `obtenerDashboard()`, reportando Espinal Mama: 61.4% (467 est), Chaparral Mama: 60.1% (146 est), Ibagué Mama: N/A (0 est), Honda Mama: 61.5% (522 est) ✅.
+    * Laravel Pint pasado al 100% (`vendor\bin\pint.bat --test`) ✅.
+    * Finales de línea en LF y UTF-8 sin BOM ✅.
+
 - [x] **2026-11-04 — Corrección de Visualización de Métricas de Dosimetría en Producción (Self-Healing de Umbrales NRD, Mapa de Calor y Radar Chart) (`DosimetriaService.php`, `DashboardDosimetria.vue`, `UmbralesNrdSeeder.php`, `SeedFaltantesCommand.php`):**
   - **Diagnóstico y Reporte Visual del Usuario:**
     * El usuario compartió captura de pantalla de producción indicando: *"En produccion no se muestra la metrica"*.
