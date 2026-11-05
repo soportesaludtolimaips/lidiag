@@ -89,6 +89,34 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * Generación real validada con 324 registros de producción de noviembre: ambas hojas y 2 gráficos generados correctamente ✅.
     * Finales de línea en LF y codificación UTF-8 sin BOM ✅.
 
+- [x] **2026-11-04 — Corrección de Visualización de Métricas de Dosimetría en Producción (Self-Healing de Umbrales NRD, Mapa de Calor y Radar Chart) (`DosimetriaService.php`, `DashboardDosimetria.vue`, `UmbralesNrdSeeder.php`, `SeedFaltantesCommand.php`):**
+  - **Diagnóstico y Reporte Visual del Usuario:**
+    * El usuario compartió captura de pantalla de producción indicando: *"En produccion no se muestra la metrica"*.
+    * En la captura se evidenciaba:
+      1. El polígono azul del gráfico de radar (*"Perfil Anatómico vs NRD"*) no aparecía / colapsado en 0.
+      2. En la tabla *"Mapa de Calor y Matriz de Riesgo Dosimétrico"*, todas las sedes (Espinal con 19.021 estudios, Chaparral con 10.886 estudios, Ibagué con 308 estudios) mostraban la etiqueta gris `N/A` en cada uno de los 7 órganos diana (*Cráneo, Tórax, Abdomen, Pelvis, Columna, Extremidades, Mama*).
+  - **Causa Raíz Identificada:**
+    * En producción se desplegó el código mediante `git pull` sin ejecutar la migración ni el seeder de umbrales multidimensionales (`add_region_anatomica_to_medicion_dosis_umbrales_nrd_table` y `UmbralesNrdSeeder.php`).
+    * Al no existir umbrales asociados a regiones en la tabla `medicion_dosis_umbrales_nrd`, `$mapaUmbrales` no contenía registros para `{$modalidad}_{$metrica}_{$region}`.
+    * Consecuentemente, `$fila->limite_nrd` y `$sData['regiones'][$rc]['limite_nrd']` quedaban en `null`, marcando todas las celdas como `pct_nrd: null` y estado `SIN_DATOS` (`N/A`).
+    * En el frontend (`chartDataRadar`), el filtro `parseFloat(c.limite_nrd) > 0` descartaba todos los registros, retornando `0` para las 7 zonas corporales y provocando la desaparición del polígono en el radar.
+  - **Solución Implementada:**
+    * **1. Arquitectura de Auto-Recuperación (Self-Healing) en `DosimetriaService.php`:**
+      - Se implementó el método protegido `obtenerCatalogoUmbrales(): array` tanto en `obtenerDashboard()` como en `obtenerDatosExportacion()`.
+      - Si la base de datos de producción no contiene umbrales activos o carece de registros por región anatómica, invoca de manera transparente y segura `(new \Database\Seeders\UmbralesNrdSeeder())->run()` dentro de un bloque `try/catch`.
+      - Esto garantiza que al cargar el dashboard en producción, el sistema detecta la ausencia, auto-siembra los 20 umbrales normativos de inmediato y entrega los porcentajes reales (Espinal: Cráneo 89.6%, Tórax 594.7%, Abdomen 49.9%, etc.).
+    * **2. Blindaje Defensivo en `UmbralesNrdSeeder.php` y `SeedFaltantesCommand.php`:**
+      - En el seeder se incorporó una comprobación defensiva con `Schema::hasColumn('medicion_dosis_umbrales_nrd', 'region_anatomica')`; si la columna no existe en producción, se crea al vuelo junto con su índice sin requerir `php artisan migrate`.
+      - Se registró formalmente `UmbralesNrdSeeder` dentro del comando corporativo `SeedFaltantesCommand.php`.
+    * **3. Robustecimiento de Renderizado en `DashboardDosimetria.vue`:**
+      - Se ajustó la comprobación ternaria de cada celda del mapa de calor a `sede.regiones?.REGION?.pct_nrd !== null && sede.regiones?.REGION?.pct_nrd !== undefined ? sede.regiones.REGION.pct_nrd + '%' : 'N/A'` para evitar falsos negativos si el porcentaje es 0.
+  - **Verificaciones:**
+    * Simulación de producción vacía con rollback en script de consola: auto-recuperación exitosa a 20 umbrales y cálculo inmediato de matriz con 4 sedes pobladas ✅.
+    * Laravel Pint pasado al 100% (`vendor\bin\pint.bat --test`) ✅.
+    * ESLint validado con 0 errores y 0 warnings (`npx eslint`) ✅.
+    * Compilación Vite exitosa (`npm run build` en 2.24s) ✅.
+    * Finales de línea en LF y UTF-8 sin BOM ✅.
+
 - [x] **2026-11-04 — Transformación Universal Multi-Hoja con Métricas, Estadísticas y Gráficos Nativos en Todos los Reportes Excel de LIDiag:**
   - **Diagnóstico y Solicitud del Usuario:**
     * El usuario solicitó: *"Mira todos los reportes que se generan y agrega una hoja con métricas, estadísticas y gráficas"*.

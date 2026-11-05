@@ -3,7 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\Dosimetria\UmbralNrd;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Schema;
 
 class UmbralesNrdSeeder extends Seeder
 {
@@ -12,8 +14,10 @@ class UmbralesNrdSeeder extends Seeder
      * la Resolución 482 de 2018 del Ministerio de Salud de Colombia, OIEA e ICRP 135.
      *
      * Flujo del proceso:
-     * 1. Define el catálogo estándar multidimensional por Modalidad, Tipo de Métrica y Región Anatómica.
-     * 2. Ejecuta un updateOrCreate idempotente para permitir re-ejecuciones seguras sin duplicidad.
+     * 1. Verifica y crea la columna 'region_anatomica' de forma defensiva si no existiera en la tabla.
+     * 2. Normaliza umbrales base legados sin región anatómica a la categoría 'GENERAL'.
+     * 3. Define el catálogo estándar multidimensional por Modalidad, Tipo de Métrica y Región Anatómica.
+     * 4. Ejecuta un updateOrCreate idempotente para permitir re-ejecuciones seguras sin duplicidad.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -21,6 +25,15 @@ class UmbralesNrdSeeder extends Seeder
      */
     public function run(): void
     {
+        if (Schema::hasTable('medicion_dosis_umbrales_nrd') && ! Schema::hasColumn('medicion_dosis_umbrales_nrd', 'region_anatomica')) {
+            Schema::table('medicion_dosis_umbrales_nrd', function (Blueprint $table) {
+                $table->string('region_anatomica', 50)->nullable()->after('tipo_metrica');
+                $table->index('region_anatomica', 'idx_umbrales_region');
+            });
+        }
+
+        UmbralNrd::whereNull('region_anatomica')->update(['region_anatomica' => 'GENERAL']);
+
         $umbrales = [
             // =========================================================================
             // 1. TOMOGRAFÍA COMPUTARIZADA (CT) — CTDIvol (mGy)

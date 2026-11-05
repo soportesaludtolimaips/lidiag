@@ -33,8 +33,10 @@ use Database\Seeders\PermisosAgendamientoSeeder;
 use Database\Seeders\PlantillaTipoSeeder;
 use Database\Seeders\RoleSeederAgenda;
 use Database\Seeders\RoleSeederReporteLectura;
+use Database\Seeders\UmbralesNrdSeeder;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -77,6 +79,13 @@ class SeedFaltantesCommand extends Command
                 "descripcion" => "Permisos de Dosimetria y umbrales NRD nacionales",
                 "check" => fn () => Permission::where("name", "dosimetria.dashboard")->exists()
                     && DB::table("medicion_dosis_umbrales_nrd")->exists(),
+            ],
+            [
+                "class" => UmbralesNrdSeeder::class,
+                "descripcion" => "Niveles de Referencia para Diagnóstico (NRD) por región anatómica (Res. 482 / ICRP 135)",
+                "check" => fn () => Schema::hasTable("medicion_dosis_umbrales_nrd")
+                    && Schema::hasColumn("medicion_dosis_umbrales_nrd", "region_anatomica")
+                    && DB::table("medicion_dosis_umbrales_nrd")->whereNotNull("region_anatomica")->exists(),
             ],
 
             // 3. Backups y Monitoreo de Seguridad

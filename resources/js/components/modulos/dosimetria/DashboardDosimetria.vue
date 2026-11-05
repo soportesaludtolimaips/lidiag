@@ -1019,7 +1019,8 @@
                                         style="cursor: help; min-width: 62px; display: inline-block"
                                     >
                                         {{
-                                            sede.regiones?.CRANEO?.pct_nrd
+                                            sede.regiones?.CRANEO?.pct_nrd !== null &&
+                                            sede.regiones?.CRANEO?.pct_nrd !== undefined
                                                 ? sede.regiones.CRANEO.pct_nrd + "%"
                                                 : "N/A"
                                         }}
@@ -1037,7 +1038,8 @@
                                         style="cursor: help; min-width: 62px; display: inline-block"
                                     >
                                         {{
-                                            sede.regiones?.TORAX?.pct_nrd
+                                            sede.regiones?.TORAX?.pct_nrd !== null &&
+                                            sede.regiones?.TORAX?.pct_nrd !== undefined
                                                 ? sede.regiones.TORAX.pct_nrd + "%"
                                                 : "N/A"
                                         }}
@@ -1057,7 +1059,8 @@
                                         style="cursor: help; min-width: 62px; display: inline-block"
                                     >
                                         {{
-                                            sede.regiones?.ABDOMEN?.pct_nrd
+                                            sede.regiones?.ABDOMEN?.pct_nrd !== null &&
+                                            sede.regiones?.ABDOMEN?.pct_nrd !== undefined
                                                 ? sede.regiones.ABDOMEN.pct_nrd + "%"
                                                 : "N/A"
                                         }}
@@ -1075,7 +1078,8 @@
                                         style="cursor: help; min-width: 62px; display: inline-block"
                                     >
                                         {{
-                                            sede.regiones?.PELVIS?.pct_nrd
+                                            sede.regiones?.PELVIS?.pct_nrd !== null &&
+                                            sede.regiones?.PELVIS?.pct_nrd !== undefined
                                                 ? sede.regiones.PELVIS.pct_nrd + "%"
                                                 : "N/A"
                                         }}
@@ -1095,7 +1099,8 @@
                                         style="cursor: help; min-width: 62px; display: inline-block"
                                     >
                                         {{
-                                            sede.regiones?.COLUMNA?.pct_nrd
+                                            sede.regiones?.COLUMNA?.pct_nrd !== null &&
+                                            sede.regiones?.COLUMNA?.pct_nrd !== undefined
                                                 ? sede.regiones.COLUMNA.pct_nrd + "%"
                                                 : "N/A"
                                         }}
@@ -1120,7 +1125,8 @@
                                         style="cursor: help; min-width: 62px; display: inline-block"
                                     >
                                         {{
-                                            sede.regiones?.EXTREMIDADES?.pct_nrd
+                                            sede.regiones?.EXTREMIDADES?.pct_nrd !== null &&
+                                            sede.regiones?.EXTREMIDADES?.pct_nrd !== undefined
                                                 ? sede.regiones.EXTREMIDADES.pct_nrd + "%"
                                                 : "N/A"
                                         }}
@@ -1136,7 +1142,8 @@
                                         style="cursor: help; min-width: 62px; display: inline-block"
                                     >
                                         {{
-                                            sede.regiones?.MAMA?.pct_nrd
+                                            sede.regiones?.MAMA?.pct_nrd !== null &&
+                                            sede.regiones?.MAMA?.pct_nrd !== undefined
                                                 ? sede.regiones.MAMA.pct_nrd + "%"
                                                 : "N/A"
                                         }}

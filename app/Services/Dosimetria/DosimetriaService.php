@@ -8,6 +8,8 @@ use App\Models\Dosimetria\RegistroDosisRadiacion;
 use App\Models\Dosimetria\UmbralNrd;
 use App\Services\BaseService;
 use Carbon\Carbon;
+use Database\Seeders\UmbralesNrdSeeder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -179,15 +181,7 @@ class DosimetriaService extends BaseService
             $fechaHasta = ! empty($filtros['fecha_hasta']) ? Carbon::parse($filtros['fecha_hasta'])->endOfDay() : Carbon::now()->endOfDay();
 
             // 1. Cargar umbrales NRD regulatorios con soporte multidimensional (Modalidad + Métrica + Región)
-            $umbralesTodos = UmbralNrd::where('estado', true)->get();
-            $mapaUmbrales = [];
-            foreach ($umbralesTodos as $u) {
-                $regKey = ! empty($u->region_anatomica) ? "_{$u->region_anatomica}" : '';
-                $mapaUmbrales["{$u->modalidad}_{$u->tipo_metrica}{$regKey}"] = $u;
-                if (! isset($mapaUmbrales["{$u->modalidad}_{$u->tipo_metrica}"]) || $u->region_anatomica === 'GENERAL') {
-                    $mapaUmbrales["{$u->modalidad}_{$u->tipo_metrica}"] = $u;
-                }
-            }
+            [$mapaUmbrales, $umbralesTodos] = $this->obtenerCatalogoUmbrales();
 
             // 2. Consulta agrupada por Sede, Modalidad, Región y Mes
             $sqlRegionCase = "CASE 
@@ -806,15 +800,7 @@ class DosimetriaService extends BaseService
         }
 
         // 2. Cargar catálogo de umbrales NRD activos con mapeo multidimensional
-        $umbralesTodos = UmbralNrd::where('estado', true)->get();
-        $mapaUmbrales = [];
-        foreach ($umbralesTodos as $u) {
-            $regKey = ! empty($u->region_anatomica) ? "_{$u->region_anatomica}" : '';
-            $mapaUmbrales["{$u->modalidad}_{$u->tipo_metrica}{$regKey}"] = $u;
-            if (! isset($mapaUmbrales["{$u->modalidad}_{$u->tipo_metrica}"]) || $u->region_anatomica === 'GENERAL') {
-                $mapaUmbrales["{$u->modalidad}_{$u->tipo_metrica}"] = $u;
-            }
-        }
+        [$mapaUmbrales] = $this->obtenerCatalogoUmbrales();
 
         $sqlRegionCase = "CASE 
             WHEN e.modalidad = 'MG' OR r.tipo_metrica = 'DGM' OR (r.study_desc LIKE '%[MAMA]%' AND r.study_desc NOT LIKE '%PARAN%') OR r.study_desc LIKE '%MAMOGRAF%' THEN 'MAMA'
@@ -1196,6 +1182,49 @@ class DosimetriaService extends BaseService
         ], now()->addDays(30));
 
         return $this->success($payload, 'Heartbeat registrado exitosamente', 200);
+    }
+
+    /**
+     * Obtiene el catálogo indexado de umbrales NRD activos por modalidad, métrica y región anatómica.
+     * Incorpora auto-recuperación transparente (self-healing) que siembra los umbrales regulatorios
+     * si la tabla se encuentra vacía o carece de registros por región anatómica.
+     *
+     * Flujo del proceso:
+     * 1. Consulta todos los umbrales NRD con estado activo.
+     * 2. Verifica si existen registros con región anatómica diferenciada.
+     * 3. Si no existen, ejecuta de forma segura el UmbralesNrdSeeder defensivo y recarga el set.
+     * 4. Indexa los umbrales por clave compuesta 'MODALIDAD_METRICA_REGION' y fallback 'MODALIDAD_METRICA'.
+     *
+     * @return array{0: array<string, UmbralNrd>, 1: Collection}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-04
+     */
+    protected function obtenerCatalogoUmbrales(): array
+    {
+        $umbralesTodos = UmbralNrd::where('estado', true)->get();
+        $tieneRegiones = $umbralesTodos->isNotEmpty() && $umbralesTodos->contains(fn ($u) => ! empty($u->region_anatomica) && $u->region_anatomica !== 'GENERAL');
+
+        if (! $tieneRegiones) {
+            try {
+                (new UmbralesNrdSeeder)->run();
+                $umbralesTodos = UmbralNrd::where('estado', true)->get();
+            } catch (\Throwable $e) {
+                Log::warning("DosimetriaService: No se pudo auto-sembrar umbrales NRD: {$e->getMessage()}");
+            }
+        }
+
+        $mapaUmbrales = [];
+        foreach ($umbralesTodos as $u) {
+            $regKey = ! empty($u->region_anatomica) ? "_{$u->region_anatomica}" : '';
+            $mapaUmbrales["{$u->modalidad}_{$u->tipo_metrica}{$regKey}"] = $u;
+            if (! isset($mapaUmbrales["{$u->modalidad}_{$u->tipo_metrica}"]) || $u->region_anatomica === 'GENERAL') {
+                $mapaUmbrales["{$u->modalidad}_{$u->tipo_metrica}"] = $u;
+            }
+        }
+
+        return [$mapaUmbrales, $umbralesTodos];
     }
 
     /**
