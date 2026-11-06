@@ -148,13 +148,13 @@ except Exception:
 
 
 def parse_tolerant_json(file_path: str) -> dict:
-    """Lee JSON tolerando barras simples de Windows sin fallar por invalid escape."""
+    """Lee JSON tolerando barras simples de Windows y trailing commas sin fallar."""
     with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     try:
         return json.loads(content)
-    except json.JSONDecodeError:
+    except Exception:
         pass
 
     def fix_string(match):
@@ -163,10 +163,15 @@ def parse_tolerant_json(file_path: str) -> dict:
         return f'"{inner}"'
 
     fixed = re.sub(r'"(?:[^"\\]|\\.)*"', fix_string, content)
+    fixed = re.sub(r'//.*?\n', '\n', fixed)
+    fixed = re.sub(r'/\*.*?\*/', '', fixed, flags=re.DOTALL)
+    fixed = re.sub(r',\s*([\]\}])', r'\1', fixed)
+
     try:
         return json.loads(fixed)
     except Exception:
-        return json.loads(content.replace("\\", "/"))
+        c_clean = re.sub(r',\s*([\]\}])', r'\1', content)
+        return json.loads(c_clean.replace("\\", "/"))
 
 
 def format_bytes(bytes_num: float) -> str:

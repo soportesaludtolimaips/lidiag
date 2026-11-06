@@ -225,7 +225,7 @@ def parse_arguments():
 
 
 def parse_tolerant_json(content: str) -> dict:
-    """Parsea JSON con tolerancia a rutas Windows con barras simples."""
+    """Parsea JSON con tolerancia a rutas Windows con barras simples y trailing commas."""
     try:
         return json.loads(content)
     except Exception:
@@ -237,10 +237,15 @@ def parse_tolerant_json(content: str) -> dict:
         return f'"{inner}"'
 
     fixed = re.sub(r'"(?:[^"\\]|\\.)*"', fix_string, content)
+    fixed = re.sub(r'//.*?\n', '\n', fixed)
+    fixed = re.sub(r'/\*.*?\*/', '', fixed, flags=re.DOTALL)
+    fixed = re.sub(r',\s*([\]\}])', r'\1', fixed)
+
     try:
         return json.loads(fixed)
     except Exception:
-        return json.loads(content.replace("\\", "/"))
+        c_clean = re.sub(r',\s*([\]\}])', r'\1', content)
+        return json.loads(c_clean.replace("\\", "/"))
 
 
 def load_config(custom_path: Optional[str] = None) -> dict:

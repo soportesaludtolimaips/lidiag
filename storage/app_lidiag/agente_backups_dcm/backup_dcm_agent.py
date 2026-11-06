@@ -204,9 +204,8 @@ def parse_arguments():
 
 def parse_tolerant_json(content):
     r"""
-    Parsea JSON con tolerancia a rutas de Windows con barras invertidas simples (\).
-    En Windows, al escribir 'C:\Program Files\...' o 'C:\backups_dcm' el parser estándar
-    falla con 'Invalid \escape' (\b es backspace, \P es escape inválido).
+    Parsea JSON con tolerancia a rutas de Windows con barras invertidas simples (\),
+    comentarios y comas finales (trailing commas) en arrays u objetos.
     """
     try:
         return json.loads(content)
@@ -222,10 +221,17 @@ def parse_tolerant_json(content):
         return f'"{inner}"'
 
     fixed = re.sub(r'"(?:[^"\\]|\\.)*"', fix_string, content)
+
+    # Eliminar comentarios y trailing commas
+    fixed = re.sub(r'//.*?\n', '\n', fixed)
+    fixed = re.sub(r'/\*.*?\*/', '', fixed, flags=re.DOTALL)
+    fixed = re.sub(r',\s*([\]\}])', r'\1', fixed)
+
     try:
         return json.loads(fixed)
     except Exception:
-        return json.loads(content.replace("\\", "/"))
+        c_clean = re.sub(r',\s*([\]\}])', r'\1', content)
+        return json.loads(c_clean.replace("\\", "/"))
 
 
 def load_config(config_path, args):

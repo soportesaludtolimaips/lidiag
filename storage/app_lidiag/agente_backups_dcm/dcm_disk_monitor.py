@@ -67,8 +67,8 @@ elif sys.platform.startswith("win"):
 
 def parse_tolerant_json(content: str) -> dict:
     r"""
-    Parsea JSON con tolerancia a rutas Windows con barras invertidas simples (\).
-    En Windows, rutas como 'C:\Program Files' o 'D:\img_dcm' causan errores en json.loads.
+    Parsea JSON con tolerancia a rutas Windows con barras invertidas simples (\),
+    comentarios y comas finales (trailing commas) en arrays u objetos.
     """
     try:
         return json.loads(content)
@@ -84,10 +84,19 @@ def parse_tolerant_json(content: str) -> dict:
         return f'"{inner}"'
 
     fixed = re.sub(r'"(?:[^"\\]|\\.)*"', fix_string, content)
+
+    # Eliminar comentarios estilo // o /* */ si existen
+    fixed = re.sub(r'//.*?\n', '\n', fixed)
+    fixed = re.sub(r'/\*.*?\*/', '', fixed, flags=re.DOTALL)
+
+    # Eliminar comas finales ilegales (trailing commas) antes de ] o }
+    fixed = re.sub(r',\s*([\]\}])', r'\1', fixed)
+
     try:
         return json.loads(fixed)
     except Exception:
-        return json.loads(content.replace("\\", "/"))
+        c_clean = re.sub(r',\s*([\]\}])', r'\1', content)
+        return json.loads(c_clean.replace("\\", "/"))
 
 
 def load_config(config_path: str = "config.json") -> dict:

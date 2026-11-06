@@ -157,25 +157,34 @@ except Exception:
 def parse_tolerant_json(file_path: str) -> dict:
     """
     Lee un archivo JSON tolerando barras invertidas simples de Windows (C:\\...)
-    sin arrojar JSONDecodeError por caracteres de escape no válidos.
+    y comas finales (trailing commas) sin arrojar JSONDecodeError.
     """
     with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     try:
         return json.loads(content)
-    except json.JSONDecodeError:
-        fixed_lines = []
-        for line in content.splitlines():
-            if ":" in line:
-                key, val = line.split(":", 1)
-                val_stripped = val.strip()
-                if val_stripped.startswith('"') and val_stripped.endswith('",') or val_stripped.endswith('"'):
-                    val_cleaned = val.replace("\\", "\\\\").replace("\\\\\\\\", "\\\\")
-                    fixed_lines.append(f"{key}:{val_cleaned}")
-                    continue
-            fixed_lines.append(line)
-        return json.loads("\n".join(fixed_lines))
+    except Exception:
+        pass
+
+    def fix_string(match):
+        val = match.group(0)
+        inner = val[1:-1]
+        inner = inner.replace('\\"', "___ESCAPED_QUOTE___")
+        inner = inner.replace("\\", "/")
+        inner = inner.replace("___ESCAPED_QUOTE___", '\\"')
+        return f'"{inner}"'
+
+    fixed = re.sub(r'"(?:[^"\\]|\\.)*"', fix_string, content)
+    fixed = re.sub(r'//.*?\n', '\n', fixed)
+    fixed = re.sub(r'/\*.*?\*/', '', fixed, flags=re.DOTALL)
+    fixed = re.sub(r',\s*([\]\}])', r'\1', fixed)
+
+    try:
+        return json.loads(fixed)
+    except Exception:
+        c_clean = re.sub(r',\s*([\]\}])', r'\1', content)
+        return json.loads(c_clean.replace("\\", "/"))
 
 
 def check_qnap_port(ip: str, ports: tuple = (445, 139), timeout: float = 3.0) -> bool:

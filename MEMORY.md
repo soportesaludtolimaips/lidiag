@@ -37,6 +37,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-06 — Hotfix: Tolerancia a Comas Finales (Trailing Commas) en `parse_tolerant_json` (`dcm_disk_monitor.py`, `backup_dcm_agent.py`, `sync_dcm_images.py`, `agente_dosimetria.py`, `restore_dcm_images.py`):**
+  - **Diagnóstico del Error:**
+    * El usuario compartió el log de error en Espinal: `json.decoder.JSONDecodeError: Illegal trailing comma before end of array: line 22 column 21`.
+    * En Python 3.14 (y versiones estrictas de json), dejar una coma final antes del cierre de corchete `]` o llave `}` (ej. `"local_images_dir": ["D:\\img_dcm", ]`) provoca error fatal de sintaxis JSON.
+  - **Solución Aplicada:**
+    * Se actualizó la función `parse_tolerant_json` en los 5 scripts del paquete edge incorporando limpieza por expresión regular `re.sub(r',\s*([\]\}])', r'\1', fixed)` y saneamiento de comentarios.
+    * Probado y validado contra JSONs con trailing commas y barras simples de Windows sin fallos.
 - [x] **2026-11-06 — Descarga Directa del Paquete de Agentes DCM (.zip) desde Monitor Central (`/seguridad-backups`, `BackupMonitorService.php`, `BackupMonitorController.php`, `api_seguridad.php`, `backupMonitorComponent.vue`):**
   - **Solicitud del Usuario:**
     * El usuario sugirió: *"que te parece si en https://lidiag.com/seguridad-backups agregamos la funcionalidad de descargar un .zip de los agentes de C:\laragon\www\lidiag\storage\app_lidiag\agente_backups_dcm"*.
