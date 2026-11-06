@@ -37,6 +37,37 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-06 — Modernización Integral UI/UX en Módulo Tele-Radiología Transcribir (`teleRadiologiaTranscibirComponent.vue`):**
+  - **Diagnóstico del Requerimiento:**
+    * El usuario solicitó: *"Mejora la ui/ux de https://lidiag.com/tele-radiologia-transcribir"*.
+    * La vista anterior presentaba:
+      - Carencia de métricas o indicadores clave (KPIs) sobre el volumen de estudios y su estado.
+      - Botones crípticos de una sola letra (`A`, `M`, `B`, `S`) para prioridades clínicas sin descripción.
+      - Etiquetas básicas de estado sin jerarquía visual para distinguir estudios listos para transcribir vs en espera de lectura en TLIMAGEN.
+      - Imposibilidad de abrir el visor PACS/DICOM directamente desde las filas de la tabla sin entrar al modal.
+      - Panel lateral (drawer) de transcripción con campos amontonados (`<dl><dt><dd>`), editor de texto plano sin contadores de palabras/caracteres ni utilidades de copiado rápido al portapapeles.
+  - **Solución Aplicada:**
+    * **1. Tarjetas KPI de Resumen Dinámico:**
+      - 4 tarjetas interactivas: *Total Estudios*, *Listos Para Transcribir (Con lectura)*, *En Espera de Tele (Sin lectura)* y *Prioridad Alta (Urgentes)*.
+      - Al hacer clic en cualquier KPI card o en los chips de la tabla, filtra instantáneamente el listado sin recargar datos del servidor.
+    * **2. Barra de Filtros Optimizada:**
+      - Agrupación por campos con iconos descriptivos, atajo de teclado `Enter` en búsqueda rápida y botones de rango rápido (*Hoy*, *Últimos 7 días*, *Este mes*).
+    * **3. Tabla Clínica Modernizada:**
+      - Badges clínicos de prioridad con iconos: *Alta* (rojo fuego), *Media* (ámbar reloj), *Baja* (azul info), *Normal* (neutro).
+      - Badges de estado claros: *Con Lectura* (verde con icono check y timestamp de recepción) vs *En Espera* (ámbar con icono reloj).
+      - Información de paciente jerarquizada (nombre destacado, documento en badge sutil, sexo/edad).
+      - Información de procedimiento con badges para CUPS y Accession Number.
+      - Acciones directas por fila: Botón *Transcribir* estilizado con indicador de lectura lista, nuevo botón para abrir directamente el *Visor DICOM* desde la fila, y botón de anular con confirmación.
+    * **4. Panel Deslizante de Transcripción (Drawer) Rediseñado:**
+      - Cabecera con título médico claro, botón de acceso rápido al Visor DICOM, modo Zen (pantalla completa) y Modo Oscuro.
+      - Columna izquierda con tarjeta clínica estructurada de detalles del estudio, observaciones resaltadas y campo de email para reporte.
+      - Editor de lectura mejorado: tipografía monoespaciada de alta legibilidad, contadores en tiempo real de caracteres y palabras, botones para copiar al portapapeles y limpiar.
+      - Tabs estilizadas para adjuntos (con badges de conteo y botones de descarga rápida) y audios (con reproductor integrado).
+      - Barra inferior sticky con botón de guardado destacado y pista de atajo de teclado (`Ctrl + S`).
+  - **Verificaciones:**
+    * ESLint sin errores (`npx eslint`) ✅.
+    * Formateo Prettier verificado (`npx prettier --write`) ✅.
+    * Compilación Vite para producción exitosa (`npm run build`, 1.28s) ✅.
 - [x] **2026-11-06 — Diagnóstico y Trazabilidad en Recepción de Lecturas de Tele-Radiología (`TeleRadiologiaController.php`, `TeleRadiologiaService.php`):**
   - **Diagnóstico del Requerimiento:**
     * El usuario solicitó: *"agreguemos un Log::info al metodo recibirLectura por esta llegando la data pero el campo lectura queda null"*.
