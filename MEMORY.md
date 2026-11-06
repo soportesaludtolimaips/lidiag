@@ -37,7 +37,17 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
-- [x] **2026-11-06 — Modernización Integral UI/UX en Módulo Tele-Radiología Transcribir (`teleRadiologiaTranscibirComponent.vue`):**
+- [x] **2026-11-06 — Estandarización Visual al Estilo Nativo de la Aplicación (`teleRadiologiaTranscibirComponent.vue`):**
+  - **Ajuste:**
+    * Se eliminaron estilos CSS personalizados ajenos a la plantilla para conservar 100% la estética y patrones oficiales de AdminWrap / Lidiag.
+    * Botones de prioridad unificados al formato estándar (`btn waves-effect waves-light btn-rounded btn-sm` con letras `A`, `M`, `B`, `S`).
+    * Etiquetas de estado unificadas con las clases nativas (`label label-success` y `label label-danger`).
+    * Filtro de estado (`Todos`, `Con Lectura`, `Sin Lectura`) integrado de forma armónica como un `custom-select` estándar dentro de la fila de filtros.
+    * Incorporación del botón de visualización directa de imágenes PACS/DICOM (`btn-outline-info`) y badges nativos de conteo en la cabecera.
+    * Panel lateral (drawer) restituido a la estructura nativa (`rpanel-title`, `r-panel-body`, `textarea_editor`, tabs estándar).
+  - **Verificaciones:**
+    * Prettier y ESLint pasados sin advertencias ✅.
+    * Build de Vite completado en 1.37s ✅.
   - **Diagnóstico del Requerimiento:**
     * El usuario solicitó: *"Mejora la ui/ux de https://lidiag.com/tele-radiologia-transcribir"*.
     * La vista anterior presentaba:
