@@ -226,20 +226,10 @@ class BackupMonitorService extends BaseService
                 $mtimeArchivo = $ultimoArchivo->getMTime();
             }
 
-            // 2. Telemetría reportada por el agente de la sede (Cache distribuido con auto-recuperación de log)
-            $telemetriaDb = Cache::get("telemetria_sede_{$sedeId}_backup_db");
-            $telemetriaSync = Cache::get("telemetria_sede_{$sedeId}_sync_imagenes");
-            $telemetriaDisco = Cache::get("telemetria_sede_{$sedeId}_disco_imagenes");
-
-            if (! $telemetriaDb) {
-                $telemetriaDb = $this->recuperarUltimaTelemetriaDeLog($sedeId, "backup_db");
-            }
-            if (! $telemetriaSync) {
-                $telemetriaSync = $this->recuperarUltimaTelemetriaDeLog($sedeId, "sync_imagenes");
-            }
-            if (! $telemetriaDisco) {
-                $telemetriaDisco = $this->recuperarUltimaTelemetriaDeLog($sedeId, "disco_imagenes");
-            }
+            // 2. Telemetría reportada por el agente de la sede (Caché, persistencia JSON y auto-recuperación de log)
+            $telemetriaDb = $this->obtenerTelemetriaSede($sedeId, "backup_db");
+            $telemetriaSync = $this->obtenerTelemetriaSede($sedeId, "sync_imagenes");
+            $telemetriaDisco = $this->obtenerTelemetriaSede($sedeId, "disco_imagenes");
 
             $discoImagenes = $this->resolverDiscoImagenesSede($telemetriaDisco, $telemetriaSync, $telemetriaDb);
 
@@ -714,10 +704,64 @@ class BackupMonitorService extends BaseService
     }
 
     /**
-     * Recupera la telemetría más reciente de una sede desde el archivo backups.log como mecanismo de auto-recuperación resiliente.
+     * Obtiene la telemetría más reciente de una sede implementando una estrategia de resiliencia de tres niveles:
+     * 1. Caché rápida en memoria/driver (Cache::get)
+     * 2. Persistencia en archivo JSON dedicado (storage/app/telemetria/)
+     * 3. Auto-recuperación escaneando bitácoras de logs (backups.log y laravel.log)
      *
      * @param  int  $sedeId  ID de la sede
-     * @param  string  $servicio  Nombre del servicio (backup_db o sync_imagenes)
+     * @param  string  $servicio  Nombre del servicio (backup_db, sync_imagenes o disco_imagenes)
+     * @return array|null Estructura de telemetría normalizada o null si no existe
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-06
+     */
+    public function obtenerTelemetriaSede(int $sedeId, string $servicio): ?array
+    {
+        // Nivel 1: Caché
+        $telemetria = Cache::get("telemetria_sede_{$sedeId}_{$servicio}");
+        if (is_array($telemetria) && ! empty($telemetria)) {
+            return $telemetria;
+        }
+
+        // Nivel 2: Persistencia JSON dedicada
+        $rutaArchivo = storage_path("app/telemetria/telemetria_sede_{$sedeId}_{$servicio}.json");
+        if (File::exists($rutaArchivo)) {
+            $contenido = @file_get_contents($rutaArchivo);
+            if (! empty($contenido)) {
+                $json = json_decode($contenido, true);
+                if (is_array($json) && ! empty($json)) {
+                    Cache::put("telemetria_sede_{$sedeId}_{$servicio}", $json, now()->addDays(30));
+
+                    return $json;
+                }
+            }
+        }
+
+        // Nivel 3: Recuperación resiliente desde archivos de log
+        $recuperado = $this->recuperarUltimaTelemetriaDeLog($sedeId, $servicio);
+        if ($recuperado) {
+            try {
+                $dirTelemetria = storage_path("app/telemetria");
+                if (! File::isDirectory($dirTelemetria)) {
+                    File::makeDirectory($dirTelemetria, 0755, true, true);
+                }
+                File::put($rutaArchivo, json_encode($recuperado, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            } catch (\Throwable) {
+            }
+
+            return $recuperado;
+        }
+
+        return null;
+    }
+
+    /**
+     * Recupera la telemetría más reciente de una sede desde los logs como mecanismo de auto-recuperación resiliente.
+     *
+     * @param  int  $sedeId  ID de la sede
+     * @param  string  $servicio  Nombre del servicio (backup_db, sync_imagenes o disco_imagenes)
      * @return array|null Estructura de telemetría o null si no se encuentra en el log
      *
      * @author Jhon Javer Lozano Arce
@@ -726,37 +770,56 @@ class BackupMonitorService extends BaseService
      */
     protected function recuperarUltimaTelemetriaDeLog(int $sedeId, string $servicio): ?array
     {
-        $logPath = storage_path("logs/backups.log");
-        if (! File::exists($logPath)) {
-            return null;
-        }
+        $rutasLogs = [
+            storage_path("logs/backups.log"),
+            storage_path("logs/laravel.log"),
+            storage_path("logs/laravel-".date("Y-m-d").".log"),
+        ];
 
-        $lineas = @file($logPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        if (! is_array($lineas) || empty($lineas)) {
-            return null;
-        }
+        foreach ($rutasLogs as $logPath) {
+            if (! File::exists($logPath)) {
+                continue;
+            }
 
-        // Inspeccionar las líneas más recientes del log desde el final
-        $total = count($lineas);
-        $limite = max(0, $total - 200);
+            $lineas = @file($logPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            if (! is_array($lineas) || empty($lineas)) {
+                continue;
+            }
 
-        for ($i = $total - 1; $i >= $limite; $i--) {
-            $linea = $lineas[$i];
-            if (str_contains($linea, "[Telemetría {$servicio}]") && str_contains($linea, "\"sede_id\":{$sedeId}")) {
-                if (preg_match('/^\[(?P<fecha>[^\]]+)\]\s+[A-Za-z0-9_.]+:.*?(\{.+\})$/', $linea, $m)) {
-                    $json = json_decode($m[2], true);
-                    if (is_array($json) && ($json["sede_id"] ?? null) == $sedeId) {
-                        $telemetria = [
-                            "servicio" => $servicio,
-                            "estado" => strtoupper($json["estado"] ?? "OK"),
-                            "mensaje" => $json["mensaje"] ?? "Recuperado de log",
-                            "detalles" => $json["detalles"] ?? [],
-                            "fecha" => Carbon::parse($m["fecha"])->toIso8601String(),
-                        ];
-                        // Auto-sanar caché para peticiones subsiguientes
-                        Cache::put("telemetria_sede_{$sedeId}_{$servicio}", $telemetria, now()->addDays(30));
+            // Inspeccionar las líneas más recientes del log desde el final
+            $total = count($lineas);
+            $limite = max(0, $total - 300);
 
-                        return $telemetria;
+            for ($i = $total - 1; $i >= $limite; $i--) {
+                $linea = $lineas[$i];
+                if (str_contains($linea, "[Telemetría {$servicio}]") &&
+                    (str_contains($linea, "\"sede_id\":{$sedeId}") || str_contains($linea, "\"sede_id\": {$sedeId}"))
+                ) {
+                    $fecha = null;
+                    if (preg_match('/^\[(?P<fecha>[^\]]+)\]/', $linea, $mFecha)) {
+                        $fecha = $mFecha["fecha"];
+                    }
+
+                    // Extraer tolerante el JSON entre la primera { y la última }
+                    $posInicio = strpos($linea, "{");
+                    $posFin = strrpos($linea, "}");
+
+                    if ($posInicio !== false && $posFin !== false && $posFin > $posInicio) {
+                        $jsonStr = substr($linea, $posInicio, $posFin - $posInicio + 1);
+                        $json = json_decode($jsonStr, true);
+                        if (is_array($json) && ($json["sede_id"] ?? null) == $sedeId) {
+                            $telemetria = [
+                                "servicio" => $servicio,
+                                "estado" => strtoupper($json["estado"] ?? "OK"),
+                                "mensaje" => $json["mensaje"] ?? "Recuperado de log",
+                                "detalles" => $json["detalles"] ?? [],
+                                "fecha" => $fecha ? Carbon::parse($fecha)->toIso8601String() : now()->toIso8601String(),
+                            ];
+                            // Auto-sanar caché para peticiones subsiguientes
+                            Cache::put("telemetria_sede_{$sedeId}_{$servicio}", $telemetria, now()->addDays(30));
+
+                            return $telemetria;
+                        }
                     }
                 }
             }

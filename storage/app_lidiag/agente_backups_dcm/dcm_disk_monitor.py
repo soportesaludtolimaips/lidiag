@@ -571,7 +571,7 @@ def emit_central_telemetry(config: dict, discos: list) -> bool:
     estado_global = "CRITICO" if hay_critico else ("ADVERTENCIA" if hay_adv else "OK")
 
     msg = (
-        f"Auditoría Dd: {disco_repo.get('free_gb', 0)} GB libres ({disco_repo.get('free_pct', 0)}%) en {disco_repo.get('nombre', 'Disco')}"
+        f"Auditoría Almacenamiento: {disco_repo.get('free_gb', 0)} GB libres ({disco_repo.get('free_pct', 0)}%) en {disco_repo.get('nombre', 'Disco')}"
         if disco_repo else "Discos DICOM auditados"
     )
 

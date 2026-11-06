@@ -37,6 +37,41 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-06 — Automatización y Registro de las 4 Tareas de Sede (`instalar_tareas_sede.bat`, `install.bat`):**
+  - **Diagnóstico del Requerimiento:**
+    * El usuario señaló que en el servidor de sede (Espinal) solo existía la tarea `LiDiag_Backup_DB_DCM` y solicitó que `instalar_tareas_sede.bat` cree automáticamente las tareas para `ejecutar_dosimetria.bat`, `ejecutar_disk_monitor.bat` y los demás agentes.
+  - **Mejoras Aplicadas:**
+    * **1. Registro Automatizado de las 4 Tareas en `instalar_tareas_sede.bat`:**
+      - `LIDiag_Backup_DB_DCM`: Respaldo MySQL diario a las 02:00 AM (`/sc DAILY /st 02:00 /ru SYSTEM /rl HIGHEST`).
+      - `LIDiag_Sync_Imagenes_DCM`: Sincronización continua de imágenes DICOM al arrancar el equipo (`/sc ONSTART /delay 0001:00 /ru SYSTEM /rl HIGHEST`).
+      - `LIDiag_Dosimetria_Edge`: Extracción y telemetría de dosimetría radiológica cada 1 hora a las :15 (`/sc HOURLY /mo 1 /st 00:15 /ru SYSTEM /rl HIGHEST`).
+      - `LIDiag_Disk_Monitor_DCM`: Auditoría y telemetría de discos y almacenamiento cada 30 minutos a las :05 (`/sc MINUTE /mo 30 /st 00:05 /ru SYSTEM /rl HIGHEST`).
+    * **2. Auto-Elevación UAC y Validación:**
+      - Si el script se ejecuta sin privilegios de administrador por doble clic, se auto-eleva transparentemente solicitando permisos con PowerShell UAC (`Start-Process cmd -Verb RunAs`).
+      - Limpia tareas huérfanas con nombres antiguos (`LiDiag_Backup_DB_DCM`).
+      - Muestra tabla con el estado real de las 4 tareas registradas (`schtasks /query`).
+      - Ofrece ejecutar una prueba inmediata del monitor de discos para reportar telemetría en caliente a LIDiag Central.
+    * **3. Enlace Directo desde `install.bat`:**
+      - Tras finalizar la instalación de pip y dependencias, `install.bat` ofrece registrar de inmediato las 4 tareas de Windows sin requerir abrir otro archivo.
+- [x] **2026-11-06 — Hotfix: Persistencia Robusta de Telemetría Edge y Auto-Recuperación de Logs (`BackupUploadController.php`, `BackupMonitorService.php`, `backupMonitorComponent.vue`, `dcm_disk_monitor.py`):**
+  - **Diagnóstico del Problema:**
+    * El usuario reportó "No se muestra la data" con captura de `https://lidiag.com/seguridad-backups`.
+    * En la "Bitácora de Eventos" se evidenciaba la llegada exitosa de la telemetría: `[2026-11-06 11:20:46] production.INFO: [Telemetría disco_imagenes] Espinal - Hospital San Rafael: Estado OK...`.
+    * Sin embargo, la tabla en la columna `Disco Imágenes (PACS)` mostraba `Sin datos Dd`.
+    * Causa 1: La telemetría solo se almacenaba en `Cache::put()`. En entornos de producción (PHP-FPM con múltiples procesos, reinicios o configuración de driver de caché volátil), el caché no siempre estaba disponible para peticiones HTTP subsecuentes.
+    * Causa 2: El mecanismo de fallback `recuperarUltimaTelemetriaDeLog()` fallaba porque su expresión regular `/^\[(?P<fecha>[^\]]+)\]\s+[A-Za-z0-9_.]+:.*?(\{.+\})$/` exigía que `}` fuera el final estricto de la línea (`$`). Monolog en Laravel añade un espacio en blanco (`\x20`) o corchetes de contexto/extra (`[] []`) antes del salto de línea, haciendo que el regex retornara 0 matches.
+  - **Solución Aplicada:**
+    * **1. Persistencia de 3 Niveles en Backend:**
+      - `BackupUploadController::telemetria()` ahora persiste inmediatamente a `storage/app/telemetria/telemetria_sede_{id}_{servicio}.json`, además de guardarlo en `Cache` y en `Log::channel("backups")`.
+      - `BackupMonitorService::obtenerTelemetriaSede()` implementa la resolución priorizada: (1) Caché rápido → (2) Archivo JSON persistente → (3) Recuperación desde logs.
+    * **2. Parser de Logs Resiliente e Inmune a Monolog:**
+      - `recuperarUltimaTelemetriaDeLog()` ahora escanea `backups.log`, `laravel.log` y logs diarios.
+      - Extrae el JSON buscando tolerante entre el primer `{` y el último `}` con `strpos`/`strrpos`, tolerando espacios finales, saltos de línea y arrays vacíos de Monolog.
+      - Al recuperar un registro de log, auto-sana tanto el archivo JSON como el caché.
+    * **3. Frontend y Script DCM:**
+      - Corregido el texto `Sin datos Dd` a `Sin datos (D:)` en `backupMonitorComponent.vue`.
+      - Corregido el mensaje en `dcm_disk_monitor.py` de `Auditoría Dd:` a `Auditoría Almacenamiento:`.
+      - Build de producción ejecutado con éxito (`npm run build`).
 - [x] **2026-11-06 — Hotfix: Tolerancia a Comas Finales (Trailing Commas) en `parse_tolerant_json` (`dcm_disk_monitor.py`, `backup_dcm_agent.py`, `sync_dcm_images.py`, `agente_dosimetria.py`, `restore_dcm_images.py`):**
   - **Diagnóstico del Error:**
     * El usuario compartió el log de error en Espinal: `json.decoder.JSONDecodeError: Illegal trailing comma before end of array: line 22 column 21`.

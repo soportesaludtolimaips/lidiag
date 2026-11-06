@@ -67,8 +67,18 @@ echo =========================================================================
 echo.
 echo Siguientes pasos para completar el despliegue en la sede:
 echo   1. Asegurate de tener "config.json" en esta carpeta con los datos de tu sede.
-echo   2. Ejecuta como Administrador: "instalar_tareas_sede.bat"
-echo      para registrar las 4 tareas de Windows (Respaldo BD, Imagenes,
-echo      Monitor de Discos y Dosimetria).
+echo   2. Ejecuta "instalar_tareas_sede.bat" para registrar las 4 tareas de Windows:
+echo      - Respaldo BD MySQL (diario 02:00 AM)
+echo      - Sincronizacion Continua de Imagenes (ONSTART)
+echo      - Dosimetria Radiologica Edge (cada hora)
+echo      - Monitor de Discos y Almacenamiento (cada 30 min)
 echo.
-pause
+echo ¿Deseas registrar las 4 tareas de Windows ahora mismo en este servidor? (S/N)
+set /p "REG_TAREAS=Opcion: "
+if /i "%REG_TAREAS%"=="S" (
+    call "%~dp0instalar_tareas_sede.bat"
+) else (
+    echo.
+    echo Puedes registrar las tareas en cualquier momento ejecutando "instalar_tareas_sede.bat".
+    pause
+)

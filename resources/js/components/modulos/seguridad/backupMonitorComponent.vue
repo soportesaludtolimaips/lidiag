@@ -509,7 +509,7 @@
                                             <template v-else>
                                                 <span class="text-muted font-11">
                                                     <i class="fa fa-hdd-o text-muted mr-1"></i> Sin
-                                                    datos Dd
+                                                    datos (D:)
                                                 </span>
                                             </template>
                                         </td>

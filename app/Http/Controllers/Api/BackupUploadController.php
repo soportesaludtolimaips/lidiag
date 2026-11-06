@@ -203,13 +203,28 @@ class BackupUploadController extends Controller
         $sede = ConfigSede::find($validated["sede_id"]);
         $sedeNombre = $sede?->nom_sede ?? "Sede #{$validated['sede_id']}";
 
-        Cache::put("telemetria_sede_{$validated['sede_id']}_{$validated['servicio']}", [
+        $datosTelemetria = [
             "servicio" => $validated["servicio"],
             "estado" => strtoupper($validated["estado"]),
             "mensaje" => $validated["mensaje"] ?? "OK",
             "detalles" => $validated["detalles"] ?? [],
             "fecha" => now()->toIso8601String(),
-        ], now()->addDays(30));
+        ];
+
+        // 1. Guardar en caché rápida
+        Cache::put("telemetria_sede_{$validated['sede_id']}_{$validated['servicio']}", $datosTelemetria, now()->addDays(30));
+
+        // 2. Persistir en archivo JSON dedicado para inmunidad ante caídas de caché o reinicios de FPM
+        try {
+            $dirTelemetria = storage_path("app/telemetria");
+            if (! File::isDirectory($dirTelemetria)) {
+                File::makeDirectory($dirTelemetria, 0755, true, true);
+            }
+            $archivoPersistencia = "{$dirTelemetria}/telemetria_sede_{$validated['sede_id']}_{$validated['servicio']}.json";
+            File::put($archivoPersistencia, json_encode($datosTelemetria, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        } catch (Throwable $e) {
+            Log::channel("backups")->warning("No se pudo escribir archivo de persistencia de telemetría: ".$e->getMessage());
+        }
 
         Log::channel("backups")->info(
             "[Telemetría {$validated['servicio']}] {$sedeNombre}: Estado {$validated['estado']} - ".($validated["mensaje"] ?? "OK"),
