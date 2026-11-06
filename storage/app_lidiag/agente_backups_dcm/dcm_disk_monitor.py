@@ -121,10 +121,25 @@ def load_config(config_path: str = "config.json") -> dict:
     rutas_default = [
         {"nombre": "Disco del Sistema (OS)", "ruta": "C:\\"}
     ]
-    img_dir = config.get("local_images_dir") or "D:\\img_dcm"
-    rutas_default.append({"nombre": "Repositorio Imágenes DICOM (PACS)", "ruta": img_dir})
-    if config.get("destination_dir") and config.get("destination_dir") != img_dir:
-        rutas_default.append({"nombre": "Destino Backups Locales", "ruta": config["destination_dir"]})
+    raw_img_dirs = config.get("local_images_dir") or "D:\\img_dcm"
+    if isinstance(raw_img_dirs, str):
+        img_dirs = [raw_img_dirs]
+    elif isinstance(raw_img_dirs, (list, tuple)):
+        img_dirs = [str(d) for d in raw_img_dirs if str(d).strip()]
+    else:
+        img_dirs = ["D:\\img_dcm"]
+
+    for idx, d in enumerate(img_dirs):
+        drive_letter = ""
+        m = re.match(r"^([a-zA-Z]:)", str(d))
+        if m:
+            drive_letter = f" ({m.group(1).upper()})"
+        label = f"Repositorio Imágenes DICOM{drive_letter}" if len(img_dirs) == 1 else f"Repositorio Imágenes #{idx + 1}{drive_letter}"
+        rutas_default.append({"nombre": label, "ruta": str(d)})
+
+    dest_dir = config.get("destination_dir")
+    if dest_dir and dest_dir not in img_dirs:
+        rutas_default.append({"nombre": "Destino Backups Locales", "ruta": str(dest_dir)})
 
     config.setdefault("rutas_monitoreo", rutas_default)
     config.setdefault("umbrales", {

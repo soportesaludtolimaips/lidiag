@@ -16,7 +16,10 @@
     "destination_dir": "C:\\backups_dcm",
     "retention_days": 30,
 
-    "local_images_dir": "D:\\imagenes_pacs",
+    "local_images_dir": [
+        "D:\\img_dcm",
+        "E:\\img_dcm_historico"
+    ],
     "sync_interval_seconds": 180,
     "threads": 8,
     "min_free_space_gb": 10,

@@ -325,15 +325,27 @@ def normalize_robocopy_output_line(raw_line: str, base_dir: str, pending_prefixe
     return result_lines
 
 
+def get_local_image_dirs(config: dict) -> list:
+    """Retorna una lista de rutas locales de imágenes soportando string único o lista de rutas."""
+    raw = config.get("local_images_dir", "D:\\imagenes_pacs")
+    if isinstance(raw, (list, tuple)):
+        dirs = [str(d).strip() for d in raw if str(d).strip()]
+        return dirs if dirs else ["D:\\imagenes_pacs"]
+    if isinstance(raw, str) and raw.strip():
+        return [raw.strip()]
+    return ["D:\\imagenes_pacs"]
+
+
 def sync_cycle(config: dict, dry_run: bool = False) -> bool:
     """
     Ejecuta un ciclo de sincronización incremental desde local hacia el QNAP.
+    Soporta uno o múltiples directorios/discos en local_images_dir.
     """
     qnap_ip = config.get("qnap_ip", "").strip()
     qnap_share = (config.get("qnap_share_imagenes") or config.get("qnap_share", "")).strip()
     qnap_user = config.get("qnap_user", "").strip()
     qnap_password = config.get("qnap_password", "")
-    local_dir = config.get("local_images_dir", "D:\\imagenes_pacs").strip()
+    local_dirs = get_local_image_dirs(config)
     threads = int(config.get("threads", 8))
     sede_nombre = config.get("sede_nombre", "Sede")
     min_space = float(config.get("min_free_space_gb", 5))
@@ -341,16 +353,29 @@ def sync_cycle(config: dict, dry_run: bool = False) -> bool:
     start_time = time.time()
     unc_dest = f"\\\\{qnap_ip}\\{qnap_share}"
 
-    # 1. Validar directorio de imágenes local
-    if not os.path.isdir(local_dir):
-        logger.error(f"Directorio local de imágenes no encontrado: {local_dir}")
-        emit_status(config, status="ERROR", msg=f"Directorio local no existe: {local_dir}")
+    # 1. Validar directorios de imágenes locales
+    valid_dirs = []
+    for d in local_dirs:
+        if os.path.isdir(d):
+            valid_dirs.append(d)
+        else:
+            logger.warning(f"Directorio local de imágenes no encontrado: {d}")
+
+    if not valid_dirs:
+        logger.error(f"Ninguno de los directorios locales de imágenes existe: {local_dirs}")
+        emit_status(config, status="ERROR", msg=f"Directorios no existen: {', '.join(local_dirs)}")
         return False
 
     # 2. Pre-flight check: Espacio en disco local
-    free_gb = get_free_disk_space_gb(local_dir)
-    if free_gb < min_space:
-        logger.warning(f"Espacio libre en disco bajo ({free_gb} GB < {min_space} GB). Alerta de almacenamiento.")
+    min_free_gb = 999999.0
+    for d in valid_dirs:
+        free_gb = get_free_disk_space_gb(d)
+        if free_gb < min_free_gb:
+            min_free_gb = free_gb
+        if free_gb < min_space:
+            logger.warning(f"Espacio libre en disco bajo para {d} ({free_gb} GB < {min_space} GB). Alerta de almacenamiento.")
+    if min_free_gb == 999999.0:
+        min_free_gb = 0.0
 
     # 3. Conectividad TCP al QNAP (puertos 445 o 139)
     if not check_qnap_port(qnap_ip, ports=(445, 139)):
@@ -366,131 +391,115 @@ def sync_cycle(config: dict, dry_run: bool = False) -> bool:
             emit_status(config, status="AUTH_ERROR", msg=f"No se pudo acceder al recurso {unc_dest}")
             return False
 
-    # 5. Ejecutar Robocopy nativo con /LOG directo, /TEE y /V (Verbose)
-    logger.info(f"[1/2] Iniciando escaneo e indexación en vivo del repositorio en '{local_dir}'...")
-    logger.info(f"      Destino QNAP : {unc_dest} | Hilos: {threads}")
-    logger.info(f"      Log detallado: {ROBOCOPY_LOG_FILE}")
+    # 5. Ejecutar Robocopy para cada directorio configurado
+    total_copiados = 0
+    total_omitidos = 0
+    total_fallidos = 0
+    hubo_error = False
 
-    # Flags de alto rendimiento para escaneo y registro en tiempo real:
-    #   /E       : Copia subcarpetas (series, estudios)
-    #   /XO      : Exclude older (no toca lo que ya está igual o más reciente)
-    #   /XN      : Exclude newer (no reemplaza nada más nuevo en el destino)
-    #   /XC      : Exclude changed (no altera archivos existentes -> Modo Backup Seguro)
-    #   /FFT     : Tolerancia de 2s en timestamps FAT/SMB
-    #   /MT      : Hilos paralelos (16 o 32 para cargas masivas)
-    #   /R:2     : 2 reintentos ante archivos en escritura activa por el PACS
-    #   /W:3     : 3 segundos entre reintentos
-    #   /NP      : Sin porcentaje de progreso
-    #   /V       : VERBOSE — Obliga a registrar CADA directorio y CADA imagen analizada
-    #   /FP      : Incluye la ruta completa del archivo local
-    #   /XF      : Excluye archivos basura del SO y metadatos de sincronizadores
-    #   /XD      : Excluye papeleras y directorios de control de la NAS
-    cmd = [
-        "robocopy",
-        local_dir,
-        unc_dest,
-        "/E",
-        "/XO",
-        "/XN",
-        "/XC",
-        "/FFT",
-        f"/MT:{threads}",
-        "/R:2",
-        "/W:3",
-        "/NP",
-        "/V",
-        "/FP",
-        "/XF",
-        "desktop.ini",
-        "Thumbs.db",
-        "*.tmp",
-        "*.syncrootid",
-        "*.part",
-        "*.crdownload",
-        "/XD",
-        "@Recycle",
-        ".syncing_db",
-        ".qsyncclient",
-        "$RECYCLE.BIN",
-        "System Volume Information",
-    ]
+    for idx, local_dir in enumerate(valid_dirs, 1):
+        logger.info(f"[{idx}/{len(valid_dirs)}] Iniciando escaneo e indexación en vivo del repositorio en '{local_dir}'...")
+        logger.info(f"      Destino QNAP : {unc_dest} | Hilos: {threads}")
+        logger.info(f"      Log detallado: {ROBOCOPY_LOG_FILE}")
 
-    if dry_run:
-        cmd.append("/L")
-        logger.info("      [MODO SIMULACIÓN] Robocopy ejecutándose con flag /L (no se copiarán archivos)")
+        cmd = [
+            "robocopy",
+            local_dir,
+            unc_dest,
+            "/E",
+            "/XO",
+            "/XN",
+            "/XC",
+            "/FFT",
+            f"/MT:{threads}",
+            "/R:2",
+            "/W:3",
+            "/NP",
+            "/V",
+            "/FP",
+            "/XF",
+            "desktop.ini",
+            "Thumbs.db",
+            "*.tmp",
+            "*.syncrootid",
+            "*.part",
+            "*.crdownload",
+            "/XD",
+            "@Recycle",
+            ".syncing_db",
+            ".qsyncclient",
+            "$RECYCLE.BIN",
+            "System Volume Information",
+        ]
 
-    global CURRENT_ROBOCOPY_PROC
-    try:
-        # Ejecución con captura de flujo continuo sin búfer (bufsize=0)
-        proc = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=False,
-            bufsize=0,
-        )
-        CURRENT_ROBOCOPY_PROC = proc
+        if dry_run:
+            cmd.append("/L")
+            logger.info("      [MODO SIMULACIÓN] Robocopy ejecutándose con flag /L (no se copiarán archivos)")
 
-        pending_prefixes = []
-        with open(ROBOCOPY_LOG_FILE, "w", encoding="utf-8", errors="replace") as log_file:
-            for raw_bytes in iter(proc.stdout.readline, b""):
-                line = raw_bytes.decode("cp1252", errors="replace").rstrip("\r\n")
-                clean_lines = normalize_robocopy_output_line(line, local_dir, pending_prefixes)
-                for clean_line in clean_lines:
-                    log_file.write(clean_line + "\n")
-                    # Mostrar en consola únicamente rutas del repositorio local (omitiendo extras del QNAP)
-                    if local_dir in clean_line and not clean_line.strip().lower().startswith("*directorio extra"):
-                        print(f"[Escaneando] {clean_line.strip()}", flush=True)
-                log_file.flush()
-
-        proc.wait()
-        returncode = proc.returncode
-        duration = round(time.time() - start_time, 2)
-
-        # Extraer estadísticas desde el log de Robocopy en disco
-        log_tail = read_robocopy_log_tail(ROBOCOPY_LOG_FILE, max_lines=50)
-        stats = parse_robocopy_summary(log_tail)
-
-        # Códigos de salida de Robocopy:
-        # < 8 = Éxito / Operación normal (0=sin cambios, 1=copiados, 2=extra, 3=copiados+extra)
-        # >= 8 = Error de copia
-        if returncode < 8:
-            copiados = stats.get("copiados", 0)
-            omitidos = stats.get("omitidos", 0)
-            fallidos = stats.get("fallidos", 0)
-            bytes_cop = stats.get("bytes_copiados", "0")
-
-            logger.info(f"[2/2] Escaneo y sincronización completados en {duration}s.")
-            logger.info(f"      Archivos copiados   : {copiados}")
-            logger.info(f"      Archivos omitidos   : {omitidos}")
-            logger.info(f"      Archivos fallidos   : {fallidos}")
-            logger.info(f"      Volumen transferido : {bytes_cop}")
-
-            emit_status(
-                config,
-                status="OK",
-                msg="Sincronizado",
-                copiados=copiados,
-                duration=duration,
-                free_gb=free_gb,
-                unc_dest=unc_dest,
+        global CURRENT_ROBOCOPY_PROC
+        try:
+            proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=False,
+                bufsize=0,
             )
-            return True
-        else:
-            logger.error(f"Robocopy reportó error (código {returncode}). Revisa '{ROBOCOPY_LOG_FILE}' para detalles.")
-            emit_status(config, status="ROBOCOPY_ERROR", msg=f"Error código {returncode}", duration=duration)
-            return False
+            CURRENT_ROBOCOPY_PROC = proc
 
-    except subprocess.TimeoutExpired:
-        logger.error("Robocopy superó el tiempo límite de 30 minutos.")
-        emit_status(config, status="TIMEOUT", msg="Timeout de 30 min en sincronización")
-        return False
-    except Exception as e:
-        logger.error(f"Excepción en ciclo de sincronización: {e}", exc_info=True)
-        emit_status(config, status="ERROR", msg=str(e))
-        return False
-    finally:
+            pending_prefixes = []
+            with open(ROBOCOPY_LOG_FILE, "w" if idx == 1 else "a", encoding="utf-8", errors="replace") as log_file:
+                for raw_bytes in iter(proc.stdout.readline, b""):
+                    line = raw_bytes.decode("cp1252", errors="replace").rstrip("\r\n")
+                    clean_lines = normalize_robocopy_output_line(line, local_dir, pending_prefixes)
+                    for clean_line in clean_lines:
+                        log_file.write(clean_line + "\n")
+                        if local_dir in clean_line and not clean_line.strip().lower().startswith("*directorio extra"):
+                            print(f"[Escaneando] {clean_line.strip()}", flush=True)
+                    log_file.flush()
+
+            proc.wait()
+            returncode = proc.returncode
+
+            log_tail = read_robocopy_log_tail(ROBOCOPY_LOG_FILE, max_lines=50)
+            stats = parse_robocopy_summary(log_tail)
+
+            if returncode < 8:
+                total_copiados += stats.get("copiados", 0)
+                total_omitidos += stats.get("omitidos", 0)
+                total_fallidos += stats.get("fallidos", 0)
+            else:
+                logger.error(f"Robocopy reportó error en '{local_dir}' (código {returncode}).")
+                hubo_error = True
+
+        except subprocess.TimeoutExpired:
+            logger.error(f"Robocopy superó el tiempo límite en '{local_dir}'.")
+            hubo_error = True
+        except Exception as e:
+            logger.error(f"Excepción en sincronización de '{local_dir}': {e}", exc_info=True)
+            hubo_error = True
+
+    duration = round(time.time() - start_time, 2)
+    if not hubo_error:
+        logger.info(f"[OK] Escaneo y sincronización completados en {duration}s.")
+        logger.info(f"      Archivos copiados   : {total_copiados}")
+        logger.info(f"      Archivos omitidos   : {total_omitidos}")
+        logger.info(f"      Archivos fallidos   : {total_fallidos}")
+
+        emit_status(
+            config,
+            status="OK",
+            msg="Sincronizado" if len(valid_dirs) == 1 else f"Sincronizados {len(valid_dirs)} repositorios",
+            copiados=total_copiados,
+            duration=duration,
+            free_gb=min_free_gb,
+            unc_dest=unc_dest,
+        )
+        return True
+    else:
+        emit_status(config, status="ROBOCOPY_ERROR", msg="Error durante sincronización Robocopy", duration=duration)
         CURRENT_ROBOCOPY_PROC = None
+        return False
 
 
 def resolve_api_endpoint(base_api_url: str, endpoint_path: str) -> str:

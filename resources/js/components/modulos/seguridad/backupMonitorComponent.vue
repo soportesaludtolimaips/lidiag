@@ -315,6 +315,102 @@
                                             <template
                                                 v-if="
                                                     sede.disco_imagenes &&
+                                                    sede.disco_imagenes.discos &&
+                                                    sede.disco_imagenes.discos.length > 1
+                                                "
+                                            >
+                                                <div
+                                                    v-for="(discoItem, dIdx) in sede.disco_imagenes
+                                                        .discos"
+                                                    :key="dIdx"
+                                                    class="m-b-5 p-b-5 border-bottom border-light"
+                                                >
+                                                    <div
+                                                        class="d-flex align-items-center justify-content-between font-11"
+                                                    >
+                                                        <strong>
+                                                            <i
+                                                                class="fa fa-hdd-o text-primary mr-1"
+                                                            ></i>
+                                                            {{ discoItem.unidad }}
+                                                            <span class="text-muted font-10">
+                                                                ({{ discoItem.libre_gb }} GB)
+                                                            </span>
+                                                        </strong>
+                                                        <span
+                                                            :class="[
+                                                                'label font-10',
+                                                                obtenerClaseEstadoDisco(
+                                                                    discoItem.estado
+                                                                ),
+                                                            ]"
+                                                        >
+                                                            {{
+                                                                discoItem.porcentaje_usado !==
+                                                                    null &&
+                                                                discoItem.porcentaje_usado !==
+                                                                    undefined
+                                                                    ? discoItem.porcentaje_usado +
+                                                                      "%"
+                                                                    : discoItem.estado
+                                                            }}
+                                                        </span>
+                                                    </div>
+                                                    <div
+                                                        v-if="
+                                                            discoItem.porcentaje_usado !== null &&
+                                                            discoItem.porcentaje_usado !== undefined
+                                                        "
+                                                        class="progress m-t-2 m-b-2"
+                                                        style="height: 5px"
+                                                        :title="
+                                                            discoItem.nombre +
+                                                            ': ' +
+                                                            discoItem.libre_gb +
+                                                            ' GB libres (' +
+                                                            discoItem.porcentaje_usado +
+                                                            '% usado)'
+                                                        "
+                                                    >
+                                                        <div
+                                                            :class="[
+                                                                'progress-bar',
+                                                                obtenerClaseBarraDisco(
+                                                                    discoItem.estado
+                                                                ),
+                                                            ]"
+                                                            role="progressbar"
+                                                            :style="{
+                                                                width:
+                                                                    discoItem.porcentaje_usado +
+                                                                    '%',
+                                                            }"
+                                                            :aria-valuenow="
+                                                                discoItem.porcentaje_usado
+                                                            "
+                                                            aria-valuemin="0"
+                                                            aria-valuemax="100"
+                                                        ></div>
+                                                    </div>
+                                                    <small
+                                                        class="text-muted d-block font-10 text-truncate"
+                                                        style="max-width: 170px"
+                                                        :title="discoItem.ruta"
+                                                    >
+                                                        {{ discoItem.nombre }}
+                                                    </small>
+                                                </div>
+                                                <small
+                                                    v-if="sede.disco_imagenes.hace"
+                                                    class="text-info d-block font-10"
+                                                >
+                                                    <i class="fa fa-clock-o"></i>
+                                                    {{ sede.disco_imagenes.hace }}
+                                                </small>
+                                            </template>
+                                            <template
+                                                v-else-if="
+                                                    sede.disco_imagenes &&
                                                     sede.disco_imagenes.libre_gb !== null
                                                 "
                                             >

@@ -37,6 +37,26 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-06 — Soporte Multi-Disco para Repositorios de Imágenes DICOM (`config.json`, `dcm_disk_monitor.py`, `sync_dcm_images.py`, `BackupMonitorService.php`, `backupMonitorComponent.vue`):**
+  - **Diagnóstico y Consulta del Usuario:**
+    * El usuario preguntó: *"En este .json C:\laragon\www\lidiag\storage\app_lidiag\agente_backups_dcm\config.json como se configura mas de un DD del almacenamiento de las imagenes?"*.
+  - **Solución e Implementación:**
+    * **1. Soporte Nativo de Lista en `local_images_dir` y `rutas_monitoreo`:**
+      - Se implementó compatibilidad completa para que `local_images_dir` acepte tanto un `string` único (`"D:/img_dcm"`) como un `array` de rutas (`["D:/img_dcm", "E:/img_dcm_historico"]`).
+      - Si se requiere mayor granularidad y nombres personalizados por disco, se admite la clave `"rutas_monitoreo": [{"nombre": "...", "ruta": "..."}]`.
+    * **2. Actualización de Agente de Sincronización (`sync_dcm_images.py`):**
+      - Se implementó función auxiliar `get_local_image_dirs(config)` para iterar y sincronizar cada directorio local con Robocopy sin errores de `.strip()`.
+    * **3. Actualización de Monitor de Discos (`dcm_disk_monitor.py`):**
+      - Normaliza y agrega cada ruta configurada en `local_images_dir` identificando la letra de unidad automáticamente (ej. `Repositorio Imágenes #1 (D:)`, `Repositorio Imágenes #2 (E:)`).
+    * **4. Desglose en Backend (`BackupMonitorService.php`):**
+      - El método `resolverDiscoImagenesSede` recopila el listado completo de discos auditados en `discos` (unidad, libre_gb, total_gb, porcentaje_usado, estado).
+    * **5. Renderizado Multi-Disco en Frontend (`backupMonitorComponent.vue`):**
+      - La columna "Disco Imágenes (PACS)" detecta si la sede posee múltiples discos y renderiza una fila compacta con barra de uso y GB libres para cada disco.
+    * **6. Verificaciones:**
+      - PHP Pint pasado al 100% (`vendor\bin\pint.bat --test`).
+      - ESLint y Prettier pasados al 100%.
+      - Vite build compilado exitosamente (`npm run build`).
+      - Validación de sintaxis Python con `py_compile`.
 - [x] **2026-11-06 — Unificación y Traslado de Monitor de Discos a Agente de Sedes y Columna en Monitor Central (`dcm_disk_monitor.py`, `ejecutar_disk_monitor.bat`, `instalar_tareas_sede.bat`, `sync_dcm_images.py`, `BackupMonitorService.php`, `backupMonitorComponent.vue`):**
   - **Diagnóstico y Solicitud del Usuario:**
     * El usuario solicitó: *"movamos ese agente de C:\laragon\www\lidiag\storage\app_lidiag\dcm_disk_monitor_telegram\dcm_disk_monitor.py a C:\laragon\www\lidiag\storage\app_lidiag\agente_backups_dcm"*.

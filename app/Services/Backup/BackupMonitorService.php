@@ -507,6 +507,39 @@ class BackupMonitorService extends BaseService
                 $totalTxt = $dp["total_formato"] ?? ($totalGb !== null ? "{$totalGb} GB" : "N/D");
                 $libreTxt = $dp["free_formato"] ?? ($libreGb !== null ? "{$libreGb} GB" : "N/D");
 
+                $discosLista = [];
+                if (! empty($detallesDisco["discos"]) && is_array($detallesDisco["discos"])) {
+                    foreach ($detallesDisco["discos"] as $item) {
+                        if (($item["existe"] ?? true) === false) {
+                            continue;
+                        }
+                        $u = "D:";
+                        if (! empty($item["unidad"])) {
+                            $u = $item["unidad"];
+                        } elseif (! empty($item["ruta"]) && preg_match('/^([A-Za-z]:)/', $item["ruta"], $m)) {
+                            $u = strtoupper($m[1]);
+                        }
+                        $iLibreGb = isset($item["free_gb"]) ? (float) $item["free_gb"] : null;
+                        $iTotalGb = isset($item["total_gb"]) ? (float) $item["total_gb"] : null;
+                        $iUsedGb = isset($item["used_gb"]) ? (float) $item["used_gb"] : null;
+                        $iPctUsed = isset($item["used_pct"]) ? (float) $item["used_pct"] : (isset($item["porcentaje_usado"]) ? (float) $item["porcentaje_usado"] : null);
+                        $iPctFree = isset($item["free_pct"]) ? (float) $item["free_pct"] : (isset($item["porcentaje_libre"]) ? (float) $item["porcentaje_libre"] : null);
+                        $iEstado = strtoupper($item["estado"] ?? "OK");
+
+                        $discosLista[] = [
+                            "nombre" => $item["nombre"] ?? "Disco",
+                            "unidad" => $u,
+                            "ruta" => $item["ruta"] ?? $u,
+                            "total_gb" => $iTotalGb,
+                            "usado_gb" => $iUsedGb,
+                            "libre_gb" => $iLibreGb,
+                            "porcentaje_usado" => $iPctUsed,
+                            "porcentaje_libre" => $iPctFree,
+                            "estado" => $iEstado,
+                        ];
+                    }
+                }
+
                 return [
                     "origen" => "dcm_disk_monitor",
                     "unidad" => $unidad,
@@ -518,6 +551,7 @@ class BackupMonitorService extends BaseService
                     "porcentaje_usado" => $pctUsed,
                     "porcentaje_libre" => $pctFree,
                     "estado" => $estado,
+                    "discos" => $discosLista,
                     "texto_tooltip" => "{$dp['nombre']}: {$libreTxt} libres de {$totalTxt}".($pctUsed !== null ? " ({$pctUsed}% usado)" : ""),
                     "hace" => ! empty($telemetriaDisco["fecha"]) ? Carbon::parse($telemetriaDisco["fecha"])->diffForHumans() : "Reciente",
                 ];
