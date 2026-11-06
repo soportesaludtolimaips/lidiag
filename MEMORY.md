@@ -37,6 +37,10 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-06 — Simplificación y Depuración de Parámetros en Configuración de Sedes (`config.json.example`):**
+  - **Decisión de Arquitectura y Rediseño:**
+    * Se eliminó el bloque de `telegram` (`bot_token`, `chat_ids`, `cooldown_alerta_horas`, `reporte_diario`) del archivo de configuración edge, delegando la responsabilidad de notificación y alertas exclusivamente al servidor Central LIDiag.
+    * Se eliminó la clave redundante `rutas_monitoreo` de la plantilla de configuración, ya que `dcm_disk_monitor.py` auto-detecta y monitorea automáticamente el disco del sistema (`C:\`), los directorios de imágenes de `local_images_dir` y el destino de backups locales `destination_dir`.
 - [x] **2026-11-06 — Soporte Multi-Disco para Repositorios de Imágenes DICOM (`config.json`, `dcm_disk_monitor.py`, `sync_dcm_images.py`, `BackupMonitorService.php`, `backupMonitorComponent.vue`):**
   - **Diagnóstico y Consulta del Usuario:**
     * El usuario preguntó: *"En este .json C:\laragon\www\lidiag\storage\app_lidiag\agente_backups_dcm\config.json como se configura mas de un DD del almacenamiento de las imagenes?"*.
