@@ -140,6 +140,16 @@ export function useEstudioHelpers() {
     }
 
     function verImagen(url, patId, studyUID, serverName, estudioProductoId = null) {
+        const cleanUrl = String(url ?? "").trim();
+        if (!cleanUrl || cleanUrl === "undefined" || cleanUrl === "null") {
+            toastMessage({
+                heading: "Upsss!!!",
+                text: "No hay visor de imágenes configurado para la sede actual.",
+                icon: "warning",
+            });
+            return;
+        }
+
         if (estudioProductoId !== null) {
             if (loadingVerImagen.value) return;
             loadingVerImagen.value = estudioProductoId;
@@ -149,12 +159,28 @@ export function useEstudioHelpers() {
         }
 
         try {
-            const params = new URLSearchParams({
-                patientID: String(patId ?? ""),
-                studyUID: String(studyUID ?? ""),
-                serverName: String(serverName ?? ""),
-            });
-            window.open(`${url}?${params.toString()}`, "_blank", "noopener,noreferrer");
+            const cleanPatId = String(patId ?? "").trim();
+            const cleanStudyUID = String(studyUID ?? "").trim();
+            const cleanServer =
+                !serverName || serverName === "undefined" || serverName === "null"
+                    ? ""
+                    : String(serverName).trim();
+
+            const queryObj = {
+                patientID: cleanPatId,
+                studyUID: cleanStudyUID,
+            };
+            if (cleanServer) {
+                queryObj.serverName = cleanServer;
+            }
+
+            const params = new URLSearchParams(queryObj);
+            const separator = cleanUrl.includes("?") ? "&" : "?";
+            window.open(
+                `${cleanUrl}${separator}${params.toString()}`,
+                "_blank",
+                "noopener,noreferrer"
+            );
         } finally {
             setTimeout(() => {
                 loadingVerImagen.value = null;

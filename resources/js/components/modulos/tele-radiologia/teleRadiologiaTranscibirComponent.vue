@@ -998,8 +998,8 @@ async function anularAsignacion(idProductoEstudio, paciente, producto) {
 
 function verImagen() {
     if (loadingVerImagen.value) return;
-    const base = datosImagen.value.urlOviyam || "";
-    if (!base) {
+    const base = String(datosImagen.value.urlOviyam ?? "").trim();
+    if (!base || base === "undefined" || base === "null") {
         toastMessage({
             heading: "Upsss!!!",
             text: "No hay visor configurado para esta sede.",
@@ -1008,13 +1008,24 @@ function verImagen() {
         return;
     }
     loadingVerImagen.value = true;
-    const params = new URLSearchParams({
-        patientID: String(datosImagen.value.patientId ?? ""),
-        studyUID: String(datosImagen.value.studyUID ?? ""),
-        serverName: String(datosImagen.value.serverName ?? ""),
-    });
+    const rawServer = datosImagen.value.serverName;
+    const cleanServer =
+        !rawServer || rawServer === "undefined" || rawServer === "null"
+            ? ""
+            : String(rawServer).trim();
+
+    const queryObj = {
+        patientID: String(datosImagen.value.patientId ?? "").trim(),
+        studyUID: String(datosImagen.value.studyUID ?? "").trim(),
+    };
+    if (cleanServer) {
+        queryObj.serverName = cleanServer;
+    }
+
+    const params = new URLSearchParams(queryObj);
+    const separator = base.includes("?") ? "&" : "?";
     try {
-        window.open(`${base}?${params.toString()}`, "_blank", "noopener,noreferrer");
+        window.open(`${base}${separator}${params.toString()}`, "_blank", "noopener,noreferrer");
     } catch {
         toastMessage({
             heading: "Error",

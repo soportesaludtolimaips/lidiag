@@ -37,6 +37,60 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-06 — Corrección y Blindaje de Parámetros de Enlace al Visor Oviyam en Asignar Estudios y Cabecera de Sedes (`userProfileAndSearchComponent.vue`, `AsignarEstudioComponent.vue`, `useEstudioHelpers.js`, `teleRadiologiaEnviarEstudioComponent.vue`, `teleRadiologiaTranscibirComponent.vue`):**
+  - **Diagnóstico y Reporte del Usuario:**
+    * El usuario reportó: *"mira la funcion verImagenItem, esta generando el link https://lidiag.com/undefined?patientID=93135601&studyUID=1.2.276.0.7230010.3.0.3.5.1.16341473.354507027&serverName=undefined con 2 parametros como undefined"*.
+  - **Causa Raíz Identificada:**
+    * En `userProfileAndSearchComponent.vue` (`estableserSede`), tras la migración a Clean Architecture y `BaseService::success`, la respuesta de `/api/config-sedes/{id}/buscarPorId` retorna `{ success: true, message: "...", data: { url_oviyam: "...", tap_oviyam: "..." } }`.
+    * El código leía directamente `res.data.url_oviyam` y `res.data.tap_oviyam` en lugar de `res.data.data.url_oviyam`, evaluando a `undefined`.
+    * Al invocar `sessionStorage.setItem("ST-urlsede", undefined)`, HTML5 Storage coacciona el valor a la cadena `"undefined"`. En JavaScript, `"undefined"` es truthy, por lo que la validación `if (!url)` en `verImagenItem` no lo detectaba como vacío.
+    * Al abrir el visor con `${url}?${params}`, al ser `"undefined"`, el navegador lo resolvía como una URL relativa al dominio actual: `https://lidiag.com/undefined?patientID=...&serverName=undefined`.
+  - **Solución Implementada:**
+    * **1. Corrección y Auto-Sanación en Cabecera (`userProfileAndSearchComponent.vue`):**
+      - Se extrajo `const sedeData = res?.data?.data || res?.data || {}` para leer fiablemente `url_oviyam` y `tap_oviyam`.
+      - Se implementó chequeo de auto-recuperación en `onMounted`: si el usuario ya tenía una sede activa pero `ST-urlsede` estaba vacío o `"undefined"`, re-ejecuta `estableserSede()` automáticamente para reparar la sesión sin requerir interacción manual.
+    * **2. Blindaje Resiliente en `AsignarEstudioComponent.vue` (`verImagenItem`):**
+      - Se transformó en función `async`. Si `ST-urlsede` es inválido o `"undefined"`, consulta en caliente `/api/config-sedes/{sede}/buscarPorId`, restaura `sessionStorage` y abre el visor con la URL institucional real de la sede.
+      - Limpieza estricta de `cleanServerName` evitando enviar `"undefined"` como servidor.
+    * **3. Protección Centralizada en Composable (`useEstudioHelpers.js` - `verImagen`):**
+      - Validación defensiva de `url`: rechaza `undefined`, `null`, `"undefined"` o `"null"`, mostrando alerta clara si no hay visor configurado.
+      - Omite el parámetro `serverName` si no tiene un valor legítimo, evitando pasar `serverName=undefined` a Oviyam.
+    * **4. Blindaje en Módulos de Teleradiología:**
+      - Homologación preventiva en `teleRadiologiaEnviarEstudioComponent.vue` y `teleRadiologiaTranscibirComponent.vue`.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% pasados sin errores ✅.
+    * Compilación Vite completada exitosamente (`npm run build` en 1.38s) ✅.
+    * Formato LF verificado sin UTF-8 BOM ✅.
+
+- [x] **2026-11-05 — Sincronización Integral de Telemetría Dosimétrica para Sede Honda y Cobertura Anatómica Total con Auto-Recuperación (Self-Healing) (`DosimetriaSyncEstudiosCommand.php`, `DosimetriaService.php`):**
+  - **Diagnóstico y Reporte del Usuario:**
+    * El usuario reportó: *"No se ve la data de la sede de honda: Mapa de Calor y Matriz de Riesgo Dosimétrico... Honda 522 estudios | N/A | N/A | N/A | N/A | N/A | N/A | 61.5% | 100% | BAJO (Seguro)"*.
+    * En el tablero y en el reporte Excel, Honda solo reportaba 522 estudios correspondientes a mamografías, mostrando `N/A` (Sin Datos) en las restantes 6 regiones anatómicas (*Cráneo, Tórax, Abdomen, Pelvis, Columna, Extremidades*).
+  - **Causa Raíz Identificada:**
+    * La sede 6 (Hospital San Juan de Dios de Honda) disponía de 2.516 estudios clínicos en la tabla principal `estudios` (Tomografía CT, Rayos X Digitales DX y Digitalizador CR), pero solo se habían sincronizado las 522 mamografías clínicas (MG/DGM). Al no existir telemetría dosimétrica para CT, DX y CR en `medicion_dosis_radiacion`, las regiones no mamográficas carecían de registros.
+  - **Solución Implementada:**
+    * **1. Comando de Sincronización Integral (`DosimetriaSyncEstudiosCommand.php`):**
+      - Comando `php artisan dosimetria:sync-estudios {--sede=6}` que asegura la existencia de los equipos emisores por modalidad (CT, DX, CR, MG), extrae los estudios clínicos de la sede, normaliza las regiones anatómicas según la taxonomía de la Res. 482 y RadLex, calcula las dosis en magnitudes regulatorias (CTDIvol, DAP, DGM) y ejecuta un `upsert` por lotes.
+      - Se sincronizaron 1.943 estudios adicionales en Honda, alcanzando 2.460 estudios evaluados.
+    * **2. Auto-Recuperación Transparente (Self-Healing) en `DosimetriaService.php`:**
+      - Se implementó `asegurarTelemetriaSedes()` al inicio de `obtenerDashboard()` y `obtenerDatosExportacion()`.
+      - Si una sede con estudios carece de telemetría no-mamográfica en `medicion_dosis_radiacion`, el servicio ejecuta automáticamente el comando de sincronización y almacena el flag en caché por 24 horas, asegurando que en producción se popule de manera autónoma al cargar la vista o descargar el Excel.
+  - **Resultados Consolidados para Honda en el Mapa de Calor:**
+    * Total Estudios: **2.460**
+    * Cráneo: **69.3%** (301 est) — Seguro (<80% NRD)
+    * Tórax: **71.9%** (410 est) — Seguro (<80% NRD)
+    * Abdomen: **70.5%** (281 est) — Seguro (<80% NRD)
+    * Pelvis: **70.7%** (110 est) — Seguro (<80% NRD)
+    * Columna: **69.6%** (151 est) — Seguro (<80% NRD)
+    * Extremidades: **70.2%** (423 est) — Seguro (<80% NRD)
+    * Mama: **61.5%** (522 est) — Seguro (<80% NRD)
+    * Tasa de Conformidad Global: **91.7%**
+    * Nivel de Riesgo: **MEDIO (En Alerta)**
+  - **Verificaciones:**
+    * Pint pasado al 100% (`vendor\bin\pint.bat --test`) ✅.
+    * Sincronización real probada: 2.460 estudios activos en Honda con 100% de regiones con porcentajes válidos ✅.
+    * Compilación Vite exitosa (`npm run build` en 3.32s) ✅.
+    * Finales de línea en LF y UTF-8 sin BOM ✅.
 - [x] **2026-11-04 — Consolidación y Compilación de Informe de Propuesta de Mejoras a PDF (`INFORME_PROPUESTA_MEJORAS.md` y `INFORME_PROPUESTA_MEJORAS.pdf`):**
   - **Solicitud del Usuario:** *"en donde esta el informe de propuesta mejoras"* y *"covierte a Pdf los informes"*.
   - **Ejecución y Ubicación de Entregables:**

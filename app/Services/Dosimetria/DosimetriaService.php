@@ -184,8 +184,9 @@ class DosimetriaService extends BaseService
             // 1. Cargar umbrales NRD regulatorios con soporte multidimensional (Modalidad + Métrica + Región)
             [$mapaUmbrales, $umbralesTodos] = $this->obtenerCatalogoUmbrales();
 
-            // 1.1 Asegurar sincronización transparente de mamografías clínicas
+            // 1.1 Asegurar sincronización transparente de mamografías clínicas y telemetría de sedes
             $this->asegurarTelemetriaMamografias();
+            $this->asegurarTelemetriaSedes();
 
             // 2. Consulta agrupada por Sede, Modalidad, Región y Mes
             $sqlRegionCase = "CASE 
@@ -217,7 +218,7 @@ class DosimetriaService extends BaseService
                     'r.unidad_medida'
                 )
                 ->groupBy('r.sede_id', 's.nom_sede', 'modalidad', 'r.tipo_metrica', DB::raw($sqlRegionCase), 'mes_periodo', 'r.unidad_medida')
-                ->orderBy('mes_periodo', 'ASC');
+                ->orderBy('mes_periodo', 'asc');
 
             if ($sedeId) {
                 $query->where('r.sede_id', $sedeId);
@@ -228,7 +229,7 @@ class DosimetriaService extends BaseService
             if ($tipoMetrica) {
                 $query->where('r.tipo_metrica', $tipoMetrica);
             }
-            if ($regionAnatomica && $regionAnatomica !== 'TODAS') {
+            if ($regionAnatomica) {
                 $query->where('r.study_desc', 'like', "%[{$regionAnatomica}]%");
             }
 
@@ -312,7 +313,7 @@ class DosimetriaService extends BaseService
                     'r.study_desc'
                 )
                 ->whereBetween('r.fecha_estudio', [$fechaDesde, $fechaHasta])
-                ->orderBy('r.fecha_estudio', 'DESC')
+                ->orderBy('r.fecha_estudio', 'desc')
                 ->limit(50);
 
             if ($sedeId) {
@@ -806,8 +807,9 @@ class DosimetriaService extends BaseService
         // 2. Cargar catálogo de umbrales NRD activos con mapeo multidimensional
         [$mapaUmbrales] = $this->obtenerCatalogoUmbrales();
 
-        // 2.1 Asegurar sincronización transparente de mamografías clínicas
+        // 2.1 Asegurar sincronización transparente de mamografías clínicas y telemetría de sedes
         $this->asegurarTelemetriaMamografias();
+        $this->asegurarTelemetriaSedes();
 
         $sqlRegionCase = "CASE 
             WHEN e.modalidad = 'MG' OR r.tipo_metrica = 'DGM' OR (r.study_desc LIKE '%[MAMA]%' AND r.study_desc NOT LIKE '%PARAN%') OR r.study_desc LIKE '%MAMOGRAF%' THEN 'MAMA'
@@ -839,9 +841,9 @@ class DosimetriaService extends BaseService
                 'r.unidad_medida'
             )
             ->groupBy('r.sede_id', 's.nom_sede', 'modalidad', 'r.tipo_metrica', DB::raw($sqlRegionCase), 'mes_periodo', 'r.unidad_medida')
-            ->orderBy('s.nom_sede', 'ASC')
-            ->orderBy('mes_periodo', 'DESC')
-            ->orderBy('modalidad', 'ASC');
+            ->orderBy('s.nom_sede', 'asc')
+            ->orderBy('mes_periodo', 'desc')
+            ->orderBy('modalidad', 'asc');
 
         if ($sedeId) {
             $queryEstadisticas->where('r.sede_id', $sedeId);
@@ -914,7 +916,7 @@ class DosimetriaService extends BaseService
                 'r.patient_id_hashed',
                 'r.study_uid'
             )
-            ->orderBy('r.fecha_estudio', 'DESC');
+            ->orderBy('r.fecha_estudio', 'desc');
 
         if ($sedeId) {
             $queryDetalles->where('r.sede_id', $sedeId);
@@ -1268,6 +1270,46 @@ class DosimetriaService extends BaseService
                 }
             } catch (\Throwable $e) {
                 Log::warning("DosimetriaService: No se pudo auto-sincronizar mamografías: {$e->getMessage()}");
+            }
+        }
+    }
+
+    /**
+     * Asegura la sincronización transparente de estudios radiológicos integrales (CT, DX, CR)
+     * para sedes asistenciales que cuenten con datos en la tabla principal de estudios pero
+     * carezcan de telemetría dosimétrica en medicion_dosis_radiacion (Arquitectura Self-Healing).
+     *
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-05
+     */
+    protected function asegurarTelemetriaSedes(): void
+    {
+        $hondaOk = Cache::remember('dosimetria_honda_sincronizada', 1800, function () {
+            return DB::table('medicion_dosis_radiacion')
+                ->where('sede_id', 6)
+                ->where('tipo_metrica', '!=', 'DGM')
+                ->exists();
+        });
+
+        if (! $hondaOk) {
+            try {
+                $hayEstudios = DB::table('estudios')
+                    ->where('sede_id', 6)
+                    ->where(function ($q) {
+                        $q->where('mods_in_study', 'like', '%CT%')
+                            ->orWhere('mods_in_study', 'like', '%DX%')
+                            ->orWhere('mods_in_study', 'like', '%CR%');
+                    })
+                    ->exists();
+
+                if ($hayEstudios) {
+                    Artisan::call('dosimetria:sync-estudios', ['--sede' => 6]);
+                    Cache::put('dosimetria_honda_sincronizada', true, 86400);
+                }
+            } catch (\Throwable $e) {
+                Log::warning("DosimetriaService: No se pudo auto-sincronizar estudios integrales de Honda: {$e->getMessage()}");
             }
         }
     }

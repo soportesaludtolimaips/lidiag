@@ -1200,18 +1200,39 @@ function quitarProductoEstudio(codCups) {
 
 function verImagen(pat_id, study_iuid, studyPk) {
     if (loadingImagenIndex.value !== null) return;
-    loadingImagenIndex.value = studyPk;
 
     const base = sessionStorage.getItem("ST-urlsede") || "";
-    const params = new URLSearchParams({
-        patientID: String(pat_id ?? ""),
-        studyUID: String(study_iuid ?? ""),
-        serverName: String(sessionStorage.getItem("ST-servername") ?? ""),
-    });
+    if (!base || base === "undefined" || base === "null" || !base.trim()) {
+        toastMessage({
+            heading: "Upsss!!!",
+            text: "No hay visor de imágenes configurado para la sede actual.",
+            icon: "warning",
+        });
+        return;
+    }
+
+    loadingImagenIndex.value = studyPk;
+
+    const rawServer = sessionStorage.getItem("ST-servername");
+    const cleanServer =
+        !rawServer || rawServer === "undefined" || rawServer === "null"
+            ? ""
+            : String(rawServer).trim();
+
+    const queryObj = {
+        patientID: String(pat_id ?? "").trim(),
+        studyUID: String(study_iuid ?? "").trim(),
+    };
+    if (cleanServer) {
+        queryObj.serverName = cleanServer;
+    }
+
+    const params = new URLSearchParams(queryObj);
+    const separator = base.includes("?") ? "&" : "?";
 
     try {
         const newWindow = window.open(
-            `${base}?${params.toString()}`,
+            `${base.trim()}${separator}${params.toString()}`,
             "_blank",
             "noopener,noreferrer"
         );

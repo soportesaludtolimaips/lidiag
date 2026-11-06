@@ -580,23 +580,28 @@ async function listarMedicos() {
  */
 async function estableserSede() {
     if (!sedeSeleccionada.value) return;
-    const res = await axios.get("/api/config-sedes/" + sedeSeleccionada.value + "/buscarPorId");
+    try {
+        const res = await axios.get("/api/config-sedes/" + sedeSeleccionada.value + "/buscarPorId");
+        const sedeData = res?.data?.data || res?.data || {};
 
-    const nomSedeSeleccionada = $('select[name="sedes"] option:selected').text();
+        const nomSedeSeleccionada = $('select[name="sedes"] option:selected').text();
 
-    sessionStorage.setItem("ST-sede", sedeSeleccionada.value);
-    sessionStorage.setItem("ST-nomsede", nomSedeSeleccionada);
-    sessionStorage.setItem("ST-urlsede", res.data.url_oviyam);
-    sessionStorage.setItem("ST-servername", res.data.tap_oviyam);
-    sessionStorage.setItem("ST-email_repor", res.data.email_repor || "");
+        sessionStorage.setItem("ST-sede", sedeSeleccionada.value);
+        sessionStorage.setItem("ST-nomsede", nomSedeSeleccionada);
+        sessionStorage.setItem("ST-urlsede", sedeData.url_oviyam || "");
+        sessionStorage.setItem("ST-servername", sedeData.tap_oviyam || "");
+        sessionStorage.setItem("ST-email_repor", sedeData.email_repor || "");
 
-    emitter.emit("sedeSeleccionada", {
-        idSede: sedeSeleccionada.value,
-        nomSede: nomSedeSeleccionada,
-        url: res.data.url_oviyam,
-        serverName: res.data.tap_oviyam,
-        email_repor: res.data.email_repor,
-    });
+        emitter.emit("sedeSeleccionada", {
+            idSede: sedeSeleccionada.value,
+            nomSede: nomSedeSeleccionada,
+            url: sedeData.url_oviyam || "",
+            serverName: sedeData.tap_oviyam || "",
+            email_repor: sedeData.email_repor || "",
+        });
+    } catch (error) {
+        console.error("Error al obtener la configuración de la sede:", error);
+    }
 }
 /**
  * Establece el médico seleccionado: guarda datos en sessionStorage y localStorage,
@@ -811,6 +816,14 @@ onMounted(() => {
     establecerModuloActual();
     listarSedes();
     cargarTodasNotificaciones();
+
+    const urlSedeGuardada = sessionStorage.getItem("ST-urlsede");
+    if (
+        sedeSeleccionada.value &&
+        (!urlSedeGuardada || urlSedeGuardada === "undefined" || urlSedeGuardada === "null")
+    ) {
+        estableserSede();
+    }
 
     const url = window.location.pathname;
     const rutasEcografias = [

@@ -1007,10 +1007,32 @@ const { loadingVerImagen, verImagen } = useEstudioHelpers();
  * Abre el visor de imágenes del estudio. Lee sessionStorage en scope de
  * script porque el template de Vue 3 no puede acceder a globales del
  * navegador (compila a _ctx.sessionStorage = undefined).
+ * Si la URL no está en memoria o quedó con "undefined", intenta recuperarla
+ * de la configuración de la sede activa.
  */
-function verImagenItem(item) {
-    const url = sessionStorage.getItem("ST-urlsede");
-    if (!url) {
+async function verImagenItem(item) {
+    let url = sessionStorage.getItem("ST-urlsede");
+    let serverName = sessionStorage.getItem("ST-servername");
+
+    if (!url || url === "undefined" || url === "null" || !url.trim()) {
+        const sedeId = sedeActual.value || sessionStorage.getItem("ST-sede");
+        if (sedeId) {
+            try {
+                const res = await axios.get("/api/config-sedes/" + sedeId + "/buscarPorId");
+                const sedeData = res?.data?.data || res?.data || {};
+                url = sedeData.url_oviyam || "";
+                serverName = sedeData.tap_oviyam || "";
+                if (url) {
+                    sessionStorage.setItem("ST-urlsede", url);
+                    sessionStorage.setItem("ST-servername", serverName);
+                }
+            } catch {
+                /* Si falla la petición, se informará con el toastMessage */
+            }
+        }
+    }
+
+    if (!url || url === "undefined" || url === "null" || !url.trim()) {
         toastMessage({
             heading: "Upsss!!!",
             text: "No hay visor de imágenes configurado para la sede actual.",
@@ -1018,13 +1040,13 @@ function verImagenItem(item) {
         });
         return;
     }
-    verImagen(
-        url,
-        item.pat_id,
-        item.study_iuid,
-        sessionStorage.getItem("ST-servername"),
-        item.estudio_producto_id
-    );
+
+    const cleanServerName =
+        !serverName || serverName === "undefined" || serverName === "null"
+            ? ""
+            : String(serverName).trim();
+
+    verImagen(url.trim(), item.pat_id, item.study_iuid, cleanServerName, item.estudio_producto_id);
 }
 
 const props = defineProps({
@@ -1546,13 +1568,6 @@ function obtenerArchivo(e, index) {
 }
 
 /**
- * Mostrar el registro del estudio en el modal para agendar al paciente.
- * @param {Object} data - Objeto que contiene los datos del estudio a mostrar.
- * @param {number} index - Índice del registro en la lista de estudios.
- * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa la carga del registro.
- * @author: Jhon Javer Lozano Arce
- */
-/**
  * Toma la reserva (lock) del estudio DICOM antes de abrir el formulario.
  * Si otro usuario lo tiene reservado, muestra el aviso y devuelve false.
  * @param {Object} data - Datos del estudio DICOM seleccionado.
@@ -1649,6 +1664,13 @@ async function liberarLockAsignacion() {
     }
 }
 
+/**
+ * Mostrar el registro del estudio en el modal para agendar al paciente.
+ * @param {Object} data - Objeto que contiene los datos del estudio a mostrar.
+ * @param {number} index - Índice del registro en la lista de estudios.
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa la carga del registro.
+ * @author: Jhon Javer Lozano Arce
+ */
 async function mostrarRegistro(data = {}, index) {
     if (loadingAbrirRegistroIndex.value !== null) return;
     loadingAbrirRegistroIndex.value = index;
