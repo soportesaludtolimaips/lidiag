@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Interface;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Dcm4chee\StudyListRequest;
 use App\Http\Requests\Interfaces\EnviarOrdenTeleRadiologiaRequest;
 use App\Services\Interfaces\TeleRadiologiaService;
 use Illuminate\Http\JsonResponse;
@@ -25,22 +26,27 @@ class TeleRadiologiaController extends Controller
     ) {}
 
     /**
-     * Lista los estudios de tele-radiología disponibles.
+     * Lista los estudios de tele-radiología disponibles consultando el PACS de la sede.
      *
-     * @param  Request  $request  Solicitud HTTP con parámetros de filtrado.
+     * Flujo del proceso:
+     * 1. Valida los parámetros del filtro (sede_id, paciente/documento, rango de fechas).
+     * 2. Delega la consulta a TeleRadiologiaService con los datos validados.
+     * 3. Retorna la lista de estudios formateada en JSON con sustitución de caracteres UTF-8 inválidos.
+     *
+     * @param  StudyListRequest  $request  Solicitud HTTP con parámetros de filtrado validados.
      *
      * @returns JsonResponse Respuesta JSON con la lista de estudios.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2025-11-24
+     * @date 2026-11-06
      */
-    public function listarEstudios(Request $request): JsonResponse
+    public function listarEstudios(StudyListRequest $request): JsonResponse
     {
         try {
-            $result = $this->teleRadiologiaService->listarEstudios($request);
+            $result = $this->teleRadiologiaService->listarEstudios($request->validated());
 
-            return response()->json($result, $result['status']);
+            return response()->json($result, $result['status'], [], JSON_INVALID_UTF8_SUBSTITUTE);
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,

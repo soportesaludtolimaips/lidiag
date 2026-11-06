@@ -2,14 +2,14 @@
 
 namespace App\Services\Interfaces;
 
-use App\Http\Controllers\Dcm4chee\StudyController;
-use App\Models\Dcm4chee\Study;
 use App\Models\Estudio\Estudio;
 use App\Models\Estudio\EstudioProducto;
 use App\Models\Estudio\EstudioProductoAdendum;
 use App\Models\General\Paciente;
 use App\Models\User;
 use App\Services\BaseService;
+use App\Services\Dcm4chee\StudyService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -18,19 +18,39 @@ use Illuminate\Support\Str;
 class TeleRadiologiaService extends BaseService
 {
     /**
-     * Lista los estudios disponibles en tele-radiología delegando al StudyController.
+     * Constructor del servicio de tele-radiología.
      *
-     * @param  Request  $request  Solicitud HTTP con parámetros de filtrado.
+     * @param  StudyService  $studyService  Servicio para consulta de estudios DICOM en DCM4CHEE.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-06
+     */
+    public function __construct(
+        private readonly StudyService $studyService,
+    ) {}
+
+    /**
+     * Lista los estudios disponibles en tele-radiología delegando a StudyService.
+     *
+     * Flujo del proceso:
+     * 1. Normaliza los filtros de búsqueda recibidos (array o Request).
+     * 2. Delega la consulta al repositorio PACS de la sede mediante StudyService.
+     * 3. Retorna el resultado estructurado con los estudios y su estado de agendamiento.
+     *
+     * @param  array|Request  $filtros  Filtros de búsqueda: sede_id, bus_nom_num_docu, bus_fech_ini, bus_fecha_fin.
      *
      * @returns array Resultado con los estudios encontrados.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-07-14
+     * @date 2026-11-06
      */
-    public function listarEstudios($request): array
+    public function listarEstudios(array|Request $filtros): array
     {
-        return $this->success(app(StudyController::class)->listarEstudios($request, new Study));
+        $data = $filtros instanceof Request ? $filtros->all() : $filtros;
+
+        return $this->studyService->listarEstudios($data);
     }
 
     /**
