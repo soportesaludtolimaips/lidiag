@@ -37,6 +37,9 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-06 — Despliegue y Registro Exitoso de las 4 Tareas de Sede (Validado en Producción / Espinal):**
+  - **Confirmación del Usuario:** "Listo, ahora si".
+  - Las 4 tareas operativas (`LIDiag_Backup_DB_DCM`, `LIDiag_Sync_Imagenes_DCM`, `LIDiag_Dosimetria_Edge`, `LIDiag_Disk_Monitor_DCM`) quedaron registradas en el Programador de Tareas de Windows bajo la cuenta `SYSTEM`, operando de forma autónoma con sus frecuencias respectivas.
 - [x] **2026-11-06 — Hotfix: Escape de Paréntesis en Bloques `if` de Windows CMD (`instalar_tareas_sede.bat`):**
   - **Diagnóstico:**
     * El usuario reportó: `No se esperaba bajo en este momento.` al llegar al paso `[2/4] Registrando tarea de Sincronizacion Continua de Imagenes`.
