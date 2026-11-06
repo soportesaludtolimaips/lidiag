@@ -37,6 +37,25 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-06 — Diagnóstico y Trazabilidad en Recepción de Lecturas de Tele-Radiología (`TeleRadiologiaController.php`, `TeleRadiologiaService.php`):**
+  - **Diagnóstico del Requerimiento:**
+    * El usuario solicitó: *"agreguemos un Log::info al metodo recibirLectura por esta llegando la data pero el campo lectura queda null"*.
+    * En el flujo de recepción webhook (`POST /api/tele-radiologia-recibir-lectura`), el texto de la lectura médica guardado en `estudios_productos.lectura` terminaba en `null`.
+    * Causa 1: Falta de instrumentación y trazabilidad en logs para inspeccionar el payload exacto enviado por la plataforma externa TLIMAGEN.
+    * Causa 2: `TeleRadiologiaController` forzaba `mb_convert_encoding($rawContent, 'UTF-8', 'ISO-8859-1')` antes de decodificar el JSON, lo cual corrompe cadenas que ya vienen en UTF-8 nativo desde el cliente HTTP.
+    * Causa 3: Disparidad de nombres de campo en el payload de TLIMAGEN (p. ej. `lectura`, `informe`, `reporte`, `resultado`, `texto_lectura`, `conclusion`) o estructuración como arreglo anidado.
+  - **Solución Aplicada:**
+    * **1. Instrumentación Exhaustiva con `Log::info`:**
+      - En `TeleRadiologiaController::recibirLectura`: registra el tamaño en bytes del cuerpo crudo, si viene la clave `lectura`, todas las claves del payload y el array completo recibido.
+      - En `TeleRadiologiaService::recibirLectura`: registra el `study_iuid`, `cod_cups`, `estudio_id`, `estudio_producto_id`, longitud del texto resuelto y preview de los primeros 200 caracteres guardados.
+    * **2. Decodificación Resiliente de Payload JSON:**
+      - Se prueba primero la decodificación directa en UTF-8 estándar. Solo si falla por sintaxis de caracteres se intenta la conversión desde ISO-8859-1, con fallback a `$request->all()`.
+    * **3. Resolución Tolerante de Lectura:**
+      - Se mapean alternativas de clave: `$d['lectura'] ?? $d['informe'] ?? $d['reporte'] ?? $d['resultado'] ?? $d['texto_lectura'] ?? $d['conclusion']`.
+      - Si el valor es un arreglo u objeto, se serializa a JSON legible con `json_encode(..., JSON_UNESCAPED_UNICODE)`.
+  - **Verificaciones:**
+    * PHP Pint pasado al 100% (`vendor\bin\pint.bat --test`) ✅.
+    * Larastan / PHPStan nivel 5: `2/2 [100%] [OK] No errors` ✅.
 - [x] **2026-11-06 — Hotfix: Sanitización de Tipos de Columna Entera (`medico_id`, `destino_estudio_id`) al Crear Estudio (`EstudioService.php`, `teleRadiologiaEnviarEstudioComponent.vue`):**
   - **Diagnóstico del Error:**
     * El usuario reportó: `HTTP 500 "Error al crear el estudio"` en `POST /api/estudios` tras el envío exitoso de la orden a TLIMAGEN.

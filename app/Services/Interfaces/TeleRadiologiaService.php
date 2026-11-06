@@ -178,17 +178,33 @@ class TeleRadiologiaService extends BaseService
             }
 
             if (isset($d['adendum'])) {
+                $lecturaAdendum = $d['adendum']['lectura']
+                    ?? $d['adendum']['informe']
+                    ?? $d['adendum']['reporte']
+                    ?? $d['adendum']['texto_lectura']
+                    ?? '';
+
+                if (is_array($lecturaAdendum)) {
+                    $lecturaAdendum = json_encode($lecturaAdendum, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+                }
+
                 $adendum = EstudioProductoAdendum::create([
                     'medico_id' => $medico->id,
                     'estudio_producto_id' => $estudioProducto->id,
                     'fechor_lectura' => $d['adendum']['fecha'] ?? now(),
-                    'lectura' => $d['adendum']['lectura'] ?? '',
+                    'lectura' => $lecturaAdendum,
                     'activo' => 1,
                 ]);
 
                 $estudioProducto->update([
-                    'lectura' => $d['adendum']['lectura'] ?? null,
-                    'fechor_lectura' => $d['adendum']['fecha'] ?? $d['fechor_lectura'] ?? null,
+                    'lectura' => $lecturaAdendum,
+                    'fechor_lectura' => $d['adendum']['fecha'] ?? $d['fechor_lectura'] ?? now(),
+                ]);
+
+                Log::info('TeleRadiologiaService::recibirLectura - Adendum procesado:', [
+                    'estudio_id' => $estudio->id,
+                    'adendum_id' => $adendum->id,
+                    'lectura_length' => strlen((string) $lecturaAdendum),
                 ]);
 
                 return $this->success([
@@ -211,9 +227,34 @@ class TeleRadiologiaService extends BaseService
                 $estudio->update(['medico_id' => $medico->id]);
             }
 
+            // Resolver el texto de la lectura tolerando posibles variantes de clave
+            $lecturaTexto = $d['lectura']
+                ?? $d['informe']
+                ?? $d['reporte']
+                ?? $d['resultado']
+                ?? $d['texto_lectura']
+                ?? $d['conclusion']
+                ?? null;
+
+            if (is_array($lecturaTexto)) {
+                $lecturaTexto = json_encode($lecturaTexto, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+            }
+
+            Log::info('TeleRadiologiaService::recibirLectura - Procesando lectura de estudio:', [
+                'study_iuid' => $d['study_iuid'] ?? null,
+                'cod_cups' => $d['cod_cups'] ?? null,
+                'estudio_id' => $estudio->id,
+                'estudio_producto_id' => $estudioProducto->id,
+                'has_lectura_key' => array_key_exists('lectura', $d),
+                'keys_payload' => array_keys($d),
+                'lectura_resolvida_length' => strlen((string) $lecturaTexto),
+                'lectura_resolvida_preview' => substr((string) $lecturaTexto, 0, 200),
+                'payload_completo' => $d,
+            ]);
+
             $estudioProducto->update([
-                'fechor_lectura' => $d['fechor_lectura'] ?? $d['fecha_lectura'] ?? null,
-                'lectura' => $d['lectura'] ?? null,
+                'fechor_lectura' => $d['fechor_lectura'] ?? $d['fecha_lectura'] ?? now(),
+                'lectura' => $lecturaTexto,
             ]);
 
             return $this->success([

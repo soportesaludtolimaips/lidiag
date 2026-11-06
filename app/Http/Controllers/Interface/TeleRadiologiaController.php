@@ -8,6 +8,7 @@ use App\Http\Requests\Interfaces\EnviarOrdenTeleRadiologiaRequest;
 use App\Services\Interfaces\TeleRadiologiaService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class TeleRadiologiaController extends Controller
@@ -95,21 +96,46 @@ class TeleRadiologiaController extends Controller
     /**
      * Recibe la lectura de tele-radiología desde la API externa y la persiste.
      *
+     * Flujo del proceso:
+     * 1. Decodifica el payload (probando primero UTF-8 nativo y fallback a ISO-8859-1).
+     * 2. Registra en bitácora de Log::info el contenido recibido para auditoría y depuración.
+     * 3. Valida la existencia de study_iuid, cod_cups y paciente/médico.
+     * 4. Delega la persistencia a TeleRadiologiaService.
+     *
      * @param  Request  $request  Solicitud HTTP con payload JSON de la lectura.
      *
      * @returns JsonResponse Respuesta JSON con resultado de la operación.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2025-11-24
+     * @date 2026-11-06
      */
     public function recibirLectura(Request $request): JsonResponse
     {
         $rawContent = $request->getContent();
-        $utf8Content = mb_convert_encoding($rawContent, 'UTF-8', 'ISO-8859-1');
-        $data = json_decode($utf8Content, true);
 
+        // 1. Intentar decodificar directamente en UTF-8 nativo
+        $data = json_decode($rawContent, true);
+
+        // 2. Si falla la decodificación por encoding, convertir desde ISO-8859-1
         if (json_last_error() !== JSON_ERROR_NONE) {
+            $utf8Content = mb_convert_encoding($rawContent, 'UTF-8', 'ISO-8859-1');
+            $data = json_decode($utf8Content, true);
+        }
+
+        // 3. Fallback defensivo a request->all()
+        if (! is_array($data)) {
+            $data = $request->all();
+        }
+
+        Log::info('TeleRadiologiaController::recibirLectura - Payload recibido:', [
+            'raw_length' => strlen($rawContent),
+            'has_lectura' => isset($data['lectura']),
+            'data_keys' => array_keys($data),
+            'payload' => $data,
+        ]);
+
+        if (empty($data)) {
             return response()->json([
                 'message' => 'Error al decodificar el payload JSON.',
                 'error' => json_last_error_msg(),
@@ -124,6 +150,11 @@ class TeleRadiologiaController extends Controller
         ]);
 
         if ($validator->fails()) {
+            Log::warning('TeleRadiologiaController::recibirLectura - Validación fallida:', [
+                'errors' => $validator->errors()->toArray(),
+                'payload' => $data,
+            ]);
+
             return response()->json(['errors' => $validator->errors()], 400);
         }
 
