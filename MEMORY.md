@@ -37,6 +37,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-06 — Hotfix: Escape de Paréntesis en Bloques `if` de Windows CMD (`instalar_tareas_sede.bat`):**
+  - **Diagnóstico:**
+    * El usuario reportó: `No se esperaba bajo en este momento.` al llegar al paso `[2/4] Registrando tarea de Sincronizacion Continua de Imagenes`.
+    * En Windows CMD, incluir paréntesis dentro de un bloque `if (...)` (ej: `echo ... (ONSTART) bajo SYSTEM.`) hace que el primer `)` cierre prematuramente el bloque `if`, provocando un fallo sintáctico fatal en la palabra siguiente (`bajo`).
+  - **Solución:**
+    * Se eliminaron los paréntesis de los mensajes de salida dentro de bloques `if`, reemplazando `(ONSTART)` por `al arranque ONSTART`.
+    * Probado en CMD simulando las 4 tareas completas con código de salida 0.
 - [x] **2026-11-06 — Instalación 100% No Interactiva y Automatizada (`instalar_tareas_sede.bat`):**
   - **Diagnóstico:**
     * El usuario preguntó "¿Para q es la opcion?" al aparecer `Opcion: ` en consola.

@@ -102,7 +102,7 @@ if %errorLevel% neq 0 (
     schtasks /create /tn "%TASK_IMG%" /tr "%BAT_IMG%" /sc ONSTART /ru "SYSTEM" /rl HIGHEST /f >nul 2>&1
 )
 if %errorLevel% equ 0 (
-    echo       [OK] Programada para iniciar con Windows (ONSTART) bajo SYSTEM.
+    echo       [OK] Programada para iniciar con Windows al arranque ONSTART bajo SYSTEM.
 ) else (
     echo       [ERROR] No se pudo crear la tarea %TASK_IMG%.
 )
