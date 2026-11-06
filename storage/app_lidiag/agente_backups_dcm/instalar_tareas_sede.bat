@@ -37,7 +37,10 @@ set "BAT_IMG=%~dp0ejecutar_sync_imagenes.bat"
 set "TASK_DOSI=LIDiag_Dosimetria_Edge"
 set "BAT_DOSI=%~dp0ejecutar_dosimetria.bat"
 
-echo [1/3] Registrando tarea de Respaldo de Base de Datos MySQL (%TASK_DB%)...
+set "TASK_DISK=LIDiag_Disk_Monitor_DCM"
+set "BAT_DISK=%~dp0ejecutar_disk_monitor.bat"
+
+echo [1/4] Registrando tarea de Respaldo de Base de Datos MySQL (%TASK_DB%)...
 schtasks /create /tn "%TASK_DB%" /tr "\"%BAT_DB%\"" /sc DAILY /st 02:00 /ru "SYSTEM" /rl HIGHEST /f
 
 if %errorLevel% equ 0 (
@@ -47,7 +50,7 @@ if %errorLevel% equ 0 (
 )
 
 echo.
-echo [2/3] Registrando tarea de Sincronizacion Continua de Imagenes (%TASK_IMG%)...
+echo [2/4] Registrando tarea de Sincronizacion Continua de Imagenes (%TASK_IMG%)...
 schtasks /create /tn "%TASK_IMG%" /tr "\"%BAT_IMG%\"" /sc ONSTART /ru "SYSTEM" /rl HIGHEST /f
 
 if %errorLevel% equ 0 (
@@ -57,7 +60,7 @@ if %errorLevel% equ 0 (
 )
 
 echo.
-echo [3/3] Registrando tarea de Dosimetria Radiologica Edge (%TASK_DOSI%)...
+echo [3/4] Registrando tarea de Dosimetria Radiologica Edge (%TASK_DOSI%)...
 schtasks /create /tn "%TASK_DOSI%" /tr "\"%BAT_DOSI%\"" /sc HOURLY /mo 1 /ru "SYSTEM" /rl HIGHEST /f
 
 if %errorLevel% equ 0 (
@@ -67,8 +70,18 @@ if %errorLevel% equ 0 (
 )
 
 echo.
+echo [4/4] Registrando tarea de Monitoreo de Almacenamiento y Discos PACS (%TASK_DISK%)...
+schtasks /create /tn "%TASK_DISK%" /tr "\"%BAT_DISK%\"" /sc MINUTE /mo 30 /ru "SYSTEM" /rl HIGHEST /f
+
+if %errorLevel% equ 0 (
+    echo       [OK] Tarea de Monitoreo de Discos programada cada 30 minutos.
+) else (
+    echo       [ERROR] No se pudo crear la tarea %TASK_DISK%.
+)
+
+echo.
 echo =========================================================================
-echo [COMPLETADO] Las 3 tareas fueron registradas con exito bajo la cuenta SYSTEM.
+echo [COMPLETADO] Las 4 tareas fueron registradas con exito bajo la cuenta SYSTEM.
 echo Todas operan de forma 100%% autonoma sin requerir inicio de sesion de usuario.
 echo =========================================================================
 echo.

@@ -229,6 +229,7 @@ class BackupMonitorService extends BaseService
             // 2. Telemetría reportada por el agente de la sede (Cache distribuido con auto-recuperación de log)
             $telemetriaDb = Cache::get("telemetria_sede_{$sedeId}_backup_db");
             $telemetriaSync = Cache::get("telemetria_sede_{$sedeId}_sync_imagenes");
+            $telemetriaDisco = Cache::get("telemetria_sede_{$sedeId}_disco_imagenes");
 
             if (! $telemetriaDb) {
                 $telemetriaDb = $this->recuperarUltimaTelemetriaDeLog($sedeId, "backup_db");
@@ -236,6 +237,11 @@ class BackupMonitorService extends BaseService
             if (! $telemetriaSync) {
                 $telemetriaSync = $this->recuperarUltimaTelemetriaDeLog($sedeId, "sync_imagenes");
             }
+            if (! $telemetriaDisco) {
+                $telemetriaDisco = $this->recuperarUltimaTelemetriaDeLog($sedeId, "disco_imagenes");
+            }
+
+            $discoImagenes = $this->resolverDiscoImagenesSede($telemetriaDisco, $telemetriaSync, $telemetriaDb);
 
             $mtimeTelemetria = 0;
             if ($telemetriaDb && ! empty($telemetriaDb["fecha"])) {
@@ -301,6 +307,7 @@ class BackupMonitorService extends BaseService
                         "segundos" => $qnapTransfer["segundos"] ?? null,
                         "error" => $qnapTransfer["error"] ?? ($centralError ? ($centralTransfer["error"] ?? null) : null),
                     ],
+                    "disco_imagenes" => $discoImagenes,
                     "sync_imagenes" => $telemetriaSync ? [
                         "estado" => $telemetriaSync["estado"] ?? "OK",
                         "hace" => ! empty($telemetriaSync["fecha"]) ? Carbon::parse($telemetriaSync["fecha"])->diffForHumans() : null,
@@ -347,6 +354,7 @@ class BackupMonitorService extends BaseService
                         "segundos" => null,
                         "error" => null,
                     ],
+                    "disco_imagenes" => $discoImagenes,
                     "sync_imagenes" => $telemetriaSync ? [
                         "estado" => $telemetriaSync["estado"] ?? "OK",
                         "hace" => ! empty($telemetriaSync["fecha"]) ? Carbon::parse($telemetriaSync["fecha"])->diffForHumans() : null,
@@ -379,6 +387,7 @@ class BackupMonitorService extends BaseService
                         "segundos" => null,
                         "error" => null,
                     ],
+                    "disco_imagenes" => $discoImagenes,
                     "sync_imagenes" => $telemetriaSync ? [
                         "estado" => $telemetriaSync["estado"] ?? "OK",
                         "hace" => ! empty($telemetriaSync["fecha"]) ? Carbon::parse($telemetriaSync["fecha"])->diffForHumans() : null,
@@ -460,6 +469,132 @@ class BackupMonitorService extends BaseService
         $bytes /= (1 << (10 * $pow));
 
         return round($bytes, $precision)." ".$unidades[$pow];
+    }
+
+    /**
+     * Resuelve las métricas de almacenamiento y salud del disco del repositorio de imágenes PACS.
+     *
+     * @param  array|null  $telemetriaDisco  Telemetría directa de dcm_disk_monitor
+     * @param  array|null  $telemetriaSync  Telemetría de sync_dcm_images
+     * @param  array|null  $telemetriaDb  Telemetría de backup_dcm_agent
+     * @return array|null Información de almacenamiento estructurada
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-06
+     */
+    protected function resolverDiscoImagenesSede(?array $telemetriaDisco, ?array $telemetriaSync, ?array $telemetriaDb): ?array
+    {
+        // 1. Fuente primaria: dcm_disk_monitor.py (Monitoreo exhaustivo de discos)
+        if ($telemetriaDisco && ! empty($telemetriaDisco["detalles"])) {
+            $detallesDisco = $telemetriaDisco["detalles"];
+            $dp = $detallesDisco["disco_principal"] ?? (isset($detallesDisco["discos"][0]) ? $detallesDisco["discos"][0] : null);
+            if ($dp) {
+                $libreGb = isset($dp["free_gb"]) ? (float) $dp["free_gb"] : null;
+                $totalGb = isset($dp["total_gb"]) ? (float) $dp["total_gb"] : null;
+                $usedGb = isset($dp["used_gb"]) ? (float) $dp["used_gb"] : null;
+                $pctUsed = isset($dp["used_pct"]) ? (float) $dp["used_pct"] : (isset($dp["porcentaje_usado"]) ? (float) $dp["porcentaje_usado"] : null);
+                $pctFree = isset($dp["free_pct"]) ? (float) $dp["free_pct"] : (isset($dp["porcentaje_libre"]) ? (float) $dp["porcentaje_libre"] : null);
+                $estado = strtoupper($dp["estado"] ?? "OK");
+
+                $unidad = "D:";
+                if (! empty($dp["unidad"])) {
+                    $unidad = $dp["unidad"];
+                } elseif (! empty($dp["ruta"]) && preg_match('/^([A-Za-z]:)/', $dp["ruta"], $m)) {
+                    $unidad = $m[1];
+                }
+
+                $totalTxt = $dp["total_formato"] ?? ($totalGb !== null ? "{$totalGb} GB" : "N/D");
+                $libreTxt = $dp["free_formato"] ?? ($libreGb !== null ? "{$libreGb} GB" : "N/D");
+
+                return [
+                    "origen" => "dcm_disk_monitor",
+                    "unidad" => $unidad,
+                    "nombre" => $dp["nombre"] ?? "Repositorio Imágenes DICOM",
+                    "ruta" => $dp["ruta"] ?? "{$unidad}\\img_dcm",
+                    "total_gb" => $totalGb,
+                    "usado_gb" => $usedGb,
+                    "libre_gb" => $libreGb,
+                    "porcentaje_usado" => $pctUsed,
+                    "porcentaje_libre" => $pctFree,
+                    "estado" => $estado,
+                    "texto_tooltip" => "{$dp['nombre']}: {$libreTxt} libres de {$totalTxt}".($pctUsed !== null ? " ({$pctUsed}% usado)" : ""),
+                    "hace" => ! empty($telemetriaDisco["fecha"]) ? Carbon::parse($telemetriaDisco["fecha"])->diffForHumans() : "Reciente",
+                ];
+            }
+        }
+
+        // 2. Fuente secundaria: sync_dcm_images.py (Sincronizador continuo de imágenes)
+        if ($telemetriaSync && ! empty($telemetriaSync["detalles"])) {
+            $detallesSync = $telemetriaSync["detalles"];
+            $discoLocal = $detallesSync["disco_local"] ?? null;
+            if (is_array($discoLocal) && isset($discoLocal["libre_gb"])) {
+                $libreGb = (float) $discoLocal["libre_gb"];
+                $totalGb = isset($discoLocal["total_gb"]) ? (float) $discoLocal["total_gb"] : null;
+                $usedGb = isset($discoLocal["usado_gb"]) ? (float) $discoLocal["usado_gb"] : null;
+                $pctUsed = isset($discoLocal["porcentaje_usado"]) ? (float) $discoLocal["porcentaje_usado"] : null;
+                $pctFree = isset($discoLocal["porcentaje_libre"]) ? (float) $discoLocal["porcentaje_libre"] : null;
+                $estado = strtoupper($discoLocal["estado"] ?? "OK");
+                $unidad = $discoLocal["unidad"] ?? "D:";
+
+                return [
+                    "origen" => "sync_imagenes",
+                    "unidad" => $unidad,
+                    "nombre" => "Repositorio Imágenes PACS",
+                    "ruta" => $discoLocal["ruta"] ?? "{$unidad}\\img_dicom",
+                    "total_gb" => $totalGb,
+                    "usado_gb" => $usedGb,
+                    "libre_gb" => $libreGb,
+                    "porcentaje_usado" => $pctUsed,
+                    "porcentaje_libre" => $pctFree,
+                    "estado" => $estado,
+                    "texto_tooltip" => "Disco {$unidad}: {$libreGb} GB libres de ".($totalGb ? "{$totalGb} GB" : "N/D").($pctUsed !== null ? " ({$pctUsed}% usado)" : ""),
+                    "hace" => ! empty($telemetriaSync["fecha"]) ? Carbon::parse($telemetriaSync["fecha"])->diffForHumans() : "Reciente",
+                ];
+            } elseif (isset($detallesSync["espacio_libre_local_gb"])) {
+                $libre = (float) $detallesSync["espacio_libre_local_gb"];
+
+                return [
+                    "origen" => "sync_imagenes",
+                    "unidad" => "D:",
+                    "nombre" => "Repositorio Imágenes PACS",
+                    "ruta" => "Repositorio PACS",
+                    "total_gb" => null,
+                    "usado_gb" => null,
+                    "libre_gb" => $libre,
+                    "porcentaje_usado" => null,
+                    "porcentaje_libre" => null,
+                    "estado" => $libre < 20 ? "CRITICO" : ($libre < 50 ? "ADVERTENCIA" : "OK"),
+                    "texto_tooltip" => "Espacio libre en repositorio: {$libre} GB",
+                    "hace" => ! empty($telemetriaSync["fecha"]) ? Carbon::parse($telemetriaSync["fecha"])->diffForHumans() : "Reciente",
+                ];
+            }
+        }
+
+        // 3. Fallback terciario: backup_dcm_agent.py
+        if ($telemetriaDb && ! empty($telemetriaDb["detalles"])) {
+            $detallesDb = $telemetriaDb["detalles"];
+            if (isset($detallesDb["espacio_libre_gb"])) {
+                $libre = (float) $detallesDb["espacio_libre_gb"];
+
+                return [
+                    "origen" => "backup_db",
+                    "unidad" => "C:",
+                    "nombre" => "Almacenamiento Sede",
+                    "ruta" => "Almacenamiento Local Sede",
+                    "total_gb" => null,
+                    "usado_gb" => null,
+                    "libre_gb" => $libre,
+                    "porcentaje_usado" => null,
+                    "porcentaje_libre" => null,
+                    "estado" => $libre < 20 ? "CRITICO" : ($libre < 50 ? "ADVERTENCIA" : "OK"),
+                    "texto_tooltip" => "Espacio libre en servidor de sede: {$libre} GB",
+                    "hace" => ! empty($telemetriaDb["fecha"]) ? Carbon::parse($telemetriaDb["fecha"])->diffForHumans() : "Reciente",
+                ];
+            }
+        }
+
+        return null;
     }
 
     /**

@@ -37,6 +37,31 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-06 — Unificación y Traslado de Monitor de Discos a Agente de Sedes y Columna en Monitor Central (`dcm_disk_monitor.py`, `ejecutar_disk_monitor.bat`, `instalar_tareas_sede.bat`, `sync_dcm_images.py`, `BackupMonitorService.php`, `backupMonitorComponent.vue`):**
+  - **Diagnóstico y Solicitud del Usuario:**
+    * El usuario solicitó: *"movamos ese agente de C:\laragon\www\lidiag\storage\app_lidiag\dcm_disk_monitor_telegram\dcm_disk_monitor.py a C:\laragon\www\lidiag\storage\app_lidiag\agente_backups_dcm"*.
+    * Integrar las métricas de almacenamiento de los discos duros locales donde residen los repositorios de imágenes DICOM de cada sede en el monitor central de seguridad (`/seguridad-backups`).
+  - **Solución Implementada:**
+    * **1. Reorganización y Unificación en `storage/app_lidiag/agente_backups_dcm/`:**
+      - Se trasladó `dcm_disk_monitor.py` directamente a la suite unificada de agentes edge de la sede (`agente_backups_dcm/`).
+      - Ahora lee de forma directa y nativa el archivo `config.json` de la sede, detectando automáticamente: `C:\` (Sistema OS), `D:\img_dcm` (`local_images_dir`) y `C:\backups_dcm` (`destination_dir`).
+      - Se creó el ejecutable por lotes [`ejecutar_disk_monitor.bat`](file:///c:/laragon/www/lidiag/storage/app_lidiag/agente_backups_dcm/ejecutar_disk_monitor.bat) para disparar la auditoría con `--check-once`.
+      - Se actualizó [`instalar_tareas_sede.bat`](file:///c:/laragon/www/lidiag/storage/app_lidiag/agente_backups_dcm/instalar_tareas_sede.bat) incorporando la 4ta tarea programada: `LIDiag_Disk_Monitor_DCM` con frecuencia de 30 minutos bajo la cuenta `SYSTEM`.
+    * **2. Emisión de Telemetría Central en `dcm_disk_monitor.py`:**
+      - Emite las métricas a Central vía `urllib` estándar con soporte SSL hacia `POST /api/backups/telemetria` (`servicio: "disco_imagenes"`).
+      - Añadido flag `--telemetria` para auditoría inmediata.
+    * **3. Soporte en Sincronizador de Imágenes (`sync_dcm_images.py`):**
+      - Se enriqueció `get_disk_space_info(path)` y se incluyó el objeto `disco_local` en las emisiones periódicas de `sync_imagenes`.
+    * **4. Resolución Multinivel en Backend (`BackupMonitorService.php`):**
+      - Método `resolverDiscoImagenesSede`: unifica la lectura de `disco_imagenes` con fallback a `sync_imagenes`, `backup_db` y auto-recuperación de `backups.log`.
+    * **5. Nueva Columna "Disco Imágenes (PACS)" en Frontend (`backupMonitorComponent.vue`):**
+      - Visualiza en vivo: unidad y GB libres (ej. `D: (502.36 GB libres)`), barra de progreso visual, etiqueta de porcentaje de uso y ruta del repositorio.
+  - **Verificaciones:**
+    * Laravel Pint pasado al 100% (`vendor\bin\pint.bat --test`) ✅.
+    * ESLint y Prettier 100% pasados en `backupMonitorComponent.vue` ✅.
+    * Compilación Vite exitosa (`npm run build` en 1.31s) ✅.
+    * Ejecución real validada en consola con `python dcm_disk_monitor.py --status` en su nueva ubicación, detectando `C:\`, `D:\img_dcm` y `C:\backups_dcm` ✅.
+    * Finales de línea en LF y UTF-8 sin BOM ✅.
 - [x] **2026-11-06 — Columna de Transferencia en Monitor de Backups y Optimización de Carga WAN/QNAP (`backupMonitorComponent.vue`, `BackupMonitorService.php`, `BackupUploadController.php`, `backup_dcm_agent.py`):**
   - **Diagnóstico y Solicitud del Usuario:**
     * El usuario compartió el log real del respaldo de Espinal (`ejecutar_backup_db.bat`) donde el dump de 11.07 GB se comprimió a 619.40 MB y se transfirió con éxito al NAS QNAP local (`\\10.35.47.21\backups-db-espinal`) en 55.07s a 11.25 MB/s.

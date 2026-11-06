@@ -118,10 +118,15 @@ def load_config(config_path: str = "config.json") -> dict:
     config.setdefault("telegram", {})
     config["telegram"].setdefault("bot_token", "")
     config["telegram"].setdefault("chat_ids", [])
-    config.setdefault("rutas_monitoreo", [
-        {"nombre": "Sistema (C:)", "ruta": "C:\\"},
-        {"nombre": "Imágenes DICOM", "ruta": "D:\\img_dcm"}
-    ])
+    rutas_default = [
+        {"nombre": "Disco del Sistema (OS)", "ruta": "C:\\"}
+    ]
+    img_dir = config.get("local_images_dir") or "D:\\img_dcm"
+    rutas_default.append({"nombre": "Repositorio Imágenes DICOM (PACS)", "ruta": img_dir})
+    if config.get("destination_dir") and config.get("destination_dir") != img_dir:
+        rutas_default.append({"nombre": "Destino Backups Locales", "ruta": config["destination_dir"]})
+
+    config.setdefault("rutas_monitoreo", rutas_default)
     config.setdefault("umbrales", {
         "advertencia_porcentaje_libre": 15.0,
         "advertencia_gb_libres": 50.0,
@@ -131,6 +136,44 @@ def load_config(config_path: str = "config.json") -> dict:
     config.setdefault("intervalo_revision_minutos", 15)
     config.setdefault("cooldown_alerta_horas", 4)
     config.setdefault("reporte_diario", {"activo": True, "hora": "08:00"})
+
+    # Auto-resolución de sede_id si no está explícito en config.json
+    if not config.get("sede_id"):
+        sede_str = str(config.get("SEDE") or config.get("sede_nombre", "")).lower()
+        if "espinal" in sede_str:
+            config["sede_id"] = 1
+        elif "chaparral" in sede_str:
+            config["sede_id"] = 3
+        elif "ibague" in sede_str or "ibagué" in sede_str or "federico" in sede_str:
+            config["sede_id"] = 4
+        elif "libano" in sede_str or "líbano" in sede_str:
+            config["sede_id"] = 5
+        elif "honda" in sede_str:
+            config["sede_id"] = 6
+        elif "rovira" in sede_str:
+            config["sede_id"] = 7
+
+    # Si api_url o api_token no están en este config.json, heredar del agente de backups si existe
+    if not config.get("api_url") or not config.get("api_token"):
+        rutas_agente = [
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "agente_backups_dcm", "config.json"),
+            "C:\\agente_backups_dcm\\config.json",
+            "C:\\Backups_Lidiag\\config.json",
+        ]
+        for ra in rutas_agente:
+            if os.path.isfile(ra):
+                try:
+                    with open(ra, "r", encoding="utf-8") as fa:
+                        ca = parse_tolerant_json(fa.read())
+                        if ca.get("api_url") and not config.get("api_url"):
+                            config["api_url"] = ca["api_url"]
+                        if ca.get("api_token") and not config.get("api_token"):
+                            config["api_token"] = ca["api_token"]
+                        if ca.get("sede_id") and not config.get("sede_id"):
+                            config["sede_id"] = ca["sede_id"]
+                    break
+                except Exception:
+                    pass
 
     return config
 
@@ -450,6 +493,109 @@ def build_recovery_message(config: dict, disco: dict) -> str:
 
 
 # =====================================================================
+# TELEMETRÍA CENTRAL LIDiag (SOLO URLLIB ESTÁNDAR)
+# =====================================================================
+
+def resolve_api_endpoint(base_api_url: str, endpoint_path: str) -> str:
+    """Deriva la raíz de la API y concatena el endpoint solicitado."""
+    if not base_api_url:
+        return ""
+    clean = base_api_url.rstrip("/")
+    idx = clean.find("/api/")
+    if idx != -1:
+        base = clean[:idx + 5].rstrip("/")
+    elif clean.endswith("/api"):
+        base = clean
+    else:
+        base = clean.rsplit("/", 1)[0]
+    return f"{base}/{endpoint_path.lstrip('/')}"
+
+
+def emit_central_telemetry(config: dict, discos: list) -> bool:
+    """
+    Emite las métricas de almacenamiento de los discos del servidor PACS hacia
+    la API Central de LIDiag (https://lidiag.com/api/backups/telemetria) con autenticación multicanal.
+    """
+    api_url = config.get("api_url")
+    api_token = config.get("api_token")
+    sede_id = config.get("sede_id")
+
+    if not api_url or not api_token or not sede_id:
+        return False
+
+    endpoint = resolve_api_endpoint(api_url, "backups/telemetria")
+    if not endpoint:
+        return False
+
+    clean_token = str(api_token).strip()
+    if clean_token.lower().startswith("bearer "):
+        clean_token = clean_token[7:].strip()
+
+    # Buscar el repositorio principal de imágenes (D: o nombre con dcm / imagen)
+    disco_repo = None
+    for d in discos:
+        nombre_lower = str(d.get("nombre", "")).lower()
+        ruta_lower = str(d.get("ruta", "")).lower()
+        if "dcm" in nombre_lower or "imagen" in nombre_lower or "pacs" in nombre_lower or "d:" in ruta_lower:
+            disco_repo = d
+            break
+    if not disco_repo and discos:
+        disco_repo = discos[-1]
+
+    hay_critico = any(d.get("estado") == "CRITICO" for d in discos)
+    hay_adv = any(d.get("estado") == "ADVERTENCIA" for d in discos)
+    estado_global = "CRITICO" if hay_critico else ("ADVERTENCIA" if hay_adv else "OK")
+
+    msg = (
+        f"Auditoría Dd: {disco_repo.get('free_gb', 0)} GB libres ({disco_repo.get('free_pct', 0)}%) en {disco_repo.get('nombre', 'Disco')}"
+        if disco_repo else "Discos DICOM auditados"
+    )
+
+    payload = {
+        "sede_id": int(sede_id),
+        "servicio": "disco_imagenes",
+        "estado": estado_global,
+        "mensaje": msg,
+        "api_token": clean_token,
+        "token": clean_token,
+        "detalles": {
+            "servidor": config.get("servidor_identificador", socket.gethostname()),
+            "sede_nombre": config.get("SEDE") or config.get("sede_nombre"),
+            "disco_principal": disco_repo,
+            "discos": discos,
+        },
+    }
+
+    try:
+        import ssl
+        ctx = ssl._create_unverified_context()
+    except Exception:
+        ctx = None
+
+    try:
+        data_bytes = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(
+            endpoint,
+            data=data_bytes,
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "Authorization": f"Bearer {clean_token}",
+                "X-API-TOKEN": clean_token,
+                "X-Backup-Token": clean_token,
+            },
+        )
+        kwargs = {"timeout": 12}
+        if ctx:
+            kwargs["context"] = ctx
+        with urllib.request.urlopen(req, **kwargs) as response:
+            return response.status in [200, 201]
+    except Exception as e:
+        print(f"[AVISO TELEMETRÍA] No se pudo enviar telemetría de discos a Central: {e}")
+        return False
+
+
+# =====================================================================
 # EVALUACIÓN Y NOTIFICACIÓN PERIÓDICA (BACKGROUND WORKER)
 # =====================================================================
 
@@ -458,11 +604,15 @@ def evaluate_and_notify(config: dict, telegram: TelegramClient, es_reporte_diari
     Evalúa el estado de los discos y envía alertas si es necesario respetando
     el cooldown configurado para evitar saturación de mensajes.
     """
+    discos = inspect_disks(config)
+
+    # 1. Emitir telemetría de almacenamiento a Central LIDiag
+    emit_central_telemetry(config, discos)
+
     chat_ids = config.get("telegram", {}).get("chat_ids", [])
     if not chat_ids or not telegram.is_configured():
         return
 
-    discos = inspect_disks(config)
     state = load_state()
     ahora_ts = time.time()
     cooldown_seg = float(config.get("cooldown_alerta_horas", 4)) * 3600.0
@@ -783,14 +933,28 @@ def main():
     parser.add_argument("--daemon", "-d", action="store_true", help="Ejecutar como servicio residente (Bot + Monitoreo)")
     parser.add_argument("--check-once", action="store_true", help="Ejecutar una sola revisión y salir (para Task Scheduler)")
     parser.add_argument("--status", action="store_true", help="Mostrar estado de discos en consola")
+    parser.add_argument("--telemetria", action="store_true", help="Audita discos y envía telemetría inmediata a Central LIDiag")
     parser.add_argument("--test-telegram", action="store_true", help="Enviar mensaje de prueba a Telegram")
     parser.add_argument("--get-chat-ids", action="store_true", help="Descubrir Chat IDs de usuarios que escribieron al bot")
 
     args = parser.parse_args()
     config = load_config(args.config)
 
+    if args.telemetria:
+        discos = inspect_disks(config)
+        cmd_status(config)
+        print(f"\n[TELEMETRÍA] Emitiendo estado de discos a Central (Sede #{config.get('sede_id', 0)})...")
+        ok = emit_central_telemetry(config, discos)
+        if ok:
+            print("[OK] Telemetría de discos registrada exitosamente en Central.")
+        else:
+            print("[AVISO] No se pudo emitir telemetría a Central (verifica api_url y api_token).")
+        return
+
     if args.status:
         cmd_status(config)
+        discos = inspect_disks(config)
+        emit_central_telemetry(config, discos)
         return
 
     if args.test_telegram:

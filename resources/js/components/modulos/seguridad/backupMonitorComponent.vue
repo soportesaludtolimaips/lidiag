@@ -205,6 +205,7 @@
                                         <th>Sede Hospitalaria</th>
                                         <th>Estado de Salud</th>
                                         <th class="text-center">Transferencia</th>
+                                        <th>Disco Imágenes (PACS)</th>
                                         <th>Último Backup Recibido</th>
                                         <th>Antigüedad</th>
                                         <th>Tamaño</th>
@@ -307,6 +308,99 @@
                                                 >
                                                     <i class="fa fa-times text-danger"></i> Sin
                                                     datos
+                                                </span>
+                                            </template>
+                                        </td>
+                                        <td>
+                                            <template
+                                                v-if="
+                                                    sede.disco_imagenes &&
+                                                    sede.disco_imagenes.libre_gb !== null
+                                                "
+                                            >
+                                                <div
+                                                    class="d-flex align-items-center justify-content-between font-11"
+                                                >
+                                                    <strong>
+                                                        <i
+                                                            class="fa fa-hdd-o text-primary mr-1"
+                                                        ></i>
+                                                        {{ sede.disco_imagenes.unidad || "D:" }}
+                                                        <span class="text-muted font-10">
+                                                            ({{ sede.disco_imagenes.libre_gb }} GB
+                                                            libres)
+                                                        </span>
+                                                    </strong>
+                                                    <span
+                                                        :class="[
+                                                            'label font-10',
+                                                            obtenerClaseEstadoDisco(
+                                                                sede.disco_imagenes.estado
+                                                            ),
+                                                        ]"
+                                                    >
+                                                        {{
+                                                            sede.disco_imagenes.porcentaje_usado !==
+                                                                null &&
+                                                            sede.disco_imagenes.porcentaje_usado !==
+                                                                undefined
+                                                                ? sede.disco_imagenes
+                                                                      .porcentaje_usado + "%"
+                                                                : sede.disco_imagenes.estado
+                                                        }}
+                                                    </span>
+                                                </div>
+                                                <div
+                                                    v-if="
+                                                        sede.disco_imagenes.porcentaje_usado !==
+                                                            null &&
+                                                        sede.disco_imagenes.porcentaje_usado !==
+                                                            undefined
+                                                    "
+                                                    class="progress m-t-5 m-b-2"
+                                                    style="height: 6px"
+                                                    :title="sede.disco_imagenes.texto_tooltip"
+                                                >
+                                                    <div
+                                                        :class="[
+                                                            'progress-bar',
+                                                            obtenerClaseBarraDisco(
+                                                                sede.disco_imagenes.estado
+                                                            ),
+                                                        ]"
+                                                        role="progressbar"
+                                                        :style="{
+                                                            width:
+                                                                sede.disco_imagenes
+                                                                    .porcentaje_usado + '%',
+                                                        }"
+                                                        :aria-valuenow="
+                                                            sede.disco_imagenes.porcentaje_usado
+                                                        "
+                                                        aria-valuemin="0"
+                                                        aria-valuemax="100"
+                                                    ></div>
+                                                </div>
+                                                <small
+                                                    v-if="sede.disco_imagenes.ruta"
+                                                    class="text-muted d-block font-10 text-truncate"
+                                                    style="max-width: 170px"
+                                                    :title="sede.disco_imagenes.ruta"
+                                                >
+                                                    {{ sede.disco_imagenes.ruta }}
+                                                </small>
+                                                <small
+                                                    v-if="sede.disco_imagenes.hace"
+                                                    class="text-info d-block font-10"
+                                                >
+                                                    <i class="fa fa-clock-o"></i>
+                                                    {{ sede.disco_imagenes.hace }}
+                                                </small>
+                                            </template>
+                                            <template v-else>
+                                                <span class="text-muted font-11">
+                                                    <i class="fa fa-hdd-o text-muted mr-1"></i> Sin
+                                                    datos Dd
                                                 </span>
                                             </template>
                                         </td>
@@ -480,6 +574,20 @@ function obtenerClaseColorLog(tipo) {
     if (tipo === "warning") return "text-warning";
     if (tipo === "success") return "text-success";
     return "text-light";
+}
+
+function obtenerClaseEstadoDisco(estado) {
+    const est = String(estado || "").toUpperCase();
+    if (est === "CRITICO" || est === "CRÍTICO") return "label-danger";
+    if (est === "ADVERTENCIA") return "label-warning";
+    return "label-success";
+}
+
+function obtenerClaseBarraDisco(estado) {
+    const est = String(estado || "").toUpperCase();
+    if (est === "CRITICO" || est === "CRÍTICO") return "bg-danger";
+    if (est === "ADVERTENCIA") return "bg-warning";
+    return "bg-success";
 }
 
 async function consultarEstado() {

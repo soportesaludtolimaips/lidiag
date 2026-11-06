@@ -207,14 +207,51 @@ def authenticate_smb(qnap_ip: str, share: str, user: str, password: str) -> bool
         return False
 
 
-def get_free_disk_space_gb(path: str) -> float:
-    """Calcula el espacio libre en gigabytes para la unidad de disco."""
+def get_disk_space_info(path: str) -> dict:
+    """Calcula las métricas completas de almacenamiento (total, usado, libre, porcentajes) para la unidad de disco."""
     try:
         drive = os.path.splitdrive(os.path.abspath(path))[0] or path
         total, used, free = shutil.disk_usage(drive)
-        return round(free / (1024**3), 2)
-    except Exception:
-        return 0.0
+        total_gb = round(total / (1024**3), 2)
+        used_gb = round(used / (1024**3), 2)
+        free_gb = round(free / (1024**3), 2)
+        pct_used = round((used / total) * 100, 1) if total > 0 else 0.0
+        pct_free = round(100.0 - pct_used, 1)
+
+        estado = "OPTIMO"
+        if pct_free <= 5.0 or free_gb < 20.0:
+            estado = "CRITICO"
+        elif pct_free <= 15.0 or free_gb < 50.0:
+            estado = "ADVERTENCIA"
+
+        return {
+            "unidad": drive,
+            "ruta": os.path.abspath(path),
+            "total_gb": total_gb,
+            "usado_gb": used_gb,
+            "libre_gb": free_gb,
+            "porcentaje_usado": pct_used,
+            "porcentaje_libre": pct_free,
+            "estado": estado,
+        }
+    except Exception as e:
+        return {
+            "unidad": path[:2] if len(path) >= 2 else "N/A",
+            "ruta": path,
+            "total_gb": 0.0,
+            "usado_gb": 0.0,
+            "libre_gb": 0.0,
+            "porcentaje_usado": 0.0,
+            "porcentaje_libre": 0.0,
+            "estado": "DESCONOCIDO",
+            "error": str(e),
+        }
+
+
+def get_free_disk_space_gb(path: str) -> float:
+    """Calcula el espacio libre en gigabytes para la unidad de disco."""
+    info = get_disk_space_info(path)
+    return info.get("libre_gb", 0.0)
 
 
 def parse_robocopy_summary(output: str) -> dict:
