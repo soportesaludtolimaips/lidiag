@@ -37,6 +37,28 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-06 — Descarga Directa del Paquete de Agentes DCM (.zip) desde Monitor Central (`/seguridad-backups`, `BackupMonitorService.php`, `BackupMonitorController.php`, `api_seguridad.php`, `backupMonitorComponent.vue`):**
+  - **Solicitud del Usuario:**
+    * El usuario sugirió: *"que te parece si en https://lidiag.com/seguridad-backups agregamos la funcionalidad de descargar un .zip de los agentes de C:\laragon\www\lidiag\storage\app_lidiag\agente_backups_dcm"*.
+  - **Implementación y Solución:**
+    * **1. Backend Service (`BackupMonitorService::generarZipAgentesDcm`):**
+      - Empaqueta con `ZipArchive` todos los archivos de `storage/app_lidiag/agente_backups_dcm/`.
+      - Incluye los 5 scripts Python, 5 `.bat`, instaladores `install.bat` e `instalar_tareas_sede.bat`, `requirements.txt`, plantilla `config.json.example`, 6 manuales Markdown y crea la carpeta `logs/` con `.gitkeep`.
+      - Aplica exclusiones de seguridad automáticas: omite `config.json` con credenciales locales activas, `.venv`, `__pycache__` y archivos de bitácora `.log` o bases SQLite de prueba.
+    * **2. Endpoint y Controlador (`BackupMonitorController::descargarAgentesDcm`):**
+      - Ruta `GET /api/seguridad-backups/descargar-agentes-dcm` bajo middleware `permission:seguridad.backups.index`.
+      - Descarga binaria con cabeceras `Content-Type: application/zip` y eliminación automática del temporal con `deleteFileAfterSend(true)`.
+    * **3. Frontend Vue 3 (`backupMonitorComponent.vue`):**
+      - Botón añadido en la barra superior junto a "Refrescar" y "Hacer Backup BD": `<i class="fa fa-download"></i> Descargar Agentes DCM (.zip)`.
+      - Descarga reactiva vía Blob con feedback mediante estados de carga y notificaciones Swal (`alertSuccess` / `alertError`).
+    * **4. Actualización de Instalador y Dependencias (`install.bat` y `requirements.txt`):**
+      - Se robusteció `install.bat` con detección preventiva de Python en el PATH, creación obligatoria de `logs/`, validación de pip, e inspección granular de `pydicom`, `requests`, `urllib3`, `mysql-connector-python` y `pymysql`.
+      - Se añadió `pymysql>=1.1.0` y `cryptography>=41.0.0` a `requirements.txt` como fallback puro de Python para servidores Windows Server legados o sin runtime C++.
+    * **5. Verificaciones:**
+      - PHP Pint pasado al 100% (`vendor\bin\pint.bat --test`) ✅.
+      - ESLint y Prettier pasados al 100% ✅.
+      - Vite bundle compilado exitosamente (`npm run build` en 1.45s) ✅.
+      - Prueba real de empaquetado validada (22 archivos, 86.6 KB) ✅.
 - [x] **2026-11-06 — Actualización Integral de Documentación y Creación de Manual de Monitor de Discos (`README.md`, `README_DISK_MONITOR.md`, `README_SYNC_IMAGENES.md`, `README_BACKUP_DB.md`):**
   - **Actualizaciones Realizadas:**
     * Creado [`README_DISK_MONITOR.md`](file:///c:/laragon/www/lidiag/storage/app_lidiag/agente_backups_dcm/README_DISK_MONITOR.md) detallando propósito clínico, argumentos CLI (`--check-once`, `--telemetria`, `--status`), detección automática de unidades y umbrales de alerta.

@@ -632,6 +632,88 @@ class BackupMonitorService extends BaseService
     }
 
     /**
+     * Construye un archivo ZIP con el paquete completo y limpio de agentes de sede DCM para su despliegue asistencial.
+     *
+     * Flujo del proceso:
+     * 1. Valida la existencia del directorio fuente en storage/app_lidiag/agente_backups_dcm.
+     * 2. Inicializa un archivo ZIP temporal mediante la clase nativa ZipArchive.
+     * 3. Itera recursivamente todos los archivos del paquete excluyendo elementos transitorios y sensibles (__pycache__, venv, config.json con contraseñas locales activas).
+     * 4. Asegura la inclusión de un directorio vacío logs/ con .gitkeep para preparar el entorno de logging en el servidor de destino.
+     * 5. Cierra el archivo y retorna la ruta del archivo generado y metadatos para la descarga.
+     *
+     * @return array Resultado estructurado con ruta temporal del zip o mensaje de error.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-06
+     */
+    public function generarZipAgentesDcm(): array
+    {
+        $origen = storage_path("app_lidiag/agente_backups_dcm");
+        if (! File::isDirectory($origen)) {
+            return $this->error("El directorio del paquete de agentes no existe en el servidor central: {$origen}", 404);
+        }
+
+        $tmpDir = sys_get_temp_dir();
+        $zipNombre = "agentes_dcm_lidiag_".date("Ymd_His").".zip";
+        $zipPath = $tmpDir.DIRECTORY_SEPARATOR.$zipNombre;
+
+        $zip = new \ZipArchive;
+        if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+            return $this->error("No se pudo inicializar el archivo ZIP temporal en {$zipPath}.", 500);
+        }
+
+        // Exclusiones de seguridad y archivos transitorios
+        $excluidos = [
+            "config.json", // Se incluye config.json.example en su lugar
+            "cola_dosimetria.db",
+            "cola_dosimetria.db-journal",
+            "dcm_monitor.log",
+            "last_alert_state.json",
+        ];
+
+        $archivos = File::allFiles($origen);
+        foreach ($archivos as $archivo) {
+            $nombreArchivo = $archivo->getFilename();
+            $rutaRelativa = $archivo->getRelativePathname();
+
+            // Omitir directorios transitorios (__pycache__, logs, venv, .git)
+            if (str_contains($rutaRelativa, "__pycache__") ||
+                str_contains($rutaRelativa, ".venv") ||
+                str_contains($rutaRelativa, "venv") ||
+                str_contains($rutaRelativa, ".git") ||
+                str_starts_with($rutaRelativa, "logs".DIRECTORY_SEPARATOR) ||
+                str_starts_with($rutaRelativa, "logs/")
+            ) {
+                continue;
+            }
+
+            if (in_array($nombreArchivo, $excluidos, true)) {
+                continue;
+            }
+
+            // Normalizar separadores a '/' para compatibilidad multiplataforma dentro del zip
+            $zipEntryPath = str_replace(DIRECTORY_SEPARATOR, "/", $rutaRelativa);
+            $zip->addFile($archivo->getRealPath(), $zipEntryPath);
+        }
+
+        // Crear directorio logs/ con .gitkeep para preparar el entorno de bitácoras
+        $zip->addFromString("logs/.gitkeep", "# Directorio de bitácoras de los agentes DCM de LIDiag\n");
+
+        $zip->close();
+
+        if (! File::exists($zipPath)) {
+            return $this->error("No se pudo verificar la existencia del archivo ZIP generado.", 500);
+        }
+
+        return $this->success([
+            "path" => $zipPath,
+            "nombre" => "agente_backups_dcm.zip",
+            "tamano_bytes" => File::size($zipPath),
+        ], "Paquete de agentes DCM generado exitosamente.");
+    }
+
+    /**
      * Recupera la telemetría más reciente de una sede desde el archivo backups.log como mecanismo de auto-recuperación resiliente.
      *
      * @param  int  $sedeId  ID de la sede

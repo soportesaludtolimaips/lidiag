@@ -31,6 +31,19 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
+                    class="btn btn-sm btn-outline-info waves-effect waves-light m-r-5"
+                    @click="descargarPaqueteAgentes"
+                    :disabled="descargandoAgentes || cargando"
+                    title="Descargar paquete de scripts y automatizaciones para las sedes"
+                >
+                    <i
+                        class="fa"
+                        :class="descargandoAgentes ? 'fa-spinner fa-spin' : 'fa-download'"
+                    ></i>
+                    {{ descargandoAgentes ? "Empaquetando..." : "Descargar Agentes DCM (.zip)" }}
+                </button>
+                <button
+                    type="button"
                     class="btn btn-sm btn-outline-secondary waves-effect waves-light m-r-5"
                     @click="consultarEstado"
                     :disabled="cargando"
@@ -624,6 +637,7 @@ import { confirmAction, alertError, alertSuccess } from "@/helpers/alerts";
 
 const cargando = ref(false);
 const ejecutandoManual = ref(false);
+const descargandoAgentes = ref(false);
 
 const infoAlmacenamiento = ref({
     unidad: "C:",
@@ -739,6 +753,37 @@ async function confirmarEjecucionManual() {
         );
     } finally {
         ejecutandoManual.value = false;
+    }
+}
+
+async function descargarPaqueteAgentes() {
+    descargandoAgentes.value = true;
+    try {
+        const response = await axios.get("/api/seguridad-backups/descargar-agentes-dcm", {
+            responseType: "blob",
+        });
+        const blob = new Blob([response.data], { type: "application/zip" });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", "agente_backups_dcm.zip");
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        alertSuccess(
+            "El paquete de agentes DCM se ha descargado correctamente. Descomprímelo en C:\\agente_backups_dcm en el servidor de la sede.",
+            "Paquete Descargado"
+        );
+    } catch (error) {
+        console.error("Error al descargar paquete de agentes:", error);
+        alertError(
+            error.response?.data?.message ||
+                "No se pudo generar ni descargar el paquete de agentes DCM.",
+            "Error de Descarga"
+        );
+    } finally {
+        descargandoAgentes.value = false;
     }
 }
 

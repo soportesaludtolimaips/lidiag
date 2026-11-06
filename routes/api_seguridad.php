@@ -101,6 +101,10 @@ Route::middleware(['auth'])->group(function () {
         ->name('api.seguridad.backups.estado')
         ->middleware(['permission:seguridad.backups.index']);
 
+    Route::get('/seguridad-backups/descargar-agentes-dcm', [BackupMonitorController::class, 'descargarAgentesDcm'])
+        ->name('api.seguridad.backups.descargar-agentes-dcm')
+        ->middleware(['permission:seguridad.backups.index']);
+
     Route::post('/seguridad-backups/ejecutar-db', [BackupMonitorController::class, 'ejecutarBackupDb'])
         ->name('api.seguridad.backups.ejecutar-db')
         ->middleware(['permission:seguridad.backups.ejecutar']);
