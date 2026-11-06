@@ -37,6 +37,16 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-06 — Hotfix: Soporte de Certificados SSL Intermedios/Self-Signed en Tele-Radiología (`TeleRadiologiaService.php`, `config/services.php`):**
+  - **Diagnóstico del Error:**
+    * El usuario reportó: `HTTP 500 "Error interno del servidor proxy" - cURL error 60: SSL certificate problem: self-signed certificate in certificate chain for https://ris.tlimagen.com/RISServices/integracion/salud_tolima/ordenes`.
+    * La cadena de certificados SSL de la pasarela RIS de TLIMAGEN contiene una entidad emisora intermedia o autofirmada no indexada en el almacén `cacert.pem` del servidor local/cPanel.
+  - **Solución Aplicada:**
+    * Se incorporó la configuración `'verify_ssl' => env('TELERADIOLOGIA_VERIFY_SSL', false)` en `config/services.php`.
+    * En `TeleRadiologiaService::enviarOrdenTeleRadiologia`, si `verify_ssl` es falso (por defecto), se invoca `$httpClient->withoutVerifying()`, homologando el patrón existente en `TelegramService` y `EstudioNotificacionService` para garantizar la comunicación WAN con TLIMAGEN sin bloqueos de cURL error 60.
+  - **Verificaciones:**
+    * PHP Pint pasado al 100% (`vendor\bin\pint.bat --test`) ✅.
+    * Larastan / PHPStan nivel 5: `1/1 [100%] [OK] No errors` ✅.
 - [x] **2026-11-06 — Hotfix: Validación de Envío de Orden en Tele-Radiología (`EnviarOrdenTeleRadiologiaRequest.php`, `teleRadiologiaEnviarEstudioComponent.vue`):**
   - **Diagnóstico del Error:**
     * El usuario reportó: `HTTP 422 Unprocessable Content` en `POST /api/tele-radiologia-enviar-orden` con errores: `"orden.study_id es obligatorio"`, `"orden.medico.num_docu es obligatorio"`, `"orden.medico.name es obligatorio"`, `"orden.cod_cups es obligatorio"`.

@@ -49,6 +49,7 @@ return [
         'connect_timeout' => env('TELERADIOLOGIA_CONNECT_TIMEOUT', 30),
         'timeout' => env('TELERADIOLOGIA_TIMEOUT', 60),
         'retries' => env('TELERADIOLOGIA_RETRIES', 1),
+        'verify_ssl' => env('TELERADIOLOGIA_VERIFY_SSL', false),
     ],
 
 ];

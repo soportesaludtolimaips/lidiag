@@ -82,8 +82,9 @@ class TeleRadiologiaService extends BaseService
     {
         try {
             $url = config('services.teleradiologia.orden_url');
+            $verifySsl = (bool) config('services.teleradiologia.verify_ssl', false);
 
-            $response = Http::withOptions([
+            $httpClient = Http::withOptions([
                 'curl' => [
                     CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
                 ],
@@ -91,8 +92,13 @@ class TeleRadiologiaService extends BaseService
                 ->connectTimeout((int) config('services.teleradiologia.connect_timeout'))
                 ->timeout((int) config('services.teleradiologia.timeout'))
                 ->retry((int) config('services.teleradiologia.retries'), 200)
-                ->acceptJson()
-                ->post($url, $orden);
+                ->acceptJson();
+
+            if (! $verifySsl) {
+                $httpClient->withoutVerifying();
+            }
+
+            $response = $httpClient->post($url, $orden);
 
             if ($response->successful()) {
                 $json = $response->json();
