@@ -12,28 +12,30 @@ echo.
 REM 1. Verificar y auto-elevar permisos de Administrador si es necesario
 net session >nul 2>&1
 if %errorLevel% neq 0 (
-    echo [SOLICITANDO ELEVACION] Este instalador requiere privilegios de Administrador.
-    echo Abriendo ventana con permisos elevados...
-    powershell -Command "Start-Process cmd -ArgumentList '/c \"\"%~f0\"\"' -Verb RunAs"
+    echo [ADVERTENCIA] Este instalador requiere ejecutarse como Administrador.
+    echo Intentando solicitar permisos elevados...
+    powershell -Command "Start-Process cmd -ArgumentList '/k \"\"%~f0\"\"' -Verb RunAs" >nul 2>&1
+    if %errorLevel% neq 0 (
+        echo.
+        echo Por favor ejecuta este script haciendo:
+        echo Clic derecho en instalar_tareas_sede.bat -^> "Ejecutar como administrador"
+        echo O abre Simbolo del sistema como Administrador y vuelve a ejecutarlo.
+        echo.
+        pause
+    )
     exit /b
 )
 
 REM 2. Verificar existencia de config.json
 if not exist "%~dp0config.json" (
-    echo [ADVERTENCIA] No se encontro "config.json" en: %~dp0
+    echo [AVISO] No se encontro "config.json" en: %~dp0
     if exist "%~dp0config.json.example" (
-        echo Se detecto "config.json.example". Por favor copialo a "config.json" y configura
-        echo los parametros de conexion de la sede antes de programar las tareas.
+        echo Recuerda copiar "config.json.example" a "config.json" y configurar
+        echo los parametros de conexion de la sede para que los agentes operen.
     ) else (
-        echo Por favor crea y configura "config.json" con los parametros de la sede.
+        echo Recuerda configurar "config.json" con los parametros de la sede.
     )
     echo.
-    echo Deseas continuar registrando las tareas de todos modos? (S/N)
-    set /p "CONT_CFG=Opcion: "
-    if /i not "%CONT_CFG%"=="S" (
-        pause
-        exit /b 1
-    )
 )
 
 REM 3. Definicion de nombres y rutas de cada agente
@@ -153,21 +155,10 @@ echo  recuperacion de desastres y no requiere tarea programada).
 echo =========================================================================
 echo.
 
-echo Deseas ejecutar ahora una prueba del Monitor de Discos para enviar telemetria? (S/N)
-set /p "TEST_DISK=Opcion: "
-if /i "%TEST_DISK%"=="S" (
-    echo Ejecutando monitor de almacenamiento...
-    call "%BAT_DISK%"
-)
-
+REM Iniciar sincronizacion de imagenes e informe inicial de discos en segundo plano
+schtasks /run /tn "%TASK_DISK%" >nul 2>&1
+schtasks /run /tn "%TASK_IMG%" >nul 2>&1
+echo [OK] Servicios y telemetria inicial puestos en marcha en segundo plano.
 echo.
-echo Deseas iniciar la sincronizacion continua de imagenes ahora mismo? (S/N)
-set /p "INICIAR=Opcion: "
-if /i "%INICIAR%"=="S" (
-    schtasks /run /tn "%TASK_IMG%" >nul 2>&1
-    echo [OK] Tarea de sincronizacion de imagenes iniciada en segundo plano.
-)
-
-echo.
-echo Proceso finalizado. Puedes cerrar esta ventana.
-pause
+echo Instalacion completada con exito. Presiona cualquier tecla para salir.
+pause >nul

@@ -37,6 +37,32 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-06 — Instalación 100% No Interactiva y Automatizada (`instalar_tareas_sede.bat`):**
+  - **Diagnóstico:**
+    * El usuario preguntó "¿Para q es la opcion?" al aparecer `Opcion: ` en consola.
+    * Esto correspondía a prompts interactivos (`set /p`) de confirmación que confundían al operador o se mostraban sin contexto debido al buffer de CMD.
+  - **Solución Aplicada:**
+    * Se eliminaron todos los `set /p` interactivos de [instalar_tareas_sede.bat](file:///c:/laragon/www/lidiag/storage/app_lidiag/agente_backups_dcm/instalar_tareas_sede.bat).
+    * Ahora el script es 100% desatendido: registra de corrido las 4 tareas en Windows Task Scheduler, imprime la tabla de estado y dispara en segundo plano el monitor de discos e imágenes para enviar telemetría de inmediato.
+- [x] **2026-11-06 — Corrección de Type Error en Búsqueda de Estudios de Tele-Radiología (`TeleRadiologiaController.php`, `TeleRadiologiaService.php`):**
+  - **Diagnóstico del Error:**
+    * El usuario reportó: `App\Http\Controllers\Dcm4chee\StudyController::listarEstudios(): Argument #1 ($request) must be of type App\Http\Requests\Dcm4chee\StudyListRequest, Illuminate\Http\Request given, called in TeleRadiologiaService.php on line 33` al buscar un estudio en `https://lidiag.com/tele-radiologia`.
+    * Causa 1: `TeleRadiologiaService` delegaba directamente llamando a un controlador (`app(StudyController::class)->listarEstudios($request, new Study)`) en vez de delegar a la capa de servicios (`StudyService`).
+    * Causa 2: `StudyController::listarEstudios` exige estrictamente el FormRequest validado `StudyListRequest`, pero `TeleRadiologiaController` recibía un genérico `Illuminate\Http\Request`, disparando un `TypeError` fatal en PHP 8.4.
+    * Causa 3: `StudyController::listarEstudios` retorna un `JsonResponse` que `TeleRadiologiaService` envolvía en un array `$this->success()`, lo que hubiera provocado un empaquetado doble anidado erróneo.
+  - **Solución Aplicada:**
+    * **1. Inyección de Servicio Limpio (`TeleRadiologiaService.php`):**
+      - Se inyectó `StudyService $studyService` en el constructor de `TeleRadiologiaService`.
+      - Se removieron los imports innecesarios a `StudyController` y `Study`.
+      - `listarEstudios(array|Request $filtros)` ahora delega limpiamente en `$this->studyService->listarEstudios($data)` retornando el array de estudios estructurado.
+    * **2. Tipado y Validación en Controlador (`TeleRadiologiaController.php`):**
+      - `listarEstudios` ahora utiliza `StudyListRequest $request` validando formalmente `sede_id`, fechas y términos de búsqueda.
+      - Pasa `$request->validated()` a `TeleRadiologiaService`.
+      - Retorna `response()->json(..., JSON_INVALID_UTF8_SUBSTITUTE)` previniendo fallos de encoding en caracteres DICOM legacy.
+  - **Verificaciones:**
+    * PHP Pint pasado al 100% (`vendor\bin\pint.bat --test`) ✅.
+    * Larastan / PHPStan nivel 5: `2/2 [100%] [OK] No errors` ✅.
+    * Finales de línea en LF y UTF-8 sin BOM ✅.
 - [x] **2026-11-06 — Hotfix: Sanitización ASCII y Fin de Líneas en Scripts `.bat` (`instalar_tareas_sede.bat`, `install.bat`):**
   - **Diagnóstico del Error en Consola:**
     * El usuario compartió la salida de error: `"d" no se reconoce... "cho" no se reconoce... "ho" no se reconoce... No se esperaba . en este momento.`
