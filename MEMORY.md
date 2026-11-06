@@ -37,6 +37,24 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-06 — Hotfix: Validación de Envío de Orden en Tele-Radiología (`EnviarOrdenTeleRadiologiaRequest.php`, `teleRadiologiaEnviarEstudioComponent.vue`):**
+  - **Diagnóstico del Error:**
+    * El usuario reportó: `HTTP 422 Unprocessable Content` en `POST /api/tele-radiologia-enviar-orden` con errores: `"orden.study_id es obligatorio"`, `"orden.medico.num_docu es obligatorio"`, `"orden.medico.name es obligatorio"`, `"orden.cod_cups es obligatorio"`.
+    * Causa 1: En una modificación previa, `EnviarOrdenTeleRadiologiaRequest` había incorporado reglas estrictas `required` para médico (`orden.medico.num_docu`, `orden.medico.name`) y para `orden.cod_cups`.
+    * Causa 2: En el flujo de envío de órdenes de Tele-radiología, el estudio aún no ha sido asignado a un radiólogo local (TLIMAGEN se encarga de asignar el radiólogo en su plataforma al recibir la orden). Por ende, el formulario nunca captura ni tiene médico asignado.
+    * Causa 3: Los exámenes se envían como un arreglo dinámico `orden.producto` (con múltiples o al menos un producto CUPS), no como un campo plano `orden.cod_cups`. Además, `study_id` no se mapeaba desde el modal hacia el payload.
+  - **Solución Aplicada:**
+    * **1. Normalización y Flexibilización en FormRequest (`EnviarOrdenTeleRadiologiaRequest.php`):**
+      - Se implementó `prepareForValidation()` para auto-poblar `study_id` a partir de `study_pk` si viene vacío, extraer el primer `cod_cups` desde `orden.producto` si no viene en raíz, y asociar el usuario autenticado en sesión en `medico` para trazabilidad de quién emite la orden.
+      - Las reglas para `study_id`, `medico`, `medico.num_docu`, `medico.name` y `cod_cups` se flexibilizaron a `nullable`.
+    * **2. Enriquecimiento del Payload en Frontend (`teleRadiologiaEnviarEstudioComponent.vue`):**
+      - En `mostrarRegistro()`, se asegura `orden.value.study_id = data.study_id ?? String(data.study_pk ?? "")`.
+      - En `guardarRegistro()`, `payloadOrden` ahora incluye explícitamente `study_id`, `cod_cups` (primer CUPS de `orden.producto`) y `medico` con los datos del usuario logueado (`props.usuarioactual`).
+    * **3. Verificaciones:**
+      - PHP Pint pasado al 100% (`vendor\bin\pint.bat --test`) ✅.
+      - ESLint sin errores en el componente Vue ✅.
+      - Larastan / PHPStan nivel 5: `1/1 [100%] [OK] No errors` ✅.
+      - Build de producción Vite completado exitosamente (`npm run build`) ✅.
 - [x] **2026-11-06 — Despliegue y Registro Exitoso de las 4 Tareas de Sede (Validado en Producción / Espinal):**
   - **Confirmación del Usuario:** "Listo, ahora si".
   - Las 4 tareas operativas (`LIDiag_Backup_DB_DCM`, `LIDiag_Sync_Imagenes_DCM`, `LIDiag_Dosimetria_Edge`, `LIDiag_Disk_Monitor_DCM`) quedaron registradas en el Programador de Tareas de Windows bajo la cuenta `SYSTEM`, operando de forma autónoma con sus frecuencias respectivas.

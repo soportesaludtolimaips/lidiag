@@ -811,9 +811,11 @@ async function guardarRegistro() {
         registro.value.email = orden.value.paciente.email;
         registro.value.motivo_examen = orden.value.motivo_examen;
 
+        const primerCups = orden.value.producto[0]?.cod_cups || "";
         const payloadOrden = {
             study_pk: orden.value.study_pk,
             study_iuid: orden.value.study_iuid,
+            study_id: orden.value.study_id || String(orden.value.study_pk || ""),
             fec_estudio: orden.value.fec_estudio,
             accession_no: orden.value.accession_no,
             study_desc: orden.value.study_desc,
@@ -822,6 +824,11 @@ async function guardarRegistro() {
             paciente: { ...orden.value.paciente },
             priori: { ...orden.value.priori },
             sede: { ...orden.value.sede },
+            cod_cups: primerCups,
+            medico: {
+                num_docu: String(props.usuarioactual?.num_docu || props.usuarioactual?.id || ""),
+                name: props.usuarioactual?.name || "Usuario Asignador",
+            },
             producto: orden.value.producto.map((p) => ({ ...p })),
             adjuntos: orden.value.adjuntos.map((a) => ({
                 file_exten: a.file_exten,
@@ -923,6 +930,7 @@ async function mostrarRegistro(data = {}) {
     tituloModal.value = "Generar orden: " + data.pat_name;
     orden.value.study_pk = data.study_pk;
     orden.value.study_iuid = data.study_iuid;
+    orden.value.study_id = data.study_id ?? String(data.study_pk ?? "");
     orden.value.fec_estudio = data.study_datetime;
     orden.value.accession_no = data.accession_no;
     orden.value.study_desc = data.study_desc;
