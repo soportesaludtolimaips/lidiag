@@ -847,7 +847,14 @@ async function guardarRegistro() {
             null;
 
         if (resOrdenTele.status == 201 || resOrdenTele.status == 200) {
-            registro.value.destino_estudio_id = confirmation;
+            registro.value.destino_estudio_id =
+                confirmation !== null && !isNaN(Number(confirmation)) ? Number(confirmation) : null;
+            registro.value.medico_id = null;
+            registro.value.prioridad_id = orden.value.priori.id;
+            registro.value.fec_estudio = orden.value.fec_estudio;
+            registro.value.study_datetime =
+                orden.value.fec_estudio || registro.value.study_datetime;
+            registro.value.destino_estudio = DESTINO_TELE_RADIOLOGIA;
 
             toastMessage({
                 heading: "Ok!!!",

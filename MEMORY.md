@@ -37,6 +37,24 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-06 — Hotfix: Sanitización de Tipos de Columna Entera (`medico_id`, `destino_estudio_id`) al Crear Estudio (`EstudioService.php`, `teleRadiologiaEnviarEstudioComponent.vue`):**
+  - **Diagnóstico del Error:**
+    * El usuario reportó: `HTTP 500 "Error al crear el estudio"` en `POST /api/estudios` tras el envío exitoso de la orden a TLIMAGEN.
+    * Causa 1: En MySQL Strict Mode, la columna `medico_id` de la tabla `estudios` es de tipo `bigint unsigned NULL`. En tele-radiología no hay médico asignado, por lo que el frontend enviaba `medico_id: ""` (string vacío). En PHP, `"" ?? null` no evalúa a `null`, intentando insertar `""` y provocando la excepción `SQLSTATE[HY000]: General error: 1366 Incorrect integer value: '' for column 'medico_id'`.
+    * Causa 2: La columna `destino_estudio_id` es también `bigint unsigned`. Si la confirmación externa viene vacía o alfanumérica, causaba el mismo fallo de casteo entero.
+    * Causa 3: `EstudioService` capturaba `\Throwable` pero ocultaba el mensaje de error original en la respuesta JSON.
+  - **Solución Aplicada:**
+    * **1. Backend (`EstudioService.php`):**
+      - Se normalizó el casteo de `medico_id` y `destino_estudio_id` a `null` cuando no son numéricos (`! empty($val) && is_numeric($val) ? (int) $val : null`).
+      - Se normalizó la resolución de fecha de estudio (`fec_estudio` con fallback a `now()`).
+      - Se expuso el mensaje descriptivo en el log y respuesta de error 500.
+    * **2. Frontend (`teleRadiologiaEnviarEstudioComponent.vue`):**
+      - Antes del POST `/api/estudios`, se asegura `registro.value.medico_id = null`, `prioridad_id = orden.value.priori.id`, y `destino_estudio_id` validado con `Number(confirmation)`.
+    * **3. Verificaciones:**
+      - Pint al 100% (`vendor\bin\pint.bat --test`) ✅.
+      - ESLint sin errores en el componente Vue ✅.
+      - Simulación en base de datos real con `$registro` sanitizado: `SUCCESS: Estudio created with ID 212329` ✅.
+      - Build de producción Vite completado exitosamente (`npm run build`) ✅.
 - [x] **2026-11-06 — Hotfix: Soporte de Certificados SSL Intermedios/Self-Signed en Tele-Radiología (`TeleRadiologiaService.php`, `config/services.php`):**
   - **Diagnóstico del Error:**
     * El usuario reportó: `HTTP 500 "Error interno del servidor proxy" - cURL error 60: SSL certificate problem: self-signed certificate in certificate chain for https://ris.tlimagen.com/RISServices/integracion/salud_tolima/ordenes`.

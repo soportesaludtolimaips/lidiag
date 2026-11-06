@@ -115,29 +115,41 @@ class EstudioService extends BaseService
                 $sede = ConfigSede::findOrFail($registro['sede_id']);
                 $interfaceData = $this->resolveInterfaceData($sede, $registro);
 
+                $medicoId = ! empty($registro['medico_id']) && is_numeric($registro['medico_id'])
+                    ? (int) $registro['medico_id']
+                    : null;
+
+                $destinoEstudioId = ! empty($registro['destino_estudio_id']) && is_numeric($registro['destino_estudio_id'])
+                    ? (int) $registro['destino_estudio_id']
+                    : null;
+
+                $fecEstudio = ! empty($registro['study_datetime'])
+                    ? $registro['study_datetime']
+                    : (! empty($registro['fec_estudio']) ? $registro['fec_estudio'] : now());
+
                 $estudio = Estudio::create([
                     'sede_id' => $registro['sede_id'],
-                    'study_pk' => $registro['study_pk'] ?? null,
+                    'study_pk' => ! empty($registro['study_pk']) ? (int) $registro['study_pk'] : null,
                     'study_iuid' => $registro['study_iuid'] ?? null,
-                    'study_id' => $registro['study_id'] ?? null,
-                    'fec_estudio' => $registro['study_datetime'] ?? null,
-                    'accession_no' => $registro['accession_no'] ?? null,
-                    'study_desc' => $registro['study_desc'] ?? null,
-                    'mods_in_study' => $registro['mods_in_study'] ?? null,
-                    'email_reportar' => $registro['email_reportar'] ?? null,
+                    'study_id' => ! empty($registro['study_id']) ? $registro['study_id'] : null,
+                    'fec_estudio' => $fecEstudio,
+                    'accession_no' => ! empty($registro['accession_no']) ? $registro['accession_no'] : null,
+                    'study_desc' => ! empty($registro['study_desc']) ? $registro['study_desc'] : null,
+                    'mods_in_study' => ! empty($registro['mods_in_study']) ? $registro['mods_in_study'] : null,
+                    'email_reportar' => ! empty($registro['email_reportar']) ? $registro['email_reportar'] : null,
                     'paciente_id' => $paciente->id,
-                    'medico_id' => $registro['medico_id'] ?? null,
+                    'medico_id' => $medicoId,
                     'quien_registro_id' => Auth::id(),
                     'prioridad_id' => $registro['prioridad_id'],
-                    'observaciones' => $registro['observaciones'] ?? null,
-                    'motivo_examen' => $registro['motivo_examen'] ?? null,
-                    'atencion' => $registro['atencion_id'] ?? null,
-                    'servicio' => $interfaceData['servicio'],
-                    'eps' => $interfaceData['eps'],
-                    'contrato' => $interfaceData['contrato'],
-                    'plan' => $interfaceData['plan'],
-                    'destino_estudio' => $registro['destino_estudio'] ?? null,
-                    'destino_estudio_id' => $registro['destino_estudio_id'] ?? null,
+                    'observaciones' => ! empty($registro['observaciones']) ? $registro['observaciones'] : null,
+                    'motivo_examen' => ! empty($registro['motivo_examen']) ? $registro['motivo_examen'] : null,
+                    'atencion' => ! empty($registro['atencion_id']) ? $registro['atencion_id'] : null,
+                    'servicio' => $interfaceData['servicio'] ?? null,
+                    'eps' => $interfaceData['eps'] ?? null,
+                    'contrato' => $interfaceData['contrato'] ?? null,
+                    'plan' => $interfaceData['plan'] ?? null,
+                    'destino_estudio' => ! empty($registro['destino_estudio']) ? $registro['destino_estudio'] : null,
+                    'destino_estudio_id' => $destinoEstudioId,
                     'estado' => 1,
                 ]);
 
@@ -160,9 +172,12 @@ class EstudioService extends BaseService
                 return $this->created($estudio, 'La asignación de la lectura se realizó correctamente.');
             });
         } catch (\Throwable $e) {
-            Log::error('Error al crear estudio: '.$e->getMessage());
+            Log::error('Error al crear estudio: '.$e->getMessage(), [
+                'exception' => $e,
+                'registro' => $registro,
+            ]);
 
-            return $this->error('Error al crear el estudio.', 500);
+            return $this->error('Error al crear el estudio: '.$e->getMessage(), 500);
         }
     }
 
