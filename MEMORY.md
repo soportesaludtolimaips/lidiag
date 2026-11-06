@@ -37,6 +37,12 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-06 — Actualización Integral de Documentación y Creación de Manual de Monitor de Discos (`README.md`, `README_DISK_MONITOR.md`, `README_SYNC_IMAGENES.md`, `README_BACKUP_DB.md`):**
+  - **Actualizaciones Realizadas:**
+    * Creado [`README_DISK_MONITOR.md`](file:///c:/laragon/www/lidiag/storage/app_lidiag/agente_backups_dcm/README_DISK_MONITOR.md) detallando propósito clínico, argumentos CLI (`--check-once`, `--telemetria`, `--status`), detección automática de unidades y umbrales de alerta.
+    * Actualizado [`README.md`](file:///c:/laragon/www/lidiag/storage/app_lidiag/agente_backups_dcm/README.md) incorporando los 5 agentes y las 4 tareas de Windows (`LIDiag_Disk_Monitor_DCM` cada 30 min) en diagramas mermaid, estructura de archivos y comandos de auditoría.
+    * Actualizado [`README_SYNC_IMAGENES.md`](file:///c:/laragon/www/lidiag/storage/app_lidiag/agente_backups_dcm/README_SYNC_IMAGENES.md) documentando la sintaxis mono y multi-disco de `local_images_dir`.
+    * Actualizado [`README_BACKUP_DB.md`](file:///c:/laragon/www/lidiag/storage/app_lidiag/agente_backups_dcm/README_BACKUP_DB.md) documentando la directiva de custodia WAN inteligente `"subir_zip_central": false`.
 - [x] **2026-11-06 — Simplificación y Depuración de Parámetros en Configuración de Sedes (`config.json.example`):**
   - **Decisión de Arquitectura y Rediseño:**
     * Se eliminó el bloque de `telegram` (`bot_token`, `chat_ids`, `cooldown_alerta_horas`, `reporte_diario`) del archivo de configuración edge, delegando la responsabilidad de notificación y alertas exclusivamente al servidor Central LIDiag.

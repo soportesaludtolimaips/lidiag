@@ -32,9 +32,12 @@ El agente lee los siguientes parámetros del archivo `config.json`:
   "qnap_ip": "10.35.47.21",
   "qnap_user": "sede_espinal",
   "qnap_password": "PASSWORD_QNAP_AQUI",
-  "qnap_share_imagenes": "imagenes_espinal",
+  "qnap_share_imagenes": "img-dicom-espinal",
 
-  "local_images_dir": "D:\\img_dcm",
+  "local_images_dir": [
+    "D:\\img_dcm",
+    "E:\\img_dcm_historico"
+  ],
   "sync_interval_seconds": 180,
   "threads": 8,
   "min_free_space_gb": 10
@@ -42,7 +45,7 @@ El agente lee los siguientes parámetros del archivo `config.json`:
 ```
 
 ### Explicación de Parámetros:
-* **`local_images_dir`**: Ruta absoluta al directorio donde el PACS almacena los estudios DICOM locales (típicamente `D:\img_dcm` o `C:\dcm4chee\server\default\archive\data`).
+* **`local_images_dir`**: Ruta (string) o lista de rutas (array) donde el PACS almacena los estudios DICOM locales. Soporta uno o múltiples discos duros (ej. `["D:\\img_dcm", "E:\\img_dcm_historico"]`); el agente iterará secuencialmente cada repositorio replicándolo hacia la NAS QNAP sin conflictos.
 * **`sync_interval_seconds`**: Intervalo de descanso en segundos entre ciclos sucesivos en modo continuo (valor recomendado: 180 s = 3 min).
 * **`threads`**: Número de subprocesos paralelos asignados a Robocopy (`8` por defecto, ajustable a `16` o `32` para enlaces 10 GbE).
 * **`min_free_space_gb`**: Umbral mínimo de seguridad en disco; si el almacenamiento cae por debajo de este valor, el agente emite una alerta crítica.

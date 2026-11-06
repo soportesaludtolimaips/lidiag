@@ -44,11 +44,15 @@ El agente lee los siguientes parámetros del archivo `config.json`:
   "destination_dir": "C:\\backups_dcm",
   "retention_days": 30,
   "min_free_space_gb": 5,
+  "subir_zip_central": false,
 
-  "api_url": "https://10.35.47.4/lidiag/public/api/dosimetria/registros",
+  "api_url": "https://10.35.47.4/lidiag/public/api/dosis/registros",
   "api_token": "TOKEN_BEARER_LIDIAG_AQUI"
 }
 ```
+
+### Explicación de Parámetros Clave:
+* **`subir_zip_central`**: (Opcional, por defecto `false`). Política de custodia WAN inteligente. Cuando está en `false`, el backup completo permanece custodiado en el almacenamiento local y la NAS QNAP de la sede, emitiendo telemetría instantánea a Central. Si se establece en `true`, intentará además transmitir el archivo ZIP masivo por HTTP hacia Central LIDiag.
 
 ---
 

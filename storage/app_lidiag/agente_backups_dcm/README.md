@@ -1,19 +1,21 @@
 # LIDiag — Paquete Unificado de Agentes PACS DCM y Dosimetría por Sede
 
 Solución integral y autónoma de grado clínico para servidores hospitalarios de PACS / DCM (dcm4chee) en la red asistencial de **LIDiag**.  
-Este paquete agrupa bajo un único entorno (`venv`) y un único archivo de configuración (`config.json`) los cuatro servicios esenciales de resiliencia y radioprotección hospitalaria:
+Este paquete agrupa bajo un único entorno (`venv`) y un único archivo de configuración (`config.json`) los servicios esenciales de resiliencia, monitoreo y radioprotección hospitalaria:
 
 ```mermaid
 flowchart TD
     CONFIG["config.json (Unificado por Sede)"] --> AG1["1. Respaldo Base de Datos MySQL<br/>(backup_dcm_agent.py)"]
     CONFIG --> AG2["2. Sincronización Imágenes DICOM<br/>(sync_dcm_images.py)"]
-    CONFIG --> AG3["3. Extracción Dosimetría Res. 482<br/>(agente_dosimetria.py)"]
-    CONFIG --> AG4["4. Disaster Recovery de Imágenes<br/>(restore_dcm_images.py)"]
+    CONFIG --> AG3["3. Auditoría de Discos PACS<br/>(dcm_disk_monitor.py)"]
+    CONFIG --> AG4["4. Extracción Dosimetría Res. 482<br/>(agente_dosimetria.py)"]
+    CONFIG --> AG5["5. Disaster Recovery de Imágenes<br/>(restore_dcm_images.py)"]
 
     AG1 --> NAS1["NAS QNAP (backups_xxx)"]
     AG2 --> NAS2["NAS QNAP (imagenes_xxx)"]
-    AG3 --> CENTRAL["LIDiag Central (API Telemetría/Dosis)"]
-    NAS2 -.->|Restauración Urgencias < 3h| AG4
+    AG3 --> CENTRAL["LIDiag Central (/seguridad-backups)"]
+    AG4 --> CENTRAL
+    NAS2 -.->|Restauración Urgencias < 3h| AG5
 ```
 
 ---
@@ -26,8 +28,9 @@ Cada agente cuenta con su propio manual técnico especializado con tablas de arg
 | :--- | :--- | :--- | :--- | :--- |
 | **1. Respaldo BD MySQL (`pacsdb`)** | 📖 [README_BACKUP_DB.md](README_BACKUP_DB.md) | `backup_dcm_agent.py` | `ejecutar_backup_db.bat` | Diaria (02:00 AM) |
 | **2. Sincronización Imágenes DICOM** | 📖 [README_SYNC_IMAGENES.md](README_SYNC_IMAGENES.md) | `sync_dcm_images.py` | `ejecutar_sync_imagenes.bat` | Continua en 2º plano (cada 3 min) |
-| **3. Extracción Dosimetría (Res. 482)** | 📖 [README_DOSIMETRIA.md](README_DOSIMETRIA.md) | `agente_dosimetria.py` | `ejecutar_dosimetria.bat` | Horaria (cada 1 hora) |
-| **4. Recuperación ante Desastres** | 📖 [README_RESTORE_IMAGENES.md](README_RESTORE_IMAGENES.md) | `restore_dcm_images.py` | `ejecutar_restore_imagenes.bat` | Manual interactivo (Emergencias) |
+| **3. Monitoreo de Discos PACS** | 📖 [README_DISK_MONITOR.md](README_DISK_MONITOR.md) | `dcm_disk_monitor.py` | `ejecutar_disk_monitor.bat` | Periódica (cada 30 min) |
+| **4. Extracción Dosimetría (Res. 482)** | 📖 [README_DOSIMETRIA.md](README_DOSIMETRIA.md) | `agente_dosimetria.py` | `ejecutar_dosimetria.bat` | Horaria (cada 1 hora) |
+| **5. Recuperación ante Desastres** | 📖 [README_RESTORE_IMAGENES.md](README_RESTORE_IMAGENES.md) | `restore_dcm_images.py` | `ejecutar_restore_imagenes.bat` | Manual interactivo (Emergencias) |
 
 ---
 
@@ -40,13 +43,16 @@ C:\agente_backups_dcm\
 ├── config.json.example             # Plantilla de referencia para configuración
 ├── install.bat                     # Instalador en 1 clic del entorno virtual (venv)
 ├── requirements.txt                # Dependencias Python requeridas (pydicom, requests, etc.)
-├── instalar_tareas_sede.bat        # Registra las 3 tareas en el Programador de Tareas (SYSTEM)
+├── instalar_tareas_sede.bat        # Registra las 4 tareas en el Programador de Tareas (SYSTEM)
 │
 ├── backup_dcm_agent.py             # Script: Respaldo MySQL + ZIP + CRC32 + SHA256 + QNAP
 ├── ejecutar_backup_db.bat          # Lanzador por lotes de respaldo MySQL
 │
 ├── sync_dcm_images.py              # Script: Replicación continua de imágenes Robocopy
 ├── ejecutar_sync_imagenes.bat       # Lanzador por lotes de sincronización de imágenes
+│
+├── dcm_disk_monitor.py             # Script: Monitoreo de espacio en discos y telemetría Central
+├── ejecutar_disk_monitor.bat       # Lanzador por lotes de auditoría de discos
 │
 ├── agente_dosimetria.py            # Script: Extracción dosimétrica + HMAC-SHA256 + Cola SQLite
 ├── ejecutar_dosimetria.bat         # Lanzador por lotes de dosimetría
@@ -57,6 +63,7 @@ C:\agente_backups_dcm\
 ├── README.md                       # Índice maestro y guía de despliegue institucional
 ├── README_BACKUP_DB.md             # Manual detallado del agente de respaldo de base de datos
 ├── README_SYNC_IMAGENES.md         # Manual detallado del agente de sincronización de imágenes
+├── README_DISK_MONITOR.md          # Manual detallado del agente de monitoreo de discos
 ├── README_DOSIMETRIA.md            # Manual detallado del agente de dosimetría radiológica
 ├── README_RESTORE_IMAGENES.md      # Manual detallado del agente de recuperación de desastres
 │
@@ -64,6 +71,7 @@ C:\agente_backups_dcm\
     ├── backup_db.log
     ├── sync_imagenes.log
     ├── robocopy_scan.log
+    ├── dcm_monitor.log
     ├── dosimetria_agent.log
     └── cola_dosimetria.db          # Cola persistente SQLite con tolerancia a desconexión
 ```
@@ -91,9 +99,10 @@ Ejecuta el asistente de automatización con privilegios de Administrador:
 ```powershell
 .\instalar_tareas_sede.bat
 ```
-Este script registrará automáticamente las 3 tareas operativas bajo la cuenta de sistema `NT AUTHORITY\SYSTEM`:
+Este script registrará automáticamente las 4 tareas operativas bajo la cuenta de sistema `NT AUTHORITY\SYSTEM`:
 * `LIDiag_Backup_DB_DCM` (Diaria a las 02:00 AM)
 * `LIDiag_Sync_Imagenes_DCM` (Al inicio del sistema, persistente)
+* `LIDiag_Disk_Monitor_DCM` (Cada 30 minutos)
 * `LIDiag_Dosimetria_Edge` (Cada 1 hora)
 
 ---
@@ -117,16 +126,18 @@ Este script registrará automáticamente las 3 tareas operativas bajo la cuenta 
 El agente escribe periódicamente archivos JSON de telemetría local y remota que alimentan los paneles de control de LIDiag (`/seguridad-backups` y `/seguridad-tokens`):
 
 ```powershell
-# 1. Manifiesto consolidado en tiempo real con el estado de salud de los 3 agentes:
+# 1. Manifiesto consolidado en tiempo real con el estado de salud de los agentes:
 Get-Content .\healthcheck_agente.json | ConvertFrom-Json | Format-List
 
-# 2. Monitorear todas las bitácoras en simultáneo desde PowerShell:
+# 2. Monitorear las bitácoras operativas en simultáneo desde PowerShell:
 Get-Content .\logs\backup_db.log -Tail 10
 Get-Content .\logs\sync_imagenes.log -Tail 10
+Get-Content .\logs\dcm_monitor.log -Tail 10
 Get-Content .\logs\dosimetria_agent.log -Tail 10
 
-# 3. Consultar el estado de las tareas programadas de Windows:
+# 3. Consultar el estado de las 4 tareas programadas de Windows:
 schtasks /query /tn "LIDiag_Backup_DB_DCM" /fo TABLE
 schtasks /query /tn "LIDiag_Sync_Imagenes_DCM" /fo TABLE
+schtasks /query /tn "LIDiag_Disk_Monitor_DCM" /fo TABLE
 schtasks /query /tn "LIDiag_Dosimetria_Edge" /fo TABLE
 ```
