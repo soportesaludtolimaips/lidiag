@@ -37,6 +37,32 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-06 — Columna de Transferencia en Monitor de Backups y Optimización de Carga WAN/QNAP (`backupMonitorComponent.vue`, `BackupMonitorService.php`, `BackupUploadController.php`, `backup_dcm_agent.py`):**
+  - **Diagnóstico y Solicitud del Usuario:**
+    * El usuario compartió el log real del respaldo de Espinal (`ejecutar_backup_db.bat`) donde el dump de 11.07 GB se comprimió a 619.40 MB y se transfirió con éxito al NAS QNAP local (`\\10.35.47.21\backups-db-espinal`) en 55.07s a 11.25 MB/s.
+    * Sin embargo, el paso 9 intentó subir el archivo de 619.40 MB por HTTP a Central (`upload-dcm`), provocando un error 500 nativo de Apache (`FcgidMaxRequestLen` / `post_max_size`).
+    * El usuario solicitó: *"Tambien debemos mostrar si el backups fue transferido, debemos agregar una nueva columna en la tabla de https://lidiag.com/seguridad-backups que diga Transferencia y se marque con un chulo o con un error"*.
+  - **Solución Implementada:**
+    * **1. Nueva Columna "Transferencia" en Frontend (`backupMonitorComponent.vue`):**
+      - Se añadió la columna `Transferencia` en la tabla principal con badges semánticos.
+      - **Éxito (Chulo verde):** Si el backup fue transferido al almacenamiento seguro (NAS QNAP o Central), muestra `<i class="fa fa-check"></i> Transferido` con la tasa de velocidad en MB/s y destino QNAP.
+      - **Error (Equis roja):** Si ocurrió un fallo durante la transferencia al destino, muestra `<i class="fa fa-times"></i> Error` con tooltip detallado del motivo.
+      - **Sin datos:** Si la sede no registra backups aún.
+    * **2. Mapeo Estructurado de Transferencia en `BackupMonitorService.php`:**
+      - Evalúa `qnap_transfer` y `central_transfer` dentro de los detalles de telemetría de la sede o archivos físicos de Central.
+      - Proporciona `transferencia.estado` (`SUCCESS`, `ERROR`, `SIN_DATOS`), velocidad de transferencia (`tasa_mbs`), tiempo en segundos y mensaje descriptivo.
+    * **3. Política Inteligente de Custodia en Agente Edge (`backup_dcm_agent.py`):**
+      - Se agregó la bandera `"subir_zip_central": false` (por defecto `false` para evitar saturar túneles WAN o rechazos de Apache con archivos de más de 600 MB cuando el NAS QNAP local ya los custodia).
+      - Si `subir_zip_central` es `false`, omite la subida masiva de bytes a Central pero envía la telemetría completa de forma instantánea reportando éxito en QNAP. Si se define `true` en `config.json`, intentará la subida hacia Central.
+    * **4. Blindaje Defensivo en `BackupUploadController.php`:**
+      - Configura dinámicamente límites de subida de PHP (`upload_max_filesize`, `post_max_size`, `memory_limit`).
+      - Detecta preventivamente cuando `CONTENT_LENGTH` excede `post_max_size` de Apache antes de procesar el archivo, retornando HTTP 413 con JSON explicativo en lugar de un error 500 no controlado.
+  - **Verificaciones:**
+    * Pint pasado al 100% (`vendor\bin\pint.bat --test`) ✅.
+    * ESLint y Prettier 100% pasados en `backupMonitorComponent.vue` ✅.
+    * Compilación Vite exitosa (`npm run build` en 1.24s) ✅.
+    * Python sintaxis y lógica de agente validadas (`python -m py_compile`) ✅.
+    * Finales de línea en LF y UTF-8 sin BOM ✅.
 - [x] **2026-11-06 — Diagnóstico y Resolución del Monitor Central de Backups y Telemetría de Sedes Edge (`/seguridad-backups`, `BackupMonitorService.php`, `BackupUploadController.php`, `backup_dcm_agent.py`, `sync_dcm_images.py`, `backupMonitorComponent.vue`):**
   - **Diagnóstico y Reporte del Usuario:**
     * El usuario reportó: *"en https://lidiag.com/seguridad-backups no esta recibiendo la data de las sedes"*.

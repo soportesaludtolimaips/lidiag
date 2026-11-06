@@ -56,7 +56,23 @@ class BackupUploadController extends Controller
      */
     public function uploadDcm(Request $request): JsonResponse
     {
-        set_time_limit(0);
+        @ini_set("upload_max_filesize", "2048M");
+        @ini_set("post_max_size", "2048M");
+        @ini_set("memory_limit", "1024M");
+        @set_time_limit(1800);
+
+        // Detectar si el tamaño superó post_max_size del webserver antes de llegar al controlador
+        if (empty($_FILES) && empty($_POST) && isset($_SERVER["CONTENT_LENGTH"]) && (int) $_SERVER["CONTENT_LENGTH"] > 0) {
+            $maxPost = ini_get("post_max_size");
+            Log::channel("backups")->warning("Subida rechazada: payload supera post_max_size ({$maxPost})", [
+                "content_length" => $_SERVER["CONTENT_LENGTH"],
+            ]);
+
+            return response()->json([
+                "success" => false,
+                "message" => "El archivo enviado ({$_SERVER['CONTENT_LENGTH']} bytes) superó el límite 'post_max_size' ({$maxPost}) configurado en el servidor web.",
+            ], 413);
+        }
 
         // 1. Validar autenticación (compatible con Sanctum por sede multi-canal y BACKUP_API_TOKEN estático)
         if (! $this->resolverTokenValido($request)) {

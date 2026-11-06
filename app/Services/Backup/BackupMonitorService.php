@@ -266,6 +266,17 @@ class BackupMonitorService extends BaseService
                 $tamanoHumano = $detalles["tamano_zip_humano"] ?? $detalles["tamano_humano"] ?? ($tamanoBytes > 0 ? $this->formatearBytes($tamanoBytes) : ($esPrueba ? "Enlace OK" : "OK"));
                 $qnapDestino = $detalles["qnap_destino"] ?? $detalles["qnap_transfer"]["qnap_destino"] ?? null;
 
+                $qnapTransfer = $detalles["qnap_transfer"] ?? null;
+                $centralTransfer = $detalles["central_transfer"] ?? null;
+
+                $qnapOk = is_array($qnapTransfer) && ($qnapTransfer["estado"] ?? "") === "SUCCESS";
+                $centralOk = is_array($centralTransfer) && ($centralTransfer["estado"] ?? "") === "SUCCESS";
+                $qnapError = is_array($qnapTransfer) && ($qnapTransfer["estado"] ?? "") === "ERROR";
+                $centralError = is_array($centralTransfer) && ($centralTransfer["estado"] ?? "") === "ERROR";
+
+                $transferido = $qnapOk || $centralOk || ($esPrueba && ! empty($qnapDestino));
+                $estadoTransferencia = $transferido ? "SUCCESS" : (($qnapError || $centralError) ? "ERROR" : "PENDIENTE");
+
                 $resultado[] = [
                     "sede_id" => $sedeId,
                     "nombre_sede" => $sede->nom_sede,
@@ -281,6 +292,15 @@ class BackupMonitorService extends BaseService
                     "total_archivos" => max(count($archivosSede), 1),
                     "origen" => "telemetria_sede",
                     "qnap_destino" => $qnapDestino,
+                    "transferencia" => [
+                        "transferido" => $transferido,
+                        "estado" => $estadoTransferencia,
+                        "destino_tipo" => $qnapOk ? "QNAP NAS" : ($centralOk ? "Central LIDiag" : ($esPrueba ? "QNAP Conectado" : "Local")),
+                        "destino" => $qnapDestino ?: ($centralOk ? "Central LIDiag" : null),
+                        "tasa_mbs" => $qnapTransfer["mb_s"] ?? null,
+                        "segundos" => $qnapTransfer["segundos"] ?? null,
+                        "error" => $qnapTransfer["error"] ?? ($centralError ? ($centralTransfer["error"] ?? null) : null),
+                    ],
                     "sync_imagenes" => $telemetriaSync ? [
                         "estado" => $telemetriaSync["estado"] ?? "OK",
                         "hace" => ! empty($telemetriaSync["fecha"]) ? Carbon::parse($telemetriaSync["fecha"])->diffForHumans() : null,
@@ -318,6 +338,15 @@ class BackupMonitorService extends BaseService
                     "total_archivos" => count($archivosSede),
                     "origen" => "archivo_central",
                     "qnap_destino" => null,
+                    "transferencia" => [
+                        "transferido" => true,
+                        "estado" => "SUCCESS",
+                        "destino_tipo" => "Central",
+                        "destino" => $directorioDcm,
+                        "tasa_mbs" => null,
+                        "segundos" => null,
+                        "error" => null,
+                    ],
                     "sync_imagenes" => $telemetriaSync ? [
                         "estado" => $telemetriaSync["estado"] ?? "OK",
                         "hace" => ! empty($telemetriaSync["fecha"]) ? Carbon::parse($telemetriaSync["fecha"])->diffForHumans() : null,
@@ -341,6 +370,15 @@ class BackupMonitorService extends BaseService
                     "total_archivos" => 0,
                     "origen" => "ninguno",
                     "qnap_destino" => null,
+                    "transferencia" => [
+                        "transferido" => false,
+                        "estado" => "SIN_DATOS",
+                        "destino_tipo" => null,
+                        "destino" => null,
+                        "tasa_mbs" => null,
+                        "segundos" => null,
+                        "error" => null,
+                    ],
                     "sync_imagenes" => $telemetriaSync ? [
                         "estado" => $telemetriaSync["estado"] ?? "OK",
                         "hace" => ! empty($telemetriaSync["fecha"]) ? Carbon::parse($telemetriaSync["fecha"])->diffForHumans() : null,

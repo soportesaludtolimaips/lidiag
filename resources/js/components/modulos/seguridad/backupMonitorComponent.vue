@@ -204,6 +204,7 @@
                                     <tr>
                                         <th>Sede Hospitalaria</th>
                                         <th>Estado de Salud</th>
+                                        <th class="text-center">Transferencia</th>
                                         <th>Último Backup Recibido</th>
                                         <th>Antigüedad</th>
                                         <th>Tamaño</th>
@@ -233,6 +234,81 @@
                                                 ></i>
                                                 {{ sede.estado_texto }}
                                             </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <template
+                                                v-if="
+                                                    sede.transferencia &&
+                                                    sede.transferencia.estado === 'SUCCESS'
+                                                "
+                                            >
+                                                <span
+                                                    class="label label-success"
+                                                    :title="
+                                                        sede.transferencia.destino
+                                                            ? 'Transferido a ' +
+                                                              sede.transferencia.destino
+                                                            : 'Transferido exitosamente'
+                                                    "
+                                                >
+                                                    <i class="fa fa-check"></i> Transferido
+                                                </span>
+                                                <small
+                                                    v-if="sede.transferencia.destino_tipo"
+                                                    class="text-muted d-block font-10 m-t-5"
+                                                    :title="sede.transferencia.destino || ''"
+                                                >
+                                                    <i class="fa fa-hdd-o"></i>
+                                                    {{ sede.transferencia.destino_tipo }}
+                                                    <span
+                                                        v-if="sede.transferencia.tasa_mbs"
+                                                        class="text-success font-weight-bold"
+                                                    >
+                                                        ({{ sede.transferencia.tasa_mbs }} MB/s)
+                                                    </span>
+                                                </small>
+                                            </template>
+                                            <template
+                                                v-else-if="
+                                                    sede.transferencia &&
+                                                    sede.transferencia.estado === 'ERROR'
+                                                "
+                                            >
+                                                <span
+                                                    class="label label-danger"
+                                                    :title="
+                                                        sede.transferencia.error ||
+                                                        'Error en la transferencia del backup'
+                                                    "
+                                                >
+                                                    <i class="fa fa-times"></i> Error
+                                                </span>
+                                                <small
+                                                    v-if="sede.transferencia.error"
+                                                    class="text-danger d-block font-10 text-truncate"
+                                                    style="max-width: 150px"
+                                                    :title="sede.transferencia.error"
+                                                >
+                                                    {{ sede.transferencia.error }}
+                                                </small>
+                                            </template>
+                                            <template v-else-if="sede.tiene_backup">
+                                                <span
+                                                    class="label label-warning"
+                                                    title="Respaldo conservado localmente en sede"
+                                                >
+                                                    <i class="fa fa-clock-o"></i> Local
+                                                </span>
+                                            </template>
+                                            <template v-else>
+                                                <span
+                                                    class="label label-light-danger"
+                                                    title="Sin backup registrado"
+                                                >
+                                                    <i class="fa fa-times text-danger"></i> Sin
+                                                    datos
+                                                </span>
+                                            </template>
                                         </td>
                                         <td>
                                             <span v-if="sede.tiene_backup">

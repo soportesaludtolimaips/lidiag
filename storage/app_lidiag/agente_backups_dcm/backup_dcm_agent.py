@@ -989,16 +989,22 @@ def main():
         status_data["qnap_transfer"] = qnap_res
         write_status_manifest(dest_dir, config["sede_id"], status_data)
 
-    # Paso 9: Envío a Servidor Central LIDiag (si api_url y api_token están configurados)
+    # Paso 9: Envío a Servidor Central LIDiag (Opcional: habilitado si "subir_zip_central": true en config.json)
+    subir_zip_central = config.get("subir_zip_central", False)
     central_res = {"estado": "SKIPPED"}
     if config.get("api_url") and config.get("api_token"):
-        print("\n[Paso 9/9] Transmitiendo backup hacia el Servidor Central LIDiag...")
-        central_res = transmitir_backup_a_central(
-            api_url=config["api_url"],
-            api_token=config["api_token"],
-            sede_id=config["sede_id"],
-            zip_path=zip_path,
-        )
+        if subir_zip_central:
+            print("\n[Paso 9/9] Transmitiendo archivo ZIP hacia el Servidor Central LIDiag...")
+            central_res = transmitir_backup_a_central(
+                api_url=config["api_url"],
+                api_token=config["api_token"],
+                sede_id=config["sede_id"],
+                zip_path=zip_path,
+            )
+        else:
+            print("\n[Paso 9/9] Almacenamiento primario en NAS QNAP activo. Subida de archivo ZIP a Central omitida (subir_zip_central: false).")
+            central_res = {"estado": "OMITIDO", "motivo": "Custodia en QNAP NAS local"}
+
         status_data["central_transfer"] = central_res
         write_status_manifest(dest_dir, config["sede_id"], status_data)
 
@@ -1018,6 +1024,7 @@ def main():
                 "sha256": sha256_hash,
                 "duracion_total": total_duration,
                 "espacio_libre_gb": round(end_free_gb, 2),
+                "qnap_destino": qnap_res.get("qnap_destino") or f"\\\\{config.get('qnap_ip')}\\{config.get('qnap_share_backups')}",
                 "qnap_transfer": qnap_res,
                 "central_transfer": central_res,
             },
@@ -1056,6 +1063,8 @@ def main():
 
     if central_res.get("estado") == "SUCCESS":
         print(f" Central LIDiag: RECIBIDO ({central_res.get('segundos')}s)")
+    elif central_res.get("estado") == "OMITIDO":
+        print(" Central LIDiag: TELEMETRÍA OK (Custodiado en QNAP NAS)")
     elif central_res.get("estado") != "SKIPPED":
         print(f" Central LIDiag: {central_res.get('estado')} ({central_res.get('error', '')})")
     print("=========================================================")
