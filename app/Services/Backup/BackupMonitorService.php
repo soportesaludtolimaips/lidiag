@@ -5,6 +5,7 @@ namespace App\Services\Backup;
 use App\Models\Configuracion\ConfigSede;
 use App\Services\BaseService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 
 class BackupMonitorService extends BaseService
@@ -85,13 +86,17 @@ class BackupMonitorService extends BaseService
      */
     public function obtenerMetricasDisco(string $directorioRuta): array
     {
-        $driveLetter = "C:";
+        $driveLetter = DIRECTORY_SEPARATOR === '\\' ? 'C:' : '/';
         if (preg_match('/^([A-Za-z]:)/', $directorioRuta, $matches)) {
             $driveLetter = strtoupper($matches[1]);
         }
 
-        $espacioLibreBytes = @disk_free_space($driveLetter) ?: 0;
-        $espacioTotalBytes = @disk_total_space($driveLetter) ?: 0;
+        $targetPath = File::exists($directorioRuta)
+            ? $directorioRuta
+            : (DIRECTORY_SEPARATOR === '\\' ? $driveLetter : base_path());
+
+        $espacioLibreBytes = @disk_free_space($targetPath) ?: (@disk_free_space(base_path()) ?: 0);
+        $espacioTotalBytes = @disk_total_space($targetPath) ?: (@disk_total_space(base_path()) ?: 0);
         $espacioUsadoBytes = max(0, $espacioTotalBytes - $espacioLibreBytes);
 
         $porcentajeUsado = $espacioTotalBytes > 0
@@ -207,17 +212,85 @@ class BackupMonitorService extends BaseService
             $sedeId = $sede->id;
             $patron = "backup_dcm_sede_{$sedeId}_";
 
+            // 1. Archivos físicos en disco central (si se transmiten zips completos)
             $archivosSede = array_filter(
                 $archivosDcm,
                 fn ($f) => str_starts_with($f->getFilename(), $patron) && str_ends_with($f->getFilename(), ".zip")
             );
 
+            $ultimoArchivo = null;
+            $mtimeArchivo = 0;
             if (! empty($archivosSede)) {
                 usort($archivosSede, fn ($a, $b) => $b->getMTime() - $a->getMTime());
                 $ultimoArchivo = reset($archivosSede);
-                $mtime = $ultimoArchivo->getMTime();
+                $mtimeArchivo = $ultimoArchivo->getMTime();
+            }
+
+            // 2. Telemetría reportada por el agente de la sede (Cache distribuido con auto-recuperación de log)
+            $telemetriaDb = Cache::get("telemetria_sede_{$sedeId}_backup_db");
+            $telemetriaSync = Cache::get("telemetria_sede_{$sedeId}_sync_imagenes");
+
+            if (! $telemetriaDb) {
+                $telemetriaDb = $this->recuperarUltimaTelemetriaDeLog($sedeId, "backup_db");
+            }
+            if (! $telemetriaSync) {
+                $telemetriaSync = $this->recuperarUltimaTelemetriaDeLog($sedeId, "sync_imagenes");
+            }
+
+            $mtimeTelemetria = 0;
+            if ($telemetriaDb && ! empty($telemetriaDb["fecha"])) {
+                $mtimeTelemetria = strtotime($telemetriaDb["fecha"]);
+            }
+
+            // 3. Evaluar la fuente más reciente (Telemetría de sede vs Archivo físico en Central)
+            if ($mtimeTelemetria > 0 && $mtimeTelemetria >= $mtimeArchivo) {
+                $fechaCarbon = Carbon::parse($telemetriaDb["fecha"]);
+                $horas = (time() - $mtimeTelemetria) / 3600;
+                $estadoAgente = strtoupper($telemetriaDb["estado"] ?? "OK");
+
+                $semaforo = "verde";
+                $estadoTexto = "Al día";
+
+                if ($horas > 48 || $estadoAgente === "ERROR") {
+                    $semaforo = "rojo";
+                    $estadoTexto = $estadoAgente === "ERROR" ? "Error en Sede" : "Crítico (>48h)";
+                } elseif ($horas > 24 || $estadoAgente === "ADVERTENCIA") {
+                    $semaforo = "amarillo";
+                    $estadoTexto = $estadoAgente === "ADVERTENCIA" ? "Advertencia" : "Advertencia (>24h)";
+                }
+
+                $detalles = $telemetriaDb["detalles"] ?? [];
+                $esPrueba = ($detalles["modo"] ?? "") === "TEST_TELEMETRIA";
+                $archivoNombre = $detalles["archivo_zip"] ?? $detalles["archivo"] ?? ($esPrueba ? "Telemetría OK (Latido Sede)" : "backup_dcm_sede_{$sedeId}.zip");
+                $tamanoBytes = (int) ($detalles["tamano_zip_bytes"] ?? $detalles["tamano_bytes"] ?? 0);
+                $tamanoHumano = $detalles["tamano_zip_humano"] ?? $detalles["tamano_humano"] ?? ($tamanoBytes > 0 ? $this->formatearBytes($tamanoBytes) : ($esPrueba ? "Enlace OK" : "OK"));
+                $qnapDestino = $detalles["qnap_destino"] ?? $detalles["qnap_transfer"]["qnap_destino"] ?? null;
+
+                $resultado[] = [
+                    "sede_id" => $sedeId,
+                    "nombre_sede" => $sede->nom_sede,
+                    "tiene_backup" => true,
+                    "archivo" => $archivoNombre,
+                    "tamano_bytes" => $tamanoBytes,
+                    "tamano_humano" => $tamanoHumano,
+                    "fecha" => $fechaCarbon->format("Y-m-d H:i:s"),
+                    "hace" => $fechaCarbon->diffForHumans(),
+                    "horas_antiguedad" => round($horas, 1),
+                    "semaforo" => $semaforo,
+                    "estado_texto" => $estadoTexto,
+                    "total_archivos" => max(count($archivosSede), 1),
+                    "origen" => "telemetria_sede",
+                    "qnap_destino" => $qnapDestino,
+                    "sync_imagenes" => $telemetriaSync ? [
+                        "estado" => $telemetriaSync["estado"] ?? "OK",
+                        "hace" => ! empty($telemetriaSync["fecha"]) ? Carbon::parse($telemetriaSync["fecha"])->diffForHumans() : null,
+                        "copiados" => $telemetriaSync["detalles"]["archivos_copiados"] ?? 0,
+                    ] : null,
+                ];
+            } elseif ($ultimoArchivo) {
+                // Caso tradicional: Archivo físico en disco central
                 $tamano = $ultimoArchivo->getSize();
-                $horas = (time() - $mtime) / 3600;
+                $horas = (time() - $mtimeArchivo) / 3600;
 
                 $semaforo = "verde";
                 $estadoTexto = "Al día";
@@ -237,14 +310,22 @@ class BackupMonitorService extends BaseService
                     "archivo" => $ultimoArchivo->getFilename(),
                     "tamano_bytes" => $tamano,
                     "tamano_humano" => $this->formatearBytes($tamano),
-                    "fecha" => date("Y-m-d H:i:s", $mtime),
-                    "hace" => Carbon::createFromTimestamp($mtime)->diffForHumans(),
+                    "fecha" => date("Y-m-d H:i:s", $mtimeArchivo),
+                    "hace" => Carbon::createFromTimestamp($mtimeArchivo)->diffForHumans(),
                     "horas_antiguedad" => round($horas, 1),
                     "semaforo" => $semaforo,
                     "estado_texto" => $estadoTexto,
                     "total_archivos" => count($archivosSede),
+                    "origen" => "archivo_central",
+                    "qnap_destino" => null,
+                    "sync_imagenes" => $telemetriaSync ? [
+                        "estado" => $telemetriaSync["estado"] ?? "OK",
+                        "hace" => ! empty($telemetriaSync["fecha"]) ? Carbon::parse($telemetriaSync["fecha"])->diffForHumans() : null,
+                        "copiados" => $telemetriaSync["detalles"]["archivos_copiados"] ?? 0,
+                    ] : null,
                 ];
             } else {
+                // Sede sin archivo físico y sin telemetría
                 $resultado[] = [
                     "sede_id" => $sedeId,
                     "nombre_sede" => $sede->nom_sede,
@@ -258,6 +339,13 @@ class BackupMonitorService extends BaseService
                     "semaforo" => "rojo",
                     "estado_texto" => "Sin backups",
                     "total_archivos" => 0,
+                    "origen" => "ninguno",
+                    "qnap_destino" => null,
+                    "sync_imagenes" => $telemetriaSync ? [
+                        "estado" => $telemetriaSync["estado"] ?? "OK",
+                        "hace" => ! empty($telemetriaSync["fecha"]) ? Carbon::parse($telemetriaSync["fecha"])->diffForHumans() : null,
+                        "copiados" => $telemetriaSync["detalles"]["archivos_copiados"] ?? 0,
+                    ] : null,
                 ];
             }
         }
@@ -334,5 +422,57 @@ class BackupMonitorService extends BaseService
         $bytes /= (1 << (10 * $pow));
 
         return round($bytes, $precision)." ".$unidades[$pow];
+    }
+
+    /**
+     * Recupera la telemetría más reciente de una sede desde el archivo backups.log como mecanismo de auto-recuperación resiliente.
+     *
+     * @param  int  $sedeId  ID de la sede
+     * @param  string  $servicio  Nombre del servicio (backup_db o sync_imagenes)
+     * @return array|null Estructura de telemetría o null si no se encuentra en el log
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-06
+     */
+    protected function recuperarUltimaTelemetriaDeLog(int $sedeId, string $servicio): ?array
+    {
+        $logPath = storage_path("logs/backups.log");
+        if (! File::exists($logPath)) {
+            return null;
+        }
+
+        $lineas = @file($logPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        if (! is_array($lineas) || empty($lineas)) {
+            return null;
+        }
+
+        // Inspeccionar las líneas más recientes del log desde el final
+        $total = count($lineas);
+        $limite = max(0, $total - 200);
+
+        for ($i = $total - 1; $i >= $limite; $i--) {
+            $linea = $lineas[$i];
+            if (str_contains($linea, "[Telemetría {$servicio}]") && str_contains($linea, "\"sede_id\":{$sedeId}")) {
+                if (preg_match('/^\[(?P<fecha>[^\]]+)\]\s+[A-Za-z0-9_.]+:.*?(\{.+\})$/', $linea, $m)) {
+                    $json = json_decode($m[2], true);
+                    if (is_array($json) && ($json["sede_id"] ?? null) == $sedeId) {
+                        $telemetria = [
+                            "servicio" => $servicio,
+                            "estado" => strtoupper($json["estado"] ?? "OK"),
+                            "mensaje" => $json["mensaje"] ?? "Recuperado de log",
+                            "detalles" => $json["detalles"] ?? [],
+                            "fecha" => Carbon::parse($m["fecha"])->toIso8601String(),
+                        ];
+                        // Auto-sanar caché para peticiones subsiguientes
+                        Cache::put("telemetria_sede_{$sedeId}_{$servicio}", $telemetria, now()->addDays(30));
+
+                        return $telemetria;
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 }

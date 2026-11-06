@@ -37,6 +37,35 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-06 — Diagnóstico y Resolución del Monitor Central de Backups y Telemetría de Sedes Edge (`/seguridad-backups`, `BackupMonitorService.php`, `BackupUploadController.php`, `backup_dcm_agent.py`, `sync_dcm_images.py`, `backupMonitorComponent.vue`):**
+  - **Diagnóstico y Reporte del Usuario:**
+    * El usuario reportó: *"en https://lidiag.com/seguridad-backups no esta recibiendo la data de las sedes"*.
+    * En la interfaz web central (`/seguridad-backups`), todas las sedes hospitalarias aparecían en estado crítico / rojo *"Sin backups registrados"* o desactualizadas, a pesar de que los agentes locales en las sedes estaban operando y respaldando en los NAS QNAP.
+  - **Causas Raíces Identificadas:**
+    1. *Desconexión de Arquitectura:* `BackupMonitorService::obtenerEstadoSedesDcm` buscaba exclusivamente archivos `.zip` físicos en la ruta local del servidor web central (`C:\Backups_Lidiag\dcm_sedes`). En la arquitectura hospitalaria distribuida, los dumps pesados de MySQL y las imágenes DICOM se almacenan en los NAS QNAP locales de cada sede (`10.35.47.x`), y las sedes envían su reporte de estado vía telemetría a `POST /api/backups/telemetria`. `BackupUploadController` guardaba la telemetría en caché (`telemetria_sede_{$sedeId}_backup_db`), pero `BackupMonitorService` nunca consultaba esa caché.
+    2. *Pérdida de Autenticación por Stripping de Cabeceras (Proxy/Apache/cPanel):* Los agentes periféricos de Python solo enviaban `Authorization: Bearer <token>`. En hosting con proxies reversos o módulos Apache/FastCGI, la cabecera `Authorization` suele ser descartada si no hay directiva `WSGIPassAuthorization` o `CGIPassAuth`, retornando HTTP 401 Unauthorized sin llegar a procesar el cuerpo.
+    3. *Fallo de Métricas de Disco en Servidores Linux:* `BackupMonitorService::obtenerMetricasDisco` tenía cableada la unidad `C:`, provocando lecturas en 0 bytes en entornos Linux de producción.
+  - **Solución Implementada:**
+    * **1. Integración de Telemetría Edge en `BackupMonitorService.php`:**
+      - Se refactorizó `obtenerEstadoSedesDcm()` para consultar en tiempo real las llaves de caché de telemetría: `telemetria_sede_{$sedeId}_backup_db` y `telemetria_sede_{$sedeId}_sync_imagenes`.
+      - Se prioriza la fuente más reciente: si la sede reportó telemetría remota de su backup en QNAP con fecha más reciente que un archivo local en central, se muestra su estado, nombre de archivo, tamaño humano, tiempo transcurrido, semáforo (`verde` < 24h, `amarillo` < 48h, `rojo` > 48h o error), destino QNAP y estado de sincronización de imágenes.
+      - Se corrigió `obtenerMetricasDisco()` usando `base_path()` para compatibilidad transparente entre Windows y Linux.
+    * **2. Autenticación Multi-Canal Resiliente en `BackupUploadController.php`:**
+      - Se implementó `resolverTokenValido(Request $request)` que busca el token vía: `Authorization: Bearer`, cabeceras `X-API-TOKEN`, `x-api-token`, `X-Backup-Token`, y parámetros del payload `api_token` o `token`.
+      - Limpia prefijos redundantes (`Bearer `) y actualiza automáticamente `last_used_at` en `personal_access_tokens` para mantener trazabilidad en `/seguridad-tokens`.
+    * **3. Enriquecimiento de Agentes Edge (`backup_dcm_agent.py` y `sync_dcm_images.py`):**
+      - Se añadieron cabeceras redundantes (`X-API-TOKEN`, `X-Backup-Token`) y campos en el cuerpo (`api_token`, `token`) en todas las transmisiones de telemetría.
+      - Se incorporó la bandera `--telemetria` / `--test-telemetria` en `backup_dcm_agent.py` para permitir a los administradores probar la comunicación y registrar el estado en el monitor central de inmediato sin esperar la ejecución nocturna de las 2:00 AM.
+      - Se mejoró `--dry-run` para validar el enlace de telemetría con Central.
+    * **4. Mejoras Visuales en el Frontend (`backupMonitorComponent.vue`):**
+      - Se muestra el destino en el NAS QNAP (`sede.qnap_destino`) debajo del nombre del backup.
+      - Se incorporó badge visual para el estado de sincronización de imágenes (`Img: OK`, cantidad de imágenes copiadas y tiempo relativo).
+  - **Verificaciones:**
+    * Pint pasado al 100% en controladores y servicios modificados (`vendor\bin\pint.bat --test`) ✅.
+    * ESLint y Prettier 100% pasados en `backupMonitorComponent.vue` ✅.
+    * Compilación Vite exitosa (`npm run build` en 1.41s) ✅.
+    * Python sintaxis y ejecución `--dry-run` y `--telemetria` validadas ✅.
+    * Finales de línea en LF y UTF-8 sin BOM ✅.
 - [x] **2026-11-06 — Corrección y Blindaje de Parámetros de Enlace al Visor Oviyam en Asignar Estudios y Cabecera de Sedes (`userProfileAndSearchComponent.vue`, `AsignarEstudioComponent.vue`, `useEstudioHelpers.js`, `teleRadiologiaEnviarEstudioComponent.vue`, `teleRadiologiaTranscibirComponent.vue`):**
   - **Diagnóstico y Reporte del Usuario:**
     * El usuario reportó: *"mira la funcion verImagenItem, esta generando el link https://lidiag.com/undefined?patientID=93135601&studyUID=1.2.276.0.7230010.3.0.3.5.1.16341473.354507027&serverName=undefined con 2 parametros como undefined"*.

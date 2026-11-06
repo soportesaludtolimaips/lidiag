@@ -244,6 +244,15 @@
                                                 >
                                                     {{ sede.archivo || "N/A" }}
                                                 </small>
+                                                <small
+                                                    v-if="sede.qnap_destino"
+                                                    class="text-info d-block text-truncate font-10"
+                                                    style="max-width: 220px"
+                                                    :title="sede.qnap_destino"
+                                                >
+                                                    <i class="fa fa-server"></i>
+                                                    {{ sede.qnap_destino }}
+                                                </small>
                                             </span>
                                             <span v-else class="label label-danger">
                                                 Sin sincronizaciones
@@ -257,7 +266,26 @@
                                         </td>
                                         <td class="text-center">
                                             <span class="label label-light-inverse">
-                                                {{ sede.total_archivos }} zips
+                                                {{ sede.total_archivos }}
+                                                {{
+                                                    sede.origen === "telemetria_sede"
+                                                        ? "reporte"
+                                                        : "zips"
+                                                }}
+                                            </span>
+                                            <span
+                                                v-if="sede.sync_imagenes"
+                                                class="label label-success d-block m-t-5 font-10"
+                                                :title="
+                                                    'Imágenes sincronizadas: ' +
+                                                    (sede.sync_imagenes.copiados || 0) +
+                                                    ' (' +
+                                                    (sede.sync_imagenes.hace || 'Reciente') +
+                                                    ')'
+                                                "
+                                            >
+                                                <i class="fa fa-image"></i> Img:
+                                                {{ sede.sync_imagenes.estado }}
                                             </span>
                                         </td>
                                     </tr>

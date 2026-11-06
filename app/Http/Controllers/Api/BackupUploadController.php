@@ -58,21 +58,8 @@ class BackupUploadController extends Controller
     {
         set_time_limit(0);
 
-        // 1. Validar autenticación (compatible con Sanctum por sede y BACKUP_API_TOKEN estático)
-        $tokenRecibido = $request->bearerToken() ?: $request->header("X-Backup-Token") ?: $request->input("token");
-        $tokenEsperado = (string) config("backup.api_token", env("BACKUP_API_TOKEN", "lidiag_backup_secure_token_2026"));
-
-        $esValido = false;
-        if (! empty($tokenRecibido) && hash_equals($tokenEsperado, (string) $tokenRecibido)) {
-            $esValido = true;
-        } elseif (! empty($tokenRecibido)) {
-            $personalToken = PersonalAccessToken::findToken($tokenRecibido);
-            if ($personalToken && $personalToken->tokenable) {
-                $esValido = true;
-            }
-        }
-
-        if (! $esValido) {
+        // 1. Validar autenticación (compatible con Sanctum por sede multi-canal y BACKUP_API_TOKEN estático)
+        if (! $this->resolverTokenValido($request)) {
             Log::channel("backups")->warning("Intento no autorizado de subida de backup DCM", [
                 "ip" => $request->ip(),
                 "sede_id" => $request->input("sede_id"),
@@ -182,23 +169,10 @@ class BackupUploadController extends Controller
      */
     public function telemetria(Request $request): JsonResponse
     {
-        $tokenRecibido = $request->bearerToken() ?: $request->header("X-Backup-Token") ?: $request->input("token");
-        $tokenEsperado = (string) config("backup.api_token", env("BACKUP_API_TOKEN", "lidiag_backup_secure_token_2026"));
-
-        $esValido = false;
-        if (! empty($tokenRecibido) && hash_equals($tokenEsperado, (string) $tokenRecibido)) {
-            $esValido = true;
-        } elseif (! empty($tokenRecibido)) {
-            $personalToken = PersonalAccessToken::findToken($tokenRecibido);
-            if ($personalToken && $personalToken->tokenable) {
-                $esValido = true;
-            }
-        }
-
-        if (! $esValido) {
+        if (! $this->resolverTokenValido($request)) {
             return response()->json([
                 "success" => false,
-                "message" => "No autorizado. Token de acceso inválido.",
+                "message" => "No autorizado. Token de acceso inválido o ausente.",
             ], 401);
         }
 
@@ -236,5 +210,47 @@ class BackupUploadController extends Controller
             "message" => "Telemetría registrada correctamente para {$sedeNombre}.",
             "timestamp" => now()->format("Y-m-d H:i:s"),
         ]);
+    }
+
+    /**
+     * Resuelve y valida el token de autenticación multicanal (Bearer, headers alternativos o payload).
+     *
+     * @param  Request  $request  Petición HTTP entrante
+     * @return bool Verdadero si el token es válido
+     */
+    protected function resolverTokenValido(Request $request): bool
+    {
+        $tokenRecibido = $request->bearerToken()
+            ?: $request->header("X-API-TOKEN")
+            ?: $request->header("x-api-token")
+            ?: $request->header("X-Backup-Token")
+            ?: $request->input("api_token")
+            ?: $request->input("token");
+
+        if (empty($tokenRecibido)) {
+            return false;
+        }
+
+        // 1. Limpiar prefijo Bearer si fue enviado dentro del header o payload
+        $tokenRecibido = trim((string) $tokenRecibido);
+        if (str_starts_with(strtolower($tokenRecibido), "bearer ")) {
+            $tokenRecibido = trim(substr($tokenRecibido, 7));
+        }
+
+        // 2. Token estático del .env (compatibilidad institucional)
+        $tokenEsperado = (string) config("backup.api_token", env("BACKUP_API_TOKEN", "lidiag_backup_secure_token_2026"));
+        if (! empty($tokenEsperado) && hash_equals($tokenEsperado, $tokenRecibido)) {
+            return true;
+        }
+
+        // 3. Token Sanctum emitido por sede hospitalaria
+        $personalToken = PersonalAccessToken::findToken($tokenRecibido);
+        if ($personalToken && $personalToken->tokenable) {
+            $personalToken->forceFill(["last_used_at" => now()])->save();
+
+            return true;
+        }
+
+        return false;
     }
 }

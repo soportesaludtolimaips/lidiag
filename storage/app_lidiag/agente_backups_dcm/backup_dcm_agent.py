@@ -198,6 +198,7 @@ def parse_arguments():
     parser.add_argument("--api-url", dest="api_url", help="URL base o endpoint de API de LIDiag Central")
     parser.add_argument("--api-token", dest="api_token", help="Token de autenticación de la sede en LIDiag Central")
     parser.add_argument("--dry-run", action="store_true", help="Modo simulación: valida puertos, rutas y servicios sin generar volcado ni transferir")
+    parser.add_argument("--telemetria", "--test-telemetria", dest="test_telemetria", action="store_true", help="Prueba de conectividad y emisión inmediata de telemetría de prueba hacia Central")
     return parser.parse_args()
 
 
@@ -576,19 +577,27 @@ def resolve_api_endpoint(base_api_url: str, endpoint_path: str) -> str:
 
 
 def enviar_telemetria_backup_central(api_url: str, api_token: str, sede_id: int, estado: str, mensaje: str, detalles: dict = None) -> bool:
-    """Emite la telemetría del estado de backups hacia la API Central de LIDiag."""
+    """Emite la telemetría del estado de backups hacia la API Central de LIDiag con autenticación multicanal."""
     if not requests or not api_url or not api_token or not sede_id:
         return False
+
+    clean_token = str(api_token or "").strip()
+    if clean_token.lower().startswith("bearer "):
+        clean_token = clean_token[7:].strip()
 
     endpoint = resolve_api_endpoint(api_url, "backups/telemetria")
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
-        "Authorization": f"Bearer {api_token}",
+        "Authorization": f"Bearer {clean_token}",
+        "X-API-TOKEN": clean_token,
+        "X-Backup-Token": clean_token,
         "X-Requested-With": "XMLHttpRequest",
     }
     payload = {
         "sede_id": sede_id,
+        "api_token": clean_token,
+        "token": clean_token,
         "servicio": "backup_db",
         "estado": estado,
         "mensaje": mensaje,
@@ -596,14 +605,19 @@ def enviar_telemetria_backup_central(api_url: str, api_token: str, sede_id: int,
     }
     try:
         res = requests.post(endpoint, json=payload, headers=headers, timeout=15, verify=False)
-        return res.status_code == 200
+        if res.status_code == 200:
+            print(f"      [OK TELEMETRÍA] Telemetría de backup registrada exitosamente en Central ({endpoint}).")
+            return True
+        else:
+            print(f"      [AVISO TELEMETRÍA] Central respondió HTTP {res.status_code}: {res.text[:200]}")
+            return False
     except Exception as e:
         print(f"      [AVISO TELEMETRÍA] No se pudo emitir telemetría de backup a Central: {e}")
         return False
 
 
 def transmitir_backup_a_central(api_url: str, api_token: str, sede_id: int, zip_path: str, timeout: int = 600) -> dict:
-    """Transmite el archivo comprimido ZIP del backup hacia la API Central de LIDiag."""
+    """Transmite el archivo comprimido ZIP del backup hacia la API Central de LIDiag con autenticación multicanal."""
     if not requests:
         return {"estado": "SKIPPED", "error": "Librería 'requests' no disponible en el entorno."}
     if not api_url or not api_token:
@@ -611,17 +625,25 @@ def transmitir_backup_a_central(api_url: str, api_token: str, sede_id: int, zip_
     if not zip_path or not os.path.isfile(zip_path):
         return {"estado": "ERROR", "error": f"Archivo no encontrado: {zip_path}"}
 
+    clean_token = str(api_token or "").strip()
+    if clean_token.lower().startswith("bearer "):
+        clean_token = clean_token[7:].strip()
+
     endpoint = resolve_api_endpoint(api_url, "backups/upload-dcm")
     fname = os.path.basename(zip_path)
     fsize = os.path.getsize(zip_path)
     print(f"      Transmitiendo '{fname}' ({format_bytes(fsize)}) hacia Central: {endpoint}...")
 
     headers = {
-        "Authorization": f"Bearer {api_token}",
+        "Authorization": f"Bearer {clean_token}",
+        "X-API-TOKEN": clean_token,
+        "X-Backup-Token": clean_token,
         "Accept": "application/json",
     }
     data = {
         "sede_id": sede_id,
+        "api_token": clean_token,
+        "token": clean_token,
     }
 
     t_start = time.time()
@@ -680,6 +702,33 @@ def main():
     print(f" Días Retención   : {config['retention_days']} días")
     print("=========================================================")
 
+    # Modo Test Telemetría Inmediato
+    if getattr(args, "test_telemetria", False):
+        print(f"\n[TELEMETRÍA] Emitiendo latido y telemetría de prueba para sede #{config['sede_id']}...")
+        if not config.get("api_url") or not config.get("api_token"):
+            print("[ERROR] api_url o api_token no están configurados en config.json.")
+            sys.exit(1)
+        ok = enviar_telemetria_backup_central(
+            api_url=config["api_url"],
+            api_token=config["api_token"],
+            sede_id=config["sede_id"],
+            estado="OK",
+            mensaje=f"Ping de prueba emitido exitosamente desde sede #{config['sede_id']} ({config.get('sede_nombre', '')})",
+            detalles={
+                "modo": "TEST_TELEMETRIA",
+                "sede_nombre": config.get("sede_nombre", ""),
+                "qnap_destino": f"\\\\{config.get('qnap_ip')}\\{config.get('qnap_share_backups')}" if config.get("qnap_ip") else None,
+            },
+        )
+        if ok:
+            print("[OK] Telemetría confirmada por Central. Revisa https://lidiag.com/seguridad-backups y /seguridad-tokens")
+            release_process_lock()
+            sys.exit(0)
+        else:
+            print("[ERROR] Central no pudo procesar la telemetría.")
+            release_process_lock()
+            sys.exit(1)
+
     # Asegurar existencia de directorios
     dest_dir = os.path.abspath(config.get("destination_dir", "C:\\backups_dcm"))
     temp_dir = os.path.abspath(config.get("temp_dir", "./temp_backups"))
@@ -728,6 +777,20 @@ def main():
         if config.get("qnap_ip"):
             qnap_ok = check_qnap_port(config["qnap_ip"], ports=(445, 139))
             print(f"[{'OK' if qnap_ok else 'OFFLINE'}] Conexión QNAP NAS   : {config['qnap_ip']} en puertos 445/139 ({'accesible' if qnap_ok else 'no responde'})")
+        if config.get("api_url") and config.get("api_token"):
+            print("\n[Telemetría] Probando emisión hacia Central...")
+            enviar_telemetria_backup_central(
+                api_url=config["api_url"],
+                api_token=config["api_token"],
+                sede_id=config["sede_id"],
+                estado="OK",
+                mensaje=f"Simulación (--dry-run) validada para sede #{config['sede_id']}",
+                detalles={
+                    "modo": "DRY_RUN",
+                    "sede_nombre": config.get("sede_nombre", ""),
+                    "espacio_libre_gb": round(free_gb, 2),
+                },
+            )
         print("[SIMULACIÓN COMPLETADA] Todos los chequeos previos fueron validados exitosamente sin alterar disco ni base de datos.")
         release_process_lock()
         sys.exit(0)
@@ -939,20 +1002,24 @@ def main():
         status_data["central_transfer"] = central_res
         write_status_manifest(dest_dir, config["sede_id"], status_data)
 
-        # Telemetría de estado hacia Central
+        # Telemetría de estado hacia Central (refleja éxito en QNAP o Central)
+        estado_final = "OK" if (qnap_res.get("estado") == "SUCCESS" or central_res.get("estado") == "SUCCESS") else "ADVERTENCIA"
+        msg_final = f"Backup {format_bytes(zip_size)} completado. QNAP: {qnap_res.get('estado', 'N/A')}"
         enviar_telemetria_backup_central(
             api_url=config["api_url"],
             api_token=config["api_token"],
             sede_id=config["sede_id"],
-            estado="OK" if central_res.get("estado") == "SUCCESS" else "ADVERTENCIA",
-            mensaje=f"Backup completado localmente. Central: {central_res.get('estado')}",
+            estado=estado_final,
+            mensaje=msg_final,
             detalles={
                 "archivo_zip": zip_filename,
-                "tamano_zip": format_bytes(zip_size),
+                "tamano_zip_bytes": zip_size,
+                "tamano_zip_humano": format_bytes(zip_size),
                 "sha256": sha256_hash,
                 "duracion_total": total_duration,
-                "qnap_estado": qnap_res.get("estado"),
-                "central_estado": central_res.get("estado"),
+                "espacio_libre_gb": round(end_free_gb, 2),
+                "qnap_transfer": qnap_res,
+                "central_transfer": central_res,
             },
         )
     else:

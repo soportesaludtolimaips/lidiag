@@ -475,7 +475,7 @@ def resolve_api_endpoint(base_api_url: str, endpoint_path: str) -> str:
 
 
 def enviar_telemetria_sync_central(config: dict, status: str, msg: str, copiados: int = 0, duration: float = 0.0, free_gb: float = 0.0) -> bool:
-    """Emite la telemetría periódica de sincronización de imágenes hacia la API Central de LIDiag."""
+    """Emite la telemetría periódica de sincronización de imágenes hacia la API Central de LIDiag con autenticación multicanal."""
     api_url = config.get("api_url", "")
     api_token = config.get("api_token", "")
     sede_id = config.get("sede_id", 0)
@@ -483,15 +483,23 @@ def enviar_telemetria_sync_central(config: dict, status: str, msg: str, copiados
     if not requests or not api_url or not api_token or not sede_id:
         return False
 
+    clean_token = str(api_token or "").strip()
+    if clean_token.lower().startswith("bearer "):
+        clean_token = clean_token[7:].strip()
+
     endpoint = resolve_api_endpoint(api_url, "backups/telemetria")
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
-        "Authorization": f"Bearer {api_token}",
+        "Authorization": f"Bearer {clean_token}",
+        "X-API-TOKEN": clean_token,
+        "X-Backup-Token": clean_token,
         "X-Requested-With": "XMLHttpRequest",
     }
     payload = {
         "sede_id": sede_id,
+        "api_token": clean_token,
+        "token": clean_token,
         "servicio": "sync_imagenes",
         "estado": status,
         "mensaje": msg,
