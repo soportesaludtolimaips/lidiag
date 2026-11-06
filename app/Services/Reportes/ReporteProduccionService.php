@@ -4,6 +4,7 @@ namespace App\Services\Reportes;
 
 use App\Exports\ProduccionDetalladaEcografiasExport;
 use App\Exports\ProduccionDetalladaExport;
+use App\Exports\ProduccionDetalladaOftalmologiaExport;
 use App\Exports\ReporteAgentesTelemetriaExport;
 use App\Exports\ReporteAlmacenamientoServidoresExport;
 use App\Exports\ReporteAusentismoCitasExport;
@@ -52,10 +53,17 @@ class ReporteProduccionService extends BaseService
                 );
             }
 
-            if ($tipo === 'Ecografia') {
+            if ($tipo === "Ecografia") {
                 return Excel::download(
                     new ProduccionDetalladaEcografiasExport($fechaInicio, $fechaFin, $sedeId, $quienAsignoId, $medicoId),
-                    'produccion lecturas de ecografias.xlsx'
+                    "produccion lecturas de ecografias.xlsx"
+                );
+            }
+
+            if ($tipo === "Oftalmologia") {
+                return Excel::download(
+                    new ProduccionDetalladaOftalmologiaExport($fechaInicio, $fechaFin, $sedeId, $quienAsignoId, $medicoId),
+                    "produccion lecturas de oftalmologia.xlsx"
                 );
             }
 

@@ -106,29 +106,84 @@
             </div>
         </div>
 
-        <!-- Page Content -->
-        <div class="row">
+        <!-- Pestañas de Agrupación por Módulo (AdminWrap / Bootstrap 4) -->
+        <div class="row m-b-20">
+            <div class="col-12">
+                <ul class="nav nav-tabs customtab" role="tablist">
+                    <li class="nav-item" v-if="tieneAccesoModulo('Rx')">
+                        <a
+                            class="nav-link"
+                            :class="{ active: moduloActivo === 'Rx' }"
+                            href="javascript:void(0)"
+                            @click="cambiarModulo('Rx')"
+                        >
+                            <span class="hidden-sm-up"><i class="fa fa-heartbeat"></i></span>
+                            <span class="hidden-xs-down"
+                                ><i class="fa fa-heartbeat text-info m-r-5"></i> Módulo Rx</span
+                            >
+                        </a>
+                    </li>
+                    <li class="nav-item" v-if="tieneAccesoModulo('Ecografias')">
+                        <a
+                            class="nav-link"
+                            :class="{ active: moduloActivo === 'Ecografias' }"
+                            href="javascript:void(0)"
+                            @click="cambiarModulo('Ecografias')"
+                        >
+                            <span class="hidden-sm-up"><i class="fa fa-stethoscope"></i></span>
+                            <span class="hidden-xs-down"
+                                ><i class="fa fa-stethoscope text-primary m-r-5"></i> Módulo
+                                Ecografías</span
+                            >
+                        </a>
+                    </li>
+                    <li class="nav-item" v-if="tieneAccesoModulo('Oftalmologia')">
+                        <a
+                            class="nav-link"
+                            :class="{ active: moduloActivo === 'Oftalmologia' }"
+                            href="javascript:void(0)"
+                            @click="cambiarModulo('Oftalmologia')"
+                        >
+                            <span class="hidden-sm-up"><i class="fa fa-eye"></i></span>
+                            <span class="hidden-xs-down"
+                                ><i class="fa fa-eye text-success m-r-5"></i> Módulo
+                                Oftalmología</span
+                            >
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a
+                            class="nav-link"
+                            :class="{ active: moduloActivo === 'Transversal' }"
+                            href="javascript:void(0)"
+                            @click="cambiarModulo('Transversal')"
+                        >
+                            <span class="hidden-sm-up"><i class="fa fa-calendar-check-o"></i></span>
+                            <span class="hidden-xs-down"
+                                ><i class="fa fa-calendar-check-o text-muted m-r-5"></i> Citas y
+                                Gestión General</span
+                            >
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- 1. GRUPO: MÓDULO RX (Radiología e Imágenes Diagnósticas)        -->
+        <!-- ============================================================== -->
+        <div class="row" v-if="moduloActivo === 'Rx' && tieneAccesoModulo('Rx')">
             <div class="col-md-3 col-sm-6">
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> Producción
+                            <i class="fa fa-filter"></i> Producción Radiológica
                         </h4>
-
                         <div class="row">
                             <div class="col-12">
                                 <a href="javascript:void(0)" @click="abrirModalProduccion('Rx')">
                                     <i class="fa fa-check text-info"></i>
                                     Producción detallada (RX, Tomografía, Mamografía, Resonancia)
-                                </a>
-                            </div>
-                            <div class="col-12" v-if="can('ecografias.reporte')">
-                                <a
-                                    href="javascript:void(0)"
-                                    @click="abrirModalProduccion('Ecografia')"
-                                >
-                                    <i class="fa fa-check text-info"></i>
-                                    Producción detallada (Ecografias)
                                 </a>
                             </div>
                             <div class="col-12">
@@ -145,14 +200,13 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> Estudios tomados en PAC
+                            <i class="fa fa-database"></i> Estudios tomados en PAC
                         </h4>
-
                         <div class="row">
                             <div class="col-12">
                                 <a href="javascript:void(0)" @click="abrirModalPAC()">
                                     <i class="fa fa-check text-info"></i>
-                                    Descargar reporte de estudios tomados
+                                    Descargar reporte de estudios tomados en PACS
                                 </a>
                             </div>
                         </div>
@@ -165,7 +219,6 @@
                         <h4 class="card-title text-themecolor">
                             <i class="fa fa-globe"></i> Tele-radiología
                         </h4>
-
                         <div class="row">
                             <div class="col-12">
                                 <a href="javascript:void(0)" @click="abrirModalTeleRadiologia()">
@@ -183,7 +236,6 @@
                         <h4 class="card-title text-themecolor">
                             <i class="fa fa-radiation text-warning"></i> Dosimetría y Radiación
                         </h4>
-
                         <div class="row">
                             <div class="col-12">
                                 <a href="javascript:void(0)" @click="abrirModalDosimetria()">
@@ -210,7 +262,6 @@
                         <h4 class="card-title text-themecolor">
                             <i class="fa fa-tachometer"></i> Calidad y Oportunidad
                         </h4>
-
                         <div class="row">
                             <div class="col-12">
                                 <a href="javascript:void(0)" @click="abrirModalTAT()">
@@ -235,34 +286,8 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title text-themecolor">
-                            <i class="fa fa-calendar-check-o"></i> Citas y Agenda
-                        </h4>
-
-                        <div class="row">
-                            <div class="col-12">
-                                <a href="javascript:void(0)" @click="abrirModalAusentismo()">
-                                    <i class="fa fa-check text-info"></i>
-                                    Ausentismo y cancelaciones (No-Show)
-                                </a>
-                            </div>
-                            <div class="col-12">
-                                <a href="javascript:void(0)" @click="abrirModalCitasWhatsApp()">
-                                    <i class="fa fa-whatsapp text-success"></i>
-                                    Estadísticas de citas y canal WhatsApp (Atención Hoy y
-                                    Conversión)
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title text-themecolor">
                             <i class="fa fa-money"></i> Financiero / Liquidación
                         </h4>
-
                         <div class="row">
                             <div
                                 class="col-12"
@@ -296,9 +321,8 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title text-themecolor">
-                            <i class="fa fa-server"></i> Agentes y Telemetría
+                            <i class="fa fa-server"></i> Agentes y Servidores PACS
                         </h4>
-
                         <div class="row">
                             <div class="col-12">
                                 <a href="javascript:void(0)" @click="abrirModalAgentes()">
@@ -309,7 +333,7 @@
                             <div class="col-12">
                                 <a href="javascript:void(0)" @click="abrirModalAlmacenamiento()">
                                     <i class="fa fa-hdd-o text-info"></i>
-                                    Monitor de almacenamiento y servidores PACS (Discos y Sedes)
+                                    Monitor de almacenamiento y servidores PACS
                                 </a>
                             </div>
                             <div
@@ -319,6 +343,218 @@
                                 <a href="/seguridad-backups" target="_blank">
                                     <i class="fa fa-external-link text-info"></i>
                                     Monitor central de backups y sedes
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- 2. GRUPO: MÓDULO ECOGRAFÍAS                                     -->
+        <!-- ============================================================== -->
+        <div class="row" v-if="moduloActivo === 'Ecografias' && tieneAccesoModulo('Ecografias')">
+            <div class="col-md-4 col-sm-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title text-themecolor">
+                            <i class="fa fa-stethoscope"></i> Producción de Ecografías
+                        </h4>
+                        <div class="row">
+                            <div class="col-12">
+                                <a
+                                    href="javascript:void(0)"
+                                    @click="abrirModalProduccion('Ecografia')"
+                                >
+                                    <i class="fa fa-check text-info"></i>
+                                    Producción detallada (Ecografías)
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title text-themecolor">
+                            <i class="fa fa-id-card-o"></i> Consentimientos y Formatos
+                        </h4>
+                        <div class="row">
+                            <div class="col-12" v-if="can('ecografias.consentimientos.index')">
+                                <a href="/ecografias-consentimientos" target="_blank">
+                                    <i class="fa fa-external-link text-info"></i>
+                                    Consentimientos informados firmados (PDF)
+                                </a>
+                            </div>
+                            <div
+                                class="col-12"
+                                v-if="can('ecografias.consentimientos.plantillas.index')"
+                            >
+                                <a href="/ecografias-consentimientos-plantillas" target="_blank">
+                                    <i class="fa fa-external-link text-info"></i>
+                                    Plantillas de consentimientos
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title text-themecolor">
+                            <i class="fa fa-address-book-o"></i> Atención y Procedimientos
+                        </h4>
+                        <div class="row">
+                            <div class="col-12" v-if="can('ecografias.admision')">
+                                <a href="/ecografias-admisiones" target="_blank">
+                                    <i class="fa fa-external-link text-info"></i>
+                                    Admisionar para procedimientos
+                                </a>
+                            </div>
+                            <div class="col-12" v-if="can('ecografias.index')">
+                                <a href="/ecografias-adminisionadas" target="_blank">
+                                    <i class="fa fa-external-link text-info"></i>
+                                    Ecografías admisionadas en sala
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- 3. GRUPO: MÓDULO OFTALMOLOGÍA                                   -->
+        <!-- ============================================================== -->
+        <div
+            class="row"
+            v-if="moduloActivo === 'Oftalmologia' && tieneAccesoModulo('Oftalmologia')"
+        >
+            <div class="col-md-4 col-sm-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title text-themecolor">
+                            <i class="fa fa-eye"></i> Producción de Oftalmología
+                        </h4>
+                        <div class="row">
+                            <div class="col-12">
+                                <a
+                                    href="javascript:void(0)"
+                                    @click="abrirModalProduccion('Oftalmologia')"
+                                >
+                                    <i class="fa fa-check text-info"></i>
+                                    Producción detallada (Oftalmología)
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title text-themecolor">
+                            <i class="fa fa-file-text-o"></i> Diagnóstico Ocular
+                        </h4>
+                        <div class="row">
+                            <div class="col-12">
+                                <span class="text-muted small">
+                                    <i class="fa fa-info-circle text-info"></i>
+                                    Exámenes: Campimetrías, Biometrías, Paquimetrías y Tomografías
+                                    Oculares (OCT).
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title text-themecolor">
+                            <i class="fa fa-calendar"></i> Agenda de Oftalmología
+                        </h4>
+                        <div class="row">
+                            <div
+                                class="col-12"
+                                v-if="can('agendamiento.agendamiento.index') || can('citas.index')"
+                            >
+                                <a href="/agendamiento" target="_blank">
+                                    <i class="fa fa-external-link text-info"></i>
+                                    Agenda médica de especialistas
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- 4. GRUPO: TRANSVERSAL Y GESTIÓN DE CITAS                        -->
+        <!-- ============================================================== -->
+        <div class="row" v-if="moduloActivo === 'Transversal'">
+            <div class="col-md-4 col-sm-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title text-themecolor">
+                            <i class="fa fa-calendar-check-o"></i> Citas y Agenda
+                        </h4>
+                        <div class="row">
+                            <div class="col-12">
+                                <a href="javascript:void(0)" @click="abrirModalAusentismo()">
+                                    <i class="fa fa-check text-info"></i>
+                                    Ausentismo y cancelaciones (No-Show)
+                                </a>
+                            </div>
+                            <div class="col-12" v-if="can('citas.index')">
+                                <a href="/citas" target="_blank">
+                                    <i class="fa fa-external-link text-info"></i>
+                                    Listado general de citas
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title text-themecolor">
+                            <i class="fa fa-whatsapp text-success"></i> Canal WhatsApp y Conversión
+                        </h4>
+                        <div class="row">
+                            <div class="col-12">
+                                <a href="javascript:void(0)" @click="abrirModalCitasWhatsApp()">
+                                    <i class="fa fa-whatsapp text-success"></i>
+                                    Estadísticas de citas y canal WhatsApp (Atención Hoy y
+                                    Conversión)
+                                </a>
+                            </div>
+                            <div class="col-12" v-if="can('citas.index')">
+                                <a href="/citas/revision" target="_blank">
+                                    <i class="fa fa-external-link text-info"></i>
+                                    Solicitudes de citas por revisar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6" v-if="can('helpdesk.reportes.index')">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title text-themecolor">
+                            <i class="fa fa-support text-danger"></i> Mesa de Ayuda
+                        </h4>
+                        <div class="row">
+                            <div class="col-12">
+                                <a href="/helpdesk-reportes" target="_blank">
+                                    <i class="fa fa-external-link text-info"></i>
+                                    Reportes de incidentes y Helpdesk
                                 </a>
                             </div>
                         </div>
@@ -343,7 +579,15 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title">Filtro para el reporte ({{ tipoReporte }})</h4>
+                        <h4 class="modal-title">
+                            Filtro para el reporte de Producción ({{
+                                tipoReporte === "Rx"
+                                    ? "RX, Tomografía, Mamografía, Resonancia"
+                                    : tipoReporte === "Ecografia"
+                                      ? "Ecografías"
+                                      : "Oftalmología"
+                            }})
+                        </h4>
                         <button
                             type="button"
                             class="close"
@@ -2266,7 +2510,7 @@
 </template>
 
 <script setup>
-import { nextTick, onMounted, ref } from "vue";
+import { computed, nextTick, onMounted, ref } from "vue";
 
 import { listarUsuariosYSedes } from "../../../helpers/usuarios";
 import { toastMessage } from "@/helpers/alerts.js";
@@ -2282,6 +2526,45 @@ const props = defineProps({
 });
 
 const { can } = usePermissions(props.permisos);
+
+// ── Control de Acceso y Agrupación por Módulos Asistenciales (Rx, Ecografias, Oftalmologia) ──
+const moduloActivo = ref("Rx");
+
+const modulosDisponibles = computed(() => {
+    const roles = props.usuarioactual?.roles || [];
+    const esAdmin = roles.some(
+        (r) =>
+            r.name === "Administrador" ||
+            r.name === "Super Administrador" ||
+            r.name === "Reportes" ||
+            r.name === "Estadistico"
+    );
+    if (esAdmin) {
+        return ["Rx", "Ecografias", "Oftalmologia"];
+    }
+
+    const mods = (props.usuarioactual?.modulos || []).map((m) => m.modulo);
+    if (mods.length === 0) {
+        return ["Rx"];
+    }
+    return mods;
+});
+
+function tieneAccesoModulo(moduloNombre) {
+    const norm = (s) =>
+        String(s || "")
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+    const target = norm(moduloNombre);
+    return modulosDisponibles.value.some((m) => norm(m) === target);
+}
+
+function cambiarModulo(modulo) {
+    if (modulo === "Transversal" || tieneAccesoModulo(modulo)) {
+        moduloActivo.value = modulo;
+    }
+}
 
 const sedes = ref([]);
 const datosReporte = ref({ sedeId: 0, quien_asigno: "", medico: "", fechaIni: "", fechaFin: "" });
@@ -2859,9 +3142,30 @@ function refrescarTodo() {
     cargarIndicadores();
 }
 
-function abrirModalProduccion(tipo) {
+async function abrirModalProduccion(tipo) {
     tipoReporte.value = tipo;
     modalProduccionVisible.value = true;
+
+    let moduloId = 1;
+    if (tipo === "Ecografia") moduloId = 2;
+    if (tipo === "Oftalmologia") moduloId = 3;
+
+    try {
+        await listarUsuariosYSedes(
+            {
+                set quienes_asignaron(v) {
+                    quienes_asignaron.value = v;
+                },
+                set medicos(v) {
+                    medicos.value = v;
+                },
+            },
+            { moduloId: String(moduloId) }
+        );
+    } catch (_e) {
+        // Fallback silencioso
+    }
+
     nextTick(() => {
         const el = document.getElementById("prod-sede");
         if (el) el.focus();
@@ -3179,6 +3483,16 @@ async function descargarAlmacenamiento() {
 onMounted(() => {
     listarSedes();
     cargarIndicadores();
+
+    if (tieneAccesoModulo("Rx")) {
+        moduloActivo.value = "Rx";
+    } else if (tieneAccesoModulo("Ecografias")) {
+        moduloActivo.value = "Ecografias";
+    } else if (tieneAccesoModulo("Oftalmologia")) {
+        moduloActivo.value = "Oftalmologia";
+    } else {
+        moduloActivo.value = "Transversal";
+    }
 });
 
 useKeyboardShortcuts({

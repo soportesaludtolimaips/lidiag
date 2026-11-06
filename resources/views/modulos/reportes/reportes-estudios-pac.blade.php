@@ -2,7 +2,7 @@
 
 @section('content')
     @php
-        $user = auth()->user()->load('roles', 'permissions');
+        $user = auth()->user()->load('roles', 'permissions', 'modulos');
         $permisos = auth()->user()->getAllPermissions()->pluck('name');
     @endphp
     <reportes-estudios-p-a-c-component :usuarioactual='@json($user)' :permisos='@json($permisos)' />

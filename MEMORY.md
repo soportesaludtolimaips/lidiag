@@ -92,6 +92,33 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * Compilación Vite exitosa (`npm run build` en 1.41s) ✅.
     * Python sintaxis y ejecución `--dry-run` y `--telemetria` validadas ✅.
     * Finales de línea en LF y UTF-8 sin BOM ✅.
+- [x] **2026-11-06 — Agrupación de Reportes por Módulos Asignados al Usuario (Rx, Ecografías, Oftalmología) (`reportes-produccion.blade.php`, `reportes-estudios-pac.blade.php`, `reporteProduccionComponent.vue`, `ReporteProduccionService.php`, `ReporteProduccionRequest.php`, `ProduccionDetalladaOftalmologiaExport.php`):**
+  - **Diagnóstico y Solicitud del Usuario:**
+    * El usuario solicitó: *"Para tener un mejor orden en la generación de reportes, debemos agrupar los reportes por los módulos que tengan acceso los diferentes usuarios, a los usuarios se les pueden asignar estos módulos: Módulos: Rx, Ecografias, Oftalmologia"*.
+    * Previamente, la pantalla de reportes mostraba todas las opciones mezcladas en un único bloque de tarjetas sin separación por módulo ni restricción de visualización según los módulos asignados al usuario en la tabla `users_modulos`.
+  - **Solución Implementada:**
+    * **1. Carga de Módulos del Usuario en Vistas Blade:**
+      - En `resources/views/modulos/reportes/reportes-produccion.blade.php` y `reportes-estudios-pac.blade.php`, se enriqueció la carga del usuario autenticado con su relación `modulos`: `$user = auth()->user()->load('roles', 'permissions', 'modulos')`, inyectándolo en la prop `:usuarioactual`.
+    * **2. Agrupación y Control de Acceso por Módulos en Vue 3 (`reporteProduccionComponent.vue`):**
+      - Se implementaron pestañas de navegación nativas AdminWrap / Bootstrap 4 (`nav nav-tabs customtab`) para conmutar entre los módulos autorizados:
+        * **Módulo Rx:** Contiene Producción detallada (RX, Tomografía, Mamografía, Resonancia), Consolidado de Red, Estudios PACS, Tele-Radiología, Dosimetría NRD, Calidad y Oportunidad TAT / Semáforo, Financiero / Liquidación y Productividad, y Agentes y Servidores PACS.
+        * **Módulo Ecografías:** Contiene Producción detallada de Ecografías, Consentimientos informados y plantillas, y Atención de procedimientos.
+        * **Módulo Oftalmología:** Contiene Producción detallada de exámenes oftalmológicos (campimetrías, biometrías, paquimetrías, OCT), diagnóstico ocular y agenda médica.
+        * **Citas y Gestión General (Transversal):** Ausentismo y cancelaciones (No-Show), Estadísticas de citas WhatsApp y HelpDesk.
+      - *Filtrado Reactivo:* Cada pestaña y sección se condiciona mediante `tieneAccesoModulo(moduloNombre)` contra `usuarioactual.modulos`. Los roles `Administrador`, `Super Administrador`, `Reportes` y `Estadistico` acceden a la totalidad de módulos para auditoría general.
+      - *Auto-Selección Inteligente:* En `onMounted`, se detecta automáticamente el primer módulo autorizado del usuario y se activa de inmediato (por ejemplo, si un usuario tiene únicamente asignado el módulo `Ecografias`, la pantalla abre directamente en la pestaña de Ecografías y no visualiza opciones de Rx ni Oftalmología).
+      - *Modal Dinámico con Filtrado de Especialistas:* `abrirModalProduccion(tipo)` actualiza el título del modal según el módulo (sin negritas en cabecera) y recarga de inmediato los médicos y asignadores del módulo específico vía `listarUsuariosYSedes` (módulo 1 para Rx, módulo 2 para Ecografías, módulo 3 para Oftalmología).
+    * **3. Soporte Completo en Backend para Módulo Oftalmología:**
+      - Se actualizó `app/Http/Requests/Reportes/ReporteProduccionRequest.php` permitiendo `tipo` en `Rx,Ecografia,Oftalmologia`.
+      - Se creó el exportador multi-hoja `app/Exports/ProduccionDetalladaOftalmologiaExport.php` con su hoja ejecutiva de estadísticas `ProduccionDetalladaOftalmologiaEstadisticasSheet.php` (4 KPIs, top 10 exámenes oftalmológicos, ranking de oftalmólogos, gráficos de columnas y torta) y su hoja de detalle `ProduccionDetalladaOftalmologiaDetalleSheet.php`.
+      - Se integró la descarga en `app/Services/Reportes/ReporteProduccionService.php` (`generateReporteDetallado`).
+  - **Verificaciones:**
+    * ESLint y Prettier 100% pasados en `reporteProduccionComponent.vue` ✅.
+    * Compilación Vite completada sin advertencias (`npm run build` en 1.19s) ✅.
+    * Laravel Pint 100% passed (`vendor\bin\pint.bat --test`) ✅.
+    * Larastan / PHPStan nivel 5: `61/61 [100%] [OK] No errors` en todos los archivos del módulo de reportes ✅.
+    * Finales de línea normalizados a LF y UTF-8 sin BOM ✅.
+
 - [x] **2026-11-06 — Corrección y Blindaje de Parámetros de Enlace al Visor Oviyam en Asignar Estudios y Cabecera de Sedes (`userProfileAndSearchComponent.vue`, `AsignarEstudioComponent.vue`, `useEstudioHelpers.js`, `teleRadiologiaEnviarEstudioComponent.vue`, `teleRadiologiaTranscibirComponent.vue`):**
   - **Diagnóstico y Reporte del Usuario:**
     * El usuario reportó: *"mira la funcion verImagenItem, esta generando el link https://lidiag.com/undefined?patientID=93135601&studyUID=1.2.276.0.7230010.3.0.3.5.1.16341473.354507027&serverName=undefined con 2 parametros como undefined"*.

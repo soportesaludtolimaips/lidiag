@@ -32,12 +32,12 @@ class ReporteProduccionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'tipo' => 'required|in:Rx,Ecografia',
-            'fechaIni' => 'required|date',
-            'fechaFin' => 'required|date|after_or_equal:fechaIni',
-            'sedeId' => 'nullable',
-            'quien_asigno' => 'nullable',
-            'medico' => 'nullable',
+            "tipo" => "required|in:Rx,Ecografia,Oftalmologia",
+            "fechaIni" => "required|date",
+            "fechaFin" => "required|date|after_or_equal:fechaIni",
+            "sedeId" => "nullable",
+            "quien_asigno" => "nullable",
+            "medico" => "nullable",
         ];
     }
 
