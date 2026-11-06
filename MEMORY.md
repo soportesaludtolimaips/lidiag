@@ -37,6 +37,14 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-06 — Hotfix: Sanitización ASCII y Fin de Líneas en Scripts `.bat` (`instalar_tareas_sede.bat`, `install.bat`):**
+  - **Diagnóstico del Error en Consola:**
+    * El usuario compartió la salida de error: `"d" no se reconoce... "cho" no se reconoce... "ho" no se reconoce... No se esperaba . en este momento.`
+    * En el intérprete CMD de Windows, incluir caracteres UTF-8 multibyte (como el guion largo `—`, signos `¿`, o vocales con tilde) corrompe el puntero de bytes en bloques `if/else`, haciendo que los comandos se lean a mitad de palabra (`cd` -> `d`, `echo` -> `cho`/`ho`, `echo.` -> `.`).
+    * Además, el uso de etiquetas de comentario estilo doble dos puntos `::` tras o dentro de bloques con paréntesis provoca errores sintácticos de salto.
+  - **Solución Aplicada:**
+    * Se normalizaron [instalar_tareas_sede.bat](file:///c:/laragon/www/lidiag/storage/app_lidiag/agente_backups_dcm/instalar_tareas_sede.bat) e [install.bat](file:///c:/laragon/www/lidiag/storage/app_lidiag/agente_backups_dcm/install.bat) a codificación ASCII de 7 bits pura, finales de línea CRLF obligatorios para Windows, comentarios estrictos con `REM` y sin caracteres Unicode multibyte.
+    * Probado en Windows CMD con éxito: registra limpiamente las 4 tareas en Programador de Tareas.
 - [x] **2026-11-06 — Automatización y Registro de las 4 Tareas de Sede (`instalar_tareas_sede.bat`, `install.bat`):**
   - **Diagnóstico del Requerimiento:**
     * El usuario señaló que en el servidor de sede (Espinal) solo existía la tarea `LiDiag_Backup_DB_DCM` y solicitó que `instalar_tareas_sede.bat` cree automáticamente las tareas para `ejecutar_dosimetria.bat`, `ejecutar_disk_monitor.bat` y los demás agentes.

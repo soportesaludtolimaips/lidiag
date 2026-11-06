@@ -1,15 +1,15 @@
 @echo off
-chcp 65001 >nul
+setlocal EnableExtensions
 title LIDiag - Instalador de Tareas Automatizadas PACS DCM
 
 cd /d "%~dp0"
 
 echo =========================================================================
-echo    LIDiag — Instalador de Tareas Automatizadas PACS DCM por Sede
+echo    LIDiag - Instalador de Tareas Automatizadas PACS DCM por Sede
 echo =========================================================================
 echo.
 
-:: 1. Verificar y auto-elevar permisos de Administrador si es necesario
+REM 1. Verificar y auto-elevar permisos de Administrador si es necesario
 net session >nul 2>&1
 if %errorLevel% neq 0 (
     echo [SOLICITANDO ELEVACION] Este instalador requiere privilegios de Administrador.
@@ -18,7 +18,7 @@ if %errorLevel% neq 0 (
     exit /b
 )
 
-:: 2. Verificar existencia de config.json
+REM 2. Verificar existencia de config.json
 if not exist "%~dp0config.json" (
     echo [ADVERTENCIA] No se encontro "config.json" en: %~dp0
     if exist "%~dp0config.json.example" (
@@ -36,7 +36,7 @@ if not exist "%~dp0config.json" (
     )
 )
 
-:: 3. Definicion de rutas absolutas de cada agente
+REM 3. Definicion de nombres y rutas de cada agente
 set "TASK_DB=LIDiag_Backup_DB_DCM"
 set "BAT_DB=%~dp0ejecutar_backup_db.bat"
 
@@ -49,7 +49,7 @@ set "BAT_DOSI=%~dp0ejecutar_dosimetria.bat"
 set "TASK_DISK=LIDiag_Disk_Monitor_DCM"
 set "BAT_DISK=%~dp0ejecutar_disk_monitor.bat"
 
-:: 4. Validar existencia fisica de los scripts ejecutables .bat
+REM 4. Validar existencia de scripts ejecutables
 if not exist "%BAT_DB%" (
     echo [ERROR] No existe el script: %BAT_DB%
     pause
@@ -71,62 +71,70 @@ if not exist "%BAT_DISK%" (
     exit /b 1
 )
 
-:: Limpiar tareas con nombres antiguos o variantes en caso de existir
+REM Limpiar tareas con nombres antiguos en caso de existir
 schtasks /delete /tn "LiDiag_Backup_DB_DCM" /f >nul 2>&1
 
-echo Registrando las 4 tareas operativas en el Programador de Tareas de Windows:
+echo Registrando las 4 tareas operativas en el Programador de Tareas:
 echo -------------------------------------------------------------------------
 
-:: TAREA 1: Respaldo MySQL diario de base de datos DCM (02:00 AM)
+REM TAREA 1: Respaldo MySQL diario de base de datos DCM (02:00 AM)
 echo [1/4] Registrando tarea de Base de Datos MySQL: %TASK_DB%...
 schtasks /create /tn "%TASK_DB%" /tr "\"%BAT_DB%\"" /sc DAILY /st 02:00 /ru "SYSTEM" /rl HIGHEST /f >nul 2>&1
+if %errorLevel% neq 0 (
+    schtasks /create /tn "%TASK_DB%" /tr "%BAT_DB%" /sc DAILY /st 02:00 /ru "SYSTEM" /rl HIGHEST /f >nul 2>&1
+)
 if %errorLevel% equ 0 (
     echo       [OK] Programada diariamente a las 02:00 AM bajo SYSTEM.
 ) else (
-    echo       [FALLO] Intentando sin comillas de escape...
-    schtasks /create /tn "%TASK_DB%" /tr "%BAT_DB%" /sc DAILY /st 02:00 /ru "SYSTEM" /rl HIGHEST /f
+    echo       [ERROR] No se pudo crear la tarea %TASK_DB%.
 )
 
 echo.
-:: TAREA 2: Sincronizacion continua de imagenes DICOM (Inicio del sistema ONSTART)
+REM TAREA 2: Sincronizacion continua de imagenes DICOM (Inicio de Windows ONSTART)
 echo [2/4] Registrando tarea de Sincronizacion Continua de Imagenes: %TASK_IMG%...
 schtasks /create /tn "%TASK_IMG%" /tr "\"%BAT_IMG%\"" /sc ONSTART /delay 0001:00 /ru "SYSTEM" /rl HIGHEST /f >nul 2>&1
 if %errorLevel% neq 0 (
     schtasks /create /tn "%TASK_IMG%" /tr "\"%BAT_IMG%\"" /sc ONSTART /ru "SYSTEM" /rl HIGHEST /f >nul 2>&1
 )
+if %errorLevel% neq 0 (
+    schtasks /create /tn "%TASK_IMG%" /tr "%BAT_IMG%" /sc ONSTART /ru "SYSTEM" /rl HIGHEST /f >nul 2>&1
+)
 if %errorLevel% equ 0 (
     echo       [OK] Programada para iniciar con Windows (ONSTART) bajo SYSTEM.
 ) else (
-    echo       [FALLO] Reintentando registro basico...
-    schtasks /create /tn "%TASK_IMG%" /tr "%BAT_IMG%" /sc ONSTART /ru "SYSTEM" /rl HIGHEST /f
+    echo       [ERROR] No se pudo crear la tarea %TASK_IMG%.
 )
 
 echo.
-:: TAREA 3: Extraccion y telemetria de Dosimetria Radiologica Edge (Cada hora a las :15)
+REM TAREA 3: Extraccion y telemetria de Dosimetria Radiologica Edge (Cada 1 hora a las :15)
 echo [3/4] Registrando tarea de Dosimetria Radiologica Edge: %TASK_DOSI%...
 schtasks /create /tn "%TASK_DOSI%" /tr "\"%BAT_DOSI%\"" /sc HOURLY /mo 1 /st 00:15 /ru "SYSTEM" /rl HIGHEST /f >nul 2>&1
 if %errorLevel% neq 0 (
     schtasks /create /tn "%TASK_DOSI%" /tr "\"%BAT_DOSI%\"" /sc HOURLY /mo 1 /ru "SYSTEM" /rl HIGHEST /f >nul 2>&1
 )
+if %errorLevel% neq 0 (
+    schtasks /create /tn "%TASK_DOSI%" /tr "%BAT_DOSI%" /sc HOURLY /mo 1 /ru "SYSTEM" /rl HIGHEST /f >nul 2>&1
+)
 if %errorLevel% equ 0 (
     echo       [OK] Programada para ejecutarse cada 1 hora bajo SYSTEM.
 ) else (
-    echo       [FALLO] Reintentando registro basico...
-    schtasks /create /tn "%TASK_DOSI%" /tr "%BAT_DOSI%" /sc HOURLY /mo 1 /ru "SYSTEM" /rl HIGHEST /f
+    echo       [ERROR] No se pudo crear la tarea %TASK_DOSI%.
 )
 
 echo.
-:: TAREA 4: Auditoria y telemetria de Discos y Almacenamiento PACS (Cada 30 minutos a las :05)
+REM TAREA 4: Auditoria y telemetria de Discos y Almacenamiento PACS (Cada 30 min a las :05)
 echo [4/4] Registrando tarea de Monitoreo de Almacenamiento PACS: %TASK_DISK%...
 schtasks /create /tn "%TASK_DISK%" /tr "\"%BAT_DISK%\"" /sc MINUTE /mo 30 /st 00:05 /ru "SYSTEM" /rl HIGHEST /f >nul 2>&1
 if %errorLevel% neq 0 (
     schtasks /create /tn "%TASK_DISK%" /tr "\"%BAT_DISK%\"" /sc MINUTE /mo 30 /ru "SYSTEM" /rl HIGHEST /f >nul 2>&1
 )
+if %errorLevel% neq 0 (
+    schtasks /create /tn "%TASK_DISK%" /tr "%BAT_DISK%" /sc MINUTE /mo 30 /ru "SYSTEM" /rl HIGHEST /f >nul 2>&1
+)
 if %errorLevel% equ 0 (
     echo       [OK] Programada para ejecutarse cada 30 minutos bajo SYSTEM.
 ) else (
-    echo       [FALLO] Reintentando registro basico...
-    schtasks /create /tn "%TASK_DISK%" /tr "%BAT_DISK%" /sc MINUTE /mo 30 /ru "SYSTEM" /rl HIGHEST /f
+    echo       [ERROR] No se pudo crear la tarea %TASK_DISK%.
 )
 
 echo.
@@ -139,13 +147,13 @@ schtasks /query /tn "%TASK_DOSI%" /fo TABLE /nh 2>nul
 schtasks /query /tn "%TASK_DISK%" /fo TABLE /nh 2>nul
 
 echo =========================================================================
-echo [COMPLETADO] Las 4 tareas operan de forma 100%% autonoma bajo SYSTEM.
+echo [COMPLETADO] Las 4 tareas operan de forma autonoma bajo SYSTEM.
 echo (Nota: ejecutar_restore_imagenes.bat es una herramienta manual para
 echo  recuperacion de desastres y no requiere tarea programada).
 echo =========================================================================
 echo.
 
-echo ¿Deseas ejecutar ahora una prueba del Monitor de Discos para enviar telemetria? (S/N)
+echo Deseas ejecutar ahora una prueba del Monitor de Discos para enviar telemetria? (S/N)
 set /p "TEST_DISK=Opcion: "
 if /i "%TEST_DISK%"=="S" (
     echo Ejecutando monitor de almacenamiento...
@@ -153,11 +161,11 @@ if /i "%TEST_DISK%"=="S" (
 )
 
 echo.
-echo ¿Deseas iniciar la sincronizacion continua de imagenes ahora mismo? (S/N)
+echo Deseas iniciar la sincronizacion continua de imagenes ahora mismo? (S/N)
 set /p "INICIAR=Opcion: "
 if /i "%INICIAR%"=="S" (
     schtasks /run /tn "%TASK_IMG%" >nul 2>&1
-    echo [OK] Tarea de sincronizacion de imagenes enviada a ejecucion en segundo plano.
+    echo [OK] Tarea de sincronizacion de imagenes iniciada en segundo plano.
 )
 
 echo.

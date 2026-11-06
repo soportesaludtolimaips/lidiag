@@ -4,11 +4,11 @@ title LIDiag - Instalador de Dependencias del Agente PACS DCM
 cd /d "%~dp0"
 
 echo =========================================================================
-echo    LIDiag — Instalador de Dependencias del Paquete de Agentes PACS DCM
+echo    LIDiag - Instalador de Dependencias del Paquete de Agentes PACS DCM
 echo =========================================================================
 echo.
 
-:: 1. Verificar si Python esta disponible en el PATH
+REM 1. Verificar si Python esta disponible en el PATH
 where python >nul 2>&1
 if %errorlevel% neq 0 (
     echo [ERROR CRITICO] Python no esta instalado o no se encuentra en el PATH.
@@ -23,11 +23,11 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-:: Mostrar version detectada de Python
+REM Mostrar version detectada de Python
 for /f "tokens=*" %%v in ('python --version 2^>^&1') do set "PY_VER=%%v"
 echo [OK] Entorno Python detectado: %PY_VER%
 
-:: 2. Asegurar existencia de directorio de bitacoras
+REM 2. Asegurar existencia de directorio de bitacoras
 if not exist "logs" (
     mkdir "logs"
     echo [OK] Directorio de bitacoras creado: logs\
@@ -73,7 +73,7 @@ echo      - Sincronizacion Continua de Imagenes (ONSTART)
 echo      - Dosimetria Radiologica Edge (cada hora)
 echo      - Monitor de Discos y Almacenamiento (cada 30 min)
 echo.
-echo ¿Deseas registrar las 4 tareas de Windows ahora mismo en este servidor? (S/N)
+echo Deseas registrar las 4 tareas de Windows ahora mismo en este servidor? (S/N)
 set /p "REG_TAREAS=Opcion: "
 if /i "%REG_TAREAS%"=="S" (
     call "%~dp0instalar_tareas_sede.bat"
