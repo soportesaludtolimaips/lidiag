@@ -197,20 +197,6 @@
                                 <span class="badge badge-danger mr-2" v-if="conteoSinLectura > 0">
                                     {{ conteoSinLectura }} sin lectura
                                 </span>
-                                <button
-                                    type="button"
-                                    class="btn btn-sm btn-rounded"
-                                    :class="isDarkMode ? 'btn-warning' : 'btn-outline-secondary'"
-                                    @click="toggleDarkMode"
-                                    :title="
-                                        isDarkMode
-                                            ? 'Cambiar a Modo Claro'
-                                            : 'Cambiar a Modo Oscuro (Lectura)'
-                                    "
-                                >
-                                    <i :class="isDarkMode ? 'fa fa-sun-o' : 'fa fa-moon-o'"></i>
-                                    {{ isDarkMode ? "Modo Claro" : "Modo Oscuro" }}
-                                </button>
                             </div>
                         </div>
 
@@ -441,18 +427,6 @@
                         >
                             <i :class="isZenMode ? 'fa fa-compress' : 'fa fa-expand'"></i>
                             {{ isZenMode ? "Normal" : "Zen" }}
-                        </button>
-                        <button
-                            type="button"
-                            class="btn btn-xs btn-outline-light m-r-10"
-                            @click="toggleDarkMode"
-                            :title="isDarkMode ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Oscuro'"
-                            style="padding: 2px 8px; font-size: 11px; border-radius: 12px"
-                        >
-                            <i
-                                :class="isDarkMode ? 'fa fa-sun-o text-warning' : 'fa fa-moon-o'"
-                            ></i>
-                            {{ isDarkMode ? "Claro" : "Oscuro" }}
                         </button>
                         <button
                             type="button"
@@ -775,11 +749,9 @@ const actualizar = ref(false);
 const sidebarVisible = ref(false);
 
 const isDarkMode = ref(localStorage.getItem("lidiag_dark_mode") === "true");
-
-function toggleDarkMode() {
-    isDarkMode.value = !isDarkMode.value;
-    localStorage.setItem("lidiag_dark_mode", isDarkMode.value ? "true" : "false");
-}
+const onThemeChanged = (val) => {
+    isDarkMode.value = !!val;
+};
 
 const isZenMode = ref(false);
 
@@ -1360,6 +1332,7 @@ onMounted(async () => {
     listarMedicos();
     establecerSede();
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
+    emitter.on("lidiagThemeChanged", onThemeChanged);
     if (!busqueda.value.sede_id && emitter) {
         emitter.emit("solicitarSedeActiva");
     }
@@ -1375,6 +1348,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
     emitter.off("sedeSeleccionada", onSedeSeleccionada);
+    emitter.off("lidiagThemeChanged", onThemeChanged);
     destroyDataTable();
 });
 </script>

@@ -15,6 +15,6 @@
     <!-- Quick Search / Command Palette (Ctrl+K) -->
     <!-- ============================================================== -->
     <li class="nav-item d-flex align-items-center ml-2">
-        <command-palette-component />
+        <command-palette-component :permisos='@json(Auth::user() ? Auth::user()->getAllPermissions()->pluck("name")->values()->toArray() : [])' />
     </li>
 </ul>

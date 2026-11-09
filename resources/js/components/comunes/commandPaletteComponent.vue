@@ -114,7 +114,7 @@ import { useAuth } from "../../composables/useAuth";
 const auth = useAuth();
 const router = useRouter();
 
-defineProps({
+const props = defineProps({
     permisos: { type: Array, default: () => [] },
 });
 
@@ -204,7 +204,7 @@ const todosLosModulos = [
         categoria: "Tele-Radiología",
         url: "/tele-radiologia",
         icono: "fa fa-cloud-upload",
-        permiso: "tele.ragiologia.index|tele.ragiologia.enviar|estudio.asignar",
+        permiso: "tele.ragiologia.index|tele.ragiologia.enviar",
     },
     {
         id: "teleradiologia-transcribir",
@@ -212,7 +212,7 @@ const todosLosModulos = [
         categoria: "Tele-Radiología",
         url: "/tele-radiologia-transcribir",
         icono: "fa fa-pencil-square-o",
-        permiso: "tele.ragiologia.transcribir|estudio.transcribir",
+        permiso: "tele.ragiologia.transcribir",
     },
 
     // Control Radiación / Dosimetría (Res. 482)
@@ -240,7 +240,7 @@ const todosLosModulos = [
         categoria: "Ecografías",
         url: "/ecografias.admisionadas",
         icono: "fa fa-list-alt",
-        permiso: "ecografias.index|ecografias.admision",
+        permiso: "ecografias.index|ecografias.leer",
     },
     {
         id: "ecografias-leer",
@@ -577,16 +577,56 @@ const todosLosModulos = [
 ];
 
 /**
- * Filtra módulos accesibles según el término de búsqueda y permisos del usuario
+ * Evalúa si el usuario autenticado tiene acceso a un módulo específico.
+ * Valida primero contra el composable reactivo useAuth (permisos Spatie y roles)
+ * y respalda con la prop permisos si fue provista.
+ */
+function tieneAcceso(item) {
+    if (!item) return false;
+
+    // Si no requiere permiso específico (Dashboard, Mi Perfil), basta con que esté autenticado
+    if (!item.permiso) {
+        return auth.isAuthenticated.value;
+    }
+
+    // 1. Verificación reactiva a través del composable useAuth
+    if (auth.can(item.permiso)) {
+        return true;
+    }
+
+    // 2. Fallback a props.permisos si fueron inyectados directamente
+    const propPerms = props.permisos || [];
+    if (propPerms.length > 0) {
+        if (item.permiso.includes("|")) {
+            const orPerms = item.permiso.split("|").map((p) => p.trim());
+            return orPerms.some((p) => propPerms.includes(p));
+        }
+        if (item.permiso.includes("&")) {
+            const andPerms = item.permiso.split("&").map((p) => p.trim());
+            return andPerms.every((p) => propPerms.includes(p));
+        }
+        return propPerms.includes(item.permiso);
+    }
+
+    return false;
+}
+
+/**
+ * Catálogo filtrado: únicamente módulos a los cuales el usuario tiene acceso
+ */
+const modulosPermitidos = computed(() => {
+    return todosLosModulos.filter((item) => tieneAcceso(item));
+});
+
+/**
+ * Filtra los módulos autorizados según el término de búsqueda
  */
 const resultadosFiltrados = computed(() => {
+    const permitidos = modulosPermitidos.value;
     const q = (termino.value || "").trim().toLowerCase();
-    const modulosPermitidos = todosLosModulos.filter(
-        (item) => !item.permiso || auth.can(item.permiso)
-    );
-    if (!q) return modulosPermitidos.slice(0, 10);
+    if (!q) return permitidos.slice(0, 10);
 
-    return modulosPermitidos
+    return permitidos
         .filter((item) => {
             return (
                 item.titulo.toLowerCase().includes(q) || item.categoria.toLowerCase().includes(q)
@@ -599,6 +639,14 @@ function abrirPalette() {
     modalVisible.value = true;
     termino.value = "";
     indiceSeleccionado.value = 0;
+    // Si el usuario está autenticado pero sus permisos no se han hidratado, refrescar
+    if (
+        auth.isAuthenticated.value &&
+        auth.permissions.value.length === 0 &&
+        typeof auth.fetchUser === "function"
+    ) {
+        auth.fetchUser();
+    }
     nextTick(() => {
         if (inputBusqueda.value) {
             inputBusqueda.value.focus();

@@ -58,7 +58,7 @@
                     </li>
                     <!-- Quick Search / Command Palette (Ctrl+K) -->
                     <li class="nav-item d-flex align-items-center ml-2">
-                        <command-palette-component />
+                        <command-palette-component :permisos="permissions" />
                     </li>
                 </ul>
 
@@ -75,7 +75,7 @@
 <script setup>
 import { useAuth } from "../composables/useAuth";
 
-const { user } = useAuth();
+const { user, permissions } = useAuth();
 
 function toggleMiniSidebar() {
     if (typeof document === "undefined") return;

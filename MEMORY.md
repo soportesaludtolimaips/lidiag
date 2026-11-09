@@ -37,6 +37,22 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Cobertura Universal de Modo Oscuro en Drawers y Paneles Laterales (`dark-theme.css`, `teleRadiologiaTranscibirComponent.vue`):**
+  - **Problema:** El usuario reportó que el modo oscuro global (activado desde el botón de la cabecera) no se propagaba adecuadamente a los paneles laterales y drawers (`.right-sidebar`), provocando que elementos internos (tarjetas, tablas, Select2, inputs, fondos y títulos) se visualizaran en blanco o con contrastes deficientes. Adicionalmente, se solicitó retirar el botón local de modo oscuro en Tele-Radiología Transcribir.
+  - **Solución Implementada:**
+    * **Eliminación de Botones Locales:** En [`teleRadiologiaTranscibirComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/tele-radiologia/teleRadiologiaTranscibirComponent.vue) se retiraron los botones redundantes de la barra de filtros y del encabezado del drawer de transcripción, acoplándolo limpiamente al listener del tema global (`lidiagThemeChanged`).
+    * **Hoja Global de Estilos ([`dark-theme.css`](file:///c:/laragon/www/lidiag/resources/css/dark-theme.css)):**
+      - Cobertura completa para todos los `.right-sidebar` y `.slimscrollright` de la plataforma bajo `body.theme-dark`.
+      - Estilización en gris carbón/slate clínico de encabezados (`.rpanel-title`, títulos h1-h6, `.card-title`, botones de cierre `.ti-close`).
+      - Cobertura total de formularios dentro de drawers: inputs, selects, textareas, `.input-group-addon` y estados disabled/readonly.
+      - Soporte universal de **Select2 en Modo Oscuro** (contenedores, dropdowns, opciones resaltadas y campos de búsqueda).
+      - Estilización de tarjetas (`.card`), contenedores con `.bg-light`/`.bg-white`, alertas (`.alert-*`), listas (`.list-group-item`), pestañas (`.nav-tabs`) y tablas (`.table`, `.table-striped`, `.table-bordered`).
+      - Soporte para barras de herramientas y sandboxes de editores WYSIHTML5 en drawers.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios en componentes frontend ✅.
+    * Vite build (`npm run build`) completado con éxito en 1.29s ✅.
+    * Limpieza de caché de vistas en Laravel (`php artisan view:clear`) ✅.
+
 - [x] **2026-11-09 — Habilitación de Búsqueda y Selección de Diagnósticos en Tele-Radiología para Sedes sin Interfaz (`teleRadiologiaEnviarEstudioComponent.vue`):**
   - **Problema:** En el drawer de `https://lidiag.test/tele-radiologia`, cuando una sede no cuenta con interfaz SAHI (`sedeInterface === false`), no se mostraba el combo de búsqueda ni la tabla de selección de diagnósticos, impidiendo asociar diagnósticos CIE al estudio y a la orden.
   - **Solución Implementada:**

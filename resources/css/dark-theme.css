@@ -491,11 +491,19 @@ body.theme-dark .sidebar-backdrop {
     background: rgba(0, 0, 0, 0.65) !important;
 }
 
-/* Modales y Paneles Laterales Right-Sidebar (Dark Mode) */
+/* ============================================================== */
+/* Modales y Paneles Laterales Right-Sidebar / Drawers (Dark Mode) */
+/* ============================================================== */
 body.theme-dark .right-sidebar {
     background: #181a20 !important;
     color: #e2e8f0 !important;
-    box-shadow: -5px 0 35px rgba(0, 0, 0, 0.5) !important;
+    box-shadow: -5px 0 35px rgba(0, 0, 0, 0.65) !important;
+    border-left: 1px solid #2d3343 !important;
+}
+
+body.theme-dark .right-sidebar .slimscrollright {
+    background: transparent !important;
+    color: #e2e8f0 !important;
 }
 
 body.theme-dark .right-sidebar .rpanel-title {
@@ -504,9 +512,279 @@ body.theme-dark .right-sidebar .rpanel-title {
     border-bottom: 1px solid #2d3343 !important;
 }
 
+body.theme-dark .right-sidebar .rpanel-title span,
+body.theme-dark .right-sidebar .rpanel-title h4,
+body.theme-dark .right-sidebar .rpanel-title h5,
+body.theme-dark .right-sidebar .rpanel-title .ti-close,
+body.theme-dark .right-sidebar .rpanel-title .right-side-toggle {
+    color: #f1f5f9 !important;
+}
+
 body.theme-dark .right-sidebar .r-panel-body {
     background: #181a20 !important;
     color: #e2e8f0 !important;
+}
+
+body.theme-dark .right-sidebar hr {
+    border-top: 1px solid #2d3343 !important;
+    border-bottom: none !important;
+}
+
+/* Tipografía y encabezados en Drawers */
+body.theme-dark .right-sidebar h1,
+body.theme-dark .right-sidebar h2,
+body.theme-dark .right-sidebar h3,
+body.theme-dark .right-sidebar h4,
+body.theme-dark .right-sidebar h5,
+body.theme-dark .right-sidebar h6,
+body.theme-dark .right-sidebar .card-title,
+body.theme-dark .right-sidebar .box-title {
+    color: #f1f5f9 !important;
+}
+
+body.theme-dark .right-sidebar dt,
+body.theme-dark .right-sidebar label,
+body.theme-dark .right-sidebar .control-label {
+    color: #cbd5e1 !important;
+}
+
+body.theme-dark .right-sidebar dd,
+body.theme-dark .right-sidebar p,
+body.theme-dark .right-sidebar span:not(.badge):not(.label):not(.btn),
+body.theme-dark .right-sidebar li:not(.nav-item) {
+    color: #e2e8f0 !important;
+}
+
+body.theme-dark .right-sidebar .text-muted {
+    color: #94a3b8 !important;
+}
+
+body.theme-dark .right-sidebar .text-dark {
+    color: #f8fafc !important;
+}
+
+/* Formularios e Inputs dentro de Drawers */
+body.theme-dark .right-sidebar .form-control,
+body.theme-dark .right-sidebar select,
+body.theme-dark .right-sidebar textarea,
+body.theme-dark .right-sidebar input[type="text"],
+body.theme-dark .right-sidebar input[type="date"],
+body.theme-dark .right-sidebar input[type="time"],
+body.theme-dark .right-sidebar input[type="number"],
+body.theme-dark .right-sidebar input[type="email"],
+body.theme-dark .right-sidebar input[type="password"] {
+    background-color: #222632 !important;
+    color: #f8fafc !important;
+    border: 1px solid #3b4254 !important;
+}
+
+body.theme-dark .right-sidebar .form-control:focus,
+body.theme-dark .right-sidebar select:focus,
+body.theme-dark .right-sidebar textarea:focus,
+body.theme-dark .right-sidebar input:focus {
+    background-color: #262b38 !important;
+    border-color: #00bcd4 !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 0 0.2rem rgba(0, 188, 212, 0.25) !important;
+}
+
+body.theme-dark .right-sidebar .form-control:disabled,
+body.theme-dark .right-sidebar .form-control[readonly],
+body.theme-dark .right-sidebar input:disabled,
+body.theme-dark .right-sidebar input[readonly] {
+    background-color: #1a1d26 !important;
+    color: #94a3b8 !important;
+    border-color: #2d3343 !important;
+}
+
+body.theme-dark .right-sidebar .input-group-addon,
+body.theme-dark .right-sidebar .input-group-text {
+    background-color: #222632 !important;
+    border-color: #3b4254 !important;
+    color: #cbd5e1 !important;
+}
+
+/* Tarjetas y Contenedores dentro de Drawers */
+body.theme-dark .right-sidebar .card,
+body.theme-dark .right-sidebar .card-body,
+body.theme-dark .right-sidebar .card-header,
+body.theme-dark .right-sidebar .card-footer {
+    background-color: #1e222d !important;
+    border-color: #2d3343 !important;
+    color: #e2e8f0 !important;
+}
+
+body.theme-dark .right-sidebar .bg-white,
+body.theme-dark .right-sidebar .bg-light,
+body.theme-dark .right-sidebar .bg-light-info,
+body.theme-dark .right-sidebar .bg-light-primary {
+    background-color: #1e222d !important;
+    color: #e2e8f0 !important;
+}
+
+body.theme-dark .right-sidebar .well,
+body.theme-dark .right-sidebar .alert-secondary,
+body.theme-dark .right-sidebar .alert-info {
+    background-color: #1e2638 !important;
+    border-color: #2d3b55 !important;
+    color: #93c5fd !important;
+}
+
+body.theme-dark .right-sidebar .alert-warning {
+    background-color: #2e2619 !important;
+    border-color: #554425 !important;
+    color: #fde047 !important;
+}
+
+body.theme-dark .right-sidebar .alert-danger {
+    background-color: #331c1e !important;
+    border-color: #59292c !important;
+    color: #fca5a5 !important;
+}
+
+body.theme-dark .right-sidebar .alert-success {
+    background-color: #162c23 !important;
+    border-color: #224d3c !important;
+    color: #86efac !important;
+}
+
+/* Tablas dentro de Drawers */
+body.theme-dark .right-sidebar .table {
+    background-color: transparent !important;
+    color: #e2e8f0 !important;
+    border-color: #2d3343 !important;
+}
+
+body.theme-dark .right-sidebar .table thead th {
+    background-color: #12141a !important;
+    color: #f1f5f9 !important;
+    border-color: #2d3343 !important;
+}
+
+body.theme-dark .right-sidebar .table tbody td,
+body.theme-dark .right-sidebar .table tbody th {
+    background-color: #181a20 !important;
+    color: #e2e8f0 !important;
+    border-color: #2d3343 !important;
+}
+
+body.theme-dark .right-sidebar .table-striped tbody tr:nth-of-type(odd) td {
+    background-color: #1e222d !important;
+}
+
+body.theme-dark .right-sidebar .table-hover tbody tr:hover td {
+    background-color: #242938 !important;
+    color: #ffffff !important;
+}
+
+body.theme-dark .right-sidebar .table-bordered,
+body.theme-dark .right-sidebar .table-bordered th,
+body.theme-dark .right-sidebar .table-bordered td {
+    border-color: #2d3343 !important;
+}
+
+/* Listas y Tabs dentro de Drawers */
+body.theme-dark .right-sidebar .list-group-item {
+    background-color: #1e222d !important;
+    border-color: #2d3343 !important;
+    color: #e2e8f0 !important;
+}
+
+body.theme-dark .right-sidebar .list-group-item.active {
+    background-color: #0284c7 !important;
+    border-color: #0284c7 !important;
+    color: #ffffff !important;
+}
+
+body.theme-dark .right-sidebar .nav-tabs {
+    border-bottom: 1px solid #2d3343 !important;
+}
+
+body.theme-dark .right-sidebar .nav-tabs .nav-link {
+    color: #94a3b8 !important;
+}
+
+body.theme-dark .right-sidebar .nav-tabs .nav-link.active {
+    background-color: #181a20 !important;
+    color: #38bdf8 !important;
+    border-color: #2d3343 #2d3343 #181a20 !important;
+}
+
+/* Editores WYSIHTML5 en Drawers */
+body.theme-dark .right-sidebar .wysihtml5-toolbar {
+    background: #222632 !important;
+    border-color: #3b4254 !important;
+    padding: 6px !important;
+    border-radius: 4px 4px 0 0 !important;
+}
+
+body.theme-dark .right-sidebar .wysihtml5-toolbar .btn {
+    background-color: #2d3343 !important;
+    border-color: #3b4254 !important;
+    color: #f1f5f9 !important;
+}
+
+body.theme-dark .right-sidebar .wysihtml5-toolbar .btn:hover {
+    background-color: #3b4254 !important;
+    color: #38bdf8 !important;
+}
+
+body.theme-dark .right-sidebar .wysihtml5-sandbox {
+    background: #181a20 !important;
+    border-color: #3b4254 !important;
+    color: #f1f5f9 !important;
+}
+
+/* Soporte Global para Select2 (en Drawers y Vistas) */
+body.theme-dark .select2-container--default .select2-selection--single,
+body.theme-dark .select2-container--default .select2-selection--multiple {
+    background-color: #222632 !important;
+    border-color: #3b4254 !important;
+    color: #f8fafc !important;
+}
+
+body.theme-dark .select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #f8fafc !important;
+}
+
+body.theme-dark .select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: #94a3b8 !important;
+}
+
+body.theme-dark .select2-container--default .select2-selection--single .select2-selection__arrow b {
+    border-color: #94a3b8 transparent transparent transparent !important;
+}
+
+body.theme-dark .select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
+    border-color: transparent transparent #94a3b8 transparent !important;
+}
+
+body.theme-dark .select2-dropdown {
+    background-color: #181a20 !important;
+    border-color: #3b4254 !important;
+    color: #f8fafc !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6) !important;
+}
+
+body.theme-dark .select2-dropdown .select2-search__field {
+    background-color: #222632 !important;
+    border-color: #3b4254 !important;
+    color: #f8fafc !important;
+}
+
+body.theme-dark .select2-results__option {
+    color: #e2e8f0 !important;
+}
+
+body.theme-dark .select2-container--default .select2-results__option--highlighted[aria-selected],
+body.theme-dark .select2-container--default .select2-results__option--highlighted {
+    background-color: #0284c7 !important;
+    color: #ffffff !important;
+}
+
+body.theme-dark .select2-container--default .select2-results__option[aria-selected="true"] {
+    background-color: #1e293b !important;
+    color: #38bdf8 !important;
 }
 
 /* Microinteracciones clínicas en botones asistenciales */
