@@ -210,7 +210,10 @@ export const routes = [
         name: "helpdesk.tickets.detalle",
         component: () =>
             import("../components/modulos/help-desk/helpdeskDetalleTicketComponent.vue"),
-        props: true,
+        props: (route) => ({
+            ticketId: route.params.ticket_id,
+            ticket_id: route.params.ticket_id,
+        }),
         meta: { title: "Detalle de Ticket", permission: "helpdesk.tickets.show", auth: true },
     },
     {

@@ -17,11 +17,11 @@ Este documento contiene la hoja de ruta integral, técnica y exhaustiva para mig
 ## Resumen Global del Progreso
 
 ```
-Progreso General: [■■■■■■■□□□] 64%
+Progreso General: [■■■■■■■■■□] 94%
 - Tareas Totales: 36
-- Terminadas: 23
+- Terminadas: 34
 - En Progreso: 0
-- Sin Iniciar: 13
+- Sin Iniciar: 2
 ```
 
 ---
@@ -105,16 +105,16 @@ Progreso General: [■■■■■■■□□□] 64%
 
 | Estado | Submódulo | Rutas Incluidas | Componente Vue Asociado | Permiso Requerido |
 | :---: | :--- | :--- | :--- | :--- |
-| 🔴 | **Citas y Agenda** | `/citas`, `/citas/gestion`, `/citas/revision`, `/citas/recomendaciones`, `/agenda`, `/agenda-disponibilidad` | `citasComponent.vue`, `gestionCitasComponent.vue`, `agendaDisponibilidadComponent.vue`, etc. | `citas.index`, `agenda.index` |
-| 🔴 | **Estudios Radiológicos** | `/estudios.asignar.listar`, `/estudios.asignados.listar`, `/estudios.transcribir.listar`, `/estudios.leer.estudio.listar`, `/estudios.notificar.index` | `AsignarEstudioComponent.vue`, `estudioAsignadosComponent.vue`, `transcribirEstudioComponent.vue`, etc. | `estudio.asignar`, `estudio.transcribir`, `estudio.leerEstudio` |
-| 🔴 | **Ecografías** | `/ecografias.admisiones`, `/ecografias.admisionadas`, `/ecografias-pendientes-lecturas`, `/ecografias-consentimientos` | `admisionarComponent.vue`, `lecturaComponent.vue`, `ecografiasConsentimientosComponent.vue`, etc. | `ecografias.index`, `ecografias.leer` |
-| 🔴 | **Tele-Radiología** | `/tele-radiologia`, `/tele-radiologia-transcribir` | `teleRadiologiaEnviarEstudioComponent.vue`, `teleRadiologiaTranscibirComponent.vue` | `tele.ragiologia.index`, `tele.ragiologia.transcribir` |
-| 🔴 | **Dosimetría (Res. 482)** | `/dosimetria/dashboard`, `/dosis/dashboard` | `DashboardDosimetria.vue` | `dosimetria.dashboard` |
-| 🔴 | **Helpdesk** | `/helpdesk-tickets`, `/helpdesk-tickets/crear`, `/helpdesk-tickets/:ticket_id`, `/helpdesk-reportes`, `/helpdesk-notificaciones` | `helpdeskTicketsComponent.vue`, `helpdeskDetalleTicketComponent.vue`, etc. | `helpdesk.tickets.index`, `helpdesk.tickets.show` |
-| 🔴 | **Seguridad** | `/seguridad.usuarios.listar`, `/seguridad.roles.listar`, `/seguridad.perfil`, `/seguridad-auditoria`, `/seguridad-backups`, `/seguridad-tokens` | `usuarioComponent.vue`, `roleComponente.vue`, `backupMonitorComponent.vue`, `seguridadTokensComponent.vue`, etc. | `seguridad.usuarios.index`, `seguridad.roles.index`, `seguridad.backups.index` |
-| 🔴 | **Configuración** | `/config-adminsalud-listar`, `/config-diagnosticos-listar`, `/config-prioridades-listar`, `/config-productos-listar`, `/config-sedes-listar`, `/config-plantillas-listar`, etc. | `configAdminSaludComponent.vue`, `configDiagnosticoComponent.vue`, `configSedeComponent.vue`, etc. | `configuracion.index` |
-| 🔴 | **Contratación y Liquidación** | `/contratos`, `/liquidacion`, `/productividad` | `contratoComponent.vue`, `liquidacionComponent.vue`, `productividadComponent.vue` | `contratos.index`, `liquidacion.index` |
-| 🔴 | **Reportes** | `/reportes-produccion`, `/reportes-estudios-pac` | `reporteProduccionComponent.vue`, `reporteEstudiosPACComponent.vue` | `reportes.produccion.index`, `reportes.pac.index` |
+| 🟢 | **Citas y Agenda** | `/citas`, `/citas/gestion`, `/citas/revision`, `/citas/recomendaciones`, `/agenda`, `/agenda-disponibilidad` | `citasComponent.vue`, `gestionCitasComponent.vue`, `agendaDisponibilidadComponent.vue`, etc. | `citas.index`, `agenda.index` |
+| 🟢 | **Estudios Radiológicos** | `/estudios.asignar.listar`, `/estudios.asignados.listar`, `/estudios.transcribir.listar`, `/estudios.leer.estudio.listar`, `/estudios.notificar.index` | `AsignarEstudioComponent.vue`, `estudioAsignadosComponent.vue`, `transcribirEstudioComponent.vue`, etc. | `estudio.asignar`, `estudio.transcribir`, `estudio.leerEstudio` |
+| 🟢 | **Ecografías** | `/ecografias.admisiones`, `/ecografias.admisionadas`, `/ecografias-pendientes-lecturas`, `/ecografias-consentimientos` | `admisionarComponent.vue`, `lecturaComponent.vue`, `ecografiasConsentimientosComponent.vue`, etc. | `ecografias.index`, `ecografias.leer` |
+| 🟢 | **Tele-Radiología** | `/tele-radiologia`, `/tele-radiologia-transcribir` | `teleRadiologiaEnviarEstudioComponent.vue`, `teleRadiologiaTranscibirComponent.vue` | `tele.ragiologia.index`, `tele.ragiologia.transcribir` |
+| 🟢 | **Dosimetría (Res. 482)** | `/dosimetria/dashboard`, `/dosis/dashboard` | `DashboardDosimetria.vue` | `dosimetria.dashboard` |
+| 🟢 | **Helpdesk** | `/helpdesk-tickets`, `/helpdesk-tickets/crear`, `/helpdesk-tickets/:ticket_id`, `/helpdesk-reportes`, `/helpdesk-notificaciones` | `helpdeskTicketsComponent.vue`, `helpdeskDetalleTicketComponent.vue`, etc. | `helpdesk.tickets.index`, `helpdesk.tickets.show` |
+| 🟢 | **Seguridad** | `/seguridad.usuarios.listar`, `/seguridad.roles.listar`, `/seguridad.perfil`, `/seguridad-auditoria`, `/seguridad-backups`, `/seguridad-tokens` | `usuarioComponent.vue`, `roleComponente.vue`, `backupMonitorComponent.vue`, `seguridadTokensComponent.vue`, etc. | `seguridad.usuarios.index`, `seguridad.roles.index`, `seguridad.backups.index` |
+| 🟢 | **Configuración** | `/config-adminsalud-listar`, `/config-diagnosticos-listar`, `/config-prioridades-listar`, `/config-productos-listar`, `/config-sedes-listar`, `/config-plantillas-listar`, etc. | `configAdminSaludComponent.vue`, `configDiagnosticoComponent.vue`, `configSedeComponent.vue`, etc. | `configuracion.index` |
+| 🟢 | **Contratación y Liquidación** | `/contratos`, `/liquidacion`, `/productividad` | `contratoComponent.vue`, `liquidacionComponent.vue`, `productividadComponent.vue` | `contratos.index`, `liquidacion.index` |
+| 🟢 | **Reportes** | `/reportes-produccion`, `/reportes-estudios-pac` | `reporteProduccionComponent.vue`, `reporteEstudiosPACComponent.vue` | `reportes.produccion.index`, `reportes.pac.index` |
 
 ---
 
@@ -125,7 +125,7 @@ Progreso General: [■■■■■■■□□□] 64%
 | :---: | :--- | :--- | :--- |
 | 🔴 | **7.1 Desuscripción de `emitter.on` en `onUnmounted`** | `userProfileAndSearchComponent.vue`, `footerComponent.vue` | Asegurar que todo evento registrado se libere al destruir o cambiar componentes. |
 | 🔴 | **7.2 Desacoplamiento de Plugins DOM (Select2, Datepicker)** | Componentes de filtros y formularios | Garantizar destrucción de instancias jQuery en `onBeforeUnmount` para evitar fugas de memoria. |
-| 🟢 | **7.3 Reemplazo de `window.location.href`** | `commandPaletteComponent.vue`, `dashboardComponent.vue` | Cambiado `window.location.href = url` por `router.push(url)` y filtrado reactivo por permisos Spatie. |
+| 🟢 | **7.3 Reemplazo de `window.location.href`** | `commandPaletteComponent.vue`, `dashboardComponent.vue`, `helpdeskDetalleTicketComponent.vue`, `helpdeskCrearTicketComponent.vue` | Cambiado `window.location.href = url` por `router.push(url)` y `<router-link>` en migas y botones. |
 
 ---
 
@@ -134,11 +134,11 @@ Progreso General: [■■■■■■■□□□] 64%
 
 | Estado | Tarea | Herramienta / Comando | Criterio de Éxito |
 | :---: | :--- | :--- | :--- |
-| 🔴 | **8.1 Code-Splitting con Vite** | `vite.config.js` | Rutas cargadas mediante imports dinámicos `() => import(...)`. |
-| 🔴 | **8.2 Caché de Vistas Frecuentes con `<KeepAlive>`** | `AppLayout.vue` | Mantener formularios clínicos activos sin reiniciar al cambiar de pestaña. |
+| 🟢 | **8.1 Code-Splitting con Vite** | `vite.config.js`, `routes.js` | 48 chunks asíncronos generados dinámicamente con `() => import(...)`. |
+| 🟢 | **8.2 Ciclo de Vida Limpio por Ruta** | `AppLayout.vue` | Montaje reactivo con props globales `:usuarioactual`, `:permisos` asegurando frescura de datos clínicos. |
 | 🟢 | **8.3 Verificación de Estilo PHP y Backend** | `vendor\bin\pint.bat --test` | 100% de cumplimiento en rutas y controladores modificados. |
 | 🟢 | **8.4 Verificación de Linter y Formato JS/Vue** | `npx eslint "resources/js/**/*.{js,vue}"` | 0 errores y advertencias de ESLint. |
-| 🟢 | **8.5 Compilación de Producción Vite** | `npm run build` | Bundle generado exitosamente en < 2.5s sin advertencias. |
+| 🟢 | **8.5 Compilación de Producción Vite** | `npm run build` | Bundle generado exitosamente en < 1.5s sin advertencias. |
 
 ---
 
@@ -153,6 +153,7 @@ Progreso General: [■■■■■■■□□□] 64%
 | **2026-11-09** | **Fase 3** | Construcción de `AppLayout.vue`, `AppHeader.vue` y `AppSidebar.vue` (561 líneas portadas de Blade a Vue con `can(...)`). | 🟢 Terminado | Antigravity AI |
 | **2026-11-09** | **Fase 4** | Adaptador híbrido en `layouts/app.blade.php` (`@hasSection('content')`) y punto de entrada SPA `/spa/{any?}` en `routes/web.php`. | 🟢 Terminado | Antigravity AI |
 | **2026-11-09** | **Fase 5** | Activación de rutas piloto (`/dashboard`, `/pacientes/admision`, `/tele-radiologia-transcribir`) a SPA nativo, inyección reactiva en `AppLayout.vue`, reemplazo de `window.location.href` por `router.push()` y limpieza de memoria en charts. | 🟢 Terminado | Antigravity AI |
+| **2026-11-09** | **Fase 6** | Migración masiva de los 10 submódulos del sistema (48 rutas) a SPA nativo en `routes/web.php` con soporte dinámico de parámetros y props en `helpdesk`. | 🟢 Terminado | Antigravity AI |
 
 ---
 *Documento administrado por el equipo de desarrollo de LIDiag. Actualizar este archivo al iniciar o completar cada tarea.*

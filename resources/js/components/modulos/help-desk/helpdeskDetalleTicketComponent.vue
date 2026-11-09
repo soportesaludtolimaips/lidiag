@@ -5,14 +5,16 @@
                 <h3 class="text-themecolor">Helpdesk</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a
-                            href="/helpdesk-tickets"
+                        <router-link
+                            to="/helpdesk-tickets"
                             style="vertical-align: baseline; text-decoration: none; color: inherit"
                         >
                             Tickets
-                        </a>
+                        </router-link>
                     </li>
-                    <li class="breadcrumb-item active">{{ ticket?.folio || "#" + ticketId }}</li>
+                    <li class="breadcrumb-item active">
+                        {{ ticket?.folio || "#" + (activeTicketId || "") }}
+                    </li>
                 </ol>
             </div>
             <div class="col-md-5 align-self-center text-right d-none d-md-block">
@@ -26,14 +28,14 @@
                     <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loading }"></i>
                     Refrescar
                 </button>
-                <a
-                    href="/helpdesk-tickets"
+                <router-link
+                    to="/helpdesk-tickets"
                     class="btn btn-inverse btn-sm"
                     tabindex="0"
                     title="Volver al listado de tickets"
                 >
                     <i class="fa fa-arrow-left"></i> Volver
-                </a>
+                </router-link>
             </div>
         </div>
 
@@ -285,6 +287,7 @@
 </template>
 <script setup>
 import { computed, onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
 import DOMPurify from "dompurify";
 import { toastMessage, confirmAction } from "@/helpers/alerts.js";
@@ -295,8 +298,13 @@ import { helpdesk } from "@/helpers/api.js";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 
 const props = defineProps({
-    ticketId: { type: [Number, String], required: true },
+    ticketId: { type: [Number, String], default: null },
 });
+
+const route = useRoute();
+const router = useRouter();
+
+const activeTicketId = computed(() => props.ticketId || route?.params?.ticket_id);
 
 const loading = ref(false);
 const savingComentario = ref(false);
@@ -336,7 +344,7 @@ function sanitize(dirty) {
 
 async function recargarTicket() {
     try {
-        const ticketRes = await helpdesk.ticket(props.ticketId);
+        const ticketRes = await helpdesk.ticket(activeTicketId.value);
         ticket.value = ticketRes.data?.data ?? ticketRes.data;
     } catch (_error) {
         toastMessage({
@@ -350,7 +358,7 @@ async function recargarTicket() {
 async function cargar() {
     loading.value = true;
     try {
-        const ticketRes = await helpdesk.ticket(props.ticketId);
+        const ticketRes = await helpdesk.ticket(activeTicketId.value);
         ticket.value = ticketRes.data?.data ?? ticketRes.data;
 
         const extractArray = (res) =>
@@ -392,7 +400,7 @@ async function comentar() {
     if (!nuevoComentario.value) return;
     savingComentario.value = true;
     try {
-        await helpdesk.comentar(props.ticketId, { comentario: nuevoComentario.value });
+        await helpdesk.comentar(activeTicketId.value, { comentario: nuevoComentario.value });
         nuevoComentario.value = "";
         toastMessage({ heading: "Listo", text: "Comentario agregado.", icon: "success" });
         await recargarTicket();
@@ -428,7 +436,7 @@ async function cambiarEstado() {
     if (!ok) return;
     savingEstado.value = true;
     try {
-        await helpdesk.cambiarEstado(props.ticketId, {
+        await helpdesk.cambiarEstado(activeTicketId.value, {
             estado_id: accion.value.estado_id,
             comentario: accion.value.comentario || null,
             descripcion_solucion: accion.value.descripcion_solucion || null,
@@ -458,7 +466,7 @@ async function reasignar() {
     if (!ok) return;
     savingReasignar.value = true;
     try {
-        await helpdesk.reasignar(props.ticketId, {
+        await helpdesk.reasignar(activeTicketId.value, {
             asignado_id: reasignacion.value.asignado_id,
             comentario: reasignacion.value.comentario,
         });
@@ -486,7 +494,7 @@ async function subirAdjuntos() {
         const fd = new FormData();
         rawFiles.forEach((f) => fd.append("files[]", f));
         fd.append("comentario", "Adjuntos agregados.");
-        await helpdesk.subirAdjuntos(props.ticketId, fd);
+        await helpdesk.subirAdjuntos(activeTicketId.value, fd);
         if (input) input.value = "";
         toastMessage({ heading: "Listo", text: "Adjuntos subidos.", icon: "success" });
         await recargarTicket();
@@ -501,6 +509,14 @@ async function subirAdjuntos() {
     }
 }
 
+function volver() {
+    if (router) {
+        router.push("/helpdesk-tickets");
+    } else {
+        window.location.href = "/helpdesk-tickets";
+    }
+}
+
 onMounted(async () => {
     await cargar();
 });
@@ -512,7 +528,7 @@ useKeyboardShortcuts({
         }
     },
     onEscape: () => {
-        window.location.href = "/helpdesk-tickets";
+        volver();
     },
 });
 </script>

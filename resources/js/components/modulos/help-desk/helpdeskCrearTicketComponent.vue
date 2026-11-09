@@ -14,12 +14,12 @@
                         </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a
-                            href="/helpdesk-tickets"
+                        <router-link
+                            to="/helpdesk-tickets"
                             style="vertical-align: baseline; text-decoration: none; color: inherit"
                         >
                             Tickets
-                        </a>
+                        </router-link>
                     </li>
                     <li class="breadcrumb-item active">Crear</li>
                 </ol>
@@ -148,15 +148,15 @@
                                         <i v-else class="fa fa-check"></i>
                                         Guardar
                                     </button>
-                                    <a
-                                        href="/helpdesk-tickets"
+                                    <router-link
+                                        to="/helpdesk-tickets"
                                         class="btn btn-inverse"
                                         :class="{ disabled: loading }"
                                         tabindex="0"
                                         title="Cancelar y volver"
                                     >
                                         Cancelar
-                                    </a>
+                                    </router-link>
                                 </div>
                             </div>
                         </form>
@@ -168,12 +168,15 @@
 </template>
 <script setup>
 import { nextTick, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 
 import { toastMessage } from "@/helpers/alerts.js";
 import { isHtmlEffectivelyEmpty } from "@/helpers/wysiwyg.js";
 import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import { helpdesk } from "@/helpers/api.js";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
+
+const router = useRouter();
 
 const loading = ref(false);
 const categorias = ref([]);
@@ -298,7 +301,11 @@ async function guardar() {
             text: `Se creó el ticket ${ticket.folio || "#" + ticket.id}.`,
             icon: "success",
         });
-        window.location.href = `/helpdesk-tickets/${ticket.id}`;
+        if (router) {
+            router.push(`/helpdesk-tickets/${ticket.id}`);
+        } else {
+            window.location.href = `/helpdesk-tickets/${ticket.id}`;
+        }
     } catch (_error) {
         toastMessage({
             heading: "Error",
@@ -310,6 +317,14 @@ async function guardar() {
     }
 }
 
+function volver() {
+    if (router) {
+        router.push("/helpdesk-tickets");
+    } else {
+        window.location.href = "/helpdesk-tickets";
+    }
+}
+
 useKeyboardShortcuts({
     onSave: () => {
         if (!loading.value) {
@@ -317,7 +332,7 @@ useKeyboardShortcuts({
         }
     },
     onEscape: () => {
-        window.location.href = "/helpdesk-tickets";
+        volver();
     },
 });
 

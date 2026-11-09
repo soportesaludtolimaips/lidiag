@@ -37,6 +37,28 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Implementación y Activación de la Fase 6: Migración Masiva de Módulos (Inventario de 48 Rutas a SPA Nativo):**
+  - **Alcance de la Migración:**
+    * Se migraron todas las rutas web de vistas de aplicación en [`routes/web.php`](file:///c:/laragon/www/lidiag/routes/web.php) desde `Route::view` hacia closures `Route::get('...', fn () => view('layouts.app'))`, cubriendo los 10 submódulos del sistema:
+      1. *Citas y Agenda:* `/citas`, `/citas/gestion`, `/citas/revision`, `/citas/recomendaciones`, `/agenda`, `/agenda-disponibilidad`.
+      2. *Estudios Radiológicos:* `/estudios.asignar.listar`, `/estudios.asignados.listar`, `/estudios.transcribir.listar`, `/estudios.leer.estudio.listar`, `/estudios.notificar.index`, `/estudios.tele-radiologia`.
+      3. *Tele-Radiología:* `/tele-radiologia`, `/tele-radiologia-transcribir`.
+      4. *Ecografías:* `/ecografias.admisiones`, `/ecografias.admisionadas`, `/ecografias-pendientes-lecturas`, `/ecografias-consentimientos`, `/ecografias-consentimientos-plantillas`, `/config-consentimientos`, `/config-consentimientos-plantillas`.
+      5. *Dosimetría:* `/dosimetria/dashboard`, `/dosis/dashboard`.
+      6. *Helpdesk:* `/helpdesk-tickets`, `/helpdesk-tickets/crear`, `/helpdesk-tickets/{ticket_id}`, `/helpdesk-reportes`, `/helpdesk-notificaciones`.
+      7. *Seguridad:* `/seguridad.usuarios.listar`, `/seguridad.roles.listar`, `/seguridad.perfil`, `/seguridad-auditoria`, `/seguridad-backups`, `/seguridad-tokens`.
+      8. *Configuración:* `/config-adminsalud-listar`, `/config-diagnosticos-listar`, `/config-prioridades-listar`, `/config-productos-listar`, `/config-sedes-listar`, `/config-plantillas-listar`, `/config-tipos-plantillas.listar`, `/config-servicio-producto`, `/config-servicio-citas-listar`, `/config-tipos-documentos-listar`, `/config-consentimiento-informado-listar`, `/config-whatsapp-listar`, `/config-cita-rechazo-motivos`, `/config-helpdesk-categorias-listar`, `/config-helpdesk-prioridades-listar`, `/config-helpdesk-estados-listar`.
+      9. *Contratación y Liquidación:* `/contratos`, `/liquidacion`, `/productividad`.
+      10. *Reportes:* `/reportes-produccion`, `/reportes-estudios-pac`.
+  - **Soporte Dinámico de Rutas y Navegación SPA:**
+    * En `helpdeskDetalleTicketComponent.vue` y `routes.js`: Configurado soporte reactivo para `props: (route) => ({ ticketId: route.params.ticket_id })` y `useRoute().params.ticket_id`, permitiendo navegación directa a tickets individuales (`/helpdesk-tickets/:ticket_id`).
+    * En `helpdeskCrearTicketComponent.vue` y `helpdeskTicketsComponent.vue`: Estandarizados enlaces de creación y retorno con `<router-link>` y `router.push()`.
+    * Preservadas estrictamente las rutas exclusivas de servidor (descargas Excel/PDF, streaming de audio MP3, login/logout, cambio de clave y firma de consentimiento externa por token).
+  - **Verificaciones:**
+    * PHP Pint pasado al 100% en `routes/web.php` (`vendor\bin\pint.bat --test`) ✅.
+    * ESLint y Prettier pasados al 100% en los componentes modificados ✅.
+    * Vite build de producción generado exitosamente en 1.19s (`npm run build`) ✅.
+    * Muestreo de rutas en Laravel CLI confirmando que renderizan `<app-layout>` e inicializan `window.__INITIAL_STATE__` al 100% ✅.
 - [x] **2026-11-09 — Implementación y Activación de la Fase 5: Migración Piloto a SPA con Vue Router 4:**
   - **Módulos Piloto Activados:**
     1. **Dashboard Principal (`/dashboard`):** Migrado a SPA nativo. Desacoplado de props de Blade; habilitado `router.push()` en enlaces internos de lectura (`/estudios.leer.estudio.listar`) y transcripción (`/estudios.transcribir.listar`). Implementada destrucción preventiva de instancias C3 y Morris en `onBeforeUnmount` para evitar fugas de memoria.

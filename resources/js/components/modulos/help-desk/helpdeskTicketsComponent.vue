@@ -27,9 +27,9 @@
                     <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loading }"></i>
                     Refrescar
                 </button>
-                <a href="/helpdesk-tickets/crear" class="btn btn-info btn-sm">
+                <router-link to="/helpdesk-tickets/crear" class="btn btn-info btn-sm">
                     <i class="fa fa-plus"></i> Crear ticket
-                </a>
+                </router-link>
             </div>
         </div>
 
@@ -250,9 +250,9 @@
                                         :class="prioridadRowClass(t.prioridad?.nombre)"
                                     >
                                         <td>
-                                            <a :href="`/helpdesk-tickets/${t.id}`">{{
+                                            <router-link :to="`/helpdesk-tickets/${t.id}`">{{
                                                 t.folio || "#" + t.id
-                                            }}</a>
+                                            }}</router-link>
                                         </td>
                                         <td>{{ t.titulo }}</td>
                                         <td>{{ t.estado?.nombre || "" }}</td>
