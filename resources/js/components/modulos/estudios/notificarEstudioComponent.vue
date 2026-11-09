@@ -209,7 +209,15 @@
                                                 {{ item.nom_sede || "—" }}
                                             </span>
                                         </td>
-                                        <td>{{ item.num_docu }}</td>
+                                        <td class="text-nowrap align-middle">
+                                            <div
+                                                class="text-primary font-weight-bold"
+                                                style="font-size: 15px"
+                                            >
+                                                <i class="fa fa-id-card-o mr-1"></i>
+                                                {{ item.num_docu }}
+                                            </div>
+                                        </td>
                                         <td>{{ item.nom_pacien }}</td>
                                         <td>{{ item.nom_produc }}</td>
                                         <td class="text-nowrap">
@@ -732,7 +740,7 @@ function mostrarRegistro(data = {}) {
     if (loadingAbrirId.value) return;
     loadingAbrirId.value = data.estudio_producto_id;
     estudio.value = { ...data, id_estudio: data.id };
-    tituloModal.value = "Notificar al paciente: " + data.nom_pacien;
+    tituloModal.value = `Notificar al paciente: ${data.nom_pacien} ${data.num_docu ? `(${data.num_docu})` : ""}`;
 
     registro.value.num_docu = data.num_docu;
     registro.value.nombres = data.nom_pacien;
@@ -759,7 +767,7 @@ function mostrarRegistro(data = {}) {
  */
 function setarDatosPortalPacientes(data = {}) {
     estudio.value = { ...data, id_estudio: data.id };
-    tituloModal.value = "Notificar al paciente: " + data.nom_pacien;
+    tituloModal.value = `Notificar al paciente: ${data.nom_pacien} ${data.num_docu ? `(${data.num_docu})` : ""}`;
 
     registro.value.num_docu = data.num_docu;
     registro.value.nombres = data.nom_pacien;

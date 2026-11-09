@@ -321,10 +321,13 @@
                                             <div class="font-weight-bold text-dark">
                                                 {{ item.nom_pacien }}
                                             </div>
-                                            <small class="text-muted">
-                                                <i class="fa fa-id-card-o"></i>
+                                            <div
+                                                class="text-primary font-weight-bold"
+                                                style="font-size: 15px"
+                                            >
+                                                <i class="fa fa-id-card-o mr-1"></i>
                                                 {{ item.num_docu }}
-                                            </small>
+                                            </div>
                                         </td>
                                         <td class="align-middle">
                                             <div v-if="item.atencion">
@@ -1482,7 +1485,7 @@ async function mostrarRegistro(data = {}) {
         soportesHC.value = [];
         audiosDeEstudio.value = [];
 
-        tituloModal.value = "Paciente: " + data.nom_pacien;
+        tituloModal.value = `Paciente: ${data.nom_pacien} ${data.num_docu ? `(${data.num_docu})` : ""}`;
         id.value = data.id;
         idRow.value = data.estudio_producto_id;
 

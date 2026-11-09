@@ -231,7 +231,15 @@
                                         :key="item.ecografia_producto_id || item.id || index"
                                     >
                                         <td>{{ item.atencion_id }}</td>
-                                        <td>{{ item.paciente.num_docu }}</td>
+                                        <td class="text-nowrap align-middle">
+                                            <div
+                                                class="text-primary font-weight-bold"
+                                                style="font-size: 15px"
+                                            >
+                                                <i class="fa fa-id-card-o mr-1"></i>
+                                                {{ item.paciente.num_docu }}
+                                            </div>
+                                        </td>
                                         <td>{{ item.paciente.nombres }}</td>
                                         <td>
                                             <div>{{ item.nom_produc }}</div>

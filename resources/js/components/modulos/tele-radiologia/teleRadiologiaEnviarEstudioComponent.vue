@@ -183,7 +183,15 @@
                                         :class="{ 'text-info': item.agendado !== 0 }"
                                     >
                                         <td>{{ item.study_datetime }}</td>
-                                        <td>{{ item.pat_id }}</td>
+                                        <td class="text-nowrap align-middle">
+                                            <div
+                                                class="text-primary font-weight-bold"
+                                                style="font-size: 15px"
+                                            >
+                                                <i class="fa fa-id-card-o mr-1"></i>
+                                                {{ item.pat_id }}
+                                            </div>
+                                        </td>
                                         <td>{{ item.pat_name }}</td>
                                         <td>{{ item.accession_no }}</td>
                                         <td>{{ item.study_desc }}</td>
@@ -955,7 +963,7 @@ async function obtenerArchivo(e, index) {
 
 async function mostrarRegistro(data = {}) {
     limpiar();
-    tituloModal.value = "Generar orden: " + data.pat_name;
+    tituloModal.value = `Generar orden: ${data.pat_name} ${data.pat_id ? `(${data.pat_id})` : ""}`;
     orden.value.study_pk = data.study_pk;
     orden.value.study_iuid = data.study_iuid;
     orden.value.study_id = data.study_id ?? String(data.study_pk ?? "");

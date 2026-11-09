@@ -208,7 +208,15 @@
                                         <td>{{ item.id }}</td>
                                         <td>{{ formatFecha(item.created_at) }}</td>
                                         <td>{{ item.paciente?.nombres || "—" }}</td>
-                                        <td>{{ item.paciente?.num_docu || "—" }}</td>
+                                        <td class="text-nowrap align-middle">
+                                            <div
+                                                class="text-primary font-weight-bold"
+                                                style="font-size: 15px"
+                                            >
+                                                <i class="fa fa-id-card-o mr-1"></i>
+                                                {{ item.paciente?.num_docu || "—" }}
+                                            </div>
+                                        </td>
                                         <td>{{ item.servicio?.nombre || "—" }}</td>
                                         <td>{{ item.sede?.nom_sede || "—" }}</td>
                                         <td>

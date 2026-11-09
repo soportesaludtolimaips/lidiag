@@ -251,7 +251,15 @@
                                                 {{ item.paciente?.nombres }}
                                                 {{ item.paciente?.pri_ape }}
                                             </td>
-                                            <td>{{ item.paciente?.num_docu }}</td>
+                                            <td class="text-nowrap align-middle">
+                                                <div
+                                                    class="text-primary font-weight-bold"
+                                                    style="font-size: 15px"
+                                                >
+                                                    <i class="fa fa-id-card-o mr-1"></i>
+                                                    {{ item.paciente?.num_docu }}
+                                                </div>
+                                            </td>
                                             <td>{{ item.paciente?.cel }}</td>
                                             <td>{{ item.servicio?.nombre }}</td>
                                             <td>{{ item.numero_orden }}</td>

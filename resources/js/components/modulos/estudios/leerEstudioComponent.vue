@@ -275,8 +275,16 @@
                                     <td>{{ formatDate(item.created_at) }}</td>
                                     <td>{{ item.quien_registro }}</td>
                                     <td>
-                                        {{ item.num_docu }} <br />
-                                        {{ item.nom_pacien }}
+                                        <div class="font-weight-bold text-dark">
+                                            {{ item.nom_pacien }}
+                                        </div>
+                                        <div
+                                            class="text-primary font-weight-bold"
+                                            style="font-size: 15px"
+                                        >
+                                            <i class="fa fa-id-card-o mr-1"></i>
+                                            {{ item.num_docu }}
+                                        </div>
                                     </td>
                                     <td>
                                         {{ item.study_desc }} <br />
@@ -2067,8 +2075,7 @@ async function mostrarRegistro(data = {}) {
     audiosDeEstudio.value = [];
     audioUploadFlow.limpiarAudiosCargados();
 
-    tituloModal.value =
-        "Lectura de paciente: " + data.nom_pacien + " — Producto: " + data.nom_produc;
+    tituloModal.value = `Lectura de paciente: ${data.nom_pacien} ${data.num_docu ? `(${data.num_docu})` : ""} — Producto: ${data.nom_produc}`;
     id.value = data.id;
     idRow.value = data.estudio_producto_id;
     registro.value.estudio_producto_id = data.estudio_producto_id;

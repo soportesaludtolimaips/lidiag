@@ -217,7 +217,15 @@
                                 <tbody>
                                     <tr v-for="(item, index) in registros" :key="item.id || index">
                                         <td>{{ item.created_at }}</td>
-                                        <td>{{ item.paciente.num_docu }}</td>
+                                        <td class="text-nowrap align-middle">
+                                            <div
+                                                class="text-primary font-weight-bold"
+                                                style="font-size: 15px"
+                                            >
+                                                <i class="fa fa-id-card-o mr-1"></i>
+                                                {{ item.paciente.num_docu }}
+                                            </div>
+                                        </td>
                                         <td>
                                             {{ item.paciente.nombres }} {{ item.paciente.seg_nom }}
                                             {{ item.paciente.pri_ape }} {{ item.paciente.seg_ape }}

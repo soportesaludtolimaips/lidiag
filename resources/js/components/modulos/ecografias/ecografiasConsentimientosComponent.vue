@@ -209,11 +209,17 @@
                                             />
                                         </td>
                                         <td>{{ pacienteNombre(c) }}</td>
-                                        <td>
-                                            {{
-                                                c.ecografia_producto?.ecografia?.paciente
-                                                    ?.num_docu || "—"
-                                            }}
+                                        <td class="text-nowrap align-middle">
+                                            <div
+                                                class="text-primary font-weight-bold"
+                                                style="font-size: 15px"
+                                            >
+                                                <i class="fa fa-id-card-o mr-1"></i>
+                                                {{
+                                                    c.ecografia_producto?.ecografia?.paciente
+                                                        ?.num_docu || "—"
+                                                }}
+                                            </div>
                                         </td>
                                         <td>{{ c.producto?.nom_produc || "—" }}</td>
                                         <td class="text-center">

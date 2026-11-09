@@ -209,7 +209,15 @@
                                                 {{ item.tipo_documento?.codigo || "DOC" }}
                                             </span>
                                         </td>
-                                        <td>{{ item.num_docu }}</td>
+                                        <td class="text-nowrap align-middle">
+                                            <div
+                                                class="text-primary font-weight-bold"
+                                                style="font-size: 15px"
+                                            >
+                                                <i class="fa fa-id-card-o mr-1"></i>
+                                                {{ item.num_docu }}
+                                            </div>
+                                        </td>
                                         <td>{{ item.nombre_completo || item.nombres }}</td>
                                         <td>
                                             {{ item.sexo }} ({{

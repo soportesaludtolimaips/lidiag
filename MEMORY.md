@@ -37,6 +37,19 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Estandarización Jerárquica del Documento del Paciente en Todas las Tablas del Sistema (8 Componentes):**
+  - **Módulos y Componentes Actualizados:**
+    1. *Estudios:* [`estudioAsignadosComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/estudioAsignadosComponent.vue) (tabla y `tituloModal`), [`leerEstudioComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/leerEstudioComponent.vue) (tabla y `tituloModal`), [`notificarEstudioComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/notificarEstudioComponent.vue) (tabla y `tituloModal`).
+    2. *Tele-Radiología:* [`teleRadiologiaEnviarEstudioComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/tele-radiologia/teleRadiologiaEnviarEstudioComponent.vue) (tabla y `tituloModal`).
+    3. *Ecografías:* [`ecografiasAdmisionadasComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/ecografiasAdmisionadasComponent.vue), [`lecturaComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/lecturaComponent.vue), [`ecografiasConsentimientosComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/ecografiasConsentimientosComponent.vue).
+    4. *Pacientes y Citas:* [`admisionComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/pacientes/admisionComponent.vue), [`citasComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/citas/citasComponent.vue), [`citasRevisionComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/citas/citasRevisionComponent.vue).
+  - **Mejora Asistencial (E7):**
+    * Se homogeneizó el número de documento de los pacientes con la clase azul oficial de AdminWrap (`text-primary font-weight-bold`), tamaño de fuente `15px` e icono `fa-id-card-o`.
+    * En los títulos de modales y drawers de agendamiento/lectura/notificación, se incluyó el documento entre paréntesis junto al nombre del paciente para facilitar la confirmación cruzada en estaciones de diagnóstico médico.
+  - **Verificaciones:**
+    * ESLint: 0 errores y 0 warnings en los componentes modificados (`npx eslint`) ✅.
+    * Build de producción Vite (`npm run build`): Compilado con éxito en 1.28s ✅.
+    * Vaciado de caché de vistas y configuración de Laravel (`php artisan view:clear; php artisan config:clear`) ✅.
 - [x] **2026-11-09 — Hotfix: Eliminación de Antipatrón `proxy` en Citas (`citasComponent.vue`):**
   - **Diagnóstico del Error:**
     * El usuario reportó `TypeError: 'set' on proxy: trap returned falsish for property 'loadingBuscar' at listarRegistros (citasComponent.vue:684:27)`.
