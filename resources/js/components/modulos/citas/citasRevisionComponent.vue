@@ -597,8 +597,8 @@
 <script setup>
 import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-const { proxy, appContext } = getCurrentInstance();
-const emitter = appContext.config.globalProperties.emitter;
+const { appContext } = getCurrentInstance();
+const emitter = appContext?.config?.globalProperties?.emitter;
 const dt = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
@@ -688,12 +688,10 @@ function destroyDataTable() {
 }
 
 function cargarListas() {
-    const self = proxy;
-
     axios
         .get("/api/citas/servicios")
         .then((r) => {
-            self.servicios = r.data?.data || r.data || [];
+            servicios.value = r.data?.data || r.data || [];
         })
         .catch((_e) => {
             alertError("Error", "No se pudieron cargar los servicios");
@@ -702,7 +700,7 @@ function cargarListas() {
     axios
         .get("/api/config-sedes/listar/sedes/activas")
         .then((r) => {
-            self.sedes = r.data?.data || r.data || [];
+            sedes.value = r.data?.data || r.data || [];
         })
         .catch((_e) => {
             alertError("Error", "No se pudieron cargar las sedes");
@@ -711,7 +709,7 @@ function cargarListas() {
     axios
         .get("/api/citas-rechazo-motivos")
         .then((r) => {
-            self.motivosRechazo = r.data?.data || r.data || [];
+            motivosRechazo.value = r.data?.data || r.data || [];
         })
         .catch((_e) => {
             alertError("Error", "No se pudieron cargar los motivos de rechazo");
@@ -720,7 +718,7 @@ function cargarListas() {
     axios
         .get("/api/config-recomendacion-productos")
         .then((r) => {
-            self.recomendaciones = r.data?.data || r.data || [];
+            recomendaciones.value = r.data?.data || r.data || [];
         })
         .catch((_e) => {
             alertError("Error", "No se pudieron cargar las recomendaciones");

@@ -37,6 +37,21 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Hotfix: Corrección de Antipatrón `proxy` en Citas Revisión (`citasRevisionComponent.vue`, `/citas/revision`):**
+  - **Diagnóstico y Causa Raíz:**
+    * El usuario reportó el error emergente *"Error: No se pudieron cargar las sedes"* en `/citas/revision` acompañado de advertencias en consola:
+      - `[Vue warn]: Cannot mutate <script setup> binding "servicios" from Options API.`
+      - `[Vue warn]: Cannot mutate <script setup> binding "motivosRechazo" from Options API.`
+      - `[Vue warn]: Cannot mutate <script setup> binding "recomendaciones" from Options API.`
+      - `[Vue warn]: Cannot mutate <script setup> binding "sedes" from Options API.`
+    * En Vue 3 Composition API (`<script setup>`), las variables `servicios`, `sedes`, `motivosRechazo` y `recomendaciones` son reactivas (`ref([])`). El método `cargarListas()` definía `const self = proxy;` e intentaba mutar `self.servicios = ...`, `self.sedes = ...`, `self.motivosRechazo = ...` y `self.recomendaciones = ...`.
+    * Al intentar escribir en el proxy de `getCurrentInstance()`, el handler de Vue 3 bloquea la mutación lanzando un error en la promesa de Axios, lo que disparaba el bloque `.catch()` con la alerta de error emergente e impedía el llenado de los desplegables de filtros y del modal.
+  - **Solución Implementada:**
+    * Se eliminó el uso de `proxy` en `citasRevisionComponent.vue`.
+    * Se migraron las asignaciones de `cargarListas()` para actualizar directamente los `ref`: `servicios.value = ...`, `sedes.value = ...`, `motivosRechazo.value = ...` y `recomendaciones.value = ...`.
+  - **Verificaciones:**
+    * ESLint verificado con 0 errores (`npx eslint`) ✅.
+    * Compilación Vite (`npm run build`) exitosa en 1.31s ✅.
 - [x] **2026-11-09 — Corrección de `ReferenceError: logStr is not defined` en SweetAlert y `confirmAction` (`alerts.js`, `bootstrap.js`, `admisionComponent.vue`):**
   - **Diagnóstico y Causa Raíz:**
     * Al cancelar o retirar una orden de la lista de trabajo en `admisionComponent.vue:1418` (`cancelarOrdenWorklist`), se ejecutaba: `await confirmAction("¿Retirar de Worklist?", "¿Desea retirar la orden...?")`.
