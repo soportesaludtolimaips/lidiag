@@ -37,6 +37,26 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Mejoras Integrales de UI/UX y Ergonomía Clínica en Transcribir Estudios (`transcribirEstudioComponent.vue`, `/estudios.transcribir.listar`):**
+  - **Diagnóstico y Necesidad:**
+    * La vista `/estudios.transcribir.listar` (`transcribirEstudioComponent.vue`) presentaba discrepancias frente a la directiva de ergonomía clínica y las mejoras recientes de `/tele-radiologia-transcribir`:
+      1. El número de documento del paciente se encontraba en `<small class="text-muted">` grisáceo dificultando el escaneo visual rápido del personal asistencial.
+      2. No contaba con acceso directo al visor PACS/DICOM desde la fila de la tabla sin tener que abrir previamente el drawer.
+      3. Carecía de soporte de Modo Oscuro (alto contraste radiológico) y Modo Zen (pantalla completa) para transcripción cómoda de reportes extensos.
+      4. El título del drawer modal no incluía el número de documento del paciente entre paréntesis.
+      5. La barra de migas de pan carecía del botón de refresco rápido, las etiquetas de fecha no admitían `@keyup.enter`, y había etiquetas con errores tipográficos ("Quien asigno", "Medicos", subtítulo copiado de Asignar Estudio).
+      6. Los botones de acción del drawer contenían insignias (`<span class="badge">Ctrl+S</span>` y `<span class="badge">Esc</span>`) en lugar de atributos `title` limpios.
+  - **Solución Implementada:**
+    * *Resaltado Jerárquico del Paciente (E7):* El número de documento (`num_docu`) ahora se muestra en `text-primary font-weight-bold` con tamaño de fuente de 15px e icono `fa-id-card-o`.
+    * *Acceso Directo a Visor PACS/DICOM:* Se incorporó el botón `btn-outline-info` en la columna de acciones para abrir directamente el visor Oviyam/DICOM con `verImagenDirecta(item)` y se amplió el ancho de la columna de acciones a 110px.
+    * *Modo Oscuro Radiológico y Modo Zen:* Se integraron los conmutadores de Modo Oscuro y Modo Zen con persistencia en `localStorage` (`lidiag_dark_mode`) tanto en la cabecera de la tabla como en el drawer lateral.
+    * *Identificación en Encabezado:* `tituloModal` ahora muestra `Transcribir la lectura del paciente: [Nombre] ([Documento])`.
+    * *Filtros y Navegación:* Se agregó botón de actualización rápida en `page-titles`, `@keyup.enter` en campos de fecha, corrección de acentos y subtítulo de la tabla.
+    * *Botones y Toasts:* Eliminadas insignias de atajos embebidas en los botones de Guardar/Cancelar en favor de tooltips `title`, y toasts de feedback homologados a `success`, `warning`, `info` y `error`.
+  - **Verificaciones:**
+    * ESLint: 0 errores y 0 warnings (`npx eslint`) ✅.
+    * Compilación de producción Vite (`npm run build`): Exitosa en 1.21s ✅.
+    * Vaciado de caché de vistas y configuración de Laravel (`php artisan view:clear; php artisan config:clear`) ✅.
 - [x] **2026-11-09 — Actualización Integral y Estandarización de Todos los Documentos README del Repositorio:**
   - **Alcance y Archivos Actualizados:**
     * Se auditaron y actualizaron los 9 archivos `README*.md` propios del proyecto:

@@ -28,6 +28,18 @@
                     <li class="breadcrumb-item active">Transcribir Estudios</li>
                 </ol>
             </div>
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    :disabled="loadingBuscar"
+                    title="Actualizar listado de estudios"
+                    @click="listarPendientesTrascribir()"
+                >
+                    <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loadingBuscar }"></i>
+                    Refrescar
+                </button>
+            </div>
         </div>
         <!-- ============================================================== -->
         <!-- End Bread crumb and right sidebar toggle -->
@@ -41,7 +53,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> Filtros para busqueda de mis pendientes por
+                            <i class="fa fa-filter"></i> Filtros para búsqueda de mis pendientes por
                             transcribir
                         </h4>
                         <form action="#">
@@ -49,7 +61,7 @@
                                 <div class="row p-t-2">
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <label for="quien_asigno_id">Quien asigno</label>
+                                            <label for="quien_asigno_id">Quién asignó</label>
                                             <select
                                                 v-model="busqueda.quien_asigno_id"
                                                 name="quien_asigno_id"
@@ -72,7 +84,7 @@
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <label for="medico_id">Medicos</label>
+                                            <label for="medico_id">Médicos</label>
                                             <select
                                                 v-model="busqueda.medico_id"
                                                 name="medico_id"
@@ -81,7 +93,7 @@
                                                 @change="listarPendientesTrascribir()"
                                             >
                                                 <option value="" selected>
-                                                    ...::: Todos los medicos :::...
+                                                    ...::: Todos los médicos :::...
                                                 </option>
                                                 <option
                                                     v-for="ItemUsuario in medicosActivos"
@@ -120,6 +132,7 @@
                                                 name="bus_fech_ini"
                                                 v-model="busqueda.bus_fech_ini"
                                                 class="form-control"
+                                                @keyup.enter="listarPendientesTrascribir()"
                                             />
                                         </div>
                                     </div>
@@ -134,6 +147,7 @@
                                                 name="fecha_fin"
                                                 v-model="busqueda.bus_fecha_fin"
                                                 class="form-control"
+                                                @keyup.enter="listarPendientesTrascribir()"
                                             />
                                         </div>
                                     </div>
@@ -179,16 +193,35 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div>
-                                <h4 class="card-title">Listado de estudios disponibles</h4>
+                                <h4 class="card-title">
+                                    Listado de estudios pendientes por transcribir
+                                </h4>
                                 <h6 class="card-subtitle text-info">
-                                    Asigne los estudios a los médicos para su respectiva lectura.
+                                    Estudios con lectura médica realizada pendientes por
+                                    transcribir.
                                 </h6>
                             </div>
-                            <div class="text-right">
-                                <span class="badge badge-primary" v-if="contadorRegistros > 0"
+                            <div class="text-right d-flex align-items-center">
+                                <span class="badge badge-primary mr-1" v-if="contadorRegistros > 0"
                                     >{{ contadorRegistros }} registro(s)</span
                                 >
-                                <span class="badge badge-secondary" v-else>Sin resultados</span>
+                                <span class="badge badge-secondary mr-1" v-else
+                                    >Sin resultados</span
+                                >
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-rounded ml-1"
+                                    :class="isDarkMode ? 'btn-warning' : 'btn-outline-secondary'"
+                                    @click="toggleDarkMode"
+                                    :title="
+                                        isDarkMode
+                                            ? 'Cambiar a Modo Claro'
+                                            : 'Cambiar a Modo Oscuro (Lectura)'
+                                    "
+                                >
+                                    <i :class="isDarkMode ? 'fa fa-sun-o' : 'fa fa-moon-o'"></i>
+                                    {{ isDarkMode ? "Modo Claro" : "Modo Oscuro" }}
+                                </button>
                             </div>
                         </div>
                         <table-skeleton-loader :visible="loadingBuscar" :rows="6" :columns="11" />
@@ -219,12 +252,12 @@
                                         <th style="width: 110px">Toma</th>
                                         <th style="width: 110px">Lectura</th>
                                         <th style="width: 110px">Asignación</th>
-                                        <th style="width: 130px">Quien Asigno</th>
-                                        <th style="width: 150px">Medico</th>
+                                        <th style="width: 130px">Quién Asignó</th>
+                                        <th style="width: 150px">Médico</th>
                                         <th style="width: 170px">Paciente</th>
                                         <th style="width: 160px">Detalle</th>
                                         <th style="width: 160px">Producto</th>
-                                        <th style="width: 80px" class="text-center">Acciones</th>
+                                        <th style="width: 110px" class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -287,10 +320,13 @@
                                             <div class="font-weight-bold text-dark">
                                                 {{ item.nom_pacien }}
                                             </div>
-                                            <small class="text-muted"
-                                                ><i class="fa fa-id-card-o"></i>
-                                                {{ item.num_docu }}</small
+                                            <div
+                                                class="text-primary font-weight-bold"
+                                                style="font-size: 15px"
                                             >
+                                                <i class="fa fa-id-card-o mr-1"></i>
+                                                {{ item.num_docu }}
+                                            </div>
                                         </td>
                                         <td class="align-middle">
                                             <div v-if="item.atencion">
@@ -322,6 +358,7 @@
                                                     loadingAbrirRegistroId ===
                                                     item.estudio_producto_id
                                                 "
+                                                title="Transcribir lectura"
                                                 @click="mostrarRegistro(item)"
                                             >
                                                 <i
@@ -335,10 +372,19 @@
                                             </button>
                                             <button
                                                 type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
+                                                title="Ver imágenes DICOM"
+                                                @click="verImagenDirecta(item)"
+                                            >
+                                                <i class="fa fa-file-image-o"></i>
+                                            </button>
+                                            <button
+                                                type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
                                                 :disabled="
                                                     loadingAnularId === item.estudio_producto_id
                                                 "
+                                                title="Anular asignación"
                                                 @click="
                                                     anularAsignacion(
                                                         item.estudio_producto_id,
@@ -359,13 +405,6 @@
                                     </tr>
                                 </tbody>
                             </table>
-                            <div
-                                v-if="registros.length === 0 && !loadingBuscar"
-                                class="text-center py-4 text-muted"
-                            >
-                                <i class="fa fa-inbox fa-3x mb-3"></i>
-                                <p>No hay estudios para transcribir</p>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -390,19 +429,50 @@
         </transition>
 
         <!-- .right-sidebar -->
-        <div class="right-sidebar sidebar-scroll" :class="{ 'shw-rside': sidebarVisible }">
+        <div
+            class="right-sidebar sidebar-scroll"
+            :class="{ 'shw-rside': sidebarVisible, 'dark-mode': isDarkMode, 'zen-mode': isZenMode }"
+        >
             <div class="slimscrollright">
-                <div class="rpanel-title">
-                    {{ tituloModal }}
-                    <button
-                        type="button"
-                        class="right-side-toggle"
-                        @click="btnCerrarModalForm()"
-                        @mousedown.prevent="btnCerrarModalForm()"
-                        aria-label="Cerrar panel"
-                    >
-                        <i class="ti-close"></i>
-                    </button>
+                <div class="rpanel-title d-flex justify-content-between align-items-center">
+                    <span>{{ tituloModal }}</span>
+                    <div class="d-flex align-items-center">
+                        <button
+                            type="button"
+                            class="btn btn-xs btn-outline-light m-r-5"
+                            @click="toggleZenMode"
+                            :title="
+                                isZenMode
+                                    ? 'Salir de pantalla completa'
+                                    : 'Pantalla completa (Modo Zen)'
+                            "
+                            style="padding: 2px 8px; font-size: 11px; border-radius: 12px"
+                        >
+                            <i :class="isZenMode ? 'fa fa-compress' : 'fa fa-expand'"></i>
+                            {{ isZenMode ? "Normal" : "Zen" }}
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-xs btn-outline-light m-r-10"
+                            @click="toggleDarkMode"
+                            :title="isDarkMode ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Oscuro'"
+                            style="padding: 2px 8px; font-size: 11px; border-radius: 12px"
+                        >
+                            <i
+                                :class="isDarkMode ? 'fa fa-sun-o text-warning' : 'fa fa-moon-o'"
+                            ></i>
+                            {{ isDarkMode ? "Claro" : "Oscuro" }}
+                        </button>
+                        <button
+                            type="button"
+                            class="right-side-toggle text-white border-0 bg-transparent p-0 cursor-pointer"
+                            @click="btnCerrarModalForm()"
+                            @mousedown.prevent="btnCerrarModalForm()"
+                            aria-label="Cerrar panel"
+                        >
+                            <i class="ti-close"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="r-panel-body">
                     <!-- ============================================================== -->
@@ -832,11 +902,6 @@
                                     <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
                                     <i v-else class="fa fa-check"></i>
                                     Guardar
-                                    <span
-                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                                        style="font-size: 10px"
-                                        >Ctrl+S</span
-                                    >
                                 </button>
 
                                 <button
@@ -848,11 +913,6 @@
                                     title="Cerrar panel (Esc)"
                                 >
                                     Cancelar
-                                    <span
-                                        class="badge badge-secondary ml-1 d-none d-md-inline"
-                                        style="font-size: 10px"
-                                        >Esc</span
-                                    >
                                 </button>
                             </div>
                         </div>
@@ -984,6 +1044,24 @@ const loadingAnularId = ref(null);
 const sidebarVisible = ref(false);
 const wysiwygEditorRef = ref(null);
 
+const isDarkMode = ref(localStorage.getItem("lidiag_dark_mode") === "true");
+
+function toggleDarkMode() {
+    isDarkMode.value = !isDarkMode.value;
+    localStorage.setItem("lidiag_dark_mode", isDarkMode.value ? "true" : "false");
+}
+
+const isZenMode = ref(false);
+
+function toggleZenMode() {
+    isZenMode.value = !isZenMode.value;
+}
+
+function verImagenDirecta(item) {
+    if (!item) return;
+    verImagen(item.url_oviyam, item.num_docu, item.study_iuid, item.tap_oviyam);
+}
+
 const contadorRegistros = computed(() => {
     return registros.value.length;
 });
@@ -1060,8 +1138,8 @@ async function listarPendientesTrascribir() {
         const sedeActual = sessionStorage.getItem("ST-sede");
         if (sedeActual == null) {
             toastMessage({
-                heading: "Upsss!!!",
-                text: "Debes establece la sede en la cual vas a trabajar.",
+                heading: "Atención",
+                text: "Debes establecer la sede en la cual vas a trabajar.",
                 icon: "warning",
             });
         } else {
@@ -1098,7 +1176,7 @@ async function listarPendientesTrascribir() {
                             { targets: 7, width: "170px" },
                             { targets: 8, width: "160px" },
                             { targets: 9, width: "160px" },
-                            { targets: 10, width: "80px", className: "text-center text-nowrap" },
+                            { targets: 10, width: "110px", className: "text-center text-nowrap" },
                         ],
                     });
                 }
@@ -1224,9 +1302,9 @@ async function guardarRegistro() {
             });
         } else {
             toastMessage({
-                heading: "Upss!!!",
-                text: res.data.message,
-                icon: "danger",
+                heading: "Error",
+                text: res.data.message || "No fue posible guardar la transcripción.",
+                icon: "error",
             });
         }
     } catch (error) {
@@ -1242,13 +1320,13 @@ async function guardarRegistro() {
         }
         if (status == 402) {
             toastMessage({
-                heading: "Upss!!!",
+                heading: "Error",
                 text: getUserSafeError(error, "La plantilla no está configurada para esta sede."),
                 icon: "error",
             });
         } else {
             toastMessage({
-                heading: "Upss!!!",
+                heading: "Error",
                 text: getUserSafeError(error, "No fue posible guardar la transcripción."),
                 icon: "error",
             });
@@ -1268,7 +1346,7 @@ async function guardarRegistro() {
  */
 async function anularAsignacion(idProductoEstudio, paciente, producto) {
     const ok = await confirmAction({
-        title: `Estas seguro de anular la lectura del paciente ${paciente} con el producto ${producto} ?`,
+        title: `¿Está seguro de anular la lectura del paciente ${paciente} con el producto ${producto}?`,
         text: "No podrás recuperar este registro!",
         icon: "warning",
     });
@@ -1297,13 +1375,13 @@ async function anularAsignacion(idProductoEstudio, paciente, producto) {
                 });
             }
             toastMessage({
-                heading: "Anulado!",
-                text: "El producto se anulo correctamente.",
+                heading: "¡Completado!",
+                text: "El producto se anuló correctamente.",
                 icon: "success",
             });
         } else {
             toastMessage({
-                heading: "Ups!",
+                heading: "Error",
                 text: "No fue posible anular el producto.",
                 icon: "error",
             });
@@ -1362,7 +1440,7 @@ async function mostrarRegistro(data = {}) {
             ":" +
             ("0" + date.getSeconds()).slice(-2);
 
-        tituloModal.value = "Transcribir la lectura del paciente: " + data.nom_pacien;
+        tituloModal.value = `Transcribir la lectura del paciente: ${data.nom_pacien} ${data.num_docu ? `(${data.num_docu})` : ""}`;
         id.value = data.id;
         idRow.value = data.estudio_producto_id;
         registro.value.estudio_producto_id = data.estudio_producto_id;
@@ -1580,6 +1658,36 @@ onBeforeUnmount(() => {
         visibility 0.35s;
     visibility: hidden;
     pointer-events: none;
+}
+
+.right-sidebar.zen-mode {
+    width: 100% !important;
+    max-width: 100vw !important;
+}
+
+.right-sidebar.dark-mode {
+    background: #1a1a24;
+    color: #e0e0e0;
+}
+
+.right-sidebar.dark-mode .card {
+    background: #242433;
+    border-color: #38384a;
+}
+
+.right-sidebar.dark-mode .rpanel-title {
+    background: #0f172a;
+}
+
+.right-sidebar.dark-mode .form-control {
+    background-color: #2b2b3d;
+    border-color: #3f3f58;
+    color: #f0f0f0;
+}
+
+.right-sidebar.dark-mode .tab-content {
+    background: #242433;
+    border-color: #38384a;
 }
 
 .right-sidebar .rpanel-title {
