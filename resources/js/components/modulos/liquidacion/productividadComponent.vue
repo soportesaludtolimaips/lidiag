@@ -58,6 +58,7 @@
                                         v-model="filtros.periodo"
                                         type="month"
                                         class="form-control"
+                                        @keyup.enter="cargar"
                                     />
                                 </div>
                             </div>

@@ -93,6 +93,7 @@
                                         v-model="filtros.fecha_inicio"
                                         type="date"
                                         class="form-control"
+                                        @keyup.enter="calcular"
                                     />
                                 </div>
                             </div>
@@ -104,6 +105,7 @@
                                         v-model="filtros.fecha_fin"
                                         type="date"
                                         class="form-control"
+                                        @keyup.enter="calcular"
                                     />
                                 </div>
                             </div>

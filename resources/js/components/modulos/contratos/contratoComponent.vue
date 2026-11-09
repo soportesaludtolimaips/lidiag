@@ -152,7 +152,7 @@
                     <button
                         type="button"
                         class="right-side-toggle"
-                        @click="btnCerralModalForm()"
+                        @click="btnCerrarModalForm()"
                         aria-label="Cerrar panel"
                     >
                         <i class="ti-close"></i>
@@ -164,9 +164,12 @@
                             <div class="row p-t-20">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Sede</label>
+                                        <label class="control-label" for="contrato-sede"
+                                            >Sede</label
+                                        >
                                         <input type="hidden" v-model="registro.sede_id" />
                                         <input
+                                            id="contrato-sede"
                                             type="text"
                                             class="form-control"
                                             :value="sedeNombreActual"
@@ -179,8 +182,11 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="control-label">Fecha Inicio *</label>
+                                        <label class="control-label" for="contrato-fecha-inicio"
+                                            >Fecha Inicio <span class="text-danger">*</span></label
+                                        >
                                         <input
+                                            id="contrato-fecha-inicio"
                                             type="date"
                                             v-model="registro.fecha_inicio"
                                             class="form-control"
@@ -192,8 +198,11 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="control-label">Fecha Fin *</label>
+                                        <label class="control-label" for="contrato-fecha-fin"
+                                            >Fecha Fin <span class="text-danger">*</span></label
+                                        >
                                         <input
+                                            id="contrato-fecha-fin"
                                             type="date"
                                             v-model="registro.fecha_fin"
                                             class="form-control"
@@ -207,8 +216,11 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Observaciones</label>
+                                        <label class="control-label" for="contrato-observaciones"
+                                            >Observaciones</label
+                                        >
                                         <textarea
+                                            id="contrato-observaciones"
                                             v-model="registro.observaciones"
                                             class="form-control"
                                             rows="3"
@@ -247,7 +259,7 @@
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    @click="btnCerralModalForm()"
+                                    @click="btnCerrarModalForm()"
                                 >
                                     Cancelar
                                 </button>
@@ -440,8 +452,9 @@
                     </div>
                     <div class="modal-body">
                         <div class="form-group">
-                            <label class="control-label">Contrato</label>
+                            <label class="control-label" for="importar-contrato">Contrato</label>
                             <input
+                                id="importar-contrato"
                                 type="text"
                                 class="form-control"
                                 :value="importarForm.contratoLabel"
@@ -450,7 +463,7 @@
                             />
                         </div>
                         <div class="form-group">
-                            <label class="control-label">
+                            <label class="control-label font-weight-bold">
                                 M&eacute;dico <span class="text-danger">*</span>
                             </label>
                             <Select2
@@ -464,10 +477,11 @@
                             />
                         </div>
                         <div class="form-group">
-                            <label class="control-label">
+                            <label class="control-label font-weight-bold" for="importar-archivo">
                                 Archivo Excel <span class="text-danger">*</span>
                             </label>
                             <input
+                                id="importar-archivo"
                                 type="file"
                                 ref="archivoImportarRef"
                                 accept=".xlsx,.xls"
@@ -818,7 +832,7 @@ function mostrarRegistro(item = null) {
  * @author Jhon Javer Lozano Arce
  * @date 2026-08-20
  */
-function btnCerralModalForm() {
+function btnCerrarModalForm() {
     sidebarVisible.value = false;
 }
 
@@ -856,7 +870,7 @@ async function guardarRegistro() {
             await axios.post("/api/contratos", payload);
             toastMessage({ heading: "Ok", text: "Contrato creado correctamente", icon: "success" });
         }
-        btnCerralModalForm();
+        btnCerrarModalForm();
         await listar();
     } catch (error) {
         if (error.response?.status === 422) {

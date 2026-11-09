@@ -37,6 +37,21 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Auditoría UI/UX Módulos Agenda, Contratos y Liquidación:**
+  - **Ajustes Realizados:**
+    * **`contratoComponent.vue`:**
+      - Corrección de typo en método de cierre `btnCerralModalForm` → `btnCerrarModalForm` (Phase 1, L1).
+      - Asociación de atributos `for` e `id` en campos de formulario (Sede, Fechas, Observaciones) y modal de importación Excel (Phase 1, H2).
+    * **`agendaDisponibilidadComponent.vue`:**
+      - `@keyup.enter="buscarDisponibilidad()"` en campos de rango de fechas de búsqueda (Phase 4, L6).
+    * **`liquidacionComponent.vue`:**
+      - `@keyup.enter="calcular"` en campos de fecha inicial y final.
+    * **`productividadComponent.vue`:**
+      - `@keyup.enter="cargar"` en selector de periodo de corte mensual.
+  - **Verificaciones:**
+    * ESLint y Prettier pasados al 100% con 0 errores y 0 advertencias ✅.
+    * Build de producción Vite completado exitosamente en 1.27s (`npm run build`) ✅.
+
 - [x] **2026-11-09 — Auditoría UI/UX Módulo Ecografías: Accesibilidad en Botones, Atajos F2 y Búsquedas:**
   - **Ajustes Realizados:**
     * **`lecturaComponent.vue`:**
