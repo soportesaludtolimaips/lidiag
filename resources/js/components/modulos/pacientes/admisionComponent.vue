@@ -332,19 +332,19 @@
                                             >
                                                 <i class="fa fa-pencil"></i>
                                             </button>
-                                            <a
+                                            <router-link
                                                 v-if="
                                                     item.orden_worklist_activa &&
                                                     item.orden_worklist_activa.estado ===
                                                         'ADQUIRIDO'
                                                 "
-                                                href="/estudios.asignar.listar"
+                                                to="/estudios.asignar.listar"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
                                                 title="Ir a Asignar Estudio (Imágenes listas en PACS)"
                                                 aria-label="Ir a Asignar Estudio"
                                             >
                                                 <i class="fa fa-arrow-circle-right"></i>
-                                            </a>
+                                            </router-link>
                                             <button
                                                 v-if="
                                                     item.orden_worklist_activa &&
@@ -501,9 +501,18 @@
                                 }}
                             </h5>
                             <div class="text-muted small">
-                                <strong># Documento:</strong> {{ pacienteSeleccionado?.num_docu }} |
+                                <strong># Documento:</strong>
+                                <span
+                                    class="text-primary font-weight-bold ml-1"
+                                    style="font-size: 14px"
+                                >
+                                    <i class="fa fa-id-card-o mr-1"></i
+                                    >{{ pacienteSeleccionado?.num_docu }}
+                                </span>
+                                <span class="mx-2">|</span>
                                 <strong>Sexo:</strong>
-                                {{ pacienteSeleccionado?.sexo === "F" ? "F" : "M" }} |
+                                {{ pacienteSeleccionado?.sexo === "F" ? "F" : "M" }}
+                                <span class="mx-2">|</span>
                                 <strong>Sede:</strong> {{ sedeNombre }}
                             </div>
                         </div>
@@ -680,11 +689,20 @@
                                         }}</strong>
                                     </h5>
                                     <div class="text-muted small">
-                                        <span
-                                            ><strong>Documento:</strong>
-                                            {{ pacienteInterface?.tipo_documento?.codigo || "DOC" }}
-                                            {{ pacienteInterface?.num_docu }}</span
-                                        >
+                                        <span>
+                                            <strong>Documento:</strong>
+                                            <span
+                                                class="text-primary font-weight-bold ml-1"
+                                                style="font-size: 14px"
+                                            >
+                                                <i class="fa fa-id-card-o mr-1"></i>
+                                                {{
+                                                    pacienteInterface?.tipo_documento?.codigo ||
+                                                    "DOC"
+                                                }}
+                                                {{ pacienteInterface?.num_docu }}
+                                            </span>
+                                        </span>
                                         <span class="mx-2">•</span>
                                         <span
                                             ><strong>Sexo / Edad:</strong>
@@ -1236,12 +1254,15 @@ function nuevoRegistro() {
     };
 
     sidebarVisible.value = true;
+    nextTick(() => {
+        document.getElementById("tipo_documento_id")?.focus();
+    });
 }
 
 function mostrarRegistro(item) {
     isEditing.value = true;
     pacienteEditId.value = item.id;
-    tituloModal.value = "Editar Paciente";
+    tituloModal.value = `Editar Paciente: ${item.nombres || item.nombre_completo || ""} ${item.num_docu ? `(${item.num_docu})` : ""}`;
     errores.value = {};
 
     registro.value = {
@@ -1257,6 +1278,9 @@ function mostrarRegistro(item) {
     };
 
     sidebarVisible.value = true;
+    nextTick(() => {
+        document.getElementById("tipo_documento_id")?.focus();
+    });
 }
 
 function cerrarModal() {
@@ -1599,7 +1623,20 @@ async function seleccionarParaWorklist(prod) {
     }
 }
 
+function handleKeydown(e) {
+    if (e.key === "Escape") {
+        if (modalInterfaceVisible.value) {
+            cerrarModalInterface();
+        } else if (modalWorklistVisible.value) {
+            cerrarModalWorklist();
+        } else if (sidebarVisible.value) {
+            cerrarModal();
+        }
+    }
+}
+
 onMounted(async () => {
+    window.addEventListener("keydown", handleKeydown);
     resolverNombreSede();
     await consultarConfigSede();
     cargarCatalogos();
@@ -1614,6 +1651,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+    window.removeEventListener("keydown", handleKeydown);
     destroyDataTable();
     if (emitter) {
         emitter.off("sedeSeleccionada", onSedeSeleccionada);

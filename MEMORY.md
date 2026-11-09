@@ -37,6 +37,18 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Auditoría UI/UX Módulo Pacientes / Admisión (`admisionComponent.vue`):**
+  - **Ajustes Realizados:**
+    * **Navegación SPA (S1):** Migración de `<a href="/estudios.asignar.listar">` a `<router-link to="/estudios.asignar.listar">` para estudios adquiridos, eliminando recargas completas del navegador.
+    * **Atajo Global de Teclado `Escape` (E4):** Implementación de `handleKeydown` con escucha en `window` para cerrar en cascada los modales activos (Interface, Worklist o drawer lateral de paciente) y desuscripción limpia en `onBeforeUnmount`.
+    * **Autofoco Accesible al Abrir Drawer (M2):** Adición de `nextTick` con foco en `tipo_documento_id` tanto al crear nuevo paciente (`abrirNuevoPaciente`) como al editar (`mostrarRegistro`).
+    * **Identificación Jerárquica del Paciente en Modales (E7):**
+      - Inclusión del nombre y documento en el título del drawer: `Editar Paciente: [Nombre] ([Documento])`.
+      - Resaltado visual del número de documento en la tarjeta de paciente de la Worklist de Rayos X (`text-primary font-weight-bold` con icono `fa-id-card-o`).
+      - Resaltado visual del número de documento en la cabecera contextual del modal de Interface SAHI/HIS.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios (0 errores, 0 advertencias) ✅.
+    * Compilación de producción Vite (`npm run build`) completada con éxito en 1.52s ✅.
 - [x] **2026-11-09 — Discriminación por Sede Hospitalaria y Gráficos Nativos en Reporte de Producción Detallada (`ProduccionDetalladaExport.php`, `ProduccionDetalladaEstadisticasSheet.php`):**
   - **Requerimiento del Usuario:**
     * Al generar el reporte de producción detallada seleccionando "Todas las Sedes", la pestaña "Estadísticas y Gráficas" no discriminaba los datos ni la participación por sede hospitalaria de la red.
