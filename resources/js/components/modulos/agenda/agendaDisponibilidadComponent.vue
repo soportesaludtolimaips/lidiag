@@ -395,7 +395,9 @@ const editando = ref(false);
 const editandoId = ref(null);
 const tituloModal = ref("Guardar disponibilidad de citas");
 const showSidebar = ref(false);
-const sedeActual = ref(sessionStorage.getItem("ST-sede"));
+const sedeActual = ref(
+    sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || null
+);
 const registro = ref({
     sede_id: sedeActual.value,
     quien_registro_id: props.usuarioactual.id,
@@ -404,7 +406,11 @@ const registro = ref({
     dura_cita: 15,
     fecha_hora_ini: "",
 });
-const busqueda = ref({ sede_id: sedeActual.value, bus_fech_ini: "", bus_fecha_fin: "" });
+const busqueda = ref({
+    sede_id: sedeActual.value,
+    bus_fech_ini: "",
+    bus_fecha_fin: "",
+});
 const serviciosCitas = ref([]);
 const errores = ref([]);
 const registros = ref([]);
@@ -430,8 +436,12 @@ async function buscarStudy() {
     safeDestroyDataTable(dt.value || "#tablaAgendaDisponibilidad");
 
     try {
+        const sedeActiva =
+            busqueda.value.sede_id ||
+            sessionStorage.getItem("ST-sede") ||
+            localStorage.getItem("ST-sede");
         const params = {
-            sede_id: busqueda.value.sede_id,
+            sede_id: sedeActiva,
             bus_fech_ini: busqueda.value.bus_fech_ini || undefined,
             bus_fecha_fin: busqueda.value.bus_fecha_fin || undefined,
         };
@@ -557,11 +567,19 @@ async function listarServiciosCitas() {
         alertError("Error", "No se pudieron cargar los servicios");
     }
 }
-function establecerSede() {
-    registro.value.sede_id = sessionStorage.getItem("ST-sede");
-    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
-    sedeActual.value = sessionStorage.getItem("ST-sede");
+function establecerSede(data = null) {
+    const sede =
+        data?.idSede ??
+        sessionStorage.getItem("ST-sede") ??
+        localStorage.getItem("ST-sede") ??
+        null;
+    registro.value.sede_id = sede;
+    busqueda.value.sede_id = sede;
+    sedeActual.value = sede;
     registros.value = [];
+    if (!sede && emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
 }
 function btnLimpiar() {
     busqueda.value.bus_fech_ini = "";
@@ -601,9 +619,10 @@ function formatFecha(fecha) {
     return `${dia}/${mes}/${anio} ${horas}:${minutos}`;
 }
 
-function onSedeSeleccionada() {
-    establecerSede();
+function onSedeSeleccionada(data) {
+    establecerSede(data);
     safeDestroyDataTable(dt.value || "#tablaAgendaDisponibilidad");
+    buscarStudy();
 }
 
 onMounted(() => {
