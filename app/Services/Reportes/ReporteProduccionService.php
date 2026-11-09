@@ -2,6 +2,7 @@
 
 namespace App\Services\Reportes;
 
+use App\Exports\ProduccionConsolidadaExport;
 use App\Exports\ProduccionDetalladaEcografiasExport;
 use App\Exports\ProduccionDetalladaExport;
 use App\Exports\ProduccionDetalladaOftalmologiaExport;
@@ -139,6 +140,50 @@ class ReporteProduccionService extends BaseService
             ]);
 
             return ['message' => 'Error al generar el reporte PAC: '.$e->getMessage(), 'status' => 500];
+        }
+    }
+
+    /**
+     * Genera el reporte de producción consolidada (Estudios Tomados PACS vs Asignados LIDiag) en formato Excel.
+     *
+     * @param  array  $data  Datos filtrados: fechaIni, fechaFin, sedeId, modalidad.
+     *
+     * @returns BinaryFileResponse|array Archivo Excel o array con mensaje de error.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-09
+     */
+    public function generateReporteProduccionConsolidada(array $data): BinaryFileResponse|array
+    {
+        $fechaInicio = $data['fechaIni'] ?? null;
+        $fechaFin = $data['fechaFin'] ?? null;
+        $sedeId = $this->normalizeNullable($data['sedeId'] ?? null);
+        $modalidad = $this->normalizeNullable($data['modalidad'] ?? null);
+        $destino = $this->normalizeNullable($data['destino'] ?? null);
+
+        if (! $fechaInicio || ! $fechaFin) {
+            return $this->error('Las fechas de inicio y fin son obligatorias.', 422);
+        }
+
+        try {
+            $nombreArchivo = 'produccion_consolidada_'.($sedeId ? 'sede_'.$sedeId : 'red_completa').'_'.$fechaInicio.'_'.$fechaFin.'.xlsx';
+
+            return Excel::download(
+                new ProduccionConsolidadaExport((string) $fechaInicio, (string) $fechaFin, $sedeId, $modalidad, $destino),
+                $nombreArchivo
+            );
+        } catch (\Throwable $e) {
+            Log::error('ReporteProduccionService.generateReporteProduccionConsolidada failed', [
+                'sede_id' => $sedeId,
+                'fechaInicio' => $fechaInicio,
+                'fechaFin' => $fechaFin,
+                'modalidad' => $modalidad,
+                'destino' => $destino,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->error('Error al generar el reporte de producción consolidada: '.$e->getMessage(), 500);
         }
     }
 

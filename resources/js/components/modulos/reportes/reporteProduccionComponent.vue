@@ -187,6 +187,15 @@
                                 </a>
                             </div>
                             <div class="col-12">
+                                <a
+                                    href="javascript:void(0)"
+                                    @click="abrirModalProduccionConsolidada()"
+                                >
+                                    <i class="fa fa-balance-scale text-warning"></i>
+                                    Producción consolidada (Tomados PACS vs Asignados LIDiag)
+                                </a>
+                            </div>
+                            <div class="col-12">
                                 <a href="javascript:void(0)" @click="abrirModalConsolidadoRed()">
                                     <i class="fa fa-globe text-info"></i>
                                     Consolidado red hospitalaria (Ranking, Modalidades, TAT)
@@ -722,6 +731,155 @@
             </div>
         </div>
         <div v-if="modalProduccionVisible" class="modal-backdrop fade show"></div>
+
+        <!-- Modal Producción Consolidada (Tomados PACS vs Asignados LIDiag) -->
+        <div
+            class="modal fade"
+            :class="{ show: modalProduccionConsolidadaVisible }"
+            :style="{ display: modalProduccionConsolidadaVisible ? 'block' : 'none' }"
+            tabindex="-1"
+            role="dialog"
+            aria-hidden="true"
+            @click.self="
+                resetearFormularioConsolidada();
+                modalProduccionConsolidadaVisible = false;
+            "
+        >
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">
+                            <i class="fa fa-balance-scale text-warning"></i> Producción Consolidada
+                            (Tomados vs Asignados)
+                        </h4>
+                        <button
+                            type="button"
+                            class="close"
+                            aria-label="Cerrar modal"
+                            @click="
+                                resetearFormularioConsolidada();
+                                modalProduccionConsolidadaVisible = false;
+                            "
+                        >
+                            ×
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form @submit.prevent="descargarProduccionConsolidada()">
+                            <div class="form-group">
+                                <label class="control-label" for="cons-sede"
+                                    >Sede Hospitalaria</label
+                                >
+                                <select
+                                    class="form-control custom-select"
+                                    style="width: 100%; height: 36px"
+                                    v-model="datosProduccionConsolidada.sedeId"
+                                    id="cons-sede"
+                                >
+                                    <option value="0">
+                                        ...::: Todas las sedes de la red :::...
+                                    </option>
+                                    <option v-for="sede in sedes" :key="sede.id" :value="sede.id">
+                                        {{ sede.nom_sede }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label" for="cons-modalidad"
+                                    >Modalidad Diagnóstica</label
+                                >
+                                <select
+                                    class="form-control custom-select"
+                                    style="width: 100%; height: 36px"
+                                    v-model="datosProduccionConsolidada.modalidad"
+                                    id="cons-modalidad"
+                                >
+                                    <option value="">...::: Todas las modalidades :::...</option>
+                                    <option value="DX">Radiografía Digital (DX / RX)</option>
+                                    <option value="CR">Radiografía Computarizada (CR)</option>
+                                    <option value="CT">Tomografía Computarizada (CT / TAC)</option>
+                                    <option value="MR">Resonancia Magnética (MR / RM)</option>
+                                    <option value="MG">Mamografía (MG)</option>
+                                    <option value="US">Ecografía / Ultrasonido (US)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label" for="cons-destino"
+                                    >Destino del Estudio</label
+                                >
+                                <select
+                                    class="form-control custom-select"
+                                    style="width: 100%; height: 36px"
+                                    v-model="datosProduccionConsolidada.destino"
+                                    id="cons-destino"
+                                >
+                                    <option value="">
+                                        ...::: Todos (Salud Tolima y Tele-Radiología) :::...
+                                    </option>
+                                    <option value="Salud Tolima">Salud Tolima (Lectura Red)</option>
+                                    <option value="Tele Radiologia">
+                                        Tele-Radiología (Enviados a Tele)
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="control-label" for="cons-fechaIni"
+                                            >Fecha Inicial</label
+                                        >
+                                        <input
+                                            type="date"
+                                            class="form-control"
+                                            id="cons-fechaIni"
+                                            v-model="datosProduccionConsolidada.fechaIni"
+                                            @keyup.enter="descargarProduccionConsolidada()"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="control-label" for="cons-fechaFin"
+                                            >Fecha Final</label
+                                        >
+                                        <input
+                                            type="date"
+                                            class="form-control"
+                                            id="cons-fechaFin"
+                                            v-model="datosProduccionConsolidada.fechaFin"
+                                            @keyup.enter="descargarProduccionConsolidada()"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-default waves-effect"
+                            @click="
+                                resetearFormularioConsolidada();
+                                modalProduccionConsolidadaVisible = false;
+                            "
+                        >
+                            Cerrar
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-warning waves-effect waves-light"
+                            @click="descargarProduccionConsolidada()"
+                            :disabled="loadingDescargarConsolidada"
+                        >
+                            <i v-if="loadingDescargarConsolidada" class="fa fa-spinner fa-spin"></i>
+                            <i v-else class="fa fa-download"></i>
+                            Descargar Consolidado (.xlsx)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-if="modalProduccionConsolidadaVisible" class="modal-backdrop fade show"></div>
 
         <!-- Modal PAC -->
         <div
@@ -2655,6 +2813,13 @@ function cambiarModulo(modulo) {
 
 const sedes = ref([]);
 const datosReporte = ref({ sedeId: 0, quien_asigno: "", medico: "", fechaIni: "", fechaFin: "" });
+const datosProduccionConsolidada = ref({
+    sedeId: 0,
+    modalidad: "",
+    destino: "",
+    fechaIni: "",
+    fechaFin: "",
+});
 const datosPAC = ref({ sedeId: 0, fechaIni: "", fechaFin: "" });
 const datosDosimetria = ref({ sedeId: 0, fechaIni: "", fechaFin: "" });
 const datosTeleRadiologia = ref({ sedeId: 0, fechaIni: "", fechaFin: "" });
@@ -2673,6 +2838,7 @@ const tipoReporte = ref("Rx");
 const loadingSedes = ref(false);
 const loadingIndicadores = ref(false);
 const loadingDescargarProduccion = ref(false);
+const loadingDescargarConsolidada = ref(false);
 const loadingDescargarPAC = ref(false);
 const loadingDescargarDosimetria = ref(false);
 const loadingDescargarTeleRadiologia = ref(false);
@@ -2690,6 +2856,7 @@ const loadingSemaforoRepresados = ref(false);
 const loadingCitasWhatsApp = ref(false);
 const loadingAlmacenamiento = ref(false);
 const modalProduccionVisible = ref(false);
+const modalProduccionConsolidadaVisible = ref(false);
 const modalPACVisible = ref(false);
 const modalDosimetriaVisible = ref(false);
 const modalTeleRadiologiaVisible = ref(false);
@@ -2720,6 +2887,16 @@ const indicadores = ref({
 
 function resetearFormulario() {
     datosReporte.value = { sedeId: 0, quien_asigno: "", medico: "", fechaIni: "", fechaFin: "" };
+}
+
+function resetearFormularioConsolidada() {
+    datosProduccionConsolidada.value = {
+        sedeId: 0,
+        modalidad: "",
+        destino: "",
+        fechaIni: new Date().toISOString().slice(0, 7) + "-01",
+        fechaFin: new Date().toISOString().slice(0, 10),
+    };
 }
 
 function resetearFormularioPAC() {
@@ -2853,6 +3030,53 @@ async function descargarReporte() {
     } finally {
         setTimeout(() => {
             loadingDescargarProduccion.value = false;
+        }, 700);
+    }
+}
+
+/**
+ * Descarga el reporte de producción consolidada (Estudios Tomados PACS vs Asignados LIDiag) en Excel.
+ */
+async function descargarProduccionConsolidada() {
+    if (loadingDescargarConsolidada.value) return;
+    loadingDescargarConsolidada.value = true;
+    try {
+        if (
+            !validarFechas(
+                datosProduccionConsolidada.value.fechaIni,
+                datosProduccionConsolidada.value.fechaFin
+            )
+        ) {
+            return;
+        }
+
+        const params = new URLSearchParams({
+            sedeId: String(datosProduccionConsolidada.value.sedeId ?? 0),
+            modalidad: String(datosProduccionConsolidada.value.modalidad ?? ""),
+            destino: String(datosProduccionConsolidada.value.destino ?? ""),
+            fechaIni: String(datosProduccionConsolidada.value.fechaIni),
+            fechaFin: String(datosProduccionConsolidada.value.fechaFin),
+        });
+
+        const url = `/descarga-reportes-produccion-consolidada?${params.toString()}`;
+        const newWindow = window.open(url, "_blank", "noopener,noreferrer");
+
+        if (!newWindow) {
+            toastMessage({
+                heading: "Atención",
+                text: "El navegador bloqueó la apertura de la ventana. Permita pop-ups para este sitio.",
+                icon: "warning",
+            });
+        }
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible generar el reporte de producción consolidada.",
+            icon: "error",
+        });
+    } finally {
+        setTimeout(() => {
+            loadingDescargarConsolidada.value = false;
         }, 700);
     }
 }
@@ -3259,6 +3483,15 @@ async function abrirModalProduccion(tipo) {
     });
 }
 
+function abrirModalProduccionConsolidada() {
+    resetearFormularioConsolidada();
+    modalProduccionConsolidadaVisible.value = true;
+    nextTick(() => {
+        const el = document.getElementById("cons-sede");
+        if (el) el.focus();
+    });
+}
+
 function abrirModalPAC() {
     modalPACVisible.value = true;
     nextTick(() => {
@@ -3586,6 +3819,7 @@ useKeyboardShortcuts({
     onSearch: () => {
         if (
             !modalProduccionVisible.value &&
+            !modalProduccionConsolidadaVisible.value &&
             !modalPACVisible.value &&
             !modalDosimetriaVisible.value &&
             !modalTeleRadiologiaVisible.value &&
@@ -3606,6 +3840,8 @@ useKeyboardShortcuts({
     onSave: () => {
         if (modalProduccionVisible.value && !loadingDescargarProduccion.value) {
             descargarReporte();
+        } else if (modalProduccionConsolidadaVisible.value && !loadingDescargarConsolidada.value) {
+            descargarProduccionConsolidada();
         } else if (modalPACVisible.value && !loadingDescargarPAC.value) {
             descargarReporteEstudiosPAC();
         } else if (modalDosimetriaVisible.value && !loadingDescargarDosimetria.value) {
@@ -3639,6 +3875,9 @@ useKeyboardShortcuts({
         if (modalProduccionVisible.value) {
             resetearFormulario();
             modalProduccionVisible.value = false;
+        } else if (modalProduccionConsolidadaVisible.value) {
+            resetearFormularioConsolidada();
+            modalProduccionConsolidadaVisible.value = false;
         } else if (modalPACVisible.value) {
             resetearFormularioPAC();
             modalPACVisible.value = false;

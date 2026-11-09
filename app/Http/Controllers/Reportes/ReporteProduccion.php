@@ -9,6 +9,7 @@ use App\Http\Requests\Reportes\ReporteAusentismoCitasRequest;
 use App\Http\Requests\Reportes\ReporteCitasWhatsAppRequest;
 use App\Http\Requests\Reportes\ReporteConsolidadoRedRequest;
 use App\Http\Requests\Reportes\ReporteEstudiosPACRequest;
+use App\Http\Requests\Reportes\ReporteProduccionConsolidadaRequest;
 use App\Http\Requests\Reportes\ReporteProduccionRequest;
 use App\Http\Requests\Reportes\ReporteRepresadosRequest;
 use App\Http\Requests\Reportes\ReporteTATRequest;
@@ -34,6 +35,7 @@ class ReporteProduccion extends Controller
         $this->middleware('auth');
         $this->middleware('permission:reportes.detallados|reportes.indicadores')->only([
             'reporteProduccionDetallado',
+            'reporteProduccionConsolidada',
             'reporteEstudiosPAC',
             'reporteTeleRadiologia',
             'reporteAusentismoCitas',
@@ -70,6 +72,28 @@ class ReporteProduccion extends Controller
         }
 
         return response()->json($result['message'], $result['status']);
+    }
+
+    /**
+     * Genera el reporte de producción consolidada (Estudios Tomados PACS vs Asignados LIDiag).
+     *
+     * @param  ReporteProduccionConsolidadaRequest  $request  Solicitud con filtros del reporte consolidado.
+     *
+     * @returns BinaryFileResponse|JsonResponse Archivo Excel o respuesta JSON.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-09
+     */
+    public function reporteProduccionConsolidada(ReporteProduccionConsolidadaRequest $request): BinaryFileResponse|JsonResponse
+    {
+        $result = $this->service->generateReporteProduccionConsolidada($request->validated());
+
+        if ($result instanceof BinaryFileResponse) {
+            return $result;
+        }
+
+        return response()->json($result['message'] ?? 'Error desconocido', $result['status'] ?? 500);
     }
 
     /**

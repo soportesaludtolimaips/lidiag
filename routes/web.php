@@ -208,6 +208,9 @@ Route::get('reportes-produccion', fn () => view('layouts.app'))
 Route::get('descarga-reportes-produccion', [ReporteProduccion::class, 'reporteProduccionDetallado'])
     ->name('descarga.reportes.produccion')
     ->middleware(['auth', 'permission:reportes.detallados|reportes.indicadores']);
+Route::get('descarga-reportes-produccion-consolidada', [ReporteProduccion::class, 'reporteProduccionConsolidada'])
+    ->name('descarga.reportes.produccion.consolidada')
+    ->middleware(['auth', 'permission:reportes.detallados|reportes.indicadores']);
 
 Route::get('reportes-estudios-pac', fn () => view('layouts.app'))
     ->name('reportes.estudios.pac')
