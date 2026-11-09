@@ -37,6 +37,46 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Auditoría UI/UX Módulo Dosimetría (`DashboardDosimetria.vue`):**
+  - **Ajustes Realizados:**
+    * **Cierre y Atajo Accesible en Modal de Umbrales NRD (E4, E6):**
+      - Adición de `@click.self="mostrarModalUmbrales = false"` en el contenedor de modal para permitir cierre mediante clic en el backdrop.
+      - Integración de atajo nativo `Escape` (`handleKeydown`) en `window` para cerrar el modal de catálogo de umbrales regulatorios de inmediato, con desuscripción en `onBeforeUnmount`.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios ✅.
+    * Compilación de producción Vite (`npm run build`) completada exitosamente en 1.32s ✅.
+- [x] **2026-11-09 — Implementación del Reporte de Producción Consolidada: Estudios Tomados PACS vs Asignados LIDiag (`ProduccionConsolidadaExport.php`, `ReporteProduccion.php`, `reporteProduccionComponent.vue`):**
+  - **Requerimiento del Usuario:**
+    * Crear un nuevo reporte de "Producción Consolidada" que realice la trazabilidad de punta a punta cruzando los estudios tomados en los equipos médicos/PACS frente a los estudios asignados en LIDiag.
+    * Identificar con precisión la fecha/hora de toma en PACS, fecha/hora de asignación, quién asignó, médico radiólogo, estado de lectura y, fundamentalmente, detectar la brecha de estudios tomados que aún no han sido asignados a lectura médica.
+  - **Solución Implementada:**
+    * **Backend de Exportación Multi-Hoja ([`ProduccionConsolidadaExport.php`](file:///c:/laragon/www/lidiag/app/Exports/ProduccionConsolidadaExport.php)):**
+      - Conexión dinámica y resiliente por sede (`pacs_temp_X`) a las bases de datos de Dcm4chee de cada hospital configurado en `ConfigSede`.
+      - Extracción de estudios tomados en el rango de fechas (`study.study_datetime`) con timeout preventivo de 3 segundos: si una sede remota no responde o está apagada, registra advertencia en log y continúa sin interrumpir el reporte para las demás sedes.
+      - Cruce masivo en memoria por lotes contra `estudios`, `users` (asignador y médico) y `estudios_productos` (`fechor_lectura`, `con_lectura`) en la base de datos de LIDiag.
+    * **Hoja 1: Estadísticas y Gráficas ([`ProduccionConsolidadaEstadisticasSheet.php`](file:///c:/laragon/www/lidiag/app/Exports/Sheets/ProduccionConsolidadaEstadisticasSheet.php)):**
+      - 6 Tarjetas KPI ejecutivas: Total Tomados en PACS, Total Asignados en LIDiag, Brecha Sin Asignar, % Cobertura de Asignación, Total Leídos y Tiempo Promedio de Asignación (en horas).
+      - Tablas ejecutivas emparejadas: Comparativa por Sede Hospitalaria (A:F) y Comparativa por Modalidad Diagnóstica (H:M).
+      - 3 Gráficos nativos interactivos de PhpSpreadsheet: Barras comparativas de Tomados vs Asignados por Sede, Barras por Modalidad y Torta de Proporción Global.
+    * **Hoja 2: Detalle Consolidado ([`ProduccionConsolidadaDetalleSheet.php`](file:///c:/laragon/www/lidiag/app/Exports/Sheets/ProduccionConsolidadaDetalleSheet.php)):**
+      - Listado registro a registro con 17 columnas de trazabilidad: Sede, Doc, Paciente, Modalidad, Estudio, Fechas/Horas de toma/asignación/lectura, horas transcurridas entre toma y asignación, asignador, médico y estado.
+      - Semaforización visual: Verde para `ASIGNADO Y LEÍDO`, Azul para `ASIGNADO PENDIENTE` y Ámbar/Rojo para `TOMADO SIN ASIGNAR`.
+    * **Hoja 3: Estudios Sin Asignar ([`ProduccionConsolidadaSinAsignarSheet.php`](file:///c:/laragon/www/lidiag/app/Exports/Sheets/ProduccionConsolidadaSinAsignarSheet.php)):**
+      - Bandeja operativa de alerta asistencial en tonos rojos y ámbar (`#C62828`, `#FFF8E1`), calculando exactamente las horas y días que lleva cada estudio rezagado en espera de asignación.
+    * **Controlador, Servicio y Rutas:**
+      - Validador [`ReporteProduccionConsolidadaRequest.php`](file:///c:/laragon/www/lidiag/app/Http/Requests/Reportes/ReporteProduccionConsolidadaRequest.php).
+      - Servicio [`ReporteProduccionService.php`](file:///c:/laragon/www/lidiag/app/Services/Reportes/ReporteProduccionService.php) con normalización de filtros y log de excepciones.
+      - Endpoint en [`ReporteProduccion.php`](file:///c:/laragon/www/lidiag/app/Http/Controllers/Reportes/ReporteProduccion.php) y ruta `descarga-reportes-produccion-consolidada` en `routes/web.php` protegida con Spatie (`reportes.detallados|reportes.indicadores`).
+    * **Interfaz de Usuario ([`reporteProduccionComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/reportes/reporteProduccionComponent.vue)):**
+      - Agregado acceso directo en la tarjeta de "Producción Radiológica" con icono `fa fa-balance-scale text-warning`.
+      - Modal parametrizado con selector de sede (default: Todas las sedes de la red), selector de modalidad (default: Todas las modalidades) y fechas de toma.
+      - Integrado en shortcuts de teclado (`Ctrl+S`, `Esc`).
+  - **Verificaciones:**
+    * Laravel Pint verificado al 100% (`vendor\bin\pint.bat --test`) en todos los archivos PHP nuevos y modificados ✅.
+    * PHPStan Larastan Nivel 5 completado con 0 errores ✅.
+    * ESLint y Prettier 100% limpios en `reporteProduccionComponent.vue` ✅.
+    * Compilación Vite (`npm run build`) exitosa en 1.62s ✅.
+    * Prueba end-to-end con datos reales de la red ejecutada con éxito (737 estudios tomados procesados, 3 hojas y 3 gráficos nativos validados sin corrupción XML) ✅.
 - [x] **2026-11-09 — Auditoría UI/UX Módulo Ecografías (`admisionarComponent.vue`, `ecografiasAdmisionadasComponent.vue`, `lecturaComponent.vue`):**
   - **Ajustes Realizados:**
     * **`admisionarComponent.vue`:**

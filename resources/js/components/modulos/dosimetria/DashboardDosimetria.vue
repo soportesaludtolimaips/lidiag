@@ -1459,6 +1459,7 @@
             tabindex="-1"
             role="dialog"
             style="display: block; background: rgba(0, 0, 0, 0.5)"
+            @click.self="mostrarModalUmbrales = false"
         >
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
@@ -2330,7 +2331,14 @@ function onSedeSeleccionada(datosSede) {
     }
 }
 
+function handleKeydown(e) {
+    if (e.key === "Escape" && mostrarModalUmbrales.value) {
+        mostrarModalUmbrales.value = false;
+    }
+}
+
 onMounted(() => {
+    window.addEventListener("keydown", handleKeydown);
     // Sincronizar sede guardada en sesión o storage local si existe
     const sedeGuardada = sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "";
     if (sedeGuardada) {
@@ -2348,6 +2356,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+    window.removeEventListener("keydown", handleKeydown);
     if (typeof window !== "undefined" && window.$ && window.$.fn && window.$.fn.tooltip) {
         window.$(".tooltip").remove();
         window.$('[data-toggle="tooltip"]').tooltip("dispose");
