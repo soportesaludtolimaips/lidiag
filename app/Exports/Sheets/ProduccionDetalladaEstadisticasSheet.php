@@ -27,13 +27,14 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
  * 1. Recibe la colección de estudios dictaminados y leídos por el equipo médico radiológico.
  * 2. Consolida indicadores clave de desempeño (KPIs): Total Estudios, Pacientes Únicos, Médicos Activos, Promedio Diario y Procedimientos.
  * 3. Normaliza y clasifica la carga por modalidad diagnóstica (Tomografía CT, Resonancia MR, Rayos X DX/CR, Mamografía MG, etc.).
- * 4. Analiza la productividad comparativa por médico radiólogo (o Top 10 procedimientos si el reporte está filtrado por un solo especialista).
- * 5. Genera tablas ejecutivas con estilo corporativo (#1A2274), alineaciones clínicas y formatos numéricos (#,##0 y 0.0%).
- * 6. Construye gráficos ejecutivos nativos de PhpSpreadsheet: Torta de Modalidades y Barras de Productividad.
+ * 4. Analiza la productividad comparativa por médico radiólogo con su respectiva modalidad (o Top 10 procedimientos si el reporte está filtrado por un solo especialista).
+ * 5. Agrupa la distribución de estudios asignados por usuario (admisiones/registro) y transcripciones realizadas.
+ * 6. Genera tablas ejecutivas con estilo corporativo (#1A2274), alineaciones clínicas y formatos numéricos (#,##0 y 0.0%).
+ * 7. Construye 4 gráficos ejecutivos nativos de PhpSpreadsheet: Torta de Modalidades, Barras de Médicos Radiólogos, Barras de Usuarios Asignadores y Barras de Transcripciones.
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-11-04
+ * @date 2026-11-09
  */
 class ProduccionDetalladaEstadisticasSheet implements FromArray, WithCharts, WithColumnWidths, WithStyles, WithTitle
 {
@@ -56,6 +57,16 @@ class ProduccionDetalladaEstadisticasSheet implements FromArray, WithCharts, Wit
      * @var array<int, array{ranking: int, nombre: string, detalle: string, total: int, pacientes: int, porcentaje: float}>
      */
     protected array $resumenSecundario = [];
+
+    /**
+     * @var array<int, array{ranking: int, nombre: string, total: int, pacientes: int, porcentaje: float}>
+     */
+    protected array $resumenAsignadores = [];
+
+    /**
+     * @var array<int, array{ranking: int, nombre: string, detalle: string, total: int, pacientes: int, porcentaje: float}>
+     */
+    protected array $resumenTranscriptores = [];
 
     /**
      * Constructor con inyección de datos y cálculo analítico de métricas.
@@ -215,12 +226,17 @@ class ProduccionDetalladaEstadisticasSheet implements FromArray, WithCharts, Wit
                 $cant = $items->count();
                 $pacs = $items->pluck("num_docu")->filter(fn ($v) => ! empty($v) && $v !== "N/A")->unique()->count();
                 $pct = $this->totalEstudios > 0 ? round($cant / $this->totalEstudios, 4) : 0.0;
-                $atencionPrincipal = $items->pluck("atencion")->filter()->first() ?? "General";
+
+                $modalidadesMed = $items->map(fn ($it) => $this->normalizarModalidad($it->mods_in_study ?? null, $it->nom_produc ?? null))
+                    ->filter()
+                    ->unique()
+                    ->values();
+                $modalidadTexto = $modalidadesMed->isNotEmpty() ? $modalidadesMed->implode(", ") : "N/A";
 
                 $secundario[] = [
                     "ranking" => 0,
                     "nombre" => (string) $nombreMed,
-                    "detalle" => (string) $atencionPrincipal,
+                    "detalle" => (string) $modalidadTexto,
                     "total" => $cant,
                     "pacientes" => $pacs,
                     "porcentaje" => $pct,
@@ -261,6 +277,71 @@ class ProduccionDetalladaEstadisticasSheet implements FromArray, WithCharts, Wit
         }
         unset($item);
         $this->resumenSecundario = $secundario;
+
+        // 3. Agrupación por Usuario que Asignó / Registró Estudios
+        $gruposAsig = $this->estudios->groupBy(function ($item) {
+            $nom = trim((string) ($item->quien_registro ?? ""));
+
+            return $nom !== "" ? mb_strtoupper($nom, "UTF-8") : "SIN ESPECIFICAR";
+        });
+
+        $resumenAsig = [];
+        foreach ($gruposAsig as $nombreAsig => $items) {
+            $cant = $items->count();
+            $pacs = $items->pluck("num_docu")->filter(fn ($v) => ! empty($v) && $v !== "N/A")->unique()->count();
+            $pct = $this->totalEstudios > 0 ? round($cant / $this->totalEstudios, 4) : 0.0;
+
+            $resumenAsig[] = [
+                "ranking" => 0,
+                "nombre" => (string) $nombreAsig,
+                "total" => $cant,
+                "pacientes" => $pacs,
+                "porcentaje" => $pct,
+            ];
+        }
+        usort($resumenAsig, fn ($a, $b) => $b["total"] <=> $a["total"]);
+        $resumenAsig = array_slice($resumenAsig, 0, 10);
+        foreach ($resumenAsig as $i => &$item) {
+            $item["ranking"] = $i + 1;
+        }
+        unset($item);
+        $this->resumenAsignadores = $resumenAsig;
+
+        // 4. Agrupación por Usuario que Transcribió Estudios
+        $gruposTrans = $this->estudios->groupBy(function ($item) {
+            $nom = trim((string) ($item->transcriptor ?? ""));
+
+            return $nom !== "" ? mb_strtoupper($nom, "UTF-8") : "SIN TRANSCRIPTOR / DIRECTO";
+        });
+
+        $resumenTrans = [];
+        foreach ($gruposTrans as $nombreTrans => $items) {
+            $cant = $items->count();
+            $pacs = $items->pluck("num_docu")->filter(fn ($v) => ! empty($v) && $v !== "N/A")->unique()->count();
+            $pct = $this->totalEstudios > 0 ? round($cant / $this->totalEstudios, 4) : 0.0;
+
+            $modalidadesTrans = $items->map(fn ($it) => $this->normalizarModalidad($it->mods_in_study ?? null, $it->nom_produc ?? null))
+                ->filter()
+                ->unique()
+                ->values();
+            $modalidadTexto = $modalidadesTrans->isNotEmpty() ? $modalidadesTrans->implode(", ") : "N/A";
+
+            $resumenTrans[] = [
+                "ranking" => 0,
+                "nombre" => (string) $nombreTrans,
+                "detalle" => $modalidadTexto,
+                "total" => $cant,
+                "pacientes" => $pacs,
+                "porcentaje" => $pct,
+            ];
+        }
+        usort($resumenTrans, fn ($a, $b) => $b["total"] <=> $a["total"]);
+        $resumenTrans = array_slice($resumenTrans, 0, 10);
+        foreach ($resumenTrans as $i => &$item) {
+            $item["ranking"] = $i + 1;
+        }
+        unset($item);
+        $this->resumenTranscriptores = $resumenTrans;
     }
 
     /**
@@ -303,15 +384,15 @@ class ProduccionDetalladaEstadisticasSheet implements FromArray, WithCharts, Wit
     public function columnWidths(): array
     {
         return [
-            "A" => 12, // Código Modalidad
-            "B" => 34, // Modalidad Diagnóstica
+            "A" => 12, // Código Modalidad / # Ranking
+            "B" => 34, // Modalidad Diagnóstica / Usuario Asignador
             "C" => 14, // Estudios
             "D" => 14, // Pacientes
             "E" => 16, // % Cuota
             "F" => 4,  // Separador
             "G" => 6,  // Rank #
-            "H" => 44, // Médico Radiólogo o Procedimiento
-            "I" => 16, // Detalle / Modalidad
+            "H" => 44, // Médico Radiólogo o Procedimiento / Usuario Transcriptor
+            "I" => 18, // Modalidad
             "J" => 14, // Estudios
             "K" => 14, // Pacientes
             "L" => 16, // % Cuota
@@ -360,13 +441,13 @@ class ProduccionDetalladaEstadisticasSheet implements FromArray, WithCharts, Wit
         $sheet->getStyle("A2")->applyFromArray([
             "font" => [
                 "bold" => false,
-                "color" => ["rgb" => "333333"],
+                "color" => ["rgb" => "FFFFFF"],
                 "size" => 10,
                 "name" => "Segoe UI",
             ],
             "fill" => [
                 "fillType" => Fill::FILL_SOLID,
-                "startColor" => ["rgb" => "E9ECEF"],
+                "startColor" => ["rgb" => "283593"],
             ],
             "alignment" => [
                 "horizontal" => Alignment::HORIZONTAL_CENTER,
@@ -424,7 +505,7 @@ class ProduccionDetalladaEstadisticasSheet implements FromArray, WithCharts, Wit
         $sheet->mergeCells("A7:E7");
         $sheet->getStyle("A7")->applyFromArray([
             "font" => ["bold" => true, "size" => 10, "color" => ["rgb" => "FFFFFF"], "name" => "Segoe UI"],
-            "fill" => ["fillType" => Fill::FILL_SOLID, "startColor" => ["rgb" => "203A43"]],
+            "fill" => ["fillType" => Fill::FILL_SOLID, "startColor" => ["rgb" => "1A2274"]],
             "alignment" => ["horizontal" => Alignment::HORIZONTAL_CENTER, "vertical" => Alignment::VERTICAL_CENTER],
         ]);
 
@@ -435,7 +516,7 @@ class ProduccionDetalladaEstadisticasSheet implements FromArray, WithCharts, Wit
         $sheet->mergeCells("G7:L7");
         $sheet->getStyle("G7")->applyFromArray([
             "font" => ["bold" => true, "size" => 10, "color" => ["rgb" => "FFFFFF"], "name" => "Segoe UI"],
-            "fill" => ["fillType" => Fill::FILL_SOLID, "startColor" => ["rgb" => "203A43"]],
+            "fill" => ["fillType" => Fill::FILL_SOLID, "startColor" => ["rgb" => "1A2274"]],
             "alignment" => ["horizontal" => Alignment::HORIZONTAL_CENTER, "vertical" => Alignment::VERTICAL_CENTER],
         ]);
         $sheet->getRowDimension(7)->setRowHeight(24);
@@ -448,22 +529,21 @@ class ProduccionDetalladaEstadisticasSheet implements FromArray, WithCharts, Wit
         $sheet->setCellValue("E8", "% Cuota");
         $sheet->getStyle("A8:E8")->applyFromArray([
             "font" => ["bold" => true, "size" => 9, "color" => ["rgb" => "FFFFFF"], "name" => "Segoe UI"],
-            "fill" => ["fillType" => Fill::FILL_SOLID, "startColor" => ["rgb" => "37474F"]],
+            "fill" => ["fillType" => Fill::FILL_SOLID, "startColor" => ["rgb" => "283593"]],
             "alignment" => ["horizontal" => Alignment::HORIZONTAL_CENTER, "vertical" => Alignment::VERTICAL_CENTER],
             "borders" => ["allBorders" => ["borderStyle" => Border::BORDER_THIN, "color" => ["rgb" => "FFFFFF"]]],
         ]);
 
         $colNombreSec = $this->esFiltroUnSoloMedico ? "Procedimiento Radiológico" : "Médico Radiólogo";
-        $colDetalleSec = $this->esFiltroUnSoloMedico ? "Modalidad" : "Atención";
         $sheet->setCellValue("G8", "#");
         $sheet->setCellValue("H8", $colNombreSec);
-        $sheet->setCellValue("I8", $colDetalleSec);
+        $sheet->setCellValue("I8", "Modalidad");
         $sheet->setCellValue("J8", "Estudios");
         $sheet->setCellValue("K8", "Pacientes");
         $sheet->setCellValue("L8", "% Cuota");
         $sheet->getStyle("G8:L8")->applyFromArray([
             "font" => ["bold" => true, "size" => 9, "color" => ["rgb" => "FFFFFF"], "name" => "Segoe UI"],
-            "fill" => ["fillType" => Fill::FILL_SOLID, "startColor" => ["rgb" => "37474F"]],
+            "fill" => ["fillType" => Fill::FILL_SOLID, "startColor" => ["rgb" => "283593"]],
             "alignment" => ["horizontal" => Alignment::HORIZONTAL_CENTER, "vertical" => Alignment::VERTICAL_CENTER],
             "borders" => ["allBorders" => ["borderStyle" => Border::BORDER_THIN, "color" => ["rgb" => "FFFFFF"]]],
         ]);
@@ -476,7 +556,7 @@ class ProduccionDetalladaEstadisticasSheet implements FromArray, WithCharts, Wit
             $sheet->getStyle("A9:E9")->applyFromArray([
                 "font" => ["italic" => true, "color" => ["rgb" => "6C757D"]],
                 "alignment" => ["horizontal" => Alignment::HORIZONTAL_CENTER, "vertical" => Alignment::VERTICAL_CENTER],
-                "borders" => ["allBorders" => ["borderStyle" => Border::BORDER_THIN, "color" => ["rgb" => "E0E0E0"]]],
+                "borders" => ["allBorders" => ["borderStyle" => Border::BORDER_THIN, "color" => ["rgb" => "C5CAE9"]]],
             ]);
             $sheet->getRowDimension(9)->setRowHeight(22);
 
@@ -485,7 +565,7 @@ class ProduccionDetalladaEstadisticasSheet implements FromArray, WithCharts, Wit
             $sheet->getStyle("G9:L9")->applyFromArray([
                 "font" => ["italic" => true, "color" => ["rgb" => "6C757D"]],
                 "alignment" => ["horizontal" => Alignment::HORIZONTAL_CENTER, "vertical" => Alignment::VERTICAL_CENTER],
-                "borders" => ["allBorders" => ["borderStyle" => Border::BORDER_THIN, "color" => ["rgb" => "E0E0E0"]]],
+                "borders" => ["allBorders" => ["borderStyle" => Border::BORDER_THIN, "color" => ["rgb" => "C5CAE9"]]],
             ]);
 
             return [];
@@ -510,7 +590,7 @@ class ProduccionDetalladaEstadisticasSheet implements FromArray, WithCharts, Wit
             $sheet->getStyle("E{$rMod}")->getNumberFormat()->setFormatCode("0.0%");
 
             $sheet->getStyle("A{$rMod}:E{$rMod}")->applyFromArray([
-                "borders" => ["allBorders" => ["borderStyle" => Border::BORDER_THIN, "color" => ["rgb" => "E0E0E0"]]],
+                "borders" => ["allBorders" => ["borderStyle" => Border::BORDER_THIN, "color" => ["rgb" => "C5CAE9"]]],
             ]);
             $sheet->getRowDimension($rMod)->setRowHeight(20);
             $rMod++;
@@ -562,7 +642,7 @@ class ProduccionDetalladaEstadisticasSheet implements FromArray, WithCharts, Wit
             $sheet->getStyle("L{$rSec}")->getNumberFormat()->setFormatCode("0.0%");
 
             $sheet->getStyle("G{$rSec}:L{$rSec}")->applyFromArray([
-                "borders" => ["allBorders" => ["borderStyle" => Border::BORDER_THIN, "color" => ["rgb" => "E0E0E0"]]],
+                "borders" => ["allBorders" => ["borderStyle" => Border::BORDER_THIN, "color" => ["rgb" => "C5CAE9"]]],
             ]);
             $sheet->getRowDimension($rSec)->setRowHeight(20);
             $rSec++;
@@ -591,17 +671,171 @@ class ProduccionDetalladaEstadisticasSheet implements FromArray, WithCharts, Wit
         $sheet->getStyle("L{$rSec}")->getNumberFormat()->setFormatCode("0.0%");
         $sheet->getRowDimension($rSec)->setRowHeight(22);
 
+        $rFinSeccion1 = max($rMod, $rSec);
+
+        // 7. Encabezados de Sección 2: Asignadores y Transcriptores
+        $rSec2Header = $rFinSeccion1 + 3;
+        $sheet->setCellValue("A{$rSec2Header}", "DISTRIBUCIÓN POR USUARIO QUE ASIGNÓ ESTUDIOS");
+        $sheet->mergeCells("A{$rSec2Header}:E{$rSec2Header}");
+        $sheet->getStyle("A{$rSec2Header}")->applyFromArray([
+            "font" => ["bold" => true, "size" => 10, "color" => ["rgb" => "FFFFFF"], "name" => "Segoe UI"],
+            "fill" => ["fillType" => Fill::FILL_SOLID, "startColor" => ["rgb" => "1A2274"]],
+            "alignment" => ["horizontal" => Alignment::HORIZONTAL_CENTER, "vertical" => Alignment::VERTICAL_CENTER],
+        ]);
+
+        $sheet->setCellValue("G{$rSec2Header}", "DISTRIBUCIÓN POR USUARIO QUE TRANSCRIBIÓ ESTUDIOS");
+        $sheet->mergeCells("G{$rSec2Header}:L{$rSec2Header}");
+        $sheet->getStyle("G{$rSec2Header}")->applyFromArray([
+            "font" => ["bold" => true, "size" => 10, "color" => ["rgb" => "FFFFFF"], "name" => "Segoe UI"],
+            "fill" => ["fillType" => Fill::FILL_SOLID, "startColor" => ["rgb" => "1A2274"]],
+            "alignment" => ["horizontal" => Alignment::HORIZONTAL_CENTER, "vertical" => Alignment::VERTICAL_CENTER],
+        ]);
+        $sheet->getRowDimension($rSec2Header)->setRowHeight(24);
+
+        // 8. Encabezados de Columnas Sección 2
+        $rSec2Cols = $rSec2Header + 1;
+        $sheet->setCellValue("A{$rSec2Cols}", "#");
+        $sheet->setCellValue("B{$rSec2Cols}", "Usuario Asignador");
+        $sheet->setCellValue("C{$rSec2Cols}", "Estudios");
+        $sheet->setCellValue("D{$rSec2Cols}", "Pacientes");
+        $sheet->setCellValue("E{$rSec2Cols}", "% Cuota");
+        $sheet->getStyle("A{$rSec2Cols}:E{$rSec2Cols}")->applyFromArray([
+            "font" => ["bold" => true, "size" => 9, "color" => ["rgb" => "FFFFFF"], "name" => "Segoe UI"],
+            "fill" => ["fillType" => Fill::FILL_SOLID, "startColor" => ["rgb" => "283593"]],
+            "alignment" => ["horizontal" => Alignment::HORIZONTAL_CENTER, "vertical" => Alignment::VERTICAL_CENTER],
+            "borders" => ["allBorders" => ["borderStyle" => Border::BORDER_THIN, "color" => ["rgb" => "FFFFFF"]]],
+        ]);
+
+        $sheet->setCellValue("G{$rSec2Cols}", "#");
+        $sheet->setCellValue("H{$rSec2Cols}", "Usuario Transcriptor");
+        $sheet->setCellValue("I{$rSec2Cols}", "Modalidad");
+        $sheet->setCellValue("J{$rSec2Cols}", "Estudios");
+        $sheet->setCellValue("K{$rSec2Cols}", "Pacientes");
+        $sheet->setCellValue("L{$rSec2Cols}", "% Cuota");
+        $sheet->getStyle("G{$rSec2Cols}:L{$rSec2Cols}")->applyFromArray([
+            "font" => ["bold" => true, "size" => 9, "color" => ["rgb" => "FFFFFF"], "name" => "Segoe UI"],
+            "fill" => ["fillType" => Fill::FILL_SOLID, "startColor" => ["rgb" => "283593"]],
+            "alignment" => ["horizontal" => Alignment::HORIZONTAL_CENTER, "vertical" => Alignment::VERTICAL_CENTER],
+            "borders" => ["allBorders" => ["borderStyle" => Border::BORDER_THIN, "color" => ["rgb" => "FFFFFF"]]],
+        ]);
+        $sheet->getRowDimension($rSec2Cols)->setRowHeight(20);
+
+        // 9. Filas de Datos Sección 2
+        // 9.1 Tabla 3: Usuarios Asignadores (Cols A a E)
+        $rAsig = $rSec2Cols + 1;
+        $totalAsigEstudios = 0;
+        $totalAsigPct = 0.0;
+        foreach ($this->resumenAsignadores as $asig) {
+            $sheet->setCellValue("A{$rAsig}", $asig["ranking"]);
+            $sheet->setCellValue("B{$rAsig}", $asig["nombre"]);
+            $sheet->setCellValue("C{$rAsig}", (int) $asig["total"]);
+            $sheet->setCellValue("D{$rAsig}", (int) $asig["pacientes"]);
+            $sheet->setCellValue("E{$rAsig}", (float) $asig["porcentaje"]);
+
+            $totalAsigEstudios += (int) $asig["total"];
+            $totalAsigPct += (float) $asig["porcentaje"];
+
+            $sheet->getStyle("A{$rAsig}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("B{$rAsig}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+            $sheet->getStyle("C{$rAsig}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $sheet->getStyle("C{$rAsig}")->getNumberFormat()->setFormatCode("#,##0");
+            $sheet->getStyle("D{$rAsig}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $sheet->getStyle("D{$rAsig}")->getNumberFormat()->setFormatCode("#,##0");
+            $sheet->getStyle("E{$rAsig}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $sheet->getStyle("E{$rAsig}")->getNumberFormat()->setFormatCode("0.0%");
+
+            $sheet->getStyle("A{$rAsig}:E{$rAsig}")->applyFromArray([
+                "borders" => ["allBorders" => ["borderStyle" => Border::BORDER_THIN, "color" => ["rgb" => "C5CAE9"]]],
+            ]);
+            $sheet->getRowDimension($rAsig)->setRowHeight(20);
+            $rAsig++;
+        }
+
+        // Fila Total Tabla 3
+        $sheet->setCellValue("A{$rAsig}", "TOTAL");
+        $sheet->setCellValue("B{$rAsig}", "Subtotal Usuarios Asignadores");
+        $sheet->setCellValue("C{$rAsig}", $totalAsigEstudios);
+        $sheet->setCellValue("D{$rAsig}", "-");
+        $sheet->setCellValue("E{$rAsig}", $totalAsigPct);
+        $sheet->getStyle("A{$rAsig}:E{$rAsig}")->applyFromArray([
+            "font" => ["bold" => true, "size" => 9, "color" => ["rgb" => "1A2274"]],
+            "fill" => ["fillType" => Fill::FILL_SOLID, "startColor" => ["rgb" => "F0F4FF"]],
+            "borders" => [
+                "allBorders" => ["borderStyle" => Border::BORDER_THIN, "color" => ["rgb" => "C5CAE9"]],
+                "top" => ["borderStyle" => Border::BORDER_MEDIUM, "color" => ["rgb" => "1A2274"]],
+            ],
+        ]);
+        $sheet->getStyle("A{$rAsig}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("C{$rAsig}")->getNumberFormat()->setFormatCode("#,##0");
+        $sheet->getStyle("D{$rAsig}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("E{$rAsig}")->getNumberFormat()->setFormatCode("0.0%");
+        $sheet->getRowDimension($rAsig)->setRowHeight(22);
+
+        // 9.2 Tabla 4: Usuarios Transcriptores (Cols G a L)
+        $rTrans = $rSec2Cols + 1;
+        $totalTransEstudios = 0;
+        $totalTransPct = 0.0;
+        foreach ($this->resumenTranscriptores as $trans) {
+            $sheet->setCellValue("G{$rTrans}", $trans["ranking"]);
+            $sheet->setCellValue("H{$rTrans}", $trans["nombre"]);
+            $sheet->setCellValue("I{$rTrans}", $trans["detalle"]);
+            $sheet->setCellValue("J{$rTrans}", (int) $trans["total"]);
+            $sheet->setCellValue("K{$rTrans}", (int) $trans["pacientes"]);
+            $sheet->setCellValue("L{$rTrans}", (float) $trans["porcentaje"]);
+
+            $totalTransEstudios += (int) $trans["total"];
+            $totalTransPct += (float) $trans["porcentaje"];
+
+            $sheet->getStyle("G{$rTrans}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("H{$rTrans}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+            $sheet->getStyle("I{$rTrans}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("J{$rTrans}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $sheet->getStyle("J{$rTrans}")->getNumberFormat()->setFormatCode("#,##0");
+            $sheet->getStyle("K{$rTrans}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $sheet->getStyle("K{$rTrans}")->getNumberFormat()->setFormatCode("#,##0");
+            $sheet->getStyle("L{$rTrans}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $sheet->getStyle("L{$rTrans}")->getNumberFormat()->setFormatCode("0.0%");
+
+            $sheet->getStyle("G{$rTrans}:L{$rTrans}")->applyFromArray([
+                "borders" => ["allBorders" => ["borderStyle" => Border::BORDER_THIN, "color" => ["rgb" => "C5CAE9"]]],
+            ]);
+            $sheet->getRowDimension($rTrans)->setRowHeight(20);
+            $rTrans++;
+        }
+
+        // Fila Total Tabla 4
+        $sheet->setCellValue("G{$rTrans}", "TOTAL");
+        $sheet->setCellValue("H{$rTrans}", "Subtotal Transcripción");
+        $sheet->setCellValue("I{$rTrans}", "-");
+        $sheet->setCellValue("J{$rTrans}", $totalTransEstudios);
+        $sheet->setCellValue("K{$rTrans}", "-");
+        $sheet->setCellValue("L{$rTrans}", $totalTransPct);
+        $sheet->getStyle("G{$rTrans}:L{$rTrans}")->applyFromArray([
+            "font" => ["bold" => true, "size" => 9, "color" => ["rgb" => "1A2274"]],
+            "fill" => ["fillType" => Fill::FILL_SOLID, "startColor" => ["rgb" => "F0F4FF"]],
+            "borders" => [
+                "allBorders" => ["borderStyle" => Border::BORDER_THIN, "color" => ["rgb" => "C5CAE9"]],
+                "top" => ["borderStyle" => Border::BORDER_MEDIUM, "color" => ["rgb" => "1A2274"]],
+            ],
+        ]);
+        $sheet->getStyle("G{$rTrans}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("I{$rTrans}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("K{$rTrans}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("J{$rTrans}")->getNumberFormat()->setFormatCode("#,##0");
+        $sheet->getStyle("L{$rTrans}")->getNumberFormat()->setFormatCode("0.0%");
+        $sheet->getRowDimension($rTrans)->setRowHeight(22);
+
         return [];
     }
 
     /**
-     * Genera los gráficos ejecutivos nativos de Excel (Torta y Barras de Productividad).
+     * Genera los 4 gráficos ejecutivos nativos de Excel (Modalidades, Médicos, Asignadores y Transcriptores).
      *
      * @returns Chart[]
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-11-04
+     * @date 2026-11-09
      */
     public function charts(): array
     {
@@ -616,8 +850,24 @@ class ProduccionDetalladaEstadisticasSheet implements FromArray, WithCharts, Wit
         $rSecDataStart = 9;
         $rSecDataEnd = 8 + count($this->resumenSecundario);
 
-        $startChart = max($rModDataEnd + 2, $rSecDataEnd + 2) + 3;
-        $endChart = $startChart + 18;
+        $rFinSeccion1 = max($rModDataEnd + 1, $rSecDataEnd + 1);
+        $rSec2Header = $rFinSeccion1 + 3;
+        $rSec2Cols = $rSec2Header + 1;
+        $rSec2DataStart = $rSec2Cols + 1;
+
+        $rAsigDataEnd = $rSec2DataStart + count($this->resumenAsignadores) - 1;
+        $rTransDataEnd = $rSec2DataStart + count($this->resumenTranscriptores) - 1;
+
+        $rFinSeccion2 = max(
+            ! empty($this->resumenAsignadores) ? $rAsigDataEnd + 1 : $rSec2Cols,
+            ! empty($this->resumenTranscriptores) ? $rTransDataEnd + 1 : $rSec2Cols
+        );
+
+        $chartRow1Start = $rFinSeccion2 + 3;
+        $chartRow1End = $chartRow1Start + 18;
+
+        $chartRow2Start = $chartRow1End + 3;
+        $chartRow2End = $chartRow2Start + 18;
 
         // 1. Gráfico de Torta (Pie): Distribución por Modalidad Diagnóstica
         $pieLabels = [
@@ -651,8 +901,8 @@ class ProduccionDetalladaEstadisticasSheet implements FromArray, WithCharts, Wit
             true,
             DataSeries::EMPTY_AS_GAP
         );
-        $pieChart->setTopLeftPosition("A".$startChart);
-        $pieChart->setBottomRightPosition("E".$endChart);
+        $pieChart->setTopLeftPosition("A".$chartRow1Start);
+        $pieChart->setBottomRightPosition("E".$chartRow1End);
 
         $chartsList = [$pieChart];
 
@@ -693,10 +943,90 @@ class ProduccionDetalladaEstadisticasSheet implements FromArray, WithCharts, Wit
                 true,
                 DataSeries::EMPTY_AS_GAP
             );
-            $barChart->setTopLeftPosition("G".$startChart);
-            $barChart->setBottomRightPosition("L".$endChart);
+            $barChart->setTopLeftPosition("G".$chartRow1Start);
+            $barChart->setBottomRightPosition("L".$chartRow1End);
 
             $chartsList[] = $barChart;
+        }
+
+        // 3. Gráfico de Barras / Columnas: Usuarios que Asignaron Estudios
+        if (! empty($this->resumenAsignadores)) {
+            $asigLabels = [
+                new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, "'{$sheetTitle}'!\$C\${$rSec2Cols}", null, 1),
+            ];
+            $asigCategories = [
+                new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, "'{$sheetTitle}'!\$B\${$rSec2DataStart}:\$B\${$rAsigDataEnd}", null, count($this->resumenAsignadores)),
+            ];
+            $asigValues = [
+                new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_NUMBER, "'{$sheetTitle}'!\$C\${$rSec2DataStart}:\$C\${$rAsigDataEnd}", null, count($this->resumenAsignadores)),
+            ];
+
+            $asigSeries = new DataSeries(
+                DataSeries::TYPE_BARCHART,
+                DataSeries::GROUPING_CLUSTERED,
+                range(0, count($asigValues) - 1),
+                $asigLabels,
+                $asigCategories,
+                $asigValues
+            );
+            $asigSeries->setPlotDirection(DataSeries::DIRECTION_COL);
+
+            $asigPlotArea = new PlotArea(null, [$asigSeries]);
+            $asigLegend = new Legend(Legend::POSITION_TOP, null, false);
+            $asigTitle = new Title("Estudios Asignados por Usuario (Top 10)");
+
+            $asigChart = new Chart(
+                "chart_prod_asignadores",
+                $asigTitle,
+                $asigLegend,
+                $asigPlotArea,
+                true,
+                DataSeries::EMPTY_AS_GAP
+            );
+            $asigChart->setTopLeftPosition("A".$chartRow2Start);
+            $asigChart->setBottomRightPosition("E".$chartRow2End);
+
+            $chartsList[] = $asigChart;
+        }
+
+        // 4. Gráfico de Barras / Columnas: Usuarios que Transcribieron Estudios
+        if (! empty($this->resumenTranscriptores)) {
+            $transLabels = [
+                new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, "'{$sheetTitle}'!\$J\${$rSec2Cols}", null, 1),
+            ];
+            $transCategories = [
+                new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, "'{$sheetTitle}'!\$H\${$rSec2DataStart}:\$H\${$rTransDataEnd}", null, count($this->resumenTranscriptores)),
+            ];
+            $transValues = [
+                new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_NUMBER, "'{$sheetTitle}'!\$J\${$rSec2DataStart}:\$J\${$rTransDataEnd}", null, count($this->resumenTranscriptores)),
+            ];
+
+            $transSeries = new DataSeries(
+                DataSeries::TYPE_BARCHART,
+                DataSeries::GROUPING_CLUSTERED,
+                range(0, count($transValues) - 1),
+                $transLabels,
+                $transCategories,
+                $transValues
+            );
+            $transSeries->setPlotDirection(DataSeries::DIRECTION_COL);
+
+            $transPlotArea = new PlotArea(null, [$transSeries]);
+            $transLegend = new Legend(Legend::POSITION_TOP, null, false);
+            $transTitle = new Title("Estudios Transcritos por Usuario (Top 10)");
+
+            $transChart = new Chart(
+                "chart_prod_transcriptores",
+                $transTitle,
+                $transLegend,
+                $transPlotArea,
+                true,
+                DataSeries::EMPTY_AS_GAP
+            );
+            $transChart->setTopLeftPosition("G".$chartRow2Start);
+            $transChart->setBottomRightPosition("L".$chartRow2End);
+
+            $chartsList[] = $transChart;
         }
 
         return $chartsList;

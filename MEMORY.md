@@ -37,6 +37,33 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Enriquecimiento y Unificación de Colores en Estadísticas y Gráficas de Producción Detallada (`ProduccionDetalladaEstadisticasSheet.php`):**
+  - **Requerimiento del Usuario:**
+    * Agregar a la pestaña "Estadísticas y Gráficas" tablas analíticas y gráficos de:
+      1. Usuarios que asignaron estudios (`quien_registro`).
+      2. Usuarios que transcribieron estudios (`transcriptor`).
+    * En la tabla "RENDIMIENTO DE PRODUCCIÓN POR MÉDICO RADIÓLOGO", reemplazar la columna "Atención" por la columna "Modalidad" (mostrando las modalidades cubiertas por cada médico).
+    * Aplicar la paleta de colores de la hoja "Detalle de Producción" a la hoja "Estadísticas y Gráficas".
+  - **Solución Implementada:**
+    * En [`ProduccionDetalladaEstadisticasSheet.php`](file:///c:/laragon/www/lidiag/app/Exports/Sheets/ProduccionDetalladaEstadisticasSheet.php):
+      - Se reemplazó la lógica de extracción de "Atención" en la tabla secundaria por la normalización de modalidades únicas asociadas a cada especialista (`$modalidadesMed->implode(", ")`).
+      - El encabezado de la columna I se actualizó a "Modalidad" con ancho ajustado (18).
+      - Se implementó la agregación de métricas y ranking Top 10 para **Usuarios que Asignaron Estudios** (`quien_registro`) con ranking, nombre, total de estudios, pacientes únicos y cuota porcentual.
+      - Se implementó la agregación de métricas y ranking Top 10 para **Usuarios que Transcribieron Estudios** (`transcriptor`, con fallback profesional "SIN TRANSCRIPTOR / DIRECTO" para dictados directos o sin transcriptor intermedio) con ranking, nombre, modalidades, total de estudios, pacientes únicos y cuota porcentual.
+      - Se unificó toda la paleta de colores con la hoja "Detalle de Producción":
+        * Encabezados de sección / banners de tablas: Azul corporativo `#1A2274` con texto blanco.
+        * Encabezados de columnas de tablas: Azul índigo `#283593` con texto blanco (reemplazando los tonos pizarra `#203A43` y gris carbón `#37474F`).
+        * Subtítulo / metadatos del reporte (fila 2): Azul índigo `#283593` con texto blanco.
+        * Cuadrícula de datos: Bordes suaves `#C5CAE9` (reemplazando `#E0E0E0`).
+      - Se construyó una cuadrícula simétrica 2x2 de gráficos ejecutivos nativos de PhpSpreadsheet:
+        1. Gráfico de Torta: Distribución por Modalidad Diagnóstica (A:E).
+        2. Gráfico de Columnas: Rendimiento por Médico Radiólogo (G:L).
+        3. Gráfico de Columnas: Estudios Asignados por Usuario (Top 10) (A:E).
+        4. Gráfico de Columnas: Estudios Transcritos por Usuario (Top 10) (G:L).
+  - **Verificaciones:**
+    * Generación exitosa de libros Excel con datos reales y validación de 4 gráficos nativos incrustados sin errores de corrupción XML.
+    * Laravel Pint: 100% aprobado (`vendor\bin\pint.bat --test`).
+    * PHPStan Level 5: 0 errores (`[OK] No errors`).
 - [x] **2026-11-09 — Corrección de Permisos Spatie en Vue Router (`routes.js`) para Módulo Reportes y Configuración:**
   - **Diagnóstico y Causa Raíz:**
     * El usuario reportó error 403 (*Acceso Restringido*) al ingresar a `https://lidiag.test/reportes-produccion` con el usuario *YEFER ADNRES AVILEZ GOMEZ*, a pesar de tener los permisos Spatie asignados (`reportes.indicadores` y `reportes.detallados`).
