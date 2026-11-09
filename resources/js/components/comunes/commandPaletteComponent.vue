@@ -108,6 +108,11 @@
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useAuth } from "../../composables/useAuth";
+
+const auth = useAuth();
+const router = useRouter();
 
 defineProps({
     permisos: { type: Array, default: () => [] },
@@ -440,13 +445,16 @@ const todosLosModulos = [
 ];
 
 /**
- * Filtra módulos accesibles según el término de búsqueda
+ * Filtra módulos accesibles según el término de búsqueda y permisos del usuario
  */
 const resultadosFiltrados = computed(() => {
     const q = (termino.value || "").trim().toLowerCase();
-    if (!q) return todosLosModulos.slice(0, 10);
+    const modulosPermitidos = todosLosModulos.filter(
+        (item) => !item.permiso || auth.can(item.permiso)
+    );
+    if (!q) return modulosPermitidos.slice(0, 10);
 
-    return todosLosModulos
+    return modulosPermitidos
         .filter((item) => {
             return (
                 item.titulo.toLowerCase().includes(q) || item.categoria.toLowerCase().includes(q)
@@ -486,7 +494,11 @@ function ejecutarSeleccionado() {
 
 function navegarA(item) {
     cerrarPalette();
-    window.location.href = item.url;
+    if (router && item.url && item.url.startsWith("/")) {
+        router.push(item.url);
+    } else {
+        window.location.href = item.url;
+    }
 }
 
 function onGlobalKeydown(e) {

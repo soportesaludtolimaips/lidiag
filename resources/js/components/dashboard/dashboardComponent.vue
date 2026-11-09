@@ -968,11 +968,13 @@
     </div>
 </template>
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 import axios from "axios";
 import { useAuth } from "../../composables/useAuth";
 
 const auth = useAuth();
+const router = useRouter();
 
 const props = defineProps({
     rolesusuario: { type: String, default: "" },
@@ -1501,7 +1503,11 @@ function goToLectura(row) {
     } catch {
         /* noop */
     }
-    window.location.href = "/estudios.leer.estudio.listar";
+    if (router) {
+        router.push("/estudios.leer.estudio.listar");
+    } else {
+        window.location.href = "/estudios.leer.estudio.listar";
+    }
 }
 function goToTranscripcion(row) {
     try {
@@ -1511,7 +1517,11 @@ function goToTranscripcion(row) {
     } catch {
         /* noop */
     }
-    window.location.href = "/estudios.transcribir.listar";
+    if (router) {
+        router.push("/estudios.transcribir.listar");
+    } else {
+        window.location.href = "/estudios.transcribir.listar";
+    }
 }
 async function listarSedes() {
     try {
@@ -1522,21 +1532,28 @@ async function listarSedes() {
     }
 }
 
+function destroyCharts() {
+    try {
+        if (charts.value.resumen?.destroy) charts.value.resumen.destroy();
+        if (charts.value.agingLectura?.destroy) charts.value.agingLectura.destroy();
+        if (charts.value.agingTranscripcion?.destroy) charts.value.agingTranscripcion.destroy();
+        if (charts.value.porHoraHoy?.destroy) charts.value.porHoraHoy.destroy();
+        if (charts.value.porSede?.destroy) charts.value.porSede.destroy();
+        if (charts.value.slaLectura?.destroy) charts.value.slaLectura.destroy();
+        if (charts.value.slaTranscripcion?.destroy) charts.value.slaTranscripcion.destroy();
+    } catch {
+        /* noop */
+    }
+}
+
 onMounted(async () => {
     initCharts();
     await listarSedes();
     await fetchDashboard();
-    charts.value = {
-        modalidades: null,
-        resumen: null,
-        transcritos: null,
-        agingLectura: null,
-        agingTranscripcion: null,
-        porHoraHoy: null,
-        porSede: null,
-        slaLectura: null,
-        slaTranscripcion: null,
-    };
+});
+
+onBeforeUnmount(() => {
+    destroyCharts();
 });
 </script>
 <style></style>

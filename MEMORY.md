@@ -37,6 +37,20 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Implementación y Activación de la Fase 5: Migración Piloto a SPA con Vue Router 4:**
+  - **Módulos Piloto Activados:**
+    1. **Dashboard Principal (`/dashboard`):** Migrado a SPA nativo. Desacoplado de props de Blade; habilitado `router.push()` en enlaces internos de lectura (`/estudios.leer.estudio.listar`) y transcripción (`/estudios.transcribir.listar`). Implementada destrucción preventiva de instancias C3 y Morris en `onBeforeUnmount` para evitar fugas de memoria.
+    2. **Admisión de Pacientes (`/pacientes/admision`):** Migrado a SPA nativo. Props desacopladas hacia `useAuth()`. Navegación ágil instantánea sin recarga de página.
+    3. **Tele-Radiología Transcribir (`/tele-radiologia-transcribir`):** Migrado a SPA nativo. Mantiene el drawer de transcripción, filtros clínicos, visor PACS/DICOM y atajos de teclado `Ctrl+S` sin conflictos.
+  - **Mejoras Estructurales Complementarias:**
+    * **`AppLayout.vue`:** Propagación transparente de `:usuarioactual="user"`, `:permisos="permissions"` y `:rolesusuario="roles[0] || ''"` a través del slot dinámico de `<router-view>` (`<component :is="Component" ... />`), garantizando compatibilidad regresiva con los componentes que aún consumen props tradicionales.
+    * **`commandPaletteComponent.vue`:** Integración de `useRouter()` y `useAuth()`. Navegación SPA con `router.push()` al seleccionar cualquier módulo con URL interna y filtrado inteligente de sugerencias respetando los permisos Spatie del usuario en tiempo real.
+    * **`routes/web.php`:** Homologadas las 3 rutas a closures limpios `Route::get('...', fn () => view('layouts.app'))` conservando sus middlewares y nombres de ruta originales.
+  - **Verificaciones:**
+    * Pint pasado al 100% en backend (`vendor\bin\pint.bat --test routes/web.php`) ✅.
+    * ESLint y Prettier pasados al 100% con 0 errores y 0 advertencias ✅.
+    * Vite build de producción generado exitosamente en 1.62s (`npm run build`) ✅.
+    * Pruebas de compatibilidad híbrida en PHP ejecutadas con éxito (SPA renderiza `<app-layout>` e `__INITIAL_STATE__`, MPA conserva layout clásico con `@hasSection('content')`) ✅.
 - [x] **2026-11-09 — Estandarización Jerárquica del Documento del Paciente en Todas las Tablas del Sistema (8 Componentes):**
   - **Módulos y Componentes Actualizados:**
     1. *Estudios:* [`estudioAsignadosComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/estudioAsignadosComponent.vue) (tabla y `tituloModal`), [`leerEstudioComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/leerEstudioComponent.vue) (tabla y `tituloModal`), [`notificarEstudioComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/notificarEstudioComponent.vue) (tabla y `tituloModal`).

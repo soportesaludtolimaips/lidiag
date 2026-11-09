@@ -11,7 +11,12 @@
             <div class="container-fluid">
                 <router-view v-slot="{ Component }">
                     <transition name="fade-page" mode="out-in">
-                        <component :is="Component" />
+                        <component
+                            :is="Component"
+                            :usuarioactual="user"
+                            :permisos="permissions"
+                            :rolesusuario="roles[0] || ''"
+                        />
                     </transition>
                 </router-view>
             </div>
@@ -25,6 +30,9 @@
 <script setup>
 import AppHeader from "./AppHeader.vue";
 import AppSidebar from "./AppSidebar.vue";
+import { useAuth } from "../composables/useAuth";
+
+const { user, permissions, roles } = useAuth();
 
 /**
  * Shell Principal de la SPA LIDiag (AppLayout).

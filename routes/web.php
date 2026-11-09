@@ -63,7 +63,9 @@ Route::post('/password/cambiar', [PasswordChangeController::class, 'update'])
     ->name('password.cambiar.update')
     ->middleware(['auth']);
 
-Route::view('dashboard', 'modulos.dashboard.dashboard')->name('dashboard')->middleware('auth');
+Route::get('dashboard', fn () => view('layouts.app'))
+    ->name('dashboard')
+    ->middleware(['auth']);
 
 /**
  * Helpdesk
@@ -93,7 +95,7 @@ Route::view('/helpdesk-notificaciones', 'modulos.help-desk.notificaciones')
 /**
  * Gestión de Pacientes y Admisión
  */
-Route::view('/pacientes/admision', 'modulos.pacientes.admision')
+Route::get('/pacientes/admision', fn () => view('layouts.app'))
     ->name('gestion.pacientes.admision')
     ->middleware(['auth', 'permission:gestion.pacientes.index']);
 
@@ -151,7 +153,7 @@ Route::view('/estudios.tele-radiologia', 'modulos.tele-radiologia.tele-radiologi
 Route::view('/tele-radiologia', 'modulos.tele-radiologia.tele-radiologia')
     ->name('teleradiologia.index')
     ->middleware(['auth', 'permission:tele.ragiologia.index|tele.ragiologia.enviar|estudio.asignar']);
-Route::view('/tele-radiologia-transcribir', 'modulos.tele-radiologia.tele-radiologia-trasncribir')
+Route::get('/tele-radiologia-transcribir', fn () => view('layouts.app'))
     ->name('teleradiologia.transcribir')
     ->middleware(['auth', 'permission:tele.ragiologia.transcribir|estudio.transcribir']);
 

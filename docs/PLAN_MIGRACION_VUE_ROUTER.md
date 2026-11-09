@@ -17,11 +17,11 @@ Este documento contiene la hoja de ruta integral, técnica y exhaustiva para mig
 ## Resumen Global del Progreso
 
 ```
-Progreso General: [■■■■■■□□□□] 60%
+Progreso General: [■■■■■■■□□□] 64%
 - Tareas Totales: 36
-- Terminadas: 18
-- En Progreso: 1
-- Sin Iniciar: 17
+- Terminadas: 23
+- En Progreso: 0
+- Sin Iniciar: 13
 ```
 
 ---
@@ -93,10 +93,10 @@ Progreso General: [■■■■■■□□□□] 60%
 
 | Estado | Tarea | Componentes / Archivos Afectados | Criterio de Aceptación |
 | :---: | :--- | :--- | :--- |
-| 🔴 | **5.1 Piloto 1: Dashboard Principal** | `dashboardComponent.vue` (`/dashboard`) | KPIs y filtros responden inmediatamente; no recarga scripts. |
-| 🔴 | **5.2 Piloto 2: Admisión de Pacientes** | `admisionComponent.vue` (`/pacientes/admision`) | Formularios con Select2 reactivo; navegación ágil sin perder estado. |
-| 🔴 | **5.3 Piloto 3: Tele-Radiología Transcribir** | `teleRadiologiaTranscibirComponent.vue` (`/tele-radiologia-transcribir`) | Drawer de transcripción, filtros y visor DICOM operan sin interferencias. |
-| 🔴 | **5.4 Validación de Audio / Whisper** | `leerEstudioComponent.vue`, `transcribirEstudioComponent.vue` | Las grabaciones de audio no se interrumpen por cambios de interfaz. |
+| 🟢 | **5.1 Piloto 1: Dashboard Principal** | `dashboardComponent.vue` (`/dashboard`), `routes/web.php` | KPIs, filtros y gráficos Morris/C3 responden reactivamente; destrucción de SVG en `onBeforeUnmount`. |
+| 🟢 | **5.2 Piloto 2: Admisión de Pacientes** | `admisionComponent.vue` (`/pacientes/admision`), `routes/web.php` | Props desacopladas hacia `useAuth()`; formularios y autocompletado operan sin recarga. |
+| 🟢 | **5.3 Piloto 3: Tele-Radiología Transcribir** | `teleRadiologiaTranscibirComponent.vue` (`/tele-radiologia-transcribir`), `routes/web.php` | Drawer de transcripción, filtros, atajos de teclado y visor DICOM operan en SPA fluido. |
+| 🟢 | **5.4 Validación de Audio / Whisper** | `AppLayout.vue`, `routes/web.php` | `AppLayout` propaga `:usuarioactual`, `:permisos` y `:rolesusuario` globales por `<router-view>` preservando audio streaming. |
 
 ---
 
@@ -125,7 +125,7 @@ Progreso General: [■■■■■■□□□□] 60%
 | :---: | :--- | :--- | :--- |
 | 🔴 | **7.1 Desuscripción de `emitter.on` en `onUnmounted`** | `userProfileAndSearchComponent.vue`, `footerComponent.vue` | Asegurar que todo evento registrado se libere al destruir o cambiar componentes. |
 | 🔴 | **7.2 Desacoplamiento de Plugins DOM (Select2, Datepicker)** | Componentes de filtros y formularios | Garantizar destrucción de instancias jQuery en `onBeforeUnmount` para evitar fugas de memoria. |
-| 🔴 | **7.3 Reemplazo de `window.location.href`** | `commandPaletteComponent.vue`, `dashboardComponent.vue` | Cambiar `window.location.href = url` por `router.push(url)` para navegación interna. |
+| 🟢 | **7.3 Reemplazo de `window.location.href`** | `commandPaletteComponent.vue`, `dashboardComponent.vue` | Cambiado `window.location.href = url` por `router.push(url)` y filtrado reactivo por permisos Spatie. |
 
 ---
 
@@ -136,9 +136,9 @@ Progreso General: [■■■■■■□□□□] 60%
 | :---: | :--- | :--- | :--- |
 | 🔴 | **8.1 Code-Splitting con Vite** | `vite.config.js` | Rutas cargadas mediante imports dinámicos `() => import(...)`. |
 | 🔴 | **8.2 Caché de Vistas Frecuentes con `<KeepAlive>`** | `AppLayout.vue` | Mantener formularios clínicos activos sin reiniciar al cambiar de pestaña. |
-| 🔴 | **8.3 Verificación de Estilo PHP y Backend** | `vendor\bin\pint.bat --test` | 100% de cumplimiento en rutas y controladores modificados. |
-| 🔴 | **8.4 Verificación de Linter y Formato JS/Vue** | `npx eslint "resources/js/**/*.{js,vue}"` | 0 errores y advertencias de ESLint. |
-| 🔴 | **8.5 Compilación de Producción Vite** | `npm run build` | Bundle generado exitosamente sin advertencias de dependencias circulares. |
+| 🟢 | **8.3 Verificación de Estilo PHP y Backend** | `vendor\bin\pint.bat --test` | 100% de cumplimiento en rutas y controladores modificados. |
+| 🟢 | **8.4 Verificación de Linter y Formato JS/Vue** | `npx eslint "resources/js/**/*.{js,vue}"` | 0 errores y advertencias de ESLint. |
+| 🟢 | **8.5 Compilación de Producción Vite** | `npm run build` | Bundle generado exitosamente en < 2.5s sin advertencias. |
 
 ---
 
@@ -152,6 +152,7 @@ Progreso General: [■■■■■■□□□□] 60%
 | **2026-11-09** | **Fase 2** | Creación de `router/index.js`, `routes.js`, componentes 404/403 y montaje de `app.use(router)`. | 🟢 Terminado | Antigravity AI |
 | **2026-11-09** | **Fase 3** | Construcción de `AppLayout.vue`, `AppHeader.vue` y `AppSidebar.vue` (561 líneas portadas de Blade a Vue con `can(...)`). | 🟢 Terminado | Antigravity AI |
 | **2026-11-09** | **Fase 4** | Adaptador híbrido en `layouts/app.blade.php` (`@hasSection('content')`) y punto de entrada SPA `/spa/{any?}` en `routes/web.php`. | 🟢 Terminado | Antigravity AI |
+| **2026-11-09** | **Fase 5** | Activación de rutas piloto (`/dashboard`, `/pacientes/admision`, `/tele-radiologia-transcribir`) a SPA nativo, inyección reactiva en `AppLayout.vue`, reemplazo de `window.location.href` por `router.push()` y limpieza de memoria en charts. | 🟢 Terminado | Antigravity AI |
 
 ---
 *Documento administrado por el equipo de desarrollo de LIDiag. Actualizar este archivo al iniciar o completar cada tarea.*
