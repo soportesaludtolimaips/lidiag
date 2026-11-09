@@ -37,6 +37,21 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Corrección de Permisos Spatie en Vue Router (`routes.js`) para Módulo Reportes y Configuración:**
+  - **Diagnóstico y Causa Raíz:**
+    * El usuario reportó error 403 (*Acceso Restringido*) al ingresar a `https://lidiag.test/reportes-produccion` con el usuario *YEFER ADNRES AVILEZ GOMEZ*, a pesar de tener los permisos Spatie asignados (`reportes.indicadores` y `reportes.detallados`).
+    * **Causa Raíz:** En `resources/js/router/routes.js`, la meta-propiedad `permission` tenía nombres inventados que no existen en la base de datos de Spatie (`reportes.produccion.index`, `reportes.pac.index`, y el prefijo `configuracion.*`). Mientras Laravel (`routes/web.php`) y Blade (`sidebar.blade.php`) validaban los permisos reales (`reportes.detallados|reportes.indicadores`), el guardia de navegación de Vue Router (`router.beforeEach`) bloqueaba el acceso del cliente y redirigía a `/403`.
+  - **Solución Aplicada:**
+    * En `routes.js`, se corrigieron los nombres de permisos desalineados para que coincidan 1:1 con `routes/web.php` y los permisos reales de Spatie:
+      - `/reportes-produccion`: `permission: "reportes.detallados|reportes.indicadores"`.
+      - `/reportes-estudios-pac`: `permission: "reportes.detallados|reportes.indicadores"`.
+      - `/agenda-disponibilidad`: `permission: "agendamiento.disponibilidad.index|agenda.index"`.
+      - `/productividad`: `permission: "liquidacion.index"`.
+      - Módulos de configuración: mapeados a sus permisos canónicos `config.*` y `helpdesk.config.*`.
+  - **Verificaciones:**
+    * Auditoría de permisos Spatie contra base de datos limpia al 100%.
+    * ESLint y Prettier 100% limpios (0 errores, 0 advertencias) ✅.
+    * Vite build (`npm run build`) completado exitosamente en 1.40s ✅.
 - [x] **2026-11-09 — Eliminación de Consultas y Pestaña de Audios en Tele-Radiología Transcribir (`teleRadiologiaTranscibirComponent.vue`):**
   - **Problema:** Al abrir el drawer de un estudio en `https://lidiag.test/tele-radiologia-transcribir`, se ejecutaba la petición `/api/listar-audios-estudio/{id}` arrojando el error `403 Forbidden: "No tiene permisos para gestionar los audios de este estudio."`. En tele-radiología externa solo se recibe informe en texto plano, sin archivos de audio.
   - **Solución Implementada:**

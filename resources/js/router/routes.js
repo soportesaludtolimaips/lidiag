@@ -190,7 +190,7 @@ export const routes = [
         component: () => import("../components/modulos/agenda/agendaDisponibilidadComponent.vue"),
         meta: {
             title: "Disponibilidad de Agenda",
-            permission: "agenda.disponibilidad",
+            permission: "agendamiento.disponibilidad.index|agenda.index",
             auth: true,
         },
     },
@@ -314,7 +314,7 @@ export const routes = [
         component: () => import("../components/modulos/liquidacion/productividadComponent.vue"),
         meta: {
             title: "Productividad y Rendimiento",
-            permission: "productividad.index",
+            permission: "liquidacion.index",
             auth: true,
         },
     },
@@ -327,7 +327,7 @@ export const routes = [
         component: () => import("../components/modulos/reportes/reporteProduccionComponent.vue"),
         meta: {
             title: "Reportes de Producción",
-            permission: "reportes.produccion.index",
+            permission: "reportes.detallados|reportes.indicadores",
             auth: true,
         },
     },
@@ -335,7 +335,11 @@ export const routes = [
         path: "/reportes-estudios-pac",
         name: "reportes.pac",
         component: () => import("../components/modulos/reportes/reporteEstudiosPACComponent.vue"),
-        meta: { title: "Reportes PACS", permission: "reportes.pac.index", auth: true },
+        meta: {
+            title: "Reportes PACS",
+            permission: "reportes.detallados|reportes.indicadores",
+            auth: true,
+        },
     },
 
     // Configuración General
@@ -346,7 +350,7 @@ export const routes = [
             import("../components/modulos/configuracion/configAdminSaludComponent.vue"),
         meta: {
             title: "Configuración Administradoras",
-            permission: "configuracion.adminsalud.index",
+            permission: "config.admin.salud.index",
             auth: true,
         },
     },
@@ -357,7 +361,7 @@ export const routes = [
             import("../components/modulos/configuracion/configDiagnosticoComponent.vue"),
         meta: {
             title: "Configuración Diagnósticos CIE-10",
-            permission: "configuracion.diagnosticos.index",
+            permission: "config.diagnosticos.index",
             auth: true,
         },
     },
@@ -367,7 +371,7 @@ export const routes = [
         component: () => import("../components/modulos/configuracion/configPrioridadComponent.vue"),
         meta: {
             title: "Configuración Prioridades",
-            permission: "configuracion.prioridades.index",
+            permission: "config.prioridades.index",
             auth: true,
         },
     },
@@ -377,7 +381,7 @@ export const routes = [
         component: () => import("../components/modulos/configuracion/configProductoComponent.vue"),
         meta: {
             title: "Configuración Productos CUPS",
-            permission: "configuracion.productos.index",
+            permission: "config.productos.index",
             auth: true,
         },
     },
@@ -387,7 +391,7 @@ export const routes = [
         component: () => import("../components/modulos/configuracion/configSedeComponent.vue"),
         meta: {
             title: "Configuración Sedes",
-            permission: "configuracion.sedes.index",
+            permission: "config.sedes.index",
             auth: true,
         },
     },
@@ -397,7 +401,7 @@ export const routes = [
         component: () => import("../components/modulos/configuracion/configPlantilla.vue"),
         meta: {
             title: "Configuración Plantillas",
-            permission: "configuracion.plantillas.index",
+            permission: "config.plantillas.index",
             auth: true,
         },
     },
@@ -407,7 +411,7 @@ export const routes = [
         component: () => import("../components/modulos/configuracion/configTipoPlantilla.vue"),
         meta: {
             title: "Tipos de Plantillas",
-            permission: "configuracion.tiposplantillas.index",
+            permission: "config.plantillas.index",
             auth: true,
         },
     },
@@ -418,7 +422,7 @@ export const routes = [
             import("../components/modulos/configuracion/configServicioProductoComponent.vue"),
         meta: {
             title: "Productos por Servicio",
-            permission: "configuracion.servicioproducto.index",
+            permission: "config.productos.index",
             auth: true,
         },
     },
@@ -429,7 +433,7 @@ export const routes = [
             import("../components/modulos/configuracion/configServicioCitaComponent.vue"),
         meta: {
             title: "Servicios de Citas",
-            permission: "configuracion.serviciocitas.index",
+            permission: "config.servicio.citas.index",
             auth: true,
         },
     },
@@ -440,7 +444,7 @@ export const routes = [
             import("../components/modulos/configuracion/configTipoDocumentoComponent.vue"),
         meta: {
             title: "Tipos de Documento",
-            permission: "configuracion.tiposdocumentos.index",
+            permission: "config.tipo.documento.index",
             auth: true,
         },
     },
@@ -451,7 +455,7 @@ export const routes = [
             import("../components/modulos/configuracion/configConsentimientoInformadoComponent.vue"),
         meta: {
             title: "Configuración Consentimientos",
-            permission: "configuracion.consentimientos.index",
+            permission: "config.consentimiento_informado.index",
             auth: true,
         },
     },
@@ -461,7 +465,7 @@ export const routes = [
         component: () => import("../components/modulos/configuracion/configWhatsappComponent.vue"),
         meta: {
             title: "Configuración WhatsApp Bot",
-            permission: "configuracion.whatsapp.index",
+            permission: "config.whatsapp.saludo.index",
             auth: true,
         },
     },
@@ -472,7 +476,7 @@ export const routes = [
             import("../components/modulos/configuracion/configCitaRechazoMotivoComponent.vue"),
         meta: {
             title: "Motivos de Rechazo de Citas",
-            permission: "configuracion.citarechazomotivos.index",
+            permission: "citas.index",
             auth: true,
         },
     },
@@ -483,7 +487,7 @@ export const routes = [
             import("../components/modulos/configuracion/helpdeskConfigCategoriasComponent.vue"),
         meta: {
             title: "Categorías Helpdesk",
-            permission: "configuracion.helpdeskcategorias.index",
+            permission: "helpdesk.config.categorias.index",
             auth: true,
         },
     },
@@ -494,7 +498,7 @@ export const routes = [
             import("../components/modulos/configuracion/helpdeskConfigPrioridadesComponent.vue"),
         meta: {
             title: "Prioridades Helpdesk",
-            permission: "configuracion.helpdeskprioridades.index",
+            permission: "helpdesk.config.prioridades.index",
             auth: true,
         },
     },
@@ -505,7 +509,7 @@ export const routes = [
             import("../components/modulos/configuracion/helpdeskConfigEstadosComponent.vue"),
         meta: {
             title: "Estados Helpdesk",
-            permission: "configuracion.helpdeskestados.index",
+            permission: "helpdesk.config.estados.index",
             auth: true,
         },
     },
