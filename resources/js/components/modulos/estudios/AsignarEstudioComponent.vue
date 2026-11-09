@@ -237,7 +237,15 @@
                                         <td class="text-nowrap align-middle">
                                             {{ item.study_datetime }}
                                         </td>
-                                        <td class="text-nowrap align-middle">{{ item.pat_id }}</td>
+                                        <td class="text-nowrap align-middle">
+                                            <div
+                                                class="text-primary font-weight-bold"
+                                                style="font-size: 15px"
+                                            >
+                                                <i class="fa fa-id-card-o mr-1"></i>
+                                                {{ item.pat_id }}
+                                            </div>
+                                        </td>
                                         <td class="align-middle font-weight-bold">
                                             {{ item.pat_name }}
                                         </td>
@@ -1684,7 +1692,7 @@ async function mostrarRegistro(data = {}, index) {
     limpiarFormulario();
     //registro.value.medico_id = "";
 
-    tituloModal.value = "Agendar al paciente: " + data.pat_name;
+    tituloModal.value = `Agendar al paciente: ${data.pat_name} ${data.pat_id ? `(${data.pat_id})` : ""}`;
     registro.value.study_pk = data.study_pk;
     registro.value.study_iuid = data.study_iuid;
     registro.value.study_id = data.study_id;

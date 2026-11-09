@@ -37,6 +37,14 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Resaltado Jerárquico del Número de Documento en Asignar Estudios (`AsignarEstudioComponent.vue`, `/estudios.asignar.listar`):**
+  - **Ajuste:**
+    * Siguiendo el estándar de ergonomía clínica asistencial (E7), se incrementó la visibilidad del número de documento del paciente (`pat_id`) en la tabla principal aplicándole la clase azul institucional de AdminWrap (`text-primary font-weight-bold`) con tamaño de fuente `15px` e icono `fa-id-card-o`.
+    * En el encabezado del panel lateral (drawer) de agendamiento (`tituloModal`), se incluyó el número de documento del paciente entre paréntesis: `Agendar al paciente: [Nombre] ([Documento])`.
+  - **Verificaciones:**
+    * Prettier y ESLint completados con 0 errores y 0 advertencias (`npx eslint`) ✅.
+    * Build de producción Vite compilado exitosamente en 1.27s (`npm run build`) ✅.
+    * Vaciado de caché de vistas y configuración de Laravel (`php artisan view:clear; php artisan config:clear`) ✅.
 - [x] **2026-11-09 — Corrección Masiva de Paginación DataTables en 7 Módulos:**
   - **Módulos Corregidos:**
     1. `teleRadiologiaTranscibirComponent.vue` (`/tele-radiologia-transcribir`)
