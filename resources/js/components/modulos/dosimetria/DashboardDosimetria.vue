@@ -1632,7 +1632,7 @@ const tooltipsSecciones = {
 const tooltipsGraficas = tooltipsSecciones;
 
 const filtros = reactive({
-    sede_id: "",
+    sede_id: sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "",
     modalidad: "TODAS",
     tipo_metrica: "TODAS",
     region_anatomica: "TODAS",
@@ -2318,19 +2318,25 @@ function exportarExcel() {
 
 // Sincronización reactiva con EventBus global
 function onSedeSeleccionada(datosSede) {
-    if (!datosSede) return;
-    const id = typeof datosSede === "object" ? datosSede.idSede || datosSede.id : datosSede;
-    if (id && filtros.sede_id !== id) {
+    const raw =
+        datosSede?.sede ??
+        (typeof datosSede === "object" ? datosSede.idSede || datosSede.id : datosSede) ??
+        sessionStorage.getItem("ST-sede") ??
+        localStorage.getItem("ST-sede");
+    const id = raw ? String(raw) : "";
+    if (id && String(filtros.sede_id) !== id) {
         filtros.sede_id = id;
         cargarDatos();
     }
 }
 
 onMounted(() => {
-    // Sincronizar sede guardada en sesión si existe
-    const sedeGuardada = sessionStorage.getItem("ST-sede");
+    // Sincronizar sede guardada en sesión o storage local si existe
+    const sedeGuardada = sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "";
     if (sedeGuardada) {
         filtros.sede_id = sedeGuardada;
+    } else if (emitter) {
+        emitter.emit("solicitarSedeActiva");
     }
 
     if (emitter) {

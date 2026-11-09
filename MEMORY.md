@@ -37,6 +37,12 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Propagación de Fix de Resiliencia y Fallback de Sedes en Módulo Dosimetría (`resources/js/components/modulos/dosimetria/`):**
+  - **Componentes Actualizados:**
+    * `DashboardDosimetria.vue`: Fallback a `localStorage` en `filtros.sede_id` reactivo, soporte robusto de formatos de evento/objeto/primitivo en `onSedeSeleccionada` y emisión preventiva de `solicitarSedeActiva` en `onMounted()` ante arranque en frío.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios (0 errores, 0 advertencias) ✅.
+    * Vite build (`npm run build`) completado exitosamente en 1.63s ✅.
 - [x] **2026-11-09 — Propagación de Fix de Resiliencia y Fallback de Sedes en Módulo Reportes (`resources/js/components/modulos/reportes/`):**
   - **Componentes Actualizados:**
     * `reporteEstudiosPACComponent.vue`: Fallback a `localStorage` para `ST-sede` en `listarSedes()` y `limpiarFiltros()`. Adición de listener reactivo `onSedeSeleccionada` y emisión de `solicitarSedeActiva` en `onMounted()` si no hay sede en cache.
