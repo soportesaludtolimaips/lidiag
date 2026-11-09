@@ -1096,7 +1096,9 @@ function applyDashboardPrefill() {
             // Consumir para no pegar el filtro en siguientes visitas
             sessionStorage.removeItem("ST-accession");
         }
-        if (sessionStorage.getItem("ST-sede") != null) {
+        const sedeActualPrefill =
+            sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede");
+        if (sedeActualPrefill != null) {
             destroyDataTable();
             listarPendientesTrascribir();
         }
@@ -1135,7 +1137,10 @@ async function listarPendientesTrascribir() {
     if (loadingBuscar.value) return;
     loadingBuscar.value = true;
     try {
-        const sedeActual = sessionStorage.getItem("ST-sede");
+        const sedeActual =
+            sessionStorage.getItem("ST-sede") ||
+            localStorage.getItem("ST-sede") ||
+            busqueda.value.sede_id;
         if (sedeActual == null) {
             toastMessage({
                 heading: "Atención",
@@ -1144,6 +1149,9 @@ async function listarPendientesTrascribir() {
             });
         } else {
             busqueda.value.sede_id = sedeActual;
+            if (!sessionStorage.getItem("ST-sede")) {
+                sessionStorage.setItem("ST-sede", String(sedeActual));
+            }
             destroyDataTable();
 
             const payload = {
@@ -1554,7 +1562,11 @@ function btnCerrarModalForm() {
  * @date 2026-10-29
  */
 const cargarAsignadoresYSedes = async (sedeId = null) => {
-    const targetSede = sedeId ?? busqueda.value.sede_id ?? sessionStorage.getItem("ST-sede");
+    const targetSede =
+        sedeId ??
+        busqueda.value.sede_id ??
+        sessionStorage.getItem("ST-sede") ??
+        localStorage.getItem("ST-sede");
     try {
         await listarUsuariosYSedes(
             {
@@ -1579,13 +1591,17 @@ const cargarAsignadoresYSedes = async (sedeId = null) => {
 };
 
 onMounted(async () => {
-    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
+    busqueda.value.sede_id =
+        sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "";
 
     await cargarAsignadoresYSedes(busqueda.value.sede_id);
 
     applyDashboardPrefill();
 
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
+    if (!busqueda.value.sede_id && emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
 });
 
 /**
@@ -1602,12 +1618,21 @@ onMounted(async () => {
  * @date 2026-10-29
  */
 function onSedeSeleccionada(data) {
-    busqueda.value.sede_id = data.idSede;
-    busqueda.value.quien_asigno_id = "";
-    busqueda.value.medico_id = "";
-    cargarAsignadoresYSedes(data.idSede);
-    destroyDataTable();
-    listarPendientesTrascribir();
+    const nuevaSede =
+        data?.idSede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede");
+    if (!nuevaSede) return;
+    const cambioSede = String(busqueda.value.sede_id || "") !== String(nuevaSede);
+    busqueda.value.sede_id = nuevaSede;
+
+    if (cambioSede || !quienes_asignaron.value?.length || !medicos.value?.length) {
+        busqueda.value.quien_asigno_id = "";
+        busqueda.value.medico_id = "";
+        cargarAsignadoresYSedes(nuevaSede);
+        if (cambioSede) {
+            destroyDataTable();
+            listarPendientesTrascribir();
+        }
+    }
 }
 
 onBeforeUnmount(() => {

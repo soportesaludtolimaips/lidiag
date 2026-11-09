@@ -1049,7 +1049,7 @@ const defaultBusqueda = {
     estudioParaTranscibir: "si",
     quien_asigno_id: "",
     medico_id: "",
-    sede_id: sessionStorage.getItem("ST-sede") || "",
+    sede_id: sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "",
     bus_nom_num_docu: "",
     bus_fech_ini: "",
     bus_fecha_fin: "",
@@ -1175,13 +1175,22 @@ function btnLimpiar() {
 async function listarEstudiosAsignados() {
     if (loadingBuscar.value) return;
 
-    if (sessionStorage.getItem("ST-sede") == null) {
+    const sedeActual =
+        sessionStorage.getItem("ST-sede") ||
+        localStorage.getItem("ST-sede") ||
+        busqueda.value.sede_id;
+
+    if (!sedeActual) {
         toastMessage({
             heading: "Upsss!!!",
-            text: "Debes establece la sede en la cual vas a trabajar.",
+            text: "Debes establecer la sede en la cual vas a trabajar.",
             icon: "warning",
         });
         return;
+    }
+    busqueda.value.sede_id = sedeActual;
+    if (!sessionStorage.getItem("ST-sede")) {
+        sessionStorage.setItem("ST-sede", String(sedeActual));
     }
 
     const q = busqueda.value;
@@ -1579,7 +1588,11 @@ function btnCerrarModalForm() {
  * @date 2026-10-30
  */
 const cargarAsignadoresYSedes = async (sedeId = null) => {
-    const targetSede = sedeId ?? busqueda.value.sede_id ?? sessionStorage.getItem("ST-sede");
+    const targetSede =
+        sedeId ??
+        busqueda.value.sede_id ??
+        sessionStorage.getItem("ST-sede") ??
+        localStorage.getItem("ST-sede");
     try {
         await listarUsuariosYSedes(
             {
@@ -1604,18 +1617,31 @@ const cargarAsignadoresYSedes = async (sedeId = null) => {
 };
 
 function onSedeSeleccionada(data) {
-    busqueda.value.sede_id = data.idSede;
-    busqueda.value.quien_asigno_id = "";
-    busqueda.value.medico_id = "";
-    cargarAsignadoresYSedes(data.idSede);
-    destroyDataTable();
-    registros.value = [];
+    const nuevaSede =
+        data?.idSede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede");
+    if (!nuevaSede) return;
+    const cambioSede = String(busqueda.value.sede_id || "") !== String(nuevaSede);
+    busqueda.value.sede_id = nuevaSede;
+
+    if (cambioSede || !quienes_asignaron.value?.length || !medicos.value?.length) {
+        busqueda.value.quien_asigno_id = "";
+        busqueda.value.medico_id = "";
+        cargarAsignadoresYSedes(nuevaSede);
+        if (cambioSede) {
+            destroyDataTable();
+            registros.value = [];
+        }
+    }
 }
 
 onMounted(async () => {
-    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
+    busqueda.value.sede_id =
+        sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "";
     await cargarAsignadoresYSedes(busqueda.value.sede_id);
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
+    if (!busqueda.value.sede_id && emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
     if (hasRestoredFilters && busqueda.value.sede_id) {
         listarEstudiosAsignados();
     }

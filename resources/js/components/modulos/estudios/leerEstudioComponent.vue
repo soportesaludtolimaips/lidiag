@@ -1709,13 +1709,20 @@ function eliminarAudioCargado(audioId) {
  * @date 2026-09-29
  */
 async function listarMisPendientes() {
-    if (sessionStorage.getItem("ST-sede") == null) {
+    const sedeActual =
+        sede_id.value || sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede");
+
+    if (!sedeActual) {
         toastMessage({
             heading: "Upsss!!!",
-            text: "Debes establece la sede en la cual vas a trabajar.",
+            text: "Debes establecer la sede en la cual vas a trabajar.",
             icon: "warning",
         });
     } else {
+        sede_id.value = sedeActual;
+        if (!sessionStorage.getItem("ST-sede")) {
+            sessionStorage.setItem("ST-sede", String(sedeActual));
+        }
         if (loadingListar.value) return;
 
         tablaVisible.value = false;
@@ -2142,8 +2149,11 @@ async function mostrarRegistro(data = {}) {
  * @date 2026-07-14
  */
 function establecerSede() {
-    sede_id.value = sessionStorage.getItem("ST-sede");
+    sede_id.value = sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || null;
     registros.value = [];
+    if (!sede_id.value && emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
 }
 
 function limpiar() {
@@ -2213,16 +2223,21 @@ function cerrarModalAyuda() {
  * @date 2026-07-14
  */
 function onSedeSeleccionada(data) {
-    sede_id.value = data.idSede;
-    destroyDataTable();
-    listarMisPendientes();
+    const nuevaSede =
+        data?.idSede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede");
+    if (!nuevaSede) return;
+    const cambioSede = String(sede_id.value || "") !== String(nuevaSede);
+    sede_id.value = nuevaSede;
+    if (cambioSede || !registros.value?.length) {
+        destroyDataTable();
+        listarMisPendientes();
+    }
 }
 
 let cleanupKeyboardShortcut = null;
 
 onMounted(() => {
     establecerSede();
-    sede_id.value = sessionStorage.getItem("ST-sede");
     applyDashboardPrefill();
 
     setCallbacks({

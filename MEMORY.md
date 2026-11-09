@@ -37,6 +37,18 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Propagación de Fix de Resiliencia y Fallback de Sedes en Módulo Estudios (`resources/js/components/modulos/estudios/`):**
+  - **Componentes Actualizados:**
+    * `estudioAsignadosComponent.vue`: Fallback a `localStorage` en `defaultBusqueda`, `listarEstudiosAsignados()`, `cargarAsignadoresYSedes()` y `onMounted()`. Emisión reactiva de `solicitarSedeActiva` si el estado es frío. Detección de cambio real en `onSedeSeleccionada` para evitar destrucción innecesaria de DataTables.
+    * `leerEstudioComponent.vue`: Fallback a `localStorage` en `listarMisPendientes()` y `establecerSede()`. Emisión reactiva de `solicitarSedeActiva` en caso de arranque en frío.
+    * `transcribirEstudioComponent.vue`: Fallback a `localStorage` en `applyDashboardPrefill()`, `listarPendientesTrascribir()`, `cargarAsignadoresYSedes()` y `onMounted()`. Solicitud reactiva con `solicitarSedeActiva`.
+    * `notificarEstudioComponent.vue`: Fallback a `localStorage` en `defaultBusqueda`, `onMounted()` y `onSedeSeleccionada`.
+    * `DescargarZipComponent.vue`: Fallback a `localStorage` en resolución de `sedeId` antes de invocar `/api/dicom/generate-zip`.
+    * `QuemadorCdComponent.vue` y `QuemarMultiplesComponent.vue`: Fallback a `localStorage` en validación de `sedeId` previo a `/api/dicom/generate-iso`.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios en todos los componentes del módulo ✅.
+    * Vite build (`npm run build`) completado exitosamente en 2.14s ✅.
+
 - [x] **2026-11-09 — Auditoría y Solución de Carrera de Inicialización de Sedes y Usuarios en Render Inicial (`userProfileAndSearchComponent.vue`, `AsignarEstudioComponent.vue`, `useAuth.js`):**
   - **Diagnóstico y Causa Raíz:**
     * El usuario reportó que en ocasiones, al renderizar páginas como `/estudios.asignar.listar`, no se cargan las sedes ni los usuarios/médicos, forzando a recargar la página.

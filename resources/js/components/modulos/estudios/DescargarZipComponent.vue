@@ -138,11 +138,14 @@ function startGeneration() {
     statusMessage.value = "Iniciando...";
     fallosConsecutivos = 0;
 
-    const sedeId = sessionStorage.getItem("ST-sede");
+    const sedeId = sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede");
     if (!sedeId) {
         error.value = "No se encontró la sede seleccionada.";
         generating.value = false;
         return;
+    }
+    if (!sessionStorage.getItem("ST-sede")) {
+        sessionStorage.setItem("ST-sede", String(sedeId));
     }
 
     if (!props.estudio.study_iuid) {

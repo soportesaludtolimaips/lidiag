@@ -470,7 +470,7 @@ const defaultBusqueda = {
     bus_nom: "",
     bus_fech_ini: "",
     bus_fecha_fin: "",
-    sede_id: sessionStorage.getItem("ST-sede") || "",
+    sede_id: sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "",
 };
 
 const {
@@ -812,17 +812,27 @@ function limpiar() {
  * @date 2026-10-14
  */
 function onSedeSeleccionada(data) {
-    busqueda.value.sede_id = data.idSede;
-    destroyDataTable();
-    registros.value = [];
-    limpiar();
+    const nuevaSede =
+        data?.idSede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede");
+    if (!nuevaSede) return;
+    const cambioSede = String(busqueda.value.sede_id || "") !== String(nuevaSede);
+    busqueda.value.sede_id = nuevaSede;
+    if (cambioSede) {
+        destroyDataTable();
+        registros.value = [];
+        limpiar();
+    }
 }
 
 onMounted(() => {
     if (!busqueda.value.sede_id) {
-        busqueda.value.sede_id = sessionStorage.getItem("ST-sede") || "";
+        busqueda.value.sede_id =
+            sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "";
     }
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
+    if (!busqueda.value.sede_id && emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
     if (
         busqueda.value.bus_num_docu ||
         busqueda.value.bus_nom ||
