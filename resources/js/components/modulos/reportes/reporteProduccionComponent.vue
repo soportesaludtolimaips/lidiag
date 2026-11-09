@@ -601,8 +601,11 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <form>
+                        <form @submit.prevent="descargarReporte()">
                             <div class="form-group">
+                                <label class="control-label" for="prod-sede"
+                                    >Sede Hospitalaria</label
+                                >
                                 <select
                                     class="form-control custom-select"
                                     style="width: 100%; height: 36px"
@@ -616,6 +619,9 @@
                                 </select>
                             </div>
                             <div class="form-group">
+                                <label class="control-label" for="prod-quien-asigno"
+                                    >Quién Agendó</label
+                                >
                                 <select
                                     class="form-control custom-select"
                                     style="width: 100%; height: 36px"
@@ -633,6 +639,9 @@
                                 </select>
                             </div>
                             <div class="form-group">
+                                <label class="control-label" for="prod-medico"
+                                    >Médico Radiólogo</label
+                                >
                                 <select
                                     class="form-control custom-select"
                                     style="width: 100%; height: 36px"
@@ -640,7 +649,7 @@
                                     id="prod-medico"
                                 >
                                     <option value="" selected>
-                                        ...::: Todos los medicos :::...
+                                        ...::: Todos los médicos :::...
                                     </option>
                                     <option
                                         v-for="usuario in medicos"
@@ -654,28 +663,34 @@
                             <div class="row">
                                 <div class="col-6">
                                     <div class="form-group">
-                                        <div class="example">
-                                            <h5 class="box-title m-t-30">Desde</h5>
-                                            <input
-                                                class="form-control input-daterange-datepicker"
-                                                type="date"
-                                                id="prod-fechaIni"
-                                                v-model="datosReporte.fechaIni"
-                                            />
-                                        </div>
+                                        <label
+                                            class="control-label font-weight-bold"
+                                            for="prod-fechaIni"
+                                            >Desde</label
+                                        >
+                                        <input
+                                            class="form-control input-daterange-datepicker"
+                                            type="date"
+                                            id="prod-fechaIni"
+                                            v-model="datosReporte.fechaIni"
+                                            @keyup.enter="descargarReporte()"
+                                        />
                                     </div>
                                 </div>
                                 <div class="col-6">
                                     <div class="form-group">
-                                        <div class="example">
-                                            <h5 class="box-title m-t-30">Hasta</h5>
-                                            <input
-                                                class="form-control input-daterange-datepicker"
-                                                type="date"
-                                                id="prod-fechaFin"
-                                                v-model="datosReporte.fechaFin"
-                                            />
-                                        </div>
+                                        <label
+                                            class="control-label font-weight-bold"
+                                            for="prod-fechaFin"
+                                            >Hasta</label
+                                        >
+                                        <input
+                                            class="form-control input-daterange-datepicker"
+                                            type="date"
+                                            id="prod-fechaFin"
+                                            v-model="datosReporte.fechaFin"
+                                            @keyup.enter="descargarReporte()"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -738,9 +753,11 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <form>
+                        <form @submit.prevent="descargarReporteEstudiosPAC()">
                             <div class="form-group">
-                                <label class="control-label">Sede</label>
+                                <label class="control-label" for="pac-sede"
+                                    >Sede Hospitalaria</label
+                                >
                                 <select
                                     class="form-control custom-select"
                                     style="width: 100%; height: 36px"
@@ -756,28 +773,34 @@
                             <div class="row">
                                 <div class="col-6">
                                     <div class="form-group">
-                                        <div class="example">
-                                            <h5 class="box-title m-t-30">Desde</h5>
-                                            <input
-                                                class="form-control"
-                                                type="date"
-                                                id="pac-fechaIni"
-                                                v-model="datosPAC.fechaIni"
-                                            />
-                                        </div>
+                                        <label
+                                            class="control-label font-weight-bold"
+                                            for="pac-fechaIni"
+                                            >Desde</label
+                                        >
+                                        <input
+                                            class="form-control"
+                                            type="date"
+                                            id="pac-fechaIni"
+                                            v-model="datosPAC.fechaIni"
+                                            @keyup.enter="descargarReporteEstudiosPAC()"
+                                        />
                                     </div>
                                 </div>
                                 <div class="col-6">
                                     <div class="form-group">
-                                        <div class="example">
-                                            <h5 class="box-title m-t-30">Hasta</h5>
-                                            <input
-                                                class="form-control"
-                                                type="date"
-                                                id="pac-fechaFin"
-                                                v-model="datosPAC.fechaFin"
-                                            />
-                                        </div>
+                                        <label
+                                            class="control-label font-weight-bold"
+                                            for="pac-fechaFin"
+                                            >Hasta</label
+                                        >
+                                        <input
+                                            class="form-control"
+                                            type="date"
+                                            id="pac-fechaFin"
+                                            v-model="datosPAC.fechaFin"
+                                            @keyup.enter="descargarReporteEstudiosPAC()"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -842,9 +865,11 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <form>
+                        <form @submit.prevent="descargarReporteDosimetria()">
                             <div class="form-group">
-                                <label class="control-label">Sede Hospitalaria</label>
+                                <label class="control-label" for="dosis-sede"
+                                    >Sede Hospitalaria</label
+                                >
                                 <select
                                     class="form-control custom-select"
                                     style="width: 100%; height: 36px"
@@ -860,28 +885,34 @@
                             <div class="row">
                                 <div class="col-6">
                                     <div class="form-group">
-                                        <div class="example">
-                                            <h5 class="box-title m-t-30">Desde</h5>
-                                            <input
-                                                class="form-control"
-                                                type="date"
-                                                id="dosis-fechaIni"
-                                                v-model="datosDosimetria.fechaIni"
-                                            />
-                                        </div>
+                                        <label
+                                            class="control-label font-weight-bold"
+                                            for="dosis-fechaIni"
+                                            >Desde</label
+                                        >
+                                        <input
+                                            class="form-control"
+                                            type="date"
+                                            id="dosis-fechaIni"
+                                            v-model="datosDosimetria.fechaIni"
+                                            @keyup.enter="descargarReporteDosimetria()"
+                                        />
                                     </div>
                                 </div>
                                 <div class="col-6">
                                     <div class="form-group">
-                                        <div class="example">
-                                            <h5 class="box-title m-t-30">Hasta</h5>
-                                            <input
-                                                class="form-control"
-                                                type="date"
-                                                id="dosis-fechaFin"
-                                                v-model="datosDosimetria.fechaFin"
-                                            />
-                                        </div>
+                                        <label
+                                            class="control-label font-weight-bold"
+                                            for="dosis-fechaFin"
+                                            >Hasta</label
+                                        >
+                                        <input
+                                            class="form-control"
+                                            type="date"
+                                            id="dosis-fechaFin"
+                                            v-model="datosDosimetria.fechaFin"
+                                            @keyup.enter="descargarReporteDosimetria()"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -944,9 +975,11 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <form>
+                        <form @submit.prevent="descargarReporteTeleRadiologia()">
                             <div class="form-group">
-                                <label class="control-label">Sede Hospitalaria</label>
+                                <label class="control-label" for="tele-sede"
+                                    >Sede Hospitalaria</label
+                                >
                                 <select
                                     class="form-control custom-select"
                                     style="width: 100%; height: 36px"
@@ -962,28 +995,34 @@
                             <div class="row">
                                 <div class="col-6">
                                     <div class="form-group">
-                                        <div class="example">
-                                            <h5 class="box-title m-t-30">Desde</h5>
-                                            <input
-                                                class="form-control"
-                                                type="date"
-                                                id="tele-fechaIni"
-                                                v-model="datosTeleRadiologia.fechaIni"
-                                            />
-                                        </div>
+                                        <label
+                                            class="control-label font-weight-bold"
+                                            for="tele-fechaIni"
+                                            >Desde</label
+                                        >
+                                        <input
+                                            class="form-control"
+                                            type="date"
+                                            id="tele-fechaIni"
+                                            v-model="datosTeleRadiologia.fechaIni"
+                                            @keyup.enter="descargarReporteTeleRadiologia()"
+                                        />
                                     </div>
                                 </div>
                                 <div class="col-6">
                                     <div class="form-group">
-                                        <div class="example">
-                                            <h5 class="box-title m-t-30">Hasta</h5>
-                                            <input
-                                                class="form-control"
-                                                type="date"
-                                                id="tele-fechaFin"
-                                                v-model="datosTeleRadiologia.fechaFin"
-                                            />
-                                        </div>
+                                        <label
+                                            class="control-label font-weight-bold"
+                                            for="tele-fechaFin"
+                                            >Hasta</label
+                                        >
+                                        <input
+                                            class="form-control"
+                                            type="date"
+                                            id="tele-fechaFin"
+                                            v-model="datosTeleRadiologia.fechaFin"
+                                            @keyup.enter="descargarReporteTeleRadiologia()"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -1049,9 +1088,11 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <form>
+                        <form @submit.prevent="descargarReporteAusentismo()">
                             <div class="form-group">
-                                <label class="control-label">Sede Hospitalaria</label>
+                                <label class="control-label" for="ausentismo-sede"
+                                    >Sede Hospitalaria</label
+                                >
                                 <select
                                     class="form-control custom-select"
                                     style="width: 100%; height: 36px"
@@ -1065,7 +1106,7 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label class="control-label"
+                                <label class="control-label" for="ausentismo-estado"
                                     >Estado de Inasistencia / Cancelación</label
                                 >
                                 <select
@@ -1087,28 +1128,34 @@
                             <div class="row">
                                 <div class="col-6">
                                     <div class="form-group">
-                                        <div class="example">
-                                            <h5 class="box-title m-t-30">Desde</h5>
-                                            <input
-                                                class="form-control"
-                                                type="date"
-                                                id="ausentismo-fechaIni"
-                                                v-model="datosAusentismo.fechaIni"
-                                            />
-                                        </div>
+                                        <label
+                                            class="control-label font-weight-bold"
+                                            for="ausentismo-fechaIni"
+                                            >Desde</label
+                                        >
+                                        <input
+                                            class="form-control"
+                                            type="date"
+                                            id="ausentismo-fechaIni"
+                                            v-model="datosAusentismo.fechaIni"
+                                            @keyup.enter="descargarReporteAusentismo()"
+                                        />
                                     </div>
                                 </div>
                                 <div class="col-6">
                                     <div class="form-group">
-                                        <div class="example">
-                                            <h5 class="box-title m-t-30">Hasta</h5>
-                                            <input
-                                                class="form-control"
-                                                type="date"
-                                                id="ausentismo-fechaFin"
-                                                v-model="datosAusentismo.fechaFin"
-                                            />
-                                        </div>
+                                        <label
+                                            class="control-label font-weight-bold"
+                                            for="ausentismo-fechaFin"
+                                            >Hasta</label
+                                        >
+                                        <input
+                                            class="form-control"
+                                            type="date"
+                                            id="ausentismo-fechaFin"
+                                            v-model="datosAusentismo.fechaFin"
+                                            @keyup.enter="descargarReporteAusentismo()"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -1171,9 +1218,11 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <form>
+                        <form @submit.prevent="descargarReporteLiquidacion()">
                             <div class="form-group">
-                                <label class="control-label">Sede Hospitalaria</label>
+                                <label class="control-label" for="liq-sede"
+                                    >Sede Hospitalaria</label
+                                >
                                 <select
                                     class="form-control custom-select"
                                     style="width: 100%; height: 36px"
@@ -1189,28 +1238,34 @@
                             <div class="row">
                                 <div class="col-6">
                                     <div class="form-group">
-                                        <div class="example">
-                                            <h5 class="box-title m-t-30">Desde</h5>
-                                            <input
-                                                class="form-control"
-                                                type="date"
-                                                id="liq-fechaIni"
-                                                v-model="datosLiquidacion.fechaIni"
-                                            />
-                                        </div>
+                                        <label
+                                            class="control-label font-weight-bold"
+                                            for="liq-fechaIni"
+                                            >Desde</label
+                                        >
+                                        <input
+                                            class="form-control"
+                                            type="date"
+                                            id="liq-fechaIni"
+                                            v-model="datosLiquidacion.fechaIni"
+                                            @keyup.enter="descargarReporteLiquidacion()"
+                                        />
                                     </div>
                                 </div>
                                 <div class="col-6">
                                     <div class="form-group">
-                                        <div class="example">
-                                            <h5 class="box-title m-t-30">Hasta</h5>
-                                            <input
-                                                class="form-control"
-                                                type="date"
-                                                id="liq-fechaFin"
-                                                v-model="datosLiquidacion.fechaFin"
-                                            />
-                                        </div>
+                                        <label
+                                            class="control-label font-weight-bold"
+                                            for="liq-fechaFin"
+                                            >Hasta</label
+                                        >
+                                        <input
+                                            class="form-control"
+                                            type="date"
+                                            id="liq-fechaFin"
+                                            v-model="datosLiquidacion.fechaFin"
+                                            @keyup.enter="descargarReporteLiquidacion()"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -1273,9 +1328,11 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <form>
+                        <form @submit.prevent="descargarReporteProductividad()">
                             <div class="form-group">
-                                <label class="control-label">Sede Hospitalaria</label>
+                                <label class="control-label" for="prod-med-sede"
+                                    >Sede Hospitalaria</label
+                                >
                                 <select
                                     class="form-control custom-select"
                                     style="width: 100%; height: 36px"
@@ -1289,12 +1346,15 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label class="control-label">Periodo de Corte (Mes)</label>
+                                <label class="control-label" for="prod-med-periodo"
+                                    >Periodo de Corte (Mes)</label
+                                >
                                 <input
                                     class="form-control"
                                     type="month"
                                     id="prod-med-periodo"
                                     v-model="datosProductividad.periodo"
+                                    @keyup.enter="descargarReporteProductividad()"
                                 />
                             </div>
                         </form>
@@ -1359,9 +1419,11 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <form>
+                        <form @submit.prevent="descargarReporteTAT()">
                             <div class="form-group">
-                                <label class="control-label">Sede Hospitalaria</label>
+                                <label class="control-label" for="tat-sede"
+                                    >Sede Hospitalaria</label
+                                >
                                 <select
                                     class="form-control custom-select"
                                     style="width: 100%; height: 36px"
@@ -1375,7 +1437,9 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label class="control-label">Modalidad Técnica</label>
+                                <label class="control-label" for="tat-modalidad"
+                                    >Modalidad Técnica</label
+                                >
                                 <select
                                     class="form-control custom-select"
                                     style="width: 100%; height: 36px"
@@ -1395,28 +1459,34 @@
                             <div class="row">
                                 <div class="col-6">
                                     <div class="form-group">
-                                        <div class="example">
-                                            <h5 class="box-title m-t-30">Desde</h5>
-                                            <input
-                                                class="form-control"
-                                                type="date"
-                                                id="tat-fechaIni"
-                                                v-model="datosTAT.fechaIni"
-                                            />
-                                        </div>
+                                        <label
+                                            class="control-label font-weight-bold"
+                                            for="tat-fechaIni"
+                                            >Desde</label
+                                        >
+                                        <input
+                                            class="form-control"
+                                            type="date"
+                                            id="tat-fechaIni"
+                                            v-model="datosTAT.fechaIni"
+                                            @keyup.enter="descargarReporteTAT()"
+                                        />
                                     </div>
                                 </div>
                                 <div class="col-6">
                                     <div class="form-group">
-                                        <div class="example">
-                                            <h5 class="box-title m-t-30">Hasta</h5>
-                                            <input
-                                                class="form-control"
-                                                type="date"
-                                                id="tat-fechaFin"
-                                                v-model="datosTAT.fechaFin"
-                                            />
-                                        </div>
+                                        <label
+                                            class="control-label font-weight-bold"
+                                            for="tat-fechaFin"
+                                            >Hasta</label
+                                        >
+                                        <input
+                                            class="form-control"
+                                            type="date"
+                                            id="tat-fechaFin"
+                                            v-model="datosTAT.fechaFin"
+                                            @keyup.enter="descargarReporteTAT()"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -1479,9 +1549,11 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <form>
+                        <form @submit.prevent="descargarReporteAgentes()">
                             <div class="form-group">
-                                <label class="control-label">Sede Hospitalaria</label>
+                                <label class="control-label" for="agentes-sede"
+                                    >Sede Hospitalaria</label
+                                >
                                 <select
                                     class="form-control custom-select"
                                     style="width: 100%; height: 36px"
@@ -1620,19 +1692,23 @@
                         <!-- Filtro de fechas manual si aplica -->
                         <div v-if="datosConsolidadoRed.periodo === 'custom'" class="row mb-3">
                             <div class="col-5">
-                                <label class="control-label">Desde</label>
+                                <label class="control-label" for="red-fechaIni">Desde</label>
                                 <input
+                                    id="red-fechaIni"
                                     class="form-control form-control-sm"
                                     type="date"
                                     v-model="datosConsolidadoRed.fechaIni"
+                                    @keyup.enter="consultarConsolidadoRed()"
                                 />
                             </div>
                             <div class="col-5">
-                                <label class="control-label">Hasta</label>
+                                <label class="control-label" for="red-fechaFin">Hasta</label>
                                 <input
+                                    id="red-fechaFin"
                                     class="form-control form-control-sm"
                                     type="date"
                                     v-model="datosConsolidadoRed.fechaFin"
+                                    @keyup.enter="consultarConsolidadoRed()"
                                 />
                             </div>
                             <div class="col-2 d-flex align-items-end">
@@ -1838,8 +1914,11 @@
                         <!-- Filtro de Sede -->
                         <div class="row align-items-center mb-3">
                             <div class="col-8">
-                                <label class="control-label mb-1">Filtrar por Sede</label>
+                                <label class="control-label mb-1" for="semaforo-sede"
+                                    >Filtrar por Sede</label
+                                >
                                 <select
+                                    id="semaforo-sede"
                                     class="form-control custom-select form-control-sm"
                                     v-model="datosSemaforoRepresados.sedeId"
                                     @change="consultarSemaforoRepresados()"
@@ -2102,8 +2181,9 @@
                                 </div>
                             </div>
                             <div class="col-5">
-                                <label class="control-label mb-1">Sede</label>
+                                <label class="control-label mb-1" for="citas-sede">Sede</label>
                                 <select
+                                    id="citas-sede"
                                     class="form-control custom-select form-control-sm"
                                     v-model="datosCitasWhatsApp.sedeId"
                                     @change="consultarCitasWhatsApp()"
@@ -2119,19 +2199,23 @@
                         <!-- Rango de fechas manual si aplica -->
                         <div v-if="datosCitasWhatsApp.periodo === 'custom'" class="row mb-3">
                             <div class="col-5">
-                                <label class="control-label">Desde</label>
+                                <label class="control-label" for="citas-fechaIni">Desde</label>
                                 <input
+                                    id="citas-fechaIni"
                                     class="form-control form-control-sm"
                                     type="date"
                                     v-model="datosCitasWhatsApp.fechaIni"
+                                    @keyup.enter="consultarCitasWhatsApp()"
                                 />
                             </div>
                             <div class="col-5">
-                                <label class="control-label">Hasta</label>
+                                <label class="control-label" for="citas-fechaFin">Hasta</label>
                                 <input
+                                    id="citas-fechaFin"
                                     class="form-control form-control-sm"
                                     type="date"
                                     v-model="datosCitasWhatsApp.fechaFin"
+                                    @keyup.enter="consultarCitasWhatsApp()"
                                 />
                             </div>
                             <div class="col-2 d-flex align-items-end">
@@ -2310,8 +2394,11 @@
                         <!-- Filtro de Sede y botón actualizar -->
                         <div class="row align-items-center mb-3">
                             <div class="col-8">
-                                <label class="control-label mb-1">Filtrar Sede</label>
+                                <label class="control-label mb-1" for="almacen-sede"
+                                    >Filtrar Sede</label
+                                >
                                 <select
+                                    id="almacen-sede"
                                     class="form-control custom-select form-control-sm"
                                     v-model="datosAlmacenamiento.sedeId"
                                     @change="consultarAlmacenamiento()"

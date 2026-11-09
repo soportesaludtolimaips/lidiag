@@ -37,6 +37,16 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Auditoría UI/UX Módulo Reportes: Accesibilidad en Formularios y Limpieza de Wrappers:**
+  - **Ajustes Realizados:**
+    * **`reporteProduccionComponent.vue`:**
+      - Asociación estricta de `<label for="...">` con IDs semánticos en todos los formularios modales (Producción, PAC, Dosimetría, Tele-radiología, Ausentismo, Liquidación, Productividad, TAT, Agentes, Consolidado Red, Semáforo Represados, Citas WhatsApp, Almacenamiento/Backups).
+      - Reemplazo sistemático de `<div class="example"><h5 class="box-title">` por `<label class="control-label font-weight-bold" for="...">` en los selectores de rango de fechas.
+      - Soporte de ejecución ágil mediante `@submit.prevent` en `<form>` y `@keyup.enter` en campos de fecha.
+  - **Verificaciones:**
+    * ESLint y Prettier pasados al 100% con 0 errores y 0 advertencias ✅.
+    * Build de producción Vite completado exitosamente en 1.23s (`npm run build`) ✅.
+
 - [x] **2026-11-09 — Configuración de Fallback Global SPA y Enlaces Reactivos en Menú de Perfil:**
   - **Ajustes Realizados:**
     * **Fallback Global en Laravel (`routes/web.php`):** Se definió `Route::fallback()` protegido con `auth` y `force-password-change` para redirigir peticiones desconocidas autenticadas hacia `layouts.app`, permitiendo que Vue Router resuelva rutas profundas o renderice el componente `NotFoundComponent.vue` (404) dentro del shell SPA sin saltar fuera del sistema.
