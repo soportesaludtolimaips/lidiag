@@ -37,6 +37,17 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Auditoría UI/UX Módulos Dosimetría y Seguridad: Accesibilidad en Filtros y Tokens:**
+  - **Ajustes Realizados:**
+    * **`DashboardDosimetria.vue`:**
+      - Asociación de atributos `for` e `id` en la barra de filtros clínicos (Sede, Modalidad, Región Anatómica, Métrica Dosis, Rango Desde/Hasta) (Phase 1, H2).
+      - Adición de `@keyup.enter="cargarDatos"` en selectores de fecha de rango para ejecución ágil inmediata.
+    * **`seguridadTokensComponent.vue`:**
+      - `<label for="tokenEmitidoPlain">` asociado al input de visualización de Bearer token con `id="tokenEmitidoPlain"`.
+  - **Verificaciones:**
+    * ESLint y Prettier pasados al 100% con 0 errores y 0 advertencias ✅.
+    * Build de producción Vite completado exitosamente en 1.29s (`npm run build`) ✅.
+
 - [x] **2026-11-09 — Auditoría UI/UX Módulo Configuración: Accesibilidad en Botones de Cierre y Labels:**
   - **Ajustes Realizados:**
     * **Migración Sistemática de Botones de Cierre (`<span>` → `<button>` - Phase 1, H3):**

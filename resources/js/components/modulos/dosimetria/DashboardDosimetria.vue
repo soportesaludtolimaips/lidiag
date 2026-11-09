@@ -538,10 +538,11 @@
                 <div class="row align-items-end">
                     <div class="col-md-3 col-lg-2 m-b-10">
                         <div class="form-group m-b-0">
-                            <label class="control-label font-12 m-b-5 text-muted"
+                            <label class="control-label font-12 m-b-5 text-muted" for="dosis_sede"
                                 >Sede Hospitalaria</label
                             >
                             <select
+                                id="dosis_sede"
                                 v-model="filtros.sede_id"
                                 class="form-control form-control-sm custom-select"
                                 @change="cargarDatos"
@@ -556,8 +557,13 @@
 
                     <div class="col-md-3 col-lg-2 m-b-10">
                         <div class="form-group m-b-0">
-                            <label class="control-label font-12 m-b-5 text-muted">Modalidad</label>
+                            <label
+                                class="control-label font-12 m-b-5 text-muted"
+                                for="dosis_modalidad"
+                                >Modalidad</label
+                            >
                             <select
+                                id="dosis_modalidad"
                                 v-model="filtros.modalidad"
                                 class="form-control form-control-sm custom-select"
                                 @change="cargarDatos"
@@ -573,10 +579,11 @@
 
                     <div class="col-md-3 col-lg-2 m-b-10">
                         <div class="form-group m-b-0">
-                            <label class="control-label font-12 m-b-5 text-muted"
+                            <label class="control-label font-12 m-b-5 text-muted" for="dosis_region"
                                 >Región Anatómica</label
                             >
                             <select
+                                id="dosis_region"
                                 v-model="filtros.region_anatomica"
                                 class="form-control form-control-sm custom-select"
                                 @change="cargarDatos"
@@ -596,10 +603,13 @@
 
                     <div class="col-md-3 col-lg-2 m-b-10">
                         <div class="form-group m-b-0">
-                            <label class="control-label font-12 m-b-5 text-muted"
+                            <label
+                                class="control-label font-12 m-b-5 text-muted"
+                                for="dosis_metrica"
                                 >Métrica Dosis</label
                             >
                             <select
+                                id="dosis_metrica"
                                 v-model="filtros.tipo_metrica"
                                 class="form-control form-control-sm custom-select"
                                 @change="cargarDatos"
@@ -615,24 +625,32 @@
 
                     <div class="col-md-3 col-lg-1 m-b-10">
                         <div class="form-group m-b-0">
-                            <label class="control-label font-12 m-b-5 text-muted">Desde</label>
+                            <label class="control-label font-12 m-b-5 text-muted" for="dosis_desde"
+                                >Desde</label
+                            >
                             <input
+                                id="dosis_desde"
                                 v-model="filtros.fecha_desde"
                                 type="date"
                                 class="form-control form-control-sm"
                                 @change="cargarDatos"
+                                @keyup.enter="cargarDatos"
                             />
                         </div>
                     </div>
 
                     <div class="col-md-3 col-lg-2 m-b-10">
                         <div class="form-group m-b-0">
-                            <label class="control-label font-12 m-b-5 text-muted">Hasta</label>
+                            <label class="control-label font-12 m-b-5 text-muted" for="dosis_hasta"
+                                >Hasta</label
+                            >
                             <input
+                                id="dosis_hasta"
                                 v-model="filtros.fecha_hasta"
                                 type="date"
                                 class="form-control form-control-sm"
                                 @change="cargarDatos"
+                                @keyup.enter="cargarDatos"
                             />
                         </div>
                     </div>

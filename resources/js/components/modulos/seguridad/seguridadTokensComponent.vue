@@ -401,11 +401,12 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="control-label">
+                            <label class="control-label" for="tokenEmitidoPlain">
                                 API Token de Producción (Bearer Token)
                             </label>
                             <div class="input-group">
                                 <input
+                                    id="tokenEmitidoPlain"
                                     type="text"
                                     class="form-control"
                                     :value="tokenEmitido.plain_text_token"
