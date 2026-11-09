@@ -419,10 +419,14 @@ const _today = new Date();
 const _todayStr = `${_today.getFullYear()}-${String(_today.getMonth() + 1).padStart(2, "0")}-${String(_today.getDate()).padStart(2, "0")}`;
 const _firstDayStr = `${_today.getFullYear()}-${String(_today.getMonth() + 1).padStart(2, "0")}-01`;
 
+function obtenerSedeActiva() {
+    return sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "";
+}
+
 const filters = ref({
     fechaIni: _firstDayStr,
     fechaFin: _todayStr,
-    sedeId: "",
+    sedeId: obtenerSedeActiva(),
     estadoId: "",
     categoriaId: "",
     prioridadId: "",
@@ -478,7 +482,7 @@ function limpiar() {
     filters.value = {
         fechaIni: firstDayStr,
         fechaFin: todayStr,
-        sedeId: "",
+        sedeId: obtenerSedeActiva(),
         estadoId: "",
         categoriaId: "",
         prioridadId: "",
@@ -576,7 +580,12 @@ function exportPdf() {
 }
 
 function onSedeSeleccionada(data) {
-    const idSede = data?.idSede ?? sessionStorage.getItem("ST-sede") ?? "";
+    const raw =
+        data?.sede ??
+        (typeof data === "object" ? data.idSede || data.id : data) ??
+        obtenerSedeActiva();
+    const idSede = raw ? String(raw) : "";
+    if (filters.value.sedeId === idSede) return;
     filters.value.sedeId = idSede;
     buscar();
 }
@@ -592,6 +601,12 @@ useKeyboardShortcuts({
 
 onMounted(async () => {
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
+    const sedeActiva = obtenerSedeActiva();
+    if (sedeActiva) {
+        filters.value.sedeId = sedeActiva;
+    } else if (emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
     await cargarCatalogos();
     await buscar();
 });

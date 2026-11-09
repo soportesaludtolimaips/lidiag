@@ -37,6 +37,18 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Propagación de Fix de Resiliencia y Fallback de Sedes en Módulo Help-Desk (`resources/js/components/modulos/help-desk/`):**
+  - **Componentes Actualizados:**
+    * `helpdeskCrearTicketComponent.vue`: Inicialización de `form.sede_id` con fallback a `localStorage`. Sincronización reactiva con `onSedeSeleccionada` y emisión de `solicitarSedeActiva` en `onMounted()`.
+    * `helpdeskTicketsComponent.vue`: Fallback a `localStorage` en `filters.value.sede_id` y en `limpiar()`. Comparación de cambio real en `onSedeSeleccionada` y solicitud preventiva de sede al montar.
+    * `helpdeskReportesComponent.vue`: Fallback a `localStorage` en `filters.value.sedeId` y en `limpiar()`. Soporte reactivo a `onSedeSeleccionada` y solicitud preventiva con `solicitarSedeActiva`.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios en todos los componentes del módulo ✅.
+    * Vite build (`npm run build`) completado exitosamente en 2.60s ✅.
+- [x] **2026-11-09 — Instalación de Skill de Auditoría de Seguridad (`cloudflare/security-audit-skill`):**
+  - **Ubicación:** Desplegado en `.agents/skills/security-audit/` (ámbito de workspace) y `~/.gemini/config/skills/security-audit/` (ámbito global de Antigravity).
+  - **Capacidades:** Flujo de auditoría multi-fase de Cloudflare (reconocimiento, hunting liderado por cobertura, validación adversaria con sub-agentes, validadores de esquemas y reporte neutral de vulnerabilidades).
+
 - [x] **2026-11-09 — Propagación de Fix de Resiliencia y Fallback de Sedes en Módulo Dosimetría (`resources/js/components/modulos/dosimetria/`):**
   - **Componentes Actualizados:**
     * `DashboardDosimetria.vue`: Fallback a `localStorage` en `filtros.sede_id` reactivo, soporte robusto de formatos de evento/objeto/primitivo en `onSedeSeleccionada` y emisión preventiva de `solicitarSedeActiva` en `onMounted()` ante arranque en frío.

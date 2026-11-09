@@ -299,6 +299,10 @@ import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 const { appContext } = getCurrentInstance();
 const emitter = appContext.config.globalProperties.emitter;
 
+function obtenerSedeActiva() {
+    return sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "";
+}
+
 const scope = ref("mine");
 const loading = ref(false);
 const dt = ref(null);
@@ -311,7 +315,7 @@ const filters = ref({
     estado_id: "",
     categoria_id: "",
     prioridad_id: "",
-    sede_id: "",
+    sede_id: obtenerSedeActiva(),
     desde: "",
     hasta: "",
     q: "",
@@ -368,10 +372,10 @@ function limpiar() {
         q: "",
     };
     try {
-        const sedeActiva = sessionStorage.getItem("ST-sede");
+        const sedeActiva = obtenerSedeActiva();
         if (sedeActiva) filters.value.sede_id = sedeActiva;
     } catch (e) {
-        console.warn("No se pudo leer sede activa de sessionStorage", e);
+        console.warn("No se pudo leer sede activa de storage", e);
     }
     buscar();
 }
@@ -422,7 +426,12 @@ async function buscar() {
 }
 
 function onSedeSeleccionada(data) {
-    const idSede = data?.idSede ?? sessionStorage.getItem("ST-sede") ?? "";
+    const raw =
+        data?.sede ??
+        (typeof data === "object" ? data.idSede || data.id : data) ??
+        obtenerSedeActiva();
+    const idSede = raw ? String(raw) : "";
+    if (filters.value.sede_id === idSede) return;
     filters.value.sede_id = idSede;
     buscar();
 }
@@ -438,11 +447,15 @@ useKeyboardShortcuts({
 
 onMounted(async () => {
     try {
-        // sede activa por defecto
-        const sedeActiva = sessionStorage.getItem("ST-sede");
-        if (sedeActiva) filters.value.sede_id = sedeActiva;
+        // sede activa por defecto con fallback
+        const sedeActiva = obtenerSedeActiva();
+        if (sedeActiva) {
+            filters.value.sede_id = sedeActiva;
+        } else if (emitter) {
+            emitter.emit("solicitarSedeActiva");
+        }
     } catch (e) {
-        console.warn("No se pudo leer sede activa de sessionStorage", e);
+        console.warn("No se pudo leer sede activa de storage", e);
     }
 
     emitter.on("sedeSeleccionada", onSedeSeleccionada);

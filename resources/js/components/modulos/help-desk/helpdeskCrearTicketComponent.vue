@@ -167,7 +167,7 @@
     </div>
 </template>
 <script setup>
-import { nextTick, onMounted, ref } from "vue";
+import { nextTick, onMounted, onBeforeUnmount, ref, getCurrentInstance } from "vue";
 import { useRouter } from "vue-router";
 
 import { toastMessage } from "@/helpers/alerts.js";
@@ -176,7 +176,12 @@ import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import { helpdesk } from "@/helpers/api.js";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 
+const { proxy } = getCurrentInstance();
 const router = useRouter();
+
+function obtenerSedeActiva() {
+    return sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "";
+}
 
 const loading = ref(false);
 const categorias = ref([]);
@@ -190,7 +195,7 @@ const form = ref({
     categoria_id: "",
     prioridad_id: "",
     asignado_id: "",
-    sede_id: "",
+    sede_id: obtenerSedeActiva(),
 });
 
 async function cargar() {
@@ -336,14 +341,32 @@ useKeyboardShortcuts({
     },
 });
 
+function onSedeSeleccionada(event) {
+    const rawSede =
+        event?.sede ??
+        (typeof event === "object" ? event.idSede || event.id : event) ??
+        obtenerSedeActiva();
+    if (!rawSede) return;
+    form.value.sede_id = String(rawSede);
+}
+
 onMounted(async () => {
+    proxy?.emitter?.on("sedeSeleccionada", onSedeSeleccionada);
     try {
-        const sedeActiva = sessionStorage.getItem("ST-sede");
-        if (sedeActiva) form.value.sede_id = sedeActiva;
+        const sedeActiva = obtenerSedeActiva();
+        if (sedeActiva) {
+            form.value.sede_id = sedeActiva;
+        } else {
+            proxy?.emitter?.emit("solicitarSedeActiva");
+        }
     } catch (e) {
-        console.warn("No se pudo leer sede activa de sessionStorage", e);
+        console.warn("No se pudo leer sede activa de storage", e);
     }
 
     await cargar();
+});
+
+onBeforeUnmount(() => {
+    proxy?.emitter?.off("sedeSeleccionada", onSedeSeleccionada);
 });
 </script>
