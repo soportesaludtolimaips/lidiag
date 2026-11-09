@@ -5,12 +5,12 @@
                 <h3 class="text-themecolor">Helpdesk</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a
-                            href="/helpdesk-tickets"
+                        <router-link
+                            to="/helpdesk-tickets"
                             style="vertical-align: baseline; text-decoration: none; color: inherit"
                         >
                             Tickets
-                        </a>
+                        </router-link>
                     </li>
                     <li class="breadcrumb-item active">Notificaciones</li>
                 </ol>
@@ -35,13 +35,13 @@
                 >
                     <i class="fa fa-check mr-1"></i> Marcar todas como leídas
                 </button>
-                <a
-                    href="/helpdesk-tickets"
+                <router-link
+                    to="/helpdesk-tickets"
                     class="btn btn-inverse btn-sm m-l-5"
                     title="Volver a tickets"
                 >
                     <i class="fa fa-arrow-left mr-1"></i> Volver
-                </a>
+                </router-link>
             </div>
         </div>
 
@@ -137,11 +137,14 @@
 </template>
 <script setup>
 import { onMounted, ref, watch } from "vue";
+import { useRouter } from "vue-router";
 
 import { toastMessage } from "@/helpers/alerts.js";
 import { formatDateTime } from "@/helpers/dateUtils.js";
 import { helpdesk } from "@/helpers/api.js";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
+
+const router = useRouter();
 
 const loading = ref(false);
 const soloNoLeidas = ref(false);
@@ -213,7 +216,13 @@ async function marcarTodas() {
 
 async function abrir(n) {
     if (!n.read_at) await marcarLeida(n);
-    if (n.data?.ticket_id) window.location.href = `/helpdesk-tickets/${n.data.ticket_id}`;
+    if (n.data?.ticket_id) {
+        if (router) {
+            router.push(`/helpdesk-tickets/${n.data.ticket_id}`);
+        } else {
+            window.location.href = `/helpdesk-tickets/${n.data.ticket_id}`;
+        }
+    }
 }
 
 watch(soloNoLeidas, () => {
@@ -232,7 +241,11 @@ useKeyboardShortcuts({
         }
     },
     onEscape: () => {
-        window.location.href = "/helpdesk-tickets";
+        if (router) {
+            router.push("/helpdesk-tickets");
+        } else {
+            window.location.href = "/helpdesk-tickets";
+        }
     },
 });
 </script>

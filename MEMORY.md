@@ -37,6 +37,19 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Auditoría UI/UX Módulo Helpdesk: Enrutamiento SPA Reactivo y Atajos de Búsqueda:**
+  - **Ajustes Realizados:**
+    * **`helpdeskNotificacionesComponent.vue`:**
+      - Migración de enlaces tradicionales `href="/helpdesk-tickets"` hacia `<router-link to="/helpdesk-tickets">` previniendo recargas de página completas.
+      - Integración de `useRouter()` en `abrir(n)` y atajo Escape `onEscape: () => router.push('/helpdesk-tickets')`.
+    * **`helpdeskTicketsComponent.vue`:**
+      - `@keyup.enter="buscar()"` en campos de filtro de rango de fechas `ticketDesde` y `ticketHasta`.
+    * **`helpdeskReportesComponent.vue`:**
+      - `@keyup.enter="buscar()"` en campos de fecha `reporteFechaIni`, `reporteFechaFin` e identificadores numéricos opcionales de solicitante y técnico.
+  - **Verificaciones:**
+    * ESLint y Prettier pasados al 100% con 0 errores y 0 advertencias ✅.
+    * Build de producción Vite completado exitosamente en 1.41s (`npm run build`) ✅.
+
 - [x] **2026-11-09 — Auditoría UI/UX Módulos Agenda, Contratos y Liquidación:**
   - **Ajustes Realizados:**
     * **`contratoComponent.vue`:**

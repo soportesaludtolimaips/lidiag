@@ -59,6 +59,7 @@
                                     type="date"
                                     class="form-control"
                                     v-model="filters.fechaIni"
+                                    @keyup.enter="buscar()"
                                 />
                             </div>
                             <div class="col-md-2">
@@ -68,6 +69,7 @@
                                     type="date"
                                     class="form-control"
                                     v-model="filters.fechaFin"
+                                    @keyup.enter="buscar()"
                                 />
                             </div>
                             <div class="col-md-3">
@@ -133,6 +135,7 @@
                                     class="form-control"
                                     v-model="filters.solicitanteId"
                                     placeholder="Opcional"
+                                    @keyup.enter="buscar()"
                                 />
                             </div>
                             <div class="col-md-3">
@@ -143,6 +146,7 @@
                                     class="form-control"
                                     v-model="filters.tecnicoId"
                                     placeholder="Opcional"
+                                    @keyup.enter="buscar()"
                                 />
                             </div>
                             <div class="col-md-3 d-flex align-items-end">

@@ -145,6 +145,7 @@
                                     type="date"
                                     class="form-control"
                                     @change="buscar()"
+                                    @keyup.enter="buscar()"
                                 />
                             </div>
                             <div class="col-md-2">
@@ -155,6 +156,7 @@
                                     type="date"
                                     class="form-control"
                                     @change="buscar()"
+                                    @keyup.enter="buscar()"
                                 />
                             </div>
                             <div class="col-md-3">
