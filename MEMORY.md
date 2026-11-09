@@ -37,6 +37,12 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Propagación de Fix de Resiliencia y Fallback de Sedes en Módulo Reportes (`resources/js/components/modulos/reportes/`):**
+  - **Componentes Actualizados:**
+    * `reporteEstudiosPACComponent.vue`: Fallback a `localStorage` para `ST-sede` en `listarSedes()` y `limpiarFiltros()`. Adición de listener reactivo `onSedeSeleccionada` y emisión de `solicitarSedeActiva` en `onMounted()` si no hay sede en cache.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios (0 errores, 0 advertencias) ✅.
+    * Vite build (`npm run build`) completado exitosamente en 1.74s ✅.
 - [x] **2026-11-09 — Propagación de Fix de Resiliencia y Fallback de Sedes en Módulo Contratos y Liquidación (`resources/js/components/modulos/contratos/`, `resources/js/components/modulos/liquidacion/`):**
   - **Componentes Actualizados:**
     * `contratoComponent.vue`: Soporte numérico y JSON en `getSedeActual()` con fallback a `localStorage`. Sincronización reactiva con `sedeSeleccionada` y solicitud preventiva con `solicitarSedeActiva` en `onMounted()`. Fallback de `ST-modulo` a `localStorage`.

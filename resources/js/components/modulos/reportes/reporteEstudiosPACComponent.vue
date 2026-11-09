@@ -215,9 +215,11 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, onBeforeUnmount, ref, getCurrentInstance } from "vue";
 import { toastMessage, getUserSafeError } from "@/helpers/alerts.js";
 import axios from "axios";
+
+const { proxy } = getCurrentInstance();
 
 defineProps({
     usuarioactual: {
@@ -254,8 +256,8 @@ async function listarSedes() {
         const res = await axios.get("/api/config-sedes/listar/sedes/activas");
         sedes.value = Array.isArray(res?.data?.data) ? res.data.data : [];
 
-        // Si solo hay una sede o hay una sede activa en sesión, preseleccionarla
-        const sedeGuardada = sessionStorage.getItem("ST-sede");
+        // Si solo hay una sede o hay una sede activa en sesión/storage local, preseleccionarla
+        const sedeGuardada = sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede");
         if (sedeGuardada && sedes.value.some((s) => String(s.id) === String(sedeGuardada))) {
             datosReporte.value.sedeId = Number(sedeGuardada);
         } else if (sedes.value.length === 1) {
@@ -281,10 +283,23 @@ async function listarSedes() {
  * @date 2026-11-04
  */
 function limpiarFiltros() {
-    const sedeGuardada = sessionStorage.getItem("ST-sede");
+    const sedeGuardada = sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede");
     datosReporte.value.sedeId = sedeGuardada ? Number(sedeGuardada) : 0;
     datosReporte.value.fechaIni = "";
     datosReporte.value.fechaFin = "";
+}
+
+/**
+ * Listener reactivo ante cambio de sede en el navbar.
+ *
+ * @param {Object} event
+ * @returns {void}
+ */
+function onSedeSeleccionada(event) {
+    const rawSede =
+        event?.sede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede");
+    if (!rawSede) return;
+    datosReporte.value.sedeId = Number(rawSede);
 }
 
 /**
@@ -359,6 +374,14 @@ function descargarReporte() {
 }
 
 onMounted(() => {
+    proxy?.emitter?.on("sedeSeleccionada", onSedeSeleccionada);
+    if (!sessionStorage.getItem("ST-sede") && !localStorage.getItem("ST-sede")) {
+        proxy?.emitter?.emit("solicitarSedeActiva");
+    }
     listarSedes();
+});
+
+onBeforeUnmount(() => {
+    proxy?.emitter?.off("sedeSeleccionada", onSedeSeleccionada);
 });
 </script>
