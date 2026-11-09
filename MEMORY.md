@@ -37,6 +37,28 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Corrección de Paginación DataTables en Filtros de Tele-radiología (`teleRadiologiaEnviarEstudioComponent.vue`):**
+  - **Problema:** En `/tele-radiologia`, al realizar búsquedas con filtros, la tabla no se paginaba (mostraba todas las filas sin paginar o con DataTables desvinculado).
+  - **Causa Raíz:**
+    1. El contenedor de la tabla usaba directivas condicionales `v-if="loadingBuscar"` y `v-else`, desmontando por completo el elemento `<table>` del DOM durante cada búsqueda y rompiendo las referencias de DataTables.
+    2. `destroyDataTable()` se ejecutaba sincrónicamente mientras el elemento estaba fuera del DOM (`$t.length === 0`), dejando instancias y wrappers residuales huérfanos.
+    3. Al volver a montar, `safeInitDataTable` con `retrieve: true` retornaba la instancia vieja y no calculaba la paginación sobre las nuevas filas renderizadas por Vue.
+  - **Solución Aplicada:**
+    * Se desacopló la visibilidad usando `:visible="loadingBuscar"` en `<table-skeleton-loader>` y `v-show="!loadingBuscar && registros.length > 0"` en el contenedor de la tabla, manteniendo el nodo en el DOM.
+    * Se reestructuró `buscarStudy()` con destrucción preventiva previa al fetch y reinicialización limpia posterior a `await nextTick()` con las filas reales montadas.
+    * Se eliminó `retrieve: true` y se aseguraron columnas no ordenables en las acciones (`columnDefs: [{ targets: [5], orderable: false }]`).
+    * Se añadió `@submit.prevent="buscarStudy()"` en el formulario y `@keyup.enter` en los campos de fecha.
+  - **Verificaciones:**
+    * Prettier y ESLint pasados sin advertencias ✅.
+    * Vite build completado en 1.23s ✅.
+- [x] **2026-11-09 — Auditoría Profunda y Plan de Migración a Vue Router (`docs/PLAN_MIGRACION_VUE_ROUTER.md`):**
+  - **Diagnóstico y Necesidad:**
+    * El usuario solicitó auditar la arquitectura actual de LIDiag y documentar una hoja de ruta estructurada para migrar de la arquitectura MPA (Multi-Page Application) basada en vistas Blade e islas Vue 3 hacia una Single Page Application (SPA) con Vue Router 4.
+    * Se identificó que `vue-router: ^4.1.6` ya se encuentra instalado en `package.json` pero sin uso activo.
+    * Se identificaron 82 componentes Vue (48 componentes página cargados de forma asíncrona) y 5 dependencias estructurales a desacoplar: (1) `sidebar.blade.php` con 561 líneas en Blade y chequeos Spatie `@can`; (2) Inyección de props desde Blade (`:usuarioactual`, `:permisos`); (3) Scripts jQuery de AdminWrap (`sidebarmenu.js`, `custom.js`); (4) Limpieza de listeners en el bus `mitt` para evitar memory leaks; (5) Exclusión de rutas nativas en Laravel (login, descargas, visores externos tokenizados).
+  - **Solución Implementada:**
+    * Se elaboró el documento formal [PLAN_MIGRACION_VUE_ROUTER.md](file:///c:/laragon/www/lidiag/docs/PLAN_MIGRACION_VUE_ROUTER.md) estructurado en 8 fases de ejecución con semáforo de control de estados: 🔴 Sin Iniciar, 🟡 Iniciado y 🟢 Terminado.
+    * Se incluyó matriz de trazabilidad de módulos, rutas, componentes y permisos Spatie asociados, junto con una bitácora de control de cambios.
 - [x] **2026-11-09 — Mejoras Integrales de UI/UX y Ergonomía Clínica en Transcribir Estudios (`transcribirEstudioComponent.vue`, `/estudios.transcribir.listar`):**
   - **Diagnóstico y Necesidad:**
     * La vista `/estudios.transcribir.listar` (`transcribirEstudioComponent.vue`) presentaba discrepancias frente a la directiva de ergonomía clínica y las mejoras recientes de `/tele-radiologia-transcribir`:

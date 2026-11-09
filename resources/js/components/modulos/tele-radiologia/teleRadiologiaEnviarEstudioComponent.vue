@@ -48,12 +48,12 @@
                         <h4 class="card-title text-themecolor">
                             <i class="fa fa-filter"></i> Filtros para busqueda de estudios
                         </h4>
-                        <form action="#">
+                        <form action="#" @submit.prevent="buscarStudy()">
                             <div class="form-body">
                                 <div class="row p-t-2">
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label class="control-label"
+                                            <label class="control-label" for="bus_nom_num_docu"
                                                 >Nombres de paciente o # de documento
                                             </label>
                                             <input
@@ -69,25 +69,31 @@
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <label class="control-label">Fecha Inicio</label>
+                                            <label class="control-label" for="bus_fech_ini"
+                                                >Fecha Inicio</label
+                                            >
                                             <input
                                                 type="date"
                                                 id="bus_fech_ini"
                                                 name="bus_fech_ini"
                                                 v-model="busqueda.bus_fech_ini"
                                                 class="form-control"
+                                                @keyup.enter="buscarStudy()"
                                             />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <label class="control-label">Fecha Fin</label>
+                                            <label class="control-label" for="bus_fecha_fin"
+                                                >Fecha Fin</label
+                                            >
                                             <input
                                                 type="date"
                                                 id="bus_fecha_fin"
                                                 name="bus_fecha_fin"
                                                 v-model="busqueda.bus_fecha_fin"
                                                 class="form-control"
+                                                @keyup.enter="buscarStudy()"
                                             />
                                         </div>
                                     </div>
@@ -141,15 +147,17 @@
                         <h6 class="card-subtitle text-info">
                             Asigne los estudios a los médicos para su respectiva lectura.
                         </h6>
-                        <table-skeleton-loader v-if="loadingBuscar" :rows="6" :columns="6" />
-                        <div v-else-if="registros.length === 0" class="m-t-20">
-                            <empty-state-component
-                                title="No hay estudios para mostrar"
-                                description="No se encontraron estudios con los filtros seleccionados. Use los filtros para buscar."
-                                icon="fa-search"
-                            />
-                        </div>
-                        <div v-else class="table-responsive m-t-20">
+                        <table-skeleton-loader :visible="loadingBuscar" :rows="6" :columns="6" />
+                        <empty-state-component
+                            v-if="!loadingBuscar && registros.length === 0"
+                            title="No hay estudios para mostrar"
+                            description="No se encontraron estudios con los filtros seleccionados. Use los filtros para buscar."
+                            icon="fa-search"
+                        />
+                        <div
+                            v-show="!loadingBuscar && registros.length > 0"
+                            class="table-responsive m-t-20"
+                        >
                             <table
                                 id="tablaTeleRadiologiaEnviar"
                                 ref="dt"
@@ -728,10 +736,12 @@ const productoOptions = computed(() => {
 });
 
 function initDataTable() {
+    if (registros.value.length === 0) return;
     safeInitDataTable(dt.value || "#tablaTeleRadiologiaEnviar", {
         dom: "Bfrtip",
         buttons: ["copy", "csv", "excel", "pdf", "print"],
-        retrieve: true,
+        autoWidth: false,
+        columnDefs: [{ targets: [5], orderable: false }],
     });
 }
 
@@ -741,45 +751,56 @@ function destroyDataTable() {
 
 async function buscarStudy() {
     if (loadingBuscar.value) return;
+
+    if (sessionStorage.getItem("ST-sede") == null) {
+        toastMessage({
+            heading: "Upsss!!!",
+            text: "Debes seleccionar una sede para realizar la busqueda.",
+            icon: "warning",
+        });
+        return;
+    }
+    if (
+        busqueda.value.bus_nom_num_docu == "" &&
+        busqueda.value.bus_fech_ini == "" &&
+        busqueda.value.bus_fecha_fin == ""
+    ) {
+        toastMessage({
+            heading: "Upsss!!!",
+            text: "Debes establecer la fecha de inicio o finalización para la busqueda.",
+            icon: "warning",
+        });
+        return;
+    }
+
     loadingBuscar.value = true;
+    destroyDataTable();
 
     try {
-        if (sessionStorage.getItem("ST-sede") == null) {
-            toastMessage({
-                heading: "Upsss!!!",
-                text: "Debes seleccionar una sede para realizar la busqueda.",
-                icon: "warning",
-            });
-            return;
-        }
-        if (
-            busqueda.value.bus_nom_num_docu == "" &&
-            busqueda.value.bus_fech_ini == "" &&
-            busqueda.value.bus_fecha_fin == ""
-        ) {
-            toastMessage({
-                heading: "Upsss!!!",
-                text: "Debes establecer la fecha de inicio o finalización para la busqueda.",
-                icon: "warning",
-            });
-            return;
-        }
-
         const res = await axios.post("/api/tele-radiologia-listar-estudios", busqueda.value);
-
-        destroyDataTable();
-        registros.value = res.data.data || [];
-        nextTick(() => {
-            initDataTable();
-        });
+        let data = res?.data?.data;
+        if (typeof data === "string") {
+            try {
+                data = JSON.parse(data);
+            } catch (_error) {
+                data = [];
+            }
+        }
+        registros.value = Array.isArray(data) ? data : [];
     } catch (error) {
         toastMessage({
             heading: "Upsss!!!",
             text: getUserSafeError(error, "Error al listar estudios."),
             icon: "error",
         });
+        registros.value = [];
     } finally {
         loadingBuscar.value = false;
+        await nextTick();
+        if (registros.value.length > 0) {
+            destroyDataTable();
+            initDataTable();
+        }
     }
 }
 
