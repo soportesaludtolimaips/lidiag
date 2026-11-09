@@ -38,15 +38,17 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de contratos</h4>
                         <h6 class="card-subtitle">Gestión de contratación por sedes.</h6>
-                        <table-skeleton-loader v-if="loadingListar" :rows="5" :columns="6" />
-                        <div v-else-if="registros.length === 0" class="m-t-20">
-                            <empty-state-component
-                                title="No hay contratos registrados"
-                                description="No se encontraron contratos para la sede seleccionada."
-                                icon="fa-file-text-o"
-                            />
-                        </div>
-                        <div v-else class="table-responsive m-t-40">
+                        <table-skeleton-loader :visible="loadingListar" :rows="5" :columns="6" />
+                        <empty-state-component
+                            v-if="!loadingListar && registros.length === 0"
+                            title="No hay contratos registrados"
+                            description="No se encontraron contratos para la sede seleccionada."
+                            icon="fa-file-text-o"
+                        />
+                        <div
+                            v-show="!loadingListar && registros.length > 0"
+                            class="table-responsive m-t-40"
+                        >
                             <table
                                 id="tablaContratos"
                                 ref="dt"
@@ -738,17 +740,31 @@ async function listar() {
     try {
         safeDestroyDataTable(dt.value || "#tablaContratos");
         const res = await axios.get("/api/contratos");
-        registros.value = res.data.data.data || [];
-        await nextTick();
-        safeInitDataTable(dt.value || "#tablaContratos", {
-            dom: "Bfrtip",
-            buttons: ["copy", "csv", "excel", "pdf", "print"],
-        });
+        let data = res.data?.data?.data ?? res.data?.data;
+        if (typeof data === "string") {
+            try {
+                data = JSON.parse(data);
+            } catch (_e) {
+                data = [];
+            }
+        }
+        registros.value = Array.isArray(data) ? data : [];
     } catch (error) {
         console.error(error);
         toastMessage({ heading: "Error", text: "Error al cargar los contratos", icon: "error" });
+        registros.value = [];
     } finally {
         loadingListar.value = false;
+        await nextTick();
+        if (registros.value.length > 0) {
+            safeDestroyDataTable(dt.value || "#tablaContratos");
+            safeInitDataTable(dt.value || "#tablaContratos", {
+                dom: "Bfrtip",
+                buttons: ["copy", "csv", "excel", "pdf", "print"],
+                autoWidth: false,
+                columnDefs: [{ targets: [5], orderable: false }],
+            });
+        }
     }
 }
 

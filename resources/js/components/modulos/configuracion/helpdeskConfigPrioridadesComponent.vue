@@ -52,15 +52,17 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de prioridades</h4>
                         <h6 class="card-subtitle">Catálogo de Helpdesk.</h6>
-                        <table-skeleton-loader v-if="loadingListar" :rows="5" :columns="4" />
-                        <div v-else-if="registros.length === 0" class="m-t-20">
-                            <empty-state-component
-                                title="No hay prioridades registradas"
-                                description="No se encontraron registros de prioridades de Helpdesk."
-                                icon="fa-flag"
-                            />
-                        </div>
-                        <div v-else class="table-responsive m-t-40">
+                        <table-skeleton-loader :visible="loadingListar" :rows="5" :columns="4" />
+                        <empty-state-component
+                            v-if="!loadingListar && registros.length === 0"
+                            title="No hay prioridades registradas"
+                            description="No se encontraron registros de prioridades de Helpdesk."
+                            icon="fa-flag"
+                        />
+                        <div
+                            v-show="!loadingListar && registros.length > 0"
+                            class="table-responsive m-t-40"
+                        >
                             <table
                                 id="tablaHelpdeskPrioridades"
                                 ref="dt"
@@ -284,24 +286,37 @@ async function listar() {
     if (loadingListar.value) return;
     loadingListar.value = true;
     clearErrors();
+    safeDestroyDataTable(dt.value || "#tablaHelpdeskPrioridades");
     try {
         const res = await axios.get("/api/helpdesk-prioridades");
-        safeDestroyDataTable(dt.value || "#tablaHelpdeskPrioridades");
-        registros.value = res?.data?.data || res?.data || [];
-        nextTick(() => {
-            safeInitDataTable(dt.value || "#tablaHelpdeskPrioridades", {
-                dom: "Bfrtip",
-                buttons: ["copy", "csv", "excel", "pdf", "print"],
-            });
-        });
+        let data = res?.data?.data || res?.data || [];
+        if (typeof data === "string") {
+            try {
+                data = JSON.parse(data);
+            } catch (_e) {
+                data = [];
+            }
+        }
+        registros.value = Array.isArray(data) ? data : [];
     } catch {
         toastMessage({
             heading: "Error",
             text: "No fue posible listar las prioridades.",
             icon: "error",
         });
+        registros.value = [];
     } finally {
         loadingListar.value = false;
+        await nextTick();
+        if (registros.value.length > 0) {
+            safeDestroyDataTable(dt.value || "#tablaHelpdeskPrioridades");
+            safeInitDataTable(dt.value || "#tablaHelpdeskPrioridades", {
+                dom: "Bfrtip",
+                buttons: ["copy", "csv", "excel", "pdf", "print"],
+                autoWidth: false,
+                columnDefs: [{ targets: [3], orderable: false }],
+            });
+        }
     }
 }
 

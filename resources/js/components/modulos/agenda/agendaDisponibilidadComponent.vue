@@ -129,17 +129,19 @@
                             Gestione las disponibilidades de citas para estudios.
                         </h6>
 
-                        <table-skeleton-loader v-if="loadingBuscar" :rows="5" :columns="5" />
+                        <table-skeleton-loader :visible="loadingBuscar" :rows="5" :columns="5" />
 
-                        <div v-else-if="!registros.length" class="m-t-20">
-                            <empty-state-component
-                                title="No hay disponibilidades registradas"
-                                description="No se encontraron disponibilidades para la sede y fechas seleccionadas. Presione 'Nuevo registro' para crear una."
-                                icon="fa-calendar"
-                            />
-                        </div>
+                        <empty-state-component
+                            v-if="!loadingBuscar && !registros.length"
+                            title="No hay disponibilidades registradas"
+                            description="No se encontraron disponibilidades para la sede y fechas seleccionadas. Presione 'Nuevo registro' para crear una."
+                            icon="fa-calendar"
+                        />
 
-                        <div class="table-responsive m-t-20" v-else>
+                        <div
+                            class="table-responsive m-t-20"
+                            v-show="!loadingBuscar && registros.length > 0"
+                        >
                             <table
                                 id="tablaAgendaDisponibilidad"
                                 ref="dt"
@@ -423,6 +425,8 @@ useKeyboardShortcuts({
 async function buscarStudy() {
     if (loadingBuscar.value) return;
     loadingBuscar.value = true;
+    safeDestroyDataTable(dt.value || "#tablaAgendaDisponibilidad");
+
     try {
         const params = {
             sede_id: busqueda.value.sede_id,
@@ -430,20 +434,29 @@ async function buscarStudy() {
             bus_fecha_fin: busqueda.value.bus_fecha_fin || undefined,
         };
         const res = await axios.get("/api/agenda-disponibilidad", { params });
-        safeDestroyDataTable(dt.value || "#tablaAgendaDisponibilidad");
-        registros.value = res.data.data || [];
-        nextTick(() => {
-            if (registros.value.length) {
-                safeInitDataTable(dt.value || "#tablaAgendaDisponibilidad", {
-                    dom: "Bfrtip",
-                    buttons: ["copy", "csv", "excel", "pdf", "print"],
-                });
+        let data = res.data.data;
+        if (typeof data === "string") {
+            try {
+                data = JSON.parse(data);
+            } catch (_e) {
+                data = [];
             }
-        });
+        }
+        registros.value = Array.isArray(data) ? data : [];
     } catch {
         registros.value = [];
     } finally {
         loadingBuscar.value = false;
+        await nextTick();
+        if (registros.value.length) {
+            safeDestroyDataTable(dt.value || "#tablaAgendaDisponibilidad");
+            safeInitDataTable(dt.value || "#tablaAgendaDisponibilidad", {
+                dom: "Bfrtip",
+                buttons: ["copy", "csv", "excel", "pdf", "print"],
+                autoWidth: false,
+                columnDefs: [{ targets: [4], orderable: false }],
+            });
+        }
     }
 }
 function validarFormulario() {

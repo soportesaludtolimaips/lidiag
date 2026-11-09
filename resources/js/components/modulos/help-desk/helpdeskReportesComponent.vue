@@ -325,15 +325,17 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Detalle (últimos {{ limit }} registros)</h4>
-                        <table-skeleton-loader v-if="loading" :rows="8" :columns="12" />
-                        <div v-else-if="!detallado.length" class="m-t-20">
-                            <empty-state-component
-                                title="No se encontraron registros"
-                                description="No hay registros detallados para los filtros seleccionados."
-                                icon="fa-bar-chart"
-                            />
-                        </div>
-                        <div v-else class="table-responsive m-t-20">
+                        <table-skeleton-loader :visible="loading" :rows="8" :columns="12" />
+                        <empty-state-component
+                            v-if="!loading && !detallado.length"
+                            title="No se encontraron registros"
+                            description="No hay registros detallados para los filtros seleccionados."
+                            icon="fa-bar-chart"
+                        />
+                        <div
+                            v-show="!loading && detallado.length > 0"
+                            class="table-responsive m-t-20"
+                        >
                             <table
                                 id="helpdeskReportesDetallado"
                                 ref="dt"
@@ -497,6 +499,7 @@ function buildParams(extra = {}) {
 }
 
 function initDT() {
+    if (!detallado.value.length) return;
     safeInitDataTable(dt.value || "#helpdeskReportesDetallado", {
         dom: "Bfrtip",
         buttons: [
@@ -506,7 +509,8 @@ function initDT() {
             { extend: "pdf", titleAttr: "Exportar a PDF" },
             { extend: "print", titleAttr: "Imprimir" },
         ],
-        retrieve: true,
+        autoWidth: false,
+        columnDefs: [{ targets: [11], orderable: false }],
         order: [],
     });
 }
@@ -527,6 +531,8 @@ async function buscar() {
         return;
     }
     loading.value = true;
+    safeDestroyDataTable(dt.value || "#helpdeskReportesDetallado");
+
     try {
         const params = buildParams({ limit: limit.value });
         const [ind, det] = await Promise.all([
@@ -536,18 +542,20 @@ async function buscar() {
         indicadores.value = ind.data?.data ?? ind.data ?? null;
         const detPayload = det.data?.data ?? det.data;
         detallado.value = detPayload?.items || (Array.isArray(detPayload) ? detPayload : []);
-        nextTick(() => {
-            safeDestroyDataTable(dt.value || "#helpdeskReportesDetallado");
-            initDT();
-        });
     } catch (_error) {
         toastMessage({
             heading: "Error",
             text: "No se pudieron cargar los reportes.",
             icon: "error",
         });
+        detallado.value = [];
     } finally {
         loading.value = false;
+        await nextTick();
+        if (detallado.value.length > 0) {
+            safeDestroyDataTable(dt.value || "#helpdeskReportesDetallado");
+            initDT();
+        }
     }
 }
 

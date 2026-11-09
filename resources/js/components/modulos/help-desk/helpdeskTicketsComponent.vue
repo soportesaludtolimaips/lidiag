@@ -207,15 +207,17 @@
                             Orden por defecto: Prioridad (Alta→Baja) y luego fecha.
                         </h6>
 
-                        <table-skeleton-loader v-if="loading" :rows="8" :columns="11" />
-                        <div v-else-if="!tickets.length" class="m-t-20">
-                            <empty-state-component
-                                title="No se encontraron tickets"
-                                description="No hay tickets registrados para los filtros seleccionados."
-                                icon="fa-ticket"
-                            />
-                        </div>
-                        <div v-else class="table-responsive m-t-20">
+                        <table-skeleton-loader :visible="loading" :rows="8" :columns="11" />
+                        <empty-state-component
+                            v-if="!loading && !tickets.length"
+                            title="No se encontraron tickets"
+                            description="No hay tickets registrados para los filtros seleccionados."
+                            icon="fa-ticket"
+                        />
+                        <div
+                            v-show="!loading && tickets.length > 0"
+                            class="table-responsive m-t-20"
+                        >
                             <table
                                 id="helpdeskTicketsTable"
                                 ref="dt"
@@ -373,6 +375,7 @@ function limpiar() {
 }
 
 function initDataTable() {
+    if (!tickets.value.length) return;
     safeInitDataTable(dt.value || "#helpdeskTicketsTable", {
         dom: "Bfrtip",
         buttons: [
@@ -382,7 +385,8 @@ function initDataTable() {
             { extend: "pdf", titleAttr: "Exportar a PDF" },
             { extend: "print", titleAttr: "Imprimir" },
         ],
-        retrieve: true,
+        autoWidth: false,
+        columnDefs: [{ targets: [10], orderable: false }],
         order: [],
     });
 }
@@ -392,7 +396,10 @@ function destroyDataTable() {
 }
 
 async function buscar() {
+    if (loading.value) return;
     loading.value = true;
+    destroyDataTable();
+
     try {
         const res = await helpdesk.tickets({
             scope: scope.value,
@@ -400,18 +407,15 @@ async function buscar() {
         });
         const payload = res.data?.data ?? res.data;
         tickets.value = payload?.items || (Array.isArray(payload) ? payload : []);
-        nextTick(() => {
-            destroyDataTable();
-            initDataTable();
-        });
     } catch (_error) {
         tickets.value = [];
-        nextTick(() => {
-            destroyDataTable();
-            initDataTable();
-        });
     } finally {
         loading.value = false;
+        await nextTick();
+        if (tickets.value.length > 0) {
+            destroyDataTable();
+            initDataTable();
+        }
     }
 }
 

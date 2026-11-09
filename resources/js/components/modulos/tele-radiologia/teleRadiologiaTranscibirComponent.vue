@@ -214,15 +214,17 @@
                             </div>
                         </div>
 
-                        <table-skeleton-loader v-if="loadingBuscar" :rows="6" :columns="11" />
-                        <div v-else-if="registros.length === 0" class="m-t-20">
-                            <empty-state-component
-                                title="No hay estudios para mostrar"
-                                description="No se encontraron estudios pendientes con los filtros seleccionados."
-                                icon="fa-file-text-o"
-                            />
-                        </div>
-                        <div v-else class="table-responsive m-t-20">
+                        <table-skeleton-loader :visible="loadingBuscar" :rows="6" :columns="11" />
+                        <empty-state-component
+                            v-if="!loadingBuscar && registros.length === 0"
+                            title="No hay estudios para mostrar"
+                            description="No se encontraron estudios pendientes con los filtros seleccionados."
+                            icon="fa-file-text-o"
+                        />
+                        <div
+                            v-show="!loadingBuscar && registros.length > 0"
+                            class="table-responsive m-t-20"
+                        >
                             <table
                                 id="tablaTeleRadiologiaTranscribir"
                                 ref="dt"
@@ -857,10 +859,12 @@ const conteoSinLectura = computed(
 );
 
 function initDataTable() {
+    if (registros.value.length === 0) return;
     safeInitDataTable(dt.value || "#tablaTeleRadiologiaTranscribir", {
         dom: "Bfrtip",
         buttons: ["copy", "csv", "excel", "pdf", "print"],
-        retrieve: true,
+        autoWidth: false,
+        columnDefs: [{ targets: [0, 10], orderable: false }],
     });
 }
 
@@ -868,7 +872,7 @@ function destroyDataTable() {
     safeDestroyDataTable(dt.value || "#tablaTeleRadiologiaTranscribir");
 }
 
-function aplicarFiltroEstado() {
+async function aplicarFiltroEstado() {
     destroyDataTable();
     if (filtroEstado.value === "con_lectura") {
         registros.value = todosLosRegistros.value.filter((x) => x.fechor_lectura != null);
@@ -877,9 +881,11 @@ function aplicarFiltroEstado() {
     } else {
         registros.value = [...todosLosRegistros.value];
     }
-    nextTick(() => {
+    await nextTick();
+    if (registros.value.length > 0) {
+        destroyDataTable();
         initDataTable();
-    });
+    }
 }
 
 function btnLimpiar() {
@@ -898,19 +904,20 @@ function btnLimpiar() {
 
 async function listarPendientesTrascribir() {
     if (loadingBuscar.value) return;
+
+    if (!sessionStorage.getItem("ST-sede")) {
+        toastMessage({
+            heading: "Upsss!!!",
+            text: "Debes establecer la sede en la cual vas a trabajar.",
+            icon: "warning",
+        });
+        return;
+    }
+
     loadingBuscar.value = true;
+    destroyDataTable();
+
     try {
-        if (!sessionStorage.getItem("ST-sede")) {
-            toastMessage({
-                heading: "Upsss!!!",
-                text: "Debes establecer la sede en la cual vas a trabajar.",
-                icon: "warning",
-            });
-            return;
-        }
-
-        destroyDataTable();
-
         const res = await axios.post("/api/estudio-listarPendientesTrascribir", {
             sede_id: sessionStorage.getItem("ST-sede"),
             quien_asigno_id: busqueda.value.quien_asigno_id || undefined,
@@ -922,16 +929,25 @@ async function listarPendientesTrascribir() {
             estudioParaTranscibir: busqueda.value.estudioParaTranscibir,
         });
 
-        todosLosRegistros.value = res.data.data || [];
-        aplicarFiltroEstado();
+        let data = res.data.data;
+        if (typeof data === "string") {
+            try {
+                data = JSON.parse(data);
+            } catch (_e) {
+                data = [];
+            }
+        }
+        todosLosRegistros.value = Array.isArray(data) ? data : [];
     } catch (error) {
         toastMessage({
             heading: "Error",
             text: getUserSafeError(error, "No fue posible listar los pendientes."),
             icon: "error",
         });
+        todosLosRegistros.value = [];
     } finally {
         loadingBuscar.value = false;
+        await aplicarFiltroEstado();
     }
 }
 

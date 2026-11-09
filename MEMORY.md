@@ -37,6 +37,24 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Corrección Masiva de Paginación DataTables en 7 Módulos:**
+  - **Módulos Corregidos:**
+    1. `teleRadiologiaTranscibirComponent.vue` (`/tele-radiologia-transcribir`)
+    2. `agendaDisponibilidadComponent.vue` (`/agenda-disponibilidad`)
+    3. `contratoComponent.vue` (`/contratos`)
+    4. `helpdeskTicketsComponent.vue` (`/helpdesk`)
+    5. `helpdeskReportesComponent.vue` (`/helpdesk-reportes`)
+    6. `helpdeskConfigEstadosComponent.vue`
+    7. `helpdeskConfigPrioridadesComponent.vue`
+  - **Patrón Aplicado:**
+    * Eliminado el antipatrón de `<table-skeleton-loader v-if>` y `<div v-else>` que destruía el elemento `<table>` del DOM.
+    * Estandarizado a `:visible="loading"` en skeleton loaders y `v-show="!loading && registros.length > 0"` en los contenedores de las tablas.
+    * Destrucción preventiva previa a la consulta API (`safeDestroyDataTable`).
+    * Espera explícita de reconciliación DOM (`await nextTick()`) en el bloque `finally` antes de reinicializar DataTables sobre las filas renderizadas reales.
+    * Eliminado `retrieve: true` para forzar recálculo exacto del número de páginas y botones de paginación.
+  - **Verificaciones:**
+    * ESLint y Prettier aprobados en los 7 componentes ✅.
+    * Vite build completado en 2.60s ✅.
 - [x] **2026-11-09 — Corrección de Paginación DataTables en Filtros de Tele-radiología (`teleRadiologiaEnviarEstudioComponent.vue`):**
   - **Problema:** En `/tele-radiologia`, al realizar búsquedas con filtros, la tabla no se paginaba (mostraba todas las filas sin paginar o con DataTables desvinculado).
   - **Causa Raíz:**
