@@ -37,6 +37,12 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Auditoría UI/UX Módulo Helpdesk (`helpdeskReportesComponent.vue`):**
+  - **Ajustes Realizados:**
+    * **Navegación SPA (S1):** Migración del enlace tradicional `<a :href="...">` en la tabla de detalle de tickets a `<router-link :to="...">`, habilitando transición SPA instantánea hacia `/helpdesk-tickets/:id` sin refresco de página.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios ✅.
+    * Compilación de producción Vite (`npm run build`) completada exitosamente en 1.44s ✅.
 - [x] **2026-11-09 — Auditoría UI/UX Módulo Dosimetría (`DashboardDosimetria.vue`):**
   - **Ajustes Realizados:**
     * **Cierre y Atajo Accesible en Modal de Umbrales NRD (E4, E6):**

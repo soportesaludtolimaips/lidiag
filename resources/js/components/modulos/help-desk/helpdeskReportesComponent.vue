@@ -369,9 +369,9 @@
                                 <tbody>
                                     <tr v-for="t in detallado" :key="t.id">
                                         <td>
-                                            <a :href="`/helpdesk-tickets/${t.id}`">{{
+                                            <router-link :to="`/helpdesk-tickets/${t.id}`">{{
                                                 t.folio || "#" + t.id
-                                            }}</a>
+                                            }}</router-link>
                                         </td>
                                         <td>{{ t.titulo }}</td>
                                         <td>{{ t.estado }}</td>
