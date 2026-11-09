@@ -175,15 +175,22 @@
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     Agregar Producto
-                    <span>
-                        <i class="ti-close right-side-toggle" @click="cerrarModal()"></i>
-                    </span>
+                    <button
+                        type="button"
+                        class="right-side-toggle"
+                        @click="cerrarModal()"
+                        aria-label="Cerrar panel"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
                 </div>
                 <div class="r-panel-body">
                     <form action="#">
                         <div class="form-body">
                             <div class="form-group" id="producto-parent">
-                                <label class="control-label">Producto *</label>
+                                <label class="control-label font-weight-bold"
+                                    >Producto <span class="text-danger">*</span></label
+                                >
                                 <Select2
                                     :value="productoSeleccionado"
                                     :options="productosDisponiblesOptions"
@@ -197,7 +204,7 @@
                                     >${num_docu_paciente}, ${nom_paciente} ${cod_cups},
                                     ${nom_produc}</code
                                 >
-                                <label class="control-label">Recomendación</label>
+                                <label class="control-label font-weight-bold">Recomendación</label>
                                 <FormattedTextEditor
                                     v-model="recomendacion"
                                     rows="8"

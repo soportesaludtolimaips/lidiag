@@ -112,8 +112,8 @@
                             <div class="row p-t-20">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label"
-                                            >Servicio<span class="text-danger">*</span></label
+                                        <label class="control-label" for="form_wp_servicio"
+                                            >Servicio <span class="text-danger">*</span></label
                                         >
                                         <select
                                             id="form_wp_servicio"
@@ -143,8 +143,8 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label"
-                                            >Producto<span class="text-danger">*</span></label
+                                        <label class="control-label font-weight-bold"
+                                            >Producto <span class="text-danger">*</span></label
                                         >
                                         <Select2
                                             ref="select2Productos"
@@ -161,7 +161,9 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Recomendación</label>
+                                        <label class="control-label font-weight-bold"
+                                            >Recomendación</label
+                                        >
                                         <FormattedTextEditor
                                             v-model="recomendacion"
                                             rows="18"

@@ -131,9 +131,14 @@
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
-                    <span>
-                        <i class="ti-close right-side-toggle" @click="cerrarSidebar"></i>
-                    </span>
+                    <button
+                        type="button"
+                        class="right-side-toggle"
+                        @click="cerrarSidebar"
+                        aria-label="Cerrar panel"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
                 </div>
                 <div class="r-panel-body">
                     <form action="#">
@@ -141,7 +146,9 @@
                             <div class="row p-t-20">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Tipo de plantillas</label>
+                                        <label class="control-label" for="nom_tipo"
+                                            >Tipo de plantillas</label
+                                        >
                                         <input
                                             type="text"
                                             id="nom_tipo"

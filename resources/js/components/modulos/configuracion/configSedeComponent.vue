@@ -166,9 +166,14 @@
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
-                    <span>
-                        <i class="ti-close right-side-toggle" @click="cerrarSidebar()"></i>
-                    </span>
+                    <button
+                        type="button"
+                        class="right-side-toggle"
+                        @click="cerrarSidebar()"
+                        aria-label="Cerrar panel"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
                 </div>
                 <div class="r-panel-body">
                     <!-- ============================================================== -->
@@ -179,7 +184,7 @@
                             <div class="row p-t-20">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="control-label">Sede</label>
+                                        <label class="control-label" for="nom_sede">Sede</label>
                                         <input
                                             type="text"
                                             id="nom_sede"
@@ -195,7 +200,9 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="control-label">Email Para Reportar</label>
+                                        <label class="control-label" for="email_repor"
+                                            >Email Para Reportar</label
+                                        >
                                         <input
                                             type="text"
                                             id="email_repor"
@@ -219,7 +226,9 @@
                             <div class="row">
                                 <div class="col-md-3">
                                     <div class="form-group">
-                                        <label class="control-label">Ip BD Dcm4chee</label>
+                                        <label class="control-label" for="ip_dcm"
+                                            >Ip BD Dcm4chee</label
+                                        >
                                         <input
                                             type="text"
                                             id="ip_dcm"
@@ -236,7 +245,9 @@
 
                                 <div class="col-md-3">
                                     <div class="form-group">
-                                        <label class="control-label">BD DCM4CHEE</label>
+                                        <label class="control-label" for="bd_dcm"
+                                            >BD DCM4CHEE</label
+                                        >
                                         <input
                                             type="text"
                                             id="bd_dcm"
@@ -253,7 +264,9 @@
 
                                 <div class="col-md-2">
                                     <div class="form-group">
-                                        <label class="control-label">Usuario Bd</label>
+                                        <label class="control-label" for="usuario_dcm"
+                                            >Usuario Bd</label
+                                        >
                                         <input
                                             type="text"
                                             id="usuario_dcm"
@@ -270,7 +283,9 @@
 
                                 <div class="col-md-2">
                                     <div class="form-group">
-                                        <label class="control-label">Password</label>
+                                        <label class="control-label" for="password_dcm"
+                                            >Password</label
+                                        >
                                         <input
                                             type="text"
                                             id="password_dcm"
@@ -287,7 +302,7 @@
 
                                 <div class="col-md-2">
                                     <div class="form-group">
-                                        <label class="control-label">Puerto</label>
+                                        <label class="control-label" for="puerto_dcm">Puerto</label>
                                         <input
                                             type="number"
                                             id="puerto_dcm"
@@ -311,7 +326,9 @@
                             <div class="row">
                                 <div class="col-md-2">
                                     <div class="form-group">
-                                        <label class="control-label">Usuario Oviyam</label>
+                                        <label class="control-label" for="usuario_oviyam"
+                                            >Usuario Oviyam</label
+                                        >
                                         <input
                                             type="text"
                                             id="usuario_oviyam"
@@ -328,7 +345,9 @@
 
                                 <div class="col-md-2">
                                     <div class="form-group">
-                                        <label class="control-label">Password Oviyam</label>
+                                        <label class="control-label" for="password_oviyam"
+                                            >Password Oviyam</label
+                                        >
                                         <input
                                             type="text"
                                             id="password_oviyam"
@@ -345,7 +364,9 @@
 
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="control-label">Url Oviyam</label>
+                                        <label class="control-label" for="url_oviyam"
+                                            >Url Oviyam</label
+                                        >
                                         <input
                                             type="text"
                                             id="url_oviyam"
@@ -361,7 +382,9 @@
                                 </div>
                                 <div class="col-md-2">
                                     <div class="form-group">
-                                        <label class="control-label">Tab Oviyam</label>
+                                        <label class="control-label" for="tap_oviyam"
+                                            >Tab Oviyam</label
+                                        >
                                         <input
                                             type="text"
                                             id="tap_oviyam"
@@ -386,7 +409,9 @@
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
-                                                <label class="control-label"
+                                                <label
+                                                    class="control-label"
+                                                    for="exampleInputFileRx"
                                                     >Plantilla para Rx, Tomografía y
                                                     resonancia</label
                                                 >
@@ -400,7 +425,9 @@
                                                 />
                                             </div>
                                             <div class="form-group">
-                                                <label class="control-label"
+                                                <label
+                                                    class="control-label"
+                                                    for="exampleInputFileEcografia"
                                                     >Plantilla para ecografias</label
                                                 >
                                                 <input

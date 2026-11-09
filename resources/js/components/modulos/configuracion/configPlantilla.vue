@@ -138,9 +138,14 @@
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
-                    <span>
-                        <i class="ti-close right-side-toggle" @click="cerrarSidebar"></i>
-                    </span>
+                    <button
+                        type="button"
+                        class="right-side-toggle"
+                        @click="cerrarSidebar"
+                        aria-label="Cerrar panel"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
                 </div>
                 <div class="r-panel-body">
                     <form action="#">
@@ -148,7 +153,9 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Nombre de la plantilla</label>
+                                        <label class="control-label" for="nom_plantilla"
+                                            >Nombre de la plantilla</label
+                                        >
                                         <input
                                             type="text"
                                             id="nom_plantilla"
@@ -164,8 +171,9 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="control-label">Medico</label>
+                                        <label class="control-label" for="medico_id">Médico</label>
                                         <select
+                                            id="medico_id"
                                             class="form-control custom-select"
                                             style="width: 100%; height: 36px"
                                             v-model="registro.medico_id"
@@ -187,8 +195,11 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="control-label">Tipo de plantilla</label>
+                                        <label class="control-label" for="plantilla_tipo_id"
+                                            >Tipo de plantilla</label
+                                        >
                                         <select
+                                            id="plantilla_tipo_id"
                                             class="form-control custom-select"
                                             style="width: 100%; height: 36px"
                                             v-model="registro.plantilla_tipo_id"
@@ -207,7 +218,9 @@
                                 </div>
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Plantillas</label>
+                                        <label class="control-label font-weight-bold"
+                                            >Plantillas</label
+                                        >
                                         <WysiwygEditor
                                             v-model="registro.plantilla"
                                             placeholder="Descripción de la plantilla"
@@ -220,7 +233,9 @@
                                 </div>
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Opinion</label>
+                                        <label class="control-label font-weight-bold"
+                                            >Opinión</label
+                                        >
                                         <WysiwygEditor
                                             v-model="registro.opinion"
                                             placeholder="Opinion"

@@ -116,7 +116,7 @@
                             <div class="row p-t-20">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="control-label"
+                                        <label class="control-label" for="form_sede_id"
                                             >Sede <span class="text-danger">*</span></label
                                         >
                                         <select
@@ -137,11 +137,12 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="control-label"
+                                        <label class="control-label" for="form_phone_number_id"
                                             >Phone Number ID
                                             <span class="text-danger">*</span></label
                                         >
                                         <input
+                                            id="form_phone_number_id"
                                             type="text"
                                             v-model="form.phone_number_id"
                                             class="form-control"
@@ -157,10 +158,11 @@
                             <div class="row">
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label class="control-label"
+                                        <label class="control-label" for="form_numero"
                                             >Número <span class="text-danger">*</span></label
                                         >
                                         <input
+                                            id="form_numero"
                                             type="text"
                                             v-model="form.numero"
                                             class="form-control"
@@ -174,8 +176,11 @@
                                 </div>
                                 <div class="col-md-5">
                                     <div class="form-group">
-                                        <label class="control-label">Descripción</label>
+                                        <label class="control-label" for="form_descripcion"
+                                            >Descripción</label
+                                        >
                                         <input
+                                            id="form_descripcion"
                                             type="text"
                                             v-model="form.descripcion"
                                             class="form-control"

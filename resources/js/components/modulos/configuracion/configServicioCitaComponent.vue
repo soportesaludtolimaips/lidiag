@@ -154,9 +154,14 @@
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
-                    <span>
-                        <i class="ti-close right-side-toggle" @click="cerrarSidebar"></i>
-                    </span>
+                    <button
+                        type="button"
+                        class="right-side-toggle"
+                        @click="cerrarSidebar"
+                        aria-label="Cerrar panel"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
                 </div>
                 <div class="r-panel-body">
                     <form @submit.prevent="guardarRegistro">
@@ -164,7 +169,9 @@
                             <div class="row p-t-20">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Servicio</label>
+                                        <label class="control-label" for="nombre_servicio"
+                                            >Servicio</label
+                                        >
                                         <input
                                             type="text"
                                             id="nombre_servicio"
@@ -181,8 +188,14 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Sede</label>
-                                        <select class="form-control" v-model="form.sede_id">
+                                        <label class="control-label" for="servicio_sede_id"
+                                            >Sede</label
+                                        >
+                                        <select
+                                            id="servicio_sede_id"
+                                            class="form-control"
+                                            v-model="form.sede_id"
+                                        >
                                             <option value="">Seleccione una sede</option>
                                             <option v-for="s in sedes" :key="s.id" :value="s.id">
                                                 {{ s.nom_sede }}

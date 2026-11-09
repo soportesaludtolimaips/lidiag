@@ -37,6 +37,24 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Auditoría UI/UX Módulo Configuración: Accesibilidad en Botones de Cierre y Labels:**
+  - **Ajustes Realizados:**
+    * **Migración Sistemática de Botones de Cierre (`<span>` → `<button>` - Phase 1, H3):**
+      - Estandarizado botón accesible `<button type="button" class="right-side-toggle" aria-label="Cerrar panel">` en los 12 paneles laterales de configuración: `configAdminSaludComponent.vue`, `configCitaRechazoMotivoComponent.vue`, `configConsentimientoInformadoComponent.vue`, `configDiagnosticoComponent.vue`, `configPlantilla.vue`, `configPrioridadComponent.vue`, `configProductoComponent.vue`, `configSedeComponent.vue`, `configServicioCitaComponent.vue`, `configServicioProductoComponent.vue`, `configTipoDocumentoComponent.vue`, `configTipoPlantilla.vue`.
+    * **Asociación de `<label for="...">` con IDs Semánticos (Phase 1, H2):**
+      - En `configPlantilla.vue` (Nombre de plantilla, Médico, Tipo, Plantilla, Opinión).
+      - En `configProductoComponent.vue` (Cups, Producto, % Ganancia, Precio).
+      - En `configSedeComponent.vue` (Sede, Email, IP BD, BD DCM, Usuario/Clave DCM, Puerto, Usuario/Clave Oviyam, URL/Tab Oviyam, Plantillas Rx/Eco).
+      - En `configServicioCitaComponent.vue` (Servicio, Sede).
+      - En `configServicioProductoComponent.vue` (Producto, Recomendación).
+      - En `configTipoPlantilla.vue` (Tipo de plantillas).
+      - En `configConsentimientoInformadoComponent.vue` (Producto, Nombre, Archivo PDF).
+      - En `configCitaRechazoMotivoComponent.vue` (Motivo de rechazo).
+      - En `configWhatsappNumeros.vue` y `configWhatsappProductos.vue` (Sede, Phone Number ID, Número, Descripción, Servicio, Recomendación).
+  - **Verificaciones:**
+    * ESLint y Prettier pasados al 100% con 0 errores y 0 advertencias ✅.
+    * Build de producción Vite completado exitosamente en 1.21s (`npm run build`) ✅.
+
 - [x] **2026-11-09 — Auditoría UI/UX Módulo Helpdesk: Enrutamiento SPA Reactivo y Atajos de Búsqueda:**
   - **Ajustes Realizados:**
     * **`helpdeskNotificacionesComponent.vue`:**

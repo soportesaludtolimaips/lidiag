@@ -150,9 +150,14 @@
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
-                    <span>
-                        <i class="ti-close right-side-toggle" @click="cerrarSidebar"></i>
-                    </span>
+                    <button
+                        type="button"
+                        class="right-side-toggle"
+                        @click="cerrarSidebar"
+                        aria-label="Cerrar panel"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
                 </div>
                 <div class="r-panel-body">
                     <form action="#">
@@ -160,7 +165,9 @@
                             <div class="row p-t-20">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Producto</label>
+                                        <label class="control-label font-weight-bold"
+                                            >Producto</label
+                                        >
                                         <Select2
                                             :value="productoSeleccionado"
                                             :options="productoOptions"
@@ -175,7 +182,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label class="control-label"
+                                        <label class="control-label" for="nombre"
                                             >Nombre de consentimiento informado</label
                                         >
                                         <input
@@ -197,7 +204,9 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Archivo PDF</label>
+                                        <label class="control-label" for="archivo"
+                                            >Archivo PDF</label
+                                        >
                                         <input
                                             type="file"
                                             class="form-control"

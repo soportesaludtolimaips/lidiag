@@ -153,9 +153,14 @@
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
-                    <span>
-                        <i class="ti-close right-side-toggle" @click="cerrarSidebar"></i>
-                    </span>
+                    <button
+                        type="button"
+                        class="right-side-toggle"
+                        @click="cerrarSidebar"
+                        aria-label="Cerrar panel"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
                 </div>
                 <div class="r-panel-body">
                     <form action="#">
@@ -163,7 +168,7 @@
                             <div class="row p-t-20">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="control-label">Cups</label>
+                                        <label class="control-label" for="cod_cups">Cups</label>
                                         <input
                                             type="text"
                                             id="cod_cups"
@@ -183,7 +188,9 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Producto</label>
+                                        <label class="control-label" for="nom_produc"
+                                            >Producto</label
+                                        >
                                         <input
                                             type="text"
                                             id="nom_produc"
@@ -205,7 +212,7 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="control-label">%</label>
+                                        <label class="control-label" for="porcen">% Ganancia</label>
                                         <input
                                             type="number"
                                             step="0.01"
@@ -224,7 +231,7 @@
 
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="control-label">Precio</label>
+                                        <label class="control-label" for="val_produc">Precio</label>
                                         <input
                                             type="number"
                                             step="0.01"
