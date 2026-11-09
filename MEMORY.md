@@ -37,6 +37,16 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Propagación de Fix de Resiliencia y Fallback de Sedes en Módulo Configuración (`resources/js/components/modulos/configuracion/`):**
+  - **Componentes Actualizados:**
+    * `configConsentimientoInformadoComponent.vue`: Inicialización de `registro.sede_id` con fallback a `localStorage`. Sincronización reactiva con `onSedeSeleccionada`, solicitud preventiva con `solicitarSedeActiva` en `onMounted()`, y resiliencia en `guardarRegistro()` y `limpiarFormulario()`.
+    * `configWhatsappComponent.vue`: Inicialización de `sedeId` con fallback a `localStorage`. Sincronización reactiva con `onSedeSeleccionada` y emisión de `solicitarSedeActiva` si el estado es frío.
+    * `configWhatsappProductos.vue`: Computada de `sedeActual` y `nomSede` con fallback bidireccional a `localStorage`.
+    * `configWhatsappSaludos.vue`: Computada de `sedeActual` y `nomSede` con fallback bidireccional a `localStorage`.
+    * `configPlantilla.vue`: Fallback a `localStorage` para `ST-modulo` en `listarMedicos()`.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios en todos los componentes del módulo ✅.
+    * Vite build (`npm run build`) completado exitosamente en 1.21s ✅.
 - [x] **2026-11-09 — Propagación de Fix de Resiliencia y Fallback de Sedes en Módulo Help-Desk (`resources/js/components/modulos/help-desk/`):**
   - **Componentes Actualizados:**
     * `helpdeskCrearTicketComponent.vue`: Inicialización de `form.sede_id` con fallback a `localStorage`. Sincronización reactiva con `onSedeSeleccionada` y emisión de `solicitarSedeActiva` en `onMounted()`.

@@ -229,9 +229,13 @@ const props = defineProps({
 });
 
 const sedeActual = computed(() => {
-    return props.sedeId || sessionStorage.getItem("ST-sede") || "";
+    return (
+        props.sedeId || sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || ""
+    );
 });
-const nomSede = computed(() => sessionStorage.getItem("ST-nomsede") || "");
+const nomSede = computed(
+    () => sessionStorage.getItem("ST-nomsede") || localStorage.getItem("ST-nomsede") || ""
+);
 
 const servicios = ref([]);
 const loadingServicios = ref(false);

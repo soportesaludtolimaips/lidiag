@@ -117,9 +117,13 @@ import ConfigWhatsappSaludos from "./configWhatsappSaludos.vue";
 const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
 
+function obtenerSedeActiva() {
+    return sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "";
+}
+
 const tabActivo = ref("numeros");
 const sedes = ref([]);
-const sedeId = ref(sessionStorage.getItem("ST-sede") || "");
+const sedeId = ref(obtenerSedeActiva());
 const numerosRef = ref(null);
 const saludosRef = ref(null);
 const productosRef = ref(null);
@@ -170,11 +174,18 @@ async function listarSedes() {
     }
 }
 function onSedeSeleccionada(payload) {
-    sedeId.value = payload?.idSede || sessionStorage.getItem("ST-sede") || "";
+    const raw =
+        payload?.sede ??
+        (typeof payload === "object" ? payload.idSede || payload.id : payload) ??
+        obtenerSedeActiva();
+    sedeId.value = raw ? String(raw) : "";
 }
 
 onMounted(() => {
     listarSedes();
+    if (!sedeId.value) {
+        emitter?.emit?.("solicitarSedeActiva");
+    }
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
 });
 

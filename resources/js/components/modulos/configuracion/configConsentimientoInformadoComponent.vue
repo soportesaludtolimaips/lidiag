@@ -286,7 +286,13 @@
     </div>
 </template>
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
+
+const { proxy } = getCurrentInstance();
+
+function obtenerSedeActiva() {
+    return sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "";
+}
 
 const dt = ref(null);
 const sidebarRef = ref(null);
@@ -301,7 +307,7 @@ const id = ref(0);
 const registros = ref([]);
 const registro = ref({
     producto_id: null,
-    sede_id: sessionStorage.getItem("ST-sede"),
+    sede_id: obtenerSedeActiva(),
     nombre: "",
     estado: true,
 });
@@ -380,10 +386,10 @@ async function guardarRegistro() {
     loadingGuardar.value = true;
     clearErrors();
     try {
-        const sedeId = sessionStorage.getItem("ST-sede");
+        const sedeId = obtenerSedeActiva();
         const formData = new FormData();
         formData.append("producto_id", String(registro.value.producto_id ?? ""));
-        formData.append("sede_id", String(registro.value.sede_id ?? sedeId ?? ""));
+        formData.append("sede_id", String(registro.value.sede_id || sedeId || ""));
         formData.append("nombre", String(registro.value.nombre ?? ""));
         formData.append("estado", registro.value.estado ? "1" : "0");
         if (archivoFile.value) formData.append("archivo", archivoFile.value);
@@ -521,7 +527,7 @@ function limpiarFormulario() {
     id.value = 0;
     clearErrors();
     registro.value.producto_id = null;
-    registro.value.sede_id = sessionStorage.getItem("ST-sede");
+    registro.value.sede_id = obtenerSedeActiva();
     registro.value.nombre = "";
     registro.value.estado = true;
     productoSeleccionado.value = null;
@@ -539,12 +545,26 @@ function cerrarSidebar() {
     sidebarVisible.value = false;
 }
 
+function onSedeSeleccionada(event) {
+    const rawSede =
+        event?.sede ??
+        (typeof event === "object" ? event.idSede || event.id : event) ??
+        obtenerSedeActiva();
+    if (!rawSede) return;
+    registro.value.sede_id = String(rawSede);
+}
+
 onMounted(() => {
+    proxy?.emitter?.on("sedeSeleccionada", onSedeSeleccionada);
+    if (!obtenerSedeActiva()) {
+        proxy?.emitter?.emit("solicitarSedeActiva");
+    }
     ListarDatos();
     listarProductos();
 });
 
 onBeforeUnmount(() => {
+    proxy?.emitter?.off("sedeSeleccionada", onSedeSeleccionada);
     safeDestroyDataTable(dt.value || "#tablaConsentimientos");
 });
 </script>

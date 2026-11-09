@@ -469,7 +469,9 @@ async function listarMedicos() {
     try {
         const pathname = String(window?.location?.pathname || "").toLowerCase();
         const moduloId =
-            sessionStorage.getItem("ST-modulo") || (pathname.includes("ecografia") ? "2" : "1");
+            sessionStorage.getItem("ST-modulo") ||
+            localStorage.getItem("ST-modulo") ||
+            (pathname.includes("ecografia") ? "2" : "1");
         const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
         medicos.value = res?.data?.data || res?.data || [];
     } catch {
