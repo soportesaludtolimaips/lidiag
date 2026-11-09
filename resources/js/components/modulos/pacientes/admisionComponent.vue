@@ -1415,10 +1415,11 @@ async function cancelarOrdenWorklist(item) {
     const orden = item.orden_worklist_activa;
     if (!orden) return;
 
-    const confirmado = await confirmAction(
-        "¿Retirar de Worklist?",
-        `¿Desea retirar la orden ${orden.accession_no} de la lista de trabajo del equipo de Rayos X? El tecnólogo ya no verá al paciente en su consola.`
-    );
+    const confirmado = await confirmAction({
+        title: "¿Retirar de Worklist?",
+        text: `¿Desea retirar la orden ${orden.accession_no} de la lista de trabajo del equipo de Rayos X? El tecnólogo ya no verá al paciente en su consola.`,
+        icon: "warning",
+    });
 
     if (!confirmado) return;
 

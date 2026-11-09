@@ -37,6 +37,18 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Corrección de `ReferenceError: logStr is not defined` en SweetAlert y `confirmAction` (`alerts.js`, `bootstrap.js`, `admisionComponent.vue`):**
+  - **Diagnóstico y Causa Raíz:**
+    * Al cancelar o retirar una orden de la lista de trabajo en `admisionComponent.vue:1418` (`cancelarOrdenWorklist`), se ejecutaba: `await confirmAction("¿Retirar de Worklist?", "¿Desea retirar la orden...?")`.
+    * En `resources/js/helpers/alerts.js`, la función `confirmAction(options)` asumía que si `options` era `string`, el segundo argumento (`arguments[1]`) correspondía al icono (`icon`). Por ende, el texto largo de la descripción fue asignado a `type` de SweetAlert 1.
+    * SweetAlert 1 (`sweetalert.min.js:1:13657`) valida que `type` esté en `['error', 'warning', 'info', 'success', 'input', 'prompt']`. Al no coincidir, intenta registrar una advertencia llamando a `logStr("Unknown alert type: " + type)`.
+    * Debido a un bug de empaquetado minificado en la librería legacy SweetAlert 1 (`public/admin-wrap/assets/node_modules/sweetalert/sweetalert.min.js`), la función `logStr` no estaba calificada en el ámbito local (`a.logStr`), arrojando la excepción fatal no capturada `ReferenceError: logStr is not defined`.
+  - **Solución Implementada:**
+    * *Defensa y Polyfill:* En `resources/js/bootstrap.js` y `resources/js/helpers/alerts.js` se definió `window.logStr = function(msg) { console.warn("SweetAlert:", msg); }` para blindar cualquier invocación de SweetAlert 1 contra este fallo del vendor.
+    * *Normalización de Tipos:* En `resources/js/helpers/alerts.js` se implementó `normalizeSwalType(type, fallback)` que mapea alias ("danger" → "error", "question" → "info") y garantiza que a SweetAlert 1 solo lleguen tipos estrictamente válidos.
+    * *Firma Flexible de `confirmAction`:* `confirmAction` ahora detecta de forma inteligente si recibe `confirmAction(title, text, [icon])`, `confirmAction(text, [icon])` u opciones en objeto `{ title, text, icon }`.
+    * *Ajuste en Admisión:* En `admisionComponent.vue:1418`, se estandarizó la llamada pasando el objeto `{ title: "¿Retirar de Worklist?", text: "...", icon: "warning" }`.
+  - **Verificaciones:** ESLint 0 errores ✅ | Compilación Vite (`npm run build`) en 1.27s ✅.
 - [x] **2026-11-09 — Auditoría UI/UX Módulos Dosimetría y Seguridad: Accesibilidad en Filtros y Tokens:**
   - **Ajustes Realizados:**
     * **`DashboardDosimetria.vue`:**

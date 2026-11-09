@@ -1,6 +1,15 @@
 import _ from "lodash";
 window._ = _;
 
+// Polyfill defensivo para SweetAlert 1 (evita "ReferenceError: logStr is not defined")
+if (typeof window !== "undefined" && typeof window.logStr === "undefined") {
+    window.logStr = function (msg) {
+        if (typeof console !== "undefined" && console.warn) {
+            console.warn("SweetAlert:", msg);
+        }
+    };
+}
+
 import "bootstrap";
 
 import axios from "axios";

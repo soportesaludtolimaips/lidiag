@@ -1,3 +1,31 @@
+// Polyfill defensivo para bug interno de SweetAlert 1 (ReferenceError: logStr is not defined)
+if (typeof window !== "undefined" && typeof window.logStr === "undefined") {
+    window.logStr = function (msg) {
+        if (typeof console !== "undefined" && console.warn) {
+            console.warn("SweetAlert:", msg);
+        }
+    };
+}
+
+const VALID_SWAL_TYPES = ["warning", "error", "info", "success", "input", "prompt"];
+
+/**
+ * Normaliza y valida el tipo/icono para SweetAlert 1.
+ * Evita excepciones internas por tipos desconocidos.
+ *
+ * @param {string} [type] Tipo o icono sugerido.
+ * @param {string} [fallback] Tipo por defecto en caso de invalidez.
+ *
+ * @returns {string} Tipo compatible con SweetAlert 1.
+ */
+function normalizeSwalType(type, fallback = "warning") {
+    if (!type || typeof type !== "string") return fallback;
+    const lower = type.toLowerCase().trim();
+    if (lower === "danger") return "error";
+    if (lower === "question") return "info";
+    return VALID_SWAL_TYPES.includes(lower) ? lower : fallback;
+}
+
 /**
  * Wrapper simple para SweetAlert (swal) con fallback.
  * La plantilla carga `swal` globalmente; en caso contrario usamos alert/confirm.
@@ -47,19 +75,20 @@ function getToast() {
  * @date 2026-10-19
  */
 export function alertSuccess(title = "Ok", text = "", icon = "success") {
+    const swalIcon = normalizeSwalType(icon, "success");
     const toast = getToast();
     if (toast) {
         toastMessage({
             heading: title,
             text,
-            icon,
+            icon: swalIcon,
             position: "top-right",
             hideAfter: 3500,
         });
         return;
     }
     const swal = getSwal();
-    if (swal) return swal(title, text, icon);
+    if (swal) return swal(title, text, swalIcon);
     window.alert([title, text].filter(Boolean).join("\n"));
 }
 
@@ -104,7 +133,8 @@ export function swalSuccess(title = "¡Completado!", text = "") {
  */
 export function alertError(title = "Error", text = "", icon = "error") {
     const swal = getSwal();
-    if (swal) return swal(title, text, icon);
+    const swalIcon = normalizeSwalType(icon, "error");
+    if (swal) return swal(title, text, swalIcon);
     window.alert([title, text].filter(Boolean).join("\n"));
 }
 
@@ -123,7 +153,8 @@ export function alertError(title = "Error", text = "", icon = "error") {
  */
 export function alertInfo(title = "Info", text = "", icon = "info") {
     const swal = getSwal();
-    if (swal) return swal(title, text, icon);
+    const swalIcon = normalizeSwalType(icon, "info");
+    if (swal) return swal(title, text, swalIcon);
     window.alert([title, text].filter(Boolean).join("\n"));
 }
 
@@ -142,14 +173,19 @@ export function alertInfo(title = "Info", text = "", icon = "info") {
  */
 export function alertWarning(title = "Advertencia", text = "", icon = "warning") {
     const swal = getSwal();
-    if (swal) return swal(title, text, icon);
+    const swalIcon = normalizeSwalType(icon, "warning");
+    if (swal) return swal(title, text, swalIcon);
     window.alert([title, text].filter(Boolean).join("\n"));
 }
 
 /**
  * Solicita confirmacion al usuario y devuelve una promesa que resuelve true o false segun la decision.
+ * Admite tanto llamada por objeto de opciones `confirmAction({ title, text, icon })` como
+ * llamada posicional `confirmAction(title, text, [icon])` o `confirmAction(text, [icon])`.
  *
- * @param object $options Opciones de la confirmacion (title, text, icon).
+ * @param {object|string} options Opciones de la confirmacion o titulo/texto.
+ * @param {string} [textOrIcon] Texto descriptivo o icono.
+ * @param {string} [maybeIcon] Icono si se pasaron 3 argumentos.
  *
  * @returns {Promise<boolean>}
  *
@@ -157,33 +193,62 @@ export function alertWarning(title = "Advertencia", text = "", icon = "warning")
  *
  * @date 2026-02-03
  */
-export function confirmAction(options) {
+export function confirmAction(options, textOrIcon, maybeIcon) {
+    let config = {
+        title: "¿Confirmar Acción?",
+        text: "¿Estás seguro?",
+        icon: "warning",
+        confirmButtonText: "Sí, continuar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#DD6B55",
+    };
+
     if (typeof options === "string") {
-        options = {
-            title: "¿Confirmar Acción?",
-            text: options,
-            icon: typeof arguments[1] === "string" ? arguments[1] : "warning",
+        if (
+            typeof textOrIcon === "string" &&
+            !VALID_SWAL_TYPES.includes(textOrIcon.toLowerCase().trim())
+        ) {
+            // Se invoco como confirmAction(title, text, [icon])
+            config.title = options;
+            config.text = textOrIcon;
+            config.icon = normalizeSwalType(maybeIcon, "warning");
+        } else {
+            // Se invoco como confirmAction(text, [icon])
+            config.text = options;
+            config.icon = normalizeSwalType(textOrIcon, "warning");
+        }
+    } else if (typeof options === "object" && options !== null) {
+        config = {
+            title: options.title || config.title,
+            text: options.text || config.text,
+            icon: normalizeSwalType(options.icon || options.type, "warning"),
+            confirmButtonText: options.confirmButtonText || config.confirmButtonText,
+            cancelButtonText: options.cancelButtonText || config.cancelButtonText,
+            confirmButtonColor: options.confirmButtonColor || config.confirmButtonColor,
+            html: Boolean(options.html),
         };
     }
+
     const swal = getSwal();
     if (!swal) {
-        return Promise.resolve(window.confirm(options.text || "¿Estás seguro?"));
+        return Promise.resolve(window.confirm(config.text || config.title || "¿Estás seguro?"));
     }
     return new Promise((resolve) => {
         swal(
             {
-                title: options.title,
-                text: options.text,
-                type: options.icon || "warning",
+                title: config.title,
+                text: config.text,
+                type: config.icon,
+                html: config.html,
                 showCancelButton: true,
-                confirmButtonColor: "#DD6B55",
-                confirmButtonText: "Sí, continuar",
-                cancelButtonText: "Cancelar",
+                confirmButtonColor: config.confirmButtonColor,
+                confirmButtonText: config.confirmButtonText,
+                cancelButtonText: config.cancelButtonText,
                 closeOnConfirm: true,
             },
             function (isConfirm) {
                 // <--- SE USA UN CALLBACK COMO SEGUNDO PARÁMETRO
-                resolve(isConfirm);
+                resolve(Boolean(isConfirm));
             }
         );
     });
