@@ -432,9 +432,9 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="control-label">
+                            <span class="control-label font-weight-bold d-block mb-1">
                                 Archivo de Configuración Preconfigurado
-                            </label>
+                            </span>
                             <div>
                                 <button
                                     type="button"

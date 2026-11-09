@@ -655,7 +655,10 @@
 
                             <div class="col-md-12 m-b-20">
                                 <div class="form-group mb-3">
-                                    <label class="control-label font-weight-bold d-block">
+                                    <label
+                                        class="control-label font-weight-bold d-block"
+                                        for="input_subir_firma"
+                                    >
                                         Firma del Médico
                                         <small class="text-muted">(Opcional)</small>
                                     </label>
@@ -663,7 +666,12 @@
                                         class="fileupload btn btn-secondary btn-rounded waves-effect waves-light"
                                     >
                                         <span> <i class="ion-upload m-r-5"></i>Subir Firma </span>
-                                        <input type="file" class="upload" @change="obtenerFirma" />
+                                        <input
+                                            id="input_subir_firma"
+                                            type="file"
+                                            class="upload"
+                                            @change="obtenerFirma"
+                                        />
                                     </div>
                                     <span class="badge badge-info ml-2" v-if="firma">{{
                                         firma.name
@@ -673,7 +681,10 @@
                                     }}</span>
                                 </div>
                                 <div class="form-group mb-2">
-                                    <label class="control-label font-weight-bold d-block">
+                                    <label
+                                        class="control-label font-weight-bold d-block"
+                                        for="input_subir_avatar"
+                                    >
                                         Avatar / Foto de Perfil
                                         <small class="text-muted">(Opcional)</small>
                                     </label>
@@ -681,7 +692,12 @@
                                         class="fileupload btn btn-secondary btn-rounded waves-effect waves-light"
                                     >
                                         <span> <i class="ion-upload m-r-5"></i>Subir Avatar </span>
-                                        <input type="file" class="upload" @change="obtenerAvatar" />
+                                        <input
+                                            id="input_subir_avatar"
+                                            type="file"
+                                            class="upload"
+                                            @change="obtenerAvatar"
+                                        />
                                     </div>
                                     <span class="badge badge-info ml-2" v-if="avatar">{{
                                         avatar.name

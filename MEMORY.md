@@ -37,6 +37,12 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Auditoría UI/UX Módulo Seguridad (`usuarioComponent.vue`, `seguridadTokensComponent.vue`):**
+  - **Ajustes Realizados:**
+    * **Accesibilidad y Asociación de Labels (L1, L2):** Adición de atributos `for` e `id` correspondientes (`input_subir_firma` y `input_subir_avatar`) para la carga de firma y avatar en el modal de usuario. Corrección de elemento semántico en tokens de seguridad convirtiendo un `<label>` sin control asociado en un `<span>` con estilo semántico `control-label font-weight-bold`.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios ✅.
+    * Compilación de producción Vite (`npm run build`) completada exitosamente en 1.84s ✅.
 - [x] **2026-11-09 — Auditoría UI/UX Módulo Reportes (`reporteEstudiosPACComponent.vue`):**
   - **Ajustes Realizados:**
     * **Atajo de Teclado Enter en Filtros (H7, L6):** Adición de `@keyup.enter="descargarReporte()"` en selectores de fecha inicial y final para ejecución ágil de exportación sin obligar al uso exclusivo del mouse.
