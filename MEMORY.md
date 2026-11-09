@@ -37,6 +37,18 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Inclusión de Columna Fecha de Envío en Tele-Radiología Transcribir (`teleRadiologiaTranscibirComponent.vue`, `EstudioQueryService.php`):**
+  - **Problema:** En `https://lidiag.com/tele-radiologia-transcribir`, la tabla mostraba una columna titulada "Asignación" (heredada de la plantilla de transcripción interna), lo cual no reflejaba la naturaleza del flujo de Tele-Radiología donde los estudios son enviados externamente y los operadores necesitan ver la "Fecha de Envío".
+  - **Solución Implementada:**
+    * Backend [`EstudioQueryService.php`](file:///c:/laragon/www/lidiag/app/Services/Estudios/EstudioQueryService.php): Se agregó el alias `fecha_envio` mapeado a `DATE_FORMAT(estudios.created_at, '%Y-%m-%d %H:%i:%s')` en las consultas de `listarPendientesTranscribir` y `listarEstudiosParaLectura`.
+    * Componente [`teleRadiologiaTranscibirComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/tele-radiologia/teleRadiologiaTranscibirComponent.vue):
+      - Se renombró la columna del encabezado a `<th>Fecha de Envío</th>`.
+      - Se visualiza la fecha formateada con `formatDate(item.fecha_envio || item.created_at)`.
+      - Se mejoró la columna "Lectura" para incluir la fecha y hora de recepción de la lectura (`fechor_lectura`) en tipografía pequeña debajo del badge.
+  - **Verificaciones:**
+    * Pint pasado al 100% en `EstudioQueryService.php` (`vendor\bin\pint.bat`) ✅.
+    * ESLint pasado sin errores en `teleRadiologiaTranscibirComponent.vue` ✅.
+    * Vite build (`npm run build`) completado exitosamente en 1.21s ✅.
 - [x] **2026-11-09 — Cobertura Universal de Modo Oscuro en Drawers y Paneles Laterales (`dark-theme.css`, `teleRadiologiaTranscibirComponent.vue`):**
   - **Problema:** El usuario reportó que el modo oscuro global (activado desde el botón de la cabecera) no se propagaba adecuadamente a los paneles laterales y drawers (`.right-sidebar`), provocando que elementos internos (tarjetas, tablas, Select2, inputs, fondos y títulos) se visualizaran en blanco o con contrastes deficientes. Adicionalmente, se solicitó retirar el botón local de modo oscuro en Tele-Radiología Transcribir.
   - **Solución Implementada:**

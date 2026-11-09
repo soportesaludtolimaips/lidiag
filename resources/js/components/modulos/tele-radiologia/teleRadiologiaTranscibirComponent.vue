@@ -224,7 +224,7 @@
                                         <th>Sede</th>
                                         <th>Toma</th>
                                         <th>Lectura</th>
-                                        <th>Asignación</th>
+                                        <th>Fecha de Envío</th>
                                         <th>Quien Asignó</th>
                                         <th>Médico</th>
                                         <th>Paciente</th>
@@ -288,9 +288,15 @@
                                                 v-if="item.fechor_lectura === null"
                                                 >Sin Lectura</span
                                             >
+                                            <div
+                                                v-if="item.fechor_lectura"
+                                                class="text-muted small mt-1"
+                                            >
+                                                {{ formatDate(item.fechor_lectura) }}
+                                            </div>
                                         </td>
                                         <td class="align-middle text-nowrap">
-                                            {{ formatDate(item.created_at) }}
+                                            {{ formatDate(item.fecha_envio || item.created_at) }}
                                         </td>
                                         <td class="align-middle">{{ item.quien_registro }}</td>
                                         <td class="align-middle">
