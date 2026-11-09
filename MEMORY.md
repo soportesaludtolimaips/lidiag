@@ -37,6 +37,26 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Auditoría UI/UX Módulos Citas y Agenda (`citasComponent.vue`, `citasRevisionComponent.vue`, `gestionCitasComponent.vue`, `recomendacionProductoComponent.vue`):**
+  - **Ajustes Realizados:**
+    * **`citasComponent.vue`:**
+      - Adición de `@submit.prevent="listarRegistros()"` en formulario de filtros.
+      - Atajos `@keyup.enter="listarRegistros()"` en campos de fecha (inicio, fin) y búsqueda textual.
+      - Inclusión de nombre y documento del paciente en el título del modal `showModalAsignar`: `Asignar Cita — [Nombre] ([Documento])` (E7).
+    * **`citasRevisionComponent.vue`:**
+      - Adición de `@submit.prevent="listarRegistros()"` en formulario de filtros.
+      - Inclusión de nombre y documento del paciente en cabecera de modal de aprobación y alerta informativa (E7).
+      - Inclusión de nombre y documento del paciente en cabecera de modal de rechazo y alerta informativa con resaltado visual (E7).
+    * **`gestionCitasComponent.vue`:**
+      - Resaltado jerárquico del documento del paciente (`num_docu`) en la tabla de citas próximas en `text-primary font-weight-bold` con icono `fa-id-card-o` (E7).
+      - Migración de enlace clásico `<a :href="'/citas'">` a `<router-link to="/citas">` en Acciones Rápidas para navegación SPA nativa sin recarga de página (S1).
+    * **`recomendacionProductoComponent.vue`:**
+      - Adición de `@submit.prevent="buscar()"` en formulario de filtros.
+      - Asociación de etiquetas semánticas `for` e identificadores `id` en selector de productos de filtro y formulario de recomendaciones (H2).
+      - Corrección de typo en etiqueta `"Recomendacin"` → `"Recomendación"` (L1).
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios en todos los componentes modificados ✅.
+    * Compilación de producción Vite (`npm run build`) completada exitosamente en 1.36s ✅.
 - [x] **2026-11-09 — Auditoría UI/UX Módulo Pacientes / Admisión (`admisionComponent.vue`):**
   - **Ajustes Realizados:**
     * **Navegación SPA (S1):** Migración de `<a href="/estudios.asignar.listar">` a `<router-link to="/estudios.asignar.listar">` para estudios adquiridos, eliminando recargas completas del navegador.

@@ -46,7 +46,7 @@
                         <h4 class="card-title text-themecolor">
                             <i class="fa fa-filter"></i> Filtros
                         </h4>
-                        <form action="#">
+                        <form action="#" @submit.prevent="listarRegistros()">
                             <div class="form-body">
                                 <div class="row p-t-2">
                                     <div class="col-md-3">
@@ -347,7 +347,21 @@
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title">Aprobar Cita</h4>
+                        <h4 class="modal-title font-weight-bold">
+                            Aprobar Cita
+                            <span
+                                v-if="citaSeleccionada.paciente"
+                                class="text-primary font-weight-normal ml-2"
+                            >
+                                — {{ citaSeleccionada.paciente?.nombres }}
+                                <span
+                                    v-if="citaSeleccionada.paciente?.num_docu"
+                                    class="font-weight-bold"
+                                >
+                                    ({{ citaSeleccionada.paciente?.num_docu }})
+                                </span>
+                            </span>
+                        </h4>
                         <button
                             type="button"
                             class="close"
@@ -359,8 +373,14 @@
                     </div>
                     <div class="modal-body">
                         <div class="alert alert-info">
-                            <strong>Paciente:</strong> {{ citaSeleccionada.paciente?.nombres
-                            }}<br />
+                            <strong>Paciente:</strong> {{ citaSeleccionada.paciente?.nombres }}
+                            <span
+                                v-if="citaSeleccionada.paciente?.num_docu"
+                                class="ml-2 font-weight-bold"
+                            >
+                                (<i class="fa fa-id-card-o mr-1"></i
+                                >{{ citaSeleccionada.paciente?.num_docu }}) </span
+                            ><br />
                             <strong>Servicio:</strong> {{ citaSeleccionada.servicio?.nombre }}
                         </div>
                         <div class="row">
@@ -524,7 +544,21 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title">Rechazar Cita</h4>
+                        <h4 class="modal-title font-weight-bold">
+                            Rechazar Cita
+                            <span
+                                v-if="citaSeleccionada.paciente"
+                                class="text-danger font-weight-normal ml-2"
+                            >
+                                — {{ citaSeleccionada.paciente?.nombres }}
+                                <span
+                                    v-if="citaSeleccionada.paciente?.num_docu"
+                                    class="font-weight-bold"
+                                >
+                                    ({{ citaSeleccionada.paciente?.num_docu }})
+                                </span>
+                            </span>
+                        </h4>
                         <button
                             type="button"
                             class="close"
@@ -538,7 +572,11 @@
                         <div class="alert alert-warning">
                             <strong>Paciente:</strong> {{ citaSeleccionada.paciente?.nombres
                             }}<br />
-                            <strong>Documento:</strong> {{ citaSeleccionada.paciente?.num_docu }}
+                            <strong>Documento:</strong>
+                            <span class="font-weight-bold text-dark ml-1">
+                                <i class="fa fa-id-card-o mr-1"></i
+                                >{{ citaSeleccionada.paciente?.num_docu }}
+                            </span>
                         </div>
                         <div class="form-group">
                             <label class="control-label" for="modal_rechazo_motivo_id"

@@ -73,7 +73,11 @@
                             </button>
                         </div>
                         <transition name="fade-collapse">
-                            <form v-show="filtrosVisible" action="#">
+                            <form
+                                v-show="filtrosVisible"
+                                action="#"
+                                @submit.prevent="listarRegistros()"
+                            >
                                 <div class="form-body">
                                     <div class="row p-t-2">
                                         <div class="col-md-2">
@@ -131,6 +135,7 @@
                                                     type="date"
                                                     v-model="busqueda.fecha_inicio"
                                                     class="form-control"
+                                                    @keyup.enter="listarRegistros()"
                                                 />
                                             </div>
                                         </div>
@@ -146,6 +151,7 @@
                                                     type="date"
                                                     v-model="busqueda.fecha_fin"
                                                     class="form-control"
+                                                    @keyup.enter="listarRegistros()"
                                                 />
                                             </div>
                                         </div>
@@ -162,6 +168,7 @@
                                                     v-model="busqueda.busqueda"
                                                     placeholder="Documento o nombre"
                                                     class="form-control"
+                                                    @keyup.enter="listarRegistros()"
                                                 />
                                             </div>
                                         </div>
@@ -373,7 +380,24 @@
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title">Asignar Cita</h4>
+                        <h4 class="modal-title font-weight-bold">
+                            Asignar Cita
+                            <span
+                                v-if="
+                                    citaSeleccionada.nombre_paciente ||
+                                    citaSeleccionada.numero_documento
+                                "
+                                class="text-primary font-weight-normal ml-2"
+                            >
+                                — {{ citaSeleccionada.nombre_paciente }}
+                                <span
+                                    v-if="citaSeleccionada.numero_documento"
+                                    class="font-weight-bold"
+                                >
+                                    ({{ citaSeleccionada.numero_documento }})
+                                </span>
+                            </span>
+                        </h4>
                         <button
                             type="button"
                             class="close"

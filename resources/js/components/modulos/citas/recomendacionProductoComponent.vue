@@ -54,7 +54,7 @@
                         <h4 class="card-title text-themecolor">
                             <i class="fa fa-filter"></i> Filtros de búsqueda
                         </h4>
-                        <form action="#">
+                        <form action="#" @submit.prevent="buscar()">
                             <div class="form-body">
                                 <div class="row p-t-2">
                                     <div class="col-md-3">
@@ -115,8 +115,13 @@
                                     </div>
                                     <div class="col-md-3">
                                         <div class="form-group" id="filter-producto-parent">
-                                            <label class="control-label">Producto</label>
+                                            <label
+                                                class="control-label"
+                                                for="filtro_producto_select"
+                                                >Producto</label
+                                            >
                                             <Select2
+                                                id="filtro_producto_select"
                                                 :value="filtro.producto_id"
                                                 :options="filterProductoOptions"
                                                 width="100%"
@@ -296,8 +301,11 @@
                     <form action="#">
                         <div class="form-body">
                             <div class="form-group" id="form-producto-parent">
-                                <label class="control-label">Producto *</label>
+                                <label class="control-label" for="form_producto_select">
+                                    Producto <span class="text-danger">*</span>
+                                </label>
                                 <Select2
+                                    id="form_producto_select"
                                     :value="form.producto_id"
                                     :options="formProductoOptions"
                                     width="100%"
@@ -310,8 +318,11 @@
                                 }}</span>
                             </div>
                             <div class="form-group">
-                                <label class="control-label">Recomendación</label>
+                                <label class="control-label" for="form_recomendacion_editor"
+                                    >Recomendación</label
+                                >
                                 <FormattedTextEditor
+                                    id="form_recomendacion_editor"
                                     v-model="form.recomendacion"
                                     rows="8"
                                     placeholder="Texto de recomendación para el paciente. Use saltos de línea si es necesario."

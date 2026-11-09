@@ -89,8 +89,18 @@
                                         </tr>
                                         <tr v-for="item in proximas" :key="item.id">
                                             <td>
-                                                {{ item.paciente?.nombres }}
-                                                {{ item.paciente?.pri_ape }}
+                                                <div class="font-weight-bold">
+                                                    {{ item.paciente?.nombres }}
+                                                    {{ item.paciente?.pri_ape }}
+                                                </div>
+                                                <div
+                                                    v-if="item.paciente?.num_docu"
+                                                    class="text-primary font-weight-bold"
+                                                    style="font-size: 13px"
+                                                >
+                                                    <i class="fa fa-id-card-o mr-1"></i>
+                                                    {{ item.paciente?.num_docu }}
+                                                </div>
                                             </td>
                                             <td>{{ item.servicio?.nombre }}</td>
                                             <td>{{ formatFecha(item.fecha_hora_inicio) }}</td>
@@ -116,9 +126,12 @@
                         <div class="card-body">
                             <h4 class="card-title">Acciones Rápidas</h4>
                             <div class="list-group">
-                                <a :href="'/citas'" class="list-group-item list-group-item-action">
+                                <router-link
+                                    to="/citas"
+                                    class="list-group-item list-group-item-action"
+                                >
                                     <i class="fa fa-list"></i> Ir al listado de citas
-                                </a>
+                                </router-link>
                                 <a
                                     href="#"
                                     class="list-group-item list-group-item-action"
