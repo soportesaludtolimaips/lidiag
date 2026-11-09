@@ -364,10 +364,24 @@ const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
 
 const sedes = ref([]);
-const sedeSeleccionada = ref(sessionStorage.getItem("ST-sede"));
-const medicoSeleccionado = ref(sessionStorage.getItem("ST-medico"));
+const sedeSeleccionada = ref(
+    sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || null
+);
+const medicoSeleccionado = ref(
+    sessionStorage.getItem("ST-medico") ||
+        localStorage.getItem("ST-medico") ||
+        sessionStorage.getItem("ST-ecografia-medico") ||
+        localStorage.getItem("ST-ecografia-medico") ||
+        null
+);
 const medicos = ref([]);
-const nomMedicoSeleccionado = ref(sessionStorage.getItem("ST-nomMedico") || null);
+const nomMedicoSeleccionado = ref(
+    sessionStorage.getItem("ST-nomMedico") ||
+        localStorage.getItem("ST-nomMedico") ||
+        sessionStorage.getItem("ST-ecografia-nomMedico") ||
+        localStorage.getItem("ST-ecografia-nomMedico") ||
+        null
+);
 const mostrarMedico = ref(false);
 
 const nomSedeActiva = computed(() => {
@@ -377,7 +391,9 @@ const nomSedeActiva = computed(() => {
     );
     return encontrada
         ? encontrada.nom_sede
-        : sessionStorage.getItem("ST-nomsede") || "Sede Seleccionada";
+        : sessionStorage.getItem("ST-nomsede") ||
+              localStorage.getItem("ST-nomsede") ||
+              "Sede Seleccionada";
 });
 
 const nomMedicoActivo = computed(() => {
@@ -385,7 +401,12 @@ const nomMedicoActivo = computed(() => {
     const encontrado = (medicos.value || []).find(
         (m) => String(m.id) === String(medicoSeleccionado.value)
     );
-    return encontrado ? encontrado.name : nomMedicoSeleccionado.value || "Médico Seleccionado";
+    return encontrado
+        ? encontrado.name
+        : nomMedicoSeleccionado.value ||
+              sessionStorage.getItem("ST-nomMedico") ||
+              localStorage.getItem("ST-nomMedico") ||
+              "Médico Seleccionado";
 });
 
 // Estado de notificaciones (Helpdesk + Citas/WhatsApp)
@@ -534,6 +555,8 @@ async function Logout() {
 }
 /**
  * Obtiene la lista de sedes activas desde la API y las almacena en el reactive ref sedes.
+ * Si no hay sede seleccionada o la guardada ya no existe entre las activas,
+ * autoselecciona la primera sede disponible y sincroniza la configuración con storage y eventos.
  *
  * @returns {Promise<void>}
  *
@@ -543,9 +566,28 @@ async function Logout() {
 async function listarSedes() {
     try {
         const res = await axios.get("/api/config-sedes/listar/sedes/activas");
-        sedes.value = res.data.data;
+        const listaSedes = Array.isArray(res?.data?.data) ? res.data.data : [];
+        sedes.value = listaSedes;
+
+        if (listaSedes.length > 0) {
+            const sedeGuardada =
+                sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede");
+            const existeGuardada =
+                sedeGuardada && listaSedes.some((s) => String(s.id) === String(sedeGuardada));
+
+            if (existeGuardada) {
+                sedeSeleccionada.value = sedeGuardada;
+            } else if (
+                !sedeSeleccionada.value ||
+                !listaSedes.some((s) => String(s.id) === String(sedeSeleccionada.value))
+            ) {
+                sedeSeleccionada.value = listaSedes[0].id;
+            }
+
+            await estableserSede();
+        }
     } catch (error) {
-        console.log(error);
+        console.error("Error al listar sedes activas:", error);
     }
 }
 /**
@@ -570,7 +612,7 @@ async function listarMedicos() {
     }
 }
 /**
- * Establece la sede seleccionada: guarda datos en sessionStorage,
+ * Establece la sede seleccionada: guarda datos en sessionStorage y localStorage,
  * obtiene detalles de la sede desde la API y emite el evento sedeSeleccionada.
  *
  * @returns {Promise<void>}
@@ -581,24 +623,40 @@ async function listarMedicos() {
 async function estableserSede() {
     if (!sedeSeleccionada.value) return;
     try {
-        const res = await axios.get("/api/config-sedes/" + sedeSeleccionada.value + "/buscarPorId");
+        const idStr = String(sedeSeleccionada.value);
+        const res = await axios.get("/api/config-sedes/" + idStr + "/buscarPorId");
         const sedeData = res?.data?.data || res?.data || {};
 
-        const nomSedeSeleccionada = $('select[name="sedes"] option:selected').text();
+        const sedeObj = (sedes.value || []).find((s) => String(s.id) === idStr);
+        const nomSedeSeleccionada = sedeObj
+            ? sedeObj.nom_sede || sedeObj.nombre || ""
+            : sessionStorage.getItem("ST-nomsede") || localStorage.getItem("ST-nomsede") || "";
 
-        sessionStorage.setItem("ST-sede", sedeSeleccionada.value);
+        const urlOviyam = sedeData.url_oviyam || "";
+        const serverName = sedeData.tap_oviyam || "";
+        const emailRepor = sedeData.email_repor || "";
+
+        sessionStorage.setItem("ST-sede", idStr);
         sessionStorage.setItem("ST-nomsede", nomSedeSeleccionada);
-        sessionStorage.setItem("ST-urlsede", sedeData.url_oviyam || "");
-        sessionStorage.setItem("ST-servername", sedeData.tap_oviyam || "");
-        sessionStorage.setItem("ST-email_repor", sedeData.email_repor || "");
+        sessionStorage.setItem("ST-urlsede", urlOviyam);
+        sessionStorage.setItem("ST-servername", serverName);
+        sessionStorage.setItem("ST-email_repor", emailRepor);
 
-        emitter.emit("sedeSeleccionada", {
-            idSede: sedeSeleccionada.value,
-            nomSede: nomSedeSeleccionada,
-            url: sedeData.url_oviyam || "",
-            serverName: sedeData.tap_oviyam || "",
-            email_repor: sedeData.email_repor || "",
-        });
+        localStorage.setItem("ST-sede", idStr);
+        localStorage.setItem("ST-nomsede", nomSedeSeleccionada);
+        localStorage.setItem("ST-urlsede", urlOviyam);
+        localStorage.setItem("ST-servername", serverName);
+        localStorage.setItem("ST-email_repor", emailRepor);
+
+        if (emitter) {
+            emitter.emit("sedeSeleccionada", {
+                idSede: sedeSeleccionada.value,
+                nomSede: nomSedeSeleccionada,
+                url: urlOviyam,
+                serverName: serverName,
+                email_repor: emailRepor,
+            });
+        }
     } catch (error) {
         console.error("Error al obtener la configuración de la sede:", error);
     }
@@ -613,18 +671,28 @@ async function estableserSede() {
  * @date 2024-04-04
  */
 async function estableserMedico() {
-    nomMedicoSeleccionado.value = $('select[name="medicos"] option:selected').text();
+    const medObj = (medicos.value || []).find(
+        (m) => String(m.id) === String(medicoSeleccionado.value)
+    );
+    nomMedicoSeleccionado.value = medObj
+        ? medObj.name || ""
+        : $('select[name="medicos"] option:selected').text() || "";
 
-    sessionStorage.setItem("ST-medico", medicoSeleccionado.value);
+    const idStr = medicoSeleccionado.value ? String(medicoSeleccionado.value) : "";
+    sessionStorage.setItem("ST-medico", idStr);
     sessionStorage.setItem("ST-nomMedico", nomMedicoSeleccionado.value);
 
-    localStorage.setItem("ST-ecografia-medico", medicoSeleccionado.value);
+    localStorage.setItem("ST-medico", idStr);
+    localStorage.setItem("ST-nomMedico", nomMedicoSeleccionado.value);
+    localStorage.setItem("ST-ecografia-medico", idStr);
     localStorage.setItem("ST-ecografia-nomMedico", nomMedicoSeleccionado.value);
 
-    emitter.emit("medicoSeleccionado", {
-        idMedico: medicoSeleccionado.value,
-        nomMedico: nomMedicoSeleccionado.value,
-    });
+    if (emitter) {
+        emitter.emit("medicoSeleccionado", {
+            idMedico: medicoSeleccionado.value,
+            nomMedico: nomMedicoSeleccionado.value,
+        });
+    }
 }
 /**
  * Maneja la apertura del dropdown de notificaciones unificado,
@@ -817,14 +885,6 @@ onMounted(() => {
     listarSedes();
     cargarTodasNotificaciones();
 
-    const urlSedeGuardada = sessionStorage.getItem("ST-urlsede");
-    if (
-        sedeSeleccionada.value &&
-        (!urlSedeGuardada || urlSedeGuardada === "undefined" || urlSedeGuardada === "null")
-    ) {
-        estableserSede();
-    }
-
     const url = window.location.pathname;
     const rutasEcografias = [
         "/ecografias.admisiones",
@@ -857,8 +917,15 @@ onMounted(() => {
     if (emitter) {
         emitter.on("sedeSeleccionada", onSedeSeleccionada);
         emitter.on("medicoSeleccionado", onMedicoSeleccionado);
+        emitter.on("solicitarSedeActiva", responderSedeActiva);
     }
 });
+
+function responderSedeActiva() {
+    if (sedeSeleccionada.value) {
+        estableserSede();
+    }
+}
 
 function onSedeSeleccionada(data) {
     if (data?.idSede) {
@@ -915,6 +982,7 @@ onBeforeUnmount(() => {
         try {
             emitter.off("sedeSeleccionada", onSedeSeleccionada);
             emitter.off("medicoSeleccionado", onMedicoSeleccionado);
+            emitter.off("solicitarSedeActiva", responderSedeActiva);
         } catch (_) {}
     }
 });

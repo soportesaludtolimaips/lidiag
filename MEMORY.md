@@ -37,6 +37,34 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Auditoría y Solución de Carrera de Inicialización de Sedes y Usuarios en Render Inicial (`userProfileAndSearchComponent.vue`, `AsignarEstudioComponent.vue`, `useAuth.js`):**
+  - **Diagnóstico y Causa Raíz:**
+    * El usuario reportó que en ocasiones, al renderizar páginas como `/estudios.asignar.listar`, no se cargan las sedes ni los usuarios/médicos, forzando a recargar la página.
+    * **Causa Raíz 1 (Falta de Sede por Defecto):** En `userProfileAndSearchComponent.vue`, `listarSedes()` consultaba `/api/config-sedes/listar/sedes/activas` pero si `sedeSeleccionada` era `null` (nueva pestaña, sesión limpia o primer inicio), **nunca auto-seleccionaba una sede por defecto**. El selector quedaba en *"Seleccione la sede"*, `sessionStorage.getItem("ST-sede")` permanecía en `null`, y `emitter.emit("sedeSeleccionada")` nunca se disparaba.
+    * **Causa Raíz 2 (Condición de Carrera y Pérdida de Eventos en Componentes Asíncronos):** En las rutas SPA (`routes.js`), componentes como `AsignarEstudioComponent.vue` se cargan como chunks dinámicos (`() => import(...)`). Si `userProfileAndSearchComponent` montaba antes o después, el bus de eventos `mitt` no tiene búfer de repetición (*fire-and-forget*), perdiendo la emisión si el componente destino aún no se había suscrito, o dejando al componente montado con `ST-sede == null`.
+    * **Causa Raíz 3 (Aislamiento de Storage):** Se leía exclusivamente `sessionStorage`, que se destruye al cerrar o duplicar pestañas. No existía fallback a `localStorage` para recordar la sede de trabajo activa del usuario.
+    * **Causa Raíz 4 (Condición restrictiva en `onMounted`):** En `userProfileAndSearchComponent.vue`, la emisión solo ocurría si `ST-urlsede` estaba vacío, omitiendo la emisión al recargar cuando ya existía configuración previa.
+    * **Causa Raíz 5 (Acceso prematuro al DOM con jQuery):** `estableserSede` y `estableserMedico` extraían el texto usando `$('select[...] option:selected').text()`, el cual devolvía strings vacíos si Vue aún no había completado el renderizado en el DOM.
+    * **Causa Raíz 6 (Validación bloqueante en Asignación):** En `buscarStudy()`, la condición estricta `sessionStorage.getItem("ST-sede") == null` bloqueaba la búsqueda arrojando un toast de error en lugar de resolver reactivamente la sede activa o desde `localStorage`/`busqueda.value.sede_id`.
+  - **Solución Implementada:**
+    * **Header (`userProfileAndSearchComponent.vue`):**
+      - Inicialización con fallback persistente: `sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede")`.
+      - En `listarSedes()`: si no hay sede previa o no está entre las activas, se auto-selecciona automáticamente la primera sede activa (`sedes[0].id`).
+      - Invocación garantizada de `await estableserSede()` en cada carga, persistiendo en ambos storages (`sessionStorage` y `localStorage`) y emitiendo `sedeSeleccionada`.
+      - Extracción segura del nombre de sede y médico directamente desde los arreglos reactivos de Vue en memoria, erradicando lecturas jQuery prematuras del DOM.
+      - Registro del canal de solicitud reactiva `solicitarSedeActiva` para responder inmediatamente a cualquier componente que monte desfasado.
+    * **Módulo Asignación (`AsignarEstudioComponent.vue`):**
+      - `sedeActual`, `registro.sede_id` y `busqueda.sede_id` inicializados con fallback a `localStorage`.
+      - `establecerSede()` consulta `sessionStorage` y `localStorage`; si ambas están vacías, emite `solicitarSedeActiva`.
+      - En `onSedeSeleccionada`: solo limpia la tabla de registros si la sede cambió de verdad; si es un broadcast de sincronización inicial, preserva el estado y asegura la carga de médicos para la sede activa.
+      - En `buscarStudy()`: validación tolerante que unifica storage y estado reactivo antes de evaluar si falta la sede.
+      - En `verImagenItem` y modal: soporte completo a fallback de `urlsede`, `servername` y `email_reportar` desde ambos storages.
+    * **Composables y Helpers (`useAuth.js`, `establecerSede.js`):**
+      - Sincronización bidireccional de `ST-sede` y `ST-nomsede` en `sessionStorage` y `localStorage`.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios (0 errores, 0 advertencias) ✅.
+    * Compilación de producción Vite (`npm run build`) completada con éxito en 2.28s ✅.
+
 - [x] **2026-11-09 — Hotfix: Corrección de Antipatrón `proxy` en Citas Revisión (`citasRevisionComponent.vue`, `/citas/revision`):**
   - **Diagnóstico y Causa Raíz:**
     * El usuario reportó el error emergente *"Error: No se pudieron cargar las sedes"* en `/citas/revision` acompañado de advertencias en consola:

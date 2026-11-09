@@ -1,5 +1,5 @@
 /**
- * Establece la sede actual en el contexto a partir de sessionStorage (ST-sede).
+ * Establece la sede actual en el contexto a partir de sessionStorage o localStorage (ST-sede).
  *
  * @param object $context Contexto del componente que contiene registro.sede_id.
  *
@@ -10,7 +10,8 @@
  * @date 2025-11-24
  */
 export async function establecerSede(context) {
-    if (sessionStorage.getItem("ST-sede")) {
-        context.registro.sede_id = sessionStorage.getItem("ST-sede");
+    const sede = sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede");
+    if (sede && context?.registro) {
+        context.registro.sede_id = sede;
     }
 }

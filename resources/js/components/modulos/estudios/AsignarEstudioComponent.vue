@@ -1019,11 +1019,15 @@ const { loadingVerImagen, verImagen } = useEstudioHelpers();
  * de la configuración de la sede activa.
  */
 async function verImagenItem(item) {
-    let url = sessionStorage.getItem("ST-urlsede");
-    let serverName = sessionStorage.getItem("ST-servername");
+    let url = sessionStorage.getItem("ST-urlsede") || localStorage.getItem("ST-urlsede");
+    let serverName =
+        sessionStorage.getItem("ST-servername") || localStorage.getItem("ST-servername");
 
     if (!url || url === "undefined" || url === "null" || !url.trim()) {
-        const sedeId = sedeActual.value || sessionStorage.getItem("ST-sede");
+        const sedeId =
+            sedeActual.value ||
+            sessionStorage.getItem("ST-sede") ||
+            localStorage.getItem("ST-sede");
         if (sedeId) {
             try {
                 const res = await axios.get("/api/config-sedes/" + sedeId + "/buscarPorId");
@@ -1033,6 +1037,8 @@ async function verImagenItem(item) {
                 if (url) {
                     sessionStorage.setItem("ST-urlsede", url);
                     sessionStorage.setItem("ST-servername", serverName);
+                    localStorage.setItem("ST-urlsede", url);
+                    localStorage.setItem("ST-servername", serverName);
                 }
             } catch {
                 /* Si falla la petición, se informará con el toastMessage */
@@ -1064,7 +1070,9 @@ const props = defineProps({
 const registros = ref([]);
 const tituloModal = ref("Nuevo registro");
 const sedeInterface = ref(false);
-const sedeActual = ref(sessionStorage.getItem("ST-sede"));
+const sedeActual = ref(
+    sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || null
+);
 const dt = ref(null);
 const registro = ref({
     study_pk: "",
@@ -1302,12 +1310,24 @@ async function buscarStudy() {
     destroyDataTable();
 
     try {
-        if (sessionStorage.getItem("ST-sede") == null) {
+        const sedeActiva =
+            sessionStorage.getItem("ST-sede") ||
+            localStorage.getItem("ST-sede") ||
+            busqueda.value.sede_id ||
+            registro.value.sede_id;
+
+        if (!sedeActiva) {
             toastMessage({
                 heading: "Upsss!!!",
-                text: "Debes establece la sede en la cual vas a trabajar.",
+                text: "Debes establecer la sede en la cual vas a trabajar.",
                 icon: "warning",
             });
+            return;
+        }
+
+        busqueda.value.sede_id = sedeActiva;
+        if (!sessionStorage.getItem("ST-sede")) {
+            sessionStorage.setItem("ST-sede", String(sedeActiva));
         } else if (
             busqueda.value.bus_nom_num_docu == "" &&
             busqueda.value.bus_fech_ini == "" &&
@@ -1701,7 +1721,8 @@ async function mostrarRegistro(data = {}, index) {
     registro.value.study_desc = data.study_desc;
     registro.value.mods_in_study = data.mods_in_study;
     registro.value.email = "";
-    const emailRepor = sessionStorage.getItem("ST-email_repor");
+    const emailRepor =
+        sessionStorage.getItem("ST-email_repor") || localStorage.getItem("ST-email_repor") || "";
     registro.value.email_reportar = emailRepor;
     registro.value.num_docu = data.pat_id;
     registro.value.nombres = data.pat_name;
@@ -1817,7 +1838,7 @@ function cargarDatosSede(sedeId = null) {
 }
 
 /**
- * Toma la sede activa de sessionStorage, la aplica al registro y a la búsqueda,
+ * Toma la sede activa de sessionStorage o localStorage, la aplica al registro y a la búsqueda,
  * recarga los catálogos y vacía la tabla de estudios.
  *
  * @returns {void}
@@ -1827,12 +1848,16 @@ function cargarDatosSede(sedeId = null) {
  * @date 2026-09-29
  */
 function establecerSede() {
-    const sede = sessionStorage.getItem("ST-sede");
+    const sede = sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || null;
     registro.value.sede_id = sede;
     busqueda.value.sede_id = sede;
     sedeActual.value = sede;
     cargarDatosSede(sede);
     registros.value = [];
+
+    if (!sede && emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
 }
 
 /**
@@ -1986,7 +2011,8 @@ async function listarMedicos(sedeId = null) {
             sedeId ??
             registro.value.sede_id ??
             busqueda.value.sede_id ??
-            sessionStorage.getItem("ST-sede");
+            sessionStorage.getItem("ST-sede") ??
+            localStorage.getItem("ST-sede");
         const sedeParam = targetSede ? `&sede_id=${encodeURIComponent(targetSede)}` : "";
         const res = await axios.get(
             `/api/user.listarUsuarios/Medico/${moduloId}?solo_activos=1${sedeParam}`
@@ -2384,7 +2410,7 @@ function onQuemadoMultiplesCompletado() {
 
 /**
  * Handler del evento global de sede seleccionada: actualiza la sede activa,
- * recarga los catálogos y limpia la tabla de resultados.
+ * recarga los catálogos y limpia la tabla de resultados solo si la sede cambió.
  *
  * @param {Object} data          Payload emitido con { idSede }.
  * @param {number} data.idSede   Id de la sede elegida.
@@ -2396,14 +2422,24 @@ function onQuemadoMultiplesCompletado() {
  * @date 2026-09-29
  */
 function onSedeSeleccionada(data) {
-    const nuevaSede = data?.idSede ?? sessionStorage.getItem("ST-sede");
+    const nuevaSede =
+        data?.idSede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede");
+    if (!nuevaSede) return;
+
+    const sedeCambio = String(sedeActual.value || "") !== String(nuevaSede);
+
     registro.value.sede_id = nuevaSede;
     busqueda.value.sede_id = nuevaSede;
     sedeActual.value = nuevaSede;
-    registro.value.medico_id = "";
-    cargarDatosSede(nuevaSede);
-    registros.value = [];
-    destroyDataTable();
+
+    if (sedeCambio || !medicos.value || medicos.value.length === 0) {
+        registro.value.medico_id = "";
+        cargarDatosSede(nuevaSede);
+        if (sedeCambio) {
+            registros.value = [];
+            destroyDataTable();
+        }
+    }
 }
 
 /**

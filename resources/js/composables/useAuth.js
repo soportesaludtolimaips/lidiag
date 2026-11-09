@@ -10,16 +10,30 @@ const roles = ref(initialState?.roles || []);
 const permissions = ref(initialState?.permissions || []);
 
 const sedeId = ref(
-    typeof sessionStorage !== "undefined" ? sessionStorage.getItem("ST-sede") : null
+    typeof sessionStorage !== "undefined"
+        ? sessionStorage.getItem("ST-sede") ||
+              (typeof localStorage !== "undefined" ? localStorage.getItem("ST-sede") : null)
+        : null
 );
 const nomSede = ref(
-    typeof sessionStorage !== "undefined" ? sessionStorage.getItem("ST-nomsede") || "" : ""
+    typeof sessionStorage !== "undefined"
+        ? sessionStorage.getItem("ST-nomsede") ||
+              (typeof localStorage !== "undefined" ? localStorage.getItem("ST-nomsede") || "" : "")
+        : ""
 );
 const medicoId = ref(
-    typeof sessionStorage !== "undefined" ? sessionStorage.getItem("ST-medico") : null
+    typeof sessionStorage !== "undefined"
+        ? sessionStorage.getItem("ST-medico") ||
+              (typeof localStorage !== "undefined" ? localStorage.getItem("ST-medico") : null)
+        : null
 );
 const nomMedico = ref(
-    typeof sessionStorage !== "undefined" ? sessionStorage.getItem("ST-nomMedico") || "" : ""
+    typeof sessionStorage !== "undefined"
+        ? sessionStorage.getItem("ST-nomMedico") ||
+              (typeof localStorage !== "undefined"
+                  ? localStorage.getItem("ST-nomMedico") || ""
+                  : "")
+        : ""
 );
 
 const isRefreshing = ref(false);
@@ -117,7 +131,7 @@ export function useAuth() {
     }
 
     /**
-     * Actualiza la sede activa en memoria y en sessionStorage.
+     * Actualiza la sede activa en memoria, sessionStorage y localStorage.
      *
      * @param {string|number|null} id Identificador de la sede.
      * @param {string} nombre Nombre de la sede seleccionada.
@@ -134,6 +148,16 @@ export function useAuth() {
             } else {
                 sessionStorage.removeItem("ST-sede");
                 sessionStorage.removeItem("ST-nomsede");
+            }
+        }
+
+        if (typeof localStorage !== "undefined") {
+            if (id) {
+                localStorage.setItem("ST-sede", String(id));
+                if (nombre) localStorage.setItem("ST-nomsede", nombre);
+            } else {
+                localStorage.removeItem("ST-sede");
+                localStorage.removeItem("ST-nomsede");
             }
         }
     }
