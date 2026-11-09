@@ -37,6 +37,15 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Propagación de Fix de Resiliencia y Fallback de Sedes en Módulo Citas (`resources/js/components/modulos/citas/`):**
+  - **Componentes Actualizados:**
+    * `citasComponent.vue`: Fallback a `localStorage` en `onSedeSeleccionada` y emisión preventiva de `solicitarSedeActiva` en `onMounted`.
+    * `citasRevisionComponent.vue`: Fallback a `localStorage` en inicialización de `filtro.sede_id`, `formAprobar.sede_id` y `onSedeSeleccionada`. Solicitud reactiva con `solicitarSedeActiva`.
+    * `gestionCitasComponent.vue`: Fallback a `localStorage` en `sedeActual` y `onSedeSeleccionada`. Solicitud reactiva al montar con `solicitarSedeActiva` si el estado es frío.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios en todos los componentes del módulo ✅.
+    * Vite build (`npm run build`) completado exitosamente en 1.23s ✅.
+
 - [x] **2026-11-09 — Propagación de Fix de Resiliencia y Fallback de Sedes y Médicos en Módulo Ecografías (`resources/js/components/modulos/ecografias/`):**
   - **Componentes Actualizados:**
     * `admisionarComponent.vue`: Fallback a `localStorage` para `ST-sede` y `ST-medico` en `initSede()`, `establecerMedico()` y `buscarStudy()`. Solicitud reactiva de sede activa mediante `solicitarSedeActiva` si el estado es frío. Sincronización bidireccional en `onSedeSeleccionada`.

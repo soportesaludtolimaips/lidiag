@@ -966,7 +966,8 @@ function mostrarExito(mensaje) {
 }
 
 function onSedeSeleccionada(data) {
-    const idSede = data?.idSede ?? sessionStorage.getItem("ST-sede");
+    const idSede =
+        data?.idSede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede");
     if (idSede) {
         citaSeleccionada.value.sede_id = idSede;
     }
@@ -977,6 +978,10 @@ function onSedeSeleccionada(data) {
 onMounted(() => {
     inicializar();
     emitter?.on("sedeSeleccionada", onSedeSeleccionada);
+    const sede = sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede");
+    if (!sede && emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
 });
 
 onBeforeUnmount(() => {

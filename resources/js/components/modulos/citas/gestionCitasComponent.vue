@@ -207,11 +207,16 @@ const stats = ref([]);
 const statsPorEstado = ref({});
 const proximas = ref([]);
 const loading = ref(false);
-const sedeActual = ref(sessionStorage.getItem("ST-sede") || "");
+const sedeActual = ref(sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "");
 
 function onSedeSeleccionada(data) {
-    sedeActual.value = data?.idSede || "";
-    cargarDashboard();
+    const nuevaSede =
+        data?.idSede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede") ?? "";
+    const cambioSede = String(sedeActual.value || "") !== String(nuevaSede);
+    sedeActual.value = String(nuevaSede);
+    if (cambioSede || !stats.value.length) {
+        cargarDashboard();
+    }
 }
 
 async function cargarStats() {
@@ -301,6 +306,9 @@ async function cargarDashboard() {
 onMounted(() => {
     if (emitter) {
         emitter.on("sedeSeleccionada", onSedeSeleccionada);
+        if (!sedeActual.value) {
+            emitter.emit("solicitarSedeActiva");
+        }
     }
     cargarDashboard();
 });

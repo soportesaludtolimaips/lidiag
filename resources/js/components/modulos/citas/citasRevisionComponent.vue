@@ -944,7 +944,8 @@ function limpiarFiltros() {
 }
 
 function onSedeSeleccionada(data) {
-    const idSede = data?.idSede ?? sessionStorage.getItem("ST-sede");
+    const idSede =
+        data?.idSede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede");
     if (idSede) {
         filtro.value.sede_id = idSede;
         formAprobar.value.sede_id = idSede;
@@ -954,6 +955,13 @@ function onSedeSeleccionada(data) {
 }
 
 onMounted(() => {
+    const sede = sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede");
+    if (sede) {
+        filtro.value.sede_id = sede;
+        formAprobar.value.sede_id = sede;
+    } else if (emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
     cargarListas();
     listarRegistros();
     axios.post("/api/citas/notificaciones/todas-leidas").catch(() => {});
