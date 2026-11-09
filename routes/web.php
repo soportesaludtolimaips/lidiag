@@ -420,8 +420,16 @@ Route::get('/validar-informe/{token}', [VerificacionInformeController::class, 'v
 require __DIR__.'/files.php';
 
 /**
- * Entrada a la SPA (Vue Router)
+ * Entrada a la SPA (Vue Router) y Fallback global
  */
 Route::get('/spa/{any?}', function () {
     return view('layouts.app');
 })->middleware(['auth', 'force-password-change'])->where('any', '.*')->name('spa.entrypoint');
+
+Route::fallback(function () {
+    if (auth()->check()) {
+        return view('layouts.app');
+    }
+
+    return redirect()->route('login');
+})->middleware(['auth', 'force-password-change']);

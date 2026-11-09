@@ -331,9 +331,9 @@
                     </li>
                     <li role="separator" class="divider"></li>
                     <li>
-                        <a :href="perfilUrl || '/seguridad.perfil'">
+                        <router-link :to="perfilUrl || '/seguridad.perfil'">
                             <i class="ti-user"></i> Mi Perfil
-                        </a>
+                        </router-link>
                     </li>
                     <li role="separator" class="divider"></li>
                     <li>

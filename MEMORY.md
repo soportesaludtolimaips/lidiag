@@ -37,6 +37,14 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Configuración de Fallback Global SPA y Enlaces Reactivos en Menú de Perfil:**
+  - **Ajustes Realizados:**
+    * **Fallback Global en Laravel (`routes/web.php`):** Se definió `Route::fallback()` protegido con `auth` y `force-password-change` para redirigir peticiones desconocidas autenticadas hacia `layouts.app`, permitiendo que Vue Router resuelva rutas profundas o renderice el componente `NotFoundComponent.vue` (404) dentro del shell SPA sin saltar fuera del sistema.
+    * **Navegación en Perfil (`userProfileAndSearchComponent.vue`):** Se migró el enlace "Mi Perfil" del menú desplegable superior a `<router-link :to="perfilUrl || '/seguridad.perfil'">`, habilitando transición instantánea sin recarga.
+  - **Verificaciones:**
+    * PHP Pint pasado al 100% (`vendor\bin\pint.bat --test routes/web.php`) ✅.
+    * ESLint y Prettier pasados sin errores ✅.
+    * Build de producción Vite completado en 1.22s (`npm run build`) ✅.
 - [x] **2026-11-09 — Culminación Exitosa de la Migración a Vue Router 4 (Fases 7 y 8 al 100%):**
   - **Avances Realizados:**
     * **Fase 7 (Prevención de Memory Leaks y Gestión de Eventos):**
