@@ -590,101 +590,52 @@
 
                                     <div class="row">
                                         <div class="col-md-12">
-                                            <!-- Nav tabs -->
-                                            <ul class="nav nav-tabs" role="tablist">
-                                                <li class="nav-item">
-                                                    <a
-                                                        class="nav-link active"
-                                                        data-toggle="tab"
-                                                        href="#home8"
-                                                        role="tab"
-                                                    >
-                                                        <h5 class="card-title text-info mb-0">
-                                                            <i class="fa fa-paperclip"></i> Adjuntos
-                                                            ({{ soportesHC.length }})
-                                                        </h5>
-                                                    </a>
-                                                </li>
-                                                <li class="nav-item">
-                                                    <a
-                                                        class="nav-link"
-                                                        data-toggle="tab"
-                                                        href="#profile8"
-                                                        role="tab"
-                                                    >
-                                                        <h5 class="card-title text-info mb-0">
-                                                            <i class="fa fa-file-audio-o"></i>
-                                                            Audios ({{ audiosDeEstudio.length }})
-                                                        </h5>
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                            <!-- Tab panes -->
-                                            <div class="tab-content tabcontent-border">
+                                            <h5 class="card-title text-info mb-2">
+                                                <i class="fa fa-paperclip"></i> Adjuntos ({{
+                                                    soportesHC.length
+                                                }})
+                                            </h5>
+                                            <div class="p-20 border rounded">
                                                 <div
-                                                    class="tab-pane active p-20"
-                                                    id="home8"
-                                                    role="tabpanel"
+                                                    class="col-md-8 col-lg-9 mb-1"
+                                                    v-for="itemArchivo in soportesHC"
+                                                    :key="itemArchivo.archivo_encrip"
                                                 >
-                                                    <div
-                                                        class="col-md-8 col-lg-9"
-                                                        v-for="itemArchivo in soportesHC"
-                                                        :key="itemArchivo.archivo_encrip"
+                                                    <a
+                                                        href="javascript:void(0)"
+                                                        :style="{
+                                                            pointerEvents:
+                                                                loadingDescargaSoporte ===
+                                                                itemArchivo.archivo_encrip
+                                                                    ? 'none'
+                                                                    : 'auto',
+                                                        }"
+                                                        @click="
+                                                            descargaSoportte(
+                                                                itemArchivo.archivo_original,
+                                                                itemArchivo.archivo_encrip
+                                                            )
+                                                        "
                                                     >
-                                                        <a
-                                                            href="javascript:void(0)"
-                                                            :style="{
-                                                                pointerEvents:
-                                                                    loadingDescargaSoporte ===
-                                                                    itemArchivo.archivo_encrip
-                                                                        ? 'none'
-                                                                        : 'auto',
-                                                            }"
-                                                            @click="
-                                                                descargaSoportte(
-                                                                    itemArchivo.archivo_original,
-                                                                    itemArchivo.archivo_encrip
-                                                                )
+                                                        <i
+                                                            v-if="
+                                                                loadingDescargaSoporte ===
+                                                                itemArchivo.archivo_encrip
                                                             "
-                                                        >
-                                                            <i
-                                                                v-if="
-                                                                    loadingDescargaSoporte ===
-                                                                    itemArchivo.archivo_encrip
-                                                                "
-                                                                class="fa fa-spinner fa-spin"
-                                                            ></i>
-                                                            {{ itemArchivo.archivo_original }}
-                                                        </a>
-                                                    </div>
-                                                    <div
-                                                        v-if="soportesHC.length === 0"
-                                                        class="text-muted"
-                                                    >
-                                                        No hay adjuntos para este estudio.
-                                                    </div>
+                                                            class="fa fa-spinner fa-spin mr-1"
+                                                        ></i>
+                                                        <i
+                                                            v-else
+                                                            class="fa fa-file-text-o mr-1"
+                                                        ></i>
+                                                        {{ itemArchivo.archivo_original }}
+                                                    </a>
                                                 </div>
                                                 <div
-                                                    class="tab-pane p-20"
-                                                    id="profile8"
-                                                    role="tabpanel"
+                                                    v-if="soportesHC.length === 0"
+                                                    class="text-muted"
                                                 >
-                                                    <template
-                                                        v-for="item in audiosDeEstudio"
-                                                        :key="item.id"
-                                                    >
-                                                        <audio
-                                                            :src="item.url"
-                                                            controls
-                                                            style="height: 35px; width: 100%"
-                                                        ></audio>
-                                                    </template>
-                                                    <div
-                                                        v-if="audiosDeEstudio.length === 0"
-                                                        class="text-muted"
-                                                    >
-                                                        No hay audios para este estudio.
-                                                    </div>
+                                                    No hay adjuntos para este estudio.
                                                 </div>
                                             </div>
                                         </div>
@@ -815,7 +766,6 @@ const busqueda = ref({
     destino_estudio: DESTINO_TELE_RADIOLOGIA,
 });
 const datosImagen = ref({ urlOviyam: "", patientId: "", studyUID: "", serverName: "" });
-const audiosDeEstudio = ref([]);
 const quienes_asignaron = ref([]);
 const medicos = ref([]);
 const errores = ref({});
@@ -1179,16 +1129,6 @@ function verImagenDirecta(item) {
     verImagen();
 }
 
-async function listarAudios() {
-    if (!id.value) return;
-    try {
-        const res = await axios.get("/api/listar-audios-estudio/" + id.value);
-        audiosDeEstudio.value = res.data.data || [];
-    } catch {
-        audiosDeEstudio.value = [];
-    }
-}
-
 async function listarMedicos() {
     try {
         const moduloId = sessionStorage.getItem("ST-modulo") || "1";
@@ -1302,8 +1242,6 @@ async function mostrarRegistro(data = {}) {
         soportesHC.value = [];
     }
 
-    audiosDeEstudio.value = [];
-    listarAudios();
     errores.value = {};
 
     sidebarVisible.value = true;
@@ -1312,7 +1250,6 @@ async function mostrarRegistro(data = {}) {
 
 function btnCerrarModal() {
     sidebarVisible.value = false;
-    audiosDeEstudio.value = [];
     errores.value = {};
 }
 

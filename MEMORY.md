@@ -37,6 +37,15 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Eliminación de Consultas y Pestaña de Audios en Tele-Radiología Transcribir (`teleRadiologiaTranscibirComponent.vue`):**
+  - **Problema:** Al abrir el drawer de un estudio en `https://lidiag.test/tele-radiologia-transcribir`, se ejecutaba la petición `/api/listar-audios-estudio/{id}` arrojando el error `403 Forbidden: "No tiene permisos para gestionar los audios de este estudio."`. En tele-radiología externa solo se recibe informe en texto plano, sin archivos de audio.
+  - **Solución Implementada:**
+    * Eliminada la pestaña redundante de Audios en el template del drawer y reemplazada por el contenedor limpio de Adjuntos de historia clínica (`soportesHC`).
+    * Removida la función `listarAudios()` y la variable reactiva `audiosDeEstudio`.
+    * Eliminadas las llamadas a `listarAudios()` y reseteos asociados en `mostrarRegistro()` y `btnCerrarModal()`, erradicando la petición 403.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios en `teleRadiologiaTranscibirComponent.vue` ✅.
+    * Vite build (`npm run build`) completado con éxito en 1.37s ✅.
 - [x] **2026-11-09 — Inclusión de Columna Fecha de Envío en Tele-Radiología Transcribir (`teleRadiologiaTranscibirComponent.vue`, `EstudioQueryService.php`):**
   - **Problema:** En `https://lidiag.com/tele-radiologia-transcribir`, la tabla mostraba una columna titulada "Asignación" (heredada de la plantilla de transcripción interna), lo cual no reflejaba la naturaleza del flujo de Tele-Radiología donde los estudios son enviados externamente y los operadores necesitan ver la "Fecha de Envío".
   - **Solución Implementada:**
