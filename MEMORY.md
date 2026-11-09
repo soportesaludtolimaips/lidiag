@@ -37,6 +37,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Auditoría UI/UX Módulo Contratos (`contratoComponent.vue`):**
+  - **Ajustes Realizados:**
+    * **Atajo Global de Teclado `Escape` (E4):** Implementación de `handleKeydown` en `window` para cerrar en cascada los drawers activos (detalle de contrato o formulario de creación/edición) y desuscripción limpia en `onBeforeUnmount`.
+    * **Autofoco Accesible al Abrir Drawer (M2):** Adición de `nextTick` con foco en `sede_id` al abrir el panel de nuevo contrato (`abrirModal`).
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios ✅.
+    * Compilación de producción Vite (`npm run build`) completada exitosamente en 1.37s ✅.
 - [x] **2026-11-09 — Auditoría UI/UX Módulo Helpdesk (`helpdeskReportesComponent.vue`):**
   - **Ajustes Realizados:**
     * **Navegación SPA (S1):** Migración del enlace tradicional `<a :href="...">` en la tabla de detalle de tickets a `<router-link :to="...">`, habilitando transición SPA instantánea hacia `/helpdesk-tickets/:id` sin refresco de página.

@@ -853,6 +853,9 @@ function mostrarRegistro(item = null) {
         };
     }
     sidebarVisible.value = true;
+    nextTick(() => {
+        document.getElementById("sede_id")?.focus();
+    });
 }
 
 /**
@@ -1395,6 +1398,16 @@ async function procesarImportacion() {
 
 // ─── LIFECYCLE ────────────────────────────────────────────────────────────────
 
+function handleKeydown(e) {
+    if (e.key === "Escape") {
+        if (detalleVisible.value) {
+            cerrarDetalle();
+        } else if (sidebarVisible.value) {
+            btnCerrarModalForm();
+        }
+    }
+}
+
 /**
  * Lifecycle onMounted: inicializa la sede, carga catálogos y listado.
  * Los catálogos se cargan UNA VEZ aquí (patrón AsignarEstudio),
@@ -1404,6 +1417,7 @@ async function procesarImportacion() {
  * @date 2026-08-20
  */
 onMounted(() => {
+    window.addEventListener("keydown", handleKeydown);
     proxy?.emitter?.on("sedeSeleccionada", onSedeSeleccionada);
     sedeActual.value = getSedeActual();
     if (!sedeActual.value?.id) {
@@ -1420,6 +1434,7 @@ onMounted(() => {
  * @date 2026-08-20
  */
 onBeforeUnmount(() => {
+    window.removeEventListener("keydown", handleKeydown);
     proxy?.emitter?.off("sedeSeleccionada", onSedeSeleccionada);
     safeDestroyDataTable(dt.value || "#tablaContratos");
 });
