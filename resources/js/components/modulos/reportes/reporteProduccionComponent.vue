@@ -1767,9 +1767,12 @@
             tabindex="-1"
             role="dialog"
             aria-hidden="true"
-            @click.self="modalConsolidadoRedVisible = false"
+            @click.self="
+                resetearFormularioConsolidadoRed();
+                modalConsolidadoRedVisible = false;
+            "
         >
-            <div class="modal-dialog modal-lg">
+            <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h4 class="modal-title">Consolidado de Producción — Red Hospitalaria</h4>
@@ -1777,250 +1780,80 @@
                             type="button"
                             class="close"
                             aria-label="Cerrar modal"
-                            @click="modalConsolidadoRedVisible = false"
+                            @click="
+                                resetearFormularioConsolidadoRed();
+                                modalConsolidadoRedVisible = false;
+                            "
                         >
                             ×
                         </button>
                     </div>
                     <div class="modal-body">
-                        <!-- Selector de Período Rápido -->
-                        <div class="btn-group btn-group-sm mb-3 w-100" role="group">
-                            <button
-                                type="button"
-                                class="btn"
-                                :class="
-                                    datosConsolidadoRed.periodo === 'hoy'
-                                        ? 'btn-info'
-                                        : 'btn-secondary'
-                                "
-                                @click="cambiarPeriodoConsolidadoRed('hoy')"
-                            >
-                                Hoy
-                            </button>
-                            <button
-                                type="button"
-                                class="btn"
-                                :class="
-                                    datosConsolidadoRed.periodo === 'ayer'
-                                        ? 'btn-info'
-                                        : 'btn-secondary'
-                                "
-                                @click="cambiarPeriodoConsolidadoRed('ayer')"
-                            >
-                                Ayer
-                            </button>
-                            <button
-                                type="button"
-                                class="btn"
-                                :class="
-                                    datosConsolidadoRed.periodo === 'semana'
-                                        ? 'btn-info'
-                                        : 'btn-secondary'
-                                "
-                                @click="cambiarPeriodoConsolidadoRed('semana')"
-                            >
-                                Últimos 7 días
-                            </button>
-                            <button
-                                type="button"
-                                class="btn"
-                                :class="
-                                    datosConsolidadoRed.periodo === 'mes'
-                                        ? 'btn-info'
-                                        : 'btn-secondary'
-                                "
-                                @click="cambiarPeriodoConsolidadoRed('mes')"
-                            >
-                                Mes Actual
-                            </button>
-                            <button
-                                type="button"
-                                class="btn"
-                                :class="
-                                    datosConsolidadoRed.periodo === 'custom'
-                                        ? 'btn-info'
-                                        : 'btn-secondary'
-                                "
-                                @click="cambiarPeriodoConsolidadoRed('custom')"
-                            >
-                                Rango Manual
-                            </button>
-                        </div>
-
-                        <!-- Filtro de fechas manual si aplica -->
-                        <div v-if="datosConsolidadoRed.periodo === 'custom'" class="row mb-3">
-                            <div class="col-5">
-                                <label class="control-label" for="red-fechaIni">Desde</label>
-                                <input
-                                    id="red-fechaIni"
-                                    class="form-control form-control-sm"
-                                    type="date"
-                                    v-model="datosConsolidadoRed.fechaIni"
-                                    @keyup.enter="consultarConsolidadoRed()"
-                                />
-                            </div>
-                            <div class="col-5">
-                                <label class="control-label" for="red-fechaFin">Hasta</label>
-                                <input
-                                    id="red-fechaFin"
-                                    class="form-control form-control-sm"
-                                    type="date"
-                                    v-model="datosConsolidadoRed.fechaFin"
-                                    @keyup.enter="consultarConsolidadoRed()"
-                                />
-                            </div>
-                            <div class="col-2 d-flex align-items-end">
-                                <button
-                                    type="button"
-                                    class="btn btn-sm btn-info w-100"
-                                    @click="consultarConsolidadoRed()"
-                                    :disabled="loadingConsolidadoRed"
+                        <form @submit.prevent="descargarConsolidadoRed()">
+                            <div class="form-group">
+                                <label class="control-label font-weight-bold" for="red-sede">
+                                    Sede Hospitalaria
+                                </label>
+                                <select
+                                    class="form-control custom-select"
+                                    style="width: 100%; height: 36px"
+                                    v-model="datosConsolidadoRed.sedeId"
+                                    id="red-sede"
                                 >
-                                    <i class="fa fa-search"></i>
-                                </button>
+                                    <option value="0">
+                                        ...::: Todas las sedes de la red :::...
+                                    </option>
+                                    <option v-for="sede in sedes" :key="sede.id" :value="sede.id">
+                                        {{ sede.nom_sede }}
+                                    </option>
+                                </select>
                             </div>
-                        </div>
-
-                        <!-- Cargando estado -->
-                        <div v-if="loadingConsolidadoRed" class="text-center py-4">
-                            <i class="fa fa-spinner fa-spin fa-2x text-info"></i>
-                            <p class="text-muted mt-2 mb-0">
-                                Consultando producción de toda la red hospitalaria...
-                            </p>
-                        </div>
-
-                        <!-- Resumen interactivo en vivo -->
-                        <div v-else-if="resumenConsolidadoRed">
-                            <!-- Métricas destacadas -->
-                            <div class="row mb-3 text-center">
-                                <div class="col-3">
-                                    <div class="card card-body bg-light p-2 mb-0">
-                                        <h4 class="mb-0 text-info">
-                                            {{ resumenConsolidadoRed.totalProcedimientos }}
-                                        </h4>
-                                        <small class="text-muted">Procedimientos Red</small>
-                                    </div>
-                                </div>
-                                <div class="col-3">
-                                    <div class="card card-body bg-light p-2 mb-0">
-                                        <h4 class="mb-0 text-primary">
-                                            {{ resumenConsolidadoRed.totalPacientes }}
-                                        </h4>
-                                        <small class="text-muted">Pacientes Únicos</small>
-                                    </div>
-                                </div>
-                                <div class="col-3">
-                                    <div class="card card-body bg-light p-2 mb-0">
-                                        <h4 class="mb-0">
-                                            <span
-                                                class="badge"
-                                                :class="'badge-' + resumenConsolidadoRed.tatClase"
-                                            >
-                                                {{ resumenConsolidadoRed.tatTexto }}
-                                            </span>
-                                        </h4>
-                                        <small class="text-muted">TAT Clínico Real</small>
-                                    </div>
-                                </div>
-                                <div class="col-3">
-                                    <div class="card card-body bg-light p-2 mb-0">
-                                        <h4 class="mb-0 text-warning">
-                                            {{ resumenConsolidadoRed.pendientesRed }}
-                                        </h4>
-                                        <small class="text-muted">Pendientes en Red</small>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Ranking de Producción por Sede -->
-                            <h5 class="box-title mb-2">
-                                <i class="fa fa-hospital-o text-info"></i> Ranking de Producción por
-                                Sede Hospitalaria
-                            </h5>
-                            <div
-                                class="table-responsive mb-3"
-                                style="max-height: 180px; overflow-y: auto"
-                            >
-                                <table class="table table-sm table-striped table-hover mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th>Sede Hospitalaria</th>
-                                            <th class="text-center">Estudios</th>
-                                            <th class="text-center">% Red</th>
-                                            <th style="width: 35%">Distribución</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr
-                                            v-for="sede in resumenConsolidadoRed.rankingSedes"
-                                            :key="sede.sede_id"
-                                        >
-                                            <td>
-                                                <strong>{{ sede.nom_sede }}</strong>
-                                            </td>
-                                            <td class="text-center font-weight-bold">
-                                                {{ sede.cantidad }}
-                                            </td>
-                                            <td class="text-center">{{ sede.porcentaje }}%</td>
-                                            <td>
-                                                <div class="progress" style="height: 10px">
-                                                    <div
-                                                        class="progress-bar bg-info"
-                                                        role="progressbar"
-                                                        :style="{ width: sede.porcentaje + '%' }"
-                                                    ></div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr v-if="!resumenConsolidadoRed.rankingSedes.length">
-                                            <td colspan="4" class="text-center text-muted">
-                                                Sin lecturas registradas en este período.
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <!-- Desglose de Modalidades -->
-                            <h5 class="box-title mb-2">
-                                <i class="fa fa-cubes text-info"></i> Modalidades Diagnósticas
-                            </h5>
                             <div class="row">
-                                <div
-                                    class="col-4 mb-2"
-                                    v-for="mod in resumenConsolidadoRed.modalidades"
-                                    :key="mod.mod_codigo"
-                                >
-                                    <div class="d-flex align-items-center p-2 border rounded">
-                                        <i :class="mod.icono + ' text-info mr-2 fa-lg'"></i>
-                                        <div class="w-100">
-                                            <div class="d-flex justify-content-between">
-                                                <small class="font-weight-bold">{{
-                                                    mod.mod_nombre
-                                                }}</small>
-                                                <small class="text-muted"
-                                                    >{{ mod.cantidad }} ({{
-                                                        mod.porcentaje
-                                                    }}%)</small
-                                                >
-                                            </div>
-                                            <div class="progress mt-1" style="height: 6px">
-                                                <div
-                                                    class="progress-bar bg-success"
-                                                    :style="{ width: mod.porcentaje + '%' }"
-                                                ></div>
-                                            </div>
-                                        </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label
+                                            class="control-label font-weight-bold"
+                                            for="red-fechaIni"
+                                        >
+                                            Fecha de Inicio
+                                        </label>
+                                        <input
+                                            class="form-control"
+                                            type="date"
+                                            id="red-fechaIni"
+                                            v-model="datosConsolidadoRed.fechaIni"
+                                            @keyup.enter="descargarConsolidadoRed()"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label
+                                            class="control-label font-weight-bold"
+                                            for="red-fechaFin"
+                                        >
+                                            Fecha de Fin
+                                        </label>
+                                        <input
+                                            class="form-control"
+                                            type="date"
+                                            id="red-fechaFin"
+                                            v-model="datosConsolidadoRed.fechaFin"
+                                            @keyup.enter="descargarConsolidadoRed()"
+                                        />
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </form>
                     </div>
                     <div class="modal-footer">
                         <button
                             type="button"
                             class="btn btn-default waves-effect"
-                            @click="modalConsolidadoRedVisible = false"
+                            @click="
+                                resetearFormularioConsolidadoRed();
+                                modalConsolidadoRedVisible = false;
+                            "
                         >
                             Cerrar
                         </button>
@@ -2035,7 +1868,7 @@
                                 class="fa fa-spinner fa-spin"
                             ></i>
                             <i v-else class="fa fa-download"></i>
-                            Descargar reporte
+                            Descargar Consolidado (.xlsx)
                         </button>
                     </div>
                 </div>
@@ -2828,7 +2661,11 @@ const datosLiquidacion = ref({ sedeId: 0, fechaIni: "", fechaFin: "" });
 const datosProductividad = ref({ sedeId: 0, periodo: "" });
 const datosTAT = ref({ sedeId: 0, fechaIni: "", fechaFin: "", modalidad: "todas" });
 const datosAgentes = ref({ sedeId: 0 });
-const datosConsolidadoRed = ref({ periodo: "hoy", fechaIni: "", fechaFin: "" });
+const datosConsolidadoRed = ref({
+    sedeId: 0,
+    fechaIni: new Date().toISOString().slice(0, 7) + "-01",
+    fechaFin: new Date().toISOString().slice(0, 10),
+});
 const datosSemaforoRepresados = ref({ sedeId: 0 });
 const datosCitasWhatsApp = ref({ periodo: "hoy", sedeId: 0, fechaIni: "", fechaFin: "" });
 const datosAlmacenamiento = ref({ sedeId: 0 });
@@ -2851,7 +2688,6 @@ const loadingDescargarConsolidadoRed = ref(false);
 const loadingDescargarSemaforoRepresados = ref(false);
 const loadingDescargarCitasWhatsApp = ref(false);
 const loadingDescargarAlmacenamiento = ref(false);
-const loadingConsolidadoRed = ref(false);
 const loadingSemaforoRepresados = ref(false);
 const loadingCitasWhatsApp = ref(false);
 const loadingAlmacenamiento = ref(false);
@@ -2870,7 +2706,6 @@ const modalSemaforoRepresadosVisible = ref(false);
 const modalCitasWhatsAppVisible = ref(false);
 const modalAlmacenamientoVisible = ref(false);
 
-const resumenConsolidadoRed = ref(null);
 const resumenSemaforoRepresados = ref(null);
 const resumenCitasWhatsApp = ref(null);
 const resumenAlmacenamiento = ref(null);
@@ -2929,6 +2764,14 @@ function resetearFormularioTAT() {
 
 function resetearFormularioAgentes() {
     datosAgentes.value = { sedeId: 0 };
+}
+
+function resetearFormularioConsolidadoRed() {
+    datosConsolidadoRed.value = {
+        sedeId: 0,
+        fechaIni: new Date().toISOString().slice(0, 7) + "-01",
+        fechaFin: new Date().toISOString().slice(0, 10),
+    };
 }
 
 function validarFechas(fechaIni, fechaFin) {
@@ -3557,47 +3400,24 @@ function abrirModalAgentes() {
 }
 
 function abrirModalConsolidadoRed() {
+    resetearFormularioConsolidadoRed();
     modalConsolidadoRedVisible.value = true;
-    if (!resumenConsolidadoRed.value) {
-        consultarConsolidadoRed();
-    }
-}
-
-function cambiarPeriodoConsolidadoRed(nuevoPeriodo) {
-    datosConsolidadoRed.value.periodo = nuevoPeriodo;
-    if (nuevoPeriodo !== "custom") {
-        consultarConsolidadoRed();
-    }
-}
-
-async function consultarConsolidadoRed() {
-    if (loadingConsolidadoRed.value) return;
-    loadingConsolidadoRed.value = true;
-    try {
-        const params = new URLSearchParams({
-            periodo: datosConsolidadoRed.value.periodo,
-            fechaIni: datosConsolidadoRed.value.fechaIni || "",
-            fechaFin: datosConsolidadoRed.value.fechaFin || "",
-        });
-        const res = await axios.get(`/api/reportes-resumen-red?${params.toString()}`);
-        resumenConsolidadoRed.value = res.data;
-    } catch (_error) {
-        toastMessage({
-            heading: "Error",
-            text: "No fue posible consultar el consolidado de la red.",
-            icon: "error",
-        });
-    } finally {
-        loadingConsolidadoRed.value = false;
-    }
+    nextTick(() => {
+        const el = document.getElementById("red-sede");
+        if (el) el.focus();
+    });
 }
 
 async function descargarConsolidadoRed() {
     if (loadingDescargarConsolidadoRed.value) return;
+    if (!validarFechas(datosConsolidadoRed.value.fechaIni, datosConsolidadoRed.value.fechaFin)) {
+        return;
+    }
     loadingDescargarConsolidadoRed.value = true;
     try {
         const params = new URLSearchParams({
-            periodo: datosConsolidadoRed.value.periodo,
+            periodo: "custom",
+            sedeId: String(datosConsolidadoRed.value.sedeId || 0),
             fechaIni: datosConsolidadoRed.value.fechaIni || "",
             fechaFin: datosConsolidadoRed.value.fechaFin || "",
         });
@@ -3903,6 +3723,7 @@ useKeyboardShortcuts({
             resetearFormularioAgentes();
             modalAgentesVisible.value = false;
         } else if (modalConsolidadoRedVisible.value) {
+            resetearFormularioConsolidadoRed();
             modalConsolidadoRedVisible.value = false;
         } else if (modalSemaforoRepresadosVisible.value) {
             modalSemaforoRepresadosVisible.value = false;

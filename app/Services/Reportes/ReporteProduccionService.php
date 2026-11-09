@@ -785,7 +785,8 @@ class ReporteProduccionService extends BaseService
      */
     public function generateReporteConsolidadoRed(array $data): BinaryFileResponse|array
     {
-        $periodo = $data["periodo"] ?? "hoy";
+        $periodo = $data["periodo"] ?? "custom";
+        $sedeId = $this->normalizeNullable($data["sedeId"] ?? null);
         $fechaIni = $data["fechaIni"] ?? null;
         $fechaFin = $data["fechaFin"] ?? null;
 
@@ -793,7 +794,7 @@ class ReporteProduccionService extends BaseService
 
         try {
             return Excel::download(
-                new ReporteConsolidadoRedExport($fechaInicio, $fechaFin, $etiquetaPeriodo),
+                new ReporteConsolidadoRedExport($fechaInicio, $fechaFin, $etiquetaPeriodo, $sedeId),
                 "consolidado_red_produccion.xlsx"
             );
         } catch (\Throwable $e) {

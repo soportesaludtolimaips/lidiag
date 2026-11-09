@@ -37,6 +37,25 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Simplificación Modal Consolidado de Producción — Red Hospitalaria (`reporteProduccionComponent.vue`, `ReporteConsolidadoRedExport.php`, `ReporteConsolidadoRedRequest.php`, `ReporteProduccionService.php`):**
+  - **Requerimiento del Usuario:**
+    * Simplificar el modal de "Consolidado de Producción — Red Hospitalaria" para dejar exclusivamente los selectores de Sede, Fecha de Inicio y Fecha de Fin.
+  - **Ajustes Realizados:**
+    * **Frontend ([`reporteProduccionComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/reportes/reporteProduccionComponent.vue)):**
+      - Removidos los botones de período rápido (`hoy`, `ayer`, `semana`, `mes`, `custom`) y la tabla/resumen analítico en vivo embebida en el modal, reduciendo el diálogo a tamaño compacto estándar (`modal-dialog`).
+      - Dejados estrictamente 3 controles de formulario: Selector de Sede Hospitalaria (`id="red-sede"`, default `0` para todas las sedes de la red), Fecha de Inicio (`id="red-fechaIni"`) y Fecha de Fin (`id="red-fechaFin"`).
+      - Integrado `@keyup.enter="descargarConsolidadoRed()"` y `@submit.prevent="descargarConsolidadoRed()"`.
+      - Agregada función `resetearFormularioConsolidadoRed()` e integrada en el cierre por botón, backdrop y tecla Escape.
+      - Estado `datosConsolidadoRed` actualizado a `{ sedeId: 0, fechaIni: ..., fechaFin: ... }`.
+    * **Backend:**
+      - [`ReporteConsolidadoRedRequest.php`](file:///c:/laragon/www/lidiag/app/Http/Requests/Reportes/ReporteConsolidadoRedRequest.php): Adición de la regla `sedeId => 'sometimes|nullable'`.
+      - [`ReporteProduccionService.php`](file:///c:/laragon/www/lidiag/app/Services/Reportes/ReporteProduccionService.php): Extracción y normalización de `$sedeId` mediante `$this->normalizeNullable($data['sedeId'] ?? null)`.
+      - [`ReporteConsolidadoRedExport.php`](file:///c:/laragon/www/lidiag/app/Exports/ReporteConsolidadoRedExport.php): Soporte de parámetro `$sedeId` y filtrado condicional en `consultarEstudiosRed()` con `->when($this->sedeId, fn ($q) => $q->where('estudios.sede_id', $this->sedeId))`.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios ✅.
+    * Compilación de producción Vite (`npm run build`) exitosa en 1.49s ✅.
+    * Laravel Pint (`vendor\bin\pint.bat --test`) pasado sin observaciones ✅.
+    * Larastan PHPStan Nivel 5 (`vendor\bin\phpstan.bat analyse`) con 0 errores ✅.
 - [x] **2026-11-09 — Auditoría UI/UX Módulo Configuración (14 Componentes de Configuración y WhatsApp):**
   - **Ajustes Realizados:**
     * **Envío Seguro y Accesible de Formularios (H7, L6):** Integración sistemática de `@submit.prevent` en los formularios `<form action="#" @submit.prevent="...">` de los paneles/drawers de configuración (`configAdminSalud`, `configCitaRechazoMotivo`, `configConsentimientoInformado`, `configDiagnostico`, `configPlantilla`, `configPrioridad`, `configProducto`, `configSede`, `configServicioProducto`, `configTipoDocumento`, `configTipoPlantilla`, `configWhatsappNumeros`, `configWhatsappProductos`, `configWhatsappSaludos`), evitando recargas inesperadas de página al presionar Enter dentro de campos de entrada.

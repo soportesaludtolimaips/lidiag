@@ -30,6 +30,8 @@ class ReporteConsolidadoRedExport implements WithMultipleSheets
 
     protected string $etiquetaPeriodo;
 
+    protected mixed $sedeId;
+
     protected Collection $estudios;
 
     /**
@@ -38,16 +40,18 @@ class ReporteConsolidadoRedExport implements WithMultipleSheets
      * @param  string  $fechaInicio  Fecha inicial (YYYY-MM-DD).
      * @param  string  $fechaFin  Fecha final (YYYY-MM-DD).
      * @param  string  $etiquetaPeriodo  Etiqueta legible del período.
+     * @param  mixed  $sedeId  ID opcional de sede para filtrar.
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-11-04
      */
-    public function __construct(string $fechaInicio, string $fechaFin, string $etiquetaPeriodo = "")
+    public function __construct(string $fechaInicio, string $fechaFin, string $etiquetaPeriodo = "", mixed $sedeId = null)
     {
         $this->fechaInicio = $fechaInicio;
         $this->fechaFin = $fechaFin;
         $this->etiquetaPeriodo = $etiquetaPeriodo ?: "Del {$fechaInicio} al {$fechaFin}";
+        $this->sedeId = $sedeId;
         $this->estudios = $this->consultarEstudiosRed();
     }
 
@@ -70,6 +74,7 @@ class ReporteConsolidadoRedExport implements WithMultipleSheets
             ->leftJoin("config_tipo_documentos", "pacientes.tipo_documento_id", "=", "config_tipo_documentos.id")
             ->where("config_sedes.estado", 1)
             ->where("estudios_productos.activo", 1)
+            ->when($this->sedeId, fn ($q) => $q->where("estudios.sede_id", $this->sedeId))
             ->whereBetween("estudios_productos.fechor_lectura", [
                 "{$this->fechaInicio} 00:00:00",
                 "{$this->fechaFin} 23:59:59",

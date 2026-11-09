@@ -43,6 +43,7 @@ class ReporteConsolidadoRedRequest extends FormRequest
     {
         return [
             "periodo" => "sometimes|nullable|string",
+            "sedeId" => "sometimes|nullable",
             "fechaIni" => "sometimes|nullable|date",
             "fechaFin" => "sometimes|nullable|date",
         ];
