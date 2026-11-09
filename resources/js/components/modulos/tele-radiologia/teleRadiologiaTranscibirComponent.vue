@@ -905,7 +905,12 @@ function btnLimpiar() {
 async function listarPendientesTrascribir() {
     if (loadingBuscar.value) return;
 
-    if (!sessionStorage.getItem("ST-sede")) {
+    const sedeActual =
+        sessionStorage.getItem("ST-sede") ||
+        localStorage.getItem("ST-sede") ||
+        busqueda.value.sede_id;
+
+    if (!sedeActual) {
         toastMessage({
             heading: "Upsss!!!",
             text: "Debes establecer la sede en la cual vas a trabajar.",
@@ -914,12 +919,17 @@ async function listarPendientesTrascribir() {
         return;
     }
 
+    busqueda.value.sede_id = sedeActual;
+    if (!sessionStorage.getItem("ST-sede")) {
+        sessionStorage.setItem("ST-sede", String(sedeActual));
+    }
+
     loadingBuscar.value = true;
     destroyDataTable();
 
     try {
         const res = await axios.post("/api/estudio-listarPendientesTrascribir", {
-            sede_id: sessionStorage.getItem("ST-sede"),
+            sede_id: sedeActual,
             quien_asigno_id: busqueda.value.quien_asigno_id || undefined,
             medico_id: busqueda.value.medico_id || undefined,
             bus_nom_num_docu: busqueda.value.bus_nom_num_docu || undefined,
@@ -1212,9 +1222,13 @@ async function listarMedicos() {
 }
 
 function establecerSede() {
-    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
+    const sede = sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || null;
+    busqueda.value.sede_id = sede;
     registros.value = [];
     todosLosRegistros.value = [];
+    if (!sede && emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
 }
 
 /**
@@ -1227,12 +1241,17 @@ function establecerSede() {
  * @date 2026-10-16
  */
 function onSedeSeleccionada(data) {
-    const idSede = data?.idSede ?? sessionStorage.getItem("ST-sede");
+    const idSede =
+        data?.idSede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede");
+    if (!idSede) return;
+    const cambioSede = String(busqueda.value.sede_id || "") !== String(idSede);
     busqueda.value.sede_id = idSede;
-    destroyDataTable();
-    todosLosRegistros.value = [];
-    registros.value = [];
-    btnCerrarModal();
+    if (cambioSede) {
+        destroyDataTable();
+        todosLosRegistros.value = [];
+        registros.value = [];
+        btnCerrarModal();
+    }
 }
 
 function formatDate(timestamp) {
@@ -1341,6 +1360,9 @@ onMounted(async () => {
     listarMedicos();
     establecerSede();
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
+    if (!busqueda.value.sede_id && emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
     await listarUsuariosYSedes({
         set quienes_asignaron(v) {
             quienes_asignaron.value = v;

@@ -760,13 +760,23 @@ function destroyDataTable() {
 async function buscarStudy() {
     if (loadingBuscar.value) return;
 
-    if (sessionStorage.getItem("ST-sede") == null) {
+    const sedeActual =
+        sessionStorage.getItem("ST-sede") ||
+        localStorage.getItem("ST-sede") ||
+        busqueda.value.sede_id ||
+        idSedeActual.value;
+
+    if (!sedeActual) {
         toastMessage({
             heading: "Upsss!!!",
             text: "Debes seleccionar una sede para realizar la busqueda.",
             icon: "warning",
         });
         return;
+    }
+
+    if (!sessionStorage.getItem("ST-sede")) {
+        sessionStorage.setItem("ST-sede", String(sedeActual));
     }
     if (
         busqueda.value.bus_nom_num_docu == "" &&
@@ -984,7 +994,8 @@ async function mostrarRegistro(data = {}) {
     registro.value.study_desc = data.study_desc;
     registro.value.mods_in_study = data.mods_in_study;
     registro.value.email = "";
-    registro.value.email_reportar = sessionStorage.getItem("ST-email_repor");
+    registro.value.email_reportar =
+        sessionStorage.getItem("ST-email_repor") || localStorage.getItem("ST-email_repor") || "";
     registro.value.num_docu = data.pat_id;
     registro.value.nombres = data.pat_name;
     registro.value.sexo = data.pat_sex;
@@ -1071,12 +1082,18 @@ function establecerPrioridad() {
 }
 
 async function establecerSede() {
-    orden.value.sede.id = sessionStorage.getItem("ST-sede");
-    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
-    idSedeActual.value = sessionStorage.getItem("ST-sede");
-    nomSedeActual.value = sessionStorage.getItem("ST-nomsede");
-    registro.value.sede_id = sessionStorage.getItem("ST-sede");
+    const sede = sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || null;
+    const nomSede =
+        sessionStorage.getItem("ST-nomsede") || localStorage.getItem("ST-nomsede") || "";
+    orden.value.sede.id = sede;
+    busqueda.value.sede_id = sede;
+    idSedeActual.value = sede;
+    nomSedeActual.value = nomSede;
+    registro.value.sede_id = sede;
     registros.value = [];
+    if (!sede && emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
 }
 
 /**
@@ -1089,15 +1106,24 @@ async function establecerSede() {
  * @date 2026-10-16
  */
 function onSedeSeleccionada(data) {
-    const idSede = data?.idSede ?? sessionStorage.getItem("ST-sede");
+    const idSede =
+        data?.idSede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede");
+    if (!idSede) return;
+    const cambioSede = String(idSedeActual.value || "") !== String(idSede);
     orden.value.sede.id = idSede;
     busqueda.value.sede_id = idSede;
     idSedeActual.value = idSede;
-    nomSedeActual.value = data?.nomSede ?? sessionStorage.getItem("ST-nomsede");
+    nomSedeActual.value =
+        data?.nomSede ??
+        sessionStorage.getItem("ST-nomsede") ??
+        localStorage.getItem("ST-nomsede") ??
+        "";
     registro.value.sede_id = idSede;
-    destroyDataTable();
-    registros.value = [];
-    limpiar();
+    if (cambioSede) {
+        destroyDataTable();
+        registros.value = [];
+        limpiar();
+    }
 }
 
 function btnCerrarModal() {
@@ -1245,7 +1271,7 @@ function quitarProductoEstudio(codCups) {
 function verImagen(pat_id, study_iuid, studyPk) {
     if (loadingImagenIndex.value !== null) return;
 
-    const base = sessionStorage.getItem("ST-urlsede") || "";
+    const base = sessionStorage.getItem("ST-urlsede") || localStorage.getItem("ST-urlsede") || "";
     if (!base || base === "undefined" || base === "null" || !base.trim()) {
         toastMessage({
             heading: "Upsss!!!",
@@ -1257,7 +1283,8 @@ function verImagen(pat_id, study_iuid, studyPk) {
 
     loadingImagenIndex.value = studyPk;
 
-    const rawServer = sessionStorage.getItem("ST-servername");
+    const rawServer =
+        sessionStorage.getItem("ST-servername") || localStorage.getItem("ST-servername");
     const cleanServer =
         !rawServer || rawServer === "undefined" || rawServer === "null"
             ? ""
@@ -1317,6 +1344,9 @@ onMounted(() => {
     listarProductos();
     establecerSede();
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
+    if (!idSedeActual.value && emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
 });
 
 onBeforeUnmount(() => {

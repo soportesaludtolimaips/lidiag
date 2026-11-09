@@ -37,6 +37,14 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Propagación de Fix de Resiliencia y Fallback de Sedes en Módulo Tele-Radiología (`resources/js/components/modulos/tele-radiologia/`):**
+  - **Componentes Actualizados:**
+    * `teleRadiologiaEnviarEstudioComponent.vue`: Fallback a `localStorage` en `buscarStudy()`, `email_reportar`, `establecerSede()`, `onSedeSeleccionada()`, visor de imágenes (`ST-urlsede`, `ST-servername`) y emisión reactiva de `solicitarSedeActiva` en `onMounted()`.
+    * `teleRadiologiaTranscibirComponent.vue`: Fallback a `localStorage` en `listarPendientesTrascribir()`, `establecerSede()`, `onSedeSeleccionada()` y solicitud preventiva de sede al montar.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios en ambos componentes ✅.
+    * Vite build (`npm run build`) completado exitosamente en 1.26s ✅.
+
 - [x] **2026-11-09 — Propagación de Fix de Resiliencia y Fallback de Sedes en Módulo Pacientes / Admisión (`resources/js/components/modulos/pacientes/`):**
   - **Componentes Actualizados:**
     * `admisionComponent.vue`: Fallback a `localStorage` en `obtenerSedeActualId()`, `sedeNombre`, `resolverNombreSede()` y `onSedeSeleccionada`. Solicitud reactiva al montar con `solicitarSedeActiva` si el estado es frío. Detección de cambio real en `onSedeSeleccionada` antes de relanzar búsqueda.
