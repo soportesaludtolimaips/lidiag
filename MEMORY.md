@@ -37,6 +37,18 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Auditoría UI/UX Módulo Tele-Radiología (`teleRadiologiaEnviarEstudioComponent.vue`, `teleRadiologiaTranscibirComponent.vue`):**
+  - **Ajustes Realizados:**
+    * **`teleRadiologiaEnviarEstudioComponent.vue`:**
+      - Asociación de etiquetas semánticas `for` e identificadores `id` en todos los campos del formulario modal de envío (Documento, Nombres, Sexo, Fecha Nacimiento, Dirección, Teléfono, Correo Electrónico, Descripción, Detalle, Fecha, Observaciones, Prioridad, Atención) (H2).
+      - Corrección de typos: `"Télefono"` → `"Teléfono"`, `"E - Mail"` → `"Correo Electrónico"` (L1).
+      - Autofoco inicial accesible mediante `nextTick` sobre `orden_paciente_num_docu` al abrir el panel de generación de orden (M2).
+      - Homologación de encabezados de toasts a `"Completado"` (M4).
+    * **`teleRadiologiaTranscibirComponent.vue`:**
+      - Corrección y homologación de headings en toasts: `"Ok!!!"` con espera → `"Procesando..."`, `"Ok!!!"` tras éxito → `"Completado"`, `"Upss!!!"` → `"Error"` (M4).
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios en ambos componentes ✅.
+    * Compilación de producción Vite (`npm run build`) completada exitosamente en 1.49s ✅.
 - [x] **2026-11-09 — Auditoría UI/UX Módulo Estudios Radiológicos (`estudioAsignadosComponent.vue`, `notificarEstudioComponent.vue`):**
   - **Ajustes Realizados:**
     * **`estudioAsignadosComponent.vue`:**

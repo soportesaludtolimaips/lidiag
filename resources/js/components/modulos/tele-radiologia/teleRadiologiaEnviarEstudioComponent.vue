@@ -279,8 +279,13 @@
                                     <div class="row">
                                         <div class="col-md-3">
                                             <div class="form-group">
-                                                <label class="control-label"># Documento</label>
+                                                <label
+                                                    class="control-label"
+                                                    for="orden_paciente_num_docu"
+                                                    ># Documento</label
+                                                >
                                                 <input
+                                                    id="orden_paciente_num_docu"
                                                     type="text"
                                                     v-model="orden.paciente.num_docu"
                                                     class="form-control"
@@ -290,8 +295,13 @@
                                         </div>
                                         <div class="col-md-5">
                                             <div class="form-group">
-                                                <label class="control-label">Nombres</label>
+                                                <label
+                                                    class="control-label"
+                                                    for="orden_paciente_nom_pacien"
+                                                    >Nombres</label
+                                                >
                                                 <input
+                                                    id="orden_paciente_nom_pacien"
                                                     type="text"
                                                     v-model="orden.paciente.nom_pacien"
                                                     class="form-control"
@@ -301,8 +311,13 @@
                                         </div>
                                         <div class="col-md-2">
                                             <div class="form-group">
-                                                <label class="control-label">Sexo</label>
+                                                <label
+                                                    class="control-label"
+                                                    for="orden_paciente_sexo"
+                                                    >Sexo</label
+                                                >
                                                 <input
+                                                    id="orden_paciente_sexo"
                                                     type="text"
                                                     v-model="orden.paciente.sexo"
                                                     class="form-control"
@@ -311,8 +326,13 @@
                                         </div>
                                         <div class="col-md-2">
                                             <div class="form-group">
-                                                <label class="control-label">Fec. Nacim.</label>
+                                                <label
+                                                    class="control-label"
+                                                    for="orden_paciente_fec_naci"
+                                                    >Fec. Nacim.</label
+                                                >
                                                 <input
+                                                    id="orden_paciente_fec_naci"
                                                     type="date"
                                                     v-model="orden.paciente.fec_naci"
                                                     class="form-control"
@@ -323,8 +343,13 @@
                                     <div class="row">
                                         <div class="col-md-4">
                                             <div class="form-group">
-                                                <label class="control-label">Dirección</label>
+                                                <label
+                                                    class="control-label"
+                                                    for="orden_paciente_direccion"
+                                                    >Dirección</label
+                                                >
                                                 <input
+                                                    id="orden_paciente_direccion"
                                                     type="text"
                                                     v-model="orden.paciente.direccion"
                                                     class="form-control"
@@ -333,8 +358,13 @@
                                         </div>
                                         <div class="col-md-3">
                                             <div class="form-group">
-                                                <label class="control-label">Télefono</label>
+                                                <label
+                                                    class="control-label"
+                                                    for="orden_paciente_tel"
+                                                    >Teléfono</label
+                                                >
                                                 <input
+                                                    id="orden_paciente_tel"
                                                     type="number"
                                                     v-model="orden.paciente.tel"
                                                     class="form-control"
@@ -343,8 +373,13 @@
                                         </div>
                                         <div class="col-md-5">
                                             <div class="form-group">
-                                                <label class="control-label">E - Mail</label>
+                                                <label
+                                                    class="control-label"
+                                                    for="orden_paciente_email"
+                                                    >Correo Electrónico</label
+                                                >
                                                 <input
+                                                    id="orden_paciente_email"
                                                     type="email"
                                                     v-model="orden.paciente.email"
                                                     class="form-control"
@@ -365,8 +400,11 @@
                                     <div class="row">
                                         <div class="col-md-5">
                                             <div class="form-group">
-                                                <label class="control-label">Descripción</label>
+                                                <label class="control-label" for="orden_study_desc"
+                                                    >Descripción</label
+                                                >
                                                 <input
+                                                    id="orden_study_desc"
                                                     type="text"
                                                     v-model="orden.study_desc"
                                                     class="form-control"
@@ -375,8 +413,13 @@
                                         </div>
                                         <div class="col-md-4">
                                             <div class="form-group">
-                                                <label class="control-label">Detalle</label>
+                                                <label
+                                                    class="control-label"
+                                                    for="orden_accession_no"
+                                                    >Detalle</label
+                                                >
                                                 <input
+                                                    id="orden_accession_no"
                                                     type="text"
                                                     v-model="orden.accession_no"
                                                     class="form-control"
@@ -385,8 +428,11 @@
                                         </div>
                                         <div class="col-md-3">
                                             <div class="form-group">
-                                                <label class="control-label">Fecha</label>
+                                                <label class="control-label" for="orden_fec_estudio"
+                                                    >Fecha</label
+                                                >
                                                 <input
+                                                    id="orden_fec_estudio"
                                                     type="text"
                                                     v-model="orden.fec_estudio"
                                                     class="form-control"
@@ -397,8 +443,13 @@
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
-                                                <label class="control-label">Observaciones</label>
+                                                <label
+                                                    class="control-label"
+                                                    for="orden_observaciones"
+                                                    >Observaciones</label
+                                                >
                                                 <input
+                                                    id="orden_observaciones"
                                                     type="text"
                                                     v-model="orden.observaciones"
                                                     class="form-control"
@@ -448,8 +499,13 @@
                                     <div class="row">
                                         <div class="col-md-4">
                                             <div class="form-group">
-                                                <label class="control-label">Prioridad</label>
+                                                <label
+                                                    class="control-label"
+                                                    for="orden_prioridad_id"
+                                                    >Prioridad</label
+                                                >
                                                 <select
+                                                    id="orden_prioridad_id"
                                                     v-model="orden.priori.id"
                                                     class="form-control custom-select"
                                                     @change="establecerPrioridad"
@@ -473,8 +529,13 @@
                                         </div>
                                         <div class="col-md-4" v-if="sedeInterface">
                                             <div class="form-group">
-                                                <label class="control-label">Atención</label>
+                                                <label
+                                                    class="control-label"
+                                                    for="interface_atencion_select"
+                                                    >Atención</label
+                                                >
                                                 <select
+                                                    id="interface_atencion_select"
                                                     v-model="interfaceAtencionSeleccionada"
                                                     class="form-control custom-select"
                                                     @change="interfaceListarProductosDiagnosticos()"
@@ -1038,7 +1099,7 @@ async function guardarRegistro() {
             registro.value.destino_estudio = DESTINO_TELE_RADIOLOGIA;
 
             toastMessage({
-                heading: "Ok!!!",
+                heading: "Completado",
                 text: resOrdenTele?.data?.details || "Orden enviada correctamente.",
                 icon: "success",
             });
@@ -1057,7 +1118,7 @@ async function guardarRegistro() {
 
             if (resEstudio.status == 200 || resEstudio.status == 201) {
                 toastMessage({
-                    heading: "Ok!!!",
+                    heading: "Completado",
                     text: resEstudio.data.message || "Estudio guardado correctamente.",
                     icon: "success",
                 });
@@ -1282,6 +1343,7 @@ function btnCerrarModal() {
 function abrirModal() {
     sidebarVisible.value = true;
     nextTick(() => {
+        document.getElementById("orden_paciente_num_docu")?.focus();
         setTimeout(() => {
             selProducto.value?.rebuild();
             selDiagnostico.value?.rebuild();

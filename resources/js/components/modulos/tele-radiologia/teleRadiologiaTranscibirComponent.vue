@@ -894,7 +894,7 @@ async function guardarRegistro() {
     loadingGuardar.value = true;
     try {
         toastMessage({
-            heading: "Ok!!!",
+            heading: "Procesando...",
             text: "Enviando lectura, por favor espere",
             icon: "info",
         });
@@ -950,7 +950,7 @@ async function guardarRegistro() {
             }
 
             toastMessage({
-                heading: "Ok!!!",
+                heading: "Completado",
                 text: res.data.data.message,
                 icon: "success",
             });
@@ -959,7 +959,7 @@ async function guardarRegistro() {
             errores.value = {};
         } else {
             toastMessage({
-                heading: "Upss!!!",
+                heading: "Error",
                 text: res.data.data.message,
                 icon: "error",
             });
