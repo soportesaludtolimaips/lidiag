@@ -101,6 +101,7 @@
                                                 type="date"
                                                 class="form-control"
                                                 v-model="datosReporte.fechaIni"
+                                                @keyup.enter="descargarReporte()"
                                             />
                                         </div>
                                     </div>
@@ -119,6 +120,7 @@
                                                 type="date"
                                                 class="form-control"
                                                 v-model="datosReporte.fechaFin"
+                                                @keyup.enter="descargarReporte()"
                                             />
                                         </div>
                                     </div>

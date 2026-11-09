@@ -37,6 +37,12 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Auditoría UI/UX Módulo Reportes (`reporteEstudiosPACComponent.vue`):**
+  - **Ajustes Realizados:**
+    * **Atajo de Teclado Enter en Filtros (H7, L6):** Adición de `@keyup.enter="descargarReporte()"` en selectores de fecha inicial y final para ejecución ágil de exportación sin obligar al uso exclusivo del mouse.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios ✅.
+    * Compilación de producción Vite (`npm run build`) completada exitosamente en 1.44s ✅.
 - [x] **2026-11-09 — Auditoría UI/UX Módulo Contratos (`contratoComponent.vue`):**
   - **Ajustes Realizados:**
     * **Atajo Global de Teclado `Escape` (E4):** Implementación de `handleKeydown` en `window` para cerrar en cascada los drawers activos (detalle de contrato o formulario de creación/edición) y desuscripción limpia en `onBeforeUnmount`.
