@@ -185,7 +185,7 @@
                     </button>
                 </div>
                 <div class="r-panel-body">
-                    <form action="#">
+                    <form action="#" @submit.prevent="agregarProducto()">
                         <div class="form-body">
                             <div class="form-group" id="producto-parent">
                                 <label class="control-label font-weight-bold"

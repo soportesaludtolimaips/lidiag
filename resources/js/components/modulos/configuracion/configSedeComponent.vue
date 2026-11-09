@@ -179,7 +179,7 @@
                     <!-- ============================================================== -->
                     <!-- Aqui va el contenido de los formularios -->
                     <!-- ============================================================== -->
-                    <form action="#">
+                    <form action="#" @submit.prevent="guardarRegistro()">
                         <div class="form-body">
                             <div class="row p-t-20">
                                 <div class="col-md-6">
@@ -682,7 +682,7 @@ async function guardarRegistro() {
 
             if (res.status >= 200 && res.status < 300) {
                 toastMessage({
-                    heading: "Ok!!!",
+                    heading: "Completado",
                     text:
                         res.data?.data?.message ||
                         res.data?.message ||
@@ -701,7 +701,7 @@ async function guardarRegistro() {
 
             if (res.status >= 200 && res.status < 300) {
                 toastMessage({
-                    heading: "Ok!!!",
+                    heading: "Completado",
                     text:
                         res.data?.data?.message ||
                         res.data?.message ||

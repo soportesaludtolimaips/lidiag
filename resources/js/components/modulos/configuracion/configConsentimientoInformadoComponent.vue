@@ -160,7 +160,7 @@
                     </button>
                 </div>
                 <div class="r-panel-body">
-                    <form action="#">
+                    <form action="#" @submit.prevent="guardarRegistro()">
                         <div class="form-body">
                             <div class="row p-t-20">
                                 <div class="col-md-12">
@@ -408,7 +408,7 @@ async function guardarRegistro() {
 
         if (res.status === 200 || res.status === 201) {
             toastMessage({
-                heading: "Ok!!!",
+                heading: "Completado",
                 text: res.data.data?.message || "Guardado correctamente.",
                 icon: "success",
             });

@@ -129,7 +129,7 @@
                     </span>
                 </div>
                 <div class="r-panel-body">
-                    <form action="#">
+                    <form action="#" @submit.prevent="guardarRegistro()">
                         <div class="form-body">
                             <div class="row p-t-20">
                                 <div class="col-md-6">

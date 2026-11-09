@@ -148,7 +148,7 @@
                     </button>
                 </div>
                 <div class="r-panel-body">
-                    <form action="#">
+                    <form action="#" @submit.prevent="guardarRegistro()">
                         <div class="form-body" style="padding-top: 5px">
                             <div class="row">
                                 <div class="col-md-12">
@@ -395,7 +395,7 @@ async function guardarRegistro() {
 
             if (res.status >= 200 && res.status < 300) {
                 toastMessage({
-                    heading: "Ok!!!",
+                    heading: "Completado",
                     text: res.data?.data?.message || res.data?.message || "Guardado correctamente.",
                     icon: "success",
                 });
@@ -408,7 +408,7 @@ async function guardarRegistro() {
             const res = await axios.put("/api/config-plantillas/" + id.value, registro.value);
             if (res.status >= 200 && res.status < 300) {
                 toastMessage({
-                    heading: "Ok!!!",
+                    heading: "Completado",
                     text:
                         res.data?.data?.message ||
                         res.data?.message ||
