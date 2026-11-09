@@ -1832,7 +1832,7 @@ async function generarLectura() {
             return true;
         } else {
             toastMessage({
-                heading: "Upss!!!",
+                heading: "Error",
                 text:
                     res.data?.message ||
                     res.data?.data?.message ||

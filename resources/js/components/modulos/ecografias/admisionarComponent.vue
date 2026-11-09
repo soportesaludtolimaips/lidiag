@@ -443,10 +443,13 @@
                                     <div class="row">
                                         <div class="col-md-3">
                                             <div class="form-group">
-                                                <label class="control-label font-weight-bold"
+                                                <label
+                                                    class="control-label font-weight-bold"
+                                                    for="selTipoDoc"
                                                     >Tipo de documento</label
                                                 >
                                                 <Select2
+                                                    id="selTipoDoc"
                                                     ref="selTipoDoc"
                                                     :value="registro.tipo_documento_id"
                                                     :options="tipoDocumentoOptions"
@@ -630,10 +633,13 @@
                                     <div class="row">
                                         <div class="col-md-5">
                                             <div class="form-group">
-                                                <label class="control-label font-weight-bold"
+                                                <label
+                                                    class="control-label font-weight-bold"
+                                                    for="selMedico"
                                                     >Médico</label
                                                 >
                                                 <Select2
+                                                    id="selMedico"
                                                     ref="selMedico"
                                                     :value="registro.medico_id"
                                                     :options="medicoOptions"
@@ -650,10 +656,13 @@
                                         </div>
                                         <div class="col-md-7">
                                             <div class="form-group">
-                                                <label class="control-label font-weight-bold"
+                                                <label
+                                                    class="control-label font-weight-bold"
+                                                    for="selProducto"
                                                     >Producto</label
                                                 >
                                                 <Select2
+                                                    id="selProducto"
                                                     ref="selProducto"
                                                     :value="productoSelecciondo"
                                                     :options="productoOptions"
@@ -1343,7 +1352,7 @@ async function guardarRegistro() {
             btnCerrarModalForm();
         } else {
             toastMessage({
-                heading: "Upss!!!",
+                heading: "Error",
                 text: ecografiaRes.data?.message || "No se pudo guardar la agenda.",
                 icon: "error",
             });

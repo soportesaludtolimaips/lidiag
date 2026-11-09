@@ -740,7 +740,7 @@ async function imprimirReporte(item) {
             window.open(url, "_blank", "noopener,noreferrer");
         } else {
             toastMessage({
-                heading: "Upss!!!",
+                heading: "Advertencia",
                 text:
                     res?.data?.message ||
                     res?.data?.data?.message ||

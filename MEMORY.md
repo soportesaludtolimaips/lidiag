@@ -37,6 +37,18 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Auditoría UI/UX Módulo Ecografías (`admisionarComponent.vue`, `ecografiasAdmisionadasComponent.vue`, `lecturaComponent.vue`):**
+  - **Ajustes Realizados:**
+    * **`admisionarComponent.vue`:**
+      - Asociación de etiquetas semánticas `for` e identificadores `id` en selectores clave del formulario modal (`selTipoDoc`, `selMedico`, `selProducto`) (H2).
+      - Homologación de encabezado de toast de error a `"Error"` (M4).
+    * **`ecografiasAdmisionadasComponent.vue`:**
+      - Corrección de encabezado de toast al fallar generación de reporte a `"Advertencia"` (M4).
+    * **`lecturaComponent.vue`:**
+      - Homologación de encabezado de toast tras error al guardar lectura médica a `"Error"` (M4).
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios en todos los componentes modificados ✅.
+    * Compilación de producción Vite (`npm run build`) completada exitosamente en 1.43s ✅.
 - [x] **2026-11-09 — Auditoría UI/UX Módulo Tele-Radiología (`teleRadiologiaEnviarEstudioComponent.vue`, `teleRadiologiaTranscibirComponent.vue`):**
   - **Ajustes Realizados:**
     * **`teleRadiologiaEnviarEstudioComponent.vue`:**
