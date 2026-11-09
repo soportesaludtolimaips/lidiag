@@ -419,7 +419,9 @@ Route::get('/validar-informe/{token}', [VerificacionInformeController::class, 'v
 
 require __DIR__.'/files.php';
 
-/* Route::get('/{optional?}', function () {
-    return view('layouts.app');
-})->name('basepath')->where('optional', '.*');
+/**
+ * Entrada a la SPA (Vue Router)
  */
+Route::get('/spa/{any?}', function () {
+    return view('layouts.app');
+})->middleware(['auth', 'force-password-change'])->where('any', '.*')->name('spa.entrypoint');

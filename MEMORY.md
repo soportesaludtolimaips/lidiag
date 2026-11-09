@@ -69,6 +69,21 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Verificaciones:**
     * Prettier y ESLint pasados sin advertencias ✅.
     * Vite build completado en 1.23s ✅.
+- [x] **2026-11-09 — Implementación de Fases 3 y 4 de Migración a Vue Router 4 (Shell SPA y Adaptador Híbrido):**
+  - **Avances Realizados:**
+    * **Hotfix Blade Syntax:** Se corrigió la compilación de `window.__INITIAL_STATE__` en [`resources/views/layouts/app.blade.php`](file:///c:/laragon/www/lidiag/resources/views/layouts/app.blade.php). La directiva multi-línea `@json(Auth::check() ? [...] : null)` fallaba en el tokenizer de Blade (`Unclosed '[' does not match ')'`); se encapsuló en un bloque `@php $initialState = ... @endphp` con serialización segura `window.__INITIAL_STATE__ = @json($initialState);`. Validado con `php artisan view:cache` al 100%.
+    * **Fase 3 (Construcción del Shell SPA):**
+      - Se creó [`AppSidebar.vue`](file:///c:/laragon/www/lidiag/resources/js/layouts/AppSidebar.vue) portando íntegramente las 561 líneas de `sidebar.blade.php` a componentes reactivos de Vue 3 con `<router-link to="..." active-class="active">` y verificación de permisos Spatie con `v-if="can('...')"`.
+      - Se implementó gestión de acordeones reactivos en Vue (`openMenus`) con auto-apertura inteligente según el prefijo de la ruta activa (`useRoute().path`), eliminando la dependencia de `sidebarmenu.js` y jQuery para el control del menú.
+      - Se creó [`AppHeader.vue`](file:///c:/laragon/www/lidiag/resources/js/layouts/AppHeader.vue) con toggle reactivo de mini-sidebar y navegación móvil, integrado con `commandPaletteComponent` y `userProfileAndSearchComponent`.
+      - Se creó [`AppLayout.vue`](file:///c:/laragon/www/lidiag/resources/js/layouts/AppLayout.vue) como shell principal conteniendo Header, Sidebar, `<router-view>` con transición suave `fade-page`, y Footer.
+    * **Fase 4 (Adaptador Híbrido y Entrada SPA):**
+      - En [`resources/views/layouts/app.blade.php`](file:///c:/laragon/www/lidiag/resources/views/layouts/app.blade.php) se implementó la directiva condicional `@hasSection('content')`: si una vista Blade define contenido tradicional, se renderiza el layout MPA para compatibilidad 100% regresiva; si no lo define, monta automáticamente `<app-layout />` con el SPA de Vue Router.
+      - En [`routes/web.php`](file:///c:/laragon/www/lidiag/routes/web.php) se habilitó el endpoint de prueba y fallback `Route::get('/spa/{any?}', ...)` protegido con `auth` y `force-password-change`.
+  - **Verificaciones:**
+    * Pint pasado al 100% en `routes/web.php` (`vendor\bin\pint.bat --test`) ✅.
+    * ESLint y Prettier pasados al 100% en los nuevos componentes del layout (`AppLayout.vue`, `AppHeader.vue`, `AppSidebar.vue`) ✅.
+    * Compilación Vite completada exitosamente (`built in 1.22s`) ✅.
 - [x] **2026-11-09 — Implementación de Fases 1 y 2 de Migración a Vue Router 4:**
   - **Avances Realizados:**
     * **Fase 1 (Capa de Autenticación Reactiva):** Se inyectó `window.__INITIAL_STATE__` en `resources/views/layouts/app.blade.php` con datos de usuario, roles y permisos Spatie. Se creó el composable singleton [`useAuth.js`](file:///c:/laragon/www/lidiag/resources/js/composables/useAuth.js) que provee métodos `can(permission)`, `hasRole(role)`, sincronización reactiva de sede y médico (`sessionStorage`/`localStorage`), y `fetchUser()`.

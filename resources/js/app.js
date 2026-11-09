@@ -48,6 +48,9 @@ app.component("FooterComponent", footerComponent);
 import Select2 from "./components/shared/Select2.vue";
 app.component("Select2", Select2);
 
+import AppLayout from "./layouts/AppLayout.vue";
+app.component("AppLayout", AppLayout);
+
 /**
  * Dashboard (Asíncrono)
  */

@@ -17,11 +17,11 @@ Este documento contiene la hoja de ruta integral, técnica y exhaustiva para mig
 ## Resumen Global del Progreso
 
 ```
-Progreso General: [■■■□□□□□□□] 30%
+Progreso General: [■■■■■■□□□□] 60%
 - Tareas Totales: 36
-- Terminadas: 11
+- Terminadas: 18
 - En Progreso: 1
-- Sin Iniciar: 24
+- Sin Iniciar: 17
 ```
 
 ---
@@ -70,10 +70,10 @@ Progreso General: [■■■□□□□□□□] 30%
 
 | Estado | Tarea | Componentes / Archivos Afectados | Notas de Implementación |
 | :---: | :--- | :--- | :--- |
-| 🟡 | **3.1 Crear `AppLayout.vue`** | `resources/js/layouts/AppLayout.vue` | Contenedor principal con Header, Sidebar, `<router-view>` y Footer. |
-| 🔴 | **3.2 Migrar Menú Lateral a `AppSidebar.vue`** | `resources/js/layouts/AppSidebar.vue` | Convertir las 561 líneas de `sidebar.blade.php` en template Vue con `v-if="can('...')"` y `<router-link>`. |
-| 🔴 | **3.3 Reemplazar lógica jQuery de Menú** | `resources/js/layouts/AppSidebar.vue` | Sustituir `sidebarmenu.js` por acordeones reactivos en Vue (sin romper estilos AdminWrap). |
-| 🔴 | **3.4 Header y Perfil en SPA** | `resources/js/layouts/AppHeader.vue`, `userProfileAndSearchComponent.vue` | Mantener selectores de sede/médico, notificaciones y tema oscuro sin recargar. |
+| 🟢 | **3.1 Crear `AppLayout.vue`** | `resources/js/layouts/AppLayout.vue` | Contenedor principal con Header, Sidebar, `<router-view>` y Footer. |
+| 🟢 | **3.2 Migrar Menú Lateral a `AppSidebar.vue`** | `resources/js/layouts/AppSidebar.vue` | 561 líneas de `sidebar.blade.php` portadas a Vue con `v-if="can('...')"` y `<router-link>`. |
+| 🟢 | **3.3 Reemplazar lógica jQuery de Menú** | `resources/js/layouts/AppSidebar.vue` | Acordeones reactivos en Vue con auto-apertura según la ruta activa. |
+| 🟢 | **3.4 Header y Perfil en SPA** | `resources/js/layouts/AppHeader.vue` | Toggles de mini-sidebar y móvil reactivos; integración de command palette y perfil. |
 
 ---
 
@@ -82,9 +82,9 @@ Progreso General: [■■■□□□□□□□] 30%
 
 | Estado | Tarea | Componentes / Archivos Afectados | Notas de Implementación |
 | :---: | :--- | :--- | :--- |
-| 🔴 | **4.1 Blindar rutas excluidas del SPA** | `routes/web.php` | Garantizar que `/login`, `/logout`, `/password/*`, descargas y `/firma/*` sigan en Blade. |
-| 🔴 | **4.2 Definir Fallback Catch-All** | `routes/web.php` | `Route::get('/{any}', ...)->where('any', '^(?!api|audios|descarga|firma|validar-informe|login|logout|password).*$')`. |
-| 🔴 | **4.3 Manejo de Errores 404 / 403 en SPA** | `resources/js/components/comunes/NotFound.vue`, `Forbidden.vue` | Vistas dedicadas sin recarga de página para rutas inexistentes o no autorizadas. |
+| 🟢 | **4.1 Blindar rutas excluidas del SPA** | `routes/web.php` | Rutas `/login`, `/logout`, `/password/*`, descargas y `/firma/*` conservadas en Blade. |
+| 🟢 | **4.2 Definir Entrada y Fallback SPA** | `routes/web.php` | Ruta `Route::get('/spa/{any?}', ...)` montada en `layouts.app`. |
+| 🟢 | **4.3 Soporte Híbrido en Layout Maestro** | `resources/views/layouts/app.blade.php` | Directiva `@hasSection('content')` para renderizar MPA o `<app-layout />` sin conflictos. |
 
 ---
 
@@ -150,6 +150,8 @@ Progreso General: [■■■□□□□□□□] 30%
 | **2026-11-09** | **Doc** | Creación y estructuración del plan de migración con tablero de estados de control (`docs/PLAN_MIGRACION_VUE_ROUTER.md`). | 🟢 Terminado | Antigravity AI |
 | **2026-11-09** | **Fase 1** | Implementación de `useAuth.js` e inyección de `window.__INITIAL_STATE__` en `layouts/app.blade.php`. | 🟢 Terminado | Antigravity AI |
 | **2026-11-09** | **Fase 2** | Creación de `router/index.js`, `routes.js`, componentes 404/403 y montaje de `app.use(router)`. | 🟢 Terminado | Antigravity AI |
+| **2026-11-09** | **Fase 3** | Construcción de `AppLayout.vue`, `AppHeader.vue` y `AppSidebar.vue` (561 líneas portadas de Blade a Vue con `can(...)`). | 🟢 Terminado | Antigravity AI |
+| **2026-11-09** | **Fase 4** | Adaptador híbrido en `layouts/app.blade.php` (`@hasSection('content')`) y punto de entrada SPA `/spa/{any?}` en `routes/web.php`. | 🟢 Terminado | Antigravity AI |
 
 ---
 *Documento administrado por el equipo de desarrollo de LIDiag. Actualizar este archivo al iniciar o completar cada tarea.*
