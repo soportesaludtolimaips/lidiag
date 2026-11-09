@@ -37,6 +37,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Propagación de Fix de Resiliencia y Fallback de Sedes en Componentes Globales (Dashboard y Footer) (`resources/js/components/dashboard/`, `resources/js/components/comunes/`):**
+  - **Componentes Actualizados:**
+    * `footerComponent.vue`: Sincronización reactiva bidireccional entre `sessionStorage` y `localStorage` para `ST-sede` y `ST-nomsede`, inicialización segura de `nomSede` y solicitud preventiva con `solicitarSedeActiva` si el estado es frío.
+    * `dashboardComponent.vue`: Computada reactiva de `nomSedeActual` con fallback a `localStorage`, inicialización de `sedeSeleccionada`, listener reactivo `onSedeSeleccionada`, solicitud preventiva con `solicitarSedeActiva` y persistencia bidireccional en `goToLectura()` y `goToTranscripcion()`.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios (0 errores, 0 advertencias) ✅.
+    * Vite build (`npm run build`) completado exitosamente en 1.58s ✅.
 - [x] **2026-11-09 — Propagación de Fix de Resiliencia y Fallback de Sedes en Módulo Configuración (`resources/js/components/modulos/configuracion/`):**
   - **Componentes Actualizados:**
     * `configConsentimientoInformadoComponent.vue`: Inicialización de `registro.sede_id` con fallback a `localStorage`. Sincronización reactiva con `onSedeSeleccionada`, solicitud preventiva con `solicitarSedeActiva` en `onMounted()`, y resiliencia en `guardarRegistro()` y `limpiarFormulario()`.

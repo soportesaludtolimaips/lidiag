@@ -22,7 +22,11 @@ const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
 const route = useRoute();
 
-const nomSede = ref(sessionStorage.getItem("ST-nomsede"));
+function obtenerNomSede() {
+    return sessionStorage.getItem("ST-nomsede") || localStorage.getItem("ST-nomsede") || "";
+}
+
+const nomSede = ref(obtenerNomSede());
 const nomMedicoEcografia = ref(localStorage.getItem("ST-ecografia-nomMedico"));
 const mostrarMedico = ref(false);
 
@@ -35,13 +39,13 @@ const rutasEcografias = [
 ];
 
 /**
- * Actualiza el nombre de la sede desde sessionStorage.
+ * Actualiza el nombre de la sede desde storage.
  *
  * @author Jhon Javer Lozano Arce
  * @date 2024-04-04
  */
 function establecerSede() {
-    nomSede.value = sessionStorage.getItem("ST-nomsede");
+    nomSede.value = obtenerNomSede();
 }
 /**
  * Actualiza el nombre del médico de ecografía desde localStorage.
@@ -54,10 +58,21 @@ function establecerMedico() {
 }
 
 function onSedeSeleccionada(data) {
-    if (data?.idSede) sessionStorage.setItem("ST-sede", data.idSede);
-    if (data?.nomSede) {
-        sessionStorage.setItem("ST-nomsede", data.nomSede);
-        nomSede.value = data.nomSede;
+    const rawSede = data?.sede ?? (typeof data === "object" ? data.idSede || data.id : data);
+    const nomSedeVal =
+        data?.nomSede ??
+        sessionStorage.getItem("ST-nomsede") ??
+        localStorage.getItem("ST-nomsede") ??
+        "";
+
+    if (rawSede) {
+        sessionStorage.setItem("ST-sede", String(rawSede));
+        localStorage.setItem("ST-sede", String(rawSede));
+    }
+    if (nomSedeVal) {
+        sessionStorage.setItem("ST-nomsede", nomSedeVal);
+        localStorage.setItem("ST-nomsede", nomSedeVal);
+        nomSede.value = nomSedeVal;
     }
 }
 
@@ -87,6 +102,10 @@ watch(
 onMounted(() => {
     establecerSede();
     establecerMedico();
+
+    if (!nomSede.value && emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
 
     if (emitter) {
         emitter.on("sedeSeleccionada", onSedeSeleccionada);

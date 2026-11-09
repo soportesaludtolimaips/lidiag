@@ -968,11 +968,12 @@
     </div>
 </template>
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
 import { useAuth } from "../../composables/useAuth";
 
+const { proxy } = getCurrentInstance();
 const auth = useAuth();
 const router = useRouter();
 
@@ -984,8 +985,16 @@ const loading = ref(false);
 const error = ref(null);
 const days = ref(30);
 const alerts = ref([]);
-const nomSedeActual = ref(null);
-const sedeSeleccionada = ref(null);
+const nomSedeActual = computed(() => {
+    return (
+        sessionStorage.getItem("ST-nomsede") ||
+        localStorage.getItem("ST-nomsede") ||
+        "Todas las sedes"
+    );
+});
+const sedeGuardadaInicial =
+    sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || null;
+const sedeSeleccionada = ref(sedeGuardadaInicial ? Number(sedeGuardadaInicial) : null);
 const sedes = ref([]);
 const filters = ref({
     selected: { sede_id: null, medico_id: null },
@@ -1497,9 +1506,14 @@ function formatPacienteNombre(row) {
 }
 function goToLectura(row) {
     try {
-        if (row && row.sede_id) sessionStorage.setItem("ST-sede", String(row.sede_id));
-        if (row && row.accession_no)
+        if (row && row.sede_id) {
+            sessionStorage.setItem("ST-sede", String(row.sede_id));
+            localStorage.setItem("ST-sede", String(row.sede_id));
+        }
+        if (row && row.accession_no) {
             sessionStorage.setItem("ST-accession", String(row.accession_no));
+            localStorage.setItem("ST-accession", String(row.accession_no));
+        }
     } catch {
         /* noop */
     }
@@ -1511,9 +1525,14 @@ function goToLectura(row) {
 }
 function goToTranscripcion(row) {
     try {
-        if (row && row.sede_id) sessionStorage.setItem("ST-sede", String(row.sede_id));
-        if (row && row.accession_no)
+        if (row && row.sede_id) {
+            sessionStorage.setItem("ST-sede", String(row.sede_id));
+            localStorage.setItem("ST-sede", String(row.sede_id));
+        }
+        if (row && row.accession_no) {
             sessionStorage.setItem("ST-accession", String(row.accession_no));
+            localStorage.setItem("ST-accession", String(row.accession_no));
+        }
     } catch {
         /* noop */
     }
@@ -1532,6 +1551,18 @@ async function listarSedes() {
     }
 }
 
+function onSedeSeleccionada(event) {
+    const raw =
+        event?.sede ??
+        (typeof event === "object" ? event.idSede || event.id : event) ??
+        sessionStorage.getItem("ST-sede") ??
+        localStorage.getItem("ST-sede");
+    const nuevaSede = raw ? Number(raw) : null;
+    if (sedeSeleccionada.value === nuevaSede) return;
+    sedeSeleccionada.value = nuevaSede;
+    fetchDashboard();
+}
+
 function destroyCharts() {
     try {
         if (charts.value.resumen?.destroy) charts.value.resumen.destroy();
@@ -1547,12 +1578,17 @@ function destroyCharts() {
 }
 
 onMounted(async () => {
+    proxy?.emitter?.on("sedeSeleccionada", onSedeSeleccionada);
+    if (!sedeGuardadaInicial) {
+        proxy?.emitter?.emit("solicitarSedeActiva");
+    }
     initCharts();
     await listarSedes();
     await fetchDashboard();
 });
 
 onBeforeUnmount(() => {
+    proxy?.emitter?.off("sedeSeleccionada", onSedeSeleccionada);
     destroyCharts();
 });
 </script>
