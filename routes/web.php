@@ -151,9 +151,11 @@ Route::get('/estudios.tele-radiologia', fn () => view('layouts.app'))
 Route::get('/tele-radiologia', fn () => view('layouts.app'))
     ->name('teleradiologia.index')
     ->middleware(['auth', 'permission:tele.ragiologia.index|tele.ragiologia.enviar|estudio.asignar']);
+Route::redirect('/teleradiologia.index', '/tele-radiologia');
 Route::get('/tele-radiologia-transcribir', fn () => view('layouts.app'))
     ->name('teleradiologia.transcribir')
     ->middleware(['auth', 'permission:tele.ragiologia.transcribir|estudio.transcribir']);
+Route::redirect('/teleradiologia.transcribir', '/tele-radiologia-transcribir');
 
 /*
  * Ecografias

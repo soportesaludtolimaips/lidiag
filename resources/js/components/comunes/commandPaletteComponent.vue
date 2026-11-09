@@ -71,7 +71,7 @@
                             <div v-else class="command-palette-list">
                                 <div
                                     v-for="(item, index) in resultadosFiltrados"
-                                    :key="item.url"
+                                    :key="item.id || item.url + '_' + index"
                                     class="command-palette-item"
                                     :class="{ 'is-selected': indiceSeleccionado === index }"
                                     @mouseenter="indiceSeleccionado = index"
@@ -129,6 +129,7 @@ const inputBusqueda = ref(null);
 const todosLosModulos = [
     // Dashboard
     {
+        id: "dashboard-principal",
         titulo: "Dashboard Principal",
         categoria: "Personal",
         url: "/dashboard",
@@ -138,13 +139,15 @@ const todosLosModulos = [
 
     // Pacientes
     {
+        id: "pacientes-admisionar",
         titulo: "Admisionar Paciente",
         categoria: "Pacientes",
         url: "/pacientes/admision",
         icono: "fa fa-user-plus",
-        permiso: "gestion.pacientes.create",
+        permiso: "gestion.pacientes.create|gestion.pacientes.index",
     },
     {
+        id: "pacientes-listar",
         titulo: "Listar Pacientes",
         categoria: "Pacientes",
         url: "/pacientes/admision",
@@ -154,6 +157,7 @@ const todosLosModulos = [
 
     // Estudios
     {
+        id: "estudios-asignar",
         titulo: "Asignar Estudios (RX, TAC, RM)",
         categoria: "Estudios",
         url: "/estudios.asignar.listar",
@@ -161,13 +165,15 @@ const todosLosModulos = [
         permiso: "estudio.asignar",
     },
     {
+        id: "estudios-asignados",
         titulo: "Estudios Asignados",
         categoria: "Estudios",
         url: "/estudios.asignados.listar",
         icono: "fa fa-check",
-        permiso: "estudio.asignar",
+        permiso: "estudio.asignar|estudio.transcribir",
     },
     {
+        id: "estudios-transcribir",
         titulo: "Pendientes por Transcribir",
         categoria: "Estudios",
         url: "/estudios.transcribir.listar",
@@ -175,6 +181,7 @@ const todosLosModulos = [
         permiso: "estudio.transcribir",
     },
     {
+        id: "estudios-leer",
         titulo: "Estación de Lectura de Estudios",
         categoria: "Estudios",
         url: "/estudios.leer.estudio.listar",
@@ -182,6 +189,7 @@ const todosLosModulos = [
         permiso: "estudio.leerEstudio",
     },
     {
+        id: "estudios-notificar",
         titulo: "Notificar Estudio (WhatsApp / Email)",
         categoria: "Estudios",
         url: "/estudios.notificar.index",
@@ -191,22 +199,35 @@ const todosLosModulos = [
 
     // Tele-Radiología
     {
+        id: "teleradiologia-enviar",
         titulo: "Enviar Estudios a Tele-Radiología",
         categoria: "Tele-Radiología",
-        url: "/teleradiologia.index",
+        url: "/tele-radiologia",
         icono: "fa fa-cloud-upload",
-        permiso: "tele.ragiologia.index",
+        permiso: "tele.ragiologia.index|tele.ragiologia.enviar|estudio.asignar",
     },
     {
+        id: "teleradiologia-transcribir",
         titulo: "Transcribir Tele-Radiología",
         categoria: "Tele-Radiología",
-        url: "/teleradiologia.transcribir",
-        icono: "fa fa-file-text-o",
-        permiso: "tele.ragiologia.transcribir",
+        url: "/tele-radiologia-transcribir",
+        icono: "fa fa-pencil-square-o",
+        permiso: "tele.ragiologia.transcribir|estudio.transcribir",
+    },
+
+    // Control Radiación / Dosimetría (Res. 482)
+    {
+        id: "dosimetria-dashboard",
+        titulo: "Dashboard Control Radiación / Dosimetría NRD",
+        categoria: "Dosimetría",
+        url: "/dosimetria/dashboard",
+        icono: "fa fa-tachometer",
+        permiso: "dosimetria.dashboard",
     },
 
     // Ecografías
     {
+        id: "ecografias-admision",
         titulo: "Admisionar Ecografías y Procedimientos",
         categoria: "Ecografías",
         url: "/ecografias.admisiones",
@@ -214,13 +235,15 @@ const todosLosModulos = [
         permiso: "ecografias.admision",
     },
     {
+        id: "ecografias-admisionadas",
         titulo: "Ecografías Admisionadas",
         categoria: "Ecografías",
-        url: "/ecografias.adminisionadas",
+        url: "/ecografias.admisionadas",
         icono: "fa fa-list-alt",
-        permiso: "ecografias.index",
+        permiso: "ecografias.index|ecografias.admision",
     },
     {
+        id: "ecografias-leer",
         titulo: "Estación de Lectura de Ecografías",
         categoria: "Ecografías",
         url: "/ecografias-pendientes-lecturas",
@@ -228,22 +251,33 @@ const todosLosModulos = [
         permiso: "ecografias.leer",
     },
     {
+        id: "ecografias-consentimientos",
         titulo: "Consentimientos Informados (Firmas/PDF)",
         categoria: "Ecografías",
-        url: "/config-consentimientos-informados",
+        url: "/ecografias-consentimientos",
         icono: "fa fa-pencil-square-o",
         permiso: "ecografias.consentimientos.index",
+    },
+    {
+        id: "ecografias-consentimientos-plantillas",
+        titulo: "Plantillas Consentimientos Informados",
+        categoria: "Ecografías",
+        url: "/ecografias-consentimientos-plantillas",
+        icono: "fa fa-files-o",
+        permiso: "ecografias.consentimientos.plantillas.index",
     },
 
     // Citas y Agenda
     {
-        titulo: "Solicitudes de Citas Pendientes",
+        id: "citas-solicitudes",
+        titulo: "Solicitudes de Citas Pendientes (WhatsApp)",
         categoria: "Citas",
         url: "/citas/revision",
         icono: "fa fa-inbox",
         permiso: "citas.index",
     },
     {
+        id: "citas-listado",
         titulo: "Listado General de Citas",
         categoria: "Citas",
         url: "/citas",
@@ -251,6 +285,7 @@ const todosLosModulos = [
         permiso: "citas.index",
     },
     {
+        id: "citas-tablero",
         titulo: "Tablero de Gestión de Citas",
         categoria: "Citas",
         url: "/citas/gestion",
@@ -258,6 +293,7 @@ const todosLosModulos = [
         permiso: "citas.index",
     },
     {
+        id: "citas-recomendaciones",
         titulo: "Recomendaciones de Citas",
         categoria: "Citas",
         url: "/citas/recomendaciones",
@@ -265,24 +301,43 @@ const todosLosModulos = [
         permiso: "citas.index",
     },
     {
+        id: "agenda-medica",
+        titulo: "Agenda Médica General",
+        categoria: "Citas",
+        url: "/agenda",
+        icono: "fa fa-calendar-check-o",
+        permiso: "agendamiento.agendamiento.index|agenda.index",
+    },
+    {
+        id: "agenda-disponibilidad",
         titulo: "Disponibilidad de Agenda",
         categoria: "Citas",
-        url: "/agenda/disponibilidad",
+        url: "/agenda-disponibilidad",
         icono: "fa fa-clock-o",
-        permiso: "agendamiento.disponibilidad.index",
+        permiso: "agendamiento.disponibilidad.index|agenda.index",
     },
 
     // Reportes
     {
+        id: "reportes-produccion",
         titulo: "Reportes de Producción Médica",
         categoria: "Reportes",
-        url: "/reportes.produccion",
+        url: "/reportes-produccion",
         icono: "fa fa-bar-chart",
-        permiso: "reportes.indicadores",
+        permiso: "reportes.indicadores|reportes.detallados",
+    },
+    {
+        id: "reportes-estudios-pac",
+        titulo: "Reportes de Estudios PACS",
+        categoria: "Reportes",
+        url: "/reportes-estudios-pac",
+        icono: "fa fa-database",
+        permiso: "reportes.indicadores|reportes.detallados",
     },
 
     // Soporte / Helpdesk
     {
+        id: "helpdesk-tickets-mis",
         titulo: "Mis Tickets de Helpdesk",
         categoria: "Helpdesk",
         url: "/helpdesk-tickets",
@@ -290,13 +345,15 @@ const todosLosModulos = [
         permiso: "helpdesk.tickets.index",
     },
     {
+        id: "helpdesk-tickets-crear",
         titulo: "Crear Ticket de Soporte",
         categoria: "Helpdesk",
-        url: "/helpdesk-tickets-crear",
+        url: "/helpdesk-tickets/crear",
         icono: "fa fa-plus-circle",
         permiso: "helpdesk.tickets.create",
     },
     {
+        id: "helpdesk-reportes",
         titulo: "Reportes de Helpdesk",
         categoria: "Helpdesk",
         url: "/helpdesk-reportes",
@@ -304,6 +361,7 @@ const todosLosModulos = [
         permiso: "helpdesk.reportes.index",
     },
     {
+        id: "helpdesk-notificaciones",
         titulo: "Notificaciones Helpdesk",
         categoria: "Helpdesk",
         url: "/helpdesk-notificaciones",
@@ -313,6 +371,7 @@ const todosLosModulos = [
 
     // Contratación y Liquidación
     {
+        id: "contratos-medicos",
         titulo: "Contratos de Médicos y Tarifas",
         categoria: "Contratación",
         url: "/contratos",
@@ -320,6 +379,7 @@ const todosLosModulos = [
         permiso: "contratos.index",
     },
     {
+        id: "liquidacion-medica",
         titulo: "Liquidación Médica",
         categoria: "Liquidación",
         url: "/liquidacion",
@@ -327,6 +387,7 @@ const todosLosModulos = [
         permiso: "liquidacion.index",
     },
     {
+        id: "productividad-honorarios",
         titulo: "Productividad y Honorarios",
         categoria: "Liquidación",
         url: "/productividad",
@@ -334,50 +395,57 @@ const todosLosModulos = [
         permiso: "liquidacion.index",
     },
 
-    // Parametrización
+    // Parametrización / Configuración
     {
+        id: "config-adminsalud",
         titulo: "Administradoras de Salud (EPS)",
         categoria: "Configuración",
-        url: "/config-adminsalud",
+        url: "/config-adminsalud-listar",
         icono: "fa fa-shield",
         permiso: "config.admin.salud.index",
     },
     {
+        id: "config-diagnosticos",
         titulo: "Catálogo de Diagnósticos (CIE-10)",
         categoria: "Configuración",
-        url: "/config-diagnosticos",
+        url: "/config-diagnosticos-listar",
         icono: "fa fa-book",
         permiso: "config.diagnosticos.index",
     },
     {
+        id: "config-prioridades",
         titulo: "Prioridades de Atención",
         categoria: "Configuración",
-        url: "/config-prioridades",
+        url: "/config-prioridades-listar",
         icono: "fa fa-flag",
         permiso: "config.prioridades.index",
     },
     {
+        id: "config-productos",
         titulo: "Catálogo de Productos / Exámenes",
         categoria: "Configuración",
-        url: "/config-productos",
+        url: "/config-productos-listar",
         icono: "fa fa-cubes",
         permiso: "config.productos.index",
     },
     {
+        id: "config-sedes",
         titulo: "Sedes de Atención",
         categoria: "Configuración",
-        url: "/config-sedes",
+        url: "/config-sedes-listar",
         icono: "fa fa-hospital-o",
         permiso: "config.sedes.index",
     },
     {
+        id: "config-servicio-citas",
         titulo: "Servicios de Citas",
         categoria: "Configuración",
-        url: "/config-servicio-citas",
+        url: "/config-servicio-citas-listar",
         icono: "fa fa-tags",
         permiso: "config.servicio.citas.index",
     },
     {
+        id: "config-servicio-producto",
         titulo: "Productos por Servicio",
         categoria: "Configuración",
         url: "/config-servicio-producto",
@@ -385,57 +453,121 @@ const todosLosModulos = [
         permiso: "config.servicio.citas.index",
     },
     {
+        id: "config-plantillas",
         titulo: "Plantillas de Informes",
         categoria: "Configuración",
-        url: "/config-plantillas",
+        url: "/config-plantillas-listar",
         icono: "fa fa-file-text-o",
         permiso: "config.plantillas.index",
     },
     {
+        id: "config-tipos-plantillas",
         titulo: "Tipos de Plantillas",
         categoria: "Configuración",
-        url: "/config-tipos-plantillas",
+        url: "/config-tipos-plantillas.listar",
         icono: "fa fa-folder-o",
         permiso: "config.plantillas.index",
     },
     {
+        id: "config-tipos-documentos",
         titulo: "Tipos de Documentos",
         categoria: "Configuración",
-        url: "/config-tipos-documentos",
+        url: "/config-tipos-documentos-listar",
         icono: "fa fa-id-card-o",
         permiso: "config.tipo.documento.index",
     },
     {
+        id: "config-consentimiento-informado",
+        titulo: "Consentimiento Informado General",
+        categoria: "Configuración",
+        url: "/config-consentimiento-informado-listar",
+        icono: "fa fa-check-square-o",
+        permiso: "config.consentimiento_informado.index",
+    },
+    {
+        id: "config-whatsapp",
         titulo: "Configuración WhatsApp Bot",
         categoria: "Configuración",
-        url: "/config-whatsapp",
+        url: "/config-whatsapp-listar",
         icono: "fa fa-whatsapp",
         permiso: "config.whatsapp.saludo.index",
+    },
+    {
+        id: "config-cita-rechazo-motivos",
+        titulo: "Motivos de Rechazo de Citas",
+        categoria: "Configuración",
+        url: "/config-cita-rechazo-motivos",
+        icono: "fa fa-ban",
+        permiso: "citas.index",
+    },
+    {
+        id: "config-helpdesk-categorias",
+        titulo: "Helpdesk: Categorías",
+        categoria: "Configuración",
+        url: "/config-helpdesk-categorias-listar",
+        icono: "fa fa-tags",
+        permiso: "helpdesk.config.categorias.index",
+    },
+    {
+        id: "config-helpdesk-prioridades",
+        titulo: "Helpdesk: Prioridades",
+        categoria: "Configuración",
+        url: "/config-helpdesk-prioridades-listar",
+        icono: "fa fa-exclamation-circle",
+        permiso: "helpdesk.config.prioridades.index",
+    },
+    {
+        id: "config-helpdesk-estados",
+        titulo: "Helpdesk: Estados",
+        categoria: "Configuración",
+        url: "/config-helpdesk-estados-listar",
+        icono: "fa fa-tasks",
+        permiso: "helpdesk.config.estados.index",
     },
 
     // Seguridad
     {
+        id: "seguridad-usuarios",
         titulo: "Gestión de Usuarios",
         categoria: "Seguridad",
-        url: "/seguridad.usuarios",
+        url: "/seguridad.usuarios.listar",
         icono: "fa fa-users",
         permiso: "seguridad.usuarios.index",
     },
     {
+        id: "seguridad-roles",
         titulo: "Roles y Permisos",
         categoria: "Seguridad",
-        url: "/seguridad.roles",
+        url: "/seguridad.roles.listar",
         icono: "fa fa-key",
         permiso: "seguridad.roles.index",
     },
     {
-        titulo: "Auditoría del Sistema",
+        id: "seguridad-auditoria",
+        titulo: "Bitácora de Auditoría",
         categoria: "Seguridad",
-        url: "/seguridad.auditoria",
-        icono: "fa fa-history",
+        url: "/seguridad-auditoria",
+        icono: "fa fa-shield",
         permiso: "seguridad.auditoria.index",
     },
     {
+        id: "seguridad-backups",
+        titulo: "Monitoreo Central de Backups",
+        categoria: "Seguridad",
+        url: "/seguridad-backups",
+        icono: "fa fa-database",
+        permiso: "seguridad.backups.index",
+    },
+    {
+        id: "seguridad-tokens",
+        titulo: "Tokens de API y Sedes",
+        categoria: "Seguridad",
+        url: "/seguridad-tokens",
+        icono: "fa fa-ticket",
+        permiso: "seguridad.tokens.index",
+    },
+    {
+        id: "seguridad-perfil",
         titulo: "Mi Perfil de Usuario",
         categoria: "Seguridad",
         url: "/seguridad.perfil",

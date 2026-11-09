@@ -37,6 +37,27 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Corrección de Rutas 404 en Paleta de Comandos (Ctrl+K) y Advertencias de Key Duplicada (`commandPaletteComponent.vue`, `routes.js`, `routes/web.php`):**
+  - **Diagnóstico y Causa Raíz:**
+    * El usuario reportó error "404 Página No Encontrada" al buscar e ingresar a Tele-Radiología desde la paleta de comandos (`Ctrl+K`).
+    * **Causa Raíz 1 (Ruta Inexistente):** En `commandPaletteComponent.vue`, "Enviar Estudios a Tele-Radiología" apuntaba a `/teleradiologia.index` y "Transcribir Tele-Radiología" a `/teleradiologia.transcribir`. Dichas rutas no coincidían con las rutas SPA de Vue Router (`/tele-radiologia` y `/tele-radiologia-transcribir`), disparando el fallback SPA 404 (`NotFoundComponent.vue`).
+    * **Causa Raíz 2 (Keys Duplicadas en v-for):** En el render de resultados filtrados, se utilizaba `:key="item.url"`. Como múltiples acciones compartían la misma URL (ej. "Admisionar Paciente" y "Listar Pacientes" hacia `/pacientes/admision`), Vue arrojaba `[Vue warn]: Duplicate keys found during update: "/pacientes/admision"`.
+    * **Causa Raíz 3 (Catálogo Incompleto y Desactualizado):** Varios módulos de configuración, reportes, agenda y ecografías tenían URLs desfasadas o faltaban por completo (Dosimetría, Reportes PACS, Helpdesk categorías/prioridades/estados, Tokens, Backups, Plantillas de consentimiento).
+  - **Solución Implementada:**
+    * **Paleta de Comandos (`commandPaletteComponent.vue`):**
+      - Llaves únicas en template: `:key="item.id || (item.url + '_' + index)"`.
+      - Estandarización de IDs y URLs canónicas de los 48 submódulos del sistema coincidiendo exactamente con Vue Router y Spatie permissions.
+      - Inclusión de Dosimetría NRD, Reportes PACS, Tokens de sedes y Monitor de backups.
+    * **Vue Router (`routes.js`):**
+      - Adición de aliases de compatibilidad hacia `/tele-radiologia` (`["/estudios.tele-radiologia", "/teleradiologia.index"]`) y `/tele-radiologia-transcribir` (`["/teleradiologia.transcribir"]`).
+      - Adición de aliases tolerantes para `/ecografias.admisionadas`, `/reportes-produccion`, `/agenda-disponibilidad`, `/helpdesk-tickets/crear` y módulos de seguridad.
+    * **Backend Laravel (`routes/web.php`):**
+      - Adición de redirecciones explícitas `Route::redirect('/teleradiologia.index', '/tele-radiologia')` y `Route::redirect('/teleradiologia.transcribir', '/tele-radiologia-transcribir')` garantizando resolución impecable si se ingresa directamente desde barra de direcciones o marcadores.
+  - **Verificaciones:**
+    * PHP Pint verificado con 100% de éxito en `routes/web.php` (`vendor\bin\pint.bat --test`) ✅.
+    * ESLint verificado con 0 errores y 0 advertencias (`npx eslint`) ✅.
+    * Compilación de producción Vite (`npm run build`) completada con éxito en 1.56s ✅.
+
 - [x] **2026-11-09 — Aplicación de Parches de Seguridad (Run 2 — Cloudflare Security Audit):**
   - **Componentes y Archivos Corregidos:**
     * [`TelegramWebhookController.php`](file:///c:/laragon/www/lidiag/app/Http/Controllers/Telegram/TelegramWebhookController.php): Parcheada la condición de validación de firma para exigir obligatoriamente la cabecera `X-Telegram-Bot-Api-Secret-Token` (`if ($secretToken && (! $headerToken || ! hash_equals(...)))`), cerrando el bypass por omisión de cabecera.

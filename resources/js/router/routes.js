@@ -74,7 +74,7 @@ export const routes = [
     // Tele-Radiología
     {
         path: "/tele-radiologia",
-        alias: "/estudios.tele-radiologia",
+        alias: ["/estudios.tele-radiologia", "/teleradiologia.index"],
         name: "teleradiologia.enviar",
         component: () =>
             import("../components/modulos/tele-radiologia/teleRadiologiaEnviarEstudioComponent.vue"),
@@ -82,6 +82,7 @@ export const routes = [
     },
     {
         path: "/tele-radiologia-transcribir",
+        alias: ["/teleradiologia.transcribir"],
         name: "teleradiologia.transcribir",
         component: () =>
             import("../components/modulos/tele-radiologia/teleRadiologiaTranscibirComponent.vue"),
@@ -101,6 +102,7 @@ export const routes = [
     },
     {
         path: "/ecografias.admisionadas",
+        alias: ["/ecografias.adminisionadas"],
         name: "ecografias.admisionadas",
         component: () =>
             import("../components/modulos/ecografias/ecografiasAdmisionadasComponent.vue"),
@@ -114,7 +116,7 @@ export const routes = [
     },
     {
         path: "/ecografias-consentimientos",
-        alias: "/config-consentimientos",
+        alias: ["/config-consentimientos", "/config-consentimientos-informados"],
         name: "ecografias.consentimientos",
         component: () =>
             import("../components/modulos/ecografias/ecografiasConsentimientosComponent.vue"),
@@ -183,6 +185,7 @@ export const routes = [
     },
     {
         path: "/agenda-disponibilidad",
+        alias: ["/agenda/disponibilidad"],
         name: "agenda.disponibilidad",
         component: () => import("../components/modulos/agenda/agendaDisponibilidadComponent.vue"),
         meta: {
@@ -201,6 +204,7 @@ export const routes = [
     },
     {
         path: "/helpdesk-tickets/crear",
+        alias: ["/helpdesk-tickets-crear"],
         name: "helpdesk.tickets.crear",
         component: () => import("../components/modulos/help-desk/helpdeskCrearTicketComponent.vue"),
         meta: { title: "Crear Ticket", permission: "helpdesk.tickets.create", auth: true },
@@ -237,6 +241,7 @@ export const routes = [
     // Seguridad
     {
         path: "/seguridad.usuarios.listar",
+        alias: ["/seguridad.usuarios"],
         name: "seguridad.usuarios",
         component: () => import("../components/modulos/seguridad/usuarioComponent.vue"),
         meta: {
@@ -247,6 +252,7 @@ export const routes = [
     },
     {
         path: "/seguridad.roles.listar",
+        alias: ["/seguridad.roles"],
         name: "seguridad.roles",
         component: () => import("../components/modulos/seguridad/roleComponente.vue"),
         meta: { title: "Roles y Permisos", permission: "seguridad.roles.index", auth: true },
@@ -259,6 +265,7 @@ export const routes = [
     },
     {
         path: "/seguridad-auditoria",
+        alias: ["/seguridad.auditoria"],
         name: "seguridad.auditoria",
         component: () => import("../components/modulos/seguridad/auditLogComponent.vue"),
         meta: {
@@ -315,6 +322,7 @@ export const routes = [
     // Reportes
     {
         path: "/reportes-produccion",
+        alias: ["/reportes.produccion"],
         name: "reportes.produccion",
         component: () => import("../components/modulos/reportes/reporteProduccionComponent.vue"),
         meta: {
