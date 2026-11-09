@@ -108,5 +108,5 @@ return [
     | Clave Bearer esperada en la cabecera Authorization para subir backups desde agentes.
     |
     */
-    "api_token" => env("BACKUP_API_TOKEN", "lidiag_backup_secure_token_2026"),
+    "api_token" => env("BACKUP_API_TOKEN"),
 ];

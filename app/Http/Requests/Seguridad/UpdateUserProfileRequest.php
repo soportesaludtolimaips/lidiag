@@ -18,7 +18,7 @@ class UpdateUserProfileRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $targetId = (int) $this->route("id");
+        $targetId = (int) ($this->route("id") ?? $this->route("idUsua"));
 
         return Auth::check() && ((int) Auth::id() === $targetId);
     }
@@ -32,7 +32,7 @@ class UpdateUserProfileRequest extends FormRequest
      */
     public function rules(): array
     {
-        $userId = (int) $this->route("id");
+        $userId = (int) ($this->route("id") ?? $this->route("idUsua"));
 
         return [
             "num_docu" => ["required", "string", "max:20"],

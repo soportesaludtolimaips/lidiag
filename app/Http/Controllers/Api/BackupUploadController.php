@@ -90,7 +90,7 @@ class BackupUploadController extends Controller
         // 2. Validar parámetros requeridos
         $request->validate([
             "sede_id" => "required|integer|exists:config_sedes,id",
-            "backup_file" => "required|file",
+            "backup_file" => "required|file|mimes:zip,sql,gz,7z,tar|max:2097152",
         ]);
 
         try {
@@ -100,7 +100,9 @@ class BackupUploadController extends Controller
             $timestamp = date("Y-m-d_His");
 
             $archivoSubido = $request->file("backup_file");
-            $extension = strtolower($archivoSubido->getClientOriginalExtension() ?: "zip");
+            $allowedExtensions = ["zip", "sql", "gz", "7z", "tar"];
+            $rawExtension = strtolower($archivoSubido->getClientOriginalExtension() ?: "zip");
+            $extension = in_array($rawExtension, $allowedExtensions, true) ? $rawExtension : "zip";
             $nombreFinal = "backup_dcm_sede_{$sedeId}_{$slug}_{$timestamp}.{$extension}";
 
             $directorioDestino = config("backup.dcm_destination_path", "C:\\Backups_Lidiag\\dcm_sedes");
@@ -201,7 +203,7 @@ class BackupUploadController extends Controller
         ]);
 
         $sede = ConfigSede::find($validated["sede_id"]);
-        $sedeNombre = $sede?->nom_sede ?? "Sede #{$validated['sede_id']}";
+        $sedeNombre = $sede->nom_sede ?? "Sede #{$validated['sede_id']}";
 
         $datosTelemetria = [
             "servicio" => $validated["servicio"],
@@ -269,7 +271,7 @@ class BackupUploadController extends Controller
         }
 
         // 2. Token estático del .env (compatibilidad institucional)
-        $tokenEsperado = (string) config("backup.api_token", env("BACKUP_API_TOKEN", "lidiag_backup_secure_token_2026"));
+        $tokenEsperado = (string) config("backup.api_token");
         if (! empty($tokenEsperado) && hash_equals($tokenEsperado, $tokenRecibido)) {
             return true;
         }

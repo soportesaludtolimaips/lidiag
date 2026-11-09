@@ -37,6 +37,25 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Aplicación de Parches de Seguridad (Run 2 — Cloudflare Security Audit):**
+  - **Componentes y Archivos Corregidos:**
+    * [`TelegramWebhookController.php`](file:///c:/laragon/www/lidiag/app/Http/Controllers/Telegram/TelegramWebhookController.php): Parcheada la condición de validación de firma para exigir obligatoriamente la cabecera `X-Telegram-Bot-Api-Secret-Token` (`if ($secretToken && (! $headerToken || ! hash_equals(...)))`), cerrando el bypass por omisión de cabecera.
+    * [`UpdateUserProfileRequest.php`](file:///c:/laragon/www/lidiag/app/Http/Requests/Seguridad/UpdateUserProfileRequest.php): Corregida la extracción de ID en `authorize()` y `rules()` resolviendo `$this->route('id') ?? $this->route('idUsua')`, eliminando la denegación de servicio (403 Forbidden) en actualización de perfil de usuario y garantizando el aislamiento IDOR.
+    * [`BackupUploadController.php`](file:///c:/laragon/www/lidiag/app/Http/Controllers/Api/BackupUploadController.php) y [`config/backup.php`](file:///c:/laragon/www/lidiag/config/backup.php): Eliminado el valor por defecto hardcodeado `'lidiag_backup_secure_token_2026'`, forzando fallo cerrado si no existe token configurado. Adicionada validación estricta de MIME types (`mimes:zip,sql,gz,7z,tar|max:2097152`) y forzado de extensión contra allowlist antes de guardar en `C:\Backups_Lidiag\dcm_sedes\`. Corregido acceso nullsafe y eliminado `env()` directo en controlador para compatibilidad con `config:cache`.
+  - **Verificaciones:**
+    * Laravel Pint pasado al 100% en todos los archivos (`vendor\bin\pint.bat --test`) ✅.
+    * PHPStan Larastan nivel 5 completado con 0 errores ✅.
+    * Prueba de resolución de ruta en runtime validada exitosamente ✅.
+
+- [x] **2026-11-09 — Ejecución de Auditoría de Seguridad Integral (Run 2 — Metodología Cloudflare):**
+  - **Alcance y Artefactos:** Generada auditoría completa en `~/security-audit-skill/lidiag/run-2/` (`run-metadata.json`, `architecture.md`, `coverage-ledger.json`, `findings.json`, `REPORT.md`, `FINDINGS-DETAIL.md`, `NEEDS-VALIDATION.md`).
+  - **Revalidación Run 1:** 7 vulnerabilidades previas confirmadas resueltas en código (`escapeshellarg` en `PdfConverterHelper`, `basename` en `DicomBurnerController`, `ForcePasswordChange` en API, `.env.production` en `.gitignore`, CORS OHIF depurado, CSP enforced en producción, `debug-session` con `auth`). 2 falsos positivos previos desestimados formalmente (permisos Spatie en constructores y `listarUsuarios` sanitizado).
+  - **Nuevos Hallazgos Confirmados:**
+    1. *Bypass de Webhook Telegram (`TelegramWebhookController.php:46`):* Condición omitía verificación si `$headerToken` es nulo (High).
+    2. *Fallback de Token Estático en Backups (`BackupUploadController.php:272`):* String por defecto `'lidiag_backup_secure_token_2026'` en código (High).
+    3. *Fallo de Autorización / DoS en Perfil (`UpdateUserProfileRequest.php:21`):* Lee `$this->route('id')` contra ruta `{idUsua}`, arrojando 403 a usuarios legítimos (Medium).
+    4. *Extensión no restringida en Ingesta de Backups (`BackupUploadController.php:91-105`):* Falta validación `mimes:` y allowlist de extensiones (Medium).
+
 - [x] **2026-11-09 — Propagación de Fix de Resiliencia y Fallback de Sedes en Componentes Globales (Dashboard y Footer) (`resources/js/components/dashboard/`, `resources/js/components/comunes/`):**
   - **Componentes Actualizados:**
     * `footerComponent.vue`: Sincronización reactiva bidireccional entre `sessionStorage` y `localStorage` para `ST-sede` y `ST-nomsede`, inicialización segura de `nomSede` y solicitud preventiva con `solicitarSedeActiva` si el estado es frío.
