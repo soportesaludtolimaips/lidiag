@@ -462,6 +462,33 @@
                                             </button>
                                             <button
                                                 type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
+                                                :disabled="
+                                                    loadingVerImagen === item.estudio_producto_id
+                                                "
+                                                @click="
+                                                    verImagen(
+                                                        item.url_oviyam,
+                                                        item.num_docu,
+                                                        item.study_iuid,
+                                                        item.tap_oviyam,
+                                                        item.estudio_producto_id
+                                                    )
+                                                "
+                                                title="Ver imágenes en visor PACS/DICOM"
+                                                aria-label="Ver imágenes en visor PACS/DICOM"
+                                            >
+                                                <i
+                                                    v-if="
+                                                        loadingVerImagen ===
+                                                        item.estudio_producto_id
+                                                    "
+                                                    class="fa fa-spinner fa-spin"
+                                                ></i>
+                                                <i v-else class="fa fa-desktop"></i>
+                                            </button>
+                                            <button
+                                                type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
                                                 :disabled="
                                                     loadingAbrirRegistroId ===
@@ -1634,7 +1661,14 @@ function onSedeSeleccionada(data) {
     }
 }
 
+function handleKeydown(e) {
+    if (e.key === "Escape" && sidebarVisible.value) {
+        btnCerrarModalForm();
+    }
+}
+
 onMounted(async () => {
+    window.addEventListener("keydown", handleKeydown);
     busqueda.value.sede_id =
         sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "";
     await cargarAsignadoresYSedes(busqueda.value.sede_id);
@@ -1648,6 +1682,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+    window.removeEventListener("keydown", handleKeydown);
     emitter.off("sedeSeleccionada", onSedeSeleccionada);
     destroyDataTable();
     registros.value = [];

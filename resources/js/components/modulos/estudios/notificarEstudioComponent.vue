@@ -246,6 +246,33 @@
                                             </button>
                                             <button
                                                 type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
+                                                :disabled="
+                                                    loadingVerImagen === item.estudio_producto_id
+                                                "
+                                                @click="
+                                                    verImagen(
+                                                        item.url_oviyam,
+                                                        item.num_docu,
+                                                        item.study_iuid,
+                                                        item.tap_oviyam,
+                                                        item.estudio_producto_id
+                                                    )
+                                                "
+                                                title="Ver imágenes en visor PACS/DICOM"
+                                                aria-label="Ver imágenes en visor PACS/DICOM"
+                                            >
+                                                <i
+                                                    v-if="
+                                                        loadingVerImagen ===
+                                                        item.estudio_producto_id
+                                                    "
+                                                    class="fa fa-spinner fa-spin"
+                                                ></i>
+                                                <i v-else class="fa fa-desktop"></i>
+                                            </button>
+                                            <button
+                                                type="button"
                                                 v-if="permisos.includes('estudios.notificar.index')"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
                                                 :disabled="
@@ -443,7 +470,7 @@ defineProps({
     permisos: { type: Array, default: () => [] },
 });
 
-const { loadingImprimir, imprimirReporte } = useEstudioHelpers();
+const { loadingImprimir, imprimirReporte, loadingVerImagen, verImagen } = useEstudioHelpers();
 
 const { appContext } = getCurrentInstance();
 const emitter = appContext.config.globalProperties.emitter;

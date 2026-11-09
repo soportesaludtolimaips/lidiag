@@ -37,6 +37,17 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Auditoría UI/UX Módulo Estudios Radiológicos (`estudioAsignadosComponent.vue`, `notificarEstudioComponent.vue`):**
+  - **Ajustes Realizados:**
+    * **`estudioAsignadosComponent.vue`:**
+      - Inclusión de botón de acceso directo al visor PACS/DICOM (`btn-outline-info` con `fa-desktop` y estado reactivo `loadingVerImagen`) en las acciones por fila de la tabla sin requerir apertura del panel (Phase 6, T4).
+      - Implementación de atajo de teclado nativo `Escape` (`handleKeydown`) para cerrar el drawer lateral de edición y limpieza preventiva en `onBeforeUnmount` (E4).
+    * **`notificarEstudioComponent.vue`:**
+      - Incorporación de `loadingVerImagen` y `verImagen` de `useEstudioHelpers`.
+      - Inclusión de botón de visualización rápida de imágenes PACS/DICOM (`btn-outline-info`) en las acciones por fila de la tabla de notificación (Phase 6, T4).
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios en todos los componentes modificados ✅.
+    * Compilación de producción Vite (`npm run build`) completada exitosamente en 1.45s ✅.
 - [x] **2026-11-09 — Auditoría UI/UX Módulos Citas y Agenda (`citasComponent.vue`, `citasRevisionComponent.vue`, `gestionCitasComponent.vue`, `recomendacionProductoComponent.vue`):**
   - **Ajustes Realizados:**
     * **`citasComponent.vue`:**
