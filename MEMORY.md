@@ -37,6 +37,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Resaltado de Número de Documento en Tele-radiología Transcribir (`teleRadiologiaTranscibirComponent.vue`):**
+  - **Ajuste:**
+    * Se incrementó el tamaño de fuente (`font-size: 15px`, `font-weight-bold`) del número de documento del paciente en la tabla principal y se aplicó el color azul oficial de AdminWrap (`text-primary`), reemplazando la etiqueta previa tenue y pequeña (`small text-muted`).
+    * Se incluyó el número de documento del paciente en el encabezado del panel drawer de transcripción (`tituloModal`) para rápida verificación.
+  - **Verificaciones:**
+    * Prettier y ESLint completados sin errores ✅.
+    * Build de producción Vite compilado exitosamente (`built in 1.67s`) ✅.
 - [x] **2026-11-06 — Estandarización Visual al Estilo Nativo de la Aplicación (`teleRadiologiaTranscibirComponent.vue`):**
   - **Ajuste:**
     * Se eliminaron estilos CSS personalizados ajenos a la plantilla para conservar 100% la estética y patrones oficiales de AdminWrap / Lidiag.
