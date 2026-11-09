@@ -37,6 +37,18 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Celdas Limpias para Estudios Tomados PACS Sin Asignar (`ProduccionConsolidadaDetalleSheet.php`):**
+  - **Requerimiento del Usuario:**
+    * En el reporte de Producción Consolidada (Tomados PACS vs Asignados LIDiag), si un estudio está en el PACS y aún no se ha asignado, las columnas correspondientes a asignación, médico y lectura no deben tener datos (deben quedar en blanco).
+  - **Ajustes Realizados:**
+    * **Hoja Detalle Consolidado ([`ProduccionConsolidadaDetalleSheet.php`](file:///c:/laragon/www/lidiag/app/Exports/Sheets/ProduccionConsolidadaDetalleSheet.php)):**
+      - Condicional estricto `$esAsignado = ! empty($row->estudio_id);`.
+      - Si el estudio no ha sido asignado, se emiten celdas vacías (`""`) en: Destino/Flujo, Fecha/Hora Asignación LIDiag, Tiempo Toma a Asignación, Usuario Asignador, Médico Radiólogo Asignado, Estado Lectura, Fecha/Hora Lectura y Tiempo Asignación a Lectura.
+      - Se mantiene el identificador `"TOMADO SIN ASIGNAR"` en Estado Trazabilidad con su resaltado condicional ámbar suave.
+  - **Verificaciones:**
+    * Mapeo validado contra casos con y sin asignación con script temporal ✅.
+    * Laravel Pint (`vendor\bin\pint.bat --test`) pasado sin observaciones ✅.
+    * Larastan PHPStan Nivel 5 (`vendor\bin\phpstan.bat analyse`) con 0 errores ✅.
 - [x] **2026-11-09 — Enriquecimiento de Columnas en Detalle Consolidado de Red (`ReporteConsolidadoRedExport.php`, `ReporteConsolidadoRedDetalleSheet.php`):**
   - **Requerimiento del Usuario:**
     * Agregar al reporte "Salud Tolima - Consolidado Detallado de Estudios de la Red Hospitalaria" (Hoja 2) las columnas faltantes: Quien agendó, Fecha de asignación, Enviado a (Tele-Radiología ó Salud Tolima), Lectura, Atención, Prioridad, Código CUPS, Diagnóstico, Transcriptor, EPS, Contrato y Plan.

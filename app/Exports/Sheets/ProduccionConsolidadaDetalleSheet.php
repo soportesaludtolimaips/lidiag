@@ -140,39 +140,58 @@ class ProduccionConsolidadaDetalleSheet implements FromCollection, ShouldAutoSiz
         $horasTomaAsig = ($fechaToma && $fechaAsig) ? round(abs($fechaAsig->getTimestamp() - $fechaToma->getTimestamp()) / 3600, 1) : null;
         $horasAsigLect = ($fechaAsig && $fechaLect) ? round(abs($fechaLect->getTimestamp() - $fechaAsig->getTimestamp()) / 3600, 1) : null;
 
-        // Determinar Estado Trazabilidad
-        if (empty($row->estudio_id)) {
+        $esAsignado = ! empty($row->estudio_id);
+
+        if (! $esAsignado) {
+            $destinoEstudio = "";
             $estadoTrazabilidad = "TOMADO SIN ASIGNAR";
-            $estadoLectura = "N/A (SIN ASIGNAR)";
-        } elseif ($fechaLect || ! empty($row->con_lectura)) {
-            $estadoTrazabilidad = "ASIGNADO Y LEÍDO";
-            $estadoLectura = "LEÍDO";
+            $fechaAsigTxt = "";
+            $horasTomaAsigTxt = "";
+            $asignadorTxt = "";
+            $medicoTxt = "";
+            $estadoLecturaTxt = "";
+            $fechaLectTxt = "";
+            $horasAsigLectTxt = "";
         } else {
-            $estadoTrazabilidad = "ASIGNADO PENDIENTE";
-            $estadoLectura = "PENDIENTE DE LECTURA";
+            $destinoEstudio = $row->destino_estudio ?? "Salud Tolima";
+            $fechaAsigTxt = $fechaAsig ? $fechaAsig->format("Y-m-d H:i:s") : "";
+            $horasTomaAsigTxt = $horasTomaAsig !== null ? $horasTomaAsig : "";
+            $asignadorTxt = $row->asignador_nombre ?? "";
+            $medicoTxt = $row->medico_nombre ?? "";
+
+            if ($fechaLect || ! empty($row->con_lectura)) {
+                $estadoTrazabilidad = "ASIGNADO Y LEÍDO";
+                $estadoLecturaTxt = "LEÍDO";
+                $fechaLectTxt = $fechaLect ? $fechaLect->format("Y-m-d H:i:s") : "";
+                $horasAsigLectTxt = $horasAsigLect !== null ? $horasAsigLect : "";
+            } else {
+                $estadoTrazabilidad = "ASIGNADO PENDIENTE";
+                $estadoLecturaTxt = "PENDIENTE DE LECTURA";
+                $fechaLectTxt = "";
+                $horasAsigLectTxt = "";
+            }
         }
 
-        $destinoEstudio = $row->destino_estudio ?? (empty($row->estudio_id) ? "Sin Asignar" : "Salud Tolima");
         $pacienteNombre = trim(str_replace("^", " ", (string) ($row->pat_name ?? "")));
 
         return [
             $index,
-            $row->nom_sede ?? "Sede Desconocida",
-            $row->pat_id ?? "S/N",
-            $pacienteNombre ?: "PACIENTE NO REGISTRADO",
-            $row->mods_in_study ?? "ND",
-            $row->study_desc ?? "SIN DESCRIPCIÓN",
-            $fechaToma ? $fechaToma->format("Y-m-d H:i:s") : "S/F",
+            $row->nom_sede ?? "",
+            $row->pat_id ?? "",
+            $pacienteNombre ?: "",
+            $row->mods_in_study ?? "",
+            $row->study_desc ?? "",
+            $fechaToma ? $fechaToma->format("Y-m-d H:i:s") : "",
             $destinoEstudio,
             $estadoTrazabilidad,
-            $fechaAsig ? $fechaAsig->format("Y-m-d H:i:s") : "SIN ASIGNAR",
-            $horasTomaAsig !== null ? $horasTomaAsig : "N/A",
-            $row->asignador_nombre ?? "SIN ASIGNAR",
-            $row->medico_nombre ?? "SIN ASIGNAR",
-            $estadoLectura,
-            $fechaLect ? $fechaLect->format("Y-m-d H:i:s") : "SIN LECTURA",
-            $horasAsigLect !== null ? $horasAsigLect : "N/A",
-            $row->accession_no ?? "S/A",
+            $fechaAsigTxt,
+            $horasTomaAsigTxt,
+            $asignadorTxt,
+            $medicoTxt,
+            $estadoLecturaTxt,
+            $fechaLectTxt,
+            $horasAsigLectTxt,
+            $row->accession_no ?? "",
             $row->study_iuid ?? "",
         ];
     }
