@@ -582,9 +582,14 @@ function btnLimpiar() {
  * @date 2025-11-18
  */
 async function initSede() {
-    const sede = sessionStorage.getItem("ST-sede");
+    const sede = sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede");
     if (sede != null) {
         busqueda.value.sede_id = sede;
+        if (!sessionStorage.getItem("ST-sede")) {
+            sessionStorage.setItem("ST-sede", String(sede));
+        }
+    } else if (emitter) {
+        emitter.emit("solicitarSedeActiva");
     }
     await establecerSedeComposable();
 }
@@ -702,7 +707,11 @@ async function imprimirReporte(item) {
             `${item.paciente?.nombres || item.PrimerNombre || ""} ${item.paciente?.seg_nom || item.SegundoNombre || ""} ${item.paciente?.pri_ape || item.PrimerApellido || ""} ${item.paciente?.seg_ape || item.SegundoApellido || ""}`.trim();
 
         const payload = {
-            sede_id: item.sede_id || busqueda.value.sede_id || sessionStorage.getItem("ST-sede"),
+            sede_id:
+                item.sede_id ||
+                busqueda.value.sede_id ||
+                sessionStorage.getItem("ST-sede") ||
+                localStorage.getItem("ST-sede"),
             medico_id: item.medico_id || item.medico?.id || props.usuarioactual?.id,
             num_docu: String(item.paciente?.num_docu || item.NumDocumento || ""),
             nom_pacien: nombrePaciente || "Paciente",
@@ -893,11 +902,16 @@ async function reenviarASahi(item) {
 }
 
 function onSedeSeleccionada(data) {
-    if (data?.idSede) {
-        busqueda.value.sede_id = String(data.idSede);
-    }
+    const nuevaSede =
+        data?.idSede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede");
+    if (!nuevaSede) return;
+    const cambioSede = String(busqueda.value.sede_id || "") !== String(nuevaSede);
+    busqueda.value.sede_id = String(nuevaSede);
     initSede();
-    registros.value = [];
+    if (cambioSede) {
+        safeDestroyDataTable();
+        registros.value = [];
+    }
 }
 
 function onMedicoSeleccionado(data) {

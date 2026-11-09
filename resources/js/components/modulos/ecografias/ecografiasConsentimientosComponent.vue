@@ -414,7 +414,7 @@ const filtros = ref({
     q: "",
     desde: "",
     hasta: "",
-    sede_id: sessionStorage.getItem("ST-sede") || "",
+    sede_id: sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "",
 });
 const registros = ref([]);
 const loading = ref(false);
@@ -746,12 +746,14 @@ async function confirmarAnulacion() {
 }
 
 function onSedeSeleccionada(data) {
-    if (data?.idSede) {
-        filtros.value.sede_id = String(data.idSede);
-    } else {
-        filtros.value.sede_id = sessionStorage.getItem("ST-sede") || "";
+    const nuevaSede =
+        data?.idSede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede");
+    if (!nuevaSede) return;
+    const cambioSede = String(filtros.value.sede_id || "") !== String(nuevaSede);
+    filtros.value.sede_id = String(nuevaSede);
+    if (cambioSede) {
+        buscar();
     }
-    buscar();
 }
 
 useKeyboardShortcuts({
@@ -784,8 +786,15 @@ useKeyboardShortcuts({
  * @date 2026-02-13
  */
 onMounted(() => {
+    if (!filtros.value.sede_id) {
+        filtros.value.sede_id =
+            sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "";
+    }
     buscar();
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
+    if (!filtros.value.sede_id && emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
 });
 
 onBeforeUnmount(() => {

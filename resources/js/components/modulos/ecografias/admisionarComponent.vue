@@ -1430,8 +1430,12 @@ function anularEcografia() {
  * @date 2024-04-04
  */
 async function initSede() {
-    registro.value.sede_id = sessionStorage.getItem("ST-sede");
-    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
+    const sede = sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede");
+    registro.value.sede_id = sede || null;
+    busqueda.value.sede_id = sede || null;
+    if (sede && !sessionStorage.getItem("ST-sede")) {
+        sessionStorage.setItem("ST-sede", String(sede));
+    }
     await establecerSedeComposable();
     registros.value = [];
 }
@@ -1445,10 +1449,13 @@ async function initSede() {
  * @date 2024-04-04
  */
 async function establecerMedico() {
-    registro.value.sede_id = sessionStorage.getItem("ST-sede");
-    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
+    const sede = sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede");
+    registro.value.sede_id = sede || null;
+    busqueda.value.sede_id = sede || null;
     medicoActual.value =
-        localStorage.getItem("ST-ecografia-medico") || sessionStorage.getItem("ST-medico");
+        localStorage.getItem("ST-ecografia-medico") ||
+        localStorage.getItem("ST-medico") ||
+        sessionStorage.getItem("ST-medico");
 
     await establecerSedeComposable();
     registros.value = [];
@@ -1788,9 +1795,11 @@ function quitarProductoAgenda(codProduc) {
  * @date 2024-04-04
  */
 async function onSedeSeleccionada(data) {
-    const sedeId = data?.idSede || sessionStorage.getItem("ST-sede");
+    const sedeId =
+        data?.idSede || sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede");
     if (sedeId) {
-        sessionStorage.setItem("ST-sede", sedeId);
+        sessionStorage.setItem("ST-sede", String(sedeId));
+        localStorage.setItem("ST-sede", String(sedeId));
     }
     await establecerMedico();
 }
@@ -1811,14 +1820,17 @@ onMounted(() => {
 
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
 
-    if (sessionStorage.getItem("ST-sede") == null) {
-        toastMessage({
-            heading: "Upsss!!!",
-            text: "Debes seleccionar una sede para realizar la busqueda.",
-            icon: "warning",
-            hideAfter: 3500,
-        });
+    const sedeActual = sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede");
+
+    if (!sedeActual) {
+        if (emitter) {
+            emitter.emit("solicitarSedeActiva");
+        }
         return;
+    }
+
+    if (!sessionStorage.getItem("ST-sede")) {
+        sessionStorage.setItem("ST-sede", String(sedeActual));
     }
 
     initSede();

@@ -37,6 +37,16 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Propagación de Fix de Resiliencia y Fallback de Sedes y Médicos en Módulo Ecografías (`resources/js/components/modulos/ecografias/`):**
+  - **Componentes Actualizados:**
+    * `admisionarComponent.vue`: Fallback a `localStorage` para `ST-sede` y `ST-medico` en `initSede()`, `establecerMedico()` y `buscarStudy()`. Solicitud reactiva de sede activa mediante `solicitarSedeActiva` si el estado es frío. Sincronización bidireccional en `onSedeSeleccionada`.
+    * `ecografiasAdmisionadasComponent.vue`: Fallback a `localStorage` en `initSede()`, payload de atenciones y `onSedeSeleccionada`. Invocación de `safeDestroyDataTable()` en lugar de función no definida.
+    * `ecografiasConsentimientosComponent.vue`: Fallback a `localStorage` en `filtros.sede_id`, `onSedeSeleccionada` y `onMounted`. Solicitud reactiva con `solicitarSedeActiva`.
+    * `lecturaComponent.vue`: Fallback a `localStorage` en `initSede()` y `onSedeSeleccionada()`. Solicitud reactiva al montar con `solicitarSedeActiva`.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios (0 errores, 0 advertencias) ✅.
+    * Vite build (`npm run build`) completado exitosamente en 1.92s ✅.
+
 - [x] **2026-11-09 — Propagación de Fix de Resiliencia y Fallback de Sedes en Módulo Estudios (`resources/js/components/modulos/estudios/`):**
   - **Componentes Actualizados:**
     * `estudioAsignadosComponent.vue`: Fallback a `localStorage` en `defaultBusqueda`, `listarEstudiosAsignados()`, `cargarAsignadoresYSedes()` y `onMounted()`. Emisión reactiva de `solicitarSedeActiva` si el estado es frío. Detección de cambio real en `onSedeSeleccionada` para evitar destrucción innecesaria de DataTables.

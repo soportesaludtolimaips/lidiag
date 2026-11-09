@@ -2047,8 +2047,12 @@ function cerrarModalReporte() {
  * @date 2024-06-10
  */
 async function initSede() {
-    registro.value.sede_id = sessionStorage.getItem("ST-sede");
-    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
+    const sede = sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede");
+    registro.value.sede_id = sede || null;
+    busqueda.value.sede_id = sede || null;
+    if (sede && !sessionStorage.getItem("ST-sede")) {
+        sessionStorage.setItem("ST-sede", String(sede));
+    }
     await establecerSedeComposable();
 }
 
@@ -2306,7 +2310,11 @@ function limpiarFormulario() {
  * @date 2025-11-18
  */
 function onSedeSeleccionada(data) {
-    registro.value.sede_id = data?.idSede || sessionStorage.getItem("ST-sede");
+    const nuevaSede =
+        data?.idSede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede");
+    if (!nuevaSede) return;
+    registro.value.sede_id = nuevaSede;
+    busqueda.value.sede_id = nuevaSede;
     initSede();
 }
 
@@ -2342,6 +2350,9 @@ onMounted(() => {
 
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
     emitter.on("medicoSeleccionado", onMedicoSeleccionado);
+    if (!registro.value.sede_id && emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
     window.addEventListener("keydown", handleKeydown);
 
     url.value = window.location.pathname;
