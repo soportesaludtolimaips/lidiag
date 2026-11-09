@@ -518,11 +518,13 @@
 </template>
 
 <script setup>
-import { nextTick, onBeforeUnmount, onMounted, ref, computed } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, ref, computed, getCurrentInstance } from "vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { toastMessage, confirmAction } from "@/helpers/alerts.js";
 import axios from "axios";
 import Select2 from "@/components/shared/Select2.vue";
+
+const { proxy } = getCurrentInstance();
 
 // ─── REFERENCIAS ──────────────────────────────────────────────────────────────
 
@@ -603,11 +605,11 @@ const sidebarVisible = ref(false);
  */
 const detalleVisible = ref(false);
 
-// ─── SEDE ACTUAL DESDE SESSION STORAGE ────────────────────────────────────────
+// ─── SEDE ACTUAL DESDE SESSION / LOCAL STORAGE ────────────────────────────────
 
 /**
- * Obtiene la sede actual desde sessionStorage (key: ST-sede).
- * Parsea el JSON almacenado y retorna un objeto con id y nombre.
+ * Obtiene la sede actual desde sessionStorage o localStorage (key: ST-sede).
+ * Soporta formato numérico directo o JSON almacenado.
  *
  * @returns {{ id: number, nom_sede: string } | null}
  *
@@ -616,12 +618,25 @@ const detalleVisible = ref(false);
  */
 function getSedeActual() {
     try {
-        const raw = window.sessionStorage.getItem("ST-sede");
+        const raw =
+            window.sessionStorage.getItem("ST-sede") || window.localStorage.getItem("ST-sede");
         if (!raw) return null;
+        const nomSede =
+            window.sessionStorage.getItem("ST-nomsede") ||
+            window.localStorage.getItem("ST-nomsede") ||
+            "Sede";
+
+        if (!Number.isNaN(Number(raw))) {
+            return {
+                id: Number(raw),
+                nom_sede: nomSede,
+            };
+        }
+
         const parsed = JSON.parse(raw);
         return {
             id: parsed.id ?? parsed.sede_id ?? null,
-            nom_sede: parsed.nom_sede ?? parsed.nombre ?? "Sede",
+            nom_sede: parsed.nom_sede ?? parsed.nombre ?? nomSede,
         };
     } catch {
         return null;
@@ -629,10 +644,26 @@ function getSedeActual() {
 }
 
 /**
- * Sede actual del usuario logueado, obtenida de sessionStorage
+ * Sede actual del usuario logueado, obtenida de sessionStorage o localStorage
  * @type {import('vue').Ref<{ id: number, nom_sede: string }|null>}
  */
 const sedeActual = ref(getSedeActual());
+
+/**
+ * Listener reactivo ante cambio de sede en el navbar.
+ *
+ * @param {Object} event
+ * @returns {void}
+ */
+function onSedeSeleccionada(event) {
+    const rawSede =
+        event?.sede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede");
+    const nuevaSedeId = rawSede ? Number(rawSede) : null;
+    if (!nuevaSedeId || Number(sedeActual.value?.id) === nuevaSedeId) return;
+
+    sedeActual.value = getSedeActual();
+    listar();
+}
 
 /**
  * Nombre legible de la sede actual para mostrar en el formulario (readonly)
@@ -929,7 +960,8 @@ async function desactivarRegistro(item) {
  */
 async function cargarCatalogos() {
     try {
-        const moduloId = sessionStorage.getItem("ST-modulo") || "1";
+        const moduloId =
+            sessionStorage.getItem("ST-modulo") || localStorage.getItem("ST-modulo") || "1";
         const medRes = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
         medicos.value = medRes.data.data || [];
     } catch (error) {
@@ -1372,7 +1404,11 @@ async function procesarImportacion() {
  * @date 2026-08-20
  */
 onMounted(() => {
+    proxy?.emitter?.on("sedeSeleccionada", onSedeSeleccionada);
     sedeActual.value = getSedeActual();
+    if (!sedeActual.value?.id) {
+        proxy?.emitter?.emit("solicitarSedeActiva");
+    }
     cargarCatalogos();
     listar();
 });
@@ -1384,6 +1420,7 @@ onMounted(() => {
  * @date 2026-08-20
  */
 onBeforeUnmount(() => {
+    proxy?.emitter?.off("sedeSeleccionada", onSedeSeleccionada);
     safeDestroyDataTable(dt.value || "#tablaContratos");
 });
 </script>

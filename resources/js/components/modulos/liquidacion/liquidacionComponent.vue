@@ -425,9 +425,11 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onBeforeUnmount, ref } from "vue";
+import { computed, onMounted, onBeforeUnmount, ref, getCurrentInstance } from "vue";
 import axios from "axios";
 import { toastMessage } from "@/helpers/alerts.js";
+
+const { proxy } = getCurrentInstance();
 
 /**
  * Control del modal interactivo de detalle de exclusiones.
@@ -435,6 +437,15 @@ import { toastMessage } from "@/helpers/alerts.js";
 const modalExclusionVisible = ref(false);
 const exclusionSeleccionada = ref(null);
 const busquedaExclusion = ref("");
+
+/**
+ * Obtiene la sede actual desde sessionStorage o localStorage (key: ST-sede).
+ *
+ * @returns {string}
+ */
+function obtenerSedeGuardada() {
+    return window.sessionStorage.getItem("ST-sede") || window.localStorage.getItem("ST-sede") || "";
+}
 
 /**
  * Etiquetas legibles para las categorías de exclusión del backend.
@@ -486,7 +497,7 @@ function primerDiaMesActual() {
  * @type {import('vue').Ref<{sede_id: string|number, fecha_inicio: string, fecha_fin: string, contrato_id: string|number, medico_id: string|number}>}
  */
 const filtros = ref({
-    sede_id: "",
+    sede_id: obtenerSedeGuardada(),
     fecha_inicio: primerDiaMesActual(),
     fecha_fin: fechaHoy(),
     contrato_id: "",
@@ -671,6 +682,17 @@ async function cargarSedes() {
     try {
         const res = await axios.get("/api/config-sedes/listar/sedes/activas");
         sedes.value = res.data.data || [];
+
+        const sedeGuardada = obtenerSedeGuardada();
+        if (sedeGuardada && sedes.value.some((s) => String(s.id) === String(sedeGuardada))) {
+            filtros.value.sede_id = sedeGuardada;
+        } else if (!filtros.value.sede_id && sedes.value.length > 0) {
+            filtros.value.sede_id = sedes.value[0].id;
+        }
+
+        if (filtros.value.sede_id) {
+            await cargarContratos();
+        }
     } catch (error) {
         console.error(error);
         toastMessage({ heading: "Error", text: "No fue posible cargar las sedes", icon: "error" });
@@ -753,6 +775,20 @@ async function alCambiarSede() {
 }
 
 /**
+ * Listener reactivo ante cambio de sede en el navbar.
+ *
+ * @param {Object} event
+ * @returns {void}
+ */
+function onSedeSeleccionada(event) {
+    const rawSede =
+        event?.sede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede");
+    if (!rawSede || String(filtros.value.sede_id) === String(rawSede)) return;
+    filtros.value.sede_id = rawSede;
+    alCambiarSede();
+}
+
+/**
  * Carga el catálogo de médicos (usuarios con reg_med) una sola vez.
  * Mismo endpoint que contratoComponent (ST-modulo del módulo actual).
  *
@@ -765,7 +801,8 @@ async function cargarMedicos() {
     if (loadingMedicos.value || medicos.value.length) return;
     loadingMedicos.value = true;
     try {
-        const moduloId = sessionStorage.getItem("ST-modulo") || "1";
+        const moduloId =
+            sessionStorage.getItem("ST-modulo") || localStorage.getItem("ST-modulo") || "1";
         const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
         medicos.value = res.data.data || [];
     } catch (error) {
@@ -964,12 +1001,17 @@ function onKeyDown(e) {
  * @date 2026-09-30
  */
 onMounted(() => {
+    proxy?.emitter?.on("sedeSeleccionada", onSedeSeleccionada);
     window.addEventListener("keydown", onKeyDown);
+    if (!obtenerSedeGuardada()) {
+        proxy?.emitter?.emit("solicitarSedeActiva");
+    }
     cargarSedes();
     cargarMedicos();
 });
 
 onBeforeUnmount(() => {
+    proxy?.emitter?.off("sedeSeleccionada", onSedeSeleccionada);
     window.removeEventListener("keydown", onKeyDown);
 });
 </script>

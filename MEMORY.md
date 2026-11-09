@@ -37,6 +37,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Propagación de Fix de Resiliencia y Fallback de Sedes en Módulo Contratos y Liquidación (`resources/js/components/modulos/contratos/`, `resources/js/components/modulos/liquidacion/`):**
+  - **Componentes Actualizados:**
+    * `contratoComponent.vue`: Soporte numérico y JSON en `getSedeActual()` con fallback a `localStorage`. Sincronización reactiva con `sedeSeleccionada` y solicitud preventiva con `solicitarSedeActiva` en `onMounted()`. Fallback de `ST-modulo` a `localStorage`.
+    * `liquidacionComponent.vue`: Auto-selección inicial de sede activa desde storage o primera sede disponible en `cargarSedes()`. Listener reactivo `onSedeSeleccionada`, solicitud preventiva con `solicitarSedeActiva` y fallback de `ST-modulo`.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios (0 errores, 0 advertencias) ✅.
+    * Vite build (`npm run build`) completado exitosamente en 1.73s ✅.
 - [x] **2026-11-09 — Propagación de Fix de Resiliencia y Fallback de Sedes en Módulo Agenda (`resources/js/components/modulos/agenda/`):**
   - **Componentes Actualizados:**
     * `agendaDisponibilidadComponent.vue`: Fallback a `localStorage` en `sedeActual`, `registro.sede_id`, `busqueda.sede_id`, `buscarStudy()` y `establecerSede()`. Solicitud reactiva al montar con `solicitarSedeActiva` si el estado es frío.
