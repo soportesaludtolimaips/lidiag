@@ -970,6 +970,9 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import axios from "axios";
+import { useAuth } from "../../composables/useAuth";
+
+const auth = useAuth();
 
 const props = defineProps({
     rolesusuario: { type: String, default: "" },
@@ -1052,7 +1055,7 @@ const charts = ref({
 });
 
 const isAdmin = computed(() => {
-    return props.rolesusuario === "Administrador";
+    return props.rolesusuario === "Administrador" || auth.hasRole("Administrador");
 });
 const heatmapDays = computed(() => {
     const arr = series.value?.heatmap7d?.[heatmapMetric.value] || [];

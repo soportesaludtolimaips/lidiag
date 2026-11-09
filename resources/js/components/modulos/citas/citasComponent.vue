@@ -594,8 +594,8 @@
 <script setup>
 import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-const { proxy, appContext } = getCurrentInstance();
-const emitter = appContext.config.globalProperties.emitter;
+const instance = getCurrentInstance();
+const emitter = instance?.appContext?.config?.globalProperties?.emitter;
 
 import { formatFecha, getEstadoLabel, getEstadoClase } from "@/composables/useCitasUtils.js";
 import { alertError, alertSuccess, alertWarning, confirmAction } from "@/helpers/alerts";
@@ -680,43 +680,40 @@ function inicializar() {
 }
 
 function listarRegistros(page) {
-    var thisVue = proxy;
-    thisVue.loadingBuscar = true;
+    loadingBuscar.value = true;
 
     var params = new URLSearchParams();
-    if (thisVue.busqueda.estado) params.append("estado", thisVue.busqueda.estado);
-    if (thisVue.busqueda.servicio_id) params.append("servicio_id", thisVue.busqueda.servicio_id);
-    if (thisVue.busqueda.fecha_inicio) params.append("fecha_inicio", thisVue.busqueda.fecha_inicio);
-    if (thisVue.busqueda.fecha_fin) params.append("fecha_fin", thisVue.busqueda.fecha_fin);
-    if (thisVue.busqueda.busqueda) params.append("busqueda", thisVue.busqueda.busqueda);
+    if (busqueda.value.estado) params.append("estado", busqueda.value.estado);
+    if (busqueda.value.servicio_id) params.append("servicio_id", busqueda.value.servicio_id);
+    if (busqueda.value.fecha_inicio) params.append("fecha_inicio", busqueda.value.fecha_inicio);
+    if (busqueda.value.fecha_fin) params.append("fecha_fin", busqueda.value.fecha_fin);
+    if (busqueda.value.busqueda) params.append("busqueda", busqueda.value.busqueda);
     if (page) params.append("page", page);
 
     axios
         .get("/api/citas?" + params.toString())
         .then(function (response) {
-            thisVue.registros = response.data.data;
-            thisVue.datosPaginacion = response.data;
+            registros.value = response.data.data;
+            datosPaginacion.value = response.data;
             guardarFiltros();
         })
         .catch(function (error) {
-            thisVue.mostrarError(error);
+            mostrarError(error);
         })
         .then(function () {
-            thisVue.loadingBuscar = false;
+            loadingBuscar.value = false;
         });
 }
 
 function cargarListas() {
-    var thisVue = proxy;
-
     axios.get("/api/citas/servicios").then(function (response) {
-        thisVue.servicios = response.data?.data || response.data || [];
+        servicios.value = response.data?.data || response.data || [];
     });
 
     axios
         .get("/api/config-sedes/listar/sedes/activas")
         .then(function (response) {
-            thisVue.sedes = response.data?.data || response.data || [];
+            sedes.value = response.data?.data || response.data || [];
         })
         .catch(function (e) {
             mostrarError(e);
@@ -724,15 +721,14 @@ function cargarListas() {
 }
 
 function cargarProductosPorServicio() {
-    var thisVue = proxy;
-    var servicioId = thisVue.citaSeleccionada.servicio_id;
-    var sedeId = thisVue.citaSeleccionada.sede_id;
+    var servicioId = citaSeleccionada.value.servicio_id;
+    var sedeId = citaSeleccionada.value.sede_id;
 
-    thisVue.citaSeleccionada.producto_id = "";
-    thisVue.citaSeleccionada.hora = "";
-    thisVue.citaSeleccionada.agenda_disponibilidad_detalle_id = "";
-    thisVue.detalles = [];
-    thisVue.productosFiltrados = [];
+    citaSeleccionada.value.producto_id = "";
+    citaSeleccionada.value.hora = "";
+    citaSeleccionada.value.agenda_disponibilidad_detalle_id = "";
+    detalles.value = [];
+    productosFiltrados.value = [];
 
     if (!servicioId) return;
 
@@ -742,7 +738,7 @@ function cargarProductosPorServicio() {
     axios
         .get(url)
         .then(function (response) {
-            thisVue.productosFiltrados = response.data?.data || response.data || [];
+            productosFiltrados.value = response.data?.data || response.data || [];
         })
         .catch(function (error) {
             mostrarError(error);
@@ -755,33 +751,31 @@ function onProductoSelect(value) {
 }
 
 function cargarDisponibilidad() {
-    var thisVue = proxy;
-
     if (
-        !thisVue.citaSeleccionada.sede_id ||
-        !thisVue.citaSeleccionada.servicio_id ||
-        !thisVue.citaSeleccionada.producto_id ||
-        !thisVue.citaSeleccionada.fecha
+        !citaSeleccionada.value.sede_id ||
+        !citaSeleccionada.value.servicio_id ||
+        !citaSeleccionada.value.producto_id ||
+        !citaSeleccionada.value.fecha
     ) {
-        thisVue.detalles = [];
+        detalles.value = [];
         return;
     }
 
     axios
         .get("/api/citas/disponibilidad", {
             params: {
-                producto_id: thisVue.citaSeleccionada.producto_id,
-                sede_id: thisVue.citaSeleccionada.sede_id,
-                servicio_id: thisVue.citaSeleccionada.servicio_id,
-                fecha: thisVue.citaSeleccionada.fecha,
+                producto_id: citaSeleccionada.value.producto_id,
+                sede_id: citaSeleccionada.value.sede_id,
+                servicio_id: citaSeleccionada.value.servicio_id,
+                fecha: citaSeleccionada.value.fecha,
             },
         })
         .then(function (response) {
-            thisVue.detalles = response.data?.data?.detalles || response.data?.detalles || [];
+            detalles.value = response.data?.data?.detalles || response.data?.detalles || [];
         })
         .catch(function (error) {
-            thisVue.mostrarError(error);
-            thisVue.detalles = [];
+            mostrarError(error);
+            detalles.value = [];
         });
 }
 
@@ -812,52 +806,48 @@ function mostrarModalAsignar(cita) {
 }
 
 function asignarCita() {
-    var thisVue = proxy;
-
     if (
-        !thisVue.citaSeleccionada.producto_id ||
-        !thisVue.citaSeleccionada.sede_id ||
-        !thisVue.citaSeleccionada.fecha ||
-        !thisVue.citaSeleccionada.agenda_disponibilidad_detalle_id
+        !citaSeleccionada.value.producto_id ||
+        !citaSeleccionada.value.sede_id ||
+        !citaSeleccionada.value.fecha ||
+        !citaSeleccionada.value.agenda_disponibilidad_detalle_id
     ) {
         alertWarning("Advertencia", "Todos los campos obligatorios deben ser llenados");
         return;
     }
 
-    const detalleSeleccionado = thisVue.detalles.find(
-        (d) => d.id == thisVue.citaSeleccionada.agenda_disponibilidad_detalle_id
+    const detalleSeleccionado = detalles.value.find(
+        (d) => d.id == citaSeleccionada.value.agenda_disponibilidad_detalle_id
     );
 
-    thisVue.loadingGuardar = true;
+    loadingGuardar.value = true;
 
     axios
-        .post("/api/citas/" + thisVue.citaSeleccionada.id + "/asignar", {
-            producto_id: thisVue.citaSeleccionada.producto_id,
-            sede_id: thisVue.citaSeleccionada.sede_id,
+        .post("/api/citas/" + citaSeleccionada.value.id + "/asignar", {
+            producto_id: citaSeleccionada.value.producto_id,
+            sede_id: citaSeleccionada.value.sede_id,
             agenda_disponibilidad_detalle_id:
-                thisVue.citaSeleccionada.agenda_disponibilidad_detalle_id,
+                citaSeleccionada.value.agenda_disponibilidad_detalle_id,
             fecha_hora_inicio: detalleSeleccionado
                 ? detalleSeleccionado.inicio
-                : thisVue.citaSeleccionada.fecha,
-            duracion_minutos: thisVue.citaSeleccionada.duracion_minutos,
-            observaciones: thisVue.citaSeleccionada.observaciones,
+                : citaSeleccionada.value.fecha,
+            duracion_minutos: citaSeleccionada.value.duracion_minutos,
+            observaciones: citaSeleccionada.value.observaciones,
         })
         .then(function (_response) {
             mostrarExito("Cita asignada correctamente");
             showModalAsignar.value = false;
-            thisVue.listarRegistros();
+            listarRegistros();
         })
         .catch(function (error) {
-            thisVue.mostrarError(error);
+            mostrarError(error);
         })
         .then(function () {
-            thisVue.loadingGuardar = false;
+            loadingGuardar.value = false;
         });
 }
 
 async function confirmarCita(cita) {
-    var thisVue = proxy;
-
     const ok = await confirmAction({
         title: "Confirmar Cita",
         text: "¿Está seguro de confirmar esta cita?",
@@ -869,16 +859,14 @@ async function confirmarCita(cita) {
         .post("/api/citas/" + cita.id + "/confirmar")
         .then(function (_response) {
             mostrarExito("Cita confirmada");
-            thisVue.listarRegistros();
+            listarRegistros();
         })
         .catch(function (error) {
-            thisVue.mostrarError(error);
+            mostrarError(error);
         });
 }
 
 async function cancelarCita(cita) {
-    var thisVue = proxy;
-
     const ok = await confirmAction({
         title: "Cancelar Cita",
         text: "¿Está seguro de cancelar esta cita?",
@@ -892,16 +880,14 @@ async function cancelarCita(cita) {
         })
         .then(function (_response) {
             mostrarExito("Cita cancelada");
-            thisVue.listarRegistros();
+            listarRegistros();
         })
         .catch(function (error) {
-            thisVue.mostrarError(error);
+            mostrarError(error);
         });
 }
 
 async function cumplirCita(cita) {
-    var thisVue = proxy;
-
     const ok = await confirmAction({
         title: "Cumplir Cita",
         text: "¿Marcar esta cita como cumplida?",
@@ -913,16 +899,14 @@ async function cumplirCita(cita) {
         .post("/api/citas/" + cita.id + "/cumplir")
         .then(function (_response) {
             mostrarExito("Cita marcada como cumplida");
-            thisVue.listarRegistros();
+            listarRegistros();
         })
         .catch(function (error) {
-            thisVue.mostrarError(error);
+            mostrarError(error);
         });
 }
 
 async function noAsistioCita(cita) {
-    var thisVue = proxy;
-
     const ok = await confirmAction({
         title: "No Asistió",
         text: "¿Marcar esta cita como no asistió?",
@@ -934,29 +918,28 @@ async function noAsistioCita(cita) {
         .post("/api/citas/" + cita.id + "/no-asistio")
         .then(function (_response) {
             mostrarExito("Inasistencia registrada");
-            thisVue.listarRegistros();
+            listarRegistros();
         })
         .catch(function (error) {
-            thisVue.mostrarError(error);
+            mostrarError(error);
         });
 }
 
 function verConversacion(cita) {
-    var thisVue = proxy;
-    thisVue.conversacion = null;
-    thisVue.loadingConversacion = true;
+    conversacion.value = null;
+    loadingConversacion.value = true;
     showModalConversacion.value = true;
 
     axios
         .get("/api/citas/" + cita.id + "/conversacion")
         .then(function (response) {
-            thisVue.conversacion = response.data?.data?.conversacion || response.data?.conversacion;
+            conversacion.value = response.data?.data?.conversacion || response.data?.conversacion;
         })
         .catch(function (error) {
-            thisVue.mostrarError(error);
+            mostrarError(error);
         })
         .then(function () {
-            thisVue.loadingConversacion = false;
+            loadingConversacion.value = false;
         });
 }
 

@@ -37,6 +37,16 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Hotfix: Eliminación de Antipatrón `proxy` en Citas (`citasComponent.vue`):**
+  - **Diagnóstico del Error:**
+    * El usuario reportó `TypeError: 'set' on proxy: trap returned falsish for property 'loadingBuscar' at listarRegistros (citasComponent.vue:684:27)`.
+    * Causa: En Vue 3 Composition API (`<script setup>`), `getCurrentInstance().proxy` es de solo lectura para propiedades no declaradas en la opción `data`. `citasComponent.vue` utilizaba un patrón legado `var thisVue = proxy; thisVue.loadingBuscar = true;` en 10 métodos, a pesar de que `loadingBuscar` y demás estados ya estaban declarados como `ref()` en el script.
+  - **Solución Aplicada:**
+    * Se eliminó el uso de `thisVue = proxy` en los 10 métodos de `citasComponent.vue`.
+    * Se migraron todas las mutaciones al acceso directo de variables reactivas (`loadingBuscar.value = true`, `busqueda.value`, `registros.value`, `datosPaginacion.value`, etc.).
+  - **Verificaciones:**
+    * ESLint y Prettier pasados al 100% en `citasComponent.vue` ✅.
+    * Compilación Vite exitosa en 1.46s ✅.
 - [x] **2026-11-09 — Resaltado Jerárquico del Número de Documento en Asignar Estudios (`AsignarEstudioComponent.vue`, `/estudios.asignar.listar`):**
   - **Ajuste:**
     * Siguiendo el estándar de ergonomía clínica asistencial (E7), se incrementó la visibilidad del número de documento del paciente (`pat_id`) en la tabla principal aplicándole la clase azul institucional de AdminWrap (`text-primary font-weight-bold`) con tamaño de fuente `15px` e icono `fa-id-card-o`.

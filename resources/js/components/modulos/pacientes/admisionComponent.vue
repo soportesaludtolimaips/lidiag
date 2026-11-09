@@ -930,6 +930,7 @@ import {
     getUserSafeError,
 } from "@/helpers/alerts";
 import { calcularEdad } from "@/helpers/dateUtils";
+import { useAuth } from "@/composables/useAuth";
 
 const props = defineProps({
     usuarioactual: { type: Object, default: () => ({}) },
@@ -960,6 +961,10 @@ function obtenerSedeActualId() {
     if (parsed) return parsed;
     if (props.usuarioactual?.sedes && props.usuarioactual.sedes.length > 0) {
         return props.usuarioactual.sedes[0].id;
+    }
+    const { user } = useAuth();
+    if (user.value?.sedes && user.value.sedes.length > 0) {
+        return user.value.sedes[0].id;
     }
     return 1;
 }
