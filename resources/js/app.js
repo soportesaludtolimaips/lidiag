@@ -11,6 +11,7 @@ import mitt from "mitt";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import router from "./router";
 
 const emitter = mitt();
 
@@ -396,5 +397,7 @@ app.component(
     "DashboardDosimetria",
     defineAsyncComponent(() => import("./components/modulos/dosimetria/DashboardDosimetria.vue"))
 );
+
+app.use(router);
 
 app.mount("#app");

@@ -84,6 +84,11 @@
                 }
             } catch (e) {}
         })();
+        window.__INITIAL_STATE__ = @json(Auth::check() ? [
+            'user' => Auth::user(),
+            'roles' => Auth::user()->roles->pluck('name')->values()->toArray(),
+            'permissions' => Auth::user()->getAllPermissions()->pluck('name')->values()->toArray(),
+        ] : null);
     </script>
 </head>
 

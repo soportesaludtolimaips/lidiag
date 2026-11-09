@@ -69,6 +69,16 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Verificaciones:**
     * Prettier y ESLint pasados sin advertencias ✅.
     * Vite build completado en 1.23s ✅.
+- [x] **2026-11-09 — Implementación de Fases 1 y 2 de Migración a Vue Router 4:**
+  - **Avances Realizados:**
+    * **Fase 1 (Capa de Autenticación Reactiva):** Se inyectó `window.__INITIAL_STATE__` en `resources/views/layouts/app.blade.php` con datos de usuario, roles y permisos Spatie. Se creó el composable singleton [`useAuth.js`](file:///c:/laragon/www/lidiag/resources/js/composables/useAuth.js) que provee métodos `can(permission)`, `hasRole(role)`, sincronización reactiva de sede y médico (`sessionStorage`/`localStorage`), y `fetchUser()`.
+    * **Fase 2 (Core de Vue Router 4):** Se implementó [`resources/js/router/index.js`](file:///c:/laragon/www/lidiag/resources/js/router/index.js) con historial HTML5 (`createWebHistory`), guardia de navegación global `beforeEach` para verificar permisos Spatie de ruta, actualización de títulos de página y scroll restoration.
+    * Se mapearon las 48 rutas en [`resources/js/router/routes.js`](file:///c:/laragon/www/lidiag/resources/js/router/routes.js) con carga asíncrona por chunks de Vite (`() => import(...)`).
+    * Se crearon los componentes de estado [`NotFoundComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/comunes/NotFoundComponent.vue) (404) y [`ForbiddenComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/comunes/ForbiddenComponent.vue) (403).
+    * Se conectó `app.use(router)` en `resources/js/app.js`.
+  - **Verificaciones:**
+    * ESLint y Prettier pasados al 100% en los nuevos módulos de JS y Vue ✅.
+    * Compilación de producción Vite completada exitosamente (`built in 1.25s`) con separación de chunks por ruta ✅.
 - [x] **2026-11-09 — Auditoría Profunda y Plan de Migración a Vue Router (`docs/PLAN_MIGRACION_VUE_ROUTER.md`):**
   - **Diagnóstico y Necesidad:**
     * El usuario solicitó auditar la arquitectura actual de LIDiag y documentar una hoja de ruta estructurada para migrar de la arquitectura MPA (Multi-Page Application) basada en vistas Blade e islas Vue 3 hacia una Single Page Application (SPA) con Vue Router 4.
