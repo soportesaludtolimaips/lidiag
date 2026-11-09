@@ -70,8 +70,10 @@ class ReporteConsolidadoRedExport implements WithMultipleSheets
             ->join("estudios", "estudios_productos.estudio_id", "=", "estudios.id")
             ->join("config_sedes", "estudios.sede_id", "=", "config_sedes.id")
             ->join("pacientes", "estudios.paciente_id", "=", "pacientes.id")
+            ->leftJoin("config_prioridades", "estudios.prioridad_id", "=", "config_prioridades.id")
+            ->leftJoin("users as registro", "estudios.quien_registro_id", "=", "registro.id")
             ->leftJoin("users as medico", "estudios.medico_id", "=", "medico.id")
-            ->leftJoin("config_tipos_documentos", "pacientes.tipo_documento_id", "=", "config_tipos_documentos.id")
+            ->leftJoin("users as transcriptor", "estudios_productos.transcriptor_id", "=", "transcriptor.id")
             ->where("config_sedes.estado", 1)
             ->where("estudios_productos.activo", 1)
             ->when($this->sedeId, fn ($q) => $q->where("estudios.sede_id", $this->sedeId))
@@ -83,11 +85,23 @@ class ReporteConsolidadoRedExport implements WithMultipleSheets
                 "estudios.id as estudio_id",
                 "config_sedes.nom_sede",
                 "estudios.mods_in_study",
+                "estudios_productos.cod_cups",
                 "estudios_productos.nom_produc as nombre_procedimiento",
-                "config_tipos_documentos.codigo as tipo_documento",
                 "pacientes.num_docu as documento",
                 "pacientes.nombres as paciente_nombre",
+                "estudios.atencion",
+                "config_prioridades.nom_priori as prioridad",
+                DB::raw("COALESCE(estudios.destino_estudio, 'Salud Tolima') as enviado_a"),
+                "registro.name as quien_agendo",
+                DB::raw("COALESCE(estudios.created_at, estudios_productos.created_at) as fecha_asignacion"),
                 "medico.name as medico_nombre",
+                "transcriptor.name as transcriptor_nombre",
+                "estudios.eps",
+                "estudios.contrato",
+                "estudios.plan",
+                DB::raw("(SELECT GROUP_CONCAT('- ', nom_diagnos SEPARATOR '\n')
+                    FROM estudios_diagnosticos
+                    WHERE estudio_id = estudios.id) as diagnostico"),
                 DB::raw("COALESCE(estudios.fec_estudio, estudios.created_at) as fecha_estudio"),
                 "estudios_productos.fechor_lectura as fecha_lectura",
                 DB::raw("ROUND(TIMESTAMPDIFF(MINUTE, COALESCE(estudios.fec_estudio, estudios.created_at), estudios_productos.fechor_lectura) / 60, 1) as tat_horas"),
@@ -96,6 +110,7 @@ class ReporteConsolidadoRedExport implements WithMultipleSheets
                     WHEN TIMESTAMPDIFF(HOUR, COALESCE(estudios.fec_estudio, estudios.created_at), estudios_productos.fechor_lectura) <= 48 THEN 'Preventivo (24-48h)'
                     ELSE 'Crítico (>48h)'
                 END as semaforo_oportunidad"),
+                "estudios_productos.lectura",
             ])
             ->orderBy("estudios_productos.fechor_lectura", "desc")
             ->get();

@@ -37,6 +37,22 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Enriquecimiento de Columnas en Detalle Consolidado de Red (`ReporteConsolidadoRedExport.php`, `ReporteConsolidadoRedDetalleSheet.php`):**
+  - **Requerimiento del Usuario:**
+    * Agregar al reporte "Salud Tolima - Consolidado Detallado de Estudios de la Red Hospitalaria" (Hoja 2) las columnas faltantes: Quien agendó, Fecha de asignación, Enviado a (Tele-Radiología ó Salud Tolima), Lectura, Atención, Prioridad, Código CUPS, Diagnóstico, Transcriptor, EPS, Contrato y Plan.
+    * Eliminar la columna "Tipo Doc".
+  - **Ajustes Realizados:**
+    * **Consulta SQL ([`ReporteConsolidadoRedExport.php`](file:///c:/laragon/www/lidiag/app/Exports/ReporteConsolidadoRedExport.php)):**
+      - Joins agregados con `config_prioridades`, `users as registro` (`quien_registro_id`), `users as transcriptor` (`transcriptor_id`), subconsulta correlacionada para `diagnostico` (`estudios_diagnosticos`) y `COALESCE(estudios.destino_estudio, 'Salud Tolima') as enviado_a`.
+      - Extracción de campos `atencion`, `cod_cups`, `eps`, `contrato`, `plan`, `lectura` y `COALESCE(estudios.created_at, estudios_productos.created_at) as fecha_asignacion`.
+      - Eliminado el join y la columna `tipo_documento`.
+    * **Hoja Excel ([`ReporteConsolidadoRedDetalleSheet.php`](file:///c:/laragon/www/lidiag/app/Exports/Sheets/ReporteConsolidadoRedDetalleSheet.php)):**
+      - Encabezados actualizados a 23 columnas (A:W) con anchos y alineaciones formateadas.
+      - Banner de título ampliado para abarcar el nuevo ancho del reporte (`A1:W1`).
+  - **Verificaciones:**
+    * Generación completa de libro Excel probada contra base de datos local: 23 columnas alineadas 1:1 con datos reales ✅.
+    * Laravel Pint (`vendor\bin\pint.bat --test`) pasado sin observaciones ✅.
+    * Larastan PHPStan Nivel 5 (`vendor\bin\phpstan.bat analyse`) con 0 errores ✅.
 - [x] **2026-11-09 — Simplificación Modal Consolidado de Producción — Red Hospitalaria (`reporteProduccionComponent.vue`, `ReporteConsolidadoRedExport.php`, `ReporteConsolidadoRedRequest.php`, `ReporteProduccionService.php`):**
   - **Requerimiento del Usuario:**
     * Simplificar el modal de "Consolidado de Producción — Red Hospitalaria" para dejar exclusivamente los selectores de Sede, Fecha de Inicio y Fecha de Fin.

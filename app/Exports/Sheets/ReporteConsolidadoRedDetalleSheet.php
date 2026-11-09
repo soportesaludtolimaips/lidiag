@@ -79,15 +79,26 @@ class ReporteConsolidadoRedDetalleSheet implements FromCollection, WithColumnWid
             "ID Estudio",
             "Sede Hospitalaria",
             "Modalidad",
+            "Código CUPS",
             "Procedimiento",
-            "Tipo Doc",
             "Documento",
             "Paciente",
+            "Atención",
+            "Prioridad",
+            "Enviado a",
+            "Quien Agendó",
+            "Fecha Asignación",
             "Médico Lector",
+            "Transcriptor",
+            "EPS",
+            "Contrato",
+            "Plan",
+            "Diagnóstico",
             "Fecha Estudio",
             "Fecha Lectura",
             "TAT (Horas)",
             "Semáforo Oportunidad",
+            "Lectura",
         ];
     }
 
@@ -108,15 +119,26 @@ class ReporteConsolidadoRedDetalleSheet implements FromCollection, WithColumnWid
             $row->estudio_id ?? "N/A",
             $row->nom_sede ?? "N/A",
             $row->mods_in_study ?? "N/A",
+            $row->cod_cups ?? "N/A",
             $row->nombre_procedimiento ?? "N/A",
-            $row->tipo_documento ?? "CC",
             $row->documento ?? "N/A",
             $row->paciente_nombre ?? "N/A",
+            $row->atencion ?? "N/A",
+            $row->prioridad ?? "Rutina",
+            $row->enviado_a ?? "Salud Tolima",
+            $row->quien_agendo ?? "N/A",
+            $row->fecha_asignacion ?? "N/A",
             $row->medico_nombre ?? "Sin Asignar",
+            $row->transcriptor_nombre ?? "N/A",
+            $row->eps ?? "N/A",
+            $row->contrato ?? "N/A",
+            $row->plan ?? "N/A",
+            $row->diagnostico ?? "Sin diagnóstico",
             $row->fecha_estudio ?? "N/A",
             $row->fecha_lectura ?? "Pendiente",
             $row->tat_horas !== null ? (float) $row->tat_horas : "En curso",
             $row->semaforo_oportunidad ?? "Normal (<=24h)",
+            $row->lectura ?? "Pendiente",
         ];
     }
 
@@ -133,7 +155,7 @@ class ReporteConsolidadoRedDetalleSheet implements FromCollection, WithColumnWid
     public function styles(Worksheet $sheet): array
     {
         $sheet->setCellValue("A1", "Salud Tolima - Consolidado Detallado de Estudios de la Red Hospitalaria");
-        $sheet->mergeCells("A1:L1");
+        $sheet->mergeCells("A1:W1");
         $sheet->getStyle("A1")->applyFromArray([
             "font" => ["bold" => true, "color" => ["rgb" => "FFFFFF"], "size" => 13, "name" => "Segoe UI"],
             "fill" => ["fillType" => Fill::FILL_SOLID, "startColor" => ["rgb" => "1A2274"]],
@@ -141,7 +163,7 @@ class ReporteConsolidadoRedDetalleSheet implements FromCollection, WithColumnWid
         ]);
         $sheet->getRowDimension(1)->setRowHeight(30);
 
-        $sheet->getStyle("A3:L3")->applyFromArray([
+        $sheet->getStyle("A3:W3")->applyFromArray([
             "font" => ["bold" => true, "color" => ["rgb" => "FFFFFF"], "size" => 9, "name" => "Segoe UI"],
             "fill" => ["fillType" => Fill::FILL_SOLID, "startColor" => ["rgb" => "1A2274"]],
             "alignment" => ["horizontal" => Alignment::HORIZONTAL_CENTER, "vertical" => Alignment::VERTICAL_CENTER, "wrapText" => true],
@@ -150,7 +172,7 @@ class ReporteConsolidadoRedDetalleSheet implements FromCollection, WithColumnWid
 
         $highestRow = max(3, $sheet->getHighestRow());
         if ($highestRow >= 4) {
-            $sheet->getStyle("A4:L{$highestRow}")->applyFromArray([
+            $sheet->getStyle("A4:W{$highestRow}")->applyFromArray([
                 "borders" => ["allBorders" => ["borderStyle" => Border::BORDER_THIN, "color" => ["rgb" => "D9D9D9"]]],
                 "font" => ["name" => "Segoe UI", "size" => 9],
             ]);
@@ -174,9 +196,29 @@ class ReporteConsolidadoRedDetalleSheet implements FromCollection, WithColumnWid
     public function columnWidths(): array
     {
         return [
-            "A" => 12, "B" => 25, "C" => 14, "D" => 35, "E" => 10,
-            "F" => 16, "G" => 32, "H" => 25, "I" => 18, "J" => 18,
-            "K" => 14, "L" => 22,
+            "A" => 12,
+            "B" => 26,
+            "C" => 12,
+            "D" => 14,
+            "E" => 35,
+            "F" => 16,
+            "G" => 32,
+            "H" => 14,
+            "I" => 12,
+            "J" => 18,
+            "K" => 25,
+            "L" => 19,
+            "M" => 25,
+            "N" => 22,
+            "O" => 20,
+            "P" => 22,
+            "Q" => 20,
+            "R" => 35,
+            "S" => 18,
+            "T" => 18,
+            "U" => 14,
+            "V" => 22,
+            "W" => 45,
         ];
     }
 
