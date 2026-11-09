@@ -204,3 +204,34 @@ El sistema divide el período de análisis en dos mitades temporales para compar
 
 ### 3. Visualización en el Dashboard Central (`/dosimetria/dashboard`):
 El personal de radioprotección e ingeniería biomédica puede supervisar el estado de todas las sedes en tiempo real, visualizar el ranking de tubos emisores, la línea de tiempo de auditoría de informes RDSR y exportar el informe legal en formato Excel para las Secretarías de Salud.
+
+### 4. Matriz de Riesgo y Mapa de Calor Anatómico (7 Regiones Diana):
+El backend clasifica cada estudio en una de las 7 regiones corporales normalizadas según RadLex Playbook y la Resolución 482:
+* **Cráneo:** Procedimientos de cabeza, cerebro, senos paranasales, órbitas y macizo facial.
+* **Tórax:** RX y TAC de tórax, mediastino, reja costal, pulmones y pleura.
+* **Abdomen:** Estudios abdominales superiores e inferiores, hígado, páncreas y vías digestivas.
+* **Pelvis:** Pelvis ósea, caderas, articulaciones sacroilíacas y urografía.
+* **Columna:** Columna cervical, dorsal, lumbosacra y dinámica.
+* **Extremidades:** Hombros, brazos, codos, muñecas, manos, fémur, rodillas, piernas, tobillos y pies.
+* **Mama:** Exámenes de mamografía diagnóstica o tamizaje (MG / DGM).
+
+El **Mapa de Calor** calcula el `% de Dosis respecto al NRD` de forma ponderada por cada cohorte técnica y región:
+$$\text{pct\_nrd\_region} = \frac{\sum (\text{pct\_nrd}_i \times \text{estudios}_i)}{\sum \text{estudios}_i}$$
+Semáforo cromático institucional:
+* 🟢 **Seguro (< 80% del NRD):** Dosis optimizada bajo principio ALARA.
+* 🟡 **Alerta Preventiva (80% a 99% del NRD):** Procedimientos cercanos al tope que ameritan revisión de protocolos.
+* 🔴 **Superación Crítica ($\ge$ 100% del NRD):** Exceso normativo que activa investigación por física médica.
+
+### 5. Arquitectura de Auto-Recuperación (Self-Healing) y Comandos Centrales:
+Para garantizar la integridad continua sin depender exclusivamente del agente externo:
+* **Auto-Recuperación Transparente:** `DosimetriaService::asegurarTelemetriaSedes()` verifica la presencia de datos dosimétricos al cargar el dashboard o exportar reportes. Si detecta estudios clínicos en la sede sin telemetría, dispara la sincronización automáticamente en segundo plano con caché de 24 horas.
+* **Comando de Mamografías:**
+  ```bash
+  php artisan dosimetria:sync-mamografias
+  ```
+  Sincroniza y asocia equipos mamográficos con su límite DGM (3.0 mGy) y dosis real por disparo.
+* **Comando de Estudios Integrales:**
+  ```bash
+  php artisan dosimetria:sync-estudios --sede=6
+  ```
+  Extrae y clasifica estudios de Tomografía, Rayos X Digitales y Digitalizador CR para la sede indicada.

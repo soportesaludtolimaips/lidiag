@@ -294,14 +294,34 @@ Eliminar el parpadeo abrupto de `display: none/block` en `.right-sidebar` y moda
 - Añadir `.sidebar-backdrop` con `backdrop-filter: blur(2px)` y click-outside dismiss.
 - En modales Vue/Bootstrap: `style="display: block"`, `@click.self` y `class="modal show"`.
 
+### E7 — Resaltado Jerárquico de Identificación del Paciente (`num_docu`)
+En bandejas clínicas de alta rotación (transcripción, lectura, asignación de estudios), el personal asistencial y los radiólogos realizan la búsqueda y confirmación cruzada mediante el documento de identidad del paciente:
+- **Antipatrón detectado:** Documento relegado a una etiqueta `<small class="text-muted">` grisácea y diminuta debajo del nombre, dificultando el escaneo visual rápido en monitores de diagnóstico.
+- **Patrón estandarizado en tablas:**
+  ```html
+  <!-- ✅ Documento visible, jerárquico y en azul institucional -->
+  <div class="font-weight-bold text-dark">
+      {{ item.nom_pacien }}
+  </div>
+  <div class="text-primary font-weight-bold" style="font-size: 15px">
+      <i class="fa fa-id-card-o mr-1"></i>
+      {{ item.num_docu }}
+  </div>
+  ```
+- **Patrón en cabeceras de paneles / modales (`tituloModal`):**
+  Acompañar siempre el nombre del paciente con su documento para evitar confusiones durante el reporte:
+  ```js
+  tituloModal.value = `Transcribir la lectura del paciente: ${data.nom_pacien} ${data.num_docu ? `(${data.num_docu})` : ""}`;
+  ```
+
 ---
 
 ## Resumen por severidad
 
 | Prioridad | Área | Items |
 |-----------|------|-------|
-| 🔴 Alta | Accesibilidad, validación, bugs | H2, H3, H4, H5, H6, H7, E3, E4 |
-| 🟠 Media | Feedback, consistencia, rendimiento | M1-M8, E1, E2, E5, E6 |
+| 🔴 Alta | Accesibilidad, validación, seguridad del paciente | H2, H3, H4, H5, H6, H7, E3, E4, E7 |
+| 🟠 Media | Feedback, consistencia, ergonomía clínica | M1-M8, E1, E2, E5, E6 |
 | 🔵 Baja | Limpieza, tipografía | L1-L10 |
 
 ## Orden de ejecución sugerido

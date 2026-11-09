@@ -234,13 +234,16 @@ Módulo administrativo para la emisión, rotación segura y monitorización de c
     -   **Calibración y Filtro de Suelo de Ruido (*Noise Floor*):** Descarte automático de topogramas, scouts y disparos residuales insignificantes (`CTDIvol < 1.0 mGy`, `DLP < 20 mGy·cm`, etc.) y exigencia de umbrales absolutos mínimos ($\Delta \ge 1.5\text{ mGy}$ en CT, $\Delta \ge 25\text{ mGy}\cdot\text{cm}$ en DLP) y al menos 3 disparos por ventana temporal, erradicando falsos positivos por sesgo de base pequeña.
 -   **Dashboard Analítico Institucional (Vue 3 + Chart.js con Estándar AdminWrap):**
     -   **Header y Acciones Canónicas:** Ruta de navegación con `row page-titles`, botón de exportación a Excel y modal interactivo del Catálogo NRD regulatorio.
-    -   **Info-Boxes Superiores (Estilo `index.html`):** Tarjetas con indicadores `.display-6`, íconos temáticos (`icon-Target-Market`, `icon-Desktop-Monitor`, `icon-Contrast`, `icon-Pulse`) y micro-barras de progreso de 3px para Estudios Monitoreados, Equipos Emisores, Cumplimiento NRD y Dosis Efectiva Media ($E$).
-    -   **Monitor de Latidos Edge (*Dead Man's Switch*):** Panel de telemetría en vivo con badges `.label.label-rounded` para supervisar la conectividad continua de los agentes en cada hospital.
+    -   **Info-Boxes Superiores (Estilo `index.html`):** Tarjetas con indicadores `.display-6`, íconos temáticos (`icon-Target-Market`, `icon-Desktop-Monitor`, `icon-Contrast`, `icon-Pulse`), tooltips explicativos y micro-barras de progreso de 3px para Estudios Monitoreados, Equipos Emisores, Cumplimiento NRD y Dosis Efectiva Media ($E$).
+    -   **Monitor de Latidos Edge (*Dead Man's Switch*):** Panel de telemetría en vivo con badges `.label.label-rounded` y tooltips clínicos para supervisar la conectividad continua de los agentes en cada hospital conforme a ISO/IEC 27001 y Res. 3100.
     -   **Alertas Semánticas de Radioprotección:** Paneles nativos `.alert.alert-danger` y `.alert.alert-warning` ante superaciones de NRD o advertencias de deriva técnica con delta absoluto y porcentual.
-    -   **Gráficos Clínicos Comparativos:** Gráfico de barras de Dosis Medida vs Límite NRD por sede, gráfico de dona de Conformidad Normativa (Seguro, Alerta, Crítico), gráfico de líneas de Tendencia Mensual (ALARA) y dona de Distribución por Modalidad.
+    -   **Matriz de Riesgo y Mapa de Calor Anatómico (7 Regiones Diana):** Tabla interactiva y visual que cruza sedes contra Cráneo, Tórax, Abdomen, Pelvis, Columna, Extremidades y Mama, con cálculo ponderado del `% del NRD` y semáforo ALARA (🟢 Seguro $<80\%$, 🟡 Precaución $80\%-99\%$, 🔴 Superación Crítica $\ge 100\%$, ⚪ Sin Datos).
+    -   **Gráficos Clínicos Comparativos con Tooltips Normativos:** Gráfico de barras de Dosis vs NRD por sede, dona de Cumplimiento Normativo (Seguro, Alerta, Crítico), gráfico de líneas de Tendencia Mensual y gráfico de Radar Anatómico ICRP 103 contrastando los órganos diana contra la franja de corte del 100% NRD.
     -   **Ranking de Equipos Emisores (Estilo "Projects of the Month"):** Tabla estructurada con `.table.vm.no-th-brd.pro-of-month`, avatares circulares `.round`, estado clínico y dosis media por emisor.
     -   **Timeline de Auditoría Clínica (Estilo "Today's Schedule"):** Línea de tiempo interactiva con `.steamline` y `.sl-item` para trazabilidad de informes RDSR y eventos.
     -   **Tabla Maestra de Mediciones:** Historial reciente de muestreo con identificador anonimizado HMAC, parámetros técnicos ($kV_p$, $mA$, $ms$) y estado de verificación.
+    -   **Reporte Excel Institucional Multi-Hoja:** Descarga de libros Excel (`.xlsx`) estructurados en 3 pestañas: *1. Estadísticas y NRD* (KPIs y gráficos nativos de barras/torta), *2. Mapa de Calor - Riesgo NRD* (matriz con formato condicional semántico) y *3. Registros Detallados* con cálculo del `% del NRD` y evaluación individual.
+    -   **Arquitectura de Auto-Recuperación (Self-Healing):** `DosimetriaService::asegurarTelemetriaSedes()` detecta automáticamente sedes con estudios no sincronizados y dispara en caliente los comandos de sincronización garantizando 100% de cobertura histórica.
 -   **UI y Rutas:** Pantalla web en `/dosimetria/dashboard`, API en `/api/dosimetria/*` (permisos `dosimetria.*`).
 -   **Documentación Especializada:** Manuales dedicados en `storage/app_lidiag/agente_backups_dcm/README_DOSIMETRIA.md` e informe para proveedores en `storage/app_lidiag/agente_backups_dcm/INFORME_TECNICO_DOSIMETRIA_PROVEEDORES.md`.
 
@@ -281,8 +284,43 @@ Módulo administrativo para la emisión, rotación segura y monitorización de c
 
 **Propósito:** Visualización de estudios e imágenes médicas DICOM en navegadores web sin requerir instalación de software cliente.
 
--   **Oviyam:** Integración nativa con Dcm4chee para visualización en pestaña auxiliar (`tap_oviyam`).
+-   **Oviyam:** Integración nativa con Dcm4chee para visualización en pestaña auxiliar (`tap_oviyam`), con auto-recuperación de endpoints de sede ante pérdida de contexto en frontend.
 -   **OHIF Viewer:** Servicio preparado para visualización DICOM web zero-footprint de series multimodales.
+
+### 19. Centro de Reportes e Inteligencia de Negocio Hospitalaria
+
+**Propósito:** Análisis estadístico y exportación gerencial de la producción médica, oportunidad asistencial y estados de red.
+
+-   **Arquitectura de Libros Multi-Hoja (`WithMultipleSheets`):** Todos los reportes a Excel se compilan mediante PhpSpreadsheet divididos en:
+    -   *Hoja 1 (Estadísticas y Gráficos Nativos):* Banner corporativo, 5 tarjetas de KPIs ejecutivos, tablas agregadas de distribución y dos gráficos nativos incrustados (Torta y Barras Agrupadas).
+    -   *Hoja 2 (Detalle Granular):* Listado completo registro por registro con bordes, anchos calibrados y formatos de moneda/porcentaje.
+-   **Reportes Clave Disponibles:**
+    -   *Producción Detallada:* Modalidades, rendimiento por radiólogo, TAT clínico y tiempos de transcripción (`/reportes-produccion`).
+    -   *Estudios PACS (`/reportes-estudios-pac`):* Auditoría multisede de adquisiciones reales en Dcm4chee cruzadas con pacientes.
+    -   *Consolidado de Toda la Red Hospitalaria:* Ranking de sedes, desglose modal y oportunidad global.
+    -   *Semáforo de Represamiento y Urgencias fuera de SLA:* Estudios >24h sin lectura y urgencias pendientes >30 minutos.
+    -   *Estadísticas de Citas y Canal WhatsApp:* Control de asistencia del día y conversión de solicitudes digitales.
+    -   *Monitor de Almacenamiento y Servidores:* Capacidad de discos locales, NAS y agentes hospitalarios.
+
+### 20. Control de Concurrencia Médica (`Estudio Locks`) y Resiliencia en Lectura
+
+**Propósito:** Prevención de colisiones asistenciales y pérdida de información clínica durante la lectura radiológica.
+
+-   **Bloqueo Exclusivo Atómico:** Al abrir un estudio para informe o asignación, el sistema adquiere una reserva (`POST /api/estudio-lock/tomar`). Si otro usuario intenta abrirlo, recibe una notificación inmediata de conflicto (`HTTP 409`) impidiendo la doble edición.
+-   **Heartbeat de Mantenimiento:** Latido en segundo plano cada 45 segundos para renovar el lock activo mientras el médico redacta.
+-   **Liberación Idempotente:** Liberación automática al guardar el informe, cerrar el modal o al expirar la sesión por inactividad.
+-   **Marcación de Hallazgos Críticos:** Checkbox asistencial `[x] Marcar Crítico` con extracción automática de la conclusión diagnóstica y despacho prioritario de alerta a Telegram y canales de urgencias.
+
+### 21. Informes Ejecutivos para Gerencia y Dirección Médica
+
+**Propósito:** Consolidación de avances y proyección estratégica de la plataforma LIDiag.
+
+-   **Informe Consolidado de Actualizaciones:**
+    -   Markdown: [`docs/INFORME_ACTUALIZACIONES_GERENCIA.md`](file:///c:/laragon/www/lidiag/docs/INFORME_ACTUALIZACIONES_GERENCIA.md)
+    -   PDF Ejecutivo: [`docs/INFORME_ACTUALIZACIONES_GERENCIA.pdf`](file:///c:/laragon/www/lidiag/docs/INFORME_ACTUALIZACIONES_GERENCIA.pdf) *(14 secciones completas con el estado de arte del sistema)*.
+-   **Informe de Propuesta de Nuevos Módulos y Mejoras:**
+    -   Markdown: [`docs/INFORME_PROPUESTA_MEJORAS.md`](file:///c:/laragon/www/lidiag/docs/INFORME_PROPUESTA_MEJORAS.md)
+    -   PDF Ejecutivo: [`docs/INFORME_PROPUESTA_MEJORAS.pdf`](file:///c:/laragon/www/lidiag/docs/INFORME_PROPUESTA_MEJORAS.pdf) *(Catálogo de 6 nuevos módulos: RADPEER, Farmacovigilancia, Mantenimiento biomédico, Portal de remitentes, RIPS JSON Res. 2275 e IA Pre-Triage)*.
 
 ---
 
@@ -341,6 +379,21 @@ php artisan sync:dicom-ecografias
 -   **EPS:** Sincroniza el catálogo de aseguradoras.
 -   **Productos:** Actualiza el listado de procedimientos (CUPS).
 -   **Ecografías:** Migra el historial de lecturas, asociándolas a pacientes, médicos y atenciones correspondientes.
+
+### Sincronización y Telemetría Dosimétrica (Resolución 482)
+
+```bash
+# Sincronizar mamografías digitales (MG) hacia telemetría dosimétrica con magnitud DGM
+php artisan dosimetria:sync-mamografias
+
+# Sincronización dosimétrica integral (CT, DX, CR) para una sede hospitalaria específica
+php artisan dosimetria:sync-estudios --sede=6
+
+# Simulación previa sin persistencia en base de datos
+php artisan dosimetria:sync-estudios --sede=6 --dry-run
+```
+
+**Descripción:** Extrae estudios radiológicos desde la base clínica, clasifica de forma determinista la región anatómica según la taxonomía ICRP 103 / RadLex (Cráneo, Tórax, Abdomen, Pelvis, Columna, Extremidades, Mama), calcula las dosis equivalentes (CTDIvol en mGy, DAP en $\text{Gy}\cdot\text{cm}^2$, DGM en mGy) y sincroniza los equipos emisores en `medicion_dosis_radiacion` para alimentar el Mapa de Calor y la Matriz de Riesgo de la plataforma. Cuenta además con arquitectura de auto-recuperación (*Self-Healing*) que se ejecuta transparentemente al acceder al dashboard.
 
 ### Sistema de Backups Automáticos Separados (BD y Storage)
 
@@ -938,6 +991,7 @@ En Laragon, normalmente accederás por tu vhost, por ejemplo `https://lidiag.tes
 | **Diario 08:00 AM** | `citas:notificar` | Notificaciones matutinas de citas del día vía WhatsApp |
 | **Diario 02:00 AM** | `lidiag:backup` | Respaldo automático de Base de Datos MySQL y las 16 carpetas de Storage clínico |
 | **Diario 02:30 AM** | `lidiag:backup-dcm` | Respaldo automático de bases de datos DCM/PACS por sede |
+| **Diario 03:00 AM** | `dosimetria:sync-mamografias` | Sincronización dosimétrica de mamografías clínicas (DGM Res. 482) |
 | **Cada hora** | `sessions:prune --hours=24 --user-hours=168` | Purga de sesiones inactivas |
 | **Diario** | `notifications:prune --days=90` | Purga de notificaciones con más de 90 días |
 

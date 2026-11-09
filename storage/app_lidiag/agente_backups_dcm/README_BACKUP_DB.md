@@ -46,7 +46,7 @@ El agente lee los siguientes parámetros del archivo `config.json`:
   "min_free_space_gb": 5,
   "subir_zip_central": false,
 
-  "api_url": "https://10.35.47.4/lidiag/public/api/dosis/registros",
+  "api_url": "https://lidiag.com/api",
   "api_token": "TOKEN_BEARER_LIDIAG_AQUI"
 }
 ```

@@ -2,6 +2,13 @@
 
 Sistema autónomo en Python (100% librería estándar, **sin necesidad de `pip install`**) para vigilar el almacenamiento de los servidores de imágenes diagnósticas (PACS / dcm4chee) en las diferentes sedes hospitalarias de LIDiag.
 
+> [!NOTE]
+> **Arquitectura Unificada:**
+> El motor principal y mantenido activamente de este componente reside en:
+> **`storage/app_lidiag/agente_backups_dcm/dcm_disk_monitor.py`**
+> Dicho motor unifica en un solo proceso tanto las **Alertas y Comandos por Telegram** como la **Telemetría Central HTTPS** hacia LIDiag (`POST /api/backups/telemetria`), visible en el panel `/seguridad-backups`.
+> Esta carpeta (`dcm_disk_monitor_telegram`) proporciona el paquete de utilidades interactivas (`configurar_interactivo.py`, `.bat` autónomos) para despliegues independientes en servidores de sedes.
+
 ---
 
 ## 📋 Características Principales
@@ -39,7 +46,7 @@ Sistema autónomo en Python (100% librería estándar, **sin necesidad de `pip i
 
 ### Paso 2: Ejecutar el Asistente Interactivo
 
-En la carpeta del monitor, haz doble clic sobre:
+En la carpeta del monitor, ejecuta:
 ```cmd
 configurar.bat
 ```
@@ -69,6 +76,7 @@ Si prefieres configurar sin el asistente interactivo:
 ```json
 {
   "SEDE": "Honda - Hospital San Juan de Dios de Honda",
+  "sede_id": 4,
   "servidor_identificador": "HONDA-PACS-01",
   "telegram": {
     "bot_token": "TU_TOKEN_DE_TELEGRAM_AQUI",
@@ -98,7 +106,9 @@ Si prefieres configurar sin el asistente interactivo:
   "reporte_diario": {
     "activo": true,
     "hora": "08:00"
-  }
+  },
+  "api_url": "https://lidiag.com/api",
+  "api_token": "TOKEN_SANCTUM_PERMANENTE_AQUI"
 }
 ```
 
@@ -180,7 +190,7 @@ Puedes enviar estos comandos en cualquier momento desde un chat privado con el b
 ### 3. Revisión de logs en segundo plano
 - Cuando el monitor corre en segundo plano con `pythonw.exe`, cualquier error o evento se guarda automáticamente en:
   ```text
-  storage\app_lidiag\dcm_disk_monitor_telegram\dcm_monitor.log
+  dcm_monitor.log
   ```
 
 ---
@@ -188,8 +198,9 @@ Puedes enviar estos comandos en cualquier momento desde un chat privado con el b
 ## 📦 Despliegue en Nuevas Sedes
 
 Para instalar este monitor en un nuevo servidor PACS:
-1. Copia toda la carpeta `dcm_disk_monitor_telegram` al servidor de la sede (ej. en `C:\servicios\dcm_disk_monitor_telegram\`).
-2. Abre la carpeta y ejecuta `configurar.bat`.
-3. Sigue las instrucciones del asistente en pantalla (2 minutos).
-4. Ejecuta `iniciar_segundo_plano.bat` o `instalar_tarea_programada.bat`.
-5. ¡Listo! El servidor quedará vigilado y enviará reportes y alertas a Telegram.
+1. Copia toda la carpeta `dcm_disk_monitor_telegram` (o el paquete unificado `agente_backups_dcm`) al servidor de la sede (ej. en `C:\servicios\agente_backups_dcm\`).
+2. Asegúrate de contar con el script `dcm_disk_monitor.py` en el mismo directorio.
+3. Abre la carpeta y ejecuta `configurar.bat`.
+4. Sigue las instrucciones del asistente en pantalla (2 minutos).
+5. Ejecuta `iniciar_segundo_plano.bat` o `instalar_tarea_programada.bat`.
+6. ¡Listo! El servidor quedará vigilado y enviará reportes tanto a Telegram como a la consola central de LIDiag.

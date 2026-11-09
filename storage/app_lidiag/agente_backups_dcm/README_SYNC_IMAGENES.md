@@ -13,17 +13,17 @@ El Agente de Sincronización Continua de Imágenes DICOM replica de forma autom�
 
 ### Capacidades Principales:
 * **Modelo Dropbox / Google Drive:** Monitoreo persistente en segundo plano. Escanea el árbol de directorios a intervalos regulares y transfiere únicamente los archivos nuevos o no sincronizados.
-* **Motor Nativo Robocopy Multi-hilo:** Aprovecha el motor robusto de Windows `robocopy.exe` con soporte multi-hilo (`/MT:8` a `/MT:32`) para máxima tasa de transferencia sin saturar la CPU.
-* **Política de Respaldo Seguro (Zero Deletions):** El agente **NUNCA borra** archivos en el servidor de destino (QNAP NAS). Solo replica (`/E /XO /NP`). Si un archivo local se elimina accidentalmente o se purga por falta de espacio, la copia histórica en la NAS permanece intacta.
-* **Control de Concurrencia y Lockfile:** Emplea un archivo de bloqueo (`logs/sync_dcm.lock`) para evitar que múltiples instancias simultáneas compitan por recursos o archivos bloqueados.
-* **Bitácora Detallada en Vivo (`logs/robocopy_scan.log`):** Permite al administrador observar el avance en tiempo real, archivo por archivo y carpeta por carpeta.
-* **Emisión de Telemetría JSON:** Genera `status_sync_{sede}.json` y alimenta `healthcheck_agente.json` para reflejar el estado de la sincronización en LIDiag Central.
+* **Motor Nativo Robocopy Multi-hilo:** Aprovecha el motor robusto de Windows `robocopy.exe` con soporte multi-hilo (`/MT:8` a `/MT:32`) para máxima tasa de transferencia sin saturar la CPU ni el enlace de red.
+* **Política de Respaldo Seguro (Zero Deletions):** El agente **NUNCA borra** archivos en el servidor de destino (QNAP NAS). Solo replica (`/E /XO /XN /XC /FFT`). Si un archivo local se elimina accidentalmente o se purga por falta de espacio, la copia histórica en la NAS permanece intacta.
+* **Control de Concurrencia y Lockfile:** Emplea un archivo de bloqueo (`logs/sync_dcm.lock`) con validación de PID vivo para evitar que múltiples instancias simultáneas compitan por recursos o archivos bloqueados.
+* **Bitácora Detallada en Vivo (`logs/robocopy_scan.log`):** Permite al administrador observar el avance en tiempo real, archivo por archivo y carpeta por carpeta, desglosando colisiones multi-hilo en líneas legibles.
+* **Emisión de Telemetría JSON:** Genera `status_sync_imagenes.json` localmente, deposita `status_sync_{sede}.json` en la raíz de la NAS QNAP, actualiza `logs/healthcheck_agente.json` y emite telemetría HTTPS segura al endpoint central de LIDiag (`POST /api/backups/telemetria`).
 
 ---
 
 ## 2. Configuración en `config.json`
 
-El agente lee los siguientes parámetros del archivo `config.json`:
+El agente lee los siguientes parámetros del archivo unificado `config.json`:
 
 ```json
 {
@@ -40,15 +40,22 @@ El agente lee los siguientes parámetros del archivo `config.json`:
   ],
   "sync_interval_seconds": 180,
   "threads": 8,
-  "min_free_space_gb": 10
+  "min_free_space_gb": 10,
+
+  "api_url": "https://lidiag.com/api",
+  "api_token": "TOKEN_SANCTUM_PERMANENTE_AQUI"
 }
 ```
 
 ### Explicación de Parámetros:
+* **`sede_id`**: Identificador numérico de la sede en la plataforma LIDiag (1: Espinal, 2: Purificación, 3: Líbano, 4: Honda, 5: Chaparral, 6: Lérida, 7: Ibagué).
 * **`local_images_dir`**: Ruta (string) o lista de rutas (array) donde el PACS almacena los estudios DICOM locales. Soporta uno o múltiples discos duros (ej. `["D:\\img_dcm", "E:\\img_dcm_historico"]`); el agente iterará secuencialmente cada repositorio replicándolo hacia la NAS QNAP sin conflictos.
+* **`qnap_share_imagenes`**: Nombre de la carpeta compartida SMB en la NAS QNAP (ej. `img-dicom-espinal` o `imagenes_espinal`). Si no se define, toma como alternativa `qnap_share`.
 * **`sync_interval_seconds`**: Intervalo de descanso en segundos entre ciclos sucesivos en modo continuo (valor recomendado: 180 s = 3 min).
 * **`threads`**: Número de subprocesos paralelos asignados a Robocopy (`8` por defecto, ajustable a `16` o `32` para enlaces 10 GbE).
-* **`min_free_space_gb`**: Umbral mínimo de seguridad en disco; si el almacenamiento cae por debajo de este valor, el agente emite una alerta crítica.
+* **`min_free_space_gb`**: Umbral mínimo de seguridad en disco; si el almacenamiento cae por debajo de este valor, el agente emite una alerta crítica de almacenamiento.
+* **`api_url`**: URL base de la API central (`https://lidiag.com/api` en producción).
+* **`api_token`**: Token permanente generado en el módulo de seguridad (`/seguridad-tokens`) asignado a la sede.
 
 ---
 
@@ -102,20 +109,23 @@ Get-Content .\logs\sync_imagenes.log -Wait -Tail 30
 Get-Content .\logs\robocopy_scan.log -Wait -Tail 30
 
 # 3. Consultar el estado del último ciclo (archivos copiados, omitidos, fallidos, espacio):
-Get-Content .\status_sync_*.json | ConvertFrom-Json | Format-List
+Get-Content .\status_sync_imagenes.json | ConvertFrom-Json | Format-List
 
-# 4. Verificar si hay procesos de Robocopy o Python activos en el sistema:
+# 4. Verificar el manifiesto unificado de salud del agente:
+Get-Content .\logs\healthcheck_agente.json | ConvertFrom-Json | Format-List
+
+# 5. Verificar si hay procesos de Robocopy o Python activos en el sistema:
 Get-Process -Name robocopy, python -ErrorAction SilentlyContinue | Format-Table Id, ProcessName, CPU, WorkingSet
 
-# 5. Si el agente quedó bloqueado por un reinicio abrupto, liberar el lockfile:
+# 6. Si el agente quedó bloqueado por un reinicio abrupto, liberar el lockfile:
 Remove-Item .\logs\sync_dcm.lock -Force -ErrorAction SilentlyContinue
 
-# 6. Probar conectividad SMB con la NAS QNAP (puertos 139 NetBIOS y 445 SMB):
+# 7. Probar conectividad SMB con la NAS QNAP (puertos 139 NetBIOS y 445 SMB):
 Test-NetConnection -ComputerName 10.35.47.21 -Port 445
 
-# 7. Probar montaje manual del recurso SMB de imágenes:
-net use \\10.35.47.21\imagenes_espinal /user:sede_espinal PASSWORD_QNAP_AQUI
-net use \\10.35.47.21\imagenes_espinal /delete /y
+# 8. Probar montaje manual del recurso SMB de imágenes:
+net use \\10.35.47.21\img-dicom-espinal /user:sede_espinal PASSWORD_QNAP_AQUI
+net use \\10.35.47.21\img-dicom-espinal /delete /y
 ```
 
 ---

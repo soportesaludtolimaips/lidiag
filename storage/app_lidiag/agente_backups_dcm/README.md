@@ -90,6 +90,7 @@ Para garantizar la seguridad de la red y evitar tokens desactualizados, genera l
 
 1. Inicia sesión en LIDiag con un usuario administrador.
 2. Dirígete a **Administración → Seguridad → Tokens de Sedes** (o `https://<servidor_central>/seguridad-tokens`).
+   > *Nota de Seguridad:* La vista lista exclusivamente las sedes hospitalarias activas. Los tokens M2M emitidos para los agentes Edge son de duración permanente (`SANCTUM_EXPIRATION=null`), evitando desconexiones involuntarias en tareas de fondo y rotándose únicamente bajo demanda administrativa.
 3. Ubica la sede correspondiente y haz clic en **`Generar`** (o **`Rotar`**).
 4. En el modal resultante, haz clic en **`Descargar config.json`**.
 5. Transfiere el archivo a la carpeta del servidor (`C:\agente_backups_dcm\config.json`) y complementa las contraseñas locales de MySQL y la NAS QNAP.

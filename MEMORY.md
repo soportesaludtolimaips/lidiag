@@ -37,6 +37,21 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Actualización Integral y Estandarización de Todos los Documentos README del Repositorio:**
+  - **Alcance y Archivos Actualizados:**
+    * Se auditaron y actualizaron los 9 archivos `README*.md` propios del proyecto:
+      1. [`README.md`](file:///c:/laragon/www/lidiag/README.md): Documentación del orquestador raíz incorporando Sección 14 (Dosimetría con Mapa de Calor de 7 regiones, normalización NRD y autocuración en backend), Sección 19 (Centro de Reportes multi-hoja con PhpSpreadsheet), Sección 20 (Estudio Locks con heartbeat de 45s y marcaje de hallazgos críticos de urgencias), Sección 21 (Informes ejecutivos en PDF para gerencia), comandos de sincronización (`dosimetria:sync-mamografias`, `dosimetria:sync-estudios`) y scheduler.
+      2. [`storage/app_lidiag/transcriptor/README.md`](file:///c:/laragon/www/lidiag/storage/app_lidiag/transcriptor/README.md): Corrección de rutas (`storage/transcriptor/` → `storage/app_lidiag/transcriptor/`), documentación de pipeline FFmpeg a MP3 64kbps en disco temporal `audios/tmp/`, FastAPI Whisper base en CPU y variable `.env` `TRANSCRIPTOR_TIMEOUT=300`.
+      3. [`storage/app_lidiag/agente_backups_dcm/README.md`](file:///c:/laragon/www/lidiag/storage/app_lidiag/agente_backups_dcm/README.md): Catálogo de las 7 sedes activas (Espinal, Purificación, Líbano, Honda, Chaparral, Lérida, Ibagué), tokens permanentes M2M (`SANCTUM_EXPIRATION=null`) vía `/seguridad-tokens` y unificación de scripts y tareas.
+      4. [`storage/app_lidiag/agente_backups_dcm/README_DOSIMETRIA.md`](file:///c:/laragon/www/lidiag/storage/app_lidiag/agente_backups_dcm/README_DOSIMETRIA.md): Documentación de las 7 regiones anatómicas, umbrales ALARA, autocuración (`DosimetriaService::asegurarTelemetriaSedes`) y comandos de consola.
+      5. [`storage/app_lidiag/agente_backups_dcm/README_BACKUP_DB.md`](file:///c:/laragon/www/lidiag/storage/app_lidiag/agente_backups_dcm/README_BACKUP_DB.md): Normalización de endpoints API (`https://lidiag.com/api`) y directiva WAN `"subir_zip_central": false`.
+      6. [`storage/app_lidiag/agente_backups_dcm/README_DISK_MONITOR.md`](file:///c:/laragon/www/lidiag/storage/app_lidiag/agente_backups_dcm/README_DISK_MONITOR.md): Normalización de endpoints API de telemetría y detección multi-disco.
+      7. [`storage/app_lidiag/agente_backups_dcm/README_SYNC_IMAGENES.md`](file:///c:/laragon/www/lidiag/storage/app_lidiag/agente_backups_dcm/README_SYNC_IMAGENES.md): Normalización de endpoints API de telemetría, soporte multi-disco (`local_images_dir` en array o string), control de lockfile y healthcheck consolidado.
+      8. [`storage/app_lidiag/agente_backups_dcm/README_RESTORE_IMAGENES.md`](file:///c:/laragon/www/lidiag/storage/app_lidiag/agente_backups_dcm/README_RESTORE_IMAGENES.md): Protocolo de contingencia clínica cronológica descendente ($2026 \to 2025 \to \dots$), catálogo de shares por sede y RTO < 3h para urgencias.
+      9. [`storage/app_lidiag/dcm_disk_monitor_telegram/README.md`](file:///c:/laragon/www/lidiag/storage/app_lidiag/dcm_disk_monitor_telegram/README.md): Clarificación de arquitectura unificada (`dcm_disk_monitor.py` en `agente_backups_dcm` que unifica Telegram y telemetría central), comandos `/discos`, `/alertas`, `/info`, y modo de despliegue interactivo/autónomo.
+  - **Verificaciones:**
+    * Todos los archivos normalizados con finales de línea LF estrictos sin UTF-8 BOM ✅.
+    * Enlaces markdown cruzados verificados y validados ✅.
 - [x] **2026-11-09 — Resaltado de Número de Documento en Tele-radiología Transcribir (`teleRadiologiaTranscibirComponent.vue`):**
   - **Ajuste:**
     * Se incrementó el tamaño de fuente (`font-size: 15px`, `font-weight-bold`) del número de documento del paciente en la tabla principal y se aplicó el color azul oficial de AdminWrap (`text-primary`), reemplazando la etiqueta previa tenue y pequeña (`small text-muted`).

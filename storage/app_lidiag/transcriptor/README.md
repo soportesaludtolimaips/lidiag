@@ -58,7 +58,7 @@ cd /d C:\laragon\www\lidiag
 
 ### Paso 4: Configurar la ruta de Python en los scripts
 
-Abrir el archivo `C:\laragon\www\lidiag\storage\transcriptor\iniciar_servicio.bat`
+Abrir el archivo `C:\laragon\www\lidiag\storage\app_lidiag\transcriptor\iniciar_servicio.bat`
 
 Verificar que la linea `set PYTHON_EXE=` tenga la ruta correcta de Python. Debe verse asi:
 
@@ -87,7 +87,7 @@ dir C:\Users\Administrador\AppData\Local\Programs\Python\Python312\python.exe
 Abrir **cmd como Administrador** y ejecutar:
 
 ```cmd
-cd /d C:\laragon\www\lidiag\storage\transcriptor
+cd /d C:\laragon\www\lidiag\storage\app_lidiag\transcriptor
 install.bat
 ```
 
@@ -105,7 +105,7 @@ Esto instalara automaticamente:
 **Si install.bat falla**, instalar manualmente:
 
 ```cmd
-cd /d C:\laragon\www\lidiag\storage\transcriptor
+cd /d C:\laragon\www\lidiag\storage\app_lidiag\transcriptor
 "C:\Users\Administrador\AppData\Local\Programs\Python\Python312\python.exe" -m pip install wheel
 "C:\Users\Administrador\AppData\Local\Programs\Python\Python312\python.exe" -m pip install --no-build-isolation -r requirements.txt
 ```
@@ -123,7 +123,7 @@ Debe mostrar: `Todo OK`
 ### Paso 7: Probar el servicio manualmente
 
 ```cmd
-cd /d C:\laragon\www\lidiag\storage\transcriptor
+cd /d C:\laragon\www\lidiag\storage\app_lidiag\transcriptor
 "C:\Users\Administrador\AppData\Local\Programs\Python\Python312\python.exe" main.py
 ```
 
@@ -144,17 +144,17 @@ Si responde correctamente, volver a la primera ventana y presionar **Ctrl+C** pa
 
 Para que el servicio arranque automaticamente al encender el servidor, sin necesidad de que ningun usuario inicie sesion:
 
-**8.1** Verificar que existe el archivo `C:\laragon\www\lidiag\storage\transcriptor\iniciar_servicio.bat`
+**8.1** Verificar que existe el archivo `C:\laragon\www\lidiag\storage\app_lidiag\transcriptor\iniciar_servicio.bat`
 con el siguiente contenido:
 
 ```bat
 @echo off
 set PYTHON_EXE=C:\Users\Administrador\AppData\Local\Programs\Python\Python312\python.exe
-set LOG_FILE=C:\laragon\www\lidiag\storage\transcriptor\servicio.log
+set LOG_FILE=C:\laragon\www\lidiag\storage\app_lidiag\transcriptor\servicio.log
 
 echo %date% %time% - Iniciando servicio... >> %LOG_FILE%
 
-cd /d C:\laragon\www\lidiag\storage\transcriptor
+cd /d C:\laragon\www\lidiag\storage\app_lidiag\transcriptor
 if %errorlevel% neq 0 (
     echo %date% %time% - ERROR: No se pudo cambiar al directorio >> %LOG_FILE%
     exit /b 1
@@ -170,7 +170,7 @@ if %errorlevel% neq 0 (
 **8.2** En **cmd como Administrador**, registrar la tarea:
 
 ```cmd
-schtasks /create /tn "LidiagTranscriptor" /tr "C:\laragon\www\lidiag\storage\transcriptor\iniciar_servicio.bat" /sc onstart /ru Administrador /rl highest /f
+schtasks /create /tn "LidiagTranscriptor" /tr "C:\laragon\www\lidiag\storage\app_lidiag\transcriptor\iniciar_servicio.bat" /sc onstart /ru Administrador /rl highest /f
 ```
 
 > **IMPORTANTE:** Usar `/ru Administrador` (el usuario que tiene Python instalado).
@@ -206,7 +206,7 @@ Respuesta esperada:
 Si no responde, revisar el log:
 
 ```cmd
-type C:\laragon\www\lidiag\storage\transcriptor\servicio.log
+type C:\laragon\www\lidiag\storage\app_lidiag\transcriptor\servicio.log
 ```
 
 ### Paso 11: Probar la transcripcion desde Laravel
@@ -229,7 +229,7 @@ curl http://localhost:8001/health
 ### Ver logs del servicio
 
 ```cmd
-type C:\laragon\www\lidiag\storage\transcriptor\servicio.log
+type C:\laragon\www\lidiag\storage\app_lidiag\transcriptor\servicio.log
 ```
 
 ### Detener el servicio
@@ -297,7 +297,7 @@ pip install --no-build-isolation -r requirements.txt
 
 1. Verificar el log:
    ```cmd
-   type C:\laragon\www\lidiag\storage\transcriptor\servicio.log
+   type C:\laragon\www\lidiag\storage\app_lidiag\transcriptor\servicio.log
    ```
 2. Verificar que `PYTHON_EXE` en `iniciar_servicio.bat` tenga la ruta correcta
 3. Verificar que la tarea se creo con `Administrador` y no con `SYSTEM`:
@@ -307,7 +307,7 @@ pip install --no-build-isolation -r requirements.txt
 4. Si es SYSTEM, eliminar y recrear:
    ```cmd
    schtasks /delete /tn "LidiagTranscriptor" /f
-   schtasks /create /tn "LidiagTranscriptor" /tr "C:\laragon\www\lidiag\storage\transcriptor\iniciar_servicio.bat" /sc onstart /ru Administrador /rl highest /f
+   schtasks /create /tn "LidiagTranscriptor" /tr "C:\laragon\www\lidiag\storage\app_lidiag\transcriptor\iniciar_servicio.bat" /sc onstart /ru Administrador /rl highest /f
    ```
 
 ### Error: Puerto 8001 ocupado

@@ -44,7 +44,7 @@ El agente lee los siguientes parámetros del archivo unificado `config.json`:
     "critico_gb_libres": 20.0
   },
 
-  "api_url": "https://10.35.47.4/lidiag/public/api/dosis/registros",
+  "api_url": "https://lidiag.com/api",
   "api_token": "TOKEN_BEARER_LIDIAG_AQUI"
 }
 ```

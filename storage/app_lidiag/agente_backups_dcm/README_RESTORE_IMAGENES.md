@@ -62,18 +62,28 @@ flowchart TD
 
 ## 3. Configuración en `config.json`
 
-El script utiliza las rutas de la NAS y del disco local definidas en `config.json`:
+El script utiliza las rutas de la NAS y del disco local definidas en el archivo unificado `config.json`:
 
 ```json
 {
+  "sede_id": 1,
   "sede_nombre": "Espinal",
   "qnap_ip": "10.35.47.21",
   "qnap_user": "sede_espinal",
   "qnap_password": "PASSWORD_QNAP_AQUI",
-  "qnap_share_imagenes": "imagenes_espinal",
+  "qnap_share_imagenes": "img-dicom-espinal",
   "local_images_dir": "D:\\img_dcm"
 }
 ```
+
+### Sedes Activas y Configuración de Shares:
+* **Sede 1 — Espinal:** `img-dicom-espinal`
+* **Sede 2 — Purificación:** `img-dicom-purificacion`
+* **Sede 3 — Líbano:** `img-dicom-libano`
+* **Sede 4 — Honda:** `img-dicom-honda`
+* **Sede 5 — Chaparral:** `img-dicom-chaparral`
+* **Sede 6 — Lérida:** `img-dicom-lerida`
+* **Sede 7 — Ibagué:** `img-dicom-ibague`
 
 ---
 
@@ -119,9 +129,12 @@ python restore_dcm_images.py --dry-run
 # 1. Monitorear el progreso en tiempo real de la copia de Robocopy:
 Get-Process -Name robocopy | Format-Table Id, ProcessName, CPU, WorkingSet
 
-# 2. Verificar el espacio disponible en el disco local D:
+# 2. Verificar el log de la restauración:
+Get-Content .\logs\restore_imagenes.log -Wait -Tail 30
+
+# 3. Verificar el espacio disponible en el disco local destino (D:):
 Get-PSDrive D | Select-Object Used, Free, @{Name="FreeGB";Expression={[math]::round($_.Free/1GB,2)}}
 
-# 3. Probar conectividad con la NAS QNAP antes de iniciar:
+# 4. Probar conectividad con la NAS QNAP antes de iniciar:
 Test-NetConnection -ComputerName 10.35.47.21 -Port 445
 ```
