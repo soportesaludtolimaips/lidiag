@@ -965,7 +965,9 @@ function parsearSedeId(val) {
  * Obtiene el ID de sede activa desde sessionStorage o el usuario autenticado.
  */
 function obtenerSedeActualId() {
-    const parsed = parsearSedeId(sessionStorage.getItem("ST-sede"));
+    const parsed =
+        parsearSedeId(sessionStorage.getItem("ST-sede")) ??
+        parsearSedeId(localStorage.getItem("ST-sede"));
     if (parsed) return parsed;
     if (props.usuarioactual?.sedes && props.usuarioactual.sedes.length > 0) {
         return props.usuarioactual.sedes[0].id;
@@ -982,7 +984,9 @@ const dt = ref(null);
 
 // Estado de la Sede
 const sedeId = ref(obtenerSedeActualId());
-const sedeNombre = ref(sessionStorage.getItem("ST-nomsede") || "Principal");
+const sedeNombre = ref(
+    sessionStorage.getItem("ST-nomsede") || localStorage.getItem("ST-nomsede") || "Principal"
+);
 
 // Estado de carga y datos
 const loadingBuscar = ref(false);
@@ -1057,12 +1061,13 @@ function destroyDataTable() {
 
 function resolverNombreSede() {
     try {
-        const nom = sessionStorage.getItem("ST-nomsede");
+        const nom = sessionStorage.getItem("ST-nomsede") || localStorage.getItem("ST-nomsede");
         if (nom) {
             sedeNombre.value = nom;
             return;
         }
-        const sedesGuardadas = sessionStorage.getItem("ST-sedes");
+        const sedesGuardadas =
+            sessionStorage.getItem("ST-sedes") || localStorage.getItem("ST-sedes");
         if (sedesGuardadas) {
             const lista = JSON.parse(sedesGuardadas);
             const encontrada = lista.find((s) => Number(s.id) === Number(sedeId.value));
@@ -1099,19 +1104,27 @@ async function consultarConfigSede() {
 }
 
 async function onSedeSeleccionada(data) {
-    const nuevoId = parsearSedeId(data) ?? parsearSedeId(sessionStorage.getItem("ST-sede"));
+    const nuevoId =
+        parsearSedeId(data) ??
+        parsearSedeId(sessionStorage.getItem("ST-sede")) ??
+        parsearSedeId(localStorage.getItem("ST-sede"));
     if (nuevoId) {
+        const cambioSede = String(sedeId.value || "") !== String(nuevoId);
         sedeId.value = nuevoId;
         sessionStorage.setItem("ST-sede", String(nuevoId));
+        localStorage.setItem("ST-sede", String(nuevoId));
         if (data && typeof data === "object" && data.nomSede) {
             sedeNombre.value = data.nomSede;
             sessionStorage.setItem("ST-nomsede", data.nomSede);
+            localStorage.setItem("ST-nomsede", data.nomSede);
         } else {
             resolverNombreSede();
         }
         await consultarConfigSede();
-        buscar();
-        cargarEstacionesWorklist();
+        if (cambioSede || !registros.value?.length) {
+            buscar();
+            cargarEstacionesWorklist();
+        }
     }
 }
 
@@ -1594,6 +1607,9 @@ onMounted(async () => {
 
     if (emitter) {
         emitter.on("sedeSeleccionada", onSedeSeleccionada);
+        if (!sessionStorage.getItem("ST-sede") && !localStorage.getItem("ST-sede")) {
+            emitter.emit("solicitarSedeActiva");
+        }
     }
 });
 

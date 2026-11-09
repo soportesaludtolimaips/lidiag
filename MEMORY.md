@@ -37,6 +37,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Propagación de Fix de Resiliencia y Fallback de Sedes en Módulo Pacientes / Admisión (`resources/js/components/modulos/pacientes/`):**
+  - **Componentes Actualizados:**
+    * `admisionComponent.vue`: Fallback a `localStorage` en `obtenerSedeActualId()`, `sedeNombre`, `resolverNombreSede()` y `onSedeSeleccionada`. Solicitud reactiva al montar con `solicitarSedeActiva` si el estado es frío. Detección de cambio real en `onSedeSeleccionada` antes de relanzar búsqueda.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios (0 errores, 0 advertencias) ✅.
+    * Vite build (`npm run build`) completado exitosamente en 1.18s ✅.
+
 - [x] **2026-11-09 — Propagación de Fix de Resiliencia y Fallback de Sedes en Módulo Citas (`resources/js/components/modulos/citas/`):**
   - **Componentes Actualizados:**
     * `citasComponent.vue`: Fallback a `localStorage` en `onSedeSeleccionada` y emisión preventiva de `solicitarSedeActiva` en `onMounted`.
