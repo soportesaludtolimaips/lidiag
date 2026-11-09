@@ -37,6 +37,53 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Habilitación de Búsqueda y Selección de Diagnósticos en Tele-Radiología para Sedes sin Interfaz (`teleRadiologiaEnviarEstudioComponent.vue`):**
+  - **Problema:** En el drawer de `https://lidiag.test/tele-radiologia`, cuando una sede no cuenta con interfaz SAHI (`sedeInterface === false`), no se mostraba el combo de búsqueda ni la tabla de selección de diagnósticos, impidiendo asociar diagnósticos CIE al estudio y a la orden.
+  - **Solución Implementada:**
+    * Componente [`teleRadiologiaEnviarEstudioComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/tele-radiologia/teleRadiologiaEnviarEstudioComponent.vue):
+      - Integrado bloque `<Select2 ref="selDiagnostico">` condicionado a `v-if="!sedeInterface"` con dropdown-parent `#diagnosticos-parent` y búsqueda por código CIE y nombre de diagnóstico.
+      - Implementada tabla reactiva para visualizar diagnósticos seleccionados (`registro.diagnosticosEstudio`) y botón de eliminación con confirmación modal `confirmAction`.
+      - Declaradas variables reactivas `diagnosticos`, `diagnosticoSeleccionado`, `selDiagnostico` y computada `diagnosticoOptions`.
+      - Agregadas funciones `listarDiagnosticos()` (`/api/config-diagnosticos`), `onDiagnosticoSelect()`, `guardarDiagnosticosEstudio()` y `quitarDiagnosticoEstudio()`.
+      - Sincronizada reconstrucción `selDiagnostico.value?.rebuild()` en `abrirModal()`, `mostrarRegistro()`, tras guardar un diagnóstico y en el `watch([sidebarVisible, sedeInterface])`.
+      - Incluido mapeo de `diagnostico` en `payloadOrden` hacia `/api/tele-radiologia-enviar-orden`.
+    * Backend [`EnviarOrdenTeleRadiologiaRequest.php`](file:///c:/laragon/www/lidiag/app/Http/Requests/Interfaces/EnviarOrdenTeleRadiologiaRequest.php):
+      - Adicionada regla `'orden.diagnostico' => ['sometimes', 'array']` en `rules()`.
+  - **Verificaciones:**
+    * Pint pasado al 100% en `EnviarOrdenTeleRadiologiaRequest.php` (`vendor\bin\pint.bat`) ✅.
+    * ESLint y Prettier 100% limpios en `teleRadiologiaEnviarEstudioComponent.vue` ✅.
+    * Vite build (`npm run build`) completado exitosamente en 1.45s ✅.
+
+- [x] **2026-11-09 — Corrección de Inicialización de Select2 para Búsqueda de Productos en Drawer de Tele-radiología (`teleRadiologiaEnviarEstudioComponent.vue`):**
+  - **Problema:** En el drawer de `https://lidiag.test/tele-radiologia` (`teleRadiologiaEnviarEstudioComponent.vue`), el campo de búsqueda de productos no aplicaba el widget Select2 (quedaba como select plano o invisible).
+  - **Causa Raíz:**
+    1. Select2 dentro del componente `Select2.vue` comprueba si el drawer `.right-sidebar` está oculto durante el montaje inicial (`if ($parent.length && $parent.is(':hidden')) return;`). Al estar cerrado el drawer, abortaba la inicialización.
+    2. El componente padre carecía de `ref="selProducto"`, por lo que al abrir el drawer (`abrirModal`, `mostrarRegistro`) nunca se invocaba el método `.rebuild()`.
+    3. Faltaba `id="productos-parent"` y `dropdown-parent-selector="#productos-parent"`, haciendo que el dropdown se adjuntara al `body` y quedara oculto detrás del drawer (`z-index: 1100` vs `1051`).
+    4. La tabla de productos seleccionados iteraba únicamente sobre `productosInterface` (SAHI), por lo que al seleccionar productos manuales mediante Select2 en sedes sin interfaz no se visualizaban en la tabla.
+  - **Solución Aplicada:**
+    * Se asignó `ref="selProducto"` y `dropdown-parent-selector="#productos-parent"` con `id="productos-parent"`.
+    * Se implementó reconstrucción automática de Select2 (`selProducto.value?.rebuild()`) al abrir el modal, al resolver `sedeInterface` de forma asíncrona, al seleccionar productos y mediante un watcher reactivo sobre `[sidebarVisible, sedeInterface]`.
+    * Se añadieron reglas CSS scoped con `z-index: 9999 !important` para `.select2-dropdown` y estilo responsive para `.select2-container`.
+    * Se unificó el listado de la tabla de productos para soportar tanto sedes con interfaz como sin interfaz (`sedeInterface ? productosInterface : registro.productosEstudio`).
+  - **Verificaciones:**
+    * Prettier y ESLint pasados sin advertencias ✅.
+    * Compilación Vite completada exitosamente en 1.24s ✅.
+- [x] **2026-11-09 — Filtrado Estricto de Permisos en la Paleta de Comandos (`commandPaletteComponent.vue`, `AppHeader.vue`, `toggleAndNavItems.blade.php`):**
+  - **Diagnóstico y Causa Raíz:**
+    * El usuario solicitó que al realizar búsquedas en la paleta de comandos (`Ctrl+K`), se muestren únicamente los módulos a los cuales el usuario autenticado tiene acceso según sus permisos y roles asignados.
+    * Anteriormente, ciertos módulos (como Tele-Radiología) contenían permisos combinados con OR laxos (`tele.ragiologia.index|estudio.asignar`), permitiendo que usuarios con rol Administrativo o Transcriptor vieran accesos a Tele-Radiología sin contar con el permiso específico.
+    * Asimismo, el componente en `AppHeader.vue` y `toggleAndNavItems.blade.php` no inyectaba la prop `:permisos`, dependiendo únicamente del store reactivo en frío.
+  - **Solución Implementada:**
+    * **Purificación de Permisos:** Se eliminaron las reglas laxas en Tele-Radiología (`tele.ragiologia.index|tele.ragiologia.enviar` y `tele.ragiologia.transcribir`) y Ecografías, asegurando concordancia 1:1 con las directivas `@can` del Sidebar y los middlewares de rutas.
+    * **Función `tieneAcceso(item)`:** Implementada evaluación robusta que consulta `useAuth().can(item.permiso)` y respalda contra `props.permisos`.
+    * **Computada Reactiva `modulosPermitidos`:** Filtra en tiempo real los 48 módulos contra los permisos activos del usuario antes de aplicar el filtro textual de búsqueda.
+    * **Inyección de Permisos:** Se vinculó `:permisos="permissions"` en `AppHeader.vue` y `:permisos="@json(Auth::user()->getAllPermissions()->pluck('name'))"` en `toggleAndNavItems.blade.php`.
+  - **Verificaciones:**
+    * PHP Pint verificado con 100% de éxito (`vendor\bin\pint.bat --test`) ✅.
+    * ESLint verificado con 0 errores y 0 advertencias (`npx eslint`) ✅.
+    * Compilación Vite (`npm run build`) exitosa en 1.36s ✅.
+
 - [x] **2026-11-09 — Corrección de Rutas 404 en Paleta de Comandos (Ctrl+K) y Advertencias de Key Duplicada (`commandPaletteComponent.vue`, `routes.js`, `routes/web.php`):**
   - **Diagnóstico y Causa Raíz:**
     * El usuario reportó error "404 Página No Encontrada" al buscar e ingresar a Tele-Radiología desde la paleta de comandos (`Ctrl+K`).

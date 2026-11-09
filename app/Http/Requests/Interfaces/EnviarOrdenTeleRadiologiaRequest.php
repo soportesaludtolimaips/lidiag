@@ -79,6 +79,7 @@ class EnviarOrdenTeleRadiologiaRequest extends FormRequest
             'orden.medico.name' => ['nullable', 'string'],
             'orden.cod_cups' => ['nullable', 'string'],
             'orden.producto' => ['sometimes', 'array'],
+            'orden.diagnostico' => ['sometimes', 'array'],
             'orden.priori' => ['sometimes', 'array'],
             'orden.sede' => ['sometimes', 'array'],
         ];

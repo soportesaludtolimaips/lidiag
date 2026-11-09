@@ -501,17 +501,28 @@
                                         {{ errores.productosEstudio[0] }}
                                     </span>
                                     <div class="row">
-                                        <div class="col-md-12" v-if="!sedeInterface">
+                                        <div
+                                            class="col-md-12"
+                                            v-if="!sedeInterface"
+                                            id="productos-parent"
+                                        >
+                                            <label class="control-label" for="select-producto">
+                                                Buscar y agregar producto
+                                            </label>
                                             <Select2
+                                                ref="selProducto"
+                                                select-id="select-producto"
                                                 :value="productoSeleccionado"
                                                 :options="productoOptions"
                                                 width="100%"
                                                 :allow-clear="true"
+                                                placeholder="Buscar por código CUPS o nombre del producto..."
+                                                dropdown-parent-selector="#productos-parent"
                                                 @input="onProductoSelect"
                                             />
                                         </div>
                                         <div
-                                            class="col-md-12 table-responsive"
+                                            class="col-md-12 table-responsive m-t-10"
                                             style="overflow-y: scroll; height: 250px"
                                         >
                                             <table class="table table-bordered table-striped">
@@ -525,8 +536,10 @@
                                                 </thead>
                                                 <tbody>
                                                     <tr
-                                                        v-for="(item, pIdx) in productosInterface"
-                                                        :key="item.id"
+                                                        v-for="(item, pIdx) in sedeInterface
+                                                            ? productosInterface
+                                                            : registro.productosEstudio"
+                                                        :key="item.id || item.cod_cups || pIdx"
                                                     >
                                                         <td>
                                                             <input
@@ -562,6 +575,7 @@
                                                                         item.cod_cups
                                                                     )
                                                                 "
+                                                                title="Quitar producto"
                                                             >
                                                                 <i class="fa fa-trash"></i>
                                                             </button>
@@ -572,7 +586,111 @@
                                         </div>
                                     </div>
 
-                                    <h5 class="card-title text-info">
+                                    <h5 class="card-title text-info m-t-20">
+                                        <i class="fa fa-user"></i> DIAGNÓSTICOS
+                                    </h5>
+                                    <hr />
+
+                                    <span class="text-danger" v-if="errores.diagnosticosEstudio">
+                                        {{ errores.diagnosticosEstudio[0] }}
+                                    </span>
+
+                                    <div class="row">
+                                        <div
+                                            class="col-md-12"
+                                            v-if="!sedeInterface"
+                                            id="diagnosticos-parent"
+                                        >
+                                            <label class="control-label" for="select-diagnostico">
+                                                Buscar y agregar diagnóstico
+                                            </label>
+                                            <Select2
+                                                ref="selDiagnostico"
+                                                select-id="select-diagnostico"
+                                                :value="diagnosticoSeleccionado"
+                                                :options="diagnosticoOptions"
+                                                width="100%"
+                                                :allow-clear="true"
+                                                :label-fields="['cod_diagnos', 'nom_diagnos']"
+                                                placeholder="Buscar por código CIE o nombre del diagnóstico..."
+                                                dropdown-parent-selector="#diagnosticos-parent"
+                                                @input="onDiagnosticoSelect"
+                                            />
+                                        </div>
+                                        <div
+                                            class="col-md-12 table-responsive m-t-10"
+                                            style="overflow-y: scroll; max-height: 200px"
+                                        >
+                                            <table class="table table-bordered table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Código</th>
+                                                        <th>Diagnóstico</th>
+                                                        <th v-if="!sedeInterface"></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr
+                                                        v-for="(
+                                                            item, dIdx
+                                                        ) in registro.diagnosticosEstudio"
+                                                        :key="
+                                                            item.id ||
+                                                            item.cod_diagnos ||
+                                                            item.cod_cie9 ||
+                                                            dIdx
+                                                        "
+                                                    >
+                                                        <td>
+                                                            {{
+                                                                item.cod_diagnos ||
+                                                                item.cod_cie9 ||
+                                                                item.CodCie9
+                                                            }}
+                                                        </td>
+                                                        <td>
+                                                            {{
+                                                                item.nom_diagnos ||
+                                                                item.nom_diagnostico ||
+                                                                item.NomDiagnostico
+                                                            }}
+                                                        </td>
+                                                        <td
+                                                            v-if="!sedeInterface"
+                                                            class="text-nowrap"
+                                                        >
+                                                            <button
+                                                                type="button"
+                                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
+                                                                @click="
+                                                                    quitarDiagnosticoEstudio(dIdx)
+                                                                "
+                                                                title="Quitar diagnóstico"
+                                                            >
+                                                                <i class="fa fa-trash"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                    <tr
+                                                        v-if="
+                                                            !registro.diagnosticosEstudio ||
+                                                            registro.diagnosticosEstudio.length ===
+                                                                0
+                                                        "
+                                                    >
+                                                        <td
+                                                            :colspan="!sedeInterface ? 3 : 2"
+                                                            class="text-center text-muted"
+                                                        >
+                                                            No hay diagnósticos seleccionados
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <h5 class="card-title text-info m-t-20">
                                         <i class="fa fa-pencil"></i> MOTIVO DEL EXAMEN
                                     </h5>
                                     <hr />
@@ -622,9 +740,17 @@
 </template>
 
 <script setup>
-import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import {
+    computed,
+    getCurrentInstance,
+    nextTick,
+    onBeforeUnmount,
+    onMounted,
+    ref,
+    watch,
+} from "vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { getUserSafeError, toastMessage } from "@/helpers/alerts";
+import { confirmAction, getUserSafeError, toastMessage } from "@/helpers/alerts";
 import { normalizarFecha } from "@/helpers/dateUtils";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 import axios from "axios";
@@ -645,6 +771,8 @@ const props = defineProps({
 usePermissions(props.permisos);
 
 const dt = ref(null);
+const selProducto = ref(null);
+const selDiagnostico = ref(null);
 const sidebarVisible = ref(false);
 const registros = ref([]);
 const tituloModal = ref("Nuevo registro");
@@ -728,6 +856,8 @@ const prioridades = ref([]);
 const productos = ref([]);
 const productosInterface = ref([]);
 const productoSeleccionado = ref("");
+const diagnosticos = ref([]);
+const diagnosticoSeleccionado = ref("");
 const idSedeActual = ref("");
 const nomSedeActual = ref("");
 const loadingBuscar = ref(false);
@@ -740,6 +870,14 @@ const productoOptions = computed(() => {
         id: String(p.id),
         cod_cups: p.cod_cups,
         nom_produc: p.nom_produc,
+    }));
+});
+
+const diagnosticoOptions = computed(() => {
+    return (diagnosticos.value || []).map((d) => ({
+        id: String(d.id),
+        cod_diagnos: d.cod_diagnos || d.cod_cie9 || "",
+        nom_diagnos: d.nom_diagnos || "",
     }));
 });
 
@@ -869,6 +1007,10 @@ async function guardarRegistro() {
                 name: props.usuarioactual?.name || "Usuario Asignador",
             },
             producto: orden.value.producto.map((p) => ({ ...p })),
+            diagnostico: (registro.value.diagnosticosEstudio || []).map((d) => ({
+                cod_diagnos: d.cod_diagnos || d.cod_cie9 || d.CodCie9 || "",
+                nom_diagnos: d.nom_diagnos || d.nom_diagnostico || d.NomDiagnostico || "",
+            })),
             adjuntos: orden.value.adjuntos.map((a) => ({
                 file_exten: a.file_exten,
             })),
@@ -1011,6 +1153,12 @@ async function mostrarRegistro(data = {}) {
                 "/api/interface-sahi-listar-atenciones/" + orden.value.paciente.num_docu
             );
             interfaceAtenciones.value = resAtenciones.data.data;
+        } else {
+            await nextTick();
+            setTimeout(() => {
+                selProducto.value?.rebuild();
+                selDiagnostico.value?.rebuild();
+            }, 60);
         }
     } catch (_e) {
         toastMessage({
@@ -1133,6 +1281,12 @@ function btnCerrarModal() {
 
 function abrirModal() {
     sidebarVisible.value = true;
+    nextTick(() => {
+        setTimeout(() => {
+            selProducto.value?.rebuild();
+            selDiagnostico.value?.rebuild();
+        }, 60);
+    });
 }
 
 function limpiar() {
@@ -1164,6 +1318,7 @@ function limpiar() {
     registro.value.destino_estudio = DESTINO_TELE_RADIOLOGIA;
 
     productoSeleccionado.value = "";
+    diagnosticoSeleccionado.value = "";
     productosInterface.value = [];
     interfaceAtenciones.value = [];
     interfaceAtencionSeleccionada.value = null;
@@ -1227,7 +1382,7 @@ function onProductoSelect(value) {
     } else if (value != null) {
         selectedId = String(value);
     }
-    if (selectedId != null) {
+    if (selectedId != null && selectedId !== "" && selectedId !== "0" && selectedId !== 0) {
         productoSeleccionado.value = selectedId;
         const prod = productos.value.find((p) => String(p.id) === selectedId);
         if (prod) {
@@ -1259,6 +1414,9 @@ function guardarProductosEstudio(id, cod_cups, nom_produc) {
         });
     }
     productoSeleccionado.value = "";
+    nextTick(() => {
+        selProducto.value?.rebuild();
+    });
 }
 
 function quitarProductoEstudio(codCups) {
@@ -1266,6 +1424,101 @@ function quitarProductoEstudio(codCups) {
     if (idxOrden !== -1) orden.value.producto.splice(idxOrden, 1);
     const idxRegistro = registro.value.productosEstudio.findIndex((p) => p.cod_cups === codCups);
     if (idxRegistro !== -1) registro.value.productosEstudio.splice(idxRegistro, 1);
+}
+
+/**
+ * Consulta la lista de diagnósticos configurados en el sistema.
+ *
+ * @returns {Promise<void>}
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-09
+ */
+async function listarDiagnosticos() {
+    try {
+        const res = await axios.get("/api/config-diagnosticos");
+        diagnosticos.value = res.data.data || [];
+    } catch (_e) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar los diagnósticos.",
+            icon: "error",
+        });
+        diagnosticos.value = [];
+    }
+}
+
+/**
+ * Maneja el evento de selección de diagnóstico desde el componente Select2.
+ *
+ * @param {Array|Object|string|number} value - Valor emitido por el Select2.
+ * @returns {void}
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-09
+ */
+function onDiagnosticoSelect(value) {
+    let selectedId = null;
+    if (Array.isArray(value) && value.length > 0) {
+        const v = value[0];
+        selectedId = String(typeof v === "object" && v && v.id != null ? v.id : v);
+    } else if (value && typeof value === "object" && value.id != null) {
+        selectedId = String(value.id);
+    } else if (value != null) {
+        selectedId = String(value);
+    }
+    if (selectedId != null && selectedId !== "" && selectedId !== "0" && selectedId !== 0) {
+        diagnosticoSeleccionado.value = selectedId;
+        guardarDiagnosticosEstudio(selectedId);
+    }
+}
+
+/**
+ * Agrega un diagnóstico seleccionado a la lista de diagnósticos del estudio.
+ *
+ * @param {string|number|null} idDiag - Identificador del diagnóstico a agregar.
+ * @returns {void}
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-09
+ */
+function guardarDiagnosticosEstudio(idDiag = null) {
+    const targetId = idDiag ?? diagnosticoSeleccionado.value;
+    if (!targetId || targetId === "" || targetId === "0" || targetId === 0) return;
+
+    const idx = diagnosticos.value.findIndex((x) => String(x.id) === String(targetId));
+    if (idx >= 0) {
+        const diag = diagnosticos.value[idx];
+        const yaExiste = registro.value.diagnosticosEstudio.some(
+            (d) => String(d.id) === String(diag.id)
+        );
+        if (!yaExiste) {
+            registro.value.diagnosticosEstudio.push({
+                id: diag.id,
+                cod_diagnos: diag.cod_diagnos || diag.cod_cie9 || "",
+                nom_diagnos: diag.nom_diagnos || "",
+            });
+        }
+    }
+    diagnosticoSeleccionado.value = "";
+    nextTick(() => {
+        selDiagnostico.value?.rebuild();
+    });
+}
+
+/**
+ * Elimina un diagnóstico del estudio solicitando confirmación previa.
+ *
+ * @param {number} indexEliminar - Índice del diagnóstico en registro.diagnosticosEstudio.
+ * @returns {Promise<void>}
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-09
+ */
+async function quitarDiagnosticoEstudio(indexEliminar) {
+    const ok = await confirmAction({
+        title: "¿Está seguro?",
+        text: "¿Desea eliminar este diagnóstico del estudio?",
+        icon: "warning",
+    });
+    if (!ok) return;
+    registro.value.diagnosticosEstudio.splice(indexEliminar, 1);
 }
 
 function verImagen(pat_id, study_iuid, studyPk) {
@@ -1339,9 +1592,24 @@ useKeyboardShortcuts({
     },
 });
 
+watch(
+    () => [sidebarVisible.value, sedeInterface.value],
+    ([visible, isInterface]) => {
+        if (visible && !isInterface) {
+            nextTick(() => {
+                setTimeout(() => {
+                    selProducto.value?.rebuild();
+                    selDiagnostico.value?.rebuild();
+                }, 60);
+            });
+        }
+    }
+);
+
 onMounted(() => {
     listarPrioridades();
     listarProductos();
+    listarDiagnosticos();
     establecerSede();
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
     if (!idSedeActual.value && emitter) {
@@ -1411,5 +1679,29 @@ onBeforeUnmount(() => {
 .fade-enter-from,
 .fade-leave-to {
     opacity: 0;
+}
+
+:deep(.select2-container) {
+    width: 100% !important;
+}
+
+:deep(.select2-dropdown) {
+    z-index: 9999 !important;
+}
+
+:deep(.select2-container--default .select2-selection--single) {
+    height: 38px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+}
+
+:deep(.select2-container--default .select2-selection--single .select2-selection__rendered) {
+    line-height: 36px;
+    padding-left: 12px;
+}
+
+:deep(.select2-container--default .select2-selection--single .select2-selection__arrow) {
+    height: 36px;
+    right: 8px;
 }
 </style>
