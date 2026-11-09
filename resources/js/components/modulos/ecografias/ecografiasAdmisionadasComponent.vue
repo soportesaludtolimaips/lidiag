@@ -113,6 +113,7 @@
                                                     name="bus_fech_ini"
                                                     v-model="busqueda.bus_fech_ini"
                                                     class="form-control"
+                                                    @keyup.enter="buscarStudy()"
                                                 />
                                             </div>
                                         </div>
@@ -127,6 +128,7 @@
                                                     name="bus_fecha_fin"
                                                     v-model="busqueda.bus_fecha_fin"
                                                     class="form-control"
+                                                    @keyup.enter="buscarStudy()"
                                                 />
                                             </div>
                                         </div>

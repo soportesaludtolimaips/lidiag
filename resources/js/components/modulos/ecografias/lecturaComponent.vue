@@ -396,13 +396,14 @@
                                 isDarkMode ? "Claro" : "Oscuro"
                             }}</span>
                         </button>
-                        <span @click="btnCerrarModalForm()">
-                            <i
-                                class="ti-close right-side-toggle"
-                                id="btnCerrarModalForm"
-                                @click="btnCerrarModalForm()"
-                            ></i>
-                        </span>
+                        <button
+                            type="button"
+                            class="right-side-toggle"
+                            @click="btnCerrarModalForm()"
+                            aria-label="Cerrar panel"
+                        >
+                            <i class="ti-close" id="btnCerrarModalForm"></i>
+                        </button>
                     </div>
                 </div>
                 <div class="r-panel-body">
@@ -422,14 +423,29 @@
                                         <div class="ml-auto">
                                             <ul class="list-inline text-center">
                                                 <li>
-                                                    <a
-                                                        class="mic-link"
+                                                    <button
+                                                        type="button"
+                                                        class="btn-mic"
                                                         @click="toggleSpeechRecognition"
-                                                        role="button"
-                                                        aria-label="Grabadora"
+                                                        :aria-label="
+                                                            voiceState === 'active'
+                                                                ? 'Detener grabación de voz'
+                                                                : 'Iniciar grabación de voz'
+                                                        "
+                                                        :aria-pressed="
+                                                            String(voiceState === 'active')
+                                                        "
+                                                        style="
+                                                            width: 44px;
+                                                            height: 44px;
+                                                            padding: 0;
+                                                            border: none;
+                                                            background: none;
+                                                            cursor: pointer;
+                                                        "
                                                     >
                                                         <img title="Grabadora" :src="microfono" />
-                                                    </a>
+                                                    </button>
                                                 </li>
                                                 <li>
                                                     <i
@@ -454,7 +470,9 @@
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label>Tipos de plantillas</label>
+                                    <label class="control-label font-weight-bold"
+                                        >Tipos de plantillas</label
+                                    >
                                     <Select2
                                         ref="selTipoPlantilla"
                                         :value="registro.tipo_plantilla_id"
@@ -469,7 +487,7 @@
                             </div>
                             <div class="col-md-5">
                                 <div class="form-group">
-                                    <label>Plantilla</label>
+                                    <label class="control-label font-weight-bold">Plantilla</label>
                                     <Select2
                                         ref="selPlantilla"
                                         :value="registro.plantilla_id"
@@ -2309,6 +2327,13 @@ function onMedicoSeleccionado(data) {
  *
  * @date 2025-11-18
  */
+function handleKeydown(e) {
+    if (e.key === "F2") {
+        e.preventDefault();
+        toggleSpeechRecognition();
+    }
+}
+
 onMounted(() => {
     initSede();
     listarTiposPlantillas();
@@ -2317,11 +2342,13 @@ onMounted(() => {
 
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
     emitter.on("medicoSeleccionado", onMedicoSeleccionado);
+    window.addEventListener("keydown", handleKeydown);
 
     url.value = window.location.pathname;
 });
 
 onBeforeUnmount(() => {
+    window.removeEventListener("keydown", handleKeydown);
     emitter.off("sedeSeleccionada", onSedeSeleccionada);
     emitter.off("medicoSeleccionado", onMedicoSeleccionado);
     stopSahiPolling();

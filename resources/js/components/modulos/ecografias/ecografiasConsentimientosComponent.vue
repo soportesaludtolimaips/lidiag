@@ -84,6 +84,7 @@
                                                 class="form-control"
                                                 v-model="filtros.desde"
                                                 @change="buscar"
+                                                @keyup.enter="buscar"
                                             />
                                         </div>
                                     </div>
@@ -98,6 +99,7 @@
                                                 class="form-control"
                                                 v-model="filtros.hasta"
                                                 @change="buscar"
+                                                @keyup.enter="buscar"
                                             />
                                         </div>
                                     </div>

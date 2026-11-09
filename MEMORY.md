@@ -37,6 +37,24 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Auditoría UI/UX Módulo Ecografías: Accesibilidad en Botones, Atajos F2 y Búsquedas:**
+  - **Ajustes Realizados:**
+    * **`lecturaComponent.vue`:**
+      - Reemplazo de `<span><i class="ti-close right-side-toggle">` por `<button type="button" class="right-side-toggle" aria-label="Cerrar panel">` (Phase 1, H3).
+      - Reemplazo de botón de micrófono `<a class="mic-link">` por `<button type="button" class="btn-mic">` con estados accesibles `aria-label` y `aria-pressed` (Phase 1, H4).
+      - Adición de atajo de teclado nativo `F2` para activar/pausar reconocimiento y dictado por voz (Phase 4, L10) con registro y limpieza preventiva en `onMounted` y `onBeforeUnmount`.
+      - Estandarización de clases en labels de plantillas (`control-label font-weight-bold`).
+    * **`admisionarComponent.vue`:**
+      - Adición de `@keyup.enter="buscarStudy()"` en campos de fecha de búsqueda (Phase 4, L6).
+      - Etiquetas semánticas `control-label font-weight-bold` en `Tipo de documento`, `Médico` y `Producto`.
+    * **`ecografiasAdmisionadasComponent.vue`:**
+      - `@keyup.enter="buscarStudy()"` en inputs de fecha inicial y final.
+    * **`ecografiasConsentimientosComponent.vue`:**
+      - `@keyup.enter="buscar"` en selectores de fecha de rango.
+  - **Verificaciones:**
+    * ESLint y Prettier pasados al 100% con 0 errores y 0 advertencias ✅.
+    * Build de producción Vite completado exitosamente en 1.22s (`npm run build`) ✅.
+
 - [x] **2026-11-09 — Auditoría UI/UX Módulo Reportes: Accesibilidad en Formularios y Limpieza de Wrappers:**
   - **Ajustes Realizados:**
     * **`reporteProduccionComponent.vue`:**

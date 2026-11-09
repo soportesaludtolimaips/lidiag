@@ -80,6 +80,7 @@
                                                 name="bus_fech_ini"
                                                 v-model="busqueda.bus_fech_ini"
                                                 class="form-control"
+                                                @keyup.enter="buscarStudy()"
                                             />
                                         </div>
                                     </div>
@@ -94,6 +95,7 @@
                                                 name="bus_fecha_fin"
                                                 v-model="busqueda.bus_fecha_fin"
                                                 class="form-control"
+                                                @keyup.enter="buscarStudy()"
                                             />
                                         </div>
                                     </div>
@@ -441,7 +443,9 @@
                                     <div class="row">
                                         <div class="col-md-3">
                                             <div class="form-group">
-                                                <label>Tipo de documento</label>
+                                                <label class="control-label font-weight-bold"
+                                                    >Tipo de documento</label
+                                                >
                                                 <Select2
                                                     ref="selTipoDoc"
                                                     :value="registro.tipo_documento_id"
@@ -626,7 +630,9 @@
                                     <div class="row">
                                         <div class="col-md-5">
                                             <div class="form-group">
-                                                <label>Médico</label>
+                                                <label class="control-label font-weight-bold"
+                                                    >Médico</label
+                                                >
                                                 <Select2
                                                     ref="selMedico"
                                                     :value="registro.medico_id"
@@ -644,7 +650,9 @@
                                         </div>
                                         <div class="col-md-7">
                                             <div class="form-group">
-                                                <label>Producto</label>
+                                                <label class="control-label font-weight-bold"
+                                                    >Producto</label
+                                                >
                                                 <Select2
                                                     ref="selProducto"
                                                     :value="productoSelecciondo"
