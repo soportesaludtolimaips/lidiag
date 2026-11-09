@@ -1,13 +1,13 @@
 # UI/UX Improvement Phases — Guía para aplicar a otros módulos
 
-Checklist sistemático para auditar y mejorar la UI/UX de cualquier módulo Vue del sistema.
+Checklist sistemático para auditar y mejorar la UI/UX de cualquier módulo Vue del sistema LIDiag.
 
 ---
 
 ## Fase 1: Alto impacto, bajo riesgo (mecánico)
 
 ### H2 — `for` en labels
-Cada `<label>` debe tener `for="<id>"` coincidiendo con el `id` del `<input>` o `<select>` asociado.
+Cada `<label>` debe tener `for="<id>"` coincidiendo con el `id` del `<input>`, `<select>` o `<textarea>` asociado.
 
 ```diff
 -<label class="control-label">Nombre</label>
@@ -19,7 +19,7 @@ Cada `<label>` debe tener `for="<id>"` coincidiendo con el `id` del `<input>` o 
 **Búsqueda:** `grep -n '<label class="control-label">'`
 
 ### H3 — Close button `<span>` → `<button>`
-El ícono de cerrar sidebar debe ser un `<button>` accesible por teclado.
+El ícono de cerrar sidebar debe ser un `<button>` semántico y accesible por teclado con atributo `aria-label`.
 
 ```diff
 -<span><i class="ti-close right-side-toggle" @click="cerrarModal()"></i></span>
@@ -42,7 +42,7 @@ Si hay llamadas jQuery como `$("#btnCerralModalForm").click()`, reemplazar con `
 **Target size mínimo:** 44×44px (WCAG 2.5.5).
 
 ### H7 — `@keyup.enter` en search inputs
-Si un input de búsqueda tiene botón "Buscar", debe también ejecutarse con Enter.
+Si un input de búsqueda tiene botón "Buscar", debe también ejecutarse al presionar `Enter`.
 
 ```diff
 -<input type="text" id="bus_nom_num_docu" ... />
@@ -53,6 +53,7 @@ Si un input de búsqueda tiene botón "Buscar", debe también ejecutarse con Ent
 - `"aqi"` → `"aquí"`
 - `"Télefono"` → `"Teléfono"`
 - `"Cerral"` → `"Cerrar"` (en métodos/IDs)
+- `"Quien asigno"` → `"Quién asignó"`
 
 ### L2 — CSS duplicado
 Buscar `overflow-x: hidden; overflow-y: scroll; overflow-x: hidden` y eliminar el duplicado.
@@ -207,10 +208,10 @@ Estandarizar a `nom_pacien` (el que usa la mayoría).
 +quitarProducto(index) {
 +    if (!confirm("¿Está seguro de eliminar este producto?")) return;
      this.registro.splice(index, 1);
-}
+ }
 ```
 
-O usar el mismo patrón de confirmación que `anularAsignacion` en los componentes que ya lo implementan.
+O usar `confirmAction` de `alerts.js` para confirmaciones accesibles no bloqueantes.
 
 ### L3 — WYSIWYG vs textarea
 Buscar inicialización de `textarea_editor` con wysihtml5. Si no se usa activamente, eliminar la inicialización. Si se usa, aplicar consistentemente.
@@ -229,7 +230,11 @@ Buscar inicialización de `textarea_editor` con wysihtml5. Si no se usa activame
 No usar `id="example23"` hardcodeado. Usar `ref` o ID dinámico.
 
 ### L6 — `@keyup.enter` en campos de fecha
-Extender a todos los campos del formulario de búsqueda, no solo al de texto.
+Extender a todos los campos del formulario de búsqueda, no solo al de texto:
+```html
+<input type="date" id="fecha_inicio" v-model="busqueda.fecha_inicio" @keyup.enter="buscarRegistros" />
+<input type="date" id="fecha_fin" v-model="busqueda.fecha_fin" @keyup.enter="buscarRegistros" />
+```
 
 ### L10 — Keyboard shortcut F2
 Si el módulo tiene dictado por voz, agregar listener F2:
@@ -253,10 +258,10 @@ methods: {
 
 ---
 
-## Fase 5: Ergonomía Clínica Avanzada y Productividad (2026)
+## Fase 5: Ergonomía Clínica Avanzada y Productividad
 
 ### E1 — Skeleton Loaders con Shimmer (`TableSkeletonLoader.vue`)
-Sustituir los antiguos spinners de pantalla por esqueletos con efecto shimmer en las tablas para eliminar el layout shift (CLS = 0):
+Sustituir los antiguos spinners bloqueantes por esqueletos con efecto shimmer en las tablas para eliminar el layout shift (CLS = 0):
 ```html
 <table-skeleton-loader :visible="loadingBuscar" :rows="6" :columns="8" />
 ```
@@ -316,23 +321,118 @@ En bandejas clínicas de alta rotación (transcripción, lectura, asignación de
 
 ---
 
+## Fase 6: Estandarización y Diseño de Tablas Clínicas
+
+### T1 — Preservación del DOM en DataTables (`v-show` vs `v-if`)
+- **Problema previo:** El uso de `<table-skeleton-loader v-if="loading">` y `<div v-else>` destruía el elemento `<table>` del DOM durante cada consulta. Al renderizar los nuevos datos, DataTables perdía la referencia al elemento montado, dejando las tablas sin paginar o con botones rotos.
+- **Patrón obligatorio:**
+  ```html
+  <!-- ✅ El skeleton loader y la tabla conviven sin desmontar el <table> del DOM -->
+  <table-skeleton-loader :visible="loadingBuscar" :rows="6" :columns="8" />
+
+  <div class="table-responsive" v-show="!loadingBuscar && registros.length > 0">
+      <table class="table table-bordered table-striped" id="tablaRegistros">
+          ...
+      </table>
+  </div>
+  ```
+
+### T2 — Ciclo de Vida Limpio de DataTables (`safeDestroyDataTable` + `nextTick`)
+- **Destrucción preventiva:** Invocar la destrucción segura de la instancia antes de limpiar o consultar los datos del API.
+- **Reconstrucción:** En el bloque `finally` o tras recibir la respuesta, esperar la reconciliación reactiva de filas con `await nextTick()` antes de llamar a `initDataTable()`.
+- **Eliminar `retrieve: true`:** Siempre destruir e inicializar limpiamente para que DataTables recalcule el número real de páginas y botones de paginación.
+
+### T3 — Semáforo y Badges Semánticos de Prioridad y Estado
+- **Prioridades Clínicas:** Sustituir letras ambiguas (`A`, `M`, `B`, `S`) por etiquetas semánticas universales:
+  * **Alta / Urgente:** `badge badge-danger` / `label label-danger` con ícono `fa-bolt` o `fa-exclamation-triangle`.
+  * **Media:** `badge badge-warning` / `label label-warning` con ícono `fa-clock-o`.
+  * **Baja / Normal:** `badge badge-info` / `badge badge-secondary`.
+- **Estados Asistenciales:**
+  * **Con Lectura / Listo:** `label label-success` con ícono `fa-check` y hora de recepción visible debajo.
+  * **En Espera / Sin Lectura:** `label label-warning` con ícono `fa-clock-o`.
+
+### T4 — Quick Actions en Fila (Acceso Directo al Visor DICOM/PACS)
+- Evitar que el médico o transcriptor deba abrir el panel lateral completo solo para revisar las imágenes:
+  ```html
+  <button
+      type="button"
+      class="btn btn-sm btn-outline-info mr-1"
+      title="Ver Imágenes en Visor PACS/DICOM"
+      @click="verImagenDirecta(item)"
+  >
+      <i class="fa fa-desktop"></i>
+  </button>
+  ```
+- **Ancho fijo en columna de acciones:** Definir `min-width: 100px` - `120px` y `columnDefs: [{ targets: [-1], orderable: false }]` para evitar saltos o saltos de línea de botones.
+
+### T5 — Tablas en Modo Oscuro (Dark Mode Radiológico)
+- Garantizar que las tablas bajo `body.theme-dark` cuenten con:
+  * Filas alternadas (`table-striped`) en tonos carbón suave (`#1f222a` y `#252932`).
+  * Bordes sutiles `#2e3340` (eliminando bordes blancos deslumbrantes).
+  * Efecto `hover` interactivo en filas para seguimiento visual de lectura médica.
+  * Encabezados (`thead th`) con texto blanco y fondo pizarra `#181a20`.
+
+### T6 — Tarjetas KPI Interactivas Vinculadas a la Tabla
+- En cabeceras de tablas con alto volumen asistencial, incluir tarjetas dinámicas (*Total*, *Con Lectura*, *En Espera*, *Prioridad Alta*) que filtren las filas de la tabla instantáneamente al hacer clic sobre ellas sin peticiones adicionales al backend.
+
+---
+
+## Fase 7: Modo Oscuro Global y Cobertura Integral de Paneles
+
+### D1 — Interruptor Maestro Centralizado
+- Un único conmutador en la barra superior ([`AppHeader.vue`](file:///c:/laragon/www/lidiag/resources/js/layouts/AppHeader.vue)), sincronizado con `localStorage` (`lidiag_dark_mode`) y emitido mediante evento global `lidiagThemeChanged`.
+- Eliminación de conmutadores locales desincronizados dentro de tablas o módulos específicos.
+
+### D2 — Cobertura Universal en Drawers (`.right-sidebar`)
+- Extensión obligatoria en [`dark-theme.css`](file:///c:/laragon/www/lidiag/resources/css/dark-theme.css) para que todos los paneles laterales hereden automáticamente:
+  * Encabezados `.rpanel-title` y fondos pizarra `#181a20`.
+  * Inputs, selects, textareas y contenedores con `.bg-light` o `.bg-white`.
+  * **Soporte completo para Select2 en Modo Oscuro:** Dropdowns flotantes (`.select2-dropdown`), campos de búsqueda y opciones activas con contraste óptimo.
+  * Editores WYSIHTML5 y alertas informativas en tonos oscuros sin destellos.
+
+---
+
+## Fase 8: Búsqueda Global y Paleta de Comandos (`Ctrl + K`)
+
+### C1 — Acceso Inmediato por Teclado
+- Paleta tipo *Spotlight* (`commandPaletteComponent.vue`) disponible globalmente mediante el atajo `Ctrl + K`.
+
+### C2 — Filtrado Estricto de Permisos Spatie
+- Cada ítem del catálogo debe validarse reactivamente contra los permisos y roles reales del usuario autenticado (`useAuth().can(item.permiso)`), impidiendo que operadores visualicen accesos no autorizados.
+
+### C3 — Claves Únicas y Prevención de Errores de Render
+- Uso obligatorio de `:key="item.id || (item.url + '_' + index)"` en resultados para evitar advertencias de Vue sobre duplicados en v-for.
+
+---
+
+## Fase 9: Navegación SPA y Resiliencia Multi-Sede
+
+### S1 — Navegación SPA Nativa con Vue Router 4
+- Eliminación de recargas completas de página: transición suave entre pantallas mediante `<router-link>` y `router.push()`.
+- Configuración de aliases y redirecciones en `routes.js` y `routes/web.php` para evitar errores 404 en rutas históricas o marcadores.
+
+### S2 — Sincronización Bidireccional de Sedes
+- Persistencia simultánea en `sessionStorage` y `localStorage` (`ST-sede` y `ST-nomsede`).
+- Manejo del bus de eventos con canal de contingencia `solicitarSedeActiva`: si un componente asíncrono monta en frío, solicita inmediatamente la sede activa al layout sin requerir que el usuario recargue la página.
+
+---
+
 ## Resumen por severidad
 
 | Prioridad | Área | Items |
 |-----------|------|-------|
-| 🔴 Alta | Accesibilidad, validación, seguridad del paciente | H2, H3, H4, H5, H6, H7, E3, E4, E7 |
-| 🟠 Media | Feedback, consistencia, ergonomía clínica | M1-M8, E1, E2, E5, E6 |
-| 🔵 Baja | Limpieza, tipografía | L1-L10 |
+| 🔴 Alta | Accesibilidad, validación, seguridad del paciente | H2, H3, H4, H5, H6, H7, E3, E4, E7, T1, T2, C2, S2 |
+| 🟠 Media | Feedback, ergonomía de tablas, modo oscuro | M1-M8, E1, E2, E5, E6, T3, T4, T5, T6, D1, D2, S1 |
+| 🔵 Baja | Limpieza de código, tipografía y atajos menores | L1-L10, C1, C3 |
 
-## Orden de ejecución sugerido
+## Orden de ejecución sugerido al auditar un módulo
 
-1. **Fase 1** — Mecánico, bajo riesgo (~15 min por módulo)
-2. **Fase 2** — Sidebar unificado (~10 min por módulo)
-3. **Fase 3** — Feedback visual (~20 min por módulo)
-4. **Fase 4** — Consistencia (~15 min por módulo)
-5. **Fase 5** — Ergonomía clínica y accesibilidad (~25 min por módulo)
+1. **Fase 1 & 4** — Mecánico, etiquetas semánticas `for`/`id`, atajos `@keyup.enter`, corrección de typos (~15 min).
+2. **Fase 6** — Tablas: preservar DOM en DataTables (`v-show`), documento jerárquico (E7), badges semánticos y quick actions (~25 min).
+3. **Fase 2 & 7** — Sidebars: botones `<button>` accesibles, ancho responsive, foco inicial y cobertura de modo oscuro (~15 min).
+4. **Fase 3 & 5** — Feedback visual, toasts no invasivos, atajos clínicos (`Ctrl+S`, `F2`, `Esc`) (~20 min).
+5. **Fase 8 & 9** — Navegación SPA y persistencia multi-sede resiliente (~10 min).
 
 ---
 
-*Basado en auditoría UI/UX y modernización asistencial de LIDiag (Estudios, Citas, Ecografías).*
-
+*Documento de estándares de ingeniería UI/UX y accesibilidad clínica — Plataforma LIDiag.*

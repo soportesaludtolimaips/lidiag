@@ -37,6 +37,58 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Discriminación por Sede Hospitalaria y Gráficos Nativos en Reporte de Producción Detallada (`ProduccionDetalladaExport.php`, `ProduccionDetalladaEstadisticasSheet.php`):**
+  - **Requerimiento del Usuario:**
+    * Al generar el reporte de producción detallada seleccionando "Todas las Sedes", la pestaña "Estadísticas y Gráficas" no discriminaba los datos ni la participación por sede hospitalaria de la red.
+    * Incorporar la discriminación completa por sedes en tablas y gráficos sin afectar la generación cuando se filtra por una sede individual.
+  - **Solución Implementada:**
+    * **Propagación de Parámetro (`ProduccionDetalladaExport.php`):**
+      - Se pasó `$this->sedeId` al constructor de `ProduccionDetalladaEstadisticasSheet`.
+    * **Arquitectura Dinámica Multi-Sede vs Sede Individual (`ProduccionDetalladaEstadisticasSheet.php`):**
+      - Se añadió la propiedad booleana `$esReporteTodasLasSedes` para alternar fluidamente el layout, tablas y gráficos.
+      - Agregación estadística de **Sedes de la Red** (`$this->resumenSedes`): nombre hospitalario, total de estudios, pacientes únicos atendidos y cuota porcentual.
+      - Agregación estadística de **Top 10 Procedimientos Frecuentes de la Red** (`$this->resumenProcedimientos`): descripción del estudio, código de modalidad, volumen y cuota porcentual.
+    * **Estructura de Tablas Emparejadas Multi-Sede:**
+      - *Sección 1 (Filas 7-23):* Participación por Sede Hospitalaria (A:E) & Distribución por Modalidad Diagnóstica (G:L).
+      - *Sección 2 (Filas 25-39):* Rendimiento de Registro y Asignación (A:E) & Rendimiento por Médico Radiólogo (G:L).
+      - *Sección 3 (Filas 41-55):* Top Procedimientos más Frecuentes (A:E) & Rendimiento de Transcripción (G:L).
+    * **Generación de Gráficos Nativos PhpSpreadsheet (Cuadrícula 3x2 en Multi-Sede / 6 Gráficos):**
+      1. Gráfico de Columnas: Participación por Sede Hospitalaria (A42:E60).
+      2. Gráfico de Torta: Distribución por Modalidad Diagnóstica (G42:L60).
+      3. Gráfico de Columnas: Estudios Asignados por Usuario (Top 10) (A63:E81).
+      4. Gráfico de Columnas: Producción por Médico Radiólogo (Top 10) (G63:L81).
+      5. Gráfico de Barras: Top Procedimientos Frecuentes de la Red (A84:E102).
+      6. Gráfico de Columnas: Estudios Transcritos por Usuario (Top 10) (G84:L102).
+      - Cuando se filtra por una sede individual, se mantiene automáticamente el layout estándar de 2 secciones y 4 gráficos nativos.
+    * **Estilos Institucionales Unificados:** Paleta `#1A2274`, `#283593`, `#F0F4FF` y cuadrículas suaves `#C5CAE9` idénticas a la hoja de datos detallados.
+  - **Verificaciones:**
+    * Generación exitosa y validación de 6 gráficos nativos incrustados en multi-sede y 4 en sede única con datos reales de la BD sin corrupción XML.
+    * Laravel Pint verificado al 100% (`vendor\bin\pint.bat --test app/Exports/ProduccionDetalladaExport.php app/Exports/Sheets/ProduccionDetalladaEstadisticasSheet.php`).
+    * PHPStan Larastan Nivel 5 aprobado con 0 errores.
+
+- [x] **2026-11-09 — Actualización Integral del Manual de Fases UI/UX (`docs/UI-UX-IMPROVEMENT-PHASES.md`):**
+  - **Requerimiento del Usuario:**
+    * Actualizar `docs/UI-UX-IMPROVEMENT-PHASES.md` con todas las mejoras de UI/UX aplicadas y en curso en la plataforma, incorporando las directrices de diseño y comportamiento de tablas clínicas.
+  - **Solución Implementada:**
+    * En [`docs/UI-UX-IMPROVEMENT-PHASES.md`](file:///c:/laragon/www/lidiag/docs/UI-UX-IMPROVEMENT-PHASES.md):
+      - **Fase 6 (Estandarización y Diseño de Tablas Clínicas):**
+        * `T1`: Preservación del nodo `<table>` en el DOM usando `v-show` en el contenedor y `:visible` en skeleton loaders, previniendo la desvinculación de DataTables.
+        * `T2`: Ciclo de vida limpio de DataTables con destrucción preventiva previa al fetch, espera de reconciliación DOM con `await nextTick()`, y eliminación de `retrieve: true` para recálculo exacto de paginación.
+        * `T3`: Semáforo de prioridades clínicas (`Alta`, `Media`, `Baja`) y badges semánticos con timestamps y estados asistenciales (`Con Lectura` vs `En Espera`).
+        * `T4`: Quick actions en filas con botón de acceso directo al visor PACS/DICOM (`btn-outline-info`) y fijación de ancho para columnas de acción.
+        * `T5`: Tablas en modo oscuro radiológico de alto contraste sin deslumbramiento (`table-striped` carbón, bordes `#2e3340`, hover interactivo).
+        * `T6`: Tarjetas KPI interactivas en cabecera vinculadas como filtros dinámicos instantáneos.
+      - **Fase 7 (Modo Oscuro Global y Cobertura Integral de Paneles):**
+        * `D1`: Interruptor maestro centralizado en `AppHeader.vue` y retiro de conmutadores locales desincronizados.
+        * `D2`: Cobertura exhaustiva de drawers (`.right-sidebar`), formularios, tarjetas, alertas y soporte de Select2 en modo oscuro en `dark-theme.css`.
+      - **Fase 8 (Búsqueda Global y Paleta de Comandos):**
+        * `C1`: Búsqueda instantánea con `Ctrl + K`.
+        * `C2`: Filtrado reactivo estricto según permisos Spatie (`tieneAcceso`).
+        * `C3`: Identificadores únicos en renderizado (`:key`).
+      - **Fase 9 (Navegación SPA y Resiliencia Multi-Sede):**
+        * `S1`: Navegación SPA fluida con Vue Router 4 y redirecciones 404 tolerantes.
+        * `S2`: Sincronización bidireccional continua de sede activa (`sessionStorage` + `localStorage`) y canal preventivo `solicitarSedeActiva`.
+      - Actualización de la matriz de severidad y el orden de auditoría recomendado por módulo.
 - [x] **2026-11-09 — Enriquecimiento y Unificación de Colores en Estadísticas y Gráficas de Producción Detallada (`ProduccionDetalladaEstadisticasSheet.php`):**
   - **Requerimiento del Usuario:**
     * Agregar a la pestaña "Estadísticas y Gráficas" tablas analíticas y gráficos de:

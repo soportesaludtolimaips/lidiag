@@ -175,7 +175,8 @@ class ProduccionDetalladaExport implements WithMultipleSheets
                 $this->medicoNombre,
                 $this->fechaInicio,
                 $this->fechaFin,
-                $this->medicoId
+                $this->medicoId,
+                $this->sedeId
             ),
             new ProduccionDetalladaDetalleSheet(
                 $this->estudios
