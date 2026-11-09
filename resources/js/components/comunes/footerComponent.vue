@@ -15,14 +15,24 @@
     </footer>
 </template>
 <script setup>
-import { getCurrentInstance, onMounted, ref } from "vue";
+import { getCurrentInstance, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { useRoute } from "vue-router";
 
 const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
+const route = useRoute();
 
 const nomSede = ref(sessionStorage.getItem("ST-nomsede"));
 const nomMedicoEcografia = ref(localStorage.getItem("ST-ecografia-nomMedico"));
 const mostrarMedico = ref(false);
+
+const rutasEcografias = [
+    "/ecografias.admisiones",
+    "/ecografias.admisionadas",
+    "/ecografias-pendientes-lecturas",
+    "/ecografias-consentimientos",
+    "/ecografias-consentimientos-plantillas",
+];
 
 /**
  * Actualiza el nombre de la sede desde sessionStorage.
@@ -43,6 +53,30 @@ function establecerMedico() {
     nomMedicoEcografia.value = localStorage.getItem("ST-ecografia-nomMedico");
 }
 
+function onSedeSeleccionada(data) {
+    if (data?.idSede) sessionStorage.setItem("ST-sede", data.idSede);
+    if (data?.nomSede) {
+        sessionStorage.setItem("ST-nomsede", data.nomSede);
+        nomSede.value = data.nomSede;
+    }
+}
+
+function onMedicoSeleccionado(data) {
+    if (data?.idMedico) localStorage.setItem("ST-ecografia-medico", data.idMedico);
+    if (data?.nomMedico) {
+        localStorage.setItem("ST-ecografia-nomMedico", data.nomMedico);
+        nomMedicoEcografia.value = data.nomMedico;
+    }
+}
+
+watch(
+    () => route?.path,
+    (path) => {
+        mostrarMedico.value = rutasEcografias.includes(path || window.location.pathname);
+    },
+    { immediate: true }
+);
+
 /**
  * Lifecycle hook que inicializa sede y médico, y escucha eventos del emitter
  * para actualizar la interfaz cuando se selecciona una sede o médico.
@@ -54,26 +88,16 @@ onMounted(() => {
     establecerSede();
     establecerMedico();
 
-    emitter.on("sedeSeleccionada", (data) => {
-        sessionStorage.setItem("ST-sede", data.idSede);
-        sessionStorage.setItem("ST-nomsede", data.nomSede);
-        nomSede.value = data.nomSede;
-    });
+    if (emitter) {
+        emitter.on("sedeSeleccionada", onSedeSeleccionada);
+        emitter.on("medicoSeleccionado", onMedicoSeleccionado);
+    }
+});
 
-    emitter.on("medicoSeleccionado", (data) => {
-        localStorage.setItem("ST-ecografia-medico", data.idMedico);
-        localStorage.setItem("ST-ecografia-nomMedico", data.nomMedico);
-        nomMedicoEcografia.value = data.nomMedico;
-    });
-
-    const url = window.location.pathname;
-    const rutasEcografias = [
-        "/ecografias.admisiones",
-        "/ecografias.admisionadas",
-        "/ecografias-pendientes-lecturas",
-        "/ecografias-consentimientos",
-        "/ecografias-consentimientos-plantillas",
-    ];
-    mostrarMedico.value = rutasEcografias.includes(url);
+onBeforeUnmount(() => {
+    if (emitter) {
+        emitter.off("sedeSeleccionada", onSedeSeleccionada);
+        emitter.off("medicoSeleccionado", onMedicoSeleccionado);
+    }
 });
 </script>

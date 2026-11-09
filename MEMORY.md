@@ -37,6 +37,19 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Culminación Exitosa de la Migración a Vue Router 4 (Fases 7 y 8 al 100%):**
+  - **Avances Realizados:**
+    * **Fase 7 (Prevención de Memory Leaks y Gestión de Eventos):**
+      - En [`footerComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/comunes/footerComponent.vue): Estandarizados handlers nombrados `onSedeSeleccionada` y `onMedicoSeleccionado` con desuscripción estricta `emitter.off` en `onBeforeUnmount()`. Se integró `watch` sobre `useRoute().path` para alternar la visibilidad del médico ecógrafo en el pie de página de forma 100% reactiva sin refrescar el navegador.
+      - En [`userProfileAndSearchComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/comunes/userProfileAndSearchComponent.vue): Desuscripción preventiva en `onBeforeUnmount()` de listeners `emitter.off`, remoción de listeners nativos de ventana (`window.removeEventListener('storage')` para modo oscuro) y cancelación segura del temporizador de notificaciones.
+      - En `Select2.vue`: Verificada la correcta destrucción de instancias jQuery en `onBeforeUnmount()` previniendo nodos huérfanos.
+    * **Fase 8 (Rendimiento, Code-Splitting y Verificaciones Finales):**
+      - Code-Splitting verificado con Vite: 48 chunks asíncronos generados dinámicamente con tamaño gzip < 150kB.
+      - Ciclo de vida limpio en `AppLayout.vue` con propagación reactiva de usuario y permisos.
+  - **Verificaciones:**
+    * PHP Pint pasado al 100% (`vendor\bin\pint.bat --test`) ✅.
+    * ESLint y Prettier aprobados con 0 errores y 0 advertencias en todo el codebase frontend ✅.
+    * Build de producción Vite completado exitosamente en 2.00s (`npm run build`) ✅.
 - [x] **2026-11-09 — Implementación y Activación de la Fase 6: Migración Masiva de Módulos (Inventario de 48 Rutas a SPA Nativo):**
   - **Alcance de la Migración:**
     * Se migraron todas las rutas web de vistas de aplicación en [`routes/web.php`](file:///c:/laragon/www/lidiag/routes/web.php) desde `Route::view` hacia closures `Route::get('...', fn () => view('layouts.app'))`, cubriendo los 10 submódulos del sistema:

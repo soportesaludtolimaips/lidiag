@@ -852,28 +852,35 @@ onMounted(() => {
 
     applyGlobalTheme(isDarkMode.value);
 
-    window.addEventListener("storage", (e) => {
-        if (e.key === "lidiag_dark_mode") {
-            isDarkMode.value = e.newValue === "true";
-            applyGlobalTheme(isDarkMode.value);
-        }
-    });
+    window.addEventListener("storage", onStorage);
 
-    emitter.on("sedeSeleccionada", (data) => {
-        if (data?.idSede) {
-            sedeSeleccionada.value = data.idSede;
-        }
-    });
-
-    emitter.on("medicoSeleccionado", (data) => {
-        if (data?.idMedico) {
-            medicoSeleccionado.value = data.idMedico;
-            if (data?.nomMedico) {
-                nomMedicoSeleccionado.value = data.nomMedico;
-            }
-        }
-    });
+    if (emitter) {
+        emitter.on("sedeSeleccionada", onSedeSeleccionada);
+        emitter.on("medicoSeleccionado", onMedicoSeleccionado);
+    }
 });
+
+function onSedeSeleccionada(data) {
+    if (data?.idSede) {
+        sedeSeleccionada.value = data.idSede;
+    }
+}
+
+function onMedicoSeleccionado(data) {
+    if (data?.idMedico) {
+        medicoSeleccionado.value = data.idMedico;
+        if (data?.nomMedico) {
+            nomMedicoSeleccionado.value = data.nomMedico;
+        }
+    }
+}
+
+function onStorage(e) {
+    if (e.key === "lidiag_dark_mode") {
+        isDarkMode.value = e.newValue === "true";
+        applyGlobalTheme(isDarkMode.value);
+    }
+}
 
 /**
  * Listener de visibilidad: refresca las notificaciones cuando la pestaña vuelve a ser visible.
@@ -901,5 +908,14 @@ onBeforeUnmount(() => {
     try {
         document.removeEventListener("visibilitychange", onVisibilityChange);
     } catch (_) {}
+    try {
+        window.removeEventListener("storage", onStorage);
+    } catch (_) {}
+    if (emitter) {
+        try {
+            emitter.off("sedeSeleccionada", onSedeSeleccionada);
+            emitter.off("medicoSeleccionado", onMedicoSeleccionado);
+        } catch (_) {}
+    }
 });
 </script>
