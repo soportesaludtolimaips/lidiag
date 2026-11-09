@@ -71,7 +71,7 @@ class ReporteConsolidadoRedExport implements WithMultipleSheets
             ->join("config_sedes", "estudios.sede_id", "=", "config_sedes.id")
             ->join("pacientes", "estudios.paciente_id", "=", "pacientes.id")
             ->leftJoin("users as medico", "estudios.medico_id", "=", "medico.id")
-            ->leftJoin("config_tipo_documentos", "pacientes.tipo_documento_id", "=", "config_tipo_documentos.id")
+            ->leftJoin("config_tipos_documentos", "pacientes.tipo_documento_id", "=", "config_tipos_documentos.id")
             ->where("config_sedes.estado", 1)
             ->where("estudios_productos.activo", 1)
             ->when($this->sedeId, fn ($q) => $q->where("estudios.sede_id", $this->sedeId))
@@ -84,7 +84,7 @@ class ReporteConsolidadoRedExport implements WithMultipleSheets
                 "config_sedes.nom_sede",
                 "estudios.mods_in_study",
                 "estudios_productos.nom_produc as nombre_procedimiento",
-                "config_tipo_documentos.sigla as tipo_documento",
+                "config_tipos_documentos.codigo as tipo_documento",
                 "pacientes.num_docu as documento",
                 "pacientes.nombres as paciente_nombre",
                 "medico.name as medico_nombre",

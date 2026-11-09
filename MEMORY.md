@@ -46,11 +46,11 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
       - Dejados estrictamente 3 controles de formulario: Selector de Sede Hospitalaria (`id="red-sede"`, default `0` para todas las sedes de la red), Fecha de Inicio (`id="red-fechaIni"`) y Fecha de Fin (`id="red-fechaFin"`).
       - Integrado `@keyup.enter="descargarConsolidadoRed()"` y `@submit.prevent="descargarConsolidadoRed()"`.
       - Agregada función `resetearFormularioConsolidadoRed()` e integrada en el cierre por botón, backdrop y tecla Escape.
-      - Estado `datosConsolidadoRed` actualizado a `{ sedeId: 0, fechaIni: ..., fechaFin: ... }`.
+      - Estado `datosConsolidadoRed` inicializado vacío sin fechas por defecto (`{ sedeId: 0, fechaIni: "", fechaFin: "" }`), permitiendo selección limpia por parte del usuario.
     * **Backend:**
       - [`ReporteConsolidadoRedRequest.php`](file:///c:/laragon/www/lidiag/app/Http/Requests/Reportes/ReporteConsolidadoRedRequest.php): Adición de la regla `sedeId => 'sometimes|nullable'`.
       - [`ReporteProduccionService.php`](file:///c:/laragon/www/lidiag/app/Services/Reportes/ReporteProduccionService.php): Extracción y normalización de `$sedeId` mediante `$this->normalizeNullable($data['sedeId'] ?? null)`.
-      - [`ReporteConsolidadoRedExport.php`](file:///c:/laragon/www/lidiag/app/Exports/ReporteConsolidadoRedExport.php): Soporte de parámetro `$sedeId` y filtrado condicional en `consultarEstudiosRed()` con `->when($this->sedeId, fn ($q) => $q->where('estudios.sede_id', $this->sedeId))`.
+      - [`ReporteConsolidadoRedExport.php`](file:///c:/laragon/www/lidiag/app/Exports/ReporteConsolidadoRedExport.php): Soporte de parámetro `$sedeId` y filtrado condicional en `consultarEstudiosRed()` con `->when($this->sedeId, fn ($q) => $q->where('estudios.sede_id', $this->sedeId))`. Corrección de nombre de tabla de tipos de documento a `config_tipos_documentos` (columna `codigo`) corrigiendo error 1146 de tabla no encontrada.
   - **Verificaciones:**
     * ESLint y Prettier 100% limpios ✅.
     * Compilación de producción Vite (`npm run build`) exitosa en 1.49s ✅.

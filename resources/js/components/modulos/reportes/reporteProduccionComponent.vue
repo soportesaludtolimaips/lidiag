@@ -2661,11 +2661,7 @@ const datosLiquidacion = ref({ sedeId: 0, fechaIni: "", fechaFin: "" });
 const datosProductividad = ref({ sedeId: 0, periodo: "" });
 const datosTAT = ref({ sedeId: 0, fechaIni: "", fechaFin: "", modalidad: "todas" });
 const datosAgentes = ref({ sedeId: 0 });
-const datosConsolidadoRed = ref({
-    sedeId: 0,
-    fechaIni: new Date().toISOString().slice(0, 7) + "-01",
-    fechaFin: new Date().toISOString().slice(0, 10),
-});
+const datosConsolidadoRed = ref({ sedeId: 0, fechaIni: "", fechaFin: "" });
 const datosSemaforoRepresados = ref({ sedeId: 0 });
 const datosCitasWhatsApp = ref({ periodo: "hoy", sedeId: 0, fechaIni: "", fechaFin: "" });
 const datosAlmacenamiento = ref({ sedeId: 0 });
@@ -2769,8 +2765,8 @@ function resetearFormularioAgentes() {
 function resetearFormularioConsolidadoRed() {
     datosConsolidadoRed.value = {
         sedeId: 0,
-        fechaIni: new Date().toISOString().slice(0, 7) + "-01",
-        fechaFin: new Date().toISOString().slice(0, 10),
+        fechaIni: "",
+        fechaFin: "",
     };
 }
 
