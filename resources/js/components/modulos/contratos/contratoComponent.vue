@@ -512,7 +512,7 @@
                     <div class="modal-footer">
                         <button
                             type="button"
-                            class="btn btn-secondary waves-effect"
+                            class="btn btn-default waves-effect"
                             @click="cerrarModalTarifasEntidad()"
                         >
                             Cerrar
@@ -652,7 +652,7 @@
                     <div class="modal-footer">
                         <button
                             type="button"
-                            class="btn btn-secondary waves-effect"
+                            class="btn btn-default waves-effect"
                             @click="cerrarModalTarifasMedico()"
                         >
                             Cerrar
@@ -1070,7 +1070,7 @@
                     <div class="modal-footer">
                         <button
                             type="button"
-                            class="btn btn-secondary waves-effect"
+                            class="btn btn-default waves-effect"
                             @click="cerrarModalPreview()"
                         >
                             Cancelar
