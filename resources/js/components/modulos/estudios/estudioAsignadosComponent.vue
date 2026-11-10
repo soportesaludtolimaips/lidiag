@@ -347,6 +347,11 @@
                                                     item.study_desc
                                                 }}</small>
                                             </div>
+                                            <div v-if="item.eps">
+                                                <small class="text-secondary"
+                                                    ><strong>EPS:</strong> {{ item.eps }}</small
+                                                >
+                                            </div>
                                             <div
                                                 v-if="item.interface_software === 'SAHI'"
                                                 class="mt-1"
@@ -387,6 +392,15 @@
                                         </td>
                                         <td class="align-middle font-weight-bold">
                                             {{ item.nom_produc }}
+                                            <div
+                                                v-if="item.medico_ordena"
+                                                class="font-weight-normal mt-1"
+                                            >
+                                                <small class="text-muted" title="Médico que ordenó">
+                                                    <i class="fa fa-user-md"></i>
+                                                    {{ item.medico_ordena }}
+                                                </small>
+                                            </div>
                                         </td>
                                         <td class="text-center align-middle">
                                             <span

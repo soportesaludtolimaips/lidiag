@@ -106,14 +106,16 @@ class SAHIService extends BaseService
     }
 
     /**
-     * Lista los productos, diagnósticos y consultas de una atención específica en SAHI.
+     * Lista los productos, diagnósticos, consultas y datos contractuales de una atención específica en SAHI.
      *
      * Flujo del proceso:
      * 1. Valida la presencia obligatoria del ID de atención.
      * 2. Consulta productos asignados a la atención filtrando por grupos de diagnóstico permitidos (44, 190, 225, 243).
-     * 3. Consulta diagnósticos CIE asociados a la consulta médica en genDiagnostico.
-     * 4. Consulta las notas de enfermedad actual y fecha de consulta en hceConsulta.
-     * 5. Captura fallos de conectividad con SQL Server retornando HTTP 503 defensivo.
+     * 3. Resuelve el médico que ordenó cada procedimiento desde hceProceOrden o médico tratante de admAtencion.
+     * 4. Consulta diagnósticos CIE asociados a la consulta médica en genDiagnostico.
+     * 5. Consulta las notas de enfermedad actual y fecha de consulta en hceConsulta.
+     * 6. Consulta información contractual activa (EPS, contrato, plan, ubicación).
+     * 7. Captura fallos de conectividad con SQL Server retornando HTTP 503 defensivo.
      *
      * @param  int|null  $idAtencion  Identificador de la atención en SAHI
      *
@@ -128,7 +130,26 @@ class SAHIService extends BaseService
         }
 
         try {
-            $productos = FacMovimiento::select('proProducto.IdProducto', 'proProducto.CodProducto as cod_cups', 'proProducto.NomProducto as nom_produc', 'facMovimientoDet.Cantidad')
+            $productos = FacMovimiento::select(
+                'proProducto.IdProducto',
+                'proProducto.CodProducto as cod_cups',
+                'proProducto.NomProducto as nom_produc',
+                'facMovimientoDet.Cantidad',
+                DB::raw("COALESCE(
+                    (SELECT TOP 1 QuinOrdenoOrden.NomResponsable
+                        FROM hceProceOrden QuinOrdenoOrden
+                            INNER JOIN hceProceDetalle ON QuinOrdenoOrden.IdOrdenPro = hceProceDetalle.IdOrdenPro
+                            INNER JOIN proProducto PoducOrden ON hceProceDetalle.IdProducto = PoducOrden.IdProducto
+                        WHERE QuinOrdenoOrden.IdAtencion = facMovimiento.IdDestino AND PoducOrden.CodProducto = proProducto.CodProducto
+                        ORDER BY QuinOrdenoOrden.IdOrdenPro DESC
+                    ),
+                    (SELECT TOP 1 RTRIM(LTRIM(hcePersonal.NomPersonal + ' ' + ISNULL(hcePersonal.ApePersonal, '')))
+                        FROM admAtencion
+                        INNER JOIN hcePersonal ON admAtencion.IdMedico = hcePersonal.IdPersonal
+                        WHERE admAtencion.IdAtencion = facMovimiento.IdDestino
+                    )
+                ) as quien_ordeno")
+            )
                 ->join('facMovimientoDet', 'facMovimientoDet.IdMovimiento', 'facMovimiento.IdMovimiento')
                 ->join('proProducto', 'facMovimientoDet.IdProducto', 'proProducto.IdProducto')
                 ->where('facMovimiento.IdDestino', $idAtencion)
@@ -160,7 +181,17 @@ class SAHIService extends BaseService
                 ->limit(2)
                 ->get();
 
-            return $this->success(['productos' => $productos, 'diagnosticos' => $diagnosticos, 'consultas' => $consultas]);
+            $contratoRes = $this->buscarEpsPlanContrato($idAtencion);
+            $contratoInfo = ($contratoRes['success'] ?? false) && ! empty($contratoRes['data'])
+                ? (is_array($contratoRes['data']) ? ($contratoRes['data'][0] ?? null) : $contratoRes['data']->first())
+                : null;
+
+            return $this->success([
+                'productos' => $productos,
+                'diagnosticos' => $diagnosticos,
+                'consultas' => $consultas,
+                'contrato_info' => $contratoInfo,
+            ]);
         } catch (\Throwable $e) {
             Log::error('Error al listar productos/diagnósticos en SAHI: '.$e->getMessage(), ['idAtencion' => $idAtencion]);
 
@@ -169,13 +200,15 @@ class SAHIService extends BaseService
     }
 
     /**
-     * Busca la EPS, plan y contrato asociados a una atención en SAHI.
+     * Busca la EPS, plan, contrato, servicio y médico que ordenó asociados a una atención en SAHI.
      *
      * Flujo del proceso:
      * 1. Valida la presencia obligatoria del ID de atención.
-     * 2. Consulta en facFactura y tablas maestras (genTercero, conContrato, conPlan, genUbicacion) la última factura.
-     * 3. Retorna los datos contractuales y de ubicación del paciente.
-     * 4. Captura fallos de conectividad con SQL Server retornando HTTP 503 defensivo.
+     * 2. Consulta en AdmAtencionContrato unida a admAtencion, conContrato, conPlan y genTercero.
+     * 3. Si no existe contrato en atención activa, busca como alternativa en facFactura.
+     * 4. Resuelve la ubicación del paciente (servicio) y el médico que ordenó el procedimiento.
+     * 5. Retorna los datos contractuales estructurados.
+     * 6. Captura fallos de conectividad con SQL Server retornando HTTP 503 defensivo.
      *
      * @param  int|null  $idAtencion  Identificador de la atención en SAHI
      *
@@ -190,25 +223,66 @@ class SAHIService extends BaseService
         }
 
         try {
-            $datos = FacFactura::select(
-                'facFactura.IdFactura',
-                'genTercero.NomTercero',
-                'conContrato.CodCon',
-                'conPlan.IdPlan',
-                'conPlan.DesPlan',
-                'conPlan.CodLegal',
-                'conContrato.DesContrato',
-                'genUbicacion.NomUbicacion'
-            )
-                ->join('admAtencion', 'facFactura.IdDestino', 'admAtencion.IdAtencion')
-                ->join('genUbicacion', 'admAtencion.IdUbicacionIng', 'genUbicacion.IdUbicacion')
-                ->join('conPlan', 'facFactura.IdPlan', 'conPlan.IdPlan')
-                ->join('conContrato', 'facFactura.IdContrato', 'conContrato.IdContrato')
-                ->join('genTercero', 'conPlan.IdTercero', 'genTercero.IdTercero')
-                ->where('facFactura.IdDestino', $idAtencion)
-                ->orderByDesc('facFactura.IdFactura')
-                ->limit(1)
-                ->get();
+            $datos = DB::connection('sqlsrv')->select("
+                SELECT TOP 1
+                    admAtencion.IdAtencion,
+                    genTercero.NomTercero,
+                    conContrato.CodCon,
+                    conContrato.DesContrato,
+                    conPlan.IdPlan,
+                    conPlan.DesPlan,
+                    conPlan.CodLegal,
+                    COALESCE(genUbiAct.NomUbicacion, genUbiIng.NomUbicacion, '') as NomUbicacion,
+                    COALESCE(
+                        (SELECT TOP 1 QuinOrdenoOrden.NomResponsable
+                            FROM hceProceOrden QuinOrdenoOrden
+                            WHERE QuinOrdenoOrden.IdAtencion = admAtencion.IdAtencion
+                            ORDER BY QuinOrdenoOrden.IdOrdenPro DESC
+                        ),
+                        (SELECT TOP 1 RTRIM(LTRIM(hcePersonal.NomPersonal + ' ' + ISNULL(hcePersonal.ApePersonal, '')))
+                            FROM admAtencion admSub
+                            INNER JOIN hcePersonal ON admSub.IdMedico = hcePersonal.IdPersonal
+                            WHERE admSub.IdAtencion = admAtencion.IdAtencion
+                        ),
+                        ''
+                    ) as quien_ordeno
+                FROM admAtencion
+                LEFT JOIN AdmAtencionContrato ON admAtencion.IdAtencion = AdmAtencionContrato.IdAtencion
+                LEFT JOIN conContrato ON AdmAtencionContrato.IdContrato = conContrato.IdContrato
+                LEFT JOIN conPlan ON AdmAtencionContrato.IdPlan = conPlan.IdPlan
+                LEFT JOIN genTercero ON conContrato.IdTercero = genTercero.IdTercero
+                LEFT JOIN genUbicacion genUbiAct ON admAtencion.IdUbicacionActual = genUbiAct.IdUbicacion
+                LEFT JOIN genUbicacion genUbiIng ON admAtencion.IdUbicacionIng = genUbiIng.IdUbicacion
+                WHERE admAtencion.IdAtencion = ?
+                ORDER BY AdmAtencionContrato.OrdPrioridad ASC, AdmAtencionContrato.IdAtenContrato DESC
+            ", [$idAtencion]);
+
+            // Si la consulta en atención activa no arrojó EPS/Contrato, consultar facFactura como respaldo
+            if (empty($datos) || empty($datos[0]->NomTercero)) {
+                $datosFactura = FacFactura::select(
+                    'facFactura.IdFactura',
+                    'genTercero.NomTercero',
+                    'conContrato.CodCon',
+                    'conPlan.IdPlan',
+                    'conPlan.DesPlan',
+                    'conPlan.CodLegal',
+                    'conContrato.DesContrato',
+                    'genUbicacion.NomUbicacion'
+                )
+                    ->join('admAtencion', 'facFactura.IdDestino', 'admAtencion.IdAtencion')
+                    ->leftJoin('genUbicacion', 'admAtencion.IdUbicacionIng', 'genUbicacion.IdUbicacion')
+                    ->join('conPlan', 'facFactura.IdPlan', 'conPlan.IdPlan')
+                    ->join('conContrato', 'facFactura.IdContrato', 'conContrato.IdContrato')
+                    ->join('genTercero', 'conPlan.IdTercero', 'genTercero.IdTercero')
+                    ->where('facFactura.IdDestino', $idAtencion)
+                    ->orderByDesc('facFactura.IdFactura')
+                    ->limit(1)
+                    ->get();
+
+                if ($datosFactura->isNotEmpty()) {
+                    return $this->success($datosFactura->toArray());
+                }
+            }
 
             return $this->success($datos);
         } catch (\Throwable $e) {

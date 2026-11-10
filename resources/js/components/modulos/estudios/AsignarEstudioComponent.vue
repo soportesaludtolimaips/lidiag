@@ -652,6 +652,36 @@
                                                         {{ ItemAtencion.FecIngreso }}
                                                     </option>
                                                 </select>
+                                                <div
+                                                    v-if="contratoInfoResumen"
+                                                    class="alert alert-info py-2 px-3 mt-2 mb-0"
+                                                    style="font-size: 13px; line-height: 1.4"
+                                                >
+                                                    <div>
+                                                        <strong>EPS:</strong>
+                                                        {{
+                                                            contratoInfoResumen.NomTercero || "N/A"
+                                                        }}
+                                                    </div>
+                                                    <div>
+                                                        <strong>Contrato:</strong>
+                                                        {{
+                                                            contratoInfoResumen.DesContrato || "N/A"
+                                                        }}
+                                                    </div>
+                                                    <div>
+                                                        <strong>Plan:</strong>
+                                                        {{ contratoInfoResumen.DesPlan || "N/A" }}
+                                                    </div>
+                                                    <div v-if="contratoInfoResumen.NomUbicacion">
+                                                        <strong>Servicio:</strong>
+                                                        {{ contratoInfoResumen.NomUbicacion }}
+                                                    </div>
+                                                    <div v-if="contratoInfoResumen.quien_ordeno">
+                                                        <strong>Médico que ordenó:</strong>
+                                                        {{ contratoInfoResumen.quien_ordeno }}
+                                                    </div>
+                                                </div>
                                                 <!-- <span class="text-danger" v-if="errores.prioridad_id">
                                                     {{ errores.prioridad_id[0] }}
                                                 </span> -->
@@ -718,7 +748,16 @@
                                                             ></label>
                                                         </td>
                                                         <td>{{ item.cod_cups }}</td>
-                                                        <td>{{ item.nom_produc }}</td>
+                                                        <td>
+                                                            {{ item.nom_produc }}
+                                                            <div v-if="item.medico_ordena">
+                                                                <small class="text-muted"
+                                                                    ><i class="fa fa-user-md"></i>
+                                                                    Ordena:
+                                                                    {{ item.medico_ordena }}</small
+                                                                >
+                                                            </div>
+                                                        </td>
                                                         <td class="text-nowrap">
                                                             <button
                                                                 type="button"
@@ -1100,6 +1139,11 @@ const registro = ref({
     atencion_id: null,
     destino_estudio: "Salud Tolima",
     motivo_examen: "",
+    eps: "",
+    contrato: "",
+    plan: "",
+    servicio: "",
+    medico_ordena: "",
 });
 const soportesHC = ref({ archivo1: null, archivo2: null, archivo3: null });
 const busqueda = ref({
@@ -1110,6 +1154,7 @@ const busqueda = ref({
 });
 const interfaceAtenciones = ref([]);
 const interfaceAtencionSeleccionada = ref(null);
+const contratoInfoResumen = ref(null);
 const errores = ref({});
 const erroresBusqueda = ref({});
 const medicos = ref([]);
@@ -1771,6 +1816,8 @@ async function interfaceListarProductosDiagnosticos() {
 
     const data = resProuctos.data.data;
 
+    contratoInfoResumen.value = data.contrato_info || null;
+
     registro.value.productosEstudio = [];
     if (data.productos.length > 0) {
         data.productos.forEach((element) => {
@@ -1779,8 +1826,20 @@ async function interfaceListarProductosDiagnosticos() {
                 id: element.IdProducto,
                 cod_cups: element.cod_cups,
                 nom_produc: element.nom_produc,
+                medico_ordena:
+                    element.quien_ordeno ||
+                    (data.contrato_info ? data.contrato_info.quien_ordeno : null) ||
+                    null,
             });
         });
+    }
+
+    if (data.contrato_info) {
+        registro.value.eps = data.contrato_info.NomTercero || "";
+        registro.value.contrato = data.contrato_info.DesContrato || "";
+        registro.value.plan = data.contrato_info.DesPlan || "";
+        registro.value.servicio = data.contrato_info.NomUbicacion || "";
+        registro.value.medico_ordena = data.contrato_info.quien_ordeno || "";
     }
 
     let EnfermedadActualDiagnosticos = "";
@@ -1963,8 +2022,14 @@ function limpiarFormulario() {
     //registro.value.medico_id = "";
     //registro.value.prioridad_id = "";
     registro.value.atencion_id = null;
+    registro.value.eps = "";
+    registro.value.contrato = "";
+    registro.value.plan = "";
+    registro.value.servicio = "";
+    registro.value.medico_ordena = "";
     interfaceAtenciones.value = [];
     interfaceAtencionSeleccionada.value = null;
+    contratoInfoResumen.value = null;
 
     productoSelecciondo.value = "";
     diagnosticoSelecciondo.value = "";
@@ -2176,6 +2241,7 @@ function guardarProductosEstudio(idProd = null) {
                 id: productoEstudioId,
                 cod_cups: productoEstudioCod_Cubs,
                 nom_produc: productoEstudioNomProduc,
+                medico_ordena: registro.value.medico_ordena || null,
                 checked: true,
             });
         }

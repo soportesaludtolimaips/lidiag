@@ -15,6 +15,7 @@ use App\Models\Liquidacion\LiquidacionLinea;
 use App\Models\User;
 use App\Models\Worklist\WorklistOrden;
 use App\Services\BaseService;
+use App\Services\Interfaces\SAHIService;
 use App\Services\Interfaces\SAHITranscibirService;
 use App\Services\Liquidacion\LiquidacionService;
 use App\Services\Telegram\TelegramService;
@@ -37,6 +38,7 @@ class EstudioService extends BaseService
      * @param  EstudioLockService  $lockService  Servicio de reservas de lectura/asignación
      * @param  EstudioQueryService  $queryService  Servicio de consultas de estudios
      * @param  SAHITranscibirService  $sahiTranscibirService  Servicio de transcripción hacia SAHI (SQL Server)
+     * @param  SAHIService  $sahiService  Servicio de consultas de datos e interfaces de SAHI
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -48,6 +50,7 @@ class EstudioService extends BaseService
         private readonly EstudioLockService $lockService,
         private readonly EstudioQueryService $queryService,
         private readonly SAHITranscibirService $sahiTranscibirService,
+        private readonly SAHIService $sahiService,
     ) {}
 
     private const DESTINO_TELE_RADIOLOGIA = 'Tele Radiologia';
@@ -153,7 +156,11 @@ class EstudioService extends BaseService
                     'estado' => 1,
                 ]);
 
-                $this->syncStudyProducts($estudio->id, $productosMarcados);
+                $medicoOrdenaDefault = ! empty($registro['medico_ordena'])
+                    ? $registro['medico_ordena']
+                    : ($interfaceData['medico_ordena'] ?? null);
+
+                $this->syncStudyProducts($estudio->id, $productosMarcados, $medicoOrdenaDefault);
                 $this->syncStudyDiagnostics($estudio->id, $registro['diagnosticosEstudio'] ?? []);
                 $this->processSoportes($estudio->id, $archivo1, $archivo2, $archivo3);
                 $this->autoReconciliarWorklistOrden($estudio, $registro);
@@ -1041,7 +1048,14 @@ class EstudioService extends BaseService
     }
 
     /**
-     * Resuelve los datos de interfaz (eps, contrato, plan, servicio) según el software de la sede.
+     * Resuelve los datos de interfaz (eps, contrato, plan, servicio, medico_ordena) según el software de la sede.
+     *
+     * Flujo del proceso:
+     * 1. Inicializa los datos predeterminados en blanco.
+     * 2. Si la sede no opera con interface 'SAHI' o no posee atencion_id, retorna valores por defecto.
+     * 3. Configura dinámicamente la conexión a SQL Server según la sede especificada.
+     * 4. Consulta en SAHIService los datos contractuales y de ubicación de la atención.
+     * 5. Mapea y retorna eps, contrato, plan, servicio y medico_ordena.
      *
      * @param  ConfigSede  $sede  Sede del estudio
      * @param  array  $registro  Datos del formulario de asignación
@@ -1052,10 +1066,37 @@ class EstudioService extends BaseService
      */
     private function resolveInterfaceData(ConfigSede $sede, array $registro): array
     {
-        $default = ['eps' => '', 'contrato' => '', 'plan' => '', 'servicio' => ''];
+        $default = ['eps' => '', 'contrato' => '', 'plan' => '', 'servicio' => '', 'medico_ordena' => ''];
 
         if ($sede->interface_software !== 'SAHI') {
             return $default;
+        }
+
+        $atencionId = ! empty($registro['atencion_id']) ? (int) $registro['atencion_id'] : null;
+        if (! $atencionId) {
+            return $default;
+        }
+
+        try {
+            SahiConnectionHelper::configureForSede($sede);
+            $res = $this->sahiService->buscarEpsPlanContrato($atencionId);
+
+            if (($res['success'] ?? false) && ! empty($res['data'])) {
+                $item = is_array($res['data']) ? ($res['data'][0] ?? null) : $res['data']->first();
+                if ($item) {
+                    $itemArray = (array) $item;
+
+                    return [
+                        'eps' => (string) ($itemArray['NomTercero'] ?? ''),
+                        'contrato' => (string) ($itemArray['DesContrato'] ?? ''),
+                        'plan' => (string) ($itemArray['DesPlan'] ?? ''),
+                        'servicio' => (string) ($itemArray['NomUbicacion'] ?? ''),
+                        'medico_ordena' => (string) ($itemArray['quien_ordeno'] ?? ''),
+                    ];
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning("Error al resolver datos de interfaz SAHI para atención #{$atencionId}: {$e->getMessage()}");
         }
 
         return $default;
@@ -1173,12 +1214,13 @@ class EstudioService extends BaseService
      *
      * @param  int  $estudioId  Identificador del estudio recién creado
      * @param  array  $productosMarcados  Productos marcados en el formulario
+     * @param  string|null  $medicoOrdenaDefault  Médico que ordenó por defecto (desde interfaz)
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-10-30
      */
-    private function syncStudyProducts(int $estudioId, array $productosMarcados): void
+    private function syncStudyProducts(int $estudioId, array $productosMarcados, ?string $medicoOrdenaDefault = null): void
     {
         $codigosCups = array_values(array_unique(array_filter(array_column($productosMarcados, 'cod_cups'))));
         if (empty($codigosCups)) {
@@ -1201,11 +1243,16 @@ class EstudioService extends BaseService
                 continue;
             }
 
+            $medicoOrdena = ! empty($producto['medico_ordena'])
+                ? $producto['medico_ordena']
+                : (! empty($producto['quien_ordeno']) ? $producto['quien_ordeno'] : $medicoOrdenaDefault);
+
             $rows[] = [
                 'estudio_id' => $estudioId,
                 'producto_id' => $productoDicom->id,
                 'cod_cups' => $productoDicom->cod_cups,
                 'nom_produc' => $productoDicom->nom_produc,
+                'medico_ordena' => $medicoOrdena,
                 'created_at' => $now,
                 'updated_at' => $now,
             ];

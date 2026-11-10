@@ -37,6 +37,26 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-10 — Rediseño y Desahogo Visual del Listado de Reportes (`reporteProduccionComponent.vue`):**
+  - **Requerimiento del Usuario:**
+    * Mejorar el listado de reportes en `reporteProduccionComponent.vue` debido a que la interfaz se visualizaba muy apiñada / comprimida.
+    * Coordinación interactiva mediante preguntas una a una previa a la implementación.
+  - **Ajustes Realizados:**
+    * **Grid de 3 Columnas Amplias ([`reporteProduccionComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/reportes/reporteProduccionComponent.vue)):**
+      - Migración de la cuadrícula rígida de 4 columnas apretadas (`col-md-3`) a un grid responsive de 3 columnas generosas (`col-lg-4 col-md-6 col-12 m-b-20`) con altura uniforme (`h-100`) y sombra suave (`shadow-sm border-0`).
+    * **Tarjetas Temáticas por Área Asistencial:**
+      - Cabeceras con badges e iconos de color temático: Azul primario (Producción Radiológica/Ecografía/Oftalmología/Citas), Cian (Estudios PACS/Consentimientos), Púrpura (Tele-radiología/Diagnóstico Ocular), Ámbar (Dosimetría y Radiación), Verde azulado/Teal (Calidad y Oportunidad/Agenda), Verde esmeralda (Financiero/Liquidación/Canal WhatsApp), Gris pizarra (Agentes y Servidores PACS) y Rojo (Mesa de Ayuda Helpdesk).
+      - Línea de acento superior temática (`border-top: 3px solid ...`) y contador de reportes disponibles en cada tarjeta.
+    * **Filas Interactivas Estilizadas (`.report-item`):**
+      - Transformación de los enlaces planos en filas clickeables con icono representativo en recuadro suave (`.report-icon`), título del reporte en negrita (`.report-name`), breve descripción funcional (`.report-desc`), badge de tipo de acción (`.badge-excel`, `.badge-modulo`, `.badge-pdf`) y flecha animada con hover interactivo (`.report-arrow`).
+    * **Estilización de Indicadores Asistenciales Superiores:**
+      - Rediseño de las 4 tarjetas KPI con contenedor de iconos circular translúcido, cifras numéricas nítidas (`.kpi-value`) y tipografía limpia.
+    * **Pestañas y Modo Oscuro:**
+      - Estilización de las pestañas de agrupación por módulo (`.custom-report-tabs`).
+      - Cobertura universal de modo oscuro para todas las tarjetas, filas interactivas, textos y badges bajo `:global(body.theme-dark)`.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios (0 errores, 0 advertencias) ✅.
+    * Compilación Vite (`npm run build`) exitosa en 1.30s ✅.
 - [x] **2026-11-09 — Inclusión de Totales de Estudios Tomados y Asignados No Anulados en Estadísticas (`ProduccionConsolidadaEstadisticasSheet.php`, `ProduccionConsolidadaExport.php`, `ReporteConsolidadoRedExport.php`):**
   - **Requerimiento del Usuario:**
     * Agregar a la hoja "Estadísticas y Gráficas" el total de estudios tomados y el total de estudios asignados, considerando exclusivamente aquellos estudios que no se encuentren anulados.
@@ -81,6 +101,33 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * Generación completa de libro Excel probada contra base de datos local: 23 columnas alineadas 1:1 con datos reales ✅.
     * Laravel Pint (`vendor\bin\pint.bat --test`) pasado sin observaciones ✅.
     * Larastan PHPStan Nivel 5 (`vendor\bin\phpstan.bat analyse`) con 0 errores ✅.
+- [x] **2026-11-09 — Corrección e Interoperabilidad SAHI: EPS, Contrato, Plan, Servicio y Médico que Ordenó (`SAHIService.php`, `EstudioService.php`, `EstudioQueryService.php`, `PlantillaEstudioService.php`, `AsignarEstudioComponent.vue`, `estudioAsignadosComponent.vue`, `EstudiosSahiBackfillDatosCommand.php`):**
+  - **Problema Auditado:**
+    * Estudios asignados mediante interfaz SAHI (como la atención `#7017456`) quedaban con campos `eps`, `contrato`, `plan` y `servicio` en blanco en la tabla `estudios`, y `medico_ordena` en `null` en `estudios_productos`.
+    * Causas raíz identificadas:
+      1. `EstudioService::resolveInterfaceData` estaba truncado retornando siempre un arreglo vacío hardcodeado.
+      2. `SAHIService::buscarEpsPlanContrato` consultaba exclusivamente `facFactura` con JOIN a `admAtencion`, tabla inexistente para pacientes internados/urgencias no facturados aún; la fuente primaria en SAHI es `AdmAtencionContrato`.
+      3. `syncStudyProducts` en backend y `interfaceListarProductosDiagnosticos` en Vue no capturaban ni persistían `medico_ordena` (`hceProceOrden.NomResponsable`).
+  - **Ajustes Realizados:**
+    * **Backend SAHI ([`SAHIService.php`](file:///c:/laragon/www/lidiag/app/Services/Interfaces/SAHIService.php)):**
+      - Reescrito `buscarEpsPlanContrato` para consultar `admAtencion` + `AdmAtencionContrato` + `conContrato` + `conPlan` + `genTercero` + `genUbicacion` + subconsulta correlacionada para el médico que ordenó (`hceProceOrden` / médico tratante de `hcePersonal`), con fallback defensivo a `facFactura`.
+      - Enriquecido `listarProductosDiagnosticos` para incluir `quien_ordeno` en cada producto CUPS y retornar `contrato_info` completo de la atención.
+    * **Backend Estudios ([`EstudioService.php`](file:///c:/laragon/www/lidiag/app/Services/Estudios/EstudioService.php), [`EstudioQueryService.php`](file:///c:/laragon/www/lidiag/app/Services/Estudios/EstudioQueryService.php), [`PlantillaEstudioService.php`](file:///c:/laragon/www/lidiag/app/Services/Estudios/PlantillaEstudioService.php)):**
+      - Inyectado `SAHIService` en `EstudioService`. Implementado `resolveInterfaceData` con configuración dinámica de sede vía `SahiConnectionHelper::configureForSede`.
+      - Modificado `syncStudyProducts` para admitir y guardar `medico_ordena` por producto o con fallback al médico general de la atención.
+      - Proyectada columna `estudios_productos.medico_ordena` en las consultas de `listarEstudiosAsignados`, `listarPendientesTranscribir` y `listarPendientesMedico`.
+      - Soporte en plantillas Word/PDF para `${plan}`, `${servicio}` y `${medico_ordena}`.
+    * **Frontend ([`AsignarEstudioComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/AsignarEstudioComponent.vue), [`estudioAsignadosComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/estudioAsignadosComponent.vue)):**
+      - Al seleccionar atención SAHI, se visualiza cuadro resumen con EPS, Contrato, Plan, Servicio y Médico que ordenó.
+      - Mapeo de `medico_ordena` individual por producto CUPS tanto en el drawer de asignación como en la tabla principal de estudios asignados.
+    * **Comando de Backfill Retroactivo ([`EstudiosSahiBackfillDatosCommand.php`](file:///c:/laragon/www/lidiag/app/Console/Commands/EstudiosSahiBackfillDatosCommand.php)):**
+      - Comando `php artisan estudios:sahi-backfill` para actualizar estudios históricos de SAHI en lote, por `--atencion`, `--estudio-id`, últimos N días (`--day=365` o `--days=365`), rango de fechas (`--from` y `--to`), `--all` y `--force`.
+      - Ejecutado exitosamente para atención `#7017456` y para `--day=365 --limit=5`, actualizando datos contractuales, EPS, ubicaciones y médicos ordenantes en tiempo real con SQL Server.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) pasado sin observaciones en todos los archivos modificados ✅.
+    * ESLint y Prettier (`npx eslint`) pasados con 0 errores ✅.
+    * Compilación Vite (`npm run build`) exitosa en 2.05s ✅.
+    * Ejecución real de backfill contra base de datos de producción SAHI comprobada exitosamente ✅.
 - [x] **2026-11-09 — Simplificación Modal Consolidado de Producción — Red Hospitalaria (`reporteProduccionComponent.vue`, `ReporteConsolidadoRedExport.php`, `ReporteConsolidadoRedRequest.php`, `ReporteProduccionService.php`):**
   - **Requerimiento del Usuario:**
     * Simplificar el modal de "Consolidado de Producción — Red Hospitalaria" para dejar exclusivamente los selectores de Sede, Fecha de Inicio y Fecha de Fin.

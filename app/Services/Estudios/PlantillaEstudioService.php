@@ -50,6 +50,9 @@ class PlantillaEstudioService extends BaseService
         $template->setValue('edad', $data['edad'] ?? '');
         $template->setValue('eps', $data['eps'] ?? '');
         $template->setValue('contrato', $data['contrato'] ?? '');
+        $template->setValue('plan', $data['plan'] ?? '');
+        $template->setValue('servicio', $data['servicio'] ?? '');
+        $template->setValue('medico_ordena', $data['medico_ordena'] ?? '');
 
         $fecEstudio = ! empty($data['fec_estudio']) ? Carbon::parse($data['fec_estudio'])->format('d/m/Y') : '';
         $fecLectura = ! empty($data['fechor_lectura']) ? Carbon::parse($data['fechor_lectura'])->format('d/m/Y H:i') : '';
