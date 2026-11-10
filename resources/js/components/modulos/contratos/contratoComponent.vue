@@ -419,95 +419,94 @@
             </div>
         </div>
 
-        <!-- MODAL: TARIFAS DE ENTIDAD / HOSPITAL (PLANTILLA 1) -->
+        <!-- MODAL: TARIFAS DE ENTIDAD / HOSPITAL -->
         <div
             class="modal fade"
-            id="modalTarifasEntidad"
+            :class="{ show: modalTarifasEntidadVisible }"
+            :style="{ display: modalTarifasEntidadVisible ? 'block' : 'none' }"
             tabindex="-1"
             role="dialog"
-            aria-labelledby="modalTarifasEntidadLabel"
             aria-hidden="true"
+            @click.self="cerrarModalTarifasEntidad()"
         >
-            <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title" id="modalTarifasEntidadLabel">
-                            <i class="fa fa-hospital-o m-r-5 text-primary"></i> Tarifas Entidad /
-                            Hospital (Plantilla 1)
-                        </h4>
+                        <h4 class="modal-title">Tarifas de Entidad / Hospital</h4>
                         <button
                             type="button"
                             class="close"
+                            aria-label="Cerrar modal"
                             @click="cerrarModalTarifasEntidad()"
-                            aria-label="Cerrar"
-                            aria-hidden="true"
                         >
-                            &times;
+                            ×
                         </button>
                     </div>
                     <div class="modal-body">
-                        <div class="alert alert-info py-2">
-                            <strong>Contrato #{{ modalEntidadForm.contratoId }}</strong> — Sede:
-                            <strong>{{ modalEntidadForm.sedeNombre }}</strong>
-                            <br />
-                            <small
-                                >Vigencia: {{ formatDate(modalEntidadForm.fechaInicio) }} al
-                                {{ formatDate(modalEntidadForm.fechaFin) }}</small
-                            >
-                        </div>
-
-                        <div class="card border mb-3">
-                            <div class="card-body p-3">
-                                <h5 class="card-title font-weight-bold">
-                                    <i class="fa fa-download text-primary m-r-5"></i> 1. Descargar
-                                    Plantilla de Tarifas de la Entidad
-                                </h5>
-                                <p class="text-muted small mb-2">
-                                    Descargue el archivo Excel con metadatos oficiales (ID Contrato
-                                    en A2, Sede en A3 y Vigencia en A4). Incluye el catálogo de
-                                    productos exigibles.
-                                </p>
-                                <button
-                                    type="button"
-                                    class="btn btn-outline-success btn-sm"
-                                    @click="descargarPlantillaEntidad(modalEntidadForm.contratoId)"
+                        <form @submit.prevent="procesarPreviewEntidad()">
+                            <div class="form-group">
+                                <label
+                                    class="control-label font-weight-bold"
+                                    for="entidad-contrato-info"
+                                    >Contrato y Sede</label
                                 >
-                                    <i class="fa fa-file-excel-o m-r-5"></i> Descargar Plantilla de
-                                    Entidad (Excel)
-                                </button>
+                                <input
+                                    id="entidad-contrato-info"
+                                    type="text"
+                                    class="form-control"
+                                    :value="
+                                        'Contrato #' +
+                                        modalEntidadForm.contratoId +
+                                        ' — ' +
+                                        modalEntidadForm.sedeNombre
+                                    "
+                                    readonly
+                                    disabled
+                                />
                             </div>
-                        </div>
 
-                        <div class="card border mb-0">
-                            <div class="card-body p-3">
-                                <h5 class="card-title font-weight-bold">
-                                    <i class="fa fa-upload text-info m-r-5"></i> 2. Importar y
-                                    Analizar Tarifas con Vista Previa
-                                </h5>
-                                <p class="text-muted small mb-2">
-                                    Seleccione el archivo diligenciado. El backend validará la celda
-                                    A2 y generará una
-                                    <strong>vista previa no destructiva</strong> con el desglose de
-                                    altas, tarifas actualizadas, bajas lógicas y cobertura.
-                                </p>
-                                <div class="form-group mb-2">
-                                    <label
-                                        class="control-label font-weight-bold"
-                                        for="archivo-entidad-input"
+                            <div class="form-group">
+                                <label class="control-label font-weight-bold"
+                                    >1. Descargar Plantilla Oficial</label
+                                >
+                                <div>
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-success btn-sm"
+                                        @click="
+                                            descargarPlantillaEntidad(modalEntidadForm.contratoId)
+                                        "
                                     >
-                                        Archivo Excel de Entidad (.xlsx, .xls)
-                                        <span class="text-danger">*</span>
-                                    </label>
-                                    <input
-                                        id="archivo-entidad-input"
-                                        type="file"
-                                        ref="archivoEntidadRef"
-                                        accept=".xlsx,.xls"
-                                        class="form-control"
-                                    />
+                                        <i class="fa fa-download mr-1"></i> Descargar Plantilla en
+                                        Excel
+                                    </button>
                                 </div>
+                                <small class="form-text text-muted">
+                                    Descargue el formato oficial con los metadatos institucionales y
+                                    el catálogo de productos exigibles.
+                                </small>
                             </div>
-                        </div>
+
+                            <div class="form-group mb-0">
+                                <label
+                                    class="control-label font-weight-bold"
+                                    for="archivo-entidad-input"
+                                >
+                                    2. Subir Archivo Diligenciado <span class="text-danger">*</span>
+                                </label>
+                                <input
+                                    id="archivo-entidad-input"
+                                    type="file"
+                                    ref="archivoEntidadRef"
+                                    accept=".xlsx,.xls"
+                                    class="form-control"
+                                />
+                                <small class="form-text text-muted">
+                                    El sistema analizará el archivo y mostrará una vista previa con
+                                    altas, cambios y cobertura antes de guardar.
+                                </small>
+                            </div>
+                        </form>
                     </div>
                     <div class="modal-footer">
                         <button
@@ -519,135 +518,132 @@
                         </button>
                         <button
                             type="button"
-                            class="btn btn-primary waves-effect waves-light"
+                            class="btn btn-info waves-effect waves-light"
                             @click="procesarPreviewEntidad()"
                             :disabled="loadingPreviewEntidad"
                         >
-                            <i v-if="loadingPreviewEntidad" class="fa fa-spinner fa-spin m-r-5"></i>
-                            <i v-else class="fa fa-search m-r-5"></i>
+                            <i v-if="loadingPreviewEntidad" class="fa fa-spinner fa-spin mr-1"></i>
+                            <i v-else class="fa fa-upload mr-1"></i>
                             Analizar y Ver Vista Previa
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+        <div v-if="modalTarifasEntidadVisible" class="modal-backdrop fade show"></div>
 
-        <!-- MODAL: TARIFAS DE MÉDICO LECTOR (PLANTILLA 2) -->
+        <!-- MODAL: TARIFAS DE MÉDICO LECTOR -->
         <div
             class="modal fade"
-            id="modalTarifasMedico"
+            :class="{ show: modalTarifasMedicoVisible }"
+            :style="{ display: modalTarifasMedicoVisible ? 'block' : 'none' }"
             tabindex="-1"
             role="dialog"
-            aria-labelledby="modalTarifasMedicoLabel"
             aria-hidden="true"
+            @click.self="cerrarModalTarifasMedico()"
         >
-            <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title" id="modalTarifasMedicoLabel">
-                            <i class="fa fa-user-md m-r-5 text-success"></i> Tarifas de Médicos
-                            Lectores (Plantilla 2)
-                        </h4>
+                        <h4 class="modal-title">Tarifas de Médicos Lectores</h4>
                         <button
                             type="button"
                             class="close"
+                            aria-label="Cerrar modal"
                             @click="cerrarModalTarifasMedico()"
-                            aria-label="Cerrar"
-                            aria-hidden="true"
                         >
-                            &times;
+                            ×
                         </button>
                     </div>
                     <div class="modal-body">
-                        <div class="alert alert-info py-2">
-                            <strong>Contrato #{{ modalMedicoForm.contratoId }}</strong> — Sede:
-                            <strong>{{ modalMedicoForm.sedeNombre }}</strong>
-                            <br />
-                            <small
-                                >Vigencia: {{ formatDate(modalMedicoForm.fechaInicio) }} al
-                                {{ formatDate(modalMedicoForm.fechaFin) }}</small
-                            >
-                        </div>
-
-                        <div class="form-group">
-                            <label class="control-label font-weight-bold" for="sel-medico-tarifas">
-                                Médico Lector <span class="text-danger">*</span>
-                            </label>
-                            <Select2
-                                id="sel-medico-tarifas"
-                                :value="modalMedicoForm.medico_id"
-                                :options="medicoOptions"
-                                :label-fields="['name']"
-                                width="100%"
-                                :allow-clear="true"
-                                placeholder="Seleccione el médico lector..."
-                                dropdown-parent-selector="#modalTarifasMedico .modal-body"
-                                @input="(val) => (modalMedicoForm.medico_id = val)"
-                            />
-                            <small class="text-muted">
-                                Seleccione el médico para descargar su plantilla personalizada o
-                                para procesar su importación.
-                            </small>
-                        </div>
-
-                        <div class="card border mb-3">
-                            <div class="card-body p-3">
-                                <h5 class="card-title font-weight-bold">
-                                    <i class="fa fa-download text-success m-r-5"></i> 1. Descargar
-                                    Plantilla del Médico Seleccionado
-                                </h5>
-                                <p class="text-muted small mb-2">
-                                    Genera el archivo con los metadatos inyectados: Contrato en A2,
-                                    Sede en A3, ID Médico en A4 y Nombre en B4, con columnas de
-                                    Consulta Externa y Urgencias/Hosp.
-                                </p>
-                                <button
-                                    type="button"
-                                    class="btn btn-outline-success btn-sm"
-                                    :disabled="!modalMedicoForm.medico_id"
-                                    @click="
-                                        descargarPlantillaMedico(
-                                            modalMedicoForm.contratoId,
-                                            modalMedicoForm.medico_id
-                                        )
-                                    "
+                        <form @submit.prevent="procesarPreviewMedico()">
+                            <div class="form-group">
+                                <label
+                                    class="control-label font-weight-bold"
+                                    for="medico-contrato-info"
+                                    >Contrato y Sede</label
                                 >
-                                    <i class="fa fa-file-excel-o m-r-5"></i> Descargar Plantilla de
-                                    Médico (Excel)
-                                </button>
+                                <input
+                                    id="medico-contrato-info"
+                                    type="text"
+                                    class="form-control"
+                                    :value="
+                                        'Contrato #' +
+                                        modalMedicoForm.contratoId +
+                                        ' — ' +
+                                        modalMedicoForm.sedeNombre
+                                    "
+                                    readonly
+                                    disabled
+                                />
                             </div>
-                        </div>
 
-                        <div class="card border mb-0">
-                            <div class="card-body p-3">
-                                <h5 class="card-title font-weight-bold">
-                                    <i class="fa fa-upload text-primary m-r-5"></i> 2. Importar
-                                    Plantilla con Validación Estricta
-                                </h5>
-                                <p class="text-muted small mb-2">
-                                    El backend verificará obligatoriamente que la celda A4 del
-                                    archivo coincida exactamente con el médico seleccionado. Se
-                                    generará la vista previa con el diff y la cobertura antes de
-                                    persistir.
-                                </p>
-                                <div class="form-group mb-2">
-                                    <label
-                                        class="control-label font-weight-bold"
-                                        for="archivo-medico-input"
-                                    >
-                                        Archivo Excel de Tarifas del Médico (.xlsx, .xls)
-                                        <span class="text-danger">*</span>
-                                    </label>
-                                    <input
-                                        id="archivo-medico-input"
-                                        type="file"
-                                        ref="archivoMedicoRef"
-                                        accept=".xlsx,.xls"
-                                        class="form-control"
-                                    />
-                                </div>
+                            <div class="form-group">
+                                <label
+                                    class="control-label font-weight-bold"
+                                    for="sel-medico-tarifas"
+                                >
+                                    Médico Lector <span class="text-danger">*</span>
+                                </label>
+                                <Select2
+                                    id="sel-medico-tarifas"
+                                    :value="modalMedicoForm.medico_id"
+                                    :options="medicoOptions"
+                                    :label-fields="['name']"
+                                    width="100%"
+                                    :allow-clear="true"
+                                    placeholder="...::: Seleccione el médico lector :::..."
+                                    dropdown-parent-selector="#modalTarifasMedico .modal-body"
+                                    @input="(val) => (modalMedicoForm.medico_id = val)"
+                                />
                             </div>
-                        </div>
+
+                            <div class="form-group">
+                                <label class="control-label font-weight-bold"
+                                    >1. Descargar Plantilla del Médico</label
+                                >
+                                <div>
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-success btn-sm"
+                                        :disabled="!modalMedicoForm.medico_id"
+                                        @click="
+                                            descargarPlantillaMedico(
+                                                modalMedicoForm.contratoId,
+                                                modalMedicoForm.medico_id
+                                            )
+                                        "
+                                    >
+                                        <i class="fa fa-download mr-1"></i> Descargar Plantilla en
+                                        Excel
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted">
+                                    Genera el formato personalizado con el ID y nombre del médico
+                                    lector seleccionado.
+                                </small>
+                            </div>
+
+                            <div class="form-group mb-0">
+                                <label
+                                    class="control-label font-weight-bold"
+                                    for="archivo-medico-input"
+                                >
+                                    2. Subir Archivo Diligenciado <span class="text-danger">*</span>
+                                </label>
+                                <input
+                                    id="archivo-medico-input"
+                                    type="file"
+                                    ref="archivoMedicoRef"
+                                    accept=".xlsx,.xls"
+                                    class="form-control"
+                                />
+                                <small class="form-text text-muted">
+                                    Se validará la celda A4 para garantizar que corresponda al
+                                    médico seleccionado.
+                                </small>
+                            </div>
+                        </form>
                     </div>
                     <div class="modal-footer">
                         <button
@@ -659,82 +655,90 @@
                         </button>
                         <button
                             type="button"
-                            class="btn btn-success waves-effect waves-light"
+                            class="btn btn-info waves-effect waves-light"
                             @click="procesarPreviewMedico()"
                             :disabled="loadingPreviewMedico || !modalMedicoForm.medico_id"
                         >
-                            <i v-if="loadingPreviewMedico" class="fa fa-spinner fa-spin m-r-5"></i>
-                            <i v-else class="fa fa-search m-r-5"></i>
+                            <i v-if="loadingPreviewMedico" class="fa fa-spinner fa-spin mr-1"></i>
+                            <i v-else class="fa fa-upload mr-1"></i>
                             Analizar y Ver Vista Previa
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+        <div v-if="modalTarifasMedicoVisible" class="modal-backdrop fade show"></div>
 
         <!-- MODAL: VISTA PREVIA (DIFF NO DESTRUCTIVO Y COBERTURA) -->
         <div
             class="modal fade"
-            id="modalPreviewDiff"
+            :class="{ show: modalPreviewVisible }"
+            :style="{ display: modalPreviewVisible ? 'block' : 'none' }"
             tabindex="-1"
             role="dialog"
-            aria-labelledby="modalPreviewDiffLabel"
             aria-hidden="true"
+            @click.self="cerrarModalPreview()"
         >
-            <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title" id="modalPreviewDiffLabel">
-                            <i class="fa fa-balance-scale m-r-5 text-warning"></i>
+                        <h4 class="modal-title">
                             Vista Previa:
                             {{
                                 previewData.tipo === "medico"
-                                    ? "Tarifas Médico - " + (previewData.medico?.name || "")
+                                    ? "Tarifas Médico — " + (previewData.medico?.name || "")
                                     : "Tarifas Entidad / Hospital"
                             }}
                         </h4>
                         <button
                             type="button"
                             class="close"
+                            aria-label="Cerrar modal"
                             @click="cerrarModalPreview()"
-                            aria-label="Cerrar"
-                            aria-hidden="true"
                         >
-                            &times;
+                            ×
                         </button>
                     </div>
-                    <div class="modal-body p-3">
-                        <!-- KPI Badges -->
-                        <div class="row m-b-15">
-                            <div class="col-md-12 d-flex flex-wrap align-items-center">
-                                <span class="badge badge-success badge-pill p-2 m-r-10 font-14">
-                                    <i class="fa fa-plus-circle m-r-5"></i> Altas:
-                                    {{ previewData.resumen?.altas || 0 }}
-                                </span>
-                                <span
-                                    class="badge badge-warning badge-pill p-2 m-r-10 font-14 text-dark"
-                                >
-                                    <i class="fa fa-refresh m-r-5"></i> Actualizados:
-                                    {{ previewData.resumen?.cambios || 0 }}
-                                </span>
-                                <span class="badge badge-danger badge-pill p-2 m-r-10 font-14">
-                                    <i class="fa fa-minus-circle m-r-5"></i> Bajas Lógicas
-                                    (Retiros): {{ previewData.resumen?.retiros || 0 }}
-                                </span>
-                                <span class="badge badge-secondary badge-pill p-2 m-r-10 font-14">
-                                    <i class="fa fa-check m-r-5"></i> Sin Cambios:
-                                    {{ previewData.resumen?.sin_cambios || 0 }}
-                                </span>
-                                <span class="badge badge-info badge-pill p-2 font-14 ml-auto">
-                                    <i class="fa fa-shield m-r-5"></i> Cobertura:
-                                    {{ previewData.cobertura?.tarifados || 0 }} /
-                                    {{ previewData.cobertura?.total_catalogo || 0 }}
-                                </span>
+                    <div class="modal-body">
+                        <!-- Tarjetas Semáforo / Resumen (Estilo reporteProduccion) -->
+                        <div class="row text-center mb-3">
+                            <div class="col-3">
+                                <div class="card card-body border-success p-2 mb-0">
+                                    <h3 class="mb-0 text-success">
+                                        {{ previewData.resumen?.altas || 0 }}
+                                    </h3>
+                                    <small class="text-muted">Altas Nuevas</small>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="card card-body border-warning p-2 mb-0">
+                                    <h3 class="mb-0 text-warning">
+                                        {{ previewData.resumen?.cambios || 0 }}
+                                    </h3>
+                                    <small class="text-muted">Tarifas Actualizadas</small>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="card card-body border-danger p-2 mb-0">
+                                    <h3 class="mb-0 text-danger">
+                                        {{ previewData.resumen?.retiros || 0 }}
+                                    </h3>
+                                    <small class="text-muted">Bajas Lógicas</small>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="card card-body border-info p-2 mb-0">
+                                    <h3 class="mb-0 text-info">
+                                        {{ previewData.cobertura?.tarifados || 0 }} /
+                                        {{ previewData.cobertura?.total_catalogo || 0 }}
+                                    </h3>
+                                    <small class="text-muted">Cobertura Catálogo</small>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Tabs de Navegación -->
-                        <ul class="nav nav-tabs customtab" role="tablist">
+                        <!-- Pestañas de Navegación (Estilo customtab AdminWrap) -->
+                        <ul class="nav nav-tabs customtab mb-3" role="tablist">
                             <li class="nav-item">
                                 <a
                                     class="nav-link"
@@ -742,8 +746,8 @@
                                     href="javascript:void(0)"
                                     @click="previewTabActiva = 'altas'"
                                 >
-                                    <i class="fa fa-plus-circle text-success m-r-5"></i> Altas
-                                    <span class="badge badge-success badge-pill m-l-5">{{
+                                    Altas
+                                    <span class="badge badge-success ml-1">{{
                                         previewData.altas?.length || 0
                                     }}</span>
                                 </a>
@@ -755,9 +759,8 @@
                                     href="javascript:void(0)"
                                     @click="previewTabActiva = 'cambios'"
                                 >
-                                    <i class="fa fa-refresh text-warning m-r-5"></i> Tarifas
-                                    Actualizadas
-                                    <span class="badge badge-warning badge-pill m-l-5 text-dark">{{
+                                    Tarifas Actualizadas
+                                    <span class="badge badge-warning text-dark ml-1">{{
                                         previewData.cambios?.length || 0
                                     }}</span>
                                 </a>
@@ -769,9 +772,8 @@
                                     href="javascript:void(0)"
                                     @click="previewTabActiva = 'retiros'"
                                 >
-                                    <i class="fa fa-minus-circle text-danger m-r-5"></i> Bajas
-                                    Lógicas (Retiros)
-                                    <span class="badge badge-danger badge-pill m-l-5">{{
+                                    Bajas Lógicas (Retiros)
+                                    <span class="badge badge-danger ml-1">{{
                                         previewData.retiros?.length || 0
                                     }}</span>
                                 </a>
@@ -783,10 +785,9 @@
                                     href="javascript:void(0)"
                                     @click="previewTabActiva = 'cobertura'"
                                 >
-                                    <i class="fa fa-exclamation-triangle text-info m-r-5"></i>
                                     Cobertura Faltante
                                     <span
-                                        class="badge badge-pill m-l-5"
+                                        class="badge ml-1"
                                         :class="
                                             previewData.cobertura?.faltantes?.length
                                                 ? 'badge-warning text-dark'
@@ -800,7 +801,7 @@
                         </ul>
 
                         <!-- Contenido de las pestañas -->
-                        <div class="tab-content m-t-15" style="max-height: 420px; overflow-y: auto">
+                        <div class="tab-content" style="max-height: 380px; overflow-y: auto">
                             <!-- TAB 1: ALTAS -->
                             <div v-show="previewTabActiva === 'altas'">
                                 <div
@@ -811,18 +812,30 @@
                                     <p>No se encontraron productos nuevos para agregar.</p>
                                 </div>
                                 <div v-else class="table-responsive">
-                                    <table class="table table-sm table-bordered table-striped">
-                                        <thead class="thead-light">
+                                    <table class="table table-sm table-striped table-hover mb-0">
+                                        <thead>
                                             <tr>
-                                                <th>CUPS</th>
+                                                <th style="width: 120px">CUPS</th>
                                                 <th>Producto</th>
-                                                <th v-if="previewData.tipo === 'entidad'">
+                                                <th
+                                                    v-if="previewData.tipo === 'entidad'"
+                                                    class="text-right"
+                                                    style="width: 160px"
+                                                >
                                                     Valor Tarifa
                                                 </th>
-                                                <th v-if="previewData.tipo === 'medico'">
+                                                <th
+                                                    v-if="previewData.tipo === 'medico'"
+                                                    class="text-right"
+                                                    style="width: 160px"
+                                                >
                                                     Consulta Externa
                                                 </th>
-                                                <th v-if="previewData.tipo === 'medico'">
+                                                <th
+                                                    v-if="previewData.tipo === 'medico'"
+                                                    class="text-right"
+                                                    style="width: 160px"
+                                                >
                                                     Urgencias / Hosp
                                                 </th>
                                             </tr>
@@ -838,19 +851,19 @@
                                                 <td>{{ item.nom_produc }}</td>
                                                 <td
                                                     v-if="previewData.tipo === 'entidad'"
-                                                    class="text-success font-weight-bold"
+                                                    class="text-right text-success font-weight-bold"
                                                 >
                                                     {{ formatMoney(item.valor_contrato) }}
                                                 </td>
                                                 <td
                                                     v-if="previewData.tipo === 'medico'"
-                                                    class="text-success font-weight-bold"
+                                                    class="text-right text-success font-weight-bold"
                                                 >
                                                     {{ formatMoney(item.valor_consulta) }}
                                                 </td>
                                                 <td
                                                     v-if="previewData.tipo === 'medico'"
-                                                    class="text-success font-weight-bold"
+                                                    class="text-right text-success font-weight-bold"
                                                 >
                                                     {{ formatMoney(item.valor_urgencias) }}
                                                 </td>
@@ -870,22 +883,38 @@
                                     <p>No hay tarifas existentes modificadas en este archivo.</p>
                                 </div>
                                 <div v-else class="table-responsive">
-                                    <table class="table table-sm table-bordered table-striped">
-                                        <thead class="thead-light">
+                                    <table class="table table-sm table-striped table-hover mb-0">
+                                        <thead>
                                             <tr>
-                                                <th>CUPS</th>
+                                                <th style="width: 120px">CUPS</th>
                                                 <th>Producto</th>
-                                                <th v-if="previewData.tipo === 'entidad'">
+                                                <th
+                                                    v-if="previewData.tipo === 'entidad'"
+                                                    class="text-right"
+                                                    style="width: 160px"
+                                                >
                                                     Tarifa Anterior
                                                 </th>
-                                                <th v-if="previewData.tipo === 'entidad'">
+                                                <th
+                                                    v-if="previewData.tipo === 'entidad'"
+                                                    class="text-right"
+                                                    style="width: 160px"
+                                                >
                                                     Nueva Tarifa
                                                 </th>
-                                                <th v-if="previewData.tipo === 'medico'">
-                                                    Consulta (Ant -> Nueva)
+                                                <th
+                                                    v-if="previewData.tipo === 'medico'"
+                                                    class="text-right"
+                                                    style="width: 220px"
+                                                >
+                                                    Consulta (Ant &rarr; Nueva)
                                                 </th>
-                                                <th v-if="previewData.tipo === 'medico'">
-                                                    Urgencias (Ant -> Nueva)
+                                                <th
+                                                    v-if="previewData.tipo === 'medico'"
+                                                    class="text-right"
+                                                    style="width: 220px"
+                                                >
+                                                    Urgencias (Ant &rarr; Nueva)
                                                 </th>
                                             </tr>
                                         </thead>
@@ -900,41 +929,53 @@
                                                 <td>{{ item.nom_produc }}</td>
                                                 <td
                                                     v-if="previewData.tipo === 'entidad'"
-                                                    class="text-muted"
+                                                    class="text-right text-muted"
                                                 >
                                                     {{ formatMoney(item.valor_anterior) }}
                                                 </td>
                                                 <td
                                                     v-if="previewData.tipo === 'entidad'"
-                                                    class="text-primary font-weight-bold"
+                                                    class="text-right text-themecolor font-weight-bold"
                                                 >
                                                     {{ formatMoney(item.valor_contrato) }}
                                                     <span
                                                         v-if="item.reactiva"
-                                                        class="badge badge-info m-l-5"
+                                                        class="badge badge-info m-l-5 font-11"
                                                         >Reactivado</span
                                                     >
                                                 </td>
-                                                <td v-if="previewData.tipo === 'medico'">
+                                                <td
+                                                    v-if="previewData.tipo === 'medico'"
+                                                    class="text-right"
+                                                >
                                                     <span class="text-muted">{{
                                                         formatMoney(item.valor_consulta_anterior)
                                                     }}</span>
                                                     &rarr;
-                                                    <span class="text-primary font-weight-bold">{{
-                                                        formatMoney(item.valor_consulta)
-                                                    }}</span>
+                                                    <span
+                                                        class="text-themecolor font-weight-bold"
+                                                        >{{
+                                                            formatMoney(item.valor_consulta)
+                                                        }}</span
+                                                    >
                                                 </td>
-                                                <td v-if="previewData.tipo === 'medico'">
+                                                <td
+                                                    v-if="previewData.tipo === 'medico'"
+                                                    class="text-right"
+                                                >
                                                     <span class="text-muted">{{
                                                         formatMoney(item.valor_urgencias_anterior)
                                                     }}</span>
                                                     &rarr;
-                                                    <span class="text-primary font-weight-bold">{{
-                                                        formatMoney(item.valor_urgencias)
-                                                    }}</span>
+                                                    <span
+                                                        class="text-themecolor font-weight-bold"
+                                                        >{{
+                                                            formatMoney(item.valor_urgencias)
+                                                        }}</span
+                                                    >
                                                     <span
                                                         v-if="item.reactiva"
-                                                        class="badge badge-info m-l-5"
+                                                        class="badge badge-info m-l-5 font-11"
                                                         >Reactivado</span
                                                     >
                                                 </td>
@@ -946,7 +987,7 @@
 
                             <!-- TAB 3: RETIROS -->
                             <div v-show="previewTabActiva === 'retiros'">
-                                <div class="alert alert-warning py-2 mb-2">
+                                <div class="alert alert-warning py-2 m-b-10">
                                     <i class="fa fa-info-circle m-r-5"></i>
                                     <strong>Baja lógica garantizada:</strong> Los siguientes
                                     registros pasarán a estado inactivo (<code>estado = 0</code
@@ -970,12 +1011,14 @@
                                     </p>
                                 </div>
                                 <div v-else class="table-responsive">
-                                    <table class="table table-sm table-bordered table-striped">
-                                        <thead class="thead-light">
+                                    <table class="table table-sm table-striped table-hover mb-0">
+                                        <thead>
                                             <tr>
-                                                <th>CUPS</th>
+                                                <th style="width: 120px">CUPS</th>
                                                 <th>Producto</th>
-                                                <th>Tarifa Anterior</th>
+                                                <th class="text-right" style="width: 160px">
+                                                    Tarifa Anterior
+                                                </th>
                                                 <th>Motivo</th>
                                             </tr>
                                         </thead>
@@ -988,7 +1031,7 @@
                                                     {{ item.cod_cups }}
                                                 </td>
                                                 <td>{{ item.nom_produc }}</td>
-                                                <td>
+                                                <td class="text-right">
                                                     {{
                                                         formatMoney(
                                                             item.valor_contrato ||
@@ -996,11 +1039,13 @@
                                                         )
                                                     }}
                                                 </td>
-                                                <td class="text-muted small">
+                                                <td class="small">
                                                     <span class="badge badge-danger m-r-5"
                                                         >Baja Lógica</span
                                                     >
-                                                    {{ item.motivo }}
+                                                    <span class="text-muted">{{
+                                                        item.motivo
+                                                    }}</span>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -1017,12 +1062,19 @@
                                         <strong>NO tendrán tarifa configurada</strong> tras aplicar
                                         este documento.
                                     </p>
-                                    <input
-                                        type="text"
-                                        v-model="busquedaCobertura"
-                                        placeholder="Filtrar por CUPS o nombre..."
-                                        class="form-control form-control-sm w-auto"
-                                    />
+                                    <div class="input-group input-group-sm w-auto">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"
+                                                ><i class="fa fa-search text-muted"></i
+                                            ></span>
+                                        </div>
+                                        <input
+                                            type="text"
+                                            v-model="busquedaCobertura"
+                                            placeholder="Buscar CUPS o producto..."
+                                            class="form-control"
+                                        />
+                                    </div>
                                 </div>
 
                                 <div
@@ -1037,12 +1089,14 @@
                                     </p>
                                 </div>
                                 <div v-else class="table-responsive">
-                                    <table class="table table-sm table-bordered table-striped">
-                                        <thead class="thead-light">
+                                    <table class="table table-sm table-striped table-hover mb-0">
+                                        <thead>
                                             <tr>
-                                                <th>CUPS</th>
+                                                <th style="width: 120px">CUPS</th>
                                                 <th>Producto Exigible Sin Tarifa</th>
-                                                <th>Estado</th>
+                                                <th class="text-center" style="width: 160px">
+                                                    Estado
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -1054,8 +1108,10 @@
                                                     {{ prod.cod_cups }}
                                                 </td>
                                                 <td>{{ prod.nom_produc }}</td>
-                                                <td>
-                                                    <span class="badge badge-warning text-dark">
+                                                <td class="text-center">
+                                                    <span
+                                                        class="badge badge-warning text-dark font-12"
+                                                    >
                                                         <i class="fa fa-clock-o m-r-5"></i> Sin
                                                         Tarifa
                                                     </span>
@@ -1077,21 +1133,22 @@
                         </button>
                         <button
                             type="button"
-                            class="btn btn-success waves-effect waves-light"
+                            class="btn btn-info waves-effect waves-light"
                             @click="ejecutarConfirmacionImportacion()"
                             :disabled="loadingConfirmarImportacion"
                         >
                             <i
                                 v-if="loadingConfirmarImportacion"
-                                class="fa fa-spinner fa-spin m-r-5"
+                                class="fa fa-spinner fa-spin mr-1"
                             ></i>
-                            <i v-else class="fa fa-check m-r-5"></i>
+                            <i v-else class="fa fa-check mr-1"></i>
                             Confirmar e Importar Tarifas
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+        <div v-if="modalPreviewVisible" class="modal-backdrop fade show"></div>
     </div>
 </template>
 
@@ -1811,6 +1868,13 @@ const archivoEntidadRef = ref(null);
 const archivoMedicoRef = ref(null);
 
 /**
+ * Visibilidad reactiva de los modales de plantillas y vista previa
+ */
+const modalTarifasEntidadVisible = ref(false);
+const modalTarifasMedicoVisible = ref(false);
+const modalPreviewVisible = ref(false);
+
+/**
  * Flag de carga para vista previa de entidad
  * @type {import('vue').Ref<boolean>}
  */
@@ -1904,7 +1968,7 @@ function abrirModalTarifasEntidad(item) {
     if (archivoEntidadRef.value) {
         archivoEntidadRef.value.value = "";
     }
-    $("#modalTarifasEntidad").modal("show");
+    modalTarifasEntidadVisible.value = true;
 }
 
 /**
@@ -1916,7 +1980,7 @@ function abrirModalTarifasEntidad(item) {
  * @date 2026-11-10
  */
 function cerrarModalTarifasEntidad() {
-    $("#modalTarifasEntidad").modal("hide");
+    modalTarifasEntidadVisible.value = false;
 }
 
 /**
@@ -1965,11 +2029,12 @@ async function procesarPreviewEntidad() {
         );
 
         previewData.value = res.data.data || {};
+        previewData.value.contrato_id = modalEntidadForm.value.contratoId;
         previewTabActiva.value = "altas";
         busquedaCobertura.value = "";
         cerrarModalTarifasEntidad();
         await nextTick();
-        $("#modalPreviewDiff").modal("show");
+        modalPreviewVisible.value = true;
     } catch (error) {
         const msg = error.response?.data?.message || "Error al analizar el archivo de entidad";
         toastMessage({ heading: "Error", text: msg, icon: "error" });
@@ -1998,7 +2063,7 @@ function abrirModalTarifasMedico(item) {
     if (archivoMedicoRef.value) {
         archivoMedicoRef.value.value = "";
     }
-    $("#modalTarifasMedico").modal("show");
+    modalTarifasMedicoVisible.value = true;
 }
 
 /**
@@ -2010,7 +2075,7 @@ function abrirModalTarifasMedico(item) {
  * @date 2026-11-10
  */
 function cerrarModalTarifasMedico() {
-    $("#modalTarifasMedico").modal("hide");
+    modalTarifasMedicoVisible.value = false;
 }
 
 /**
@@ -2078,11 +2143,13 @@ async function procesarPreviewMedico() {
         );
 
         previewData.value = res.data.data || {};
+        previewData.value.contrato_id = modalMedicoForm.value.contratoId;
+        previewData.value.medico_id = modalMedicoForm.value.medico_id;
         previewTabActiva.value = "altas";
         busquedaCobertura.value = "";
         cerrarModalTarifasMedico();
         await nextTick();
-        $("#modalPreviewDiff").modal("show");
+        modalPreviewVisible.value = true;
     } catch (error) {
         const msg =
             error.response?.data?.message || "Error al analizar el archivo de tarifas de médico";
@@ -2101,7 +2168,7 @@ async function procesarPreviewMedico() {
  * @date 2026-11-10
  */
 function cerrarModalPreview() {
-    $("#modalPreviewDiff").modal("hide");
+    modalPreviewVisible.value = false;
 }
 
 /**
@@ -2115,12 +2182,30 @@ function cerrarModalPreview() {
 async function ejecutarConfirmacionImportacion() {
     if (loadingConfirmarImportacion.value) return;
     const tipo = previewData.value?.tipo;
-    const contratoId = previewData.value?.contrato_id;
-    if (!tipo || !contratoId) return;
+    const contratoId =
+        previewData.value?.contrato_id ||
+        previewData.value?.contrato?.id ||
+        modalEntidadForm.value?.contratoId ||
+        modalMedicoForm.value?.contratoId;
+
+    if (!tipo || !contratoId) {
+        toastMessage({
+            heading: "Error",
+            text: "No se identificó el identificador del contrato a importar",
+            icon: "error",
+        });
+        return;
+    }
+
+    const altasCount = previewData.value.resumen?.altas ?? previewData.value.altas?.length ?? 0;
+    const cambiosCount =
+        previewData.value.resumen?.cambios ?? previewData.value.cambios?.length ?? 0;
+    const retirosCount =
+        previewData.value.resumen?.retiros ?? previewData.value.retiros?.length ?? 0;
 
     const confirmed = await confirmAction({
         title: "¿Confirmar importación?",
-        text: `Se aplicarán ${previewData.value.resumen?.altas || 0} altas, ${previewData.value.resumen?.cambios || 0} cambios y ${previewData.value.resumen?.retiros || 0} bajas lógicas.`,
+        text: `Se aplicarán ${altasCount} altas, ${cambiosCount} cambios y ${retirosCount} bajas lógicas.`,
         icon: "question",
     });
     if (!confirmed) return;
@@ -2140,8 +2225,20 @@ async function ejecutarConfirmacionImportacion() {
                 icon: "success",
             });
         } else if (tipo === "medico") {
+            const medicoId =
+                previewData.value?.medico_id ||
+                previewData.value?.medico?.id ||
+                modalMedicoForm.value?.medico_id;
+            if (!medicoId) {
+                toastMessage({
+                    heading: "Error",
+                    text: "No se identificó el médico lector para la importación",
+                    icon: "error",
+                });
+                return;
+            }
             const payload = {
-                medico_id: previewData.value.medico_id,
+                medico_id: medicoId,
                 altas: previewData.value.altas || [],
                 cambios: previewData.value.cambios || [],
                 retiros: previewData.value.retiros || [],
@@ -2175,11 +2272,11 @@ async function ejecutarConfirmacionImportacion() {
 
 function handleKeydown(e) {
     if (e.key === "Escape") {
-        if ($("#modalPreviewDiff").hasClass("show")) {
+        if (modalPreviewVisible.value) {
             cerrarModalPreview();
-        } else if ($("#modalTarifasMedico").hasClass("show")) {
+        } else if (modalTarifasMedicoVisible.value) {
             cerrarModalTarifasMedico();
-        } else if ($("#modalTarifasEntidad").hasClass("show")) {
+        } else if (modalTarifasEntidadVisible.value) {
             cerrarModalTarifasEntidad();
         } else if (detalleVisible.value) {
             cerrarDetalle();
@@ -2221,6 +2318,11 @@ onBeforeUnmount(() => {
 });
 </script>
 <style scoped>
+.modal.show {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
 .right-sidebar {
     position: fixed;
     right: -80%;

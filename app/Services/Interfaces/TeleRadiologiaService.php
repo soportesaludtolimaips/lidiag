@@ -12,6 +12,7 @@ use App\Services\Dcm4chee\StudyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -196,11 +197,15 @@ class TeleRadiologiaService extends BaseService
                     'activo' => 1,
                 ]);
 
-                $estudioProducto->update([
+                $updateAdendum = [
                     'lectura' => $lecturaAdendum,
                     'fechor_lectura' => $d['adendum']['fecha'] ?? $d['fechor_lectura'] ?? now(),
-                    'fechor_recepcion_tele' => now(),
-                ]);
+                ];
+                if (Schema::hasColumn('estudios_productos', 'fechor_recepcion_tele')) {
+                    $updateAdendum['fechor_recepcion_tele'] = now();
+                }
+
+                $estudioProducto->update($updateAdendum);
 
                 Log::info('TeleRadiologiaService::recibirLectura - Adendum procesado:', [
                     'estudio_id' => $estudio->id,
@@ -253,11 +258,15 @@ class TeleRadiologiaService extends BaseService
                 'payload_completo' => $d,
             ]);
 
-            $estudioProducto->update([
+            $updateLectura = [
                 'fechor_lectura' => $d['fechor_lectura'] ?? $d['fecha_lectura'] ?? now(),
-                'fechor_recepcion_tele' => now(),
                 'lectura' => $lecturaTexto,
-            ]);
+            ];
+            if (Schema::hasColumn('estudios_productos', 'fechor_recepcion_tele')) {
+                $updateLectura['fechor_recepcion_tele'] = now();
+            }
+
+            $estudioProducto->update($updateLectura);
 
             return $this->success([
                 'estudio_id' => $estudio->id,

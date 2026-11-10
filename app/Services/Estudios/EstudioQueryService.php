@@ -5,12 +5,19 @@ namespace App\Services\Estudios;
 use App\Models\Estudio\Estudio;
 use App\Models\Estudio\EstudioDiagnostico;
 use App\Services\BaseService;
+use Illuminate\Contracts\Database\Query\Expression;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class EstudioQueryService extends BaseService
 {
+    /**
+     * Cache estático para validar la existencia de la columna fechor_recepcion_tele.
+     */
+    private static ?bool $hasColFechorRecepcionTele = null;
+
     /**
      * Obtiene todos los estudios registrados en el sistema.
      *
@@ -164,7 +171,7 @@ class EstudioQueryService extends BaseService
             'estudios_productos.cod_cups',
             'estudios_productos.nom_produc',
             'estudios_productos.fechor_lectura',
-            'estudios_productos.fechor_recepcion_tele',
+            $this->resolveColFechorRecepcionTele(),
             'estudios_productos.lectura',
             'estudios_productos.medico_ordena',
             'users.name AS quien_registro',
@@ -220,7 +227,7 @@ class EstudioQueryService extends BaseService
             'estudios_productos.cod_cups',
             'estudios_productos.nom_produc',
             'estudios_productos.fechor_lectura',
-            'estudios_productos.fechor_recepcion_tele',
+            $this->resolveColFechorRecepcionTele(),
             'estudios_productos.lectura',
             'estudios_productos.medico_ordena',
             'estudios_productos.transcriptor_id',
@@ -446,5 +453,31 @@ class EstudioQueryService extends BaseService
         }
 
         return $query;
+    }
+
+    /**
+     * Resuelve defensivamente la columna fechor_recepcion_tele para prevenir errores
+     * 500 en entornos donde la migración aún no se haya ejecutado en base de datos.
+     *
+     * Flujo del proceso:
+     * 1. Consulta en caché estático o verifica via Schema::hasColumn en estudios_productos.
+     * 2. Si existe la columna física, retorna la referencia calificada 'estudios_productos.fechor_recepcion_tele'.
+     * 3. Si no existe aún, retorna DB::raw('NULL AS fechor_recepcion_tele') garantizando compatibilidad retroactiva.
+     *
+     * @return string|Expression Expresión de columna seleccionable en Eloquent
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-10
+     */
+    private function resolveColFechorRecepcionTele(): string|Expression
+    {
+        if (self::$hasColFechorRecepcionTele === null) {
+            self::$hasColFechorRecepcionTele = Schema::hasColumn('estudios_productos', 'fechor_recepcion_tele');
+        }
+
+        return self::$hasColFechorRecepcionTele
+            ? 'estudios_productos.fechor_recepcion_tele'
+            : DB::raw('NULL AS fechor_recepcion_tele');
     }
 }

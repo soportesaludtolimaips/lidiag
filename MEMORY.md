@@ -37,6 +37,44 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-10 — Corrección de Error 500 en Producción en Transcripción de Estudios (`EstudioQueryService.php`, `TeleRadiologiaService.php`):**
+  - **Causa Raíz Identificada:**
+    * El endpoint `POST /api/estudio-listarPendientesTrascribir` arrojaba error 500 en `https://lidiag.com/estudios.transcribir.listar`.
+    * En el commit `2f7c8e57f` se agregó la migración `2026_11_10_093000_add_fechor_recepcion_tele_to_estudios_productos.php` y se incluyó la columna `'estudios_productos.fechor_recepcion_tele'` en las consultas de `listarPendientesTranscribir` y `listarEstudiosAsignados`.
+    * En producción (`lidiag.com`) se actualizó el repositorio sin correr `php artisan migrate --force`, por lo que la columna física no existía en MySQL en el servidor (`SQLSTATE[42S22]: Column not found: 1054 Unknown column 'estudios_productos.fechor_recepcion_tele' in 'field list'`).
+  - **Solución y Mitigación Defensiva Implementada:**
+    * **Backend Defensivo ([`EstudioQueryService.php`](file:///c:/laragon/www/lidiag/app/Services/Estudios/EstudioQueryService.php)):**
+      - Se implementó el método `resolveColFechorRecepcionTele()` con verificación en caché estático vía `Schema::hasColumn('estudios_productos', 'fechor_recepcion_tele')`. Si la columna física aún no existe, proyecta dinámicamente `DB::raw('NULL AS fechor_recepcion_tele')`.
+      - Aplicado tanto a `listarPendientesTranscribir` como a `listarEstudiosAsignados`.
+    * **Tele-Radiología Defensiva ([`TeleRadiologiaService.php`](file:///c:/laragon/www/lidiag/app/Services/Interfaces/TeleRadiologiaService.php)):**
+      - Se condicionó la actualización de `fechor_recepcion_tele` a `Schema::hasColumn('estudios_productos', 'fechor_recepcion_tele')` para evitar fallos si llega un webhook antes de migrar.
+    * **Acción Requerida en Producción:**
+      - Ejecutar `php artisan migrate --force` en el servidor de producción o la sentencia SQL: `ALTER TABLE estudios_productos ADD COLUMN fechor_recepcion_tele DATETIME NULL AFTER fechor_lectura;`.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% (0 fallos) ✅.
+    * Larastan PHPStan Nivel 5 (`vendor\bin\phpstan.bat analyse --level=5`) completado con 0 errores ✅.
+    * Pruebas locales y con fallback simulado validadas exitosamente ✅.
+
+- [x] **2026-11-10 — Homologación de Estilos Nativos de Modales de Importación y Vista Previa según `reporteProduccionComponent.vue` (`contratoComponent.vue`):**
+  - **Problema Auditado:**
+    * Los modales de importación de tarifas (`#modalTarifasEntidad` y `#modalTarifasMedico`) incluían tarjetas anidadas con bordes (`card border`), alertas y botones no estandarizados que rompían la estética de la aplicación.
+    * El usuario solicitó explícitamente tomar como referencia el modal *"Filtro para el reporte de Producción (RX, Tomografía, Mamografía, Resonancia)"* de `reporteProduccionComponent.vue`.
+  - **Ajustes Realizados ([`contratoComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/contratos/contratoComponent.vue)):**
+    * **Modales de Importación (`modalTarifasEntidad` y `modalTarifasMedico`):**
+      - Eliminadas las tarjetas anidadas y cajas con bordes; reemplazadas por formularios limpios nativos de Bootstrap/AdminWrap con `form-group`, `label.control-label.font-weight-bold`, input de contrato deshabilitado, botón `btn btn-outline-success btn-sm` para descargar la plantilla oficial, y control de archivo estándar.
+      - Botones de acción homologados: `btn btn-default waves-effect` (Cerrar) y `btn btn-info waves-effect waves-light` (Analizar y Ver Vista Previa).
+      - Visibilidad reactiva nativa en Vue (`:class="{ show: ... }" :style="{ display: ... ? 'block' : 'none' }"` con `@click.self` y backdrop `<div v-if="..." class="modal-backdrop fade show"></div>`), prescindiendo de llamadas rígidas de jQuery.
+    * **Modal de Vista Previa (`modalPreviewDiff`):**
+      - Contenedor estándar `modal-dialog modal-lg` (idéntico al modal de Semáforo de Represamiento de `reporteProduccionComponent.vue`).
+      - Encabezado limpio `<h4 class="modal-title">...</h4>` y botón de cierre simple `×`.
+      - 4 Tarjetas de resumen en cuadrícula con bordes temáticos nativos (`border-success`, `border-warning`, `border-danger`, `border-info`) con `h3.mb-0` y `small.text-muted`.
+      - Tablas limpias `table table-sm table-striped table-hover mb-0`.
+      - Acciones de pie: `btn btn-default waves-effect` (Cancelar) y `btn btn-info waves-effect waves-light` (Confirmar e Importar Tarifas).
+      - **Hotfix Confirmación:** Corrección de la extracción de `contratoId` y `medicoId` en `ejecutarConfirmacionImportacion()` (la API retorna `contrato.id`, se agregó fallback jerárquico `previewData.contrato?.id || previewData.contrato_id || modalForm.contratoId`), eliminando el retorno silencioso al hacer clic en el botón de confirmación.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios (0 errores, 0 warnings) ✅.
+    * Compilación Vite (`npm run build`) exitosa en 1.40s ✅.
+
 - [x] **2026-11-10 — Sincronización Masiva de Códigos CUPS, Enriquecimiento Financiero SAHI y Seeder de Productos Espinal (`ProductosEspinalSyncService.php`, `ProductosSincronizarEspinalCommand.php`, `ProductosEspinalSeeder.php`, `Productos espinal.xlsx`):**
   - **Requerimiento del Usuario:**
     * Actualizar masivamente códigos CUPS faltantes (28 procedimientos sin código) en `Documentos/Productos por medicos apra el modulo de contabilidad/Productos espinal.xlsx`.
