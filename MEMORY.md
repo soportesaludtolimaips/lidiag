@@ -37,6 +37,23 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-10 — Corrección de Eliminación Visual de Fila al Guardar Lectura de Estudio (`leerEstudioComponent.vue`):**
+  - **Diagnóstico y Causa Raíz:**
+    * El usuario reportó que cuando un médico guarda la lectura, no se oculta/elimina la fila en la tabla del registro leído en `leerEstudioComponent.vue`.
+    * **Causa Raíz 1:** `idRow.value` se condicionaba estrictamente con `if (idRow.value != null)`, omitiendo el ID si este se abría o guardaba por referencia alternativa (`registro.value.estudio_producto_id`).
+    * **Causa Raíz 2:** En DataTables con filas provistas por el DOM (`v-for`), `registros.value.splice(...)` se ejecutaba *antes* de destruir la instancia de DataTables, y la destrucción/recreación en `nextTick` mantenía el DOM retenido por DataTables sin reflejar la mutación de Vue.
+    * **Causa Raíz 3:** No se utilizaba el helper especializado `safeRemoveDataTableRow()` que remueve el nodo directamente del índice de DataTables, ni se ocultaba inmediatamente el nodo DOM con `style.display = 'none'` para feedback visual instantáneo.
+    * **Causa Raíz 4:** Si por discrepancia de tipos el elemento no se encontraba en el array local, no existía fallback para refrescar la lista desde el backend.
+  - **Solución Aplicada:**
+    * Se importó y aplicó `safeRemoveDataTableRow()` sobre `#tablaLeerEstudios` para `#row-${targetId}`.
+    * Se incorporó ocultamiento visual inmediato en el DOM (`rowEl.style.display = 'none'`).
+    * Se reordenó la destrucción de DataTables (`destroyDataTable()`) antes del `splice()` y reinicialización en `nextTick()`.
+    * Se agregó fallback a `listarMisPendientes()` en caso de no hallar el índice en memoria local.
+    * Se corrigió el typo `@action="listarPendiestePorLectura()"` a `@action="listarMisPendientes()"` en el `empty-state-component`.
+    * Se reinicializó `idRow.value = null` dentro de `limpiar()`.
+  - **Verificaciones:**
+    * Prettier y ESLint 100% limpios (0 errores, 0 advertencias) ✅.
+    * Vite build (`npm run build`) completado exitosamente en 1.33s ✅.
 - [x] **2026-11-10 — Corrección de Error 500 en Producción en Transcripción de Estudios (`EstudioQueryService.php`, `TeleRadiologiaService.php`):**
   - **Causa Raíz Identificada:**
     * El endpoint `POST /api/estudio-listarPendientesTrascribir` arrojaba error 500 en `https://lidiag.com/estudios.transcribir.listar`.

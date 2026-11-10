@@ -206,7 +206,7 @@
                         description="Excelente trabajo. Todos los estudios asignados han sido informados o no hay registros pendientes."
                         action-text="Actualizar lista"
                         action-icon="fa fa-refresh"
-                        @action="listarPendiestePorLectura()"
+                        @action="listarMisPendientes()"
                     />
                     <div class="table-responsive" v-show="tablaVisible && registros.length > 0">
                         <table
@@ -1456,7 +1456,11 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 import DatosPacienteDisplay from "@/components/comunes/datosPacienteDisplayComponent.vue";
 import { normalizarFecha } from "@/helpers/dateUtils.js";
-import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import {
+    safeDestroyDataTable,
+    safeInitDataTable,
+    safeRemoveDataTableRow,
+} from "@/helpers/datatables.js";
 import { toastMessage, getUserSafeError } from "@/helpers/alerts";
 import { useDictationFlow } from "@/composables/useDictationFlow";
 import { useAudioUploadFlow } from "@/composables/useAudioUploadFlow";
@@ -1860,16 +1864,28 @@ async function guardarRegistro() {
                 icon: "success",
             });
 
-            if (idRow.value != null) {
+            const targetId = idRow.value ?? productoId;
+            if (targetId != null) {
+                // Ocultar nodo del DOM de inmediato para feedback instantáneo
+                const rowEl = document.getElementById("row-" + targetId);
+                if (rowEl) {
+                    rowEl.style.display = "none";
+                }
+                safeRemoveDataTableRow(dt.value || "#tablaLeerEstudios", "#row-" + targetId);
+
                 const estudioEliminar = registros.value.findIndex(
-                    (x) => x.estudio_producto_id == idRow.value
+                    (x) => String(x.estudio_producto_id) === String(targetId)
                 );
                 if (estudioEliminar >= 0) {
+                    destroyDataTable();
                     registros.value.splice(estudioEliminar, 1);
                     nextTick(() => {
-                        destroyDataTable();
-                        initDataTable();
+                        if (registros.value.length > 0) {
+                            initDataTable();
+                        }
                     });
+                } else {
+                    listarMisPendientes();
                 }
             }
 
@@ -2159,6 +2175,7 @@ function establecerSede() {
 function limpiar() {
     tituloModal.value = "";
     id.value = 0;
+    idRow.value = null;
     registro.value.es_critico = false;
     registro.value.motivo_critico = "";
     registro.value.estudio_producto_id = "";
