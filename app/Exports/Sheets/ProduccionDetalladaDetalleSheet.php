@@ -16,17 +16,18 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 /**
- * Hoja de Detalle de Producción de Estudios Radiológicos (RX, Tomografía, Mamografía, Resonancia).
+ * Hoja de Detalle de Producción de Estudios Radiológicos con Cruce Financiero y Tarifario.
  *
  * Flujo del proceso:
- * 1. Recibe la colección consolidada de estudios productivos con sus diagnósticos y transcripciones.
- * 2. Mapea cada registro a las 19 columnas analíticas y clínicas del sistema de información.
- * 3. Aplica estilos corporativos institucionales (banner azul oscuro #1A2274, alineación centrada y bordes).
- * 4. Asigna el título "Detalle de Producción" a la pestaña para navegación organizada en el libro multi-hoja.
+ * 1. Recibe la colección consolidada de estudios productivos con métricas asistenciales y financieras.
+ * 2. Mapea cada registro a las 24 columnas analíticas, clínicas y contractuales del sistema.
+ * 3. Formatea las columnas monetarias (Valor Entidad, Valor Médico y Margen Bruto) en moneda contable.
+ * 4. Aplica estilos corporativos institucionales (banner azul oscuro #1A2274, alineación centrada y bordes).
+ * 5. Asigna el título "Detalle de Producción" a la pestaña para navegación organizada en el libro multi-hoja.
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-11-04
+ * @date 2026-11-10
  */
 class ProduccionDetalladaDetalleSheet implements FromCollection, WithColumnWidths, WithCustomStartCell, WithHeadings, WithMapping, WithStyles, WithTitle
 {
@@ -72,13 +73,13 @@ class ProduccionDetalladaDetalleSheet implements FromCollection, WithColumnWidth
     }
 
     /**
-     * Define los encabezados de las 19 columnas del reporte.
+     * Define los encabezados de las 24 columnas del reporte.
      *
      * @returns array<string>
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-11-04
+     * @date 2026-11-10
      */
     public function headings(): array
     {
@@ -102,6 +103,11 @@ class ProduccionDetalladaDetalleSheet implements FromCollection, WithColumnWidth
             "Contrato",
             "Plan",
             "Lectura",
+            "Valor Contratado Entidad",
+            "Valor Contratado Médico",
+            "Margen Bruto",
+            "Tipo Tarifa Médico",
+            "Estado Tarifa",
         ];
     }
 
@@ -110,11 +116,11 @@ class ProduccionDetalladaDetalleSheet implements FromCollection, WithColumnWidth
      *
      * @param  mixed  $estudio  Registro del estudio productivo.
      *
-     * @returns array<string>
+     * @returns array<mixed>
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-11-04
+     * @date 2026-11-10
      */
     public function map($estudio): array
     {
@@ -138,6 +144,11 @@ class ProduccionDetalladaDetalleSheet implements FromCollection, WithColumnWidth
             $estudio->contrato ?? "N/A",
             $estudio->plan ?? "N/A",
             $estudio->lectura ?? "N/A",
+            (float) ($estudio->valor_entidad ?? 0),
+            (float) ($estudio->valor_medico ?? 0),
+            (float) ($estudio->margen_bruto ?? 0),
+            $estudio->tarifa_tipo ?? "N/A",
+            $estudio->estado_tarifa ?? "N/A",
         ];
     }
 
@@ -150,13 +161,13 @@ class ProduccionDetalladaDetalleSheet implements FromCollection, WithColumnWidth
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-11-04
+     * @date 2026-11-10
      */
     public function styles(Worksheet $sheet): array
     {
         // Encabezado corporativo institucional
-        $sheet->setCellValue("A1", "Salud Tolima - Reporte de Producción");
-        $sheet->mergeCells("A1:S1");
+        $sheet->setCellValue("A1", "Salud Tolima - Reporte de Producción y Liquidación");
+        $sheet->mergeCells("A1:X1");
         $sheet->getStyle("A1")->applyFromArray([
             "font" => [
                 "bold" => true,
@@ -175,7 +186,7 @@ class ProduccionDetalladaDetalleSheet implements FromCollection, WithColumnWidth
         $sheet->getRowDimension(1)->setRowHeight(30);
 
         // Encabezado de la tabla de datos
-        $sheet->getStyle("A3:S3")->applyFromArray([
+        $sheet->getStyle("A3:X3")->applyFromArray([
             "font" => [
                 "bold" => true,
                 "color" => ["rgb" => "FFFFFF"],
@@ -191,17 +202,27 @@ class ProduccionDetalladaDetalleSheet implements FromCollection, WithColumnWidth
         ]);
         $sheet->getRowDimension(3)->setRowHeight(22);
 
-        // Bordes para los registros de datos
+        // Bordes y formatos para los registros de datos
         $highestRow = max(3, $sheet->getHighestRow());
         if ($highestRow >= 4) {
-            $sheet->getStyle("A4:S{$highestRow}")->applyFromArray([
+            $sheet->getStyle("A4:X{$highestRow}")->applyFromArray([
                 "borders" => [
                     "allBorders" => [
                         "borderStyle" => Border::BORDER_THIN,
-                        "color" => ["rgb" => "000000"],
+                        "color" => ["rgb" => "D0D0D0"],
                     ],
                 ],
             ]);
+
+            // Formato de moneda para columnas financieras (T: Valor Entidad, U: Valor Médico, V: Margen)
+            $sheet->getStyle("T4:V{$highestRow}")
+                ->getNumberFormat()
+                ->setFormatCode("$#,##0.00");
+
+            // Alineación centrada para columnas de tarifas y auditoría
+            $sheet->getStyle("W4:X{$highestRow}")
+                ->getAlignment()
+                ->setHorizontal(Alignment::HORIZONTAL_CENTER);
         }
 
         return [
@@ -211,13 +232,13 @@ class ProduccionDetalladaDetalleSheet implements FromCollection, WithColumnWidth
     }
 
     /**
-     * Define el ancho de cada columna del reporte (A hasta S).
+     * Define el ancho de cada columna del reporte (A hasta X).
      *
      * @returns array<string, int>
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-11-04
+     * @date 2026-11-10
      */
     public function columnWidths(): array
     {
@@ -241,6 +262,11 @@ class ProduccionDetalladaDetalleSheet implements FromCollection, WithColumnWidth
             "Q" => 24, // Contrato
             "R" => 24, // Plan
             "S" => 40, // Lectura
+            "T" => 24, // Valor Contratado Entidad
+            "U" => 24, // Valor Contratado Médico
+            "V" => 20, // Margen Bruto
+            "W" => 18, // Tipo Tarifa Médico
+            "X" => 24, // Estado Tarifa
         ];
     }
 

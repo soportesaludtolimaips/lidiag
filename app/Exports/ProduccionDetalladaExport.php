@@ -6,8 +6,8 @@ use App\Exports\Sheets\ProduccionDetalladaDetalleSheet;
 use App\Exports\Sheets\ProduccionDetalladaEstadisticasSheet;
 use App\Models\Configuracion\ConfigSede;
 use App\Models\User;
+use App\Services\Liquidacion\CruceFinancieroService;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
 /**
@@ -94,67 +94,23 @@ class ProduccionDetalladaExport implements WithMultipleSheets
     }
 
     /**
-     * Consulta y devuelve los estudios del reporte de producción según los filtros aplicados.
+     * Consulta y devuelve los estudios del reporte de producción valorados mediante el motor de cruce financiero.
      *
-     * @returns Collection Registros de estudios productivos con sus diagnósticos.
+     * @returns Collection Registros de estudios productivos con métricas operativas y financieras.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-11-04
+     * @date 2026-11-10
      */
     protected function consultarEstudiosProduccion(): Collection
     {
-        $quien_asigno_id = $this->quienAsignoId;
-        $medico_id = $this->medicoId;
-
-        return DB::table("estudios_productos")
-            ->join("estudios", "estudios_productos.estudio_id", "=", "estudios.id")
-            ->join("config_sedes", "estudios.sede_id", "=", "config_sedes.id")
-            ->join("config_prioridades", "estudios.prioridad_id", "=", "config_prioridades.id")
-            ->join("users as registro", "estudios.quien_registro_id", "=", "registro.id")
-            ->join("users as medico", "medico.id", "=", "estudios.medico_id")
-            ->join("pacientes", "estudios.paciente_id", "=", "pacientes.id")
-            ->leftJoin("users as transcrip", "transcrip.id", "=", "estudios_productos.transcriptor_id")
-            ->whereBetween("estudios_productos.fechor_lectura", [
-                $this->fechaInicio." 00:00:00",
-                $this->fechaFin." 23:59:59",
-            ])
-            ->when($this->sedeId, function ($query) {
-                return $query->where("estudios.sede_id", $this->sedeId);
-            })
-            ->when($this->quienAsignoId, function ($query) use ($quien_asigno_id) {
-                return $query->where("estudios.quien_registro_id", $quien_asigno_id);
-            })
-            ->when($this->medicoId, function ($query) use ($medico_id) {
-                return $query->where("estudios.medico_id", $medico_id);
-            })
-            ->where("estudios_productos.activo", "=", 1)
-            ->select(
-                "estudios.id",
-                "config_sedes.nom_sede",
-                "estudios.fec_estudio",
-                "estudios_productos.created_at",
-                "estudios_productos.fechor_lectura",
-                "estudios.atencion",
-                "config_prioridades.nom_priori",
-                "registro.name as quien_registro",
-                "medico.name as medico",
-                "pacientes.num_docu",
-                "pacientes.nombres",
-                "estudios_productos.cod_cups",
-                "estudios_productos.nom_produc",
-                "estudios.mods_in_study",
-                "transcrip.name as transcriptor",
-                "estudios.eps",
-                "estudios.contrato",
-                "estudios.plan",
-                DB::raw("(SELECT GROUP_CONCAT('- ', nom_diagnos SEPARATOR '\n')
-                            FROM estudios_diagnosticos
-                            WHERE estudio_id = estudios.id) as diagnosticos"),
-                "estudios_productos.lectura"
-            )
-            ->orderBy("estudios_productos.fechor_lectura", "desc")
-            ->get();
+        return app(CruceFinancieroService::class)->consultarProduccionValorada(
+            $this->fechaInicio,
+            $this->fechaFin,
+            ! empty($this->sedeId) ? (int) $this->sedeId : null,
+            ! empty($this->quienAsignoId) ? (int) $this->quienAsignoId : null,
+            ! empty($this->medicoId) ? (int) $this->medicoId : null
+        );
     }
 
     /**
