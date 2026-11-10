@@ -37,6 +37,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-10 — Endpoint de Consulta Reactiva de Médicos y Productos/Tarifas por Contrato (`ContratoController.php`, `ContratoService.php`, `api_contratacion.php`):**
+  - **Alcance Implementado:**
+    * Endpoint `GET /api/contratos/{contratoId}/medicos-productos` protegido con permiso `contratos.show`.
+    * Admite el parámetro opcional `medico_id`.
+    * Retorna los médicos únicos vinculados al contrato y el catálogo de productos con sus tarifas contratadas institucionales y valores de consulta/urgencias según el médico seleccionado (o null si se consulta la totalidad de productos del contrato).
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% en los 3 archivos PHP ✅.
 - [x] **2026-11-10 — Corrección de Eliminación Visual de Fila al Guardar Lectura de Estudio (`leerEstudioComponent.vue`):**
   - **Diagnóstico y Causa Raíz:**
     * El usuario reportó que cuando un médico guarda la lectura, no se oculta/elimina la fila en la tabla del registro leído en `leerEstudioComponent.vue`.

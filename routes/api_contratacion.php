@@ -19,6 +19,11 @@ Route::middleware(['auth'])->group(function () {
         ->name('api.contratos.cobertura')
         ->middleware(['permission:contratos.show']);
 
+    // Listado de médicos vinculados y productos/tarifas para el drawer (filtrado reactivo condicional)
+    Route::get('/contratos/{contratoId}/medicos-productos', [ContratoController::class, 'listarMedicosProductos'])
+        ->name('api.contratos.medicos.productos')
+        ->middleware(['permission:contratos.show']);
+
     // Previsualizar el diff del detalle de médicos (no escribe nada)
     Route::post('/contratos/{contratoId}/medicos/preview', [ContratoController::class, 'previewMedicos'])
         ->name('api.contratos.medicos.preview')

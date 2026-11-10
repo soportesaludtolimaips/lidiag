@@ -18,6 +18,7 @@ use App\Models\Contratacion\Contrato;
 use App\Models\User;
 use App\Services\Contratacion\ContratoService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -50,7 +51,7 @@ class ContratoController extends Controller
         $this->middleware('auth');
         $this->middleware('permission:contratos.index')->only(['index']);
         $this->middleware('permission:contratos.create')->only(['store']);
-        $this->middleware('permission:contratos.show')->only(['show']);
+        $this->middleware('permission:contratos.show')->only(['show', 'listarMedicosProductos']);
         $this->middleware('permission:contratos.edit')->only(['update']);
         $this->middleware('permission:contratos.destroy')->only(['destroy']);
     }
@@ -434,6 +435,25 @@ class ContratoController extends Controller
     public function confirmarImportarMedicos(ContratoConfirmarMedicoRequest $request, int $contratoId): JsonResponse
     {
         $result = $this->contratoService->confirmarImportarMedicos($contratoId, $request->validated());
+
+        return response()->json($result, (int) ($result['status'] ?? 200));
+    }
+
+    /**
+     * Retorna el listado de médicos vinculados y productos/tarifas del contrato para el drawer,
+     * permitiendo filtrado condicional reactivo por médico lector.
+     *
+     * @param  Request  $request  Petición HTTP con parámetro opcional medico_id.
+     * @param  int  $contratoId  Identificador del contrato.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-10
+     */
+    public function listarMedicosProductos(Request $request, int $contratoId): JsonResponse
+    {
+        $medicoId = $request->filled('medico_id') ? (int) $request->input('medico_id') : null;
+        $result = $this->contratoService->listarMedicosProductos($contratoId, $medicoId);
 
         return response()->json($result, (int) ($result['status'] ?? 200));
     }

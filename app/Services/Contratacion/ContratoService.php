@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Services\BaseService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
@@ -1350,5 +1351,140 @@ class ContratoService extends BaseService
                 'total' => $totalAfectados,
             ], "Tarifas de médico actualizadas exitosamente ({$totalAfectados} registros procesados).");
         });
+    }
+
+    /**
+     * Obtiene el listado de médicos vinculados y productos/tarifas del contrato para el drawer,
+     * permitiendo filtrado condicional reactivo por médico lector.
+     *
+     * Flujo del proceso:
+     * 1. Valida la existencia del contrato con su sede asociada.
+     * 2. Consulta los médicos únicos activos relacionados al contrato en contratos_medicos.
+     * 3. Si se especifica un médico ($medicoId), consulta los productos y tarifas vinculados a ese médico
+     *    con su valor contratado institucional (contratos_productos) y valores de consulta y urgencias.
+     * 4. Si no se especifica médico (o el contrato no tiene médicos vinculados aún), lista todos los productos
+     *    activos del contrato con su valor contratado institucional y valores médicos en null.
+     * 5. Retorna la estructura estandarizada con contrato, médicos únicos y productos detallados.
+     *
+     * @param  int  $contratoId  Identificador del contrato.
+     * @param  int|null  $medicoId  Identificador del médico lector (opcional).
+     * @return array Estructura de respuesta con contrato, médicos relacionados y productos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-10
+     */
+    public function listarMedicosProductos(int $contratoId, ?int $medicoId = null): array
+    {
+        $contrato = Contrato::with('sede:id,cod_sede,nom_sede')->find($contratoId);
+
+        if (! $contrato) {
+            return $this->notFound('Contrato no encontrado');
+        }
+
+        // 1. Médicos únicos relacionados al contrato (activos)
+        $medicosRelacionados = User::query()
+            ->join('contratos_medicos', 'contratos_medicos.medico_id', '=', 'users.id')
+            ->where('contratos_medicos.contrato_id', $contratoId)
+            ->where('contratos_medicos.estado', 1)
+            ->select('users.id', 'users.name', 'users.reg_med')
+            ->distinct()
+            ->orderBy('users.name')
+            ->get()
+            ->map(fn ($u) => [
+                'id' => $u->id,
+                'name' => $u->name,
+                'reg_med' => $u->reg_med,
+            ])
+            ->values()
+            ->all();
+
+        // 2. Consulta condicional de productos
+        if (! empty($medicoId)) {
+            $productos = DB::table('contratos_medicos')
+                ->where('contratos_medicos.contrato_id', $contratoId)
+                ->where('contratos_medicos.medico_id', $medicoId)
+                ->where('contratos_medicos.estado', 1)
+                ->join('contratos_productos', 'contratos_productos.id', '=', 'contratos_medicos.contratos_productos_id')
+                ->join('config_productos', 'config_productos.id', '=', 'contratos_productos.producto_id')
+                ->select([
+                    'contratos_medicos.id as contrato_medico_id',
+                    'contratos_productos.id as contrato_producto_id',
+                    'config_productos.id as producto_id',
+                    'config_productos.cod_cups',
+                    'config_productos.nom_produc',
+                    'contratos_productos.valor_contrato',
+                    'contratos_medicos.valor_consulta',
+                    'contratos_medicos.valor_urgencias',
+                    'contratos_medicos.medico_id',
+                ])
+                ->orderBy('config_productos.nom_produc')
+                ->get()
+                ->map(fn (object $row): array => [
+                    'contrato_medico_id' => (int) $row->contrato_medico_id,
+                    'contrato_producto_id' => (int) $row->contrato_producto_id,
+                    'producto_id' => (int) $row->producto_id,
+                    'cod_cups' => (string) $row->cod_cups,
+                    'nom_produc' => (string) $row->nom_produc,
+                    'valor_contrato' => (float) $row->valor_contrato,
+                    'valor_consulta' => (float) $row->valor_consulta,
+                    'valor_urgencias' => (float) $row->valor_urgencias,
+                    'medico_id' => (int) $row->medico_id,
+                ])
+                ->values()
+                ->all();
+        } else {
+            $productos = DB::table('contratos_productos')
+                ->where('contratos_productos.contrato_id', $contratoId)
+                ->where('contratos_productos.estado', 1)
+                ->join('config_productos', 'config_productos.id', '=', 'contratos_productos.producto_id')
+                ->select([
+                    'contratos_productos.id as contrato_producto_id',
+                    'config_productos.id as producto_id',
+                    'config_productos.cod_cups',
+                    'config_productos.nom_produc',
+                    'contratos_productos.valor_contrato',
+                ])
+                ->orderBy('config_productos.nom_produc')
+                ->get()
+                ->map(fn (object $cp): array => [
+                    'contrato_medico_id' => null,
+                    'contrato_producto_id' => (int) $cp->contrato_producto_id,
+                    'producto_id' => (int) $cp->producto_id,
+                    'cod_cups' => (string) $cp->cod_cups,
+                    'nom_produc' => (string) $cp->nom_produc,
+                    'valor_contrato' => (float) $cp->valor_contrato,
+                    'valor_consulta' => null,
+                    'valor_urgencias' => null,
+                    'medico_id' => null,
+                ])
+                ->values()
+                ->all();
+        }
+
+        $totalProductosContratados = ContratoProducto::where('contrato_id', $contratoId)
+            ->where('estado', 1)
+            ->count();
+
+        $nomSede = $contrato->sede instanceof ConfigSede ? $contrato->sede->nom_sede : 'No disponible';
+        $fechaInicio = $contrato->fecha_inicio instanceof Carbon ? $contrato->fecha_inicio->format('Y-m-d') : (string) $contrato->fecha_inicio;
+        $fechaFin = $contrato->fecha_fin instanceof Carbon ? $contrato->fecha_fin->format('Y-m-d') : (string) $contrato->fecha_fin;
+
+        return $this->success([
+            'contrato' => [
+                'id' => $contrato->id,
+                'sede_id' => $contrato->sede_id,
+                'nom_sede' => $nomSede,
+                'fecha_inicio' => $fechaInicio,
+                'fecha_fin' => $fechaFin,
+                'estado' => (bool) $contrato->estado,
+            ],
+            'medicos' => $medicosRelacionados,
+            'medico_seleccionado_id' => $medicoId,
+            'total_medicos' => count($medicosRelacionados),
+            'total_productos_contratados' => $totalProductosContratados,
+            'total_productos' => count($productos),
+            'productos' => $productos,
+        ]);
     }
 }
