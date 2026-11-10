@@ -138,7 +138,7 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
       - Al seleccionar atención SAHI, se visualiza cuadro resumen con EPS, Contrato, Plan, Servicio y Médico que ordenó.
       - Mapeo de `medico_ordena` individual por producto CUPS tanto en el drawer de asignación como en la tabla principal de estudios asignados.
     * **Comando de Backfill Retroactivo ([`EstudiosSahiBackfillDatosCommand.php`](file:///c:/laragon/www/lidiag/app/Console/Commands/EstudiosSahiBackfillDatosCommand.php)):**
-      - Comando `php artisan estudios:sahi-backfill` para actualizar estudios históricos de SAHI en lote, por `--atencion`, `--estudio-id`, últimos N días (`--day=365` o `--days=365`), rango de fechas (`--from` y `--to`), `--all` y `--force`.
+      - Comando `php artisan estudios:sahi-backfill` para actualizar estudios históricos de SAHI en lote, por `--atencion`, `--estudio-id`, últimos N días (`--day=365` o `--days=365`), rango de fechas (`--from` y `--to`), `--all` y `--force`. Incluye detección de estudios pendientes cuando sus productos carecen de `medico_ordena` y salida en consola detallando el médico por cada código CUPS.
       - Ejecutado exitosamente para atención `#7017456` y para `--day=365 --limit=5`, actualizando datos contractuales, EPS, ubicaciones y médicos ordenantes en tiempo real con SQL Server.
   - **Verificaciones:**
     * Laravel Pint (`vendor\bin\pint.bat --test`) pasado sin observaciones en todos los archivos modificados ✅.

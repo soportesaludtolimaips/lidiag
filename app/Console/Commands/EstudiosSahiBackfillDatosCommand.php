@@ -86,7 +86,11 @@ class EstudiosSahiBackfillDatosCommand extends Command
                     $q->whereNull("eps")
                         ->orWhere("eps", "")
                         ->orWhereNull("contrato")
-                        ->orWhere("contrato", "");
+                        ->orWhere("contrato", "")
+                        ->orWhereHas("productos", function ($pq) {
+                            $pq->whereNull("medico_ordena")
+                                ->orWhere("medico_ordena", "");
+                        });
                 });
             }
 
@@ -166,9 +170,11 @@ class EstudiosSahiBackfillDatosCommand extends Command
                     "servicio" => $servicio,
                 ]);
 
-                // Sincronizar medico_ordena en productos si faltaba
+                $medicosDetalle = [];
+
+                // Sincronizar medico_ordena en productos si faltaba o si se especifica --force
                 foreach ($estudio->productos as $producto) {
-                    if (empty($producto->medico_ordena)) {
+                    if ($force || empty($producto->medico_ordena)) {
                         $medicoProducto = null;
 
                         if (! empty($producto->cod_cups)) {
@@ -190,11 +196,18 @@ class EstudiosSahiBackfillDatosCommand extends Command
 
                         if (! empty($medicoFinal)) {
                             $producto->update(["medico_ordena" => $medicoFinal]);
+                            $medicosDetalle[] = "CUPS {$producto->cod_cups}: {$medicoFinal}";
                         }
+                    } else {
+                        $medicosDetalle[] = "CUPS {$producto->cod_cups}: {$producto->medico_ordena}";
                     }
                 }
 
-                $this->info(" -> [OK] Actualizado exitosamente. EPS: {$eps} | Contrato: {$contrato}");
+                $medicosTexto = ! empty($medicosDetalle) ? implode(" | ", $medicosDetalle) : ($medicoGeneral ?: "Sin médico registrado");
+
+                $this->info(" -> [OK] Actualizado exitosamente.");
+                $this->line("    EPS: {$eps} | Contrato: {$contrato}");
+                $this->line("    Médico que ordenó: {$medicosTexto}");
                 $actualizados++;
             } catch (\Throwable $e) {
                 $this->error(" -> Error procesando estudio #{$estudio->id}: {$e->getMessage()}");
