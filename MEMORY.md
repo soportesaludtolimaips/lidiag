@@ -37,6 +37,22 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-10 — Creación de `README-COMMAND.md` con el Catálogo Maestro de Comandos del Ecosistema:**
+  - **Alcance y Documentación Creada ([`README-COMMAND.md`](file:///c:/laragon/www/lidiag/README-COMMAND.md)):**
+    * Se catalogaron exhaustivamente los 27 comandos `php artisan` personalizados del repositorio, organizados por áreas:
+      1. *Interoperabilidad HIS / SAHI & Worklist:* `sahi:test`, `estudios:sahi-backfill`, `estudios:sahi-enviar-rango`, `estudios:sahi-reconcile`, `ecografias:sahi-reconcile`, `worklist:reconcile`.
+      2. *Dosimetría Radiológica (Res. 482/2018):* `dosimetria:sync-estudios`, `dosimetria:sync-mamografias`, `dosimetria:token`.
+      3. *Respaldos y Portal de Pacientes:* `lidiag:backup`, `lidiag:backup-dcm`, `lidiag:enviar-paciente`.
+      4. *Comunicaciones y Bots:* `citas:notificar`, `citas:notificar-2h`, `telegram:daily-digest`, `telegram:poll`.
+      5. *Seguridad y RBAC Spatie:* `permissions:audit`, `permissions:cache-reset`, `permissions:user-check`, `sync:missing-permissions`, `sessions:prune`, `notifications:prune`.
+      6. *Mantenimiento y Seeders:* `seed:faltantes`, `ecografias:normalize-estados`, `firmas:limpiar`, `sync-usuarios`, `sync:dicom-ecografias`.
+    * Se documentó la matriz completa del **Laravel Scheduler** en [`routes/console.php`](file:///c:/laragon/www/lidiag/routes/console.php) con sus periodicidades, horarios y flags `withoutOverlapping()`.
+    * Se incluyeron los **5 Agentes Periféricos Edge en Python y scripts `.bat`** de las sedes (`backup_dcm_agent.py`, `sync_dcm_images.py`, `agente_dosimetria.py`, `dcm_disk_monitor.py`, `restore_dcm_images.py`, `instalar_tareas_sede.bat`, `install.bat`).
+    * Se documentó el **Microservicio STT de Transcripción** (FastAPI + Whisper en puerto `8001`).
+    * Se recopilaron los comandos de calidad y desarrollo (`pint.bat`, `phpstan.bat`, `eslint`, `prettier`, `npm run build`, `npm run dev`).
+    * Se vinculó el manual desde [`README.md`](file:///c:/laragon/www/lidiag/README.md).
+  - **Verificaciones:**
+    * Archivos normalizados con finales de línea estrictos en LF sin BOM de UTF-8 ✅.
 - [x] **2026-11-10 — Rediseño y Desahogo Visual del Listado de Reportes (`reporteProduccionComponent.vue`):**
   - **Requerimiento del Usuario:**
     * Mejorar el listado de reportes en `reporteProduccionComponent.vue` debido a que la interfaz se visualizaba muy apiñada / comprimida.

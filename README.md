@@ -326,6 +326,11 @@ Módulo administrativo para la emisión, rotación segura y monitorización de c
 
 ## Comandos Personalizados (Console Commands)
 
+> [!TIP]
+> **Catálogo Maestro Exhaustivo:**
+> Para consultar la lista completa, sintaxis, opciones y ejemplos de todos los comandos (`php artisan`, scripts periféricos en Python, ejecutables `.bat` y scheduler), consulta el documento especializado:
+> 📖 [**`README-COMMAND.md`**](file:///c:/laragon/www/lidiag/README-COMMAND.md)
+
 LIDiag incluye comandos de consola para tareas de mantenimiento y sincronización de datos críticos.
 
 ### Auditoría y mantenimiento de permisos (Spatie)
