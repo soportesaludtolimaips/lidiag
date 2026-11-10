@@ -69,6 +69,8 @@ class ProduccionConsolidadaEstadisticasSheet implements ShouldAutoSize, WithChar
 
     protected int $filaFinModalidades = 8;
 
+    protected int $filaTotalSedes = 8;
+
     /**
      * Constructor de la hoja estadística.
      *
@@ -209,7 +211,7 @@ class ProduccionConsolidadaEstadisticasSheet implements ShouldAutoSize, WithChar
         $sheet->setShowGridlines(true);
 
         // Fila 1: Título institucional
-        $sheet->mergeCells("A1:O1");
+        $sheet->mergeCells("A1:P1");
         $sheet->setCellValue("A1", "CONSOLIDADO DE PRODUCCIÓN: ESTUDIOS TOMADOS (PACS) VS ASIGNADOS (LIDIAG)");
         $sheet->getStyle("A1")->applyFromArray([
             "font" => ["bold" => true, "size" => 13, "color" => ["rgb" => "FFFFFF"], "name" => "Segoe UI"],
@@ -219,7 +221,7 @@ class ProduccionConsolidadaEstadisticasSheet implements ShouldAutoSize, WithChar
         $sheet->getRowDimension(1)->setRowHeight(32);
 
         // Fila 2: Subtítulo
-        $sheet->mergeCells("A2:O2");
+        $sheet->mergeCells("A2:P2");
         $sheet->setCellValue(
             "A2",
             "Período de Toma: {$this->fechaInicio} al {$this->fechaFin}  |  Ámbito: {$this->sedeNombre}  |  Generado: ".now()->format("Y-m-d H:i:s")
@@ -250,12 +252,13 @@ class ProduccionConsolidadaEstadisticasSheet implements ShouldAutoSize, WithChar
 
         $kpis = [
             ["range_title" => "A4:B4", "range_val" => "A5:B5", "title" => "TOTAL TOMADOS (PACS)", "val" => $this->kpiTotalTomados, "format" => "#,##0", "color" => "1A2274"],
-            ["range_title" => "C4:D4", "range_val" => "C5:D5", "title" => "ASIG. SALUD TOLIMA", "val" => $this->kpiTotalSaludTolima, "format" => "#,##0", "color" => "1565C0"],
-            ["range_title" => "E4:F4", "range_val" => "E5:F5", "title" => "ASIG. TELE-RADIOLOGÍA", "val" => $this->kpiTotalTeleRadiologia, "format" => "#,##0", "color" => "6A1B9A"],
-            ["range_title" => "G4:H4", "range_val" => "G5:H5", "title" => "BRECHA: SIN ASIGNAR", "val" => $this->kpiTotalSinAsignar, "format" => "#,##0", "color" => "C62828"],
-            ["range_title" => "I4:J4", "range_val" => "I5:J5", "title" => "% COBERTURA ASIGNACIÓN", "val" => $this->kpiPorcentajeAsignacion, "format" => "0.0%", "color" => "0277BD"],
-            ["range_title" => "K4:L4", "range_val" => "K5:L5", "title" => "ESTUDIOS LEÍDOS", "val" => $this->kpiTotalLeidos, "format" => "#,##0", "color" => "2E7D32"],
-            ["range_title" => "M4:N4", "range_val" => "M5:N5", "title" => "TIEMPO PROM. ASIG (HRS)", "val" => $this->kpiTiempoPromedioHoras, "format" => "0.0", "color" => "EF6C00"],
+            ["range_title" => "C4:D4", "range_val" => "C5:D5", "title" => "TOTAL ASIGNADOS (LIDIAG)", "val" => $this->kpiTotalAsignados, "format" => "#,##0", "color" => "0D47A1"],
+            ["range_title" => "E4:F4", "range_val" => "E5:F5", "title" => "ASIG. SALUD TOLIMA", "val" => $this->kpiTotalSaludTolima, "format" => "#,##0", "color" => "1565C0"],
+            ["range_title" => "G4:H4", "range_val" => "G5:H5", "title" => "ASIG. TELE-RADIOLOGÍA", "val" => $this->kpiTotalTeleRadiologia, "format" => "#,##0", "color" => "6A1B9A"],
+            ["range_title" => "I4:J4", "range_val" => "I5:J5", "title" => "BRECHA: SIN ASIGNAR", "val" => $this->kpiTotalSinAsignar, "format" => "#,##0", "color" => "C62828"],
+            ["range_title" => "K4:L4", "range_val" => "K5:L5", "title" => "% COBERTURA ASIGNACIÓN", "val" => $this->kpiPorcentajeAsignacion, "format" => "0.0%", "color" => "0277BD"],
+            ["range_title" => "M4:N4", "range_val" => "M5:N5", "title" => "ESTUDIOS LEÍDOS", "val" => $this->kpiTotalLeidos, "format" => "#,##0", "color" => "2E7D32"],
+            ["range_title" => "O4:P4", "range_val" => "O5:P5", "title" => "TIEMPO PROM. ASIG (HRS)", "val" => $this->kpiTiempoPromedioHoras, "format" => "0.0", "color" => "EF6C00"],
         ];
 
         foreach ($kpis as $kpi) {
@@ -395,6 +398,7 @@ class ProduccionConsolidadaEstadisticasSheet implements ShouldAutoSize, WithChar
         $sheet->getStyle("G{$rSede}")->getNumberFormat()->setFormatCode("0.0%");
         $sheet->getRowDimension($rSede)->setRowHeight(22);
         $this->filaFinSedes = $rSede - 1;
+        $this->filaTotalSedes = $rSede;
 
         // Llenar datos de Modalidades (Filas 9+)
         $rMod = 9;
@@ -528,9 +532,9 @@ class ProduccionConsolidadaEstadisticasSheet implements ShouldAutoSize, WithChar
         }
 
         // Gráfico 3: Cobertura y Destino Global (A46:G64)
-        if ($this->kpiTotalTomados > 0) {
+        if ($this->kpiTotalTomados > 0 && $this->filaTotalSedes > 0) {
             $catTorta = [new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_STRING, "{$titleSheet}!\$D\$8:\$F\$8", null, 3)];
-            $valTorta = [new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_NUMBER, "{$titleSheet}!\$C\$5:\$G\$5", null, 3)];
+            $valTorta = [new DataSeriesValues(DataSeriesValues::DATASERIES_TYPE_NUMBER, "{$titleSheet}!\$D\${$this->filaTotalSedes}:\$F\${$this->filaTotalSedes}", null, 3)];
 
             $seriesTorta = new DataSeries(
                 DataSeries::TYPE_PIECHART,

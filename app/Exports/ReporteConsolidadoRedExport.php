@@ -75,6 +75,7 @@ class ReporteConsolidadoRedExport implements WithMultipleSheets
             ->leftJoin("users as medico", "estudios.medico_id", "=", "medico.id")
             ->leftJoin("users as transcriptor", "estudios_productos.transcriptor_id", "=", "transcriptor.id")
             ->where("config_sedes.estado", 1)
+            ->where("estudios.estado", 1)
             ->where("estudios_productos.activo", 1)
             ->when($this->sedeId, fn ($q) => $q->where("estudios.sede_id", $this->sedeId))
             ->whereBetween("estudios_productos.fechor_lectura", [

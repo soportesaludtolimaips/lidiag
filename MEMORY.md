@@ -37,6 +37,22 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-09 — Inclusión de Totales de Estudios Tomados y Asignados No Anulados en Estadísticas (`ProduccionConsolidadaEstadisticasSheet.php`, `ProduccionConsolidadaExport.php`, `ReporteConsolidadoRedExport.php`):**
+  - **Requerimiento del Usuario:**
+    * Agregar a la hoja "Estadísticas y Gráficas" el total de estudios tomados y el total de estudios asignados, considerando exclusivamente aquellos estudios que no se encuentren anulados.
+  - **Ajustes Realizados:**
+    * **Filtro de Anulados en Backend ([`ProduccionConsolidadaExport.php`](file:///c:/laragon/www/lidiag/app/Exports/ProduccionConsolidadaExport.php)):**
+      - En el cruce de estudios tomados contra asignados (`consultarYCruzarDatos`), se agregó la condición obligatoria `->where("estudios.estado", 1)` y se condicionó el join de productos con `->leftJoin("estudios_productos", fn($join) => $join->on("estudios_productos.estudio_id", "=", "estudios.id")->where("estudios_productos.activo", 1))` garantizando que registros anulados en LIDiag (`estado = 0` o `activo = 0`) no computen como asignados.
+    * **Filtro de Anulados en Consolidado Red ([`ReporteConsolidadoRedExport.php`](file:///c:/laragon/www/lidiag/app/Exports/ReporteConsolidadoRedExport.php)):**
+      - Se agregó la cláusula `->where("estudios.estado", 1)` en la consulta de producción de la red asistencial.
+    * **Hoja Estadísticas y Gráficas ([`ProduccionConsolidadaEstadisticasSheet.php`](file:///c:/laragon/www/lidiag/app/Exports/Sheets/ProduccionConsolidadaEstadisticasSheet.php)):**
+      - Se añadió la tarjeta KPI ejecutiva visible `TOTAL ASIGNADOS (LIDIAG)` (C4:D4, C5:D5) contigua a `TOTAL TOMADOS (PACS)` (A4:B4, A5:B5).
+      - Reubicación armónica del resto de KPIs (`ASIG. SALUD TOLIMA`, `ASIG. TELE-RADIOLOGÍA`, `BRECHA: SIN ASIGNAR`, `% COBERTURA ASIGNACIÓN`, `ESTUDIOS LEÍDOS` y `TIEMPO PROM. ASIG (HRS)`) extendiendo el banner y cabecera de A a P (`A1:P1`, `A2:P2`).
+      - Actualización de la serie del Gráfico 3 (Torta de Distribución) para referenciar dinámicamente el rango contiguo de totales en la tabla de Sedes (`$D${$this->filaTotalSedes}:$F${$this->filaTotalSedes}`).
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% en todos los archivos modificados ✅.
+    * PHPStan Larastan Nivel 5 completado con 0 errores ✅.
+    * Generación de libro Excel validada en script de prueba: 3 hojas y 3 gráficos nativos generados limpiamente ✅.
 - [x] **2026-11-09 — Celdas Limpias para Estudios Tomados PACS Sin Asignar (`ProduccionConsolidadaDetalleSheet.php`):**
   - **Requerimiento del Usuario:**
     * En el reporte de Producción Consolidada (Tomados PACS vs Asignados LIDiag), si un estudio está en el PACS y aún no se ha asignado, las columnas correspondientes a asignación, médico y lectura no deben tener datos (deben quedar en blanco).

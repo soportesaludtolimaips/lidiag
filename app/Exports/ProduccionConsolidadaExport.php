@@ -160,9 +160,13 @@ class ProduccionConsolidadaExport implements WithMultipleSheets
             foreach (array_chunk($iuids, 1000) as $chunk) {
                 $matchedChunk = DB::table("estudios")
                     ->whereIn("estudios.study_iuid", $chunk)
+                    ->where("estudios.estado", 1)
                     ->leftJoin("users as medico", "medico.id", "=", "estudios.medico_id")
                     ->leftJoin("users as asignador", "asignador.id", "=", "estudios.quien_registro_id")
-                    ->leftJoin("estudios_productos", "estudios_productos.estudio_id", "=", "estudios.id")
+                    ->leftJoin("estudios_productos", function ($join) {
+                        $join->on("estudios_productos.estudio_id", "=", "estudios.id")
+                            ->where("estudios_productos.activo", 1);
+                    })
                     ->select(
                         "estudios.id as estudio_id",
                         "estudios.study_iuid",
