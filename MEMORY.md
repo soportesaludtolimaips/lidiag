@@ -37,6 +37,27 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-10 — Sincronización Masiva de Códigos CUPS, Enriquecimiento Financiero SAHI y Seeder de Productos Espinal (`ProductosEspinalSyncService.php`, `ProductosSincronizarEspinalCommand.php`, `ProductosEspinalSeeder.php`, `Productos espinal.xlsx`):**
+  - **Requerimiento del Usuario:**
+    * Actualizar masivamente códigos CUPS faltantes (28 procedimientos sin código) en `Documentos/Productos por medicos apra el modulo de contabilidad/Productos espinal.xlsx`.
+    * Construir Seeder / Comando Artisan en Laravel 13 con PhpSpreadsheet para cruzar los datos contra `config_productos` de LIDiag (MySQL) y actualizar los productos existentes que carecen de código CUPS.
+    * Realizar cruce de datos financieros contra SAHI en SQL Server (`DB_CONNECTION_SQLSRV`): extraer el valor real facturado en el año en curso (2026) y actualizar dinámicamente la columna C (`val producto`) del archivo Excel con formato de moneda, preservando estilos y estructura original.
+  - **Solución Implementada:**
+    * **Servicio de Negocio ([`ProductosEspinalSyncService.php`](file:///c:/laragon/www/lidiag/app/Services/Configuracion/ProductosEspinalSyncService.php)):**
+      - Mapeo canónico y normalización difusa (`resolverCups`) que resuelve el 100% de los 28 procedimientos faltantes (Rx comparativas, Resonancias con angiografía, Ecos de vías urinarias, RX portátiles ST, RMs de órbitas/oídos/ATM, etc.).
+      - Optimización de consulta masiva a SAHI en SQL Server: lectura en batch filtrando por fecha (`fac.FecFactura >= '2026-01-01'`) y productos en `facFacturaDet` agrupados por CUPS en un solo join indexado ejecutado en 0.19 segundos (evitando query timeout de 30s en millones de registros históricos), con fallback a tarifarios SOAT/UVB 2026 (`conTarifaDetalle`).
+      - Actualización física en PhpSpreadsheet: inyección de códigos en columna A, valores formateados en USD/COP (`$#,##0`) en columna C, preservando formatos y metadatos.
+      - Sincronización transaccional en MySQL (`config_productos`): actualización de `cod_cups` y `val_produc` para los productos coincidentes.
+    * **Comando de Consola Artisan ([`ProductosSincronizarEspinalCommand.php`](file:///c:/laragon/www/lidiag/app/Console/Commands/ProductosSincronizarEspinalCommand.php)):**
+      - Comando `php artisan productos:sincronizar-espinal` con banderas `--dry-run`, `--year=2026`, `--file=...`, `--no-excel` y `--no-db`.
+      - Despliegue de tablas en consola con CUPS resueltos, valores SAHI y fuentes tarifarias, además de métricas de filas modificadas.
+    * **Database Seeder ([`ProductosEspinalSeeder.php`](file:///c:/laragon/www/lidiag/database/seeders/ProductosEspinalSeeder.php)):**
+      - Seeder ejecutable vía `php artisan db:seed --class=ProductosEspinalSeeder` que automatiza la sincronización de extremo a extremo.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% con 0 observaciones ✅.
+    * Larastan PHPStan Nivel 5 (`vendor\bin\phpstan.bat analyse --level=5`) completado con 0 errores ✅.
+    * Ejecución real completada: 152 filas procesadas en Excel, 28 CUPS completados, 151 tarifas asignadas en Columna C y 126 registros actualizados en `config_productos` ✅.
+
 - [x] **2026-11-10 — Refactorización Integral Módulo de Contratación (Módulo 11) — Tarifas Entidad y Médicos con Diff No Destructivo y Cobertura (`ContratoEntidadPlantillaExport.php`, `ContratoMedicoPlantillaExport.php`, `ContratoPreviewEntidadRequest.php`, `ContratoConfirmarEntidadRequest.php`, `ContratoPreviewMedicoRequest.php`, `ContratoConfirmarMedicoRequest.php`, `ContratoService.php`, `ContratoController.php`, `api_contratacion.php`, `contratoComponent.vue`):**
   - **Plantilla 1: Contratación con Entidades (Aseguradoras / Hospitales):**
     * Generación e inyección de metadatos exactos en A2 (`contrato_id`), A3 (Sede), A4 (Fecha Inicio) y B4 (Fecha Fin), con tabla de tarifas desde la fila 6 (CUPS, Producto, Valor) formateada con estilo de moneda.
