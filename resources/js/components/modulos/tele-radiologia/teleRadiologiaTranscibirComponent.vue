@@ -291,8 +291,18 @@
                                             <div
                                                 v-if="item.fechor_lectura"
                                                 class="text-muted small mt-1"
+                                                title="Fecha y hora de emisión de la lectura"
                                             >
-                                                {{ formatDate(item.fechor_lectura) }}
+                                                <i class="fa fa-stethoscope mr-1"></i
+                                                >{{ formatDate(item.fechor_lectura) }}
+                                            </div>
+                                            <div
+                                                v-if="item.fechor_recepcion_tele"
+                                                class="text-info small mt-1"
+                                                title="Fecha y hora de recepción en LIDiag"
+                                            >
+                                                <i class="fa fa-download mr-1"></i>Recibido:
+                                                {{ formatDate(item.fechor_recepcion_tele) }}
                                             </div>
                                         </td>
                                         <td class="align-middle text-nowrap">

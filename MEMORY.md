@@ -37,6 +37,18 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-10 — Registro de Fecha/Hora de Recepción de Lectura de Tele-Radiología en LIDiag (`fechor_recepcion_tele`):**
+  - **Problema:** En el flujo de Tele-Radiología se requería controlar de forma independiente la fecha y hora en que LIDiag recibe el informe desde tele-radiología externa (webhook), diferenciándola de la fecha en que el médico emitió la lectura (`fechor_lectura`), sin depender del volátil `updated_at` de la tabla `estudios`.
+  - **Solución Implementada:**
+    * Migración formal [`2026_11_10_093000_add_fechor_recepcion_tele_to_estudios_productos.php`](file:///c:/laragon/www/lidiag/database/migrations/2026_11_10_093000_add_fechor_recepcion_tele_to_estudios_productos.php): Añade la columna `fechor_recepcion_tele` (dateTime, nullable) en `estudios_productos`.
+    * Modelo [`EstudioProducto.php`](file:///c:/laragon/www/lidiag/app/Models/Estudio/EstudioProducto.php): Agregado `fechor_recepcion_tele` en `$fillable` y en `$casts` como `'datetime'`.
+    * Servicio [`TeleRadiologiaService.php`](file:///c:/laragon/www/lidiag/app/Services/Interfaces/TeleRadiologiaService.php): En `recibirLectura()` se actualiza `fechor_recepcion_tele => now()`, registrando el momento exacto de llegada del webhook (tanto para lecturas principales como para adendums).
+    * Consulta [`EstudioQueryService.php`](file:///c:/laragon/www/lidiag/app/Services/Estudios/EstudioQueryService.php): Incluido `'estudios_productos.fechor_recepcion_tele'` en las consultas de `listarPendientesTranscribir`.
+    * Frontend [`teleRadiologiaTranscibirComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/tele-radiologia/teleRadiologiaTranscibirComponent.vue): En la columna "Lectura", se muestra ahora tanto la fecha de emisión del médico (`fechor_lectura`) como la fecha de recepción en LIDiag (`fechor_recepcion_tele`).
+  - **Verificaciones:**
+    * Pint pasado al 100% en todos los archivos PHP modificados (`vendor\bin\pint.bat`) ✅.
+    * ESLint y Prettier 100% limpios en `teleRadiologiaTranscibirComponent.vue` ✅.
+    * Vite build (`npm run build`) completado con éxito en 1.38s ✅.
 - [x] **2026-11-10 — Creación de `README-COMMAND.md` con el Catálogo Maestro de Comandos del Ecosistema:**
   - **Alcance y Documentación Creada ([`README-COMMAND.md`](file:///c:/laragon/www/lidiag/README-COMMAND.md)):**
     * Se catalogaron exhaustivamente los 27 comandos `php artisan` personalizados del repositorio, organizados por áreas:
@@ -118,6 +130,18 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * Generación completa de libro Excel probada contra base de datos local: 23 columnas alineadas 1:1 con datos reales ✅.
     * Laravel Pint (`vendor\bin\pint.bat --test`) pasado sin observaciones ✅.
     * Larastan PHPStan Nivel 5 (`vendor\bin\phpstan.bat analyse`) con 0 errores ✅.
+- [x] **2026-11-10 — Trazabilidad de Recepción en Tele-Radiología (`EstudioProducto.php`, `TeleRadiologiaService.php`, `EstudioQueryService.php`, `2026_11_10_093000_add_fechor_recepcion_tele_to_estudios_productos.php`):**
+  - **Ajustes Realizados:**
+    * **Migración de Base de Datos ([`2026_11_10_093000_add_fechor_recepcion_tele_to_estudios_productos.php`](file:///c:/laragon/www/lidiag/database/migrations/2026_11_10_093000_add_fechor_recepcion_tele_to_estudios_productos.php)):**
+      - Adición idempotente de la columna `fechor_recepcion_tele` (`dateTime nullable`) inmediatamente después de `fechor_lectura` en `estudios_productos`.
+    * **Modelo Eloquent ([`EstudioProducto.php`](file:///c:/laragon/www/lidiag/app/Models/Estudio/EstudioProducto.php)):**
+      - Registrada en `$fillable` y configurada en `$casts` como `'datetime'`.
+    * **Servicio de Recepción ([`TeleRadiologiaService.php`](file:///c:/laragon/www/lidiag/app/Services/Interfaces/TeleRadiologiaService.php)):**
+      - Asignación obligatoria de `'fechor_recepcion_tele' => now()` al procesar lecturas normales y adendums entrantes desde el webhook HMAC de Tele-Radiología.
+    * **Consultas Asistenciales ([`EstudioQueryService.php`](file:///c:/laragon/www/lidiag/app/Services/Estudios/EstudioQueryService.php)):**
+      - Proyección de la columna `estudios_productos.fechor_recepcion_tele` en `listarPendientesTranscribir` y `listarEstudiosAsignados`.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% en todos los archivos del módulo ✅.
 - [x] **2026-11-09 — Corrección e Interoperabilidad SAHI: EPS, Contrato, Plan, Servicio y Médico que Ordenó (`SAHIService.php`, `EstudioService.php`, `EstudioQueryService.php`, `PlantillaEstudioService.php`, `AsignarEstudioComponent.vue`, `estudioAsignadosComponent.vue`, `EstudiosSahiBackfillDatosCommand.php`):**
   - **Problema Auditado:**
     * Estudios asignados mediante interfaz SAHI (como la atención `#7017456`) quedaban con campos `eps`, `contrato`, `plan` y `servicio` en blanco en la tabla `estudios`, y `medico_ordena` en `null` en `estudios_productos`.

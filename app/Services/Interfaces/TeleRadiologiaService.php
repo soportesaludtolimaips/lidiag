@@ -199,6 +199,7 @@ class TeleRadiologiaService extends BaseService
                 $estudioProducto->update([
                     'lectura' => $lecturaAdendum,
                     'fechor_lectura' => $d['adendum']['fecha'] ?? $d['fechor_lectura'] ?? now(),
+                    'fechor_recepcion_tele' => now(),
                 ]);
 
                 Log::info('TeleRadiologiaService::recibirLectura - Adendum procesado:', [
@@ -254,6 +255,7 @@ class TeleRadiologiaService extends BaseService
 
             $estudioProducto->update([
                 'fechor_lectura' => $d['fechor_lectura'] ?? $d['fecha_lectura'] ?? now(),
+                'fechor_recepcion_tele' => now(),
                 'lectura' => $lecturaTexto,
             ]);
 
