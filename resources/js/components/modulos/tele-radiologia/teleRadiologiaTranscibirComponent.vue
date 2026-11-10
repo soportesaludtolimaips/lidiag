@@ -941,36 +941,48 @@ async function guardarRegistro() {
         const res = await axios.post("/api/estudio-guardarTranscripcion", payload);
 
         if (res.status == 200) {
-            const idxTodos = todosLosRegistros.value.findIndex(
-                (x) => x.estudio_producto_id == idRow.value
-            );
-            if (idxTodos >= 0) {
-                todosLosRegistros.value.splice(idxTodos, 1);
-            }
+            const rowTargetId = idRow.value;
 
-            const estudioEliminar = registros.value.findIndex(
-                (x) => x.estudio_producto_id == idRow.value
-            );
-            if (estudioEliminar >= 0) {
-                registros.value.splice(estudioEliminar, 1);
-                nextTick(() => {
-                    destroyDataTable();
-                    initDataTable();
-                });
-            }
+            // Cerrar drawer de inmediato
+            btnCerrarModal();
 
             toastMessage({
                 heading: "Completado",
-                text: res.data.data.message,
+                text:
+                    res.data?.message ||
+                    res.data?.data?.message ||
+                    "La transcripción se guardó correctamente.",
                 icon: "success",
             });
 
-            btnCerrarModal();
-            errores.value = {};
+            requestAnimationFrame(() => {
+                if (rowTargetId != null) {
+                    const idxTodos = todosLosRegistros.value.findIndex(
+                        (x) => x.estudio_producto_id == rowTargetId
+                    );
+                    if (idxTodos >= 0) {
+                        todosLosRegistros.value.splice(idxTodos, 1);
+                    }
+
+                    const estudioEliminar = registros.value.findIndex(
+                        (x) => x.estudio_producto_id == rowTargetId
+                    );
+                    if (estudioEliminar >= 0) {
+                        registros.value.splice(estudioEliminar, 1);
+                        nextTick(() => {
+                            destroyDataTable();
+                            initDataTable();
+                        });
+                    }
+                }
+            });
         } else {
             toastMessage({
                 heading: "Error",
-                text: res.data.data.message,
+                text:
+                    res.data?.message ||
+                    res.data?.data?.message ||
+                    "Ocurrió un error al guardar la transcripción.",
                 icon: "error",
             });
         }

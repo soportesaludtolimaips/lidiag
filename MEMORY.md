@@ -97,6 +97,18 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Verificaciones:**
     * Prettier y ESLint 100% limpios (0 errores, 0 advertencias) ✅.
     * Vite build (`npm run build`) completado exitosamente en 1.33s ✅.
+- [x] **2026-11-10 — Corrección de Cierre Inmediato del Drawer en Transcripción de Tele-Radiología (`teleRadiologiaTranscibirComponent.vue`):**
+  - **Causa Raíz Identificada:**
+    * En `guardarRegistro()`, al responder exitosamente el backend (`status === 200`), el código intentaba acceder a `res.data.data.message` para `toastMessage`. Como el backend retorna `res.data.message` (o `res.data.data` no contiene `message`), ocurría un fallo o interrupción en JavaScript que impedía la ejecución subsecuente de `btnCerrarModal()`.
+    * Adicionalmente, la mutación sincrónica de `registros` y la reinicialización de DataTables bloqueaban el ciclo de render antes de cerrar la interfaz lateral.
+  - **Ajustes Realizados ([`teleRadiologiaTranscibirComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/tele-radiologia/teleRadiologiaTranscibirComponent.vue)):**
+    * Se invoca `btnCerrarModal()` inmediatamente tras verificar `res.status == 200`, garantizando que `sidebarVisible.value = false` se aplique al instante en el UI.
+    * Se corrigió la lectura del mensaje a `res.data?.message || res.data?.data?.message || "La transcripción se guardó correctamente."` en `toastMessage` (tanto para éxito como para error).
+    * Se envolvió la remoción del elemento de la lista y la re-inicialización del DataTable dentro de `requestAnimationFrame()` y `nextTick()`.
+  - **Verificaciones:**
+    * ESLint 100% limpio (0 errores) ✅.
+    * Vite build (`npm run build`) completado exitosamente en 2.30s ✅.
+
 - [x] **2026-11-10 — Corrección de Error 500 en Producción en Transcripción de Estudios (`EstudioQueryService.php`, `TeleRadiologiaService.php`):**
   - **Causa Raíz Identificada:**
     * El endpoint `POST /api/estudio-listarPendientesTrascribir` arrojaba error 500 en `https://lidiag.com/estudios.transcribir.listar`.
