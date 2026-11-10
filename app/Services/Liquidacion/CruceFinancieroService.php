@@ -50,19 +50,24 @@ class CruceFinancieroService extends BaseService
         ?int $quienAsignoId = null,
         ?int $medicoId = null
     ): Builder {
+        // Criterio de fecha por asignación:
+        // Evalúa la fecha en que el estudio fue tomado / asignado en el sistema,
+        // garantizando consistencia absoluta con el listado operativo de /estudios.asignados.listar.
+        $columnaFecha = 'COALESCE(estudios.fec_estudio, estudios.created_at)';
+
         return DB::table("estudios_productos")
             ->join("estudios", "estudios_productos.estudio_id", "=", "estudios.id")
             ->join("config_sedes", "estudios.sede_id", "=", "config_sedes.id")
-            ->join("config_prioridades", "estudios.prioridad_id", "=", "config_prioridades.id")
+            ->leftJoin("config_prioridades", "estudios.prioridad_id", "=", "config_prioridades.id")
             ->join("users as registro", "estudios.quien_registro_id", "=", "registro.id")
-            ->join("users as medico", "medico.id", "=", "estudios.medico_id")
+            ->leftJoin("users as medico", "medico.id", "=", "estudios.medico_id")
             ->join("pacientes", "estudios.paciente_id", "=", "pacientes.id")
             ->leftJoin("users as transcrip", "transcrip.id", "=", "estudios_productos.transcriptor_id")
-            // 1. Cruce con Contratos vigentes de la sede para la fecha de corte
+            // 1. Cruce con Contratos vigentes de la sede para la fecha de asignación/corte
             ->leftJoin("contratos as c", function ($join) {
                 $join->on("estudios.sede_id", "=", "c.sede_id")
                     ->where("c.estado", "=", 1)
-                    ->whereRaw("DATE(COALESCE(estudios_productos.fechor_lectura, estudios.fec_estudio, estudios_productos.created_at)) BETWEEN c.fecha_inicio AND c.fecha_fin");
+                    ->whereRaw("DATE(COALESCE(estudios.fec_estudio, estudios.created_at, estudios_productos.fechor_lectura)) BETWEEN c.fecha_inicio AND c.fecha_fin");
             })
             // 2. Cruce con Productos contratados a nivel de Entidad
             ->leftJoin("contratos_productos as cp", function ($join) {
@@ -77,7 +82,7 @@ class CruceFinancieroService extends BaseService
                     ->on("estudios.medico_id", "=", "cm.medico_id")
                     ->where("cm.estado", "=", 1);
             })
-            ->whereBetween("estudios_productos.fechor_lectura", [
+            ->whereBetween(DB::raw($columnaFecha), [
                 $fechaInicio." 00:00:00",
                 $fechaFin." 23:59:59",
             ])
@@ -145,7 +150,7 @@ class CruceFinancieroService extends BaseService
                     ELSE 'Tarificado'
                 END as estado_tarifa")
             )
-            ->orderBy("estudios_productos.fechor_lectura", "desc");
+            ->orderByDesc(DB::raw($columnaFecha));
     }
 
     /**

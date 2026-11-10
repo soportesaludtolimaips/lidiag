@@ -44,6 +44,21 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * Retorna los médicos únicos vinculados al contrato y el catálogo de productos con sus tarifas contratadas institucionales y valores de consulta/urgencias según el médico seleccionado (o null si se consulta la totalidad de productos del contrato).
   - **Verificaciones:**
     * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% en los 3 archivos PHP ✅.
+- [x] **2026-11-10 — Corrección de Discrepancia en Reporte de Producción Detallada por Agendador (`CruceFinancieroService.php`):**
+  - **Problema Reportado:**
+    * Al consultar la interfaz operativa `/estudios.asignados.listar` para el día `2026-11-07` filtrando por el agendador SOL ANGIE CALDERON, el sistema retornaba 60 registros. Sin embargo, el reporte formal de producción solo arrojaba 6 registros (pérdida de 54 registros).
+  - **Causa Raíz Diagnosticada:**
+    * El generador del reporte condicionaba la ventana de fechas exclusivamente contra `estudios_productos.fechor_lectura` en lugar de la fecha de agendamiento/estudio (`COALESCE(estudios.fec_estudio, estudios.created_at)`).
+    * De los 60 registros agendados ese día, 40 se encontraban pendientes de lectura (`fechor_lectura IS NULL`), 14 fueron leídos en días posteriores y solo 6 se dictaminaron el mismo día 7, excluyendo 54 registros.
+    * Además, la consulta utilizaba `INNER JOIN` a `users as medico` y `config_prioridades`, lo que arriesgaba excluir registros si no tenían médico o prioridad vinculada.
+  - **Solución Implementada ([`CruceFinancieroService.php`](file:///c:/laragon/www/lidiag/app/Services/Liquidacion/CruceFinancieroService.php)):**
+    * Siguiendo la definición del usuario, se fijó el filtro temporal del reporte de producción detallada por la **fecha de asignación del estudio** (`COALESCE(estudios.fec_estudio, estudios.created_at)`), tanto en el filtrado `WHERE` como en el ordenamiento `orderByDesc`.
+    * Se alineó la vigencia de contratos en el `LEFT JOIN` a la fecha de asignación (`COALESCE(estudios.fec_estudio, estudios.created_at, estudios_productos.fechor_lectura)`).
+    * Se convirtieron los joins de `medico` y `prioridades` a `LEFT JOIN` para blindar la consulta contra exclusiones silenciosas.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) pasado al 100% ✅.
+    * Larastan PHPStan Nivel 5 completado con 0 errores ✅.
+    * Verificación contra base de datos real: la consulta para Sol Angie Calderon el 2026-11-07 retorna exactamente **60 registros** (consistencia 1:1) ✅.
 - [x] **2026-11-10 — Motor de Cruce Financiero y Liquidación en Producción Detallada (`CruceFinancieroService.php`, `ProduccionDetalladaExport.php`, `ProduccionDetalladaDetalleSheet.php`):**
   - **Requerimiento del Usuario:**
     * Cruzar el Reporte de Producción Detallado con el módulo de Contratación para extraer dos métricas financieras por registro:
