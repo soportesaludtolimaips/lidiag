@@ -173,187 +173,385 @@
         <!-- 1. GRUPO: MÓDULO RX (Radiología e Imágenes Diagnósticas)        -->
         <!-- ============================================================== -->
         <div class="row" v-if="moduloActivo === 'Rx' && tieneAccesoModulo('Rx')">
-            <div class="col-md-3 col-sm-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> Producción Radiológica
-                        </h4>
-                        <div class="row">
-                            <div class="col-12">
-                                <a href="javascript:void(0)" @click="abrirModalProduccion('Rx')">
-                                    <i class="fa fa-check text-info"></i>
-                                    Producción detallada (RX, Tomografía, Mamografía, Resonancia)
-                                </a>
+            <!-- 1.1 Producción Radiológica -->
+            <div class="col-lg-4 col-md-6 col-12 m-b-20">
+                <div class="card h-100 m-b-0">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex no-block align-items-center m-b-15">
+                            <div>
+                                <h4 class="card-title text-themecolor m-b-0">
+                                    <i class="fa fa-filter text-info m-r-5"></i> Producción
+                                    Radiológica
+                                </h4>
+                                <h6 class="card-subtitle text-muted m-b-0">
+                                    Informes operativos y de red
+                                </h6>
                             </div>
-                            <div class="col-12">
-                                <a
-                                    href="javascript:void(0)"
-                                    @click="abrirModalProduccionConsolidada()"
-                                >
-                                    <i class="fa fa-balance-scale text-warning"></i>
-                                    Producción consolidada (Tomados PACS vs Asignados LIDiag)
-                                </a>
-                            </div>
-                            <div class="col-12">
-                                <a href="javascript:void(0)" @click="abrirModalConsolidadoRed()">
-                                    <i class="fa fa-globe text-info"></i>
-                                    Consolidado red hospitalaria (Ranking, Modalidades, TAT)
-                                </a>
-                            </div>
+                        </div>
+                        <div class="list-group list-group-flush flex-grow-1">
+                            <a
+                                href="javascript:void(0)"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
+                                @click="abrirModalProduccion('Rx')"
+                            >
+                                <div class="m-r-10">
+                                    <i class="fa fa-file-excel-o text-success m-r-5 font-14"></i>
+                                    <span class="text-dark font-medium">Producción detallada</span>
+                                    <small class="text-muted d-block m-l-20"
+                                        >RX, Tomografía, Mamografía, Resonancia</small
+                                    >
+                                </div>
+                                <span class="badge badge-success badge-pill">Excel</span>
+                            </a>
+                            <a
+                                href="javascript:void(0)"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
+                                @click="abrirModalProduccionConsolidada()"
+                            >
+                                <div class="m-r-10">
+                                    <i class="fa fa-balance-scale text-warning m-r-5 font-14"></i>
+                                    <span class="text-dark font-medium"
+                                        >Producción consolidada</span
+                                    >
+                                    <small class="text-muted d-block m-l-20"
+                                        >Tomados PACS vs Asignados LIDiag</small
+                                    >
+                                </div>
+                                <span class="badge badge-success badge-pill">Excel</span>
+                            </a>
+                            <a
+                                href="javascript:void(0)"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
+                                @click="abrirModalConsolidadoRed()"
+                            >
+                                <div class="m-r-10">
+                                    <i class="fa fa-globe text-info m-r-5 font-14"></i>
+                                    <span class="text-dark font-medium"
+                                        >Consolidado red hospitalaria</span
+                                    >
+                                    <small class="text-muted d-block m-l-20"
+                                        >Ranking, Modalidades, TAT e IA</small
+                                    >
+                                </div>
+                                <span class="badge badge-success badge-pill">Excel</span>
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title text-themecolor">
-                            <i class="fa fa-database"></i> Estudios tomados en PAC
-                        </h4>
-                        <div class="row">
-                            <div class="col-12">
-                                <a href="javascript:void(0)" @click="abrirModalPAC()">
-                                    <i class="fa fa-check text-info"></i>
-                                    Descargar reporte de estudios tomados en PACS
-                                </a>
+
+            <!-- 1.2 Estudios tomados en PAC -->
+            <div class="col-lg-4 col-md-6 col-12 m-b-20">
+                <div class="card h-100 m-b-0">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex no-block align-items-center m-b-15">
+                            <div>
+                                <h4 class="card-title text-themecolor m-b-0">
+                                    <i class="fa fa-database text-info m-r-5"></i> Estudios tomados
+                                    en PAC
+                                </h4>
+                                <h6 class="card-subtitle text-muted m-b-0">
+                                    Sincronización directa PACS
+                                </h6>
                             </div>
+                        </div>
+                        <div class="list-group list-group-flush flex-grow-1">
+                            <a
+                                href="javascript:void(0)"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
+                                @click="abrirModalPAC()"
+                            >
+                                <div class="m-r-10">
+                                    <i class="fa fa-file-excel-o text-success m-r-5 font-14"></i>
+                                    <span class="text-dark font-medium"
+                                        >Descargar reporte de estudios</span
+                                    >
+                                    <small class="text-muted d-block m-l-20"
+                                        >Estudios adquiridos en servidores PACS</small
+                                    >
+                                </div>
+                                <span class="badge badge-success badge-pill">Excel</span>
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title text-themecolor">
-                            <i class="fa fa-globe"></i> Tele-radiología
-                        </h4>
-                        <div class="row">
-                            <div class="col-12">
-                                <a href="javascript:void(0)" @click="abrirModalTeleRadiologia()">
-                                    <i class="fa fa-check text-info"></i>
-                                    Reporte de órdenes y lecturas externas
-                                </a>
+
+            <!-- 1.3 Tele-radiología -->
+            <div class="col-lg-4 col-md-6 col-12 m-b-20">
+                <div class="card h-100 m-b-0">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex no-block align-items-center m-b-15">
+                            <div>
+                                <h4 class="card-title text-themecolor m-b-0">
+                                    <i class="fa fa-globe text-primary m-r-5"></i> Tele-radiología
+                                </h4>
+                                <h6 class="card-subtitle text-muted m-b-0">
+                                    Lecturas y flujos remotos
+                                </h6>
                             </div>
+                        </div>
+                        <div class="list-group list-group-flush flex-grow-1">
+                            <a
+                                href="javascript:void(0)"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
+                                @click="abrirModalTeleRadiologia()"
+                            >
+                                <div class="m-r-10">
+                                    <i class="fa fa-file-excel-o text-success m-r-5 font-14"></i>
+                                    <span class="text-dark font-medium"
+                                        >Reporte de órdenes y lecturas</span
+                                    >
+                                    <small class="text-muted d-block m-l-20"
+                                        >Órdenes y lecturas externas de la red</small
+                                    >
+                                </div>
+                                <span class="badge badge-success badge-pill">Excel</span>
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title text-themecolor">
-                            <i class="fa fa-radiation text-warning"></i> Dosimetría y Radiación
-                        </h4>
-                        <div class="row">
-                            <div class="col-12">
-                                <a href="javascript:void(0)" @click="abrirModalDosimetria()">
-                                    <i class="fa fa-check text-info"></i>
-                                    Reporte de Dosimetría y Niveles NRD (Res. 482)
-                                </a>
+
+            <!-- 1.4 Dosimetría y Radiación -->
+            <div class="col-lg-4 col-md-6 col-12 m-b-20">
+                <div class="card h-100 m-b-0">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex no-block align-items-center m-b-15">
+                            <div>
+                                <h4 class="card-title text-themecolor m-b-0">
+                                    <i class="fa fa-radiation text-warning m-r-5"></i> Dosimetría y
+                                    Radiación
+                                </h4>
+                                <h6 class="card-subtitle text-muted m-b-0">
+                                    Control de dosis y Res. 482
+                                </h6>
                             </div>
-                            <div
-                                class="col-12"
+                        </div>
+                        <div class="list-group list-group-flush flex-grow-1">
+                            <a
+                                href="javascript:void(0)"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
+                                @click="abrirModalDosimetria()"
+                            >
+                                <div class="m-r-10">
+                                    <i class="fa fa-file-excel-o text-success m-r-5 font-14"></i>
+                                    <span class="text-dark font-medium"
+                                        >Reporte de Dosimetría y NRD</span
+                                    >
+                                    <small class="text-muted d-block m-l-20"
+                                        >Cumplimiento Resolución 482</small
+                                    >
+                                </div>
+                                <span class="badge badge-success badge-pill">Excel</span>
+                            </a>
+                            <a
                                 v-if="can('dosimetria.dashboard') || can('reportes.detallados')"
+                                href="/dosis/dashboard"
+                                target="_blank"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
                             >
-                                <a href="/dosis/dashboard" target="_blank">
-                                    <i class="fa fa-external-link text-info"></i>
-                                    Tablero interactivo de dosimetría
-                                </a>
-                            </div>
+                                <div class="m-r-10">
+                                    <i class="fa fa-external-link text-info m-r-5 font-14"></i>
+                                    <span class="text-dark font-medium">Tablero interactivo</span>
+                                    <small class="text-muted d-block m-l-20"
+                                        >Monitoreo de dosis en tiempo real</small
+                                    >
+                                </div>
+                                <span class="badge badge-info badge-pill">Módulo</span>
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title text-themecolor">
-                            <i class="fa fa-tachometer"></i> Calidad y Oportunidad
-                        </h4>
-                        <div class="row">
-                            <div class="col-12">
-                                <a href="javascript:void(0)" @click="abrirModalTAT()">
-                                    <i class="fa fa-check text-info"></i>
-                                    Tiempos de respuesta y entrega (TAT)
-                                </a>
+
+            <!-- 1.5 Calidad y Oportunidad -->
+            <div class="col-lg-4 col-md-6 col-12 m-b-20">
+                <div class="card h-100 m-b-0">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex no-block align-items-center m-b-15">
+                            <div>
+                                <h4 class="card-title text-themecolor m-b-0">
+                                    <i class="fa fa-tachometer text-info m-r-5"></i> Calidad y
+                                    Oportunidad
+                                </h4>
+                                <h6 class="card-subtitle text-muted m-b-0">
+                                    Indicadores de entrega y TAT
+                                </h6>
                             </div>
-                            <div class="col-12">
-                                <a
-                                    href="javascript:void(0)"
-                                    @click="abrirModalSemaforoRepresados()"
-                                >
-                                    <i class="fa fa-exclamation-triangle text-warning"></i>
-                                    Semáforo de oportunidad y represamiento (>24h y Urgencias)
-                                </a>
-                            </div>
+                        </div>
+                        <div class="list-group list-group-flush flex-grow-1">
+                            <a
+                                href="javascript:void(0)"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
+                                @click="abrirModalTAT()"
+                            >
+                                <div class="m-r-10">
+                                    <i class="fa fa-file-excel-o text-success m-r-5 font-14"></i>
+                                    <span class="text-dark font-medium"
+                                        >Tiempos de respuesta (TAT)</span
+                                    >
+                                    <small class="text-muted d-block m-l-20"
+                                        >Entrega y oportunidad diagnóstica</small
+                                    >
+                                </div>
+                                <span class="badge badge-success badge-pill">Excel</span>
+                            </a>
+                            <a
+                                href="javascript:void(0)"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
+                                @click="abrirModalSemaforoRepresados()"
+                            >
+                                <div class="m-r-10">
+                                    <i
+                                        class="fa fa-exclamation-triangle text-warning m-r-5 font-14"
+                                    ></i>
+                                    <span class="text-dark font-medium"
+                                        >Semáforo de oportunidad</span
+                                    >
+                                    <small class="text-muted d-block m-l-20"
+                                        >Represamiento (>24h y Urgencias)</small
+                                    >
+                                </div>
+                                <span class="badge badge-warning badge-pill">Excel</span>
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title text-themecolor">
-                            <i class="fa fa-money"></i> Financiero / Liquidación
-                        </h4>
-                        <div class="row">
-                            <div
-                                class="col-12"
+
+            <!-- 1.6 Financiero / Liquidación -->
+            <div class="col-lg-4 col-md-6 col-12 m-b-20">
+                <div class="card h-100 m-b-0">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex no-block align-items-center m-b-15">
+                            <div>
+                                <h4 class="card-title text-themecolor m-b-0">
+                                    <i class="fa fa-money text-success m-r-5"></i> Financiero /
+                                    Liquidación
+                                </h4>
+                                <h6 class="card-subtitle text-muted m-b-0">
+                                    Honorarios y productividad
+                                </h6>
+                            </div>
+                        </div>
+                        <div class="list-group list-group-flush flex-grow-1">
+                            <a
                                 v-if="can('liquidacion.exportar') || can('reportes.detallados')"
+                                href="javascript:void(0)"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
+                                @click="abrirModalLiquidacion()"
                             >
-                                <a href="javascript:void(0)" @click="abrirModalLiquidacion()">
-                                    <i class="fa fa-check text-info"></i>
-                                    Liquidación de honorarios a radiólogos
-                                </a>
-                            </div>
-                            <div
-                                class="col-12"
+                                <div class="m-r-10">
+                                    <i class="fa fa-file-excel-o text-success m-r-5 font-14"></i>
+                                    <span class="text-dark font-medium"
+                                        >Liquidación de honorarios</span
+                                    >
+                                    <small class="text-muted d-block m-l-20"
+                                        >Cálculo a radiólogos por tarifas</small
+                                    >
+                                </div>
+                                <span class="badge badge-success badge-pill">Excel</span>
+                            </a>
+                            <a
                                 v-if="can('liquidacion.exportar') || can('reportes.detallados')"
+                                href="javascript:void(0)"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
+                                @click="abrirModalProductividad()"
                             >
-                                <a href="javascript:void(0)" @click="abrirModalProductividad()">
-                                    <i class="fa fa-check text-info"></i>
-                                    Productividad médica (Corte mensual)
-                                </a>
-                            </div>
-                            <div class="col-12">
-                                <a href="/liquidacion" target="_blank">
-                                    <i class="fa fa-external-link text-info"></i>
-                                    Ir al módulo de liquidación
-                                </a>
-                            </div>
+                                <div class="m-r-10">
+                                    <i class="fa fa-file-excel-o text-success m-r-5 font-14"></i>
+                                    <span class="text-dark font-medium">Productividad médica</span>
+                                    <small class="text-muted d-block m-l-20"
+                                        >Corte mensual consolidado</small
+                                    >
+                                </div>
+                                <span class="badge badge-success badge-pill">Excel</span>
+                            </a>
+                            <a
+                                href="/liquidacion"
+                                target="_blank"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
+                            >
+                                <div class="m-r-10">
+                                    <i class="fa fa-external-link text-info m-r-5 font-14"></i>
+                                    <span class="text-dark font-medium">Ir a Liquidación</span>
+                                    <small class="text-muted d-block m-l-20"
+                                        >Módulo de gestión financiera</small
+                                    >
+                                </div>
+                                <span class="badge badge-info badge-pill">Módulo</span>
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title text-themecolor">
-                            <i class="fa fa-server"></i> Agentes y Servidores PACS
-                        </h4>
-                        <div class="row">
-                            <div class="col-12">
-                                <a href="javascript:void(0)" @click="abrirModalAgentes()">
-                                    <i class="fa fa-check text-info"></i>
-                                    Salud y telemetría de agentes hospitalarios
-                                </a>
+
+            <!-- 1.7 Agentes y Servidores PACS -->
+            <div class="col-lg-4 col-md-6 col-12 m-b-20">
+                <div class="card h-100 m-b-0">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex no-block align-items-center m-b-15">
+                            <div>
+                                <h4 class="card-title text-themecolor m-b-0">
+                                    <i class="fa fa-server text-primary m-r-5"></i> Agentes y
+                                    Servidores PACS
+                                </h4>
+                                <h6 class="card-subtitle text-muted m-b-0">
+                                    Infraestructura y almacenamiento
+                                </h6>
                             </div>
-                            <div class="col-12">
-                                <a href="javascript:void(0)" @click="abrirModalAlmacenamiento()">
-                                    <i class="fa fa-hdd-o text-info"></i>
-                                    Monitor de almacenamiento y servidores PACS
-                                </a>
-                            </div>
-                            <div
-                                class="col-12"
+                        </div>
+                        <div class="list-group list-group-flush flex-grow-1">
+                            <a
+                                href="javascript:void(0)"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
+                                @click="abrirModalAgentes()"
+                            >
+                                <div class="m-r-10">
+                                    <i class="fa fa-file-excel-o text-success m-r-5 font-14"></i>
+                                    <span class="text-dark font-medium"
+                                        >Salud y telemetría de agentes</span
+                                    >
+                                    <small class="text-muted d-block m-l-20"
+                                        >Estado de conectividad hospitalaria</small
+                                    >
+                                </div>
+                                <span class="badge badge-success badge-pill">Excel</span>
+                            </a>
+                            <a
+                                href="javascript:void(0)"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
+                                @click="abrirModalAlmacenamiento()"
+                            >
+                                <div class="m-r-10">
+                                    <i class="fa fa-hdd-o text-info m-r-5 font-14"></i>
+                                    <span class="text-dark font-medium"
+                                        >Monitor de almacenamiento</span
+                                    >
+                                    <small class="text-muted d-block m-l-20"
+                                        >Capacidad de servidores PACS</small
+                                    >
+                                </div>
+                                <span class="badge badge-success badge-pill">Excel</span>
+                            </a>
+                            <a
                                 v-if="can('seguridad.backups.index') || can('reportes.detallados')"
+                                href="/seguridad-backups"
+                                target="_blank"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
                             >
-                                <a href="/seguridad-backups" target="_blank">
-                                    <i class="fa fa-external-link text-info"></i>
-                                    Monitor central de backups y sedes
-                                </a>
-                            </div>
+                                <div class="m-r-10">
+                                    <i class="fa fa-external-link text-info m-r-5 font-14"></i>
+                                    <span class="text-dark font-medium"
+                                        >Monitor de copias de seguridad</span
+                                    >
+                                    <small class="text-muted d-block m-l-20"
+                                        >Monitoreo central de backups</small
+                                    >
+                                </div>
+                                <span class="badge badge-info badge-pill">Módulo</span>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -364,71 +562,146 @@
         <!-- 2. GRUPO: MÓDULO ECOGRAFÍAS                                     -->
         <!-- ============================================================== -->
         <div class="row" v-if="moduloActivo === 'Ecografias' && tieneAccesoModulo('Ecografias')">
-            <div class="col-md-4 col-sm-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title text-themecolor">
-                            <i class="fa fa-stethoscope"></i> Producción de Ecografías
-                        </h4>
-                        <div class="row">
-                            <div class="col-12">
-                                <a
-                                    href="javascript:void(0)"
-                                    @click="abrirModalProduccion('Ecografia')"
-                                >
-                                    <i class="fa fa-check text-info"></i>
-                                    Producción detallada (Ecografías)
-                                </a>
+            <!-- 2.1 Producción de Ecografías -->
+            <div class="col-lg-4 col-md-6 col-12 m-b-20">
+                <div class="card h-100 m-b-0">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex no-block align-items-center m-b-15">
+                            <div>
+                                <h4 class="card-title text-themecolor m-b-0">
+                                    <i class="fa fa-stethoscope text-info m-r-5"></i> Producción de
+                                    Ecografías
+                                </h4>
+                                <h6 class="card-subtitle text-muted m-b-0">
+                                    Informes por sede y médico
+                                </h6>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 col-sm-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title text-themecolor">
-                            <i class="fa fa-id-card-o"></i> Consentimientos y Formatos
-                        </h4>
-                        <div class="row">
-                            <div class="col-12" v-if="can('ecografias.consentimientos.index')">
-                                <a href="/ecografias-consentimientos" target="_blank">
-                                    <i class="fa fa-external-link text-info"></i>
-                                    Consentimientos informados firmados (PDF)
-                                </a>
-                            </div>
-                            <div
-                                class="col-12"
-                                v-if="can('ecografias.consentimientos.plantillas.index')"
+                        <div class="list-group list-group-flush flex-grow-1">
+                            <a
+                                href="javascript:void(0)"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
+                                @click="abrirModalProduccion('Ecografia')"
                             >
-                                <a href="/ecografias-consentimientos-plantillas" target="_blank">
-                                    <i class="fa fa-external-link text-info"></i>
-                                    Plantillas de consentimientos
-                                </a>
-                            </div>
+                                <div class="m-r-10">
+                                    <i class="fa fa-file-excel-o text-success m-r-5 font-14"></i>
+                                    <span class="text-dark font-medium">Producción detallada</span>
+                                    <small class="text-muted d-block m-l-20"
+                                        >Reporte de ecografías realizadas</small
+                                    >
+                                </div>
+                                <span class="badge badge-success badge-pill">Excel</span>
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 col-sm-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title text-themecolor">
-                            <i class="fa fa-address-book-o"></i> Atención y Procedimientos
-                        </h4>
-                        <div class="row">
-                            <div class="col-12" v-if="can('ecografias.admision')">
-                                <a href="/ecografias-admisiones" target="_blank">
-                                    <i class="fa fa-external-link text-info"></i>
-                                    Admisionar para procedimientos
-                                </a>
+
+            <!-- 2.2 Consentimientos y Formatos -->
+            <div class="col-lg-4 col-md-6 col-12 m-b-20">
+                <div class="card h-100 m-b-0">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex no-block align-items-center m-b-15">
+                            <div>
+                                <h4 class="card-title text-themecolor m-b-0">
+                                    <i class="fa fa-id-card-o text-primary m-r-5"></i>
+                                    Consentimientos y Formatos
+                                </h4>
+                                <h6 class="card-subtitle text-muted m-b-0">
+                                    Formatos legales y plantillas
+                                </h6>
                             </div>
-                            <div class="col-12" v-if="can('ecografias.index')">
-                                <a href="/ecografias-adminisionadas" target="_blank">
-                                    <i class="fa fa-external-link text-info"></i>
-                                    Ecografías admisionadas en sala
-                                </a>
+                        </div>
+                        <div class="list-group list-group-flush flex-grow-1">
+                            <a
+                                v-if="can('ecografias.consentimientos.index')"
+                                href="/ecografias-consentimientos"
+                                target="_blank"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
+                            >
+                                <div class="m-r-10">
+                                    <i class="fa fa-external-link text-info m-r-5 font-14"></i>
+                                    <span class="text-dark font-medium"
+                                        >Consentimientos informados (PDF)</span
+                                    >
+                                    <small class="text-muted d-block m-l-20"
+                                        >Historial de consentimientos firmados</small
+                                    >
+                                </div>
+                                <span class="badge badge-info badge-pill">Módulo</span>
+                            </a>
+                            <a
+                                v-if="can('ecografias.consentimientos.plantillas.index')"
+                                href="/ecografias-consentimientos-plantillas"
+                                target="_blank"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
+                            >
+                                <div class="m-r-10">
+                                    <i class="fa fa-external-link text-info m-r-5 font-14"></i>
+                                    <span class="text-dark font-medium"
+                                        >Plantillas de consentimientos</span
+                                    >
+                                    <small class="text-muted d-block m-l-20"
+                                        >Configuración de modelos y textos</small
+                                    >
+                                </div>
+                                <span class="badge badge-info badge-pill">Módulo</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2.3 Atención y Procedimientos -->
+            <div class="col-lg-4 col-md-6 col-12 m-b-20">
+                <div class="card h-100 m-b-0">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex no-block align-items-center m-b-15">
+                            <div>
+                                <h4 class="card-title text-themecolor m-b-0">
+                                    <i class="fa fa-address-book-o text-success m-r-5"></i> Atención
+                                    y Procedimientos
+                                </h4>
+                                <h6 class="card-subtitle text-muted m-b-0">
+                                    Admisión y sala de ecografía
+                                </h6>
                             </div>
+                        </div>
+                        <div class="list-group list-group-flush flex-grow-1">
+                            <a
+                                v-if="can('ecografias.admision')"
+                                href="/ecografias-admisiones"
+                                target="_blank"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
+                            >
+                                <div class="m-r-10">
+                                    <i class="fa fa-external-link text-info m-r-5 font-14"></i>
+                                    <span class="text-dark font-medium"
+                                        >Admisionar para procedimientos</span
+                                    >
+                                    <small class="text-muted d-block m-l-20"
+                                        >Recepción e ingreso de pacientes</small
+                                    >
+                                </div>
+                                <span class="badge badge-info badge-pill">Módulo</span>
+                            </a>
+                            <a
+                                v-if="can('ecografias.index')"
+                                href="/ecografias-adminisionadas"
+                                target="_blank"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
+                            >
+                                <div class="m-r-10">
+                                    <i class="fa fa-external-link text-info m-r-5 font-14"></i>
+                                    <span class="text-dark font-medium"
+                                        >Ecografías admisionadas en sala</span
+                                    >
+                                    <small class="text-muted d-block m-l-20"
+                                        >Cola de espera y atención médica</small
+                                    >
+                                </div>
+                                <span class="badge badge-info badge-pill">Módulo</span>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -442,60 +715,99 @@
             class="row"
             v-if="moduloActivo === 'Oftalmologia' && tieneAccesoModulo('Oftalmologia')"
         >
-            <div class="col-md-4 col-sm-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title text-themecolor">
-                            <i class="fa fa-eye"></i> Producción de Oftalmología
-                        </h4>
-                        <div class="row">
-                            <div class="col-12">
-                                <a
-                                    href="javascript:void(0)"
-                                    @click="abrirModalProduccion('Oftalmologia')"
-                                >
-                                    <i class="fa fa-check text-info"></i>
-                                    Producción detallada (Oftalmología)
-                                </a>
+            <!-- 3.1 Producción de Oftalmología -->
+            <div class="col-lg-4 col-md-6 col-12 m-b-20">
+                <div class="card h-100 m-b-0">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex no-block align-items-center m-b-15">
+                            <div>
+                                <h4 class="card-title text-themecolor m-b-0">
+                                    <i class="fa fa-eye text-info m-r-5"></i> Producción de
+                                    Oftalmología
+                                </h4>
+                                <h6 class="card-subtitle text-muted m-b-0">
+                                    Estudios y procedimientos oculares
+                                </h6>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 col-sm-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title text-themecolor">
-                            <i class="fa fa-file-text-o"></i> Diagnóstico Ocular
-                        </h4>
-                        <div class="row">
-                            <div class="col-12">
-                                <span class="text-muted small">
-                                    <i class="fa fa-info-circle text-info"></i>
-                                    Exámenes: Campimetrías, Biometrías, Paquimetrías y Tomografías
-                                    Oculares (OCT).
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 col-sm-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title text-themecolor">
-                            <i class="fa fa-calendar"></i> Agenda de Oftalmología
-                        </h4>
-                        <div class="row">
-                            <div
-                                class="col-12"
-                                v-if="can('agendamiento.agendamiento.index') || can('citas.index')"
+                        <div class="list-group list-group-flush flex-grow-1">
+                            <a
+                                href="javascript:void(0)"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
+                                @click="abrirModalProduccion('Oftalmologia')"
                             >
-                                <a href="/agendamiento" target="_blank">
-                                    <i class="fa fa-external-link text-info"></i>
-                                    Agenda médica de especialistas
-                                </a>
+                                <div class="m-r-10">
+                                    <i class="fa fa-file-excel-o text-success m-r-5 font-14"></i>
+                                    <span class="text-dark font-medium">Producción detallada</span>
+                                    <small class="text-muted d-block m-l-20"
+                                        >Exámenes y consultas de oftalmología</small
+                                    >
+                                </div>
+                                <span class="badge badge-success badge-pill">Excel</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3.2 Diagnóstico Ocular -->
+            <div class="col-lg-4 col-md-6 col-12 m-b-20">
+                <div class="card h-100 m-b-0">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex no-block align-items-center m-b-15">
+                            <div>
+                                <h4 class="card-title text-themecolor m-b-0">
+                                    <i class="fa fa-file-text-o text-primary m-r-5"></i> Diagnóstico
+                                    Ocular
+                                </h4>
+                                <h6 class="card-subtitle text-muted m-b-0">
+                                    Exámenes especializados soportados
+                                </h6>
                             </div>
+                        </div>
+                        <div class="alert alert-info m-b-0">
+                            <i class="fa fa-info-circle m-r-5"></i>
+                            <strong>Exámenes especializados:</strong>
+                            Campimetrías, Biometrías, Paquimetrías y Tomografías Oculares de
+                            Coherencia Óptica (OCT).
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3.3 Agenda de Oftalmología -->
+            <div class="col-lg-4 col-md-6 col-12 m-b-20">
+                <div class="card h-100 m-b-0">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex no-block align-items-center m-b-15">
+                            <div>
+                                <h4 class="card-title text-themecolor m-b-0">
+                                    <i class="fa fa-calendar text-success m-r-5"></i> Agenda de
+                                    Oftalmología
+                                </h4>
+                                <h6 class="card-subtitle text-muted m-b-0">
+                                    Programación de consultas y turnos
+                                </h6>
+                            </div>
+                        </div>
+                        <div class="list-group list-group-flush flex-grow-1">
+                            <a
+                                v-if="can('agendamiento.agendamiento.index') || can('citas.index')"
+                                href="/agendamiento"
+                                target="_blank"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
+                            >
+                                <div class="m-r-10">
+                                    <i class="fa fa-external-link text-info m-r-5 font-14"></i>
+                                    <span class="text-dark font-medium"
+                                        >Agenda médica de especialistas</span
+                                    >
+                                    <small class="text-muted d-block m-l-20"
+                                        >Gestión de cupos y horarios</small
+                                    >
+                                </div>
+                                <span class="badge badge-info badge-pill">Módulo</span>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -506,66 +818,145 @@
         <!-- 4. GRUPO: TRANSVERSAL Y GESTIÓN DE CITAS                        -->
         <!-- ============================================================== -->
         <div class="row" v-if="moduloActivo === 'Transversal'">
-            <div class="col-md-4 col-sm-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title text-themecolor">
-                            <i class="fa fa-calendar-check-o"></i> Citas y Agenda
-                        </h4>
-                        <div class="row">
-                            <div class="col-12">
-                                <a href="javascript:void(0)" @click="abrirModalAusentismo()">
-                                    <i class="fa fa-check text-info"></i>
-                                    Ausentismo y cancelaciones (No-Show)
-                                </a>
+            <!-- 4.1 Citas y Agenda -->
+            <div class="col-lg-4 col-md-6 col-12 m-b-20">
+                <div class="card h-100 m-b-0">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex no-block align-items-center m-b-15">
+                            <div>
+                                <h4 class="card-title text-themecolor m-b-0">
+                                    <i class="fa fa-calendar-check-o text-info m-r-5"></i> Citas y
+                                    Agenda
+                                </h4>
+                                <h6 class="card-subtitle text-muted m-b-0">
+                                    Control de agendas y ausentismo
+                                </h6>
                             </div>
-                            <div class="col-12" v-if="can('citas.index')">
-                                <a href="/citas" target="_blank">
-                                    <i class="fa fa-external-link text-info"></i>
-                                    Listado general de citas
-                                </a>
-                            </div>
+                        </div>
+                        <div class="list-group list-group-flush flex-grow-1">
+                            <a
+                                href="javascript:void(0)"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
+                                @click="abrirModalAusentismo()"
+                            >
+                                <div class="m-r-10">
+                                    <i class="fa fa-file-excel-o text-success m-r-5 font-14"></i>
+                                    <span class="text-dark font-medium"
+                                        >Ausentismo y cancelaciones</span
+                                    >
+                                    <small class="text-muted d-block m-l-20"
+                                        >Tasa de No-Show y citas canceladas</small
+                                    >
+                                </div>
+                                <span class="badge badge-success badge-pill">Excel</span>
+                            </a>
+                            <a
+                                v-if="can('citas.index')"
+                                href="/citas"
+                                target="_blank"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
+                            >
+                                <div class="m-r-10">
+                                    <i class="fa fa-external-link text-info m-r-5 font-14"></i>
+                                    <span class="text-dark font-medium"
+                                        >Listado general de citas</span
+                                    >
+                                    <small class="text-muted d-block m-l-20"
+                                        >Administración general de turnos</small
+                                    >
+                                </div>
+                                <span class="badge badge-info badge-pill">Módulo</span>
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 col-sm-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title text-themecolor">
-                            <i class="fa fa-whatsapp text-success"></i> Canal WhatsApp y Conversión
-                        </h4>
-                        <div class="row">
-                            <div class="col-12">
-                                <a href="javascript:void(0)" @click="abrirModalCitasWhatsApp()">
-                                    <i class="fa fa-whatsapp text-success"></i>
-                                    Estadísticas de citas y canal WhatsApp (Atención Hoy y
-                                    Conversión)
-                                </a>
+
+            <!-- 4.2 Canal WhatsApp y Conversión -->
+            <div class="col-lg-4 col-md-6 col-12 m-b-20">
+                <div class="card h-100 m-b-0">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex no-block align-items-center m-b-15">
+                            <div>
+                                <h4 class="card-title text-themecolor m-b-0">
+                                    <i class="fa fa-whatsapp text-success m-r-5"></i> Canal WhatsApp
+                                    y Conversión
+                                </h4>
+                                <h6 class="card-subtitle text-muted m-b-0">
+                                    Métricas de canales digitales
+                                </h6>
                             </div>
-                            <div class="col-12" v-if="can('citas.index')">
-                                <a href="/citas/revision" target="_blank">
-                                    <i class="fa fa-external-link text-info"></i>
-                                    Solicitudes de citas por revisar
-                                </a>
-                            </div>
+                        </div>
+                        <div class="list-group list-group-flush flex-grow-1">
+                            <a
+                                href="javascript:void(0)"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
+                                @click="abrirModalCitasWhatsApp()"
+                            >
+                                <div class="m-r-10">
+                                    <i class="fa fa-file-excel-o text-success m-r-5 font-14"></i>
+                                    <span class="text-dark font-medium"
+                                        >Estadísticas de WhatsApp</span
+                                    >
+                                    <small class="text-muted d-block m-l-20"
+                                        >Atención en el día y conversión</small
+                                    >
+                                </div>
+                                <span class="badge badge-success badge-pill">Excel</span>
+                            </a>
+                            <a
+                                v-if="can('citas.index')"
+                                href="/citas/revision"
+                                target="_blank"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
+                            >
+                                <div class="m-r-10">
+                                    <i class="fa fa-external-link text-info m-r-5 font-14"></i>
+                                    <span class="text-dark font-medium"
+                                        >Solicitudes por revisar</span
+                                    >
+                                    <small class="text-muted d-block m-l-20"
+                                        >Bandeja de mensajes de pacientes</small
+                                    >
+                                </div>
+                                <span class="badge badge-info badge-pill">Módulo</span>
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 col-sm-6" v-if="can('helpdesk.reportes.index')">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title text-themecolor">
-                            <i class="fa fa-support text-danger"></i> Mesa de Ayuda
-                        </h4>
-                        <div class="row">
-                            <div class="col-12">
-                                <a href="/helpdesk-reportes" target="_blank">
-                                    <i class="fa fa-external-link text-info"></i>
-                                    Reportes de incidentes y Helpdesk
-                                </a>
+
+            <!-- 4.3 Mesa de Ayuda -->
+            <div class="col-lg-4 col-md-6 col-12 m-b-20" v-if="can('helpdesk.reportes.index')">
+                <div class="card h-100 m-b-0">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex no-block align-items-center m-b-15">
+                            <div>
+                                <h4 class="card-title text-themecolor m-b-0">
+                                    <i class="fa fa-support text-danger m-r-5"></i> Mesa de Ayuda
+                                </h4>
+                                <h6 class="card-subtitle text-muted m-b-0">
+                                    Incidencias y soporte técnico
+                                </h6>
                             </div>
+                        </div>
+                        <div class="list-group list-group-flush flex-grow-1">
+                            <a
+                                href="/helpdesk-reportes"
+                                target="_blank"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2"
+                            >
+                                <div class="m-r-10">
+                                    <i class="fa fa-external-link text-info m-r-5 font-14"></i>
+                                    <span class="text-dark font-medium"
+                                        >Reportes de incidentes y Helpdesk</span
+                                    >
+                                    <small class="text-muted d-block m-l-20"
+                                        >Seguimiento de tickets del sistema</small
+                                    >
+                                </div>
+                                <span class="badge badge-info badge-pill">Módulo</span>
+                            </a>
                         </div>
                     </div>
                 </div>

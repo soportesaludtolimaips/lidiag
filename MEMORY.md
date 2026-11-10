@@ -53,26 +53,27 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * Se vinculó el manual desde [`README.md`](file:///c:/laragon/www/lidiag/README.md).
   - **Verificaciones:**
     * Archivos normalizados con finales de línea estrictos en LF sin BOM de UTF-8 ✅.
-- [x] **2026-11-10 — Rediseño y Desahogo Visual del Listado de Reportes (`reporteProduccionComponent.vue`):**
+- [x] **2026-11-10 — Rediseño y Desahogo Visual del Listado de Reportes con Estilos Nativos de la Aplicación (`reporteProduccionComponent.vue`):**
   - **Requerimiento del Usuario:**
     * Mejorar el listado de reportes en `reporteProduccionComponent.vue` debido a que la interfaz se visualizaba muy apiñada / comprimida.
     * Coordinación interactiva mediante preguntas una a una previa a la implementación.
+    * Restricción explícita del usuario: *"Me gustó, pero no inventes estilos, utiliza los estilos de la aplicación"*.
   - **Ajustes Realizados:**
     * **Grid de 3 Columnas Amplias ([`reporteProduccionComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/reportes/reporteProduccionComponent.vue)):**
-      - Migración de la cuadrícula rígida de 4 columnas apretadas (`col-md-3`) a un grid responsive de 3 columnas generosas (`col-lg-4 col-md-6 col-12 m-b-20`) con altura uniforme (`h-100`) y sombra suave (`shadow-sm border-0`).
-    * **Tarjetas Temáticas por Área Asistencial:**
-      - Cabeceras con badges e iconos de color temático: Azul primario (Producción Radiológica/Ecografía/Oftalmología/Citas), Cian (Estudios PACS/Consentimientos), Púrpura (Tele-radiología/Diagnóstico Ocular), Ámbar (Dosimetría y Radiación), Verde azulado/Teal (Calidad y Oportunidad/Agenda), Verde esmeralda (Financiero/Liquidación/Canal WhatsApp), Gris pizarra (Agentes y Servidores PACS) y Rojo (Mesa de Ayuda Helpdesk).
-      - Línea de acento superior temática (`border-top: 3px solid ...`) y contador de reportes disponibles en cada tarjeta.
-    * **Filas Interactivas Estilizadas (`.report-item`):**
-      - Transformación de los enlaces planos en filas clickeables con icono representativo en recuadro suave (`.report-icon`), título del reporte en negrita (`.report-name`), breve descripción funcional (`.report-desc`), badge de tipo de acción (`.badge-excel`, `.badge-modulo`, `.badge-pdf`) y flecha animada con hover interactivo (`.report-arrow`).
-    * **Estilización de Indicadores Asistenciales Superiores:**
-      - Rediseño de las 4 tarjetas KPI con contenedor de iconos circular translúcido, cifras numéricas nítidas (`.kpi-value`) y tipografía limpia.
-    * **Pestañas y Modo Oscuro:**
-      - Estilización de las pestañas de agrupación por módulo (`.custom-report-tabs`).
-      - Cobertura universal de modo oscuro para todas las tarjetas, filas interactivas, textos y badges bajo `:global(body.theme-dark)`.
+      - Migración de la cuadrícula rígida de 4 columnas apretadas (`col-md-3 col-sm-6`) a un grid responsive de 3 columnas amplias (`col-lg-4 col-md-6 col-12 m-b-20`) con `card h-100 m-b-0` para homogeneizar alturas sin saturar el ancho de pantalla.
+    * **Estructura Interna 100% Nativa AdminWrap & Bootstrap 4:**
+      - Encabezados estandarizados con `card-title text-themecolor m-b-0` y `card-subtitle text-muted m-b-0`.
+      - Agrupación por listas nativas `list-group list-group-flush` con items clickeables `list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0 py-2`, asegurando hover sutil nativo y líneas divisorias limpias.
+      - Títulos destacados en `text-dark font-medium` y subtítulos funcionales en `small text-muted d-block m-l-20` para una lectura rápida y sin enlaces descoloridos.
+      - Badges nativos de Bootstrap 4: `badge badge-success badge-pill` para reportes descargables a Excel, `badge badge-info badge-pill` para accesos directos a módulos de la aplicación, y `badge badge-warning badge-pill` para semáforo/alertas.
+      - Módulo Oftalmología con alerta nativa de Bootstrap `alert alert-info m-b-0` para los exámenes especializados soportados.
+    * **Cobertura Universal:**
+      - Aplicado armónicamente en los 4 módulos: Módulo Rx (7 tarjetas), Módulo Ecografías (3 tarjetas), Módulo Oftalmología (3 tarjetas) y Módulo Transversal / Citas (3 tarjetas).
+    * **Cero Clases o Estilos Inventados:**
+      - No se añadieron etiquetas `<style scoped>` ni reglas CSS personalizadas en ningún archivo; 100% acoplado al framework existente en la aplicación.
   - **Verificaciones:**
     * ESLint y Prettier 100% limpios (0 errores, 0 advertencias) ✅.
-    * Compilación Vite (`npm run build`) exitosa en 1.30s ✅.
+    * Compilación de producción Vite (`npm run build`) completada con éxito en 1.30s ✅.
 - [x] **2026-11-09 — Inclusión de Totales de Estudios Tomados y Asignados No Anulados en Estadísticas (`ProduccionConsolidadaEstadisticasSheet.php`, `ProduccionConsolidadaExport.php`, `ReporteConsolidadoRedExport.php`):**
   - **Requerimiento del Usuario:**
     * Agregar a la hoja "Estadísticas y Gráficas" el total de estudios tomados y el total de estudios asignados, considerando exclusivamente aquellos estudios que no se encuentren anulados.
