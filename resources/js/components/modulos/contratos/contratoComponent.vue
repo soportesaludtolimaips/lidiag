@@ -270,7 +270,10 @@
         <div class="right-sidebar sidebar-scroll" :class="{ 'shw-rside': detalleVisible }">
             <div class="slimscrollright">
                 <div class="rpanel-title">
-                    Detalle: {{ contratoSeleccionado?.sede?.nom_sede }}
+                    Detalle: {{ contratoSeleccionado?.sede?.nom_sede || sedeNombreActual }}
+                    <small v-if="contratoSeleccionado?.id" class="text-white-50 m-l-5 font-12">
+                        (Contrato #{{ contratoSeleccionado.id }})
+                    </small>
                     <button
                         type="button"
                         class="right-side-toggle"
@@ -281,17 +284,23 @@
                     </button>
                 </div>
                 <div class="r-panel-body">
-                    <!-- Acción: importar médicos-producto -->
-                    <h5 class="card-title text-info">
-                        <i class="fa fa-users"></i> M&Eacute;DICOS-PRODUCTO DEL CONTRATO
-                    </h5>
-                    <hr />
-                    <div class="row">
-                        <div class="col-md-12">
+                    <!-- Cabecera de acciones del drawer -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="card-title text-info mb-0">
+                                <i class="fa fa-cubes m-r-5"></i> Tarifas y Productos del Contrato
+                            </h5>
+                            <small class="text-muted" v-if="contratoSeleccionado">
+                                Vigencia: {{ formatDate(contratoSeleccionado.fecha_inicio) }} al
+                                {{ formatDate(contratoSeleccionado.fecha_fin) }}
+                            </small>
+                        </div>
+                        <div>
                             <button
                                 type="button"
                                 class="btn btn-outline-success btn-sm"
                                 @click="abrirModalTarifasMedico(contratoSeleccionado)"
+                                title="Importar tarifas específicas de un médico lector"
                             >
                                 <i class="fa fa-user-md m-r-5"></i>
                                 Importar tarifas médico (Plantilla 2)
@@ -299,120 +308,204 @@
                         </div>
                     </div>
 
-                    <!-- Panel de cobertura de productos -->
-                    <div class="card mb-3" v-if="cobertura">
-                        <div class="card-body py-2">
-                            <h6 class="card-subtitle mb-2">
-                                Cobertura de productos
-                                <span
-                                    class="badge"
-                                    :class="
-                                        cobertura.faltantes.length
-                                            ? 'badge-warning'
-                                            : 'badge-success'
+                    <!-- Resumen KPI Badges -->
+                    <div class="d-flex flex-wrap align-items-center mb-3">
+                        <span class="badge badge-info badge-pill p-2 m-r-10 font-12">
+                            <i class="fa fa-list m-r-5"></i> Productos Contratados:
+                            {{ totalProductosContratados }}
+                        </span>
+                        <span class="badge badge-primary badge-pill p-2 m-r-10 font-12">
+                            <i class="fa fa-user-md m-r-5"></i> Médicos Vinculados:
+                            {{ medicosRelacionados.length }}
+                        </span>
+                        <span
+                            v-if="cobertura"
+                            class="badge badge-pill p-2 font-12 ml-auto"
+                            :class="
+                                cobertura.faltantes?.length
+                                    ? 'badge-warning text-dark'
+                                    : 'badge-success'
+                            "
+                        >
+                            <i class="fa fa-shield m-r-5"></i> Cobertura:
+                            {{ cobertura.tarifados }} /
+                            {{ cobertura.total }}
+                        </span>
+                    </div>
+
+                    <!-- Estado informativo: contrato con productos pero sin médicos aún -->
+                    <div
+                        v-if="!loadingDetalleDrawer && medicosRelacionados.length === 0"
+                        class="alert alert-warning py-2 mb-3"
+                    >
+                        <i class="fa fa-info-circle m-r-5"></i>
+                        Este contrato cuenta con
+                        <strong>{{ totalProductosContratados }} productos contratados</strong>
+                        institucionalmente, pero
+                        <strong>aún no tiene médicos lectores relacionados</strong>. Se listan las
+                        tarifas contratadas (Val Contratado). Puede vincular médicos mediante el
+                        botón <strong>"Importar tarifas médico"</strong>.
+                    </div>
+
+                    <!-- Filtros: Selector de Médicos y Buscador de Productos -->
+                    <div class="row mb-3">
+                        <div class="col-md-7">
+                            <div class="form-group mb-0">
+                                <label
+                                    class="control-label font-weight-bold"
+                                    for="select-medico-drawer"
+                                >
+                                    <i class="fa fa-user-md m-r-5 text-success"></i> Médico Lector:
+                                </label>
+                                <select
+                                    id="select-medico-drawer"
+                                    v-model="filtroMedicoId"
+                                    class="form-control custom-select"
+                                    :disabled="
+                                        loadingDetalleDrawer || medicosRelacionados.length === 0
                                     "
+                                    @change="alCambiarMedicoDrawer"
                                 >
-                                    {{ cobertura.tarifados }} / {{ cobertura.total }}
-                                </span>
-                            </h6>
-                            <p v-if="!cobertura.faltantes.length" class="text-success mb-0">
-                                Todos los productos que requieren lectura tienen tarifa.
-                            </p>
-                            <div v-else style="max-height: 160px; overflow-y: auto">
-                                <p class="text-warning mb-1">
-                                    Estos productos se pueden leer sin generar pago:
-                                </p>
-                                <div
-                                    v-for="p in cobertura.faltantes"
-                                    :key="p.id"
-                                    class="small text-muted"
+                                    <option v-if="medicosRelacionados.length === 0" value="">
+                                        ...::: Sin médicos vinculados a este contrato :::...
+                                    </option>
+                                    <option v-else value="">
+                                        ...::: Todos los productos contratados ({{
+                                            totalProductosContratados
+                                        }}) :::...
+                                    </option>
+                                    <option
+                                        v-for="med in medicosRelacionados"
+                                        :key="med.id"
+                                        :value="med.id"
+                                    >
+                                        {{ med.name }}
+                                        {{ med.reg_med ? "(" + med.reg_med + ")" : "" }}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="form-group mb-0">
+                                <label
+                                    class="control-label font-weight-bold"
+                                    for="buscar-cups-drawer"
                                 >
-                                    <strong>{{ p.cod_cups }}</strong> - {{ p.nom_produc }}
-                                </div>
+                                    <i class="fa fa-search m-r-5 text-muted"></i> Buscar Producto:
+                                </label>
+                                <input
+                                    id="buscar-cups-drawer"
+                                    type="text"
+                                    v-model="filtroBusquedaCups"
+                                    placeholder="Filtrar por CUPS o nombre..."
+                                    class="form-control"
+                                    :disabled="loadingDetalleDrawer"
+                                />
                             </div>
                         </div>
                     </div>
 
-                    <!-- Tabla de médicos-producto -->
-                    <div class="col-md-12 table-responsive table-scroll mt-3">
-                        <table class="table table-bordered table-striped">
-                            <thead>
+                    <!-- Indicador de Carga -->
+                    <div v-if="loadingDetalleDrawer" class="text-center py-5">
+                        <i class="fa fa-spinner fa-spin fa-2x text-primary m-b-10"></i>
+                        <p class="text-muted">Cargando tarifas y productos del contrato...</p>
+                    </div>
+
+                    <!-- Tabla de Productos y Tarifas (5 columnas estrictas) -->
+                    <div
+                        v-else
+                        class="col-md-12 table-responsive table-scroll mt-2"
+                        style="max-height: 520px; overflow-y: auto"
+                    >
+                        <table class="table table-bordered table-striped table-hover table-sm">
+                            <thead class="thead-light">
                                 <tr>
-                                    <th>M&eacute;dico</th>
-                                    <th>C&oacute;digo</th>
+                                    <th style="width: 110px">CUPS</th>
                                     <th>Producto</th>
-                                    <th>Val Consulta</th>
-                                    <th>Val Urgencias</th>
-                                    <th>Fecha Ingreso</th>
-                                    <th></th>
+                                    <th style="width: 140px" class="text-right">Val Contratado</th>
+                                    <th style="width: 130px" class="text-right">Consulta</th>
+                                    <th style="width: 160px" class="text-right">
+                                        Hospitalización/Urg
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="(item, index) in detallesLocales" :key="item.id">
-                                    <td>{{ item.medico_name }}</td>
-                                    <td>{{ item.cod_cups }}</td>
+                                <tr
+                                    v-for="item in productosFiltrados"
+                                    :key="
+                                        item.producto_id + '_' + (item.contrato_medico_id || 'base')
+                                    "
+                                >
+                                    <td class="font-weight-bold text-nowrap">
+                                        {{ item.cod_cups }}
+                                    </td>
                                     <td>{{ item.nom_produc }}</td>
-                                    <td>
-                                        <input
-                                            type="number"
-                                            v-model.number="item.valor_consulta"
-                                            class="form-control"
-                                            step="0.01"
-                                            min="0"
-                                        />
+                                    <td class="text-right text-dark font-weight-bold">
+                                        {{ formatMoney(item.valor_contrato) }}
                                     </td>
-                                    <td>
-                                        <input
-                                            type="number"
-                                            v-model.number="item.valor_urgencias"
-                                            class="form-control"
-                                            step="0.01"
-                                            min="0"
-                                        />
+                                    <td
+                                        class="text-right font-weight-bold"
+                                        :class="
+                                            item.valor_consulta !== null
+                                                ? 'text-success'
+                                                : 'text-muted'
+                                        "
+                                    >
+                                        {{
+                                            item.valor_consulta !== null
+                                                ? formatMoney(item.valor_consulta)
+                                                : "—"
+                                        }}
                                     </td>
-                                    <td>
-                                        <input
-                                            type="date"
-                                            v-model="item.fecha_ingreso"
-                                            class="form-control"
-                                        />
-                                    </td>
-                                    <td>
-                                        <button
-                                            type="button"
-                                            class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                            @click="quitarProductoDetalle(index)"
-                                            title="Quitar producto"
-                                        >
-                                            <i class="fa fa-trash"></i>
-                                        </button>
+                                    <td
+                                        class="text-right font-weight-bold"
+                                        :class="
+                                            item.valor_urgencias !== null
+                                                ? 'text-primary'
+                                                : 'text-muted'
+                                        "
+                                    >
+                                        {{
+                                            item.valor_urgencias !== null
+                                                ? formatMoney(item.valor_urgencias)
+                                                : "—"
+                                        }}
                                     </td>
                                 </tr>
-                                <tr v-if="!detallesLocales.length">
-                                    <td colspan="7" class="text-center text-muted">
-                                        No hay m&eacute;dicos-producto agregados. Use el
-                                        bot&oacute;n "Importar tarifas m&eacute;dico" o los botones
-                                        de tarifas del listado.
+                                <tr v-if="!productosFiltrados.length">
+                                    <td colspan="5" class="text-center text-muted py-4">
+                                        <i class="fa fa-info-circle fa-2x m-b-10 text-muted"></i>
+                                        <p v-if="filtroBusquedaCups" class="mb-0">
+                                            No se encontraron productos que coincidan con "{{
+                                                filtroBusquedaCups
+                                            }}".
+                                        </p>
+                                        <p v-else-if="filtroMedicoId" class="mb-0">
+                                            El médico seleccionado no tiene productos tarifados en
+                                            este contrato.
+                                        </p>
+                                        <p v-else class="mb-0">
+                                            No hay productos configurados para este contrato.
+                                        </p>
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <!-- Botones -->
-                    <div class="form-actions mt-3">
+                    <!-- Footer del Drawer -->
+                    <div
+                        class="form-actions mt-3 d-flex justify-content-between align-items-center"
+                    >
+                        <small class="text-muted">
+                            Mostrando {{ productosFiltrados.length }} registro(s)
+                        </small>
                         <button
                             type="button"
-                            class="btn btn-success m-r-5"
-                            @click="guardarDetalles()"
-                            :disabled="loadingGuardarDetalle"
+                            class="btn btn-default waves-effect"
+                            @click="cerrarDetalle()"
                         >
-                            <i v-if="loadingGuardarDetalle" class="fa fa-spinner fa-spin"></i>
-                            <i v-else class="fa fa-check"></i>
-                            Guardar
-                        </button>
-                        <button type="button" class="btn btn-inverse" @click="cerrarDetalle()">
-                            Cancelar
+                            Cerrar
                         </button>
                     </div>
                 </div>
@@ -1328,23 +1421,64 @@ const cobertura = ref(null);
 const loadingCobertura = ref(false);
 
 /**
- * Lista local de médicos-producto del contrato en edición.
- * Cada elemento: { id, medico_id, medico_name, producto_id, cod_cups, nom_produc, valor_consulta, valor_urgencias }
- * @type {import('vue').Ref<Array>}
- */
-const detallesLocales = ref([]);
-
-/**
  * Catálogo de usuarios médicos (con reg_med no nulo)
  * @type {import('vue').Ref<Array>}
  */
 const medicos = ref([]);
 
 /**
- * Flag de carga al guardar detalles
+ * Flag de carga al consultar productos/tarifas del drawer de detalle
  * @type {import('vue').Ref<boolean>}
  */
-const loadingGuardarDetalle = ref(false);
+const loadingDetalleDrawer = ref(false);
+
+/**
+ * Lista de médicos lectores que están relacionados a este contrato específico
+ * @type {import('vue').Ref<Array<{id: number, name: string, reg_med: string|null}>>}
+ */
+const medicosRelacionados = ref([]);
+
+/**
+ * Lista de productos/tarifas cargados en el drawer de detalle
+ * @type {import('vue').Ref<Array<{contrato_producto_id: number, producto_id: number, cod_cups: string, nom_produc: string, valor_contrato: number, valor_consulta: number|null, valor_urgencias: number|null}>>}
+ */
+const productosDetalle = ref([]);
+
+/**
+ * Total de productos contratados institucionalmente
+ * @type {import('vue').Ref<number>}
+ */
+const totalProductosContratados = ref(0);
+
+/**
+ * ID del médico seleccionado en el combo de filtrado del drawer ("" = todos)
+ * @type {import('vue').Ref<string|number>}
+ */
+const filtroMedicoId = ref("");
+
+/**
+ * Término de búsqueda por CUPS o nombre de producto en el drawer
+ * @type {import('vue').Ref<string>}
+ */
+const filtroBusquedaCups = ref("");
+
+/**
+ * Lista filtrada en tiempo real de productos según el buscador del drawer
+ */
+const productosFiltrados = computed(() => {
+    const list = productosDetalle.value || [];
+    const q = filtroBusquedaCups.value.trim().toLowerCase();
+    if (!q) return list;
+    return list.filter(
+        (p) =>
+            String(p.cod_cups || "")
+                .toLowerCase()
+                .includes(q) ||
+            String(p.nom_produc || "")
+                .toLowerCase()
+                .includes(q)
+    );
+});
 
 // ─── COMPUTED: OPTIONS PARA SELECT2 ──────────────────────────────────────────
 
@@ -1609,63 +1743,90 @@ async function cargarCatalogos() {
     }
 }
 
-// ─── DETALLE: SIDEBAR ─────────────────────────────────────────────────────────
+// ─── DETALLE: SIDEBAR (PRODUCTOS Y MÉDICOS) ─────────────────────────────────
 
 /**
- * Abre el sidebar de detalle de un contrato.
- * Puebla detallesLocales desde los médicos vinculados del contrato y muestra el sidebar.
- * Los catálogos ya se cargaron en onMounted.
+ * Consulta las tarifas y productos vinculados al contrato, aplicando opcionalmente
+ * el filtro por un médico lector específico.
  *
- * @param {Object} contrato - Contrato con su sede y médicos vinculados
+ * @param {number} contratoId - Identificador del contrato
+ * @param {number|null} [medicoId=null] - Identificador opcional del médico lector
  * @returns {Promise<void>}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
+ * @date 2026-11-10
+ */
+async function cargarDetalleProductos(contratoId, medicoId = null) {
+    loadingDetalleDrawer.value = true;
+    try {
+        const params = {};
+        if (medicoId) {
+            params.medico_id = medicoId;
+        }
+        const res = await axios.get(`/api/contratos/${contratoId}/medicos-productos`, { params });
+        const data = res.data?.data || {};
+        medicosRelacionados.value = data.medicos || [];
+        productosDetalle.value = data.productos || [];
+        totalProductosContratados.value = data.total_productos || 0;
+    } catch (error) {
+        console.error("Error cargando detalle de productos del contrato:", error);
+        const msg =
+            error.response?.data?.message ||
+            error.message ||
+            "Error al consultar las tarifas y productos del contrato";
+        toastMessage({ heading: "Error", text: msg, icon: "error" });
+        productosDetalle.value = [];
+        medicosRelacionados.value = [];
+        totalProductosContratados.value = 0;
+    } finally {
+        loadingDetalleDrawer.value = false;
+    }
+}
+
+/**
+ * Maneja el cambio reactivo en el selector de médicos del drawer.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-10
+ */
+async function alCambiarMedicoDrawer() {
+    if (!contratoSeleccionado.value?.id) return;
+    const medId = filtroMedicoId.value ? Number(filtroMedicoId.value) : null;
+    await cargarDetalleProductos(contratoSeleccionado.value.id, medId);
+}
+
+/**
+ * Abre el sidebar de detalle de un contrato.
+ * Inicializa los filtros, consulta la cobertura institucional y carga las tarifas.
+ *
+ * @param {Object} contrato - Contrato seleccionado con sede
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-10
  */
 async function abrirDetalle(contrato) {
     if (sidebarVisible.value) {
         sidebarVisible.value = false;
     }
     contratoSeleccionado.value = contrato;
-    cargarCobertura(contrato.id);
-    detallesLocales.value = mapearMedicosDetalle(contrato.medicos || []);
-    await nextTick();
+    filtroMedicoId.value = "";
+    filtroBusquedaCups.value = "";
     detalleVisible.value = true;
-}
 
-/**
- * Mapea la colección de contratos_medicos (con relaciones cargadas) a la
- * estructura plana que usa la tabla local del sidebar de detalle.
- *
- * @param {Array} medicosContrato - Registros con medico y contratoProducto.producto incluidos
- * @returns {Array<{id: number, medico_id: number, medico_name: string, producto_id: number|null, cod_cups: string, nom_produc: string, valor_consulta: number, valor_urgencias: number, fecha_ingreso: string}>}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
- */
-function mapearMedicosDetalle(medicosContrato) {
-    return (medicosContrato || []).map((m) => ({
-        id: m.id,
-        medico_id: m.medico_id,
-        medico_name: m.medico?.name || "",
-        producto_id: m.contratoProducto?.producto?.id ?? null,
-        cod_cups: m.contratoProducto?.producto?.cod_cups || "",
-        nom_produc: m.contratoProducto?.producto?.nom_produc || "",
-        valor_consulta: m.valor_consulta ?? 0,
-        valor_urgencias: m.valor_urgencias ?? 0,
-        fecha_ingreso: m.fecha_ingreso || "",
-    }));
+    cargarCobertura(contrato.id);
+    await cargarDetalleProductos(contrato.id, null);
 }
 
 /**
  * Consulta qué productos del catálogo exigibles no tienen tarifa en el contrato.
  *
  * @param {number} contratoId - Identificador del contrato abierto en el detalle.
- *
  * @returns {Promise<void>}
  *
  * @author Jhon Javer Lozano Arce
- *
  * @date 2026-09-30
  */
 async function cargarCobertura(contratoId) {
@@ -1681,153 +1842,22 @@ async function cargarCobertura(contratoId) {
 }
 
 /**
- * Cierra el sidebar de detalle y limpia todo el estado relacionado.
+ * Cierra el sidebar de detalle y limpia todo el estado asociado al drawer.
  *
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
+ * @date 2026-11-10
  */
 function cerrarDetalle() {
     contratoSeleccionado.value = null;
     cobertura.value = null;
-    detallesLocales.value = [];
+    filtroMedicoId.value = "";
+    filtroBusquedaCups.value = "";
+    productosDetalle.value = [];
+    medicosRelacionados.value = [];
+    totalProductosContratados.value = 0;
     detalleVisible.value = false;
-}
-
-/**
- * Elimina un médico-producto de la tabla local de detalles por índice con confirmación preventiva.
- *
- * @param {number} index - Índice del elemento a eliminar en detallesLocales
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
- */
-async function quitarProductoDetalle(index) {
-    const item = detallesLocales.value[index];
-    const descripcion = item?.nom_produc ? `el producto "${item.nom_produc}"` : "este producto";
-    const confirmed = await confirmAction({
-        title: "Quitar producto",
-        text: `¿Está seguro de retirar ${descripcion} del detalle del contrato?`,
-        icon: "warning",
-    });
-    if (!confirmed) return;
-    detallesLocales.value.splice(index, 1);
-}
-
-/**
- * Previsualiza y guarda el detalle de médicos-producto del contrato.
- *
- * Antes de escribir pide al backend el diff y muestra al usuario cuántos
- * registros se agregan, cambian o quedan sin aplicar. Las filas que no vienen
- * en la lista solo se retiran si el usuario lo confirma de forma explícita.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-09-30
- */
-async function guardarDetalles() {
-    if (loadingGuardarDetalle.value) return;
-    if (!detallesLocales.value.length) {
-        toastMessage({
-            heading: "Atención",
-            text: "Agregue al menos un médico-producto",
-            icon: "warning",
-        });
-        return;
-    }
-
-    loadingGuardarDetalle.value = true;
-    try {
-        const payload = {
-            medicos: detallesLocales.value.map((d) => ({
-                medico_id: d.medico_id,
-                producto_id: d.producto_id,
-                valor_consulta: d.valor_consulta ?? 0,
-                valor_urgencias: d.valor_urgencias ?? 0,
-                fecha_ingreso: d.fecha_ingreso || null,
-            })),
-        };
-
-        const url = `/api/contratos/${contratoSeleccionado.value.id}/medicos`;
-        const prev = await axios.post(`${url}/preview`, payload);
-        const diff = prev.data.data;
-
-        if (diff.errores?.length) {
-            toastMessage({
-                heading: "Error",
-                text: diff.errores.join(" "),
-                icon: "error",
-            });
-            return;
-        }
-
-        const resumen = `Se agregarán ${diff.altas?.length ?? 0} y se actualizarán ${diff.cambios?.length ?? 0}.`;
-
-        if (diff.ausentes?.length) {
-            const texto =
-                `Hay ${diff.ausentes?.length ?? 0} registro(s) guardados que no están en la lista. ` +
-                `Si los retira, se marcarán como inactivos; ` +
-                `si cancela, quedarán activos con su tarifa anterior, ` +
-                `pero las altas y cambios sí se guardarán. ` +
-                `¿Desea retirarlos? (Sí, continuar = retirarlos; Cancelar = guardar sin retirar)`;
-
-            const retirar = await confirmAction({
-                title: "Registros que no están en la lista",
-                text: resumen + " " + texto,
-                icon: "warning",
-            });
-
-            if (!retirar) {
-                const soloAltas = await confirmAction({
-                    title: "Confirmar cambios parciales",
-                    text:
-                        resumen +
-                        " Los registros ausentes se conservarán. ¿Desea aplicar solo las altas y cambios?",
-                    icon: "question",
-                });
-                if (!soloAltas) return;
-            }
-            payload.retirar_faltantes = retirar;
-        } else {
-            const ok = await confirmAction({
-                title: "Confirmar cambios",
-                text: resumen + " ¿Desea aplicarlos?",
-                icon: "question",
-            });
-            if (!ok) return;
-        }
-
-        await axios.put(url, payload);
-
-        toastMessage({
-            heading: "Ok",
-            text: "Médicos-producto guardados correctamente",
-            icon: "success",
-        });
-
-        const res = await axios.get(`/api/contratos/${contratoSeleccionado.value.id}`);
-        contratoSeleccionado.value = res.data.data;
-        detallesLocales.value = mapearMedicosDetalle(res.data.data.medicos || []);
-        await cargarCobertura(contratoSeleccionado.value.id);
-        await listar();
-    } catch (_error) {
-        const errorData = _error.response?.data;
-        let msg = typeof errorData === "object" ? errorData?.message : null;
-        if (!msg && errorData?.errors && typeof errorData.errors === "object") {
-            msg = Object.values(errorData.errors).flat().join(", ");
-        }
-        toastMessage({
-            heading: "Error",
-            text: msg || "Error al guardar los detalles del contrato",
-            icon: "error",
-        });
-    } finally {
-        loadingGuardarDetalle.value = false;
-    }
 }
 
 // ─── TARIFAS ENTIDAD Y MÉDICOS (PLANTILLAS Y PREVIEW DIFF) ─────────────────
@@ -2256,7 +2286,10 @@ async function ejecutarConfirmacionImportacion() {
         if (contratoSeleccionado.value?.id === contratoId) {
             const detalle = await axios.get(`/api/contratos/${contratoId}`);
             contratoSeleccionado.value = detalle.data.data;
-            detallesLocales.value = mapearMedicosDetalle(detalle.data.data.medicos || []);
+            await cargarDetalleProductos(
+                contratoId,
+                filtroMedicoId.value ? Number(filtroMedicoId.value) : null
+            );
             await cargarCobertura(contratoId);
         }
         await listar();

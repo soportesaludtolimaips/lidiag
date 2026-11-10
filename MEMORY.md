@@ -44,6 +44,27 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * Retorna los médicos únicos vinculados al contrato y el catálogo de productos con sus tarifas contratadas institucionales y valores de consulta/urgencias según el médico seleccionado (o null si se consulta la totalidad de productos del contrato).
   - **Verificaciones:**
     * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% en los 3 archivos PHP ✅.
+- [x] **2026-11-10 — Motor de Cruce Financiero y Liquidación en Producción Detallada (`CruceFinancieroService.php`, `ProduccionDetalladaExport.php`, `ProduccionDetalladaDetalleSheet.php`):**
+  - **Requerimiento del Usuario:**
+    * Cruzar el Reporte de Producción Detallado con el módulo de Contratación para extraer dos métricas financieras por registro:
+      1. Valor Contratado con la Entidad (tarifa pactada con el cliente / EPS / sede).
+      2. Valor Contratado con el Médico (honorario del médico lector según urgencia vs consulta externa).
+    * Garantizar alto rendimiento sin consultas repetitivas (N+1) y trazabilidad ante registros sin contrato o tarifa.
+  - **Ajustes Realizados:**
+    * **Nuevo Servicio de Dominio ([`CruceFinancieroService.php`](file:///c:/laragon/www/lidiag/app/Services/Liquidacion/CruceFinancieroService.php)):**
+      - Diseñado e implementado con Query Builder optimizado mediante `LEFT JOIN` condicionales a `contratos` (por sede y vigencia de lectura), `contratos_productos` (por producto CUPS) y `contratos_medicos` (por médico y producto).
+      - Resolución de tarifas en SQL puro con `CASE WHEN`: prioriza `valor_urgencias` si `nom_priori = 'Alta'`, `valor_consulta` en consultas ambulatorias, con fallback defensivo a `valor_contrato` y `0.00` controlado si no hay tarifa o médico.
+      - Proyección de `valor_entidad`, `valor_medico`, `margen_bruto`, `tarifa_tipo` y `estado_tarifa` (`Tarificado`, `Sin Contrato Sede`, `Producto No Contratado`, `Médico Sin Tarifa`).
+      - Soporte para streaming de baja memoria mediante `cursorProduccionValorada()`.
+    * **Exportador Multi-Hoja ([`ProduccionDetalladaExport.php`](file:///c:/laragon/www/lidiag/app/Exports/ProduccionDetalladaExport.php)):**
+      - Delegación limpia de la consulta operativa a `CruceFinancieroService::consultarProduccionValorada()`.
+    * **Hoja Detalle de Producción ([`ProduccionDetalladaDetalleSheet.php`](file:///c:/laragon/www/lidiag/app/Exports/Sheets/ProduccionDetalladaDetalleSheet.php)):**
+      - Incorporadas 5 nuevas columnas (T a X): `Valor Contratado Entidad`, `Valor Contratado Médico`, `Margen Bruto`, `Tipo Tarifa Médico` y `Estado Tarifa`.
+      - Banner ampliado a `A1:X1`, cuadrícula y bordes a `A3:X{$highestRow}`, y formato contable `$#,##0.00` aplicado a columnas financieras.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% (0 errores) ✅.
+    * Larastan PHPStan Nivel 5 (`vendor\bin\phpstan.bat analyse --level=5`) completado con 0 errores ✅.
+    * Generación real de libro Excel probada contra base de datos local (2.702 estudios valorados y exportados exitosamente con sus 24 columnas) ✅.
 - [x] **2026-11-10 — Corrección de Eliminación Visual de Fila al Guardar Lectura de Estudio (`leerEstudioComponent.vue`):**
   - **Diagnóstico y Causa Raíz:**
     * El usuario reportó que cuando un médico guarda la lectura, no se oculta/elimina la fila en la tabla del registro leído en `leerEstudioComponent.vue`.
@@ -78,6 +99,31 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% (0 fallos) ✅.
     * Larastan PHPStan Nivel 5 (`vendor\bin\phpstan.bat analyse --level=5`) completado con 0 errores ✅.
     * Pruebas locales y con fallback simulado validadas exitosamente ✅.
+
+- [x] **2026-11-10 — Drawer de Detalle de Contrato: Filtrado Reactivo por Médico, Manejo de Estados Vacíos y Tabla Estricta de 5 Columnas (`ContratoService.php`, `ContratoController.php`, `api_contratacion.php`, `contratoComponent.vue`):**
+  - **Requerimiento del Usuario:**
+    * Permitir la visualización y análisis de contratos que tienen productos contratados institucionalmente (`contratos_productos`) pero aún no cuentan con médicos lectores relacionados (`contratos_medicos`), o que tienen múltiples médicos vinculados.
+    * Incorporar en el drawer lateral un selector que liste únicamente los médicos que ya se encuentran relacionados a ese contrato específico.
+    * Al seleccionar un médico del combo, actualizar de forma reactiva la tabla de productos/tarifas vinculados a ese contrato y a dicho médico lector.
+    * Estructurar la tabla del drawer estrictamente con 5 columnas: `CUPS`, `Producto`, `Val Contratado`, `Consulta` y `Hospitalización/Urg`.
+  - **Implementación Backend en Laravel 13 ([`ContratoService.php`](file:///c:/laragon/www/lidiag/app/Services/Contratacion/ContratoService.php), [`ContratoController.php`](file:///c:/laragon/www/lidiag/app/Http/Controllers/Contratacion/ContratoController.php), [`api_contratacion.php`](file:///c:/laragon/www/lidiag/routes/api_contratacion.php)):**
+    * Nuevo método `listarMedicosProductos(int $contratoId, ?int $medicoId = null): array` en `ContratoService`:
+      - Consulta distinta en `contratos_medicos` con `estado = 1` y join con `users` para retornar únicamente los médicos relacionados al contrato (`id`, `name`, `reg_med`).
+      - Consulta condicional: si se proporciona `$medicoId`, une `contratos_medicos` con `contratos_productos` y `config_productos` retornando `valor_contrato`, `valor_consulta` y `valor_urgencias`. Si `$medicoId` es nulo, consulta todos los productos contratados en `contratos_productos` (`estado = 1`), dejando `valor_consulta` y `valor_urgencias` en `null`.
+    * Nuevo endpoint protegido `GET /api/contratos/{id}/medicos-productos` con permiso `contratos.show`.
+  - **Implementación Frontend en Vue 3 ([`contratoComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/contratos/contratoComponent.vue)):**
+    * Drawer lateral `.right-sidebar` optimizado:
+      - Encabezado con información del contrato y sede (`#contratoId - Sede`).
+      - Badges KPI: `Total Productos Contratados`, `Médicos Vinculados`, y semáforo de `Cobertura`.
+      - Alerta contextual para contratos con productos institucionales pero sin médicos aún, guiando al usuario a importar tarifas con la Plantilla 2.
+      - Selector de médicos (`#select-medico-drawer`) con opción inicial "...::: Todos los productos contratados :::..." y los médicos vinculados.
+      - Buscador reactivo por CUPS o nombre de producto en tiempo real.
+      - Tabla estricta con las 5 columnas (`CUPS`, `Producto`, `Val Contratado`, `Consulta`, `Hospitalización/Urg`), montos formateados en moneda colombiana y guion `—` cuando no aplica tarifa médica.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% (0 errores) ✅.
+    * Larastan PHPStan Nivel 5 (`vendor\bin\phpstan.bat analyse --level=5`) completado con 0 errores ✅.
+    * ESLint y Prettier en `contratoComponent.vue` 100% limpios ✅.
+    * Compilación Vite (`npm run build`) completada con éxito en 1.28s ✅.
 
 - [x] **2026-11-10 — Homologación de Estilos Nativos de Modales de Importación y Vista Previa según `reporteProduccionComponent.vue` (`contratoComponent.vue`):**
   - **Problema Auditado:**
