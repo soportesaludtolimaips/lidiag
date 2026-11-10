@@ -37,6 +37,49 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-10 — Refactorización Integral Módulo de Contratación (Módulo 11) — Tarifas Entidad y Médicos con Diff No Destructivo y Cobertura (`ContratoEntidadPlantillaExport.php`, `ContratoMedicoPlantillaExport.php`, `ContratoPreviewEntidadRequest.php`, `ContratoConfirmarEntidadRequest.php`, `ContratoPreviewMedicoRequest.php`, `ContratoConfirmarMedicoRequest.php`, `ContratoService.php`, `ContratoController.php`, `api_contratacion.php`, `contratoComponent.vue`):**
+  - **Plantilla 1: Contratación con Entidades (Aseguradoras / Hospitales):**
+    * Generación e inyección de metadatos exactos en A2 (`contrato_id`), A3 (Sede), A4 (Fecha Inicio) y B4 (Fecha Fin), con tabla de tarifas desde la fila 6 (CUPS, Producto, Valor) formateada con estilo de moneda.
+    * Endpoint de exportación: `GET /api/contratos/{id}/plantilla-entidad`.
+  - **Plantilla 2: Contratación de Pago a Médicos Lectores:**
+    * Modal interactivo Bootstrap 5 (`#modalTarifasMedico`) con selector dinámico Select2 de médicos activos con rol `Médico`.
+    * Inyección de metadatos en A2 (`contrato_id`), A3 (Sede), A4 (`medico_id`), B4 (Nombre Médico), A5 (Fecha Inicio) y B5 (Fecha Fin), con tabla desde la fila 7 (CUPS, Producto, Consulta Externa, Urgencias/Hosp).
+    * Endpoint de exportación: `GET /api/contratos/{id}/medicos/{medicoId}/plantilla`.
+    * **Validación Estricta en Importación:** Backend lee obligatoriamente la celda `A4` y valida que coincida exactamente con el `medico_id` seleccionado; si hay discrepancia rechaza inmediatamente con HTTP 422.
+  - **Motor de Vista Previa (Preview) con Diff No Destructivo:**
+    * Endpoints `POST /api/contratos/{id}/preview-importar-entidad` y `POST /api/contratos/{id}/preview-importar-medicos` procesan la hoja Excel sin guardar inmediatamente.
+    * Desglose completo: altas (nuevos productos), tarifas actualizadas (cambios de valor), retiros con baja lógica garantizada (`estado = 0` y `fecha_retiro = now()`, **cero eliminación física DELETE** para preservar trazabilidad) y sin cambios.
+  - **Validación de Cobertura Interactiva:**
+    * Cruce automático contra productos institucionales exigibles (`ConfigProducto` que requieren lectura), reportando aquellos sin tarifa configurada.
+    * Modal XL (`#modalPreviewDiff`) con badges KPI, 4 pestañas interactivas (Altas, Actualizadas, Bajas lógicas con explicación asistencial, y Cobertura con buscador reactivo), y botón "Confirmar e Importar Tarifas" conectado a endpoints transaccionales (`confirmar-importar-entidad` y `confirmar-importar-medicos`).
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% en todos los archivos PHP del módulo ✅.
+    * Larastan PHPStan Nivel 5 (`vendor\bin\phpstan.bat analyse`) con 0 errores ✅.
+    * ESLint y Prettier 100% limpios en `contratoComponent.vue` (cabeceras de modales estandarizadas con el diseño nativo de AdminWrap y `dark-theme.css` sin clases de fondo invasivas) ✅.
+    * Compilación de producción Vite (`npm run build`) completada con éxito en 1.26s ✅.
+
+- [x] **2026-11-10 — Auditoría e Implementación UI/UX y Multi-Sede en Módulos de Contratación y Liquidación (`contratoComponent.vue`, `liquidacionComponent.vue`, `productividadComponent.vue`):**
+  - **Alcance Auditado y Mejoras Implementadas:**
+    * **`contratoComponent.vue` (Módulo Contratación):**
+      - *Formulario Semántico y Atajos (H7, L6):* Integración de `@submit.prevent="guardarRegistro()"` en el formulario del panel lateral y adición de `@keyup.enter="guardarRegistro()"` en los campos de fecha de inicio y fin.
+      - *Accesibilidad de Formularios (H2):* Asociación semántica de label `for="importar-medico-select"` con el componente `Select2` en el modal de importación Excel.
+      - *Confirmación Preventiva (M6):* Adición de diálogo interactivo no bloqueante `confirmAction` en `quitarProductoDetalle(index)` para evitar la eliminación accidental de productos y tarifas configuradas.
+      - *Cierre en Cascada por Teclado `Escape` (E4):* Actualizado el listener `handleKeydown` para detectar y cerrar el modal `#modalImportar` antes de cerrar los drawers laterales.
+      - *Estandarización de Sidebars y Dark Mode (H1, D2):* Ajuste del ancho responsivo de `.right-sidebar` al estándar institucional de 80% (100% en pantallas móviles < 768px) y eliminación de `background: #ffffff` inline forzado en estilos locales para permitir herencia nativa de `dark-theme.css`.
+      - *Navegación SPA (S1):* Reemplazo de botón inerte en el breadcrumb por `<router-link to="/">Inicio</router-link>`.
+    * **`liquidacionComponent.vue` (Módulo Liquidación):**
+      - *Formulario Semántico y Envío por Teclado (H7, L6):* Envoltura de los filtros de liquidación (Sede, Contrato, Médico, Rango de Fechas) en un elemento `<form @submit.prevent="calcular">` con botón de envío tipo `submit`.
+      - *Autofoco Accesible en Exclusiones (M2):* Adición de `nextTick` en `abrirModalExclusion` para enfocar de inmediato el campo `#busqueda-exclusion`.
+      - *Feedback Visual al Exportar (M4):* Notificación toast no invasiva `toastMessage({ heading: "Procesando...", text: "Generando archivo de liquidación en Excel.", icon: "info" })`.
+      - *Navegación SPA (S1):* Migración de enlace breadcrumb a `<router-link to="/">Inicio</router-link>`.
+    * **`productividadComponent.vue` (Módulo Liquidación - Productividad):**
+      - *Sincronización Multi-Sede Reactiva (S2):* Integración de persistencia con `obtenerSedeGuardada()`, preselección de la sede guardada (`ST-sede`), canal de contingencia `solicitarSedeActiva` y escucha del evento `sedeSeleccionada` en el bus `mitt` con recálculo automático.
+      - *Formulario Semántico (H7, L6):* Envoltura de filtros de sede y periodo en `<form @submit.prevent="cargar">` con botón tipo `submit`.
+      - *Feedback Visual al Exportar (M4):* Notificación toast antes de invocar la descarga del Excel de productividad.
+      - *Consistencia de Tablas y SPA (T1, S1):* Normalización de clases en tablas de productividad por médico y breadcrumb con `<router-link>`.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios (0 errores, 0 advertencias) en los 3 componentes ✅.
+    * Compilación Vite (`npm run build`) completada con éxito en 1.34s ✅.
 - [x] **2026-11-10 — Registro de Fecha/Hora de Recepción de Lectura de Tele-Radiología en LIDiag (`fechor_recepcion_tele`):**
   - **Problema:** En el flujo de Tele-Radiología se requería controlar de forma independiente la fecha y hora en que LIDiag recibe el informe desde tele-radiología externa (webhook), diferenciándola de la fecha en que el médico emitió la lectura (`fechor_lectura`), sin depender del volátil `updated_at` de la tabla `estudios`.
   - **Solución Implementada:**

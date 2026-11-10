@@ -3,12 +3,19 @@
 namespace App\Http\Controllers\Contratacion;
 
 use App\Exports\ContratoDetallePlantillaExport;
+use App\Exports\ContratoEntidadPlantillaExport;
+use App\Exports\ContratoMedicoPlantillaExport;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Contratacion\ContratoConfirmarEntidadRequest;
+use App\Http\Requests\Contratacion\ContratoConfirmarMedicoRequest;
 use App\Http\Requests\Contratacion\ContratoImportarMedicosRequest;
 use App\Http\Requests\Contratacion\ContratoIndexRequest;
+use App\Http\Requests\Contratacion\ContratoPreviewEntidadRequest;
+use App\Http\Requests\Contratacion\ContratoPreviewMedicoRequest;
 use App\Http\Requests\Contratacion\ContratoRequest;
 use App\Http\Requests\Contratacion\ContratoSyncMedicosRequest;
 use App\Models\Contratacion\Contrato;
+use App\Models\User;
 use App\Services\Contratacion\ContratoService;
 use Illuminate\Http\JsonResponse;
 use Maatwebsite\Excel\Facades\Excel;
@@ -290,5 +297,144 @@ class ContratoController extends Controller
         $result = $this->contratoService->previewMedicos($contratoId, $validated['medicos']);
 
         return response()->json($result, $result['status']);
+    }
+
+    /**
+     * Descarga la Plantilla 1: Tarifas de Entidad / Hospital en formato Excel.
+     *
+     * @param  int  $contratoId  Identificador del contrato.
+     * @return BinaryFileResponse Descarga del archivo Excel.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-10
+     */
+    public function exportPlantillaEntidad(int $contratoId): BinaryFileResponse
+    {
+        $contrato = Contrato::with('sede')->find($contratoId);
+
+        if (! $contrato) {
+            abort(404, 'Contrato no encontrado');
+        }
+
+        $nombreSede = $contrato->sede->nom_sede ?? 'General';
+        $nombreSedeLimpio = str_replace(' ', '_', $nombreSede);
+        $nombreArchivo = "Tarifas_Entidad_Contrato_{$contratoId}_{$nombreSedeLimpio}.xlsx";
+
+        return Excel::download(
+            new ContratoEntidadPlantillaExport($contratoId),
+            $nombreArchivo
+        );
+    }
+
+    /**
+     * Descarga la Plantilla 2: Tarifas de Médico Lector en formato Excel.
+     *
+     * @param  int  $contratoId  Identificador del contrato.
+     * @param  int  $medicoId  Identificador del médico.
+     * @return BinaryFileResponse Descarga del archivo Excel.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-10
+     */
+    public function exportPlantillaMedico(int $contratoId, int $medicoId): BinaryFileResponse
+    {
+        $contrato = Contrato::find($contratoId);
+
+        if (! $contrato) {
+            abort(404, 'Contrato no encontrado');
+        }
+
+        $medico = User::find($medicoId);
+
+        if (! $medico) {
+            abort(404, 'Médico no encontrado');
+        }
+
+        $nombreMedicoLimpio = str_replace(' ', '_', $medico->name);
+        $nombreArchivo = "Tarifas_Medico_{$medicoId}_{$nombreMedicoLimpio}_Contrato_{$contratoId}.xlsx";
+
+        return Excel::download(
+            new ContratoMedicoPlantillaExport($contratoId, $medicoId),
+            $nombreArchivo
+        );
+    }
+
+    /**
+     * Procesa la vista previa (diff no destructivo y cobertura) para la Plantilla 1 (Entidad).
+     *
+     * @param  ContratoPreviewEntidadRequest  $request  Petición validada con el archivo Excel.
+     * @param  int  $contratoId  Identificador del contrato.
+     * @return JsonResponse Resultado del diff y cobertura.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-10
+     */
+    public function previewImportarEntidad(ContratoPreviewEntidadRequest $request, int $contratoId): JsonResponse
+    {
+        $result = $this->contratoService->previewImportarEntidad($contratoId, $request->file('archivo'));
+
+        return response()->json($result, (int) ($result['status'] ?? 200));
+    }
+
+    /**
+     * Confirma y persiste atómicamente el diff de tarifas de entidad (altas, cambios y bajas lógicas).
+     *
+     * @param  ContratoConfirmarEntidadRequest  $request  Datos validados para persistencia.
+     * @param  int  $contratoId  Identificador del contrato.
+     * @return JsonResponse Resultado de la persistencia.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-10
+     */
+    public function confirmarImportarEntidad(ContratoConfirmarEntidadRequest $request, int $contratoId): JsonResponse
+    {
+        $result = $this->contratoService->confirmarImportarEntidad($contratoId, $request->validated());
+
+        return response()->json($result, (int) ($result['status'] ?? 200));
+    }
+
+    /**
+     * Procesa la vista previa (diff no destructivo y cobertura) para la Plantilla 2 (Médicos Lectores)
+     * con validación estricta de celda A4 (médico) y A2 (contrato).
+     *
+     * @param  ContratoPreviewMedicoRequest  $request  Petición validada con archivo y medico_id.
+     * @param  int  $contratoId  Identificador del contrato.
+     * @return JsonResponse Resultado del diff y cobertura.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-10
+     */
+    public function previewImportarMedicos(ContratoPreviewMedicoRequest $request, int $contratoId): JsonResponse
+    {
+        $result = $this->contratoService->previewImportarMedicos(
+            $contratoId,
+            $request->file('archivo'),
+            (int) $request->input('medico_id')
+        );
+
+        return response()->json($result, (int) ($result['status'] ?? 200));
+    }
+
+    /**
+     * Confirma y persiste atómicamente el diff de tarifas de médicos lectores (altas, cambios y bajas lógicas).
+     *
+     * @param  ContratoConfirmarMedicoRequest  $request  Datos validados para persistencia.
+     * @param  int  $contratoId  Identificador del contrato.
+     * @return JsonResponse Resultado de la persistencia.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-10
+     */
+    public function confirmarImportarMedicos(ContratoConfirmarMedicoRequest $request, int $contratoId): JsonResponse
+    {
+        $result = $this->contratoService->confirmarImportarMedicos($contratoId, $request->validated());
+
+        return response()->json($result, (int) ($result['status'] ?? 200));
     }
 }

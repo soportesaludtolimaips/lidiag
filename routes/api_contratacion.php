@@ -29,7 +29,37 @@ Route::middleware(['auth'])->group(function () {
         ->name('api.contratos.medicos.sync')
         ->middleware(['permission:contratos.detalle.edit']);
 
-    // Plantilla de detalle del contrato (productos del catálogo, valores por médico)
+    // Plantilla 1: Tarifas de Entidad / Hospital (descarga Excel)
+    Route::get('/contratos/{contratoId}/plantilla-entidad', [ContratoController::class, 'exportPlantillaEntidad'])
+        ->name('api.contratos.plantilla.entidad')
+        ->middleware(['permission:contratos.index|contratos.show']);
+
+    // Plantilla 2: Tarifas de Médico Lector (descarga Excel personalizada por médico)
+    Route::get('/contratos/{contratoId}/medicos/{medicoId}/plantilla', [ContratoController::class, 'exportPlantillaMedico'])
+        ->name('api.contratos.plantilla.medico')
+        ->middleware(['permission:contratos.index|contratos.show']);
+
+    // Vista previa no destructiva de tarifas de Entidad / Hospital
+    Route::post('/contratos/{contratoId}/preview-importar-entidad', [ContratoController::class, 'previewImportarEntidad'])
+        ->name('api.contratos.preview.importar.entidad')
+        ->middleware(['permission:contratos.edit|contratos.detalle.edit']);
+
+    // Confirmación y persistencia de tarifas de Entidad / Hospital
+    Route::post('/contratos/{contratoId}/confirmar-importar-entidad', [ContratoController::class, 'confirmarImportarEntidad'])
+        ->name('api.contratos.confirmar.importar.entidad')
+        ->middleware(['permission:contratos.edit|contratos.detalle.edit']);
+
+    // Vista previa no destructiva de tarifas de Médicos Lectores (validación estricta A4)
+    Route::post('/contratos/{contratoId}/preview-importar-medicos', [ContratoController::class, 'previewImportarMedicos'])
+        ->name('api.contratos.preview.importar.medicos')
+        ->middleware(['permission:contratos.detalle.create|contratos.detalle.edit']);
+
+    // Confirmación y persistencia de tarifas de Médicos Lectores
+    Route::post('/contratos/{contratoId}/confirmar-importar-medicos', [ContratoController::class, 'confirmarImportarMedicos'])
+        ->name('api.contratos.confirmar.importar.medicos')
+        ->middleware(['permission:contratos.detalle.create|contratos.detalle.edit']);
+
+    // Plantilla de detalle del contrato (legacy)
     Route::get('/contratos/{contratoId}/plantilla-detalle', [ContratoController::class, 'exportPlantillaDetalle'])
         ->name('api.contratos.plantilla.detalle')
         ->middleware(['permission:contratos.index']);

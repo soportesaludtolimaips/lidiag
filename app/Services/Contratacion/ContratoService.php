@@ -9,6 +9,7 @@ use App\Models\Configuracion\ConfigSede;
 use App\Models\Contratacion\Contrato;
 use App\Models\Contratacion\ContratoMedico;
 use App\Models\Contratacion\ContratoProducto;
+use App\Models\User;
 use App\Services\BaseService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
@@ -662,5 +663,692 @@ class ContratoService extends BaseService
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 422);
         }
+    }
+
+    /**
+     * Normaliza un valor monetario de celda Excel a número flotante.
+     *
+     * @param  mixed  $valor  Contenido de la celda.
+     * @return float Valor numérico positivo o cero.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-10
+     */
+    private function parseMoneyHelper(mixed $valor): float
+    {
+        if (is_numeric($valor)) {
+            return max(0.0, (float) $valor);
+        }
+        if (empty($valor)) {
+            return 0.0;
+        }
+        $s = trim(preg_replace('/[^\d.,]/', '', (string) $valor));
+        if (empty($s)) {
+            return 0.0;
+        }
+        if (preg_match('/[.,]\d{3}$/', $s)) {
+            $s = str_replace([',', '.'], '', $s);
+        } else {
+            $s = str_replace(',', '.', $s);
+        }
+
+        return max(0.0, (float) $s);
+    }
+
+    /**
+     * Genera la vista previa (diff no destructivo y reporte de cobertura) para la Plantilla 1
+     * de tarifas de entidades/hospitales. No persiste cambios en base de datos.
+     *
+     * Flujo del proceso:
+     * 1. Valida existencia del contrato y lee la celda A2 del archivo.
+     * 2. Compara el ID del contrato de A2 contra el contrato destino (error 422 si discrepa).
+     * 3. Itera las filas a partir de la fila 6/7 extrayendo CUPS, Producto y Valor.
+     * 4. Cruza contra contratos_productos para clasificar en altas, cambios, retiros y sin cambios.
+     * 5. Evalúa la cobertura contra el catálogo de productos que requieren lectura.
+     *
+     * @param  int  $contratoId  Identificador del contrato destino.
+     * @param  UploadedFile  $archivo  Archivo Excel cargado.
+     * @return array Reporte estructurado con resumen, altas, cambios, retiros y cobertura.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-10
+     */
+    public function previewImportarEntidad(int $contratoId, UploadedFile $archivo): array
+    {
+        $contrato = Contrato::with('sede')->find($contratoId);
+
+        if (! $contrato) {
+            return $this->notFound('Contrato no encontrado');
+        }
+
+        try {
+            $spreadsheet = IOFactory::load($archivo->getPathname());
+            $sheet = $spreadsheet->getActiveSheet();
+
+            // Validación estricta de ID en celda A2 (con fallback a C2 por retrocompatibilidad)
+            $a2 = (string) $sheet->getCell('A2')->getValue();
+            $c2 = (string) $sheet->getCell('C2')->getValue();
+            $rawId = preg_match('/(\d+)/', $a2, $m) ? (int) $m[1] : (preg_match('/(\d+)/', $c2, $m2) ? (int) $m2[1] : null);
+
+            if ($rawId === null) {
+                return $this->error('No se encontró el ID del contrato en el archivo Excel (celda A2).', 422);
+            }
+
+            if ($rawId !== $contratoId) {
+                return $this->error("El archivo no corresponde a este contrato. Se esperaba ID {$contratoId}, pero el archivo indica ID {$rawId} en la celda A2.", 422);
+            }
+
+            // Identificar fila inicial de datos (fila 6 si no hay encabezados textuales, o fila 7 si fila 6 es encabezado)
+            $startRow = 7;
+            $valA6 = trim((string) $sheet->getCell('A6')->getValue());
+            if (is_numeric($valA6)) {
+                $startRow = 6;
+            }
+
+            $highestRow = $sheet->getHighestRow();
+            $filasArchivo = [];
+            $cupsVistos = [];
+
+            for ($row = $startRow; $row <= $highestRow; $row++) {
+                $cups = trim((string) $sheet->getCell("A{$row}")->getValue());
+                $nombre = trim((string) $sheet->getCell("B{$row}")->getValue());
+                $rawValor = $sheet->getCell("C{$row}")->getValue();
+
+                if (empty($cups) && empty($nombre)) {
+                    continue;
+                }
+
+                // Evitar filas con encabezados repetidos
+                if (strcasecmp($cups, 'CUPS') === 0 || strcasecmp($cups, 'CODIGO') === 0) {
+                    continue;
+                }
+
+                $valor = $this->parseMoneyHelper($rawValor);
+
+                if (isset($cupsVistos[$cups])) {
+                    continue;
+                }
+                $cupsVistos[$cups] = true;
+
+                $filasArchivo[$cups] = [
+                    'cups' => $cups,
+                    'nombre_archivo' => $nombre,
+                    'valor' => $valor,
+                ];
+            }
+
+            // Catálogo institucional activo
+            $catalogo = ConfigProducto::where('requi_lectura', 1)
+                ->where('estado', 1)
+                ->get()
+                ->keyBy('cod_cups');
+
+            // Tarifas existentes en contratos_productos
+            $existentes = ContratoProducto::where('contrato_id', $contratoId)
+                ->with('producto:id,cod_cups,nom_produc')
+                ->get()
+                ->keyBy(fn ($cp) => (string) ($cp->producto->cod_cups ?? $cp->producto_id));
+
+            $altas = [];
+            $cambios = [];
+            $sinCambios = [];
+            $retiros = [];
+            $noEncontrados = [];
+
+            foreach ($filasArchivo as $cups => $fila) {
+                $producto = $catalogo->get($cups);
+
+                if (! $producto) {
+                    $producto = ConfigProducto::where('cod_cups', $cups)->first();
+                }
+
+                if (! $producto) {
+                    $noEncontrados[] = [
+                        'cups' => $cups,
+                        'nombre' => $fila['nombre_archivo'],
+                        'valor' => $fila['valor'],
+                    ];
+
+                    continue;
+                }
+
+                $cpExistente = $existentes->get($cups);
+
+                if (! $cpExistente) {
+                    if ($fila['valor'] > 0) {
+                        $altas[] = [
+                            'producto_id' => $producto->id,
+                            'cod_cups' => $producto->cod_cups,
+                            'nom_produc' => $producto->nom_produc,
+                            'valor_anterior' => 0.0,
+                            'valor_contrato' => $fila['valor'],
+                        ];
+                    }
+                } else {
+                    $valorActual = (float) $cpExistente->valor_contrato;
+                    $estadoActual = (int) $cpExistente->estado;
+
+                    if ($fila['valor'] <= 0) {
+                        if ($estadoActual === 1) {
+                            $retiros[] = [
+                                'id' => $cpExistente->id,
+                                'producto_id' => $producto->id,
+                                'cod_cups' => $producto->cod_cups,
+                                'nom_produc' => $producto->nom_produc,
+                                'valor_contrato' => $valorActual,
+                                'motivo' => 'Tarifa en cero o excluida en el archivo',
+                            ];
+                        }
+                    } elseif ($valorActual != $fila['valor'] || $estadoActual === 0) {
+                        $cambios[] = [
+                            'id' => $cpExistente->id,
+                            'producto_id' => $producto->id,
+                            'cod_cups' => $producto->cod_cups,
+                            'nom_produc' => $producto->nom_produc,
+                            'valor_anterior' => $valorActual,
+                            'valor_contrato' => $fila['valor'],
+                            'reactiva' => $estadoActual === 0,
+                        ];
+                    } else {
+                        $sinCambios[] = [
+                            'id' => $cpExistente->id,
+                            'producto_id' => $producto->id,
+                            'cod_cups' => $producto->cod_cups,
+                            'nom_produc' => $producto->nom_produc,
+                            'valor_contrato' => $valorActual,
+                        ];
+                    }
+                }
+            }
+
+            // Productos que estaban activos en el contrato pero NO vinieron en el archivo
+            foreach ($existentes as $cups => $cp) {
+                if ((int) $cp->estado === 1 && ! isset($filasArchivo[$cups])) {
+                    $retiros[] = [
+                        'id' => $cp->id,
+                        'producto_id' => $cp->producto_id,
+                        'cod_cups' => $cp->producto->cod_cups ?? $cups,
+                        'nom_produc' => $cp->producto->nom_produc ?? '',
+                        'valor_contrato' => (float) $cp->valor_contrato,
+                        'motivo' => 'No viene en la plantilla importada',
+                    ];
+                }
+            }
+
+            // Evaluación de cobertura interactiva contra el catálogo
+            $tarifadosFuturos = collect($altas)->pluck('producto_id')
+                ->merge(collect($cambios)->pluck('producto_id'))
+                ->merge(collect($sinCambios)->pluck('producto_id'))
+                ->diff(collect($retiros)->pluck('producto_id'))
+                ->unique()
+                ->flip();
+
+            $faltantesCobertura = [];
+            foreach ($catalogo as $prod) {
+                if (! $tarifadosFuturos->has($prod->id)) {
+                    $faltantesCobertura[] = [
+                        'id' => $prod->id,
+                        'cod_cups' => $prod->cod_cups,
+                        'nom_produc' => $prod->nom_produc,
+                    ];
+                }
+            }
+
+            return $this->success([
+                'tipo' => 'entidad',
+                'contrato' => [
+                    'id' => $contrato->id,
+                    'sede_id' => $contrato->sede_id,
+                    'nom_sede' => $contrato->sede->nom_sede ?? '',
+                    'fecha_inicio' => $contrato->fecha_inicio->format('Y-m-d'),
+                    'fecha_fin' => $contrato->fecha_fin->format('Y-m-d'),
+                ],
+                'resumen' => [
+                    'total_archivo' => count($filasArchivo),
+                    'altas' => count($altas),
+                    'cambios' => count($cambios),
+                    'retiros' => count($retiros),
+                    'sin_cambios' => count($sinCambios),
+                    'no_encontrados' => count($noEncontrados),
+                ],
+                'altas' => $altas,
+                'cambios' => $cambios,
+                'retiros' => $retiros,
+                'no_encontrados' => $noEncontrados,
+                'cobertura' => [
+                    'total_catalogo' => $catalogo->count(),
+                    'tarifados' => $catalogo->count() - count($faltantesCobertura),
+                    'faltantes' => $faltantesCobertura,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            return $this->error('Error al procesar la plantilla de entidad: '.$e->getMessage(), 422);
+        }
+    }
+
+    /**
+     * Persiste atómicamente el resultado confirmado del diff para tarifas de entidad.
+     * Aplica altas, actualizaciones y bajas lógicas (estado = 0). NUNCA elimina con DELETE.
+     *
+     * @param  int  $contratoId  Identificador del contrato.
+     * @param  array  $data  Datos con altas, cambios y retiros.
+     * @return array Resultado de la persistencia.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-10
+     */
+    public function confirmarImportarEntidad(int $contratoId, array $data): array
+    {
+        $contrato = Contrato::find($contratoId);
+
+        if (! $contrato) {
+            return $this->notFound('Contrato no encontrado');
+        }
+
+        return $this->transaction(function () use ($contratoId, $data) {
+            $altas = $data['altas'] ?? [];
+            $cambios = $data['cambios'] ?? [];
+            $retiros = $data['retiros'] ?? [];
+
+            // 1. Altas
+            foreach ($altas as $item) {
+                ContratoProducto::updateOrCreate(
+                    [
+                        'contrato_id' => $contratoId,
+                        'producto_id' => (int) $item['producto_id'],
+                    ],
+                    [
+                        'valor_contrato' => (float) $item['valor_contrato'],
+                        'estado' => 1,
+                    ]
+                );
+            }
+
+            // 2. Cambios
+            foreach ($cambios as $item) {
+                ContratoProducto::where('id', (int) $item['id'])
+                    ->where('contrato_id', $contratoId)
+                    ->update([
+                        'valor_contrato' => (float) $item['valor_contrato'],
+                        'estado' => 1,
+                    ]);
+            }
+
+            // 3. Retiros con BAJA LÓGICA (estado = 0, nunca delete)
+            foreach ($retiros as $item) {
+                ContratoProducto::where('id', (int) $item['id'])
+                    ->where('contrato_id', $contratoId)
+                    ->update([
+                        'estado' => 0,
+                    ]);
+            }
+
+            $totalAfectados = count($altas) + count($cambios) + count($retiros);
+
+            return $this->success([
+                'altas' => count($altas),
+                'cambios' => count($cambios),
+                'retiros' => count($retiros),
+                'total' => $totalAfectados,
+            ], "Tarifas de entidad actualizadas exitosamente ({$totalAfectados} registros procesados).");
+        });
+    }
+
+    /**
+     * Genera la vista previa (diff no destructivo y reporte de cobertura) para la Plantilla 2
+     * de tarifas de médicos lectores. Realiza validación estricta de celda A4 (médico) y A2 (contrato).
+     *
+     * Flujo del proceso:
+     * 1. Valida existencia de contrato y médico.
+     * 2. Lee celda A2 del Excel y valida estricta coincidencia con contrato_id.
+     * 3. Lee celda A4 del Excel y valida estricta coincidencia con medico_id (422 si discrepa).
+     * 4. Itera filas a partir de fila 7/8 leyendo CUPS, Consulta Externa y Urgencias/Hosp.
+     * 5. Cruza contra contratos_medicos de ese médico para clasificar altas, cambios, retiros y sin cambios.
+     * 6. Evalúa cobertura interactiva de productos exigibles sin tarifa para el médico.
+     *
+     * @param  int  $contratoId  Identificador del contrato.
+     * @param  UploadedFile  $archivo  Archivo Excel cargado.
+     * @param  int  $medicoId  Identificador del médico lector.
+     * @return array Reporte estructurado para la vista previa.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-10
+     */
+    public function previewImportarMedicos(int $contratoId, UploadedFile $archivo, int $medicoId): array
+    {
+        $contrato = Contrato::with('sede')->find($contratoId);
+
+        if (! $contrato) {
+            return $this->notFound('Contrato no encontrado');
+        }
+
+        $medico = User::find($medicoId);
+
+        if (! $medico) {
+            return $this->error('El médico seleccionado no existe.', 422);
+        }
+
+        try {
+            $spreadsheet = IOFactory::load($archivo->getPathname());
+            $sheet = $spreadsheet->getActiveSheet();
+
+            // 1. Validación estricta de ID Contrato en celda A2 (fallback C2)
+            $a2 = (string) $sheet->getCell('A2')->getValue();
+            $c2 = (string) $sheet->getCell('C2')->getValue();
+            $rawContratoId = preg_match('/(\d+)/', $a2, $m) ? (int) $m[1] : (preg_match('/(\d+)/', $c2, $m2) ? (int) $m2[1] : null);
+
+            if ($rawContratoId === null) {
+                return $this->error('No se encontró el ID del contrato en el archivo Excel (celda A2).', 422);
+            }
+
+            if ($rawContratoId !== $contratoId) {
+                return $this->error("El archivo no corresponde a este contrato. Se esperaba ID {$contratoId}, pero el archivo indica ID {$rawContratoId} en la celda A2.", 422);
+            }
+
+            // 2. Validación estricta de ID Médico en celda A4 (REQUERIMIENTO 3)
+            $a4 = (string) $sheet->getCell('A4')->getValue();
+            $rawMedicoId = preg_match('/(\d+)/', $a4, $mM) ? (int) $mM[1] : null;
+
+            if ($rawMedicoId === null) {
+                return $this->error('No se encontró el ID del médico en el archivo Excel (celda A4 obligatoria).', 422);
+            }
+
+            if ($rawMedicoId !== $medicoId) {
+                return $this->error("Discrepancia estricta en la plantilla: El archivo Excel contiene en la celda A4 el médico ID {$rawMedicoId} y no coincide con el médico seleccionado ID {$medicoId} ({$medico->name}).", 422);
+            }
+
+            // 3. Identificar fila inicial de datos (fila 8 si fila 7 es encabezado, o fila 7)
+            $startRow = 8;
+            $valA7 = trim((string) $sheet->getCell('A7')->getValue());
+            if (is_numeric($valA7)) {
+                $startRow = 7;
+            }
+
+            $highestRow = $sheet->getHighestRow();
+            $filasArchivo = [];
+            $cupsVistos = [];
+
+            for ($row = $startRow; $row <= $highestRow; $row++) {
+                $cups = trim((string) $sheet->getCell("A{$row}")->getValue());
+                $nombre = trim((string) $sheet->getCell("B{$row}")->getValue());
+                $rawConsulta = $sheet->getCell("C{$row}")->getValue();
+                $rawUrgencias = $sheet->getCell("D{$row}")->getValue();
+
+                if (empty($cups) && empty($nombre)) {
+                    continue;
+                }
+
+                if (strcasecmp($cups, 'CUPS') === 0 || strcasecmp($cups, 'CODIGO') === 0) {
+                    continue;
+                }
+
+                $valorConsulta = $this->parseMoneyHelper($rawConsulta);
+                $valorUrgencias = $this->parseMoneyHelper($rawUrgencias);
+
+                if (isset($cupsVistos[$cups])) {
+                    continue;
+                }
+                $cupsVistos[$cups] = true;
+
+                $filasArchivo[$cups] = [
+                    'cups' => $cups,
+                    'nombre_archivo' => $nombre,
+                    'valor_consulta' => $valorConsulta,
+                    'valor_urgencias' => $valorUrgencias,
+                ];
+            }
+
+            $catalogo = ConfigProducto::where('requi_lectura', 1)
+                ->where('estado', 1)
+                ->get()
+                ->keyBy('cod_cups');
+
+            $existentes = ContratoMedico::where('contrato_id', $contratoId)
+                ->where('medico_id', $medicoId)
+                ->with(['contratoProducto.producto'])
+                ->get()
+                ->keyBy(fn ($cm) => (string) ($cm->contratoProducto->producto->cod_cups ?? $cm->contratoProducto->producto_id ?? $cm->id));
+
+            $altas = [];
+            $cambios = [];
+            $sinCambios = [];
+            $retiros = [];
+            $noEncontrados = [];
+
+            foreach ($filasArchivo as $cups => $fila) {
+                $producto = $catalogo->get($cups);
+
+                if (! $producto) {
+                    $producto = ConfigProducto::where('cod_cups', $cups)->first();
+                }
+
+                if (! $producto) {
+                    $noEncontrados[] = [
+                        'cups' => $cups,
+                        'nombre' => $fila['nombre_archivo'],
+                        'valor_consulta' => $fila['valor_consulta'],
+                        'valor_urgencias' => $fila['valor_urgencias'],
+                    ];
+
+                    continue;
+                }
+
+                $cmExistente = $existentes->get($cups);
+
+                if (! $cmExistente) {
+                    if ($fila['valor_consulta'] > 0 || $fila['valor_urgencias'] > 0) {
+                        $altas[] = [
+                            'producto_id' => $producto->id,
+                            'cod_cups' => $producto->cod_cups,
+                            'nom_produc' => $producto->nom_produc,
+                            'valor_consulta' => $fila['valor_consulta'],
+                            'valor_urgencias' => $fila['valor_urgencias'],
+                        ];
+                    }
+                } else {
+                    $cActual = (float) $cmExistente->valor_consulta;
+                    $uActual = (float) $cmExistente->valor_urgencias;
+                    $estadoActual = (int) $cmExistente->estado;
+
+                    if ($fila['valor_consulta'] <= 0 && $fila['valor_urgencias'] <= 0) {
+                        if ($estadoActual === 1) {
+                            $retiros[] = [
+                                'id' => $cmExistente->id,
+                                'producto_id' => $producto->id,
+                                'cod_cups' => $producto->cod_cups,
+                                'nom_produc' => $producto->nom_produc,
+                                'valor_consulta' => $cActual,
+                                'valor_urgencias' => $uActual,
+                                'motivo' => 'Valores en cero o retirados en la plantilla',
+                            ];
+                        }
+                    } elseif ($cActual != $fila['valor_consulta'] || $uActual != $fila['valor_urgencias'] || $estadoActual === 0) {
+                        $cambios[] = [
+                            'id' => $cmExistente->id,
+                            'producto_id' => $producto->id,
+                            'cod_cups' => $producto->cod_cups,
+                            'nom_produc' => $producto->nom_produc,
+                            'valor_consulta_anterior' => $cActual,
+                            'valor_consulta' => $fila['valor_consulta'],
+                            'valor_urgencias_anterior' => $uActual,
+                            'valor_urgencias' => $fila['valor_urgencias'],
+                            'reactiva' => $estadoActual === 0,
+                        ];
+                    } else {
+                        $sinCambios[] = [
+                            'id' => $cmExistente->id,
+                            'producto_id' => $producto->id,
+                            'cod_cups' => $producto->cod_cups,
+                            'nom_produc' => $producto->nom_produc,
+                            'valor_consulta' => $cActual,
+                            'valor_urgencias' => $uActual,
+                        ];
+                    }
+                }
+            }
+
+            // Registros de este médico activos que no vinieron en el archivo
+            foreach ($existentes as $cups => $cm) {
+                if ((int) $cm->estado === 1 && ! isset($filasArchivo[$cups])) {
+                    $retiros[] = [
+                        'id' => $cm->id,
+                        'producto_id' => $cm->contratoProducto->producto_id ?? null,
+                        'cod_cups' => $cm->contratoProducto->producto->cod_cups ?? $cups,
+                        'nom_produc' => $cm->contratoProducto->producto->nom_produc ?? '',
+                        'valor_consulta' => (float) $cm->valor_consulta,
+                        'valor_urgencias' => (float) $cm->valor_urgencias,
+                        'motivo' => 'No viene en la plantilla importada',
+                    ];
+                }
+            }
+
+            // Cobertura interactiva para este médico
+            $tarifadosFuturos = collect($altas)->pluck('producto_id')
+                ->merge(collect($cambios)->pluck('producto_id'))
+                ->merge(collect($sinCambios)->pluck('producto_id'))
+                ->diff(collect($retiros)->pluck('producto_id'))
+                ->unique()
+                ->flip();
+
+            $faltantesCobertura = [];
+            foreach ($catalogo as $prod) {
+                if (! $tarifadosFuturos->has($prod->id)) {
+                    $faltantesCobertura[] = [
+                        'id' => $prod->id,
+                        'cod_cups' => $prod->cod_cups,
+                        'nom_produc' => $prod->nom_produc,
+                    ];
+                }
+            }
+
+            return $this->success([
+                'tipo' => 'medico',
+                'contrato' => [
+                    'id' => $contrato->id,
+                    'sede_id' => $contrato->sede_id,
+                    'nom_sede' => $contrato->sede->nom_sede ?? '',
+                ],
+                'medico' => [
+                    'id' => $medico->id,
+                    'name' => $medico->name,
+                    'reg_med' => $medico->reg_med,
+                ],
+                'resumen' => [
+                    'total_archivo' => count($filasArchivo),
+                    'altas' => count($altas),
+                    'cambios' => count($cambios),
+                    'retiros' => count($retiros),
+                    'sin_cambios' => count($sinCambios),
+                    'no_encontrados' => count($noEncontrados),
+                ],
+                'altas' => $altas,
+                'cambios' => $cambios,
+                'retiros' => $retiros,
+                'no_encontrados' => $noEncontrados,
+                'cobertura' => [
+                    'total_catalogo' => $catalogo->count(),
+                    'tarifados' => $catalogo->count() - count($faltantesCobertura),
+                    'faltantes' => $faltantesCobertura,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            return $this->error('Error al procesar la plantilla de médicos: '.$e->getMessage(), 422);
+        }
+    }
+
+    /**
+     * Persiste atómicamente el resultado confirmado del diff para tarifas de médico lector.
+     * Aplica altas, actualizaciones y bajas lógicas (estado = 0, fecha_retiro = now()). NUNCA elimina con DELETE.
+     *
+     * @param  int  $contratoId  Identificador del contrato.
+     * @param  array  $data  Datos con medico_id, altas, cambios y retiros.
+     * @return array Resultado de la persistencia.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-10
+     */
+    public function confirmarImportarMedicos(int $contratoId, array $data): array
+    {
+        $contrato = Contrato::find($contratoId);
+
+        if (! $contrato) {
+            return $this->notFound('Contrato no encontrado');
+        }
+
+        $medicoId = (int) $data['medico_id'];
+
+        return $this->transaction(function () use ($contratoId, $medicoId, $data) {
+            $altas = $data['altas'] ?? [];
+            $cambios = $data['cambios'] ?? [];
+            $retiros = $data['retiros'] ?? [];
+
+            // 1. Altas
+            foreach ($altas as $item) {
+                $cp = ContratoProducto::firstOrCreate(
+                    [
+                        'contrato_id' => $contratoId,
+                        'producto_id' => (int) $item['producto_id'],
+                    ],
+                    [
+                        'valor_contrato' => 0.0,
+                        'estado' => 1,
+                    ]
+                );
+
+                ContratoMedico::updateOrCreate(
+                    [
+                        'contrato_id' => $contratoId,
+                        'medico_id' => $medicoId,
+                        'contratos_productos_id' => $cp->id,
+                    ],
+                    [
+                        'valor_contrato' => 0.0,
+                        'valor_consulta' => (float) $item['valor_consulta'],
+                        'valor_urgencias' => (float) $item['valor_urgencias'],
+                        'fecha_ingreso' => now()->toDateString(),
+                        'fecha_retiro' => null,
+                        'estado' => 1,
+                    ]
+                );
+            }
+
+            // 2. Cambios
+            foreach ($cambios as $item) {
+                ContratoMedico::where('id', (int) $item['id'])
+                    ->where('contrato_id', $contratoId)
+                    ->where('medico_id', $medicoId)
+                    ->update([
+                        'valor_consulta' => (float) $item['valor_consulta'],
+                        'valor_urgencias' => (float) $item['valor_urgencias'],
+                        'fecha_retiro' => null,
+                        'estado' => 1,
+                    ]);
+            }
+
+            // 3. Retiros con BAJA LÓGICA (estado = 0, fecha_retiro = now(), nunca delete)
+            foreach ($retiros as $item) {
+                ContratoMedico::where('id', (int) $item['id'])
+                    ->where('contrato_id', $contratoId)
+                    ->where('medico_id', $medicoId)
+                    ->update([
+                        'estado' => 0,
+                        'fecha_retiro' => now()->toDateString(),
+                    ]);
+            }
+
+            $totalAfectados = count($altas) + count($cambios) + count($retiros);
+
+            return $this->success([
+                'altas' => count($altas),
+                'cambios' => count($cambios),
+                'retiros' => count($retiros),
+                'total' => $totalAfectados,
+            ], "Tarifas de médico actualizadas exitosamente ({$totalAfectados} registros procesados).");
+        });
     }
 }

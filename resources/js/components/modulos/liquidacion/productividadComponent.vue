@@ -6,13 +6,7 @@
                 <h3 class="text-themecolor">Productividad médica</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <button
-                            type="button"
-                            class="btn btn-link p-0"
-                            style="vertical-align: baseline; text-decoration: none; color: inherit"
-                        >
-                            Inicio
-                        </button>
+                        <router-link to="/">Inicio</router-link>
                     </li>
                     <li class="breadcrumb-item active">Productividad médica</li>
                 </ol>
@@ -29,72 +23,77 @@
                             Seleccione la sede y el periodo. El reporte lee las líneas congeladas al
                             momento de cada lectura.
                         </h6>
-                        <div class="row m-t-20">
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="prod-sede">Sede</label>
-                                    <select
-                                        id="prod-sede"
-                                        v-model="filtros.sede_id"
-                                        class="form-control custom-select"
-                                        :disabled="loadingSedes"
-                                    >
-                                        <option value="">...::: Seleccione una sede :::...</option>
-                                        <option
-                                            v-for="sede in sedes"
-                                            :key="sede.id"
-                                            :value="sede.id"
+                        <form @submit.prevent="cargar">
+                            <div class="row m-t-20">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="prod-sede">Sede</label>
+                                        <select
+                                            id="prod-sede"
+                                            v-model="filtros.sede_id"
+                                            class="form-control custom-select"
+                                            :disabled="loadingSedes"
                                         >
-                                            {{ sede.nom_sede }}
-                                        </option>
-                                    </select>
+                                            <option value="">
+                                                ...::: Seleccione una sede :::...
+                                            </option>
+                                            <option
+                                                v-for="sede in sedes"
+                                                :key="sede.id"
+                                                :value="sede.id"
+                                            >
+                                                {{ sede.nom_sede }}
+                                            </option>
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="prod-periodo">Periodo</label>
-                                    <input
-                                        id="prod-periodo"
-                                        v-model="filtros.periodo"
-                                        type="month"
-                                        class="form-control"
-                                        @keyup.enter="cargar"
-                                    />
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="prod-periodo">Periodo</label>
+                                        <input
+                                            id="prod-periodo"
+                                            v-model="filtros.periodo"
+                                            type="month"
+                                            class="form-control"
+                                            @keyup.enter="cargar"
+                                        />
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label class="d-none d-md-block">&nbsp;</label>
-                                    <div>
-                                        <button
-                                            type="button"
-                                            class="btn btn-info m-r-5"
-                                            :disabled="loading"
-                                            @click="cargar"
-                                            title="Generar reporte"
-                                        >
-                                            <i
-                                                class="fa"
-                                                :class="
-                                                    loading ? 'fa-spinner fa-spin' : 'fa-bar-chart'
-                                                "
-                                            ></i>
-                                            {{ loading ? "Generando..." : "Generar" }}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            class="btn btn-success"
-                                            :disabled="loading || !resultado || !medicos.length"
-                                            @click="exportar"
-                                            title="Exportar productividad a Excel"
-                                        >
-                                            <i class="fa fa-file-excel-o m-r-5"></i>
-                                            Excel
-                                        </button>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="d-none d-md-block">&nbsp;</label>
+                                        <div>
+                                            <button
+                                                type="submit"
+                                                class="btn btn-info m-r-5"
+                                                :disabled="loading"
+                                                title="Generar reporte"
+                                            >
+                                                <i
+                                                    class="fa"
+                                                    :class="
+                                                        loading
+                                                            ? 'fa-spinner fa-spin'
+                                                            : 'fa-bar-chart'
+                                                    "
+                                                ></i>
+                                                {{ loading ? "Generando..." : "Generar" }}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn btn-success"
+                                                :disabled="loading || !resultado || !medicos.length"
+                                                @click="exportar"
+                                                title="Exportar productividad a Excel"
+                                            >
+                                                <i class="fa fa-file-excel-o m-r-5"></i>
+                                                Excel
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -143,7 +142,7 @@
                                 <div class="table-responsive m-t-10">
                                     <table
                                         :id="'tablaProductividad_' + m.medico_id"
-                                        class="display nowrap table table-hover table-striped table-bordered"
+                                        class="table table-hover table-striped table-bordered"
                                         cellspacing="0"
                                         width="100%"
                                     >
@@ -208,9 +207,20 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, getCurrentInstance, onBeforeUnmount, onMounted, ref } from "vue";
 import axios from "axios";
 import { toastMessage } from "@/helpers/alerts.js";
+
+const { proxy } = getCurrentInstance();
+
+/**
+ * Obtiene la sede actual desde sessionStorage o localStorage (key: ST-sede).
+ *
+ * @returns {string}
+ */
+function obtenerSedeGuardada() {
+    return window.sessionStorage.getItem("ST-sede") || window.localStorage.getItem("ST-sede") || "";
+}
 
 /**
  * Filtros del corte (sede y periodo YYYY-MM). El periodo sale del input month.
@@ -218,7 +228,7 @@ import { toastMessage } from "@/helpers/alerts.js";
  * @type {import('vue').Ref<{sede_id: string|number, periodo: string}>}
  */
 const filtros = ref({
-    sede_id: "",
+    sede_id: obtenerSedeGuardada(),
     periodo: new Date().toISOString().slice(0, 7),
 });
 
@@ -325,11 +335,34 @@ async function cargarSedes() {
     try {
         const res = await axios.get("/api/config-sedes/listar/sedes/activas");
         sedes.value = res.data.data || [];
+
+        const sedeGuardada = obtenerSedeGuardada();
+        if (sedeGuardada && sedes.value.some((s) => String(s.id) === String(sedeGuardada))) {
+            filtros.value.sede_id = sedeGuardada;
+        } else if (!filtros.value.sede_id && sedes.value.length > 0) {
+            filtros.value.sede_id = sedes.value[0].id;
+        }
     } catch (error) {
         console.error(error);
         toastMessage({ heading: "Error", text: "No fue posible cargar las sedes", icon: "error" });
     } finally {
         loadingSedes.value = false;
+    }
+}
+
+/**
+ * Listener reactivo ante cambio de sede en el navbar.
+ *
+ * @param {Object} event
+ * @returns {void}
+ */
+function onSedeSeleccionada(event) {
+    const rawSede =
+        event?.sede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede");
+    if (!rawSede || String(filtros.value.sede_id) === String(rawSede)) return;
+    filtros.value.sede_id = rawSede;
+    if (filtros.value.periodo) {
+        cargar();
     }
 }
 
@@ -404,6 +437,11 @@ function exportar() {
         });
         return;
     }
+    toastMessage({
+        heading: "Procesando...",
+        text: "Generando reporte de productividad en Excel.",
+        icon: "info",
+    });
     const params = new URLSearchParams({
         sede_id: String(filtros.value.sede_id),
         periodo: filtros.value.periodo,
@@ -412,12 +450,20 @@ function exportar() {
 }
 
 /**
- * Lifecycle onMounted: carga las sedes activas para el select de filtros.
+ * Lifecycle onMounted: suscribe al bus multi-sede y carga sedes activas.
  *
  * @author Jhon Javer Lozano Arce
  * @date 2026-10-01
  */
 onMounted(() => {
+    proxy?.emitter?.on("sedeSeleccionada", onSedeSeleccionada);
+    if (!obtenerSedeGuardada()) {
+        proxy?.emitter?.emit("solicitarSedeActiva");
+    }
     cargarSedes();
+});
+
+onBeforeUnmount(() => {
+    proxy?.emitter?.off("sedeSeleccionada", onSedeSeleccionada);
 });
 </script>

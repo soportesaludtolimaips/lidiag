@@ -6,13 +6,7 @@
                 <h3 class="text-themecolor">Liquidación</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <button
-                            type="button"
-                            class="btn btn-link p-0"
-                            style="vertical-align: baseline; text-decoration: none; color: inherit"
-                        >
-                            Inicio
-                        </button>
+                        <router-link to="/">Inicio</router-link>
                     </li>
                     <li class="breadcrumb-item active">Liquidación</li>
                 </ol>
@@ -29,119 +23,128 @@
                             Seleccione la sede y el rango de fechas a liquidar. Ambas fechas son
                             obligatorias. Contrato y médico son opcionales para acotar.
                         </h6>
-                        <div class="row m-t-20">
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="liq-sede">Sede</label>
-                                    <select
-                                        id="liq-sede"
-                                        v-model="filtros.sede_id"
-                                        class="form-control custom-select"
-                                        :disabled="loadingSedes"
-                                        @change="alCambiarSede"
-                                    >
-                                        <option value="">...::: Seleccione una sede :::...</option>
-                                        <option
-                                            v-for="sede in sedes"
-                                            :key="sede.id"
-                                            :value="sede.id"
+                        <form @submit.prevent="calcular">
+                            <div class="row m-t-20">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="liq-sede">Sede</label>
+                                        <select
+                                            id="liq-sede"
+                                            v-model="filtros.sede_id"
+                                            class="form-control custom-select"
+                                            :disabled="loadingSedes"
+                                            @change="alCambiarSede"
                                         >
-                                            {{ sede.nom_sede }}
-                                        </option>
-                                    </select>
+                                            <option value="">
+                                                ...::: Seleccione una sede :::...
+                                            </option>
+                                            <option
+                                                v-for="sede in sedes"
+                                                :key="sede.id"
+                                                :value="sede.id"
+                                            >
+                                                {{ sede.nom_sede }}
+                                            </option>
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="liq-contrato">Contrato (opcional)</label>
-                                    <select
-                                        id="liq-contrato"
-                                        v-model="filtros.contrato_id"
-                                        class="form-control custom-select"
-                                        :disabled="!filtros.sede_id || loadingContratos"
-                                    >
-                                        <option value="">...::: Todos :::...</option>
-                                        <option v-for="c in contratos" :key="c.id" :value="c.id">
-                                            {{ etiquetaContrato(c) }}
-                                        </option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="liq-medico">Médico (opcional)</label>
-                                    <select
-                                        id="liq-medico"
-                                        v-model="filtros.medico_id"
-                                        class="form-control custom-select"
-                                        :disabled="loadingMedicos"
-                                    >
-                                        <option value="">...::: Todos :::...</option>
-                                        <option v-for="m in medicos" :key="m.id" :value="m.id">
-                                            {{ etiquetaMedico(m) }}
-                                        </option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row m-t-10">
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="liq-inicio">Fecha inicio</label>
-                                    <input
-                                        id="liq-inicio"
-                                        v-model="filtros.fecha_inicio"
-                                        type="date"
-                                        class="form-control"
-                                        @keyup.enter="calcular"
-                                    />
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="liq-fin">Fecha fin</label>
-                                    <input
-                                        id="liq-fin"
-                                        v-model="filtros.fecha_fin"
-                                        type="date"
-                                        class="form-control"
-                                        @keyup.enter="calcular"
-                                    />
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label class="d-none d-md-block">&nbsp;</label>
-                                    <div>
-                                        <button
-                                            type="button"
-                                            class="btn btn-info m-r-5"
-                                            :disabled="loading"
-                                            @click="calcular"
-                                            title="Calcular liquidación"
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="liq-contrato">Contrato (opcional)</label>
+                                        <select
+                                            id="liq-contrato"
+                                            v-model="filtros.contrato_id"
+                                            class="form-control custom-select"
+                                            :disabled="!filtros.sede_id || loadingContratos"
                                         >
-                                            <i
-                                                class="fa"
-                                                :class="
-                                                    loading ? 'fa-spinner fa-spin' : 'fa-calculator'
-                                                "
-                                            ></i>
-                                            {{ loading ? "Calculando..." : "Calcular" }}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            class="btn btn-success"
-                                            :disabled="loading || !resultado?.lineas?.length"
-                                            @click="exportar"
-                                            title="Exportar liquidación a Excel"
+                                            <option value="">...::: Todos :::...</option>
+                                            <option
+                                                v-for="c in contratos"
+                                                :key="c.id"
+                                                :value="c.id"
+                                            >
+                                                {{ etiquetaContrato(c) }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="liq-medico">Médico (opcional)</label>
+                                        <select
+                                            id="liq-medico"
+                                            v-model="filtros.medico_id"
+                                            class="form-control custom-select"
+                                            :disabled="loadingMedicos"
                                         >
-                                            <i class="fa fa-file-excel-o m-r-5"></i>
-                                            Excel
-                                        </button>
+                                            <option value="">...::: Todos :::...</option>
+                                            <option v-for="m in medicos" :key="m.id" :value="m.id">
+                                                {{ etiquetaMedico(m) }}
+                                            </option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                            <div class="row m-t-10">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="liq-inicio">Fecha inicio</label>
+                                        <input
+                                            id="liq-inicio"
+                                            v-model="filtros.fecha_inicio"
+                                            type="date"
+                                            class="form-control"
+                                            @keyup.enter="calcular"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="liq-fin">Fecha fin</label>
+                                        <input
+                                            id="liq-fin"
+                                            v-model="filtros.fecha_fin"
+                                            type="date"
+                                            class="form-control"
+                                            @keyup.enter="calcular"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="d-none d-md-block">&nbsp;</label>
+                                        <div>
+                                            <button
+                                                type="submit"
+                                                class="btn btn-info m-r-5"
+                                                :disabled="loading"
+                                                title="Calcular liquidación"
+                                            >
+                                                <i
+                                                    class="fa"
+                                                    :class="
+                                                        loading
+                                                            ? 'fa-spinner fa-spin'
+                                                            : 'fa-calculator'
+                                                    "
+                                                ></i>
+                                                {{ loading ? "Calculando..." : "Calcular" }}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn btn-success"
+                                                :disabled="loading || !resultado?.lineas?.length"
+                                                @click="exportar"
+                                                title="Exportar liquidación a Excel"
+                                            >
+                                                <i class="fa fa-file-excel-o m-r-5"></i>
+                                                Excel
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -425,7 +428,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onBeforeUnmount, ref, getCurrentInstance } from "vue";
+import { computed, nextTick, onMounted, onBeforeUnmount, ref, getCurrentInstance } from "vue";
 import axios from "axios";
 import { toastMessage } from "@/helpers/alerts.js";
 
@@ -910,6 +913,11 @@ function exportar() {
         });
         return;
     }
+    toastMessage({
+        heading: "Procesando...",
+        text: "Generando archivo de liquidación en Excel.",
+        icon: "info",
+    });
     const params = new URLSearchParams({
         sede_id: String(filtros.value.sede_id),
         fecha_inicio: filtros.value.fecha_inicio,
@@ -966,6 +974,9 @@ function abrirModalExclusion(item) {
     exclusionSeleccionada.value = item;
     busquedaExclusion.value = "";
     modalExclusionVisible.value = true;
+    nextTick(() => {
+        document.getElementById("busqueda-exclusion")?.focus();
+    });
 }
 
 /**
