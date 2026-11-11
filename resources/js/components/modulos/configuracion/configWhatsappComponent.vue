@@ -97,6 +97,7 @@
                             v-if="tabActivo === 'recomendaciones'"
                             ref="recomendacionesRef"
                             :embedded="true"
+                            :sede-id="sedeId"
                         />
                     </div>
                 </div>

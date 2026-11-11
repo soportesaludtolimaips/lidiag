@@ -37,6 +37,32 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-11 — Eliminación del Filtro Manual, Filtrado Automático por Sede/Servicios y Asignación de Módulos a Productos (`2026_11_11_164500_update_config_productos_modulo_id_relations.php`, `ConfigRecomendacionProductoService.php`, `ConfigRecomendacionProductoController.php`, `ConfigRecomendacionProducto.php`, `recomendacionProductoComponent.vue`, `configWhatsappComponent.vue`):**
+  - **Requerimiento del Usuario:**
+    * En el tab "Recomendaciones por Productos" de WhatsApp Bot, eliminar la tarjeta de filtros manuales (Sede, Servicio, Producto).
+    * Listar automáticamente las recomendaciones filtradas por la sede actualmente seleccionada y los servicios asistenciales habilitados para el usuario autenticado.
+    * En el drawer de recomendaciones, reemplazar el componente Select2 por un select HTML nativo.
+    * Crear una migración y actualizar la tabla `config_productos` para relacionar directamente las modalidades de `config_modulos` con los diferentes productos clínicos.
+  - **Ajustes Implementados:**
+    * **Migración de Asignación Masiva ([`2026_11_11_164500_update_config_productos_modulo_id_relations.php`](file:///c:/laragon/www/lidiag/database/migrations/2026_11_11_164500_update_config_productos_modulo_id_relations.php)):**
+      - Asigna y relaciona los productos de `config_productos` con `modulo_id` por códigos CUPS de ecografías y patrones clínicos para cada modalidad (Rx, Ecografías, Tomografía, Resonancia, Mamografía, Oftalmología).
+    * **Backend (`ConfigRecomendacionProductoService.php` & `ConfigRecomendacionProductoController.php`):**
+      - `all(?int $productoId, ?bool $estado, ?int $sedeId, ?int $servicioId)`:
+        1. Resuelve el usuario autenticado (`auth('sanctum')->user() ?: auth()->user()`).
+        2. Determina los servicios de la sede seleccionada (`ConfigServicio::where('sede_id', $sedeId)->where('estado', true)`).
+        3. Si el usuario no es Administrador y tiene servicios de citas restringidos en `user_servicios` (`$user->serviciosCita()`), filtra estrictamente por ellos.
+        4. Cruza los servicios habilitados con `ConfigModulo` (Rx, Ecografías, etc.) y filtra las recomendaciones cuyos productos correspondan a dichos módulos o servicios asistenciales.
+      - En `ConfigRecomendacionProducto.php`, tipada explícitamente la relación `producto(): BelongsTo` para Larastan Nivel 5.
+    * **Frontend (`recomendacionProductoComponent.vue` & `configWhatsappComponent.vue`):**
+      - Removida la tarjeta de filtros de búsqueda cuando el componente está embebido en el tab (`v-if="!embedded"`).
+      - Reemplazado el componente Select2 del campo Producto en el drawer lateral por un `<select>` estándar de HTML con clase `form-control` y `v-model="form.producto_id"`, garantizando un funcionamiento fluido y sin problemas de overlay.
+      - Recepción de prop `:sede-id="sedeId"` desde `configWhatsappComponent.vue`, cálculo reactivo de `sedeActual` y escucha global del evento `sedeSeleccionada` vía `emitter`.
+      - Inclusión automática de `sede_id: sedeActual.value` en las peticiones a `GET /api/config-recomendacion-productos`.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% (0 errores) ✅.
+    * Larastan / PHPStan Nivel 5: 0 errores en todos los modelos, controladores y servicios ✅.
+    * ESLint y Prettier 100% limpios en `recomendacionProductoComponent.vue` y `configWhatsappComponent.vue` ✅.
+    * Compilación Vite (`npm run build`) exitosa en 1.39s ✅.
 - [x] **2026-11-11 — Vinculación Global de Productos a Módulos Asistenciales (`config_modulos`) en Lugar de Servicios (`config_productos.modulo_id`, `ModulosSeeder`, `ConfigProductoComponent.vue`, etc.):**
   - **Requerimiento del Usuario y Clarificación Arquitectural:**
     * Los productos clínicos no deben vincularse a "Servicio Asistencial" (`config_servicios`, que es local por sede con `sede_id`), ya que un producto/estudio se debe prestar de manera global en **todas las sedes**.

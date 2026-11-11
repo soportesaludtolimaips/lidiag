@@ -47,7 +47,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row" v-if="!embedded">
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
@@ -185,10 +185,10 @@
                             v-if="!loadingBuscar && registros.length === 0"
                             icon="fa fa-commenting-o"
                             title="No hay recomendaciones registradas"
-                            description="No se encontraron recomendaciones con los filtros aplicados."
-                            action-text="Limpiar filtros"
-                            action-icon="fa fa-refresh"
-                            @action="btnLimpiar()"
+                            description="No se encontraron recomendaciones para los servicios habilitados en esta sede."
+                            action-text="Nuevo registro"
+                            action-icon="fa fa-plus"
+                            @action="mostrarRegistro(null)"
                         />
 
                         <div v-show="!loadingBuscar && registros.length > 0">
@@ -304,15 +304,22 @@
                                 <label class="control-label" for="form_producto_select">
                                     Producto <span class="text-danger">*</span>
                                 </label>
-                                <Select2
+                                <select
                                     id="form_producto_select"
-                                    :value="form.producto_id"
-                                    :options="formProductoOptions"
-                                    width="100%"
-                                    :allow-clear="false"
+                                    v-model="form.producto_id"
+                                    class="form-control"
                                     :disabled="editando"
-                                    @input="onFormProductoSelect"
-                                />
+                                    :class="{ 'is-invalid': errores.producto_id }"
+                                >
+                                    <option value="">-- Seleccionar Producto --</option>
+                                    <option
+                                        v-for="p in listaProductosForm"
+                                        :key="p.id"
+                                        :value="p.id"
+                                    >
+                                        {{ p.cod_cups ? p.cod_cups + " — " : "" }}{{ p.nom_produc }}
+                                    </option>
+                                </select>
                                 <span class="text-danger" v-if="errores.producto_id">{{
                                     errores.producto_id[0]
                                 }}</span>
@@ -373,14 +380,29 @@
     </div>
 </template>
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import {
+    computed,
+    getCurrentInstance,
+    nextTick,
+    onBeforeUnmount,
+    onMounted,
+    ref,
+    watch,
+} from "vue";
 
-defineProps({
+const props = defineProps({
     embedded: {
         type: Boolean,
         default: false,
     },
+    sedeId: {
+        type: [Number, String],
+        default: "",
+    },
 });
+
+const { proxy } = getCurrentInstance() || {};
+const emitter = proxy?.emitter;
 
 const dt = ref(null);
 
@@ -396,6 +418,11 @@ const todosLosProductos = ref([]);
 const sedes = ref([]);
 const servicios = ref([]);
 const serviciosFiltrados = ref([]);
+const sedeActual = computed(() => {
+    return (
+        props.sedeId || sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || ""
+    );
+});
 const filtro = ref({
     sede_id: "",
     servicio_id: "",
@@ -433,14 +460,8 @@ const filterProductoOptions = computed(() => {
         nom_produc: p.nom_produc,
     }));
 });
-const formProductoOptions = computed(() => {
-    const list = todosLosProductos.value.length > 0 ? todosLosProductos.value : productos.value;
-    return (list || []).map((p) => ({
-        id: String(p.id),
-        cod_cups: p.cod_cups,
-        nom_produc: p.nom_produc,
-        text: (p.cod_cups ? p.cod_cups + " - " : "") + p.nom_produc,
-    }));
+const listaProductosForm = computed(() => {
+    return todosLosProductos.value.length > 0 ? todosLosProductos.value : productos.value;
 });
 
 async function cargarSedes() {
@@ -495,16 +516,17 @@ function onFilterProductoSelect(value) {
     buscar();
 }
 
-function onFormProductoSelect(value) {
-    form.value.producto_id = value || "";
-}
-
 async function buscar() {
     if (loadingBuscar.value) return;
     loadingBuscar.value = true;
     try {
         const params = {};
-        if (filtro.value.producto_id) params.producto_id = filtro.value.producto_id;
+        if (sedeActual.value) {
+            params.sede_id = sedeActual.value;
+        }
+        if (filtro.value.producto_id) {
+            params.producto_id = filtro.value.producto_id;
+        }
         const res = await axios.get("/api/config-recomendacion-productos", { params });
         safeDestroyDataTable(dt.value || "#tablaRecomendaciones");
         registros.value = res.data?.data || [];
@@ -599,8 +621,7 @@ function abrirModal() {
     showSidebar.value = true;
     nextTick(() => {
         const target =
-            document.querySelector("#form-producto-parent .select2-selection") ||
-            document.querySelector("#form-producto-parent select") ||
+            document.querySelector("#form_producto_select") ||
             document.querySelector(".r-panel-body textarea");
         if (target && typeof target.focus === "function") {
             target.focus();
@@ -628,15 +649,35 @@ function btnLimpiar() {
     buscar();
 }
 
+function onSedeSeleccionada(payload) {
+    const raw =
+        payload?.sede ??
+        (typeof payload === "object" ? payload.idSede || payload.id : payload) ??
+        sessionStorage.getItem("ST-sede") ??
+        "";
+    if (raw) {
+        buscar();
+    }
+}
+
+watch(
+    () => [props.sedeId, sedeActual.value],
+    () => {
+        buscar();
+    }
+);
+
 onMounted(() => {
     cargarSedes();
     cargarServicios();
     cargarProductos();
     cargarTodosLosProductos();
     buscar();
+    emitter?.on?.("sedeSeleccionada", onSedeSeleccionada);
 });
 
 onBeforeUnmount(() => {
+    emitter?.off?.("sedeSeleccionada", onSedeSeleccionada);
     safeDestroyDataTable(dt.value || "#tablaRecomendaciones");
 });
 

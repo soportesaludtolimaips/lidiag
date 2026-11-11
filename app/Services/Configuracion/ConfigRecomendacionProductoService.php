@@ -2,33 +2,117 @@
 
 namespace App\Services\Configuracion;
 
+use App\Models\Configuracion\ConfigModulo;
 use App\Models\Configuracion\ConfigRecomendacionProducto;
+use App\Models\Configuracion\ConfigServicio;
 use App\Services\BaseService;
 
 class ConfigRecomendacionProductoService extends BaseService
 {
     /**
-     * Obtiene las recomendaciones de producto, filtrando por producto y estado si se indican.
+     * Obtiene las recomendaciones de producto, filtrando por producto, estado, sede y servicios habilitados para el usuario.
+     *
+     * Flujo del proceso:
+     * 1. Determina el usuario autenticado y sus servicios de cita asignados (si aplica restricción).
+     * 2. Si se proporciona una sede, filtra los servicios activos de dicha sede y los cruza con los habilitados para el usuario.
+     * 3. Resuelve los módulos clínicos correspondientes a dichos servicios activos.
+     * 4. Filtra las recomendaciones cuyos productos pertenezcan a los módulos o servicios habilitados.
+     * 5. Aplica filtros opcionales de producto y estado, retornando la colección con su relación de producto y módulo.
      *
      * @param  int|null  $productoId  Identificador del producto para filtrar (opcional).
      * @param  bool|null  $estado  Estado de la recomendación para filtrar (opcional).
+     * @param  int|null  $sedeId  Identificador de la sede seleccionada (opcional).
+     * @param  int|null  $servicioId  Identificador del servicio específico (opcional).
      *
      * @returns array Respuesta con la lista de recomendaciones y el estado de la operación.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-07-14
+     * @date 2026-11-11
      */
-    public function all(?int $productoId = null, ?bool $estado = null): array
-    {
-        $query = ConfigRecomendacionProducto::with('producto');
+    public function all(
+        ?int $productoId = null,
+        ?bool $estado = null,
+        ?int $sedeId = null,
+        ?int $servicioId = null,
+    ): array {
+        $user = auth("sanctum")->user() ?: auth()->user();
+
+        $query = ConfigRecomendacionProducto::with(["producto.modulo", "producto.servicio.sede"]);
+
+        // Filtrar por sede y servicios habilitados para el usuario logueado
+        if ($sedeId || ($user && $user->serviciosCita()->exists())) {
+            $serviciosQuery = ConfigServicio::where("estado", true);
+
+            if ($sedeId) {
+                $serviciosQuery->where("sede_id", $sedeId);
+            }
+
+            // Si el usuario no es Administrador y tiene servicios específicos asignados, restringir a ellos
+            if ($user && ! $user->hasRole("Administrador")) {
+                $userServiciosIds = $user->serviciosCita()->pluck("config_servicios.id")->toArray();
+                if (! empty($userServiciosIds)) {
+                    $serviciosQuery->whereIn("id", $userServiciosIds);
+                }
+            }
+
+            if ($servicioId) {
+                $serviciosQuery->where("id", $servicioId);
+            }
+
+            $servicios = $serviciosQuery->get();
+
+            if ($servicios->isEmpty()) {
+                return $this->success([]);
+            }
+
+            // Resolver los módulos correspondientes a los servicios
+            $modulos = ConfigModulo::all();
+            $moduloIds = [];
+            foreach ($servicios as $srv) {
+                $nombre = mb_strtolower($srv->nombre);
+                foreach ($modulos as $mod) {
+                    $modNombre = mb_strtolower($mod->modulo);
+                    if ($nombre === $modNombre
+                        || (str_contains($nombre, "rayo") && $modNombre === "rx")
+                        || (str_contains($nombre, "rx") && $modNombre === "rx")
+                        || (str_contains($nombre, "ecograf") && str_contains($modNombre, "ecograf"))
+                        || (str_contains($nombre, "tomograf") && str_contains($modNombre, "tomograf"))
+                        || (str_contains($nombre, "resonanc") && str_contains($modNombre, "resonanc"))
+                        || (str_contains($nombre, "mamograf") && str_contains($modNombre, "mamograf"))
+                        || (str_contains($nombre, "oftalmo") && str_contains($modNombre, "oftalmo"))
+                    ) {
+                        $moduloIds[] = $mod->id;
+                    }
+                }
+            }
+            $moduloIds = array_unique($moduloIds);
+            $servicioIds = $servicios->pluck("id")->toArray();
+
+            $query->whereHas("producto", function ($pq) use ($moduloIds, $servicioIds) {
+                $pq->where(function ($sub) use ($moduloIds, $servicioIds) {
+                    $applied = false;
+                    if (! empty($moduloIds)) {
+                        $sub->whereIn("modulo_id", $moduloIds);
+                        $applied = true;
+                    }
+                    if (! empty($servicioIds)) {
+                        if ($applied) {
+                            $sub->orWhereIn("servicio_id", $servicioIds);
+                        } else {
+                            $sub->whereIn("servicio_id", $servicioIds);
+                        }
+                    }
+                });
+            });
+        }
 
         if ($productoId) {
-            $query->where('producto_id', $productoId);
+            $query->where("producto_id", $productoId);
         }
 
         if ($estado !== null) {
-            $query->where('estado', $estado);
+            $query->where("estado", $estado);
         }
 
         return $this->success($query->get());

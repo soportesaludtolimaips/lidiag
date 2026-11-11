@@ -4,6 +4,7 @@ namespace App\Models\Configuracion;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ConfigRecomendacionProducto extends Model
 {
@@ -30,7 +31,7 @@ class ConfigRecomendacionProducto extends Model
      *
      * @date 2026-10-13
      */
-    public function producto()
+    public function producto(): BelongsTo
     {
         return $this->belongsTo(ConfigProducto::class, 'producto_id');
     }

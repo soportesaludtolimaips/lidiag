@@ -38,9 +38,9 @@ class ConfigRecomendacionProductoController extends Controller
     /**
      * Lista las recomendaciones de producto, filtrando opcionalmente por producto y estado.
      *
-     * @param  Illuminate\Http\Request  $request  Solicitud con los filtros opcionales producto_id y estado.
+     * @param  Request  $request  Solicitud con los filtros opcionales producto_id y estado.
      *
-     * @returns Illuminate\Http\JsonResponse Respuesta JSON con la lista de recomendaciones.
+     * @returns \Illuminate\Http\JsonResponse Respuesta JSON con la lista de recomendaciones.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -49,11 +49,13 @@ class ConfigRecomendacionProductoController extends Controller
     public function index(Request $request): JsonResponse
     {
         $result = $this->configRecomendacionProductoService->all(
-            $request->integer('producto_id'),
-            $request->boolean('estado'),
+            $request->filled("producto_id") ? $request->integer("producto_id") : null,
+            $request->has("estado") ? $request->boolean("estado") : null,
+            $request->filled("sede_id") ? $request->integer("sede_id") : null,
+            $request->filled("servicio_id") ? $request->integer("servicio_id") : null,
         );
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, $result["status"]);
     }
 
     /**
