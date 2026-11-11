@@ -1066,7 +1066,7 @@
                                         <label
                                             class="control-label font-weight-bold"
                                             for="prod-fechaIni"
-                                            >Desde</label
+                                            >Fecha Lectura (Desde)</label
                                         >
                                         <input
                                             class="form-control input-daterange-datepicker"
@@ -1082,7 +1082,7 @@
                                         <label
                                             class="control-label font-weight-bold"
                                             for="prod-fechaFin"
-                                            >Hasta</label
+                                            >Fecha Lectura (Hasta)</label
                                         >
                                         <input
                                             class="form-control input-daterange-datepicker"
