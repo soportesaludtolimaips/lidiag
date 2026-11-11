@@ -9,6 +9,7 @@ use App\Models\Ecografias\EcografiaProducto;
 use App\Models\General\Paciente;
 use App\Services\BaseService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class EcografiaService extends BaseService
 {
@@ -82,7 +83,7 @@ class EcografiaService extends BaseService
             'ep.sahi_esquema_150',
             'ep.error_envio_sahi',
             'p.nom_produc',
-            'p.val_produc as ValProduc'
+            Schema::hasColumn('config_productos', 'val_produc') ? 'p.val_produc as ValProduc' : DB::raw('0 as ValProduc')
         )->with(['paciente', 'usuarioRegistrador', 'adminSalud', 'medico'])
             ->join('ecografias_productos as ep', 'ep.ecografia_id', '=', 'ecografias.id')
             ->join('config_productos as p', 'p.id', '=', 'ep.producto_id');
@@ -183,14 +184,20 @@ class EcografiaService extends BaseService
                 'estado' => 'EN PROCESO',
             ]);
 
+            $hasValProduc = Schema::hasColumn('config_productos', 'val_produc');
+
             foreach ($data['productosAgenda'] as $producto) {
+                $crearData = [
+                    'nom_produc' => $producto['NomProducto'],
+                    'cod_cups' => $producto['CodProducto'],
+                ];
+                if ($hasValProduc) {
+                    $crearData['val_produc'] = $producto['ValProduc'] ?? 0;
+                }
+
                 $productoExistente = ConfigProducto::firstOrCreate(
                     ['id' => $producto['IdProducto']],
-                    [
-                        'nom_produc' => $producto['NomProducto'],
-                        'cod_cups' => $producto['CodProducto'],
-                        'val_produc' => $producto['ValProduc'],
-                    ]
+                    $crearData
                 );
 
                 EcografiaProducto::create([

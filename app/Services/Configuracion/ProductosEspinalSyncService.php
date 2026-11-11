@@ -6,6 +6,7 @@ use App\Models\Configuracion\ConfigProducto;
 use App\Services\BaseService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
@@ -386,7 +387,8 @@ class ProductosEspinalSyncService extends BaseService
 
             // Paso 4: Sincronización transaccional en MySQL config_productos
             if ($actualizarDb) {
-                DB::transaction(function () use ($filasProcesadas, &$dbActualizados) {
+                $hasValProduc = Schema::hasColumn('config_productos', 'val_produc');
+                DB::transaction(function () use ($filasProcesadas, &$dbActualizados, $hasValProduc) {
                     foreach ($filasProcesadas as $fila) {
                         $cups = $fila['cups'];
                         $nom = $fila['nom_produc'];
@@ -411,7 +413,7 @@ class ProductosEspinalSyncService extends BaseService
                             if (empty($productoLocal->cod_cups)) {
                                 $updates['cod_cups'] = $cups;
                             }
-                            if ($val > 0 && (float) $productoLocal->val_produc != (float) $val) {
+                            if ($hasValProduc && $val > 0 && (float) $productoLocal->val_produc != (float) $val) {
                                 $updates['val_produc'] = $val;
                             }
 

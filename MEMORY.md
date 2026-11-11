@@ -37,6 +37,43 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-11 — Simplificación de Reporte de Producción: Filtrado Estricto por Estudios Leídos y Fecha/Hora de Lectura (`CruceFinancieroService.php`, `reporteProduccionComponent.vue`):**
+  - **Requerimiento del Usuario:**
+    * Simplificar el reporte de producción detallada de imágenes diagnósticas.
+    * Listar exclusivamente aquellos estudios que tengan lectura médica completada (`fechor_lectura IS NOT NULL`).
+    * Aplicar el filtro de rango de fechas ("Desde" y "Hasta") estrictamente sobre la fecha y hora de la lectura médica (`estudios_productos.fechor_lectura`).
+  - **Ajustes Realizados:**
+    * **Motor de Cruce Financiero ([`CruceFinancieroService.php`](file:///c:/laragon/www/lidiag/app/Services/Liquidacion/CruceFinancieroService.php)):**
+      - Condición obligatoria `whereNotNull('estudios_productos.fechor_lectura')` que descarta estudios pendientes de dictamen.
+      - Filtrado temporal `whereBetween('estudios_productos.fechor_lectura', [$fechaInicio.' 00:00:00', $fechaFin.' 23:59:59'])`.
+      - Validación de vigencia de contratos en `LEFT JOIN contratos c` evaluada contra `DATE(estudios_productos.fechor_lectura) BETWEEN c.fecha_inicio AND c.fecha_fin`.
+      - Ordenamiento cronológico descendente por `orderByDesc('estudios_productos.fechor_lectura')`.
+      - Mantenidos los cruces defensivos `LEFT JOIN` a `users as registro` y `pacientes` con `COALESCE(registro.name, 'Sin Asignar')`.
+    * **Frontend ([`reporteProduccionComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/reportes/reporteProduccionComponent.vue)):**
+      - Actualizadas las etiquetas del modal de producción a `Fecha Lectura (Desde)` y `Fecha Lectura (Hasta)` para total claridad operativa de los usuarios.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% (0 errores) ✅.
+    * Larastan PHPStan Nivel 5 (`vendor/bin/phpstan analyse --level=5`) completado con 0 errores ✅.
+    * ESLint y Prettier en `reporteProduccionComponent.vue` 100% limpios ✅.
+    * Compilación Vite (`npm run build`) exitosa en 2.35s ✅.
+    * Generación real de libro Excel probada contra base de datos local validando el filtrado por `fechor_lectura` ✅.
+- [x] **2026-11-11 — Eliminación de Columnas y Depuración de `porcen` y `val_produc` en `config_productos` (`Migration`, `Model`, `Request`, `Resource`, `Vue`, `Services`):**
+  - **Contexto y Motivación:**
+    * Las tarifas y valores porcentuales de los productos ya no residen de forma estática en el maestro `config_productos`, sino de manera dinámica y contextualizada en `contratos_productos` según el contrato suscrito con cada entidad/sede asistencial.
+  - **Alcance Implementado:**
+    * **Migración:** Creada [`2026_11_11_105700_drop_porcen_and_val_produc_from_config_productos_table.php`](file:///c:/laragon/www/lidiag/database/migrations/2026_11_11_105700_drop_porcen_and_val_produc_from_config_productos_table.php) idempotente (`up` y `down`).
+    * **Modelo ([`ConfigProducto.php`](file:///c:/laragon/www/lidiag/app/Models/Configuracion/ConfigProducto.php)):** Removidos `porcen` y `val_produc` de `$fillable`.
+    * **FormRequest ([`ConfigProductoRequest.php`](file:///c:/laragon/www/lidiag/app/Http/Requests/Configuracion/ConfigProductoRequest.php)):** Removidas las reglas de validación de `porcen` y `val_produc`.
+    * **API Resource ([`ConfigProductoResource.php`](file:///c:/laragon/www/lidiag/app/Http/Resources/Configuracion/ConfigProductoResource.php)):** Removidos del payload JSON y añadido `@mixin \App\Models\Configuracion\ConfigProducto`.
+    * **Frontend ([`configProductoComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/configuracion/configProductoComponent.vue)):** Removidas las columnas de tabla `<th>%</th>` y `<th>Val. Produc</th>`, los inputs de `% Ganancia` y `Precio`, y sus estados reactivos en `registro`, `prepararEdicion`, `prepararNuevo` y `limpiar`.
+    * **Servicios de Compatibilidad Defensiva ([`EcografiaService.php`](file:///c:/laragon/www/lidiag/app/Services/Ecografias/EcografiaService.php), [`ProductosEspinalSyncService.php`](file:///c:/laragon/www/lidiag/app/Services/Configuracion/ProductosEspinalSyncService.php)):** Protegidas las consultas y creaciones contra ausencia de la columna `val_produc` mediante `Schema::hasColumn` y fallback `0 as ValProduc`.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% (0 errores) ✅.
+    * Larastan PHPStan Nivel 5 completado con 0 errores ✅.
+    * ESLint en `configProductoComponent.vue` pasado sin advertencias ✅.
+    * Compilación Vite (`npm run build`) completada con éxito en 1.28s ✅.
+    * Estado de migración verificado como `Pending` mediante `artisan migrate:status` ✅.
+
 - [x] **2026-11-11 — Corrección de Extracción de Tarifas SAHI por Factura Real en Productos Espinal (`ProductosEspinalSyncService.php`, `ProductosSincronizarEspinalCommand.php`, `Productos espinal.xlsx`):**
   - **Problema Auditado:**
     * El procedimiento CUPS `879111` (TAC de Cráneo Simple) quedó sincronizado en `Productos espinal.xlsx` con un valor de **$628.675**, mientras que en la factura física real de SAHI (`HSR-5714535`, atención `7019395`) el valor facturado es de **$573.000**.

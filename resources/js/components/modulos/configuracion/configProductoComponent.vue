@@ -80,8 +80,6 @@
                                     <tr>
                                         <th>Cups</th>
                                         <th>Producto</th>
-                                        <th>%</th>
-                                        <th>Val. Produc</th>
                                         <th>Lectura</th>
                                         <th>Oral</th>
                                         <th>Venoso</th>
@@ -94,8 +92,6 @@
                                     <tr v-for="item in registros" :key="item.id">
                                         <td>{{ item.cod_cups }}</td>
                                         <td>{{ item.nom_produc }}</td>
-                                        <td>{{ item.porcen }}</td>
-                                        <td>{{ item.val_produc }}</td>
                                         <td>{{ item.requi_lectura }}</td>
                                         <td>{{ item.tipo_oral }}</td>
                                         <td>{{ item.tipo_venoso }}</td>
@@ -204,48 +200,6 @@
                                         />
                                         <span class="text-danger" v-if="hasError('nom_produc')">{{
                                             getError("nom_produc")
-                                        }}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="control-label" for="porcen">% Ganancia</label>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            id="porcen"
-                                            name="porcen"
-                                            v-model="registro.porcen"
-                                            class="form-control"
-                                            :class="{ 'is-invalid': hasError('porcen') }"
-                                            placeholder="% de ganancia"
-                                        />
-                                        <span class="text-danger" v-if="hasError('porcen')">{{
-                                            getError("porcen")
-                                        }}</span>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="control-label" for="val_produc">Precio</label>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            id="val_produc"
-                                            name="val_produc"
-                                            v-model="registro.val_produc"
-                                            class="form-control"
-                                            :class="{
-                                                'is-invalid': hasError('val_produc'),
-                                            }"
-                                            placeholder="Ingrese aquí el precio del producto"
-                                        />
-                                        <span class="text-danger" v-if="hasError('val_produc')">{{
-                                            getError("val_produc")
                                         }}</span>
                                     </div>
                                 </div>
@@ -375,8 +329,6 @@ const registros = ref([]);
 const registro = ref({
     cod_cups: "",
     nom_produc: "",
-    porcen: 0,
-    val_produc: 0,
     requi_lectura: false,
     tipo_oral: false,
     tipo_venoso: false,
@@ -522,8 +474,6 @@ function prepararEdicion(item) {
     id.value = item.id;
     registro.value.cod_cups = item.cod_cups;
     registro.value.nom_produc = item.nom_produc;
-    registro.value.porcen = item.porcen;
-    registro.value.val_produc = item.val_produc;
     registro.value.requi_lectura = Boolean(item.requi_lectura);
     registro.value.tipo_oral = Boolean(item.tipo_oral);
     registro.value.tipo_venoso = Boolean(item.tipo_venoso);
@@ -539,8 +489,6 @@ function prepararNuevo() {
     id.value = 0;
     registro.value.cod_cups = "";
     registro.value.nom_produc = "";
-    registro.value.porcen = 0;
-    registro.value.val_produc = 0;
     registro.value.requi_lectura = false;
     registro.value.tipo_oral = false;
     registro.value.tipo_venoso = false;
@@ -556,8 +504,6 @@ function limpiar() {
     id.value = 0;
     registro.value.cod_cups = "";
     registro.value.nom_produc = "";
-    registro.value.porcen = 0;
-    registro.value.val_produc = 0;
     registro.value.requi_lectura = false;
     registro.value.tipo_oral = false;
     registro.value.tipo_venoso = false;

@@ -21,15 +21,16 @@ class ConfigProductoRequest extends FormRequest
     }
 
     /**
-     * Reglas de validación de productos (código CUPS, nombre, porcentaje, valor y estado).
+     * Reglas de validación de productos (código CUPS, nombre, requisitos clínicos y estado).
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-10-13
+     * @date 2026-11-11
      */
     public function rules(): array
     {
-        $productoId = $this->route('config.producto')?->id ?? $this->route('id');
+        $routeParam = $this->route('config.producto');
+        $productoId = is_object($routeParam) ? $routeParam->id : ($routeParam ?? $this->route('id'));
         $uniqueCode = Rule::unique('config_producto', 'cod_cups');
         $uniqueName = Rule::unique('config_producto', 'nom_produc');
 
@@ -41,8 +42,6 @@ class ConfigProductoRequest extends FormRequest
         return [
             'cod_cups' => ['required', 'string', 'min:2', 'max:20', $uniqueCode],
             'nom_produc' => ['required', 'string', 'min:2', 'max:200', $uniqueName],
-            'porcen' => 'nullable|numeric|min:0|max:100',
-            'val_produc' => 'nullable|numeric|min:0',
             'requi_lectura' => 'nullable|boolean',
             'tipo_oral' => 'nullable|boolean',
             'tipo_venoso' => 'nullable|boolean',
