@@ -37,6 +37,29 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-11 — Vinculación Global de Productos a Módulos Asistenciales (`config_modulos`) en Lugar de Servicios (`config_productos.modulo_id`, `ModulosSeeder`, `ConfigProductoComponent.vue`, etc.):**
+  - **Requerimiento del Usuario y Clarificación Arquitectural:**
+    * Los productos clínicos no deben vincularse a "Servicio Asistencial" (`config_servicios`, que es local por sede con `sede_id`), ya que un producto/estudio se debe prestar de manera global en **todas las sedes**.
+    * En su lugar, los productos se vinculan a la tabla de modalidades/módulos globales `config_modulos` (Rx, Ecografías, Tomografía, Resonancia, Mamografía, Oftalmología).
+  - **Ajustes Implementados:**
+    * **Base de Datos & Migraciones:**
+      - Creada y ejecutada la migración `2026_11_11_161500_add_modulo_id_to_config_productos_table.php` que agrega la columna `modulo_id` nullable con llave foránea a `config_modulos(id)` y `nullOnDelete()`.
+      - Actualizado `ModulosSeeder.php` para asegurar las 6 modalidades asistenciales (`Rx`, `Ecografias`, `Tomografia`, `Resonancia`, `Mamografia`, `Oftalmologia`) y clasificar automáticamente los productos existentes según palabras clave clínicas en su nombre/código CUPS (195 productos clasificados automáticamente).
+    * **Backend Eloquent, Resources & Requests:**
+      - En [`ConfigProducto.php`](file:///c:/laragon/www/lidiag/app/Models/Configuracion/ConfigProducto.php): Añadida la columna `modulo_id` a `$fillable` y la relación `modulo(): BelongsTo`.
+      - En [`ConfigModulo.php`](file:///c:/laragon/www/lidiag/app/Models/Configuracion/ConfigModulo.php): Añadida la relación inversa `productos(): HasMany`.
+      - En [`ConfigProductoRequest.php`](file:///c:/laragon/www/lidiag/app/Http/Requests/Configuracion/ConfigProductoRequest.php): Añadida la regla `'modulo_id' => 'nullable|integer|exists:config_modulos,id'`.
+      - En [`ConfigProductoResource.php`](file:///c:/laragon/www/lidiag/app/Http/Resources/Configuracion/ConfigProductoResource.php): Expuesta la clave `modulo_id` y el recurso anidado `modulo` (`ConfigModuloResource`).
+      - En [`ConfigProductoService.php`](file:///c:/laragon/www/lidiag/app/Services/Configuracion/ConfigProductoService.php): Eager loading `with(['modulo', 'servicio.sede'])` en `all()` y `find()`.
+      - En [`AgendaCitaQueryService.php`](file:///c:/laragon/www/lidiag/app/Services/Agenda/AgendaCitaQueryService.php): En `productosPorServicio()`, se resuelve la modalidad (`ConfigModulo`) correspondiente al servicio de la cita y se cargan todos los productos activos asociados a ese módulo de forma global para todas las sedes.
+    * **Frontend ([`configProductoComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/configuracion/configProductoComponent.vue)):**
+      - Columna en tabla reemplazada por `Módulo` con badge informativo (`item.modulo?.modulo`).
+      - En el drawer lateral, reemplazado el selector de servicio por `Módulo Asistencial`, alimentado reactivamente desde `/api/config-modulos-listar`.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% (0 errores) ✅.
+    * Larastan / PHPStan Nivel 5: 0 errores en todos los modelos, requests, resources y seeders ✅.
+    * ESLint y Prettier 100% limpios en `configProductoComponent.vue` ✅.
+    * Compilación Vite (`npm run build`) exitosa en 1.34s ✅.
 - [x] **2026-11-11 — Eliminación Definitiva de `/config-servicio-producto` y Centralización de Relación de Servicio en `/config-productos-listar` (`ConfigProducto.php`, `ConfigProductoRequest.php`, `ConfigProductoResource.php`, `ConfigProductoService.php`, `AgendaCitaQueryService.php`, `configProductoComponent.vue`, `AppSidebar.vue`, `routes.js`, `commandPaletteComponent.vue`, `routes/web.php`):**
   - **Decisión de Arquitectura y Requerimiento del Usuario:**
     * Eliminar la pantalla redundante `https://lidiag.test/config-servicio-producto` y su componente.

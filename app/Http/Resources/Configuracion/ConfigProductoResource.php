@@ -27,6 +27,8 @@ class ConfigProductoResource extends JsonResource
             'tipo_venoso' => $this->tipo_venoso,
             'factura' => $this->factura,
             'estado' => $this->estado,
+            'modulo_id' => $this->modulo_id,
+            'modulo' => ConfigModuloResource::make($this->whenLoaded('modulo')),
             'servicio_id' => $this->servicio_id,
             'servicio' => ConfigServicioResource::make($this->whenLoaded('servicio')),
             'recomendacionProducto' => ConfigRecomendacionProductoResource::make($this->whenLoaded('recomendacionProducto')),

@@ -5,6 +5,7 @@ namespace App\Services\Agenda;
 use App\Models\Agenda\AgendaCita;
 use App\Models\Agenda\AgendaDisponibilidaDetalle;
 use App\Models\Citas\WhatsAppConversation;
+use App\Models\Configuracion\ConfigModulo;
 use App\Models\Configuracion\ConfigProducto;
 use App\Models\Configuracion\ConfigServicio;
 use App\Services\BaseService;
@@ -202,7 +203,33 @@ class AgendaCitaQueryService extends BaseService
             ->where("estado", true)
             ->get();
 
-        $todos = $servicio->productos->merge($directos)->unique("id")->values();
+        $modulo = ConfigModulo::whereRaw("LOWER(modulo) = ?", [mb_strtolower($servicio->nombre)])
+            ->orWhere(function ($q) use ($servicio) {
+                $nombre = mb_strtolower($servicio->nombre);
+                if (str_contains($nombre, "rayo") || str_contains($nombre, "rx")) {
+                    $q->whereRaw("LOWER(modulo) = ?", ["rx"]);
+                } elseif (str_contains($nombre, "ecograf")) {
+                    $q->whereRaw("LOWER(modulo) LIKE ?", ["ecograf%"]);
+                } elseif (str_contains($nombre, "tomograf")) {
+                    $q->whereRaw("LOWER(modulo) LIKE ?", ["tomograf%"]);
+                } elseif (str_contains($nombre, "resonanc")) {
+                    $q->whereRaw("LOWER(modulo) LIKE ?", ["resonanc%"]);
+                } elseif (str_contains($nombre, "mamograf")) {
+                    $q->whereRaw("LOWER(modulo) LIKE ?", ["mamograf%"]);
+                } elseif (str_contains($nombre, "oftalmo")) {
+                    $q->whereRaw("LOWER(modulo) LIKE ?", ["oftalmo%"]);
+                }
+            })->first();
+
+        $porModulo = $modulo
+            ? ConfigProducto::where("modulo_id", $modulo->id)->where("estado", true)->get()
+            : collect();
+
+        $todos = $servicio->productos
+            ->merge($directos)
+            ->merge($porModulo)
+            ->unique("id")
+            ->values();
 
         return $this->success($todos);
     }

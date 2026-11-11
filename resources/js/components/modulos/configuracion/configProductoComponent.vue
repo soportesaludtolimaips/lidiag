@@ -80,7 +80,7 @@
                                     <tr>
                                         <th>Cups</th>
                                         <th>Producto</th>
-                                        <th>Servicio</th>
+                                        <th>Módulo</th>
                                         <th>Lectura</th>
                                         <th>Oral</th>
                                         <th>Venoso</th>
@@ -96,12 +96,9 @@
                                         <td>
                                             <span
                                                 class="badge badge-info"
-                                                v-if="item.servicio?.nombre"
+                                                v-if="item.modulo?.modulo"
                                             >
-                                                {{ item.servicio.nombre }}
-                                                <small v-if="item.servicio.sede?.nom_sede">
-                                                    ({{ item.servicio.sede.nom_sede }})</small
-                                                >
+                                                {{ item.modulo.modulo }}
                                             </span>
                                             <span class="text-muted" v-else>—</span>
                                         </td>
@@ -221,27 +218,23 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label" for="servicio_id"
-                                            >Servicio Asistencial</label
+                                        <label class="control-label" for="modulo_id"
+                                            >Módulo Asistencial</label
                                         >
                                         <select
-                                            id="servicio_id"
-                                            name="servicio_id"
-                                            v-model="registro.servicio_id"
+                                            id="modulo_id"
+                                            name="modulo_id"
+                                            v-model="registro.modulo_id"
                                             class="form-control"
-                                            :class="{ 'is-invalid': hasError('servicio_id') }"
+                                            :class="{ 'is-invalid': hasError('modulo_id') }"
                                         >
-                                            <option value="">-- Sin Servicio Asignado --</option>
-                                            <option
-                                                v-for="s in servicios"
-                                                :key="s.id"
-                                                :value="s.id"
-                                            >
-                                                {{ s.nombre }} — {{ s.sede?.nom_sede || "General" }}
+                                            <option value="">-- Sin Módulo Asignado --</option>
+                                            <option v-for="m in modulos" :key="m.id" :value="m.id">
+                                                {{ m.modulo }}
                                             </option>
                                         </select>
-                                        <span class="text-danger" v-if="hasError('servicio_id')">{{
-                                            getError("servicio_id")
+                                        <span class="text-danger" v-if="hasError('modulo_id')">{{
+                                            getError("modulo_id")
                                         }}</span>
                                     </div>
                                 </div>
@@ -368,11 +361,11 @@ import axios from "axios";
 
 const id = ref(0);
 const registros = ref([]);
-const servicios = ref([]);
+const modulos = ref([]);
 const registro = ref({
     cod_cups: "",
     nom_produc: "",
-    servicio_id: "",
+    modulo_id: "",
     requi_lectura: false,
     tipo_oral: false,
     tipo_venoso: false,
@@ -512,12 +505,12 @@ async function eliminarRegistro(idEliminar, nom) {
     }
 }
 
-async function cargarServicios() {
+async function cargarModulos() {
     try {
-        const res = await axios.get("/api/config-servicio-citas");
-        servicios.value = res.data?.data || res.data || [];
+        const res = await axios.get("/api/config-modulos-listar");
+        modulos.value = res.data?.data || res.data || [];
     } catch {
-        servicios.value = [];
+        modulos.value = [];
     }
 }
 
@@ -527,7 +520,7 @@ function prepararEdicion(item) {
     id.value = item.id;
     registro.value.cod_cups = item.cod_cups;
     registro.value.nom_produc = item.nom_produc;
-    registro.value.servicio_id = item.servicio_id || item.servicio?.id || "";
+    registro.value.modulo_id = item.modulo_id || item.modulo?.id || "";
     registro.value.requi_lectura = Boolean(item.requi_lectura);
     registro.value.tipo_oral = Boolean(item.tipo_oral);
     registro.value.tipo_venoso = Boolean(item.tipo_venoso);
@@ -543,7 +536,7 @@ function prepararNuevo() {
     id.value = 0;
     registro.value.cod_cups = "";
     registro.value.nom_produc = "";
-    registro.value.servicio_id = "";
+    registro.value.modulo_id = "";
     registro.value.requi_lectura = false;
     registro.value.tipo_oral = false;
     registro.value.tipo_venoso = false;
@@ -559,7 +552,7 @@ function limpiar() {
     id.value = 0;
     registro.value.cod_cups = "";
     registro.value.nom_produc = "";
-    registro.value.servicio_id = "";
+    registro.value.modulo_id = "";
     registro.value.requi_lectura = false;
     registro.value.tipo_oral = false;
     registro.value.tipo_venoso = false;
@@ -580,7 +573,7 @@ function cerrarSidebar() {
 }
 
 onMounted(() => {
-    cargarServicios();
+    cargarModulos();
     ListarDatos();
 });
 
