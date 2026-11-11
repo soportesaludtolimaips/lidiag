@@ -5,23 +5,24 @@
             Mensajes de bienvenida personalizados por sede y servicio para el bot de WhatsApp.
         </h6>
 
-        <div v-if="!sedeActual" class="alert alert-warning m-t-20">
-            <i class="fa fa-exclamation-triangle"></i>
-            Seleccione una sede en el menú superior para administrar sus saludos.
+        <div v-if="!sedeActual" class="alert alert-info m-t-20">
+            <i class="fa fa-info-circle"></i>
+            Mostrando todos los saludos configurados (incluidos los generales). Para filtrar por una
+            sede específica, selecciónela en el menú superior.
         </div>
 
-        <div v-else-if="errorSaludos" class="alert alert-danger m-t-20">
+        <div v-if="errorSaludos" class="alert alert-danger m-t-20">
             <i class="fa fa-exclamation-triangle"></i>
             {{ errorSaludos }}
         </div>
 
-        <template v-else>
+        <div>
             <table-skeleton-loader :visible="loadingSaludos" :rows="5" :columns="5" />
             <empty-state-component
                 v-if="!loadingSaludos && registrosSaludos.length === 0"
                 icon="fa fa-comment-o"
                 title="No hay saludos configurados"
-                description="No se encontraron mensajes de bienvenida en esta sede."
+                description="No se encontraron mensajes de bienvenida."
                 action-text="Nuevo registro"
                 action-icon="fa fa-plus"
                 @action="nuevo()"
@@ -50,14 +51,14 @@
                     <tbody>
                         <tr v-for="item in registrosSaludos" :key="item.id">
                             <td>
-                                {{ item.sede ? item.sede.nom_sede : "Todas las sedes" }}
+                                {{ item.sede ? item.sede.nom_sede : "Todas las sedes (Global)" }}
                             </td>
                             <td>
                                 {{ item.servicio ? item.servicio.nombre : "Todos los servicios" }}
                             </td>
                             <td class="text-wrap" style="max-width: 400px">
-                                {{ item.mensaje_bienvenida.substring(0, 50)
-                                }}{{ item.mensaje_bienvenida.length > 50 ? "..." : "" }}
+                                {{ item.mensaje_bienvenida.substring(0, 80)
+                                }}{{ item.mensaje_bienvenida.length > 80 ? "..." : "" }}
                             </td>
                             <td>
                                 <span
@@ -102,7 +103,7 @@
                     </tbody>
                 </table>
             </div>
-        </template>
+        </div>
 
         <!-- Backdrop overlay para cerrar al hacer clic afuera -->
         <div v-if="sidebarVisible" class="sidebar-backdrop" @click="cerrarFormSidebar"></div>
@@ -140,7 +141,11 @@
                                         <input
                                             type="text"
                                             class="form-control"
-                                            :value="nomSede || 'Sede seleccionada'"
+                                            :value="
+                                                form.sede_id
+                                                    ? nomSede || 'Sede asignada'
+                                                    : 'Todas las sedes (Global)'
+                                            "
                                             readonly
                                             disabled
                                         />
@@ -488,9 +493,6 @@ const modalProbarVisible = ref(false);
 
 function validarSaludos(payload) {
     const errs = {};
-    if (!payload.sede_id) {
-        errs.sede_id = ["La sede es obligatoria. Seleccione una sede en el menú superior."];
-    }
     if (!payload.mensaje_bienvenida || !String(payload.mensaje_bienvenida).trim()) {
         errs.mensaje_bienvenida = ["El mensaje de bienvenida es obligatorio."];
     }
@@ -512,16 +514,14 @@ async function cargarServicios() {
 }
 async function listarSaludos() {
     if (loadingSaludos.value) return;
-    if (!sedeActual.value) {
-        registrosSaludos.value = [];
-        return;
-    }
     loadingSaludos.value = true;
     errorSaludos.value = "";
     try {
-        const res = await axios.get("/api/config-whatsapp", {
-            params: { sede_id: sedeActual.value },
-        });
+        const params = {};
+        if (sedeActual.value) {
+            params.sede_id = sedeActual.value;
+        }
+        const res = await axios.get("/api/config-whatsapp", { params });
         registrosSaludos.value = res?.data?.data || res?.data || [];
         dtSaludosApi.refresh(true);
     } catch (error) {
@@ -562,11 +562,11 @@ async function eliminarRegistro(registroId) {
 function mostrarRegistro(data = {}) {
     if (actualizar.value) {
         prepararEdicion(
-            "Actualizar saludo: " + (data.sede?.nom_sede || "Todas las sedes"),
+            "Actualizar saludo: " + (data.sede?.nom_sede || "Todas las sedes (Global)"),
             data,
             (d) => ({
-                sede_id: d.sede_id || sedeActual.value || "",
-                servicio_id: d.servicio_id || "",
+                sede_id: d.sede_id ?? "",
+                servicio_id: d.servicio_id ?? "",
                 mensaje_bienvenida: d.mensaje_bienvenida || "",
                 activo: d.activo ? 1 : 0,
             })

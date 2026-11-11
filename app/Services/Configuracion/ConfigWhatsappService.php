@@ -23,7 +23,10 @@ class ConfigWhatsappService extends BaseService
         $query = ConfigWhatsapp::with(['sede', 'servicio']);
 
         if ($sedeId) {
-            $query->where('sede_id', $sedeId);
+            $query->where(function ($q) use ($sedeId) {
+                $q->where('sede_id', $sedeId)
+                    ->orWhereNull('sede_id');
+            });
         }
 
         return $this->success($query->get());

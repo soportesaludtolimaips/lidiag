@@ -37,6 +37,34 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-11 — Corrección de Visibilidad del Saludo Inicial Global en Módulo WhatsApp (`ConfigWhatsappService.php`, `configWhatsappSaludos.vue`, `StoreConfigWhatsappRequest.php`, `UpdateConfigWhatsappRequest.php`, `ConfigWhatsapp.php`):**
+  - **Problema Reportado:**
+    * Al ingresar a `https://lidiag.test/config-whatsapp-listar` en la pestaña "Saludos del Bot", el saludo inicial configurado por defecto (`sede_id = null`) no se visualizaba.
+  - **Causas Raíz Identificadas:**
+    1. *Filtro estricto en backend:* `ConfigWhatsappService::all($sedeId)` aplicaba un estricto `where('sede_id', $sedeId)` que excluía los registros globales donde `sede_id IS NULL` (saludo inicial "Todas las sedes").
+    2. *Bloqueo condicional en frontend:* `configWhatsappSaludos.vue` condicionaba el renderizado de la tabla con `v-if="!sedeActual"`, mostrando una advertencia y ocultando la tabla por completo si el usuario no tenía una sede seleccionada en la cabecera.
+    3. *Reglas de validación:* `StoreConfigWhatsappRequest` y `UpdateConfigWhatsappRequest` exigían `sede_id` obligatorio, impidiendo gestionar o actualizar el saludo inicial genérico.
+    4. *Tipado de relaciones:* `ConfigWhatsapp.php` no tipaba `: BelongsTo` en las relaciones `sede()` y `servicio()`.
+  - **Ajustes Implementados:**
+    * **Backend:** En `ConfigWhatsappService::all()` se incluye `where(fn($q) => $q->where('sede_id', $sedeId)->orWhereNull('sede_id'))`, asegurando que el saludo inicial global siempre esté disponible para todas las sedes. `sede_id` configurado como `nullable` en los FormRequests. Agregados tipos `BelongsTo` en `ConfigWhatsapp.php`.
+    * **Frontend:** Se reemplazó el bloqueo de `!sedeActual` en `configWhatsappSaludos.vue` por un banner informativo, permitiendo cargar y listar siempre los saludos disponibles (identificando `sede_id == null` como *"Todas las sedes (Global)"*).
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% (0 errores) ✅.
+    * Larastan PHPStan Nivel 5 completado con 0 errores ✅.
+    * ESLint y Prettier limpios en `configWhatsappSaludos.vue` ✅.
+    * Compilación Vite (`npm run build`) exitosa en 1.47s ✅.
+    * Endpoint verificado: `all(null)` y `all(1)` retornan el saludo global ID 1 ✅.
+- [x] **2026-11-11 — Ampliación y Auditoría Integral de Seeders Faltantes con Bandera `--dry-run` (`SeedFaltantesCommand.php`):**
+  - **Requerimiento del Usuario:**
+    * Crear/habilitar un comando integral que detecte y ejecute de forma automática e inteligente únicamente aquellos seeders que no hayan sido corridos en la base de datos.
+  - **Ajustes Realizados ([`SeedFaltantesCommand.php`](file:///c:/laragon/www/lidiag/app/Console/Commands/SeedFaltantesCommand.php)):**
+    * Se amplió la matriz de seeders a **46 seeders del repositorio**, cubriendo la totalidad de módulos (Configuración Base, Sedes, Servicios, EPS, CIE-10, Prioridades, Tipos de Documento, Roles, Usuarios, Módulos, Plantillas, Productos CUPS y Ecografías, Deduplicación, Espinal, Estudios, Tele-radiología, Consentimientos, Dosimetría NRD, Backups, Auditoría, Tokens Sanctum Edge, Contratos, Liquidación, Citas/Agenda, WhatsApp Bot y HelpDesk).
+    * Se incorporó la bandera `--dry-run` para desplegar una tabla en consola con el estado en vivo (`✔ APLICADO` vs `⏳ PENDIENTE`) de cada seeder sin realizar escrituras.
+    * En ejecución normal (`php artisan seed:faltantes`), omite los seeders ya existentes y ejecuta de forma segura solo los pendientes, refrescando al finalizar la caché de Spatie (`permissions:cache-reset`).
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% (0 fallos) ✅.
+    * Larastan PHPStan Nivel 5 completado con 0 errores ✅.
+    * Validación en vivo: `php artisan seed:faltantes --dry-run` audita exitosamente los 46 seeders ✅.
 - [x] **2026-11-11 — Simplificación de Reporte de Producción: Filtrado Estricto por Estudios Leídos y Fecha/Hora de Lectura (`CruceFinancieroService.php`, `reporteProduccionComponent.vue`):**
   - **Requerimiento del Usuario:**
     * Simplificar el reporte de producción detallada de imágenes diagnósticas.

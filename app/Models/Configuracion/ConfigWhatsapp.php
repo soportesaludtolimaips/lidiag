@@ -3,6 +3,7 @@
 namespace App\Models\Configuracion;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ConfigWhatsapp extends Model
 {
@@ -22,13 +23,12 @@ class ConfigWhatsapp extends Model
     /**
      * Sede a la que pertenece la configuración.
      *
-     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-10-13
      */
-    public function sede()
+    public function sede(): BelongsTo
     {
         return $this->belongsTo(ConfigSede::class, 'sede_id');
     }
@@ -36,13 +36,12 @@ class ConfigWhatsapp extends Model
     /**
      * Servicio al que pertenece la configuración.
      *
-     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-10-13
      */
-    public function servicio()
+    public function servicio(): BelongsTo
     {
         return $this->belongsTo(ConfigServicio::class, 'servicio_id');
     }
