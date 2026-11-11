@@ -59,9 +59,9 @@ class CruceFinancieroService extends BaseService
             ->join("estudios", "estudios_productos.estudio_id", "=", "estudios.id")
             ->join("config_sedes", "estudios.sede_id", "=", "config_sedes.id")
             ->leftJoin("config_prioridades", "estudios.prioridad_id", "=", "config_prioridades.id")
-            ->join("users as registro", "estudios.quien_registro_id", "=", "registro.id")
+            ->leftJoin("users as registro", "estudios.quien_registro_id", "=", "registro.id")
             ->leftJoin("users as medico", "medico.id", "=", "estudios.medico_id")
-            ->join("pacientes", "estudios.paciente_id", "=", "pacientes.id")
+            ->leftJoin("pacientes", "estudios.paciente_id", "=", "pacientes.id")
             ->leftJoin("users as transcrip", "transcrip.id", "=", "estudios_productos.transcriptor_id")
             // 1. Cruce con Contratos vigentes de la sede para la fecha de asignación/corte
             ->leftJoin("contratos as c", function ($join) {
@@ -99,7 +99,7 @@ class CruceFinancieroService extends BaseService
                 "estudios_productos.fechor_lectura",
                 "estudios.atencion",
                 "config_prioridades.nom_priori",
-                "registro.name as quien_registro",
+                DB::raw("COALESCE(registro.name, 'Sin Asignar') as quien_registro"),
                 "medico.name as medico",
                 "pacientes.num_docu",
                 "pacientes.nombres",

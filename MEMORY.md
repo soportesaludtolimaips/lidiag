@@ -37,6 +37,20 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-11 — Corrección de Extracción de Tarifas SAHI por Factura Real en Productos Espinal (`ProductosEspinalSyncService.php`, `ProductosSincronizarEspinalCommand.php`, `Productos espinal.xlsx`):**
+  - **Problema Auditado:**
+    * El procedimiento CUPS `879111` (TAC de Cráneo Simple) quedó sincronizado en `Productos espinal.xlsx` con un valor de **$628.675**, mientras que en la factura física real de SAHI (`HSR-5714535`, atención `7019395`) el valor facturado es de **$573.000**.
+    * La causa raíz fue que el servicio promediaba globalmente todas las 3.405 facturas de SAHI del año (mezclando SOAT a $764.000, Nueva EPS a $611.200 y Salud Total a $573.000).
+  - **Solución Implementada:**
+    * Refactorización de `consultarTarifasSahi` en [`ProductosEspinalSyncService.php`](file:///c:/laragon/www/lidiag/app/Services/Configuracion/ProductosEspinalSyncService.php):
+      1. Prioriza la **última factura facturada en el contrato de Salud Total / HSR** (`IdContrato = 5082`, `COE-22-GIR0022`), extrayendo el valor unitario exacto facturado (ej. $573.000 para CUPS 879111).
+      2. Para procedimientos no facturados aún en ese contrato, toma el tarifario oficial contractual del convenio: manual **UVB 2026** (`IdTarifa = 452`) con el **-25% de descuento** pactado.
+      3. Fallback a la última factura de 2026 en caso de no existir tarifa en el contrato.
+    * Actualización del comando [`ProductosSincronizarEspinalCommand.php`](file:///c:/laragon/www/lidiag/app/Console/Commands/ProductosSincronizarEspinalCommand.php) con la opción `--contrato=5082`.
+    * Ejecución de la sincronización en producción: 150 valores asignados en `Productos espinal.xlsx` y 120 productos actualizados en `config_productos` de MySQL. Fila 2 (CUPS 879111) actualizada a **$573.000**.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) pasado al 100% ✅.
+    * Verificación directa de celdas en el archivo Excel físico y en base de datos ✅.
 - [x] **2026-11-10 — Endpoint de Consulta Reactiva de Médicos y Productos/Tarifas por Contrato (`ContratoController.php`, `ContratoService.php`, `api_contratacion.php`):**
   - **Alcance Implementado:**
     * Endpoint `GET /api/contratos/{contratoId}/medicos-productos` protegido con permiso `contratos.show`.

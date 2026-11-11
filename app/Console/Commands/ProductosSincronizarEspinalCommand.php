@@ -19,6 +19,7 @@ class ProductosSincronizarEspinalCommand extends Command
     protected $signature = 'productos:sincronizar-espinal
         {--file= : Ruta alternativa al archivo Excel de productos}
         {--year=2026 : Año de facturación a consultar en SAHI}
+        {--contrato=5082 : ID del contrato SAHI para consultar facturación específica (por defecto 5082 - Salud Total COE-22-GIR0022)}
         {--dry-run : Ejecutar análisis y cruce sin alterar el archivo Excel ni la base de datos}
         {--no-excel : Omitir actualización física del archivo Excel}
         {--no-db : Omitir actualización en la tabla config_productos de MySQL}';
@@ -50,6 +51,7 @@ class ProductosSincronizarEspinalCommand extends Command
         $defaultPath = base_path('Documentos/Productos por medicos apra el modulo de contabilidad/Productos espinal.xlsx');
         $filePath = $this->option('file') ?: $defaultPath;
         $year = (int) $this->option('year');
+        $contratoId = $this->option('contrato') !== null ? (int) $this->option('contrato') : 5082;
         $dryRun = (bool) $this->option('dry-run');
         $noExcel = (bool) $this->option('no-excel');
         $noDb = (bool) $this->option('no-db');
@@ -62,6 +64,7 @@ class ProductosSincronizarEspinalCommand extends Command
         $this->info('========================================================================');
         $this->line(" Archivo: {$filePath}");
         $this->line(" Año base SAHI: {$year}");
+        $this->line(" Contrato SAHI: {$contratoId} (Salud Total / HSR)");
         $this->line(' Modo: '.($dryRun ? '<comment>DRY-RUN (Simulación sin cambios)</comment>' : '<info>PRODUCCIÓN (Aplicar cambios)</info>'));
         $this->line(' Actualizar Excel: '.($actualizarExcel ? 'SÍ' : 'NO'));
         $this->line(' Actualizar BD LIDiag: '.($actualizarDb ? 'SÍ' : 'NO'));
@@ -74,7 +77,7 @@ class ProductosSincronizarEspinalCommand extends Command
         }
 
         $this->comment('Iniciando lectura de Excel y cruce con SAHI (SQL Server)...');
-        $resultado = $syncService->procesarArchivoExcel($filePath, $actualizarExcel, $actualizarDb, $year);
+        $resultado = $syncService->procesarArchivoExcel($filePath, $actualizarExcel, $actualizarDb, $year, $contratoId);
 
         if (! ($resultado['success'] ?? false)) {
             $this->error('Error durante el proceso: '.($resultado['message'] ?? 'Fallo desconocido'));

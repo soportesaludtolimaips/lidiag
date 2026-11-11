@@ -119,19 +119,23 @@ class ProductosEspinalSyncService extends BaseService
      *
      * Flujo del proceso:
      * 1. Consulta en proProducto los IdProducto correspondientes a los códigos CUPS.
-     * 2. Ejecuta consulta optimizada sobre facFactura y facFacturaDet filtrando por año especificado (ej. 2026).
-     * 3. Para productos sin facturas en dicho año, consulta tarifas vigentes en conTarifaDetalle (SOAT / UVT / UVB) o facturas históricas.
-     * 4. Retorna arreglo asociativo indexado por CodProducto con el valor financiero representativo y metadatos.
+     * 2. Si se especifica un contratoId (por defecto 5082 - Salud Total HSR COE-22-GIR0022), extrae el valor unitario
+     *    real de la factura más reciente para ese contrato puntual.
+     * 3. Para productos no facturados aún en dicho contrato, consulta el tarifario del contrato en conTarifaDetalle
+     *    (UVB 2026 IdTarifa 452 con -25% de descuento contractual).
+     * 4. Si aún restan productos, consulta la última factura facturada en 2026 de cualquier contrato del hospital.
+     * 5. Retorna arreglo asociativo indexado por CodProducto con el valor financiero unitario y metadatos del origen.
      *
      * @param  array  $cupsList  Lista de códigos CUPS a cotizar
      * @param  int  $year  Año base de facturación (predeterminado 2026)
+     * @param  int|null  $contratoId  ID de contrato en SAHI (predeterminado 5082 para Salud Total HSR)
      * @return array<string, array{valor: float, origen: string, facturas: int}>
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-11-10
      */
-    public function consultarTarifasSahi(array $cupsList, int $year = 2026): array
+    public function consultarTarifasSahi(array $cupsList, int $year = 2026, ?int $contratoId = 5082): array
     {
         $uniqueCups = array_values(array_unique(array_filter(array_map('trim', $cupsList))));
         if (empty($uniqueCups)) {
@@ -158,42 +162,99 @@ class ProductosEspinalSyncService extends BaseService
                 return [];
             }
 
-            // 2. Facturación del año especificado (aprovechando índice de FecFactura en facFactura)
-            $facturas = DB::connection('sqlsrv')->select("
-                SELECT 
-                    det.IdProducto,
-                    ROUND(AVG(det.ValTotal / NULLIF(det.Cantidad, 0)), 0) as precio_promedio,
-                    ROUND(MAX(det.ValTotal / NULLIF(det.Cantidad, 0)), 0) as precio_maximo,
-                    COUNT(det.IdFactura) as total_facturas
-                FROM facFactura fac
-                INNER JOIN facFacturaDet det ON fac.IdFactura = det.IdFactura
-                WHERE fac.FecFactura >= '{$year}-01-01 00:00:00'
-                  AND det.IdProducto IN (".implode(',', $ids).')
-                  AND det.ValTotal > 0
-                GROUP BY det.IdProducto
-            ');
+            // 2. Si se especifica contrato (ej. 5082 - Salud Total HSR), extraer la última factura facturada en ese contrato
+            if ($contratoId) {
+                $facturasContrato = DB::connection('sqlsrv')->select("
+                    SELECT 
+                        det.IdProducto,
+                        ROUND(det.ValTotal / NULLIF(det.Cantidad, 0), 0) as precio,
+                        fac.NumFactura,
+                        fac.FecFactura,
+                        ROW_NUMBER() OVER(PARTITION BY det.IdProducto ORDER BY fac.FecFactura DESC) as rn
+                    FROM facFactura fac
+                    INNER JOIN facFacturaDet det ON fac.IdFactura = det.IdFactura
+                    WHERE fac.IdContrato = {$contratoId}
+                      AND det.IdProducto IN (".implode(',', $ids).")
+                      AND det.ValTotal > 0
+                ");
 
-            $idsConFactura = [];
-            foreach ($facturas as $f) {
-                $cups = $idToCups[$f->IdProducto] ?? null;
-                if ($cups) {
-                    $idsConFactura[] = $f->IdProducto;
-                    $tarifasPorCups[$cups] = [
-                        'valor' => (float) $f->precio_promedio,
-                        'origen' => "Facturación {$year} (Promedio de {$f->total_facturas} facturas)",
-                        'facturas' => (int) $f->total_facturas,
-                    ];
+                foreach ($facturasContrato as $fc) {
+                    if ((int) $fc->rn === 1) {
+                        $cups = $idToCups[$fc->IdProducto] ?? null;
+                        if ($cups) {
+                            $tarifasPorCups[$cups] = [
+                                'valor' => (float) $fc->precio,
+                                'origen' => "Factura SAHI {$fc->NumFactura} (Contrato {$contratoId})",
+                                'facturas' => 1,
+                            ];
+                        }
+                    }
+                }
+
+                // 2.1 Para los productos de ese contrato que no tienen factura aún, consultar tarifario UVB 2026 con -25% (IdTarifa 452)
+                $idsSinFacturaContrato = array_diff($ids, array_map(fn ($c) => array_search($c, $idToCups), array_keys($tarifasPorCups)));
+                if (! empty($idsSinFacturaContrato)) {
+                    $tarifasContratoBase = DB::connection('sqlsrv')->select("
+                        SELECT td.IdProducto, ROUND(td.Valor * 0.75, 0) as valor_con_descuento, t.DesTarifa
+                        FROM conTarifaDetalle td
+                        INNER JOIN conTarifa t ON td.IdTarifa = t.IdTarifa
+                        WHERE td.IdTarifa = 452
+                          AND td.IdProducto IN (".implode(',', $idsSinFacturaContrato).")
+                          AND td.Valor > 0
+                    ");
+
+                    foreach ($tarifasContratoBase as $tcb) {
+                        $cups = $idToCups[$tcb->IdProducto] ?? null;
+                        if ($cups && ! isset($tarifasPorCups[$cups])) {
+                            $tarifasPorCups[$cups] = [
+                                'valor' => (float) $tcb->valor_con_descuento,
+                                'origen' => "Tarifario SAHI (UVB 2026 -25% / Contrato {$contratoId})",
+                                'facturas' => 0,
+                            ];
+                        }
+                    }
                 }
             }
 
-            // 3. Fallback para productos no facturados en el año actual: conTarifaDetalle (SOAT / Tarifas 2026)
-            $idsSinFactura = array_diff($ids, $idsConFactura);
-            if (! empty($idsSinFactura)) {
+            // 3. Fallback: Facturación general más reciente del año 2026 para productos restantes
+            $idsSinTarifa = array_diff($ids, array_map(fn ($c) => array_search($c, $idToCups), array_keys($tarifasPorCups)));
+            if (! empty($idsSinTarifa)) {
+                $facturasGen = DB::connection('sqlsrv')->select("
+                    SELECT 
+                        det.IdProducto,
+                        ROUND(det.ValTotal / NULLIF(det.Cantidad, 0), 0) as precio,
+                        fac.NumFactura,
+                        fac.IdContrato,
+                        ROW_NUMBER() OVER(PARTITION BY det.IdProducto ORDER BY fac.FecFactura DESC) as rn
+                    FROM facFactura fac
+                    INNER JOIN facFacturaDet det ON fac.IdFactura = det.IdFactura
+                    WHERE fac.FecFactura >= '{$year}-01-01 00:00:00'
+                      AND det.IdProducto IN (".implode(',', $idsSinTarifa).")
+                      AND det.ValTotal > 0
+                ");
+
+                foreach ($facturasGen as $fg) {
+                    if ((int) $fg->rn === 1) {
+                        $cups = $idToCups[$fg->IdProducto] ?? null;
+                        if ($cups && ! isset($tarifasPorCups[$cups])) {
+                            $tarifasPorCups[$cups] = [
+                                'valor' => (float) $fg->precio,
+                                'origen' => "Última Factura General SAHI {$fg->NumFactura} (Contrato {$fg->IdContrato})",
+                                'facturas' => 1,
+                            ];
+                        }
+                    }
+                }
+            }
+
+            // 4. Fallback: Tarifario general 2026 si aún restan
+            $idsAunSinValor = array_diff($ids, array_map(fn ($c) => array_search($c, $idToCups), array_keys($tarifasPorCups)));
+            if (! empty($idsAunSinValor)) {
                 $tarifasBase = DB::connection('sqlsrv')->select("
                     SELECT td.IdProducto, td.Valor, t.DesTarifa
                     FROM conTarifaDetalle td
                     INNER JOIN conTarifa t ON td.IdTarifa = t.IdTarifa
-                    WHERE td.IdProducto IN (".implode(',', $idsSinFactura).")
+                    WHERE td.IdProducto IN (".implode(',', $idsAunSinValor).")
                       AND td.Valor > 0
                       AND (t.DesTarifa LIKE '%SOAT 2026%' OR t.DesTarifa LIKE '%UVB 2026%' OR t.DesTarifa LIKE '%UVT 2026%')
                     ORDER BY td.IdProducto, td.Valor DESC
@@ -206,32 +267,6 @@ class ProductosEspinalSyncService extends BaseService
                             'valor' => (float) $tb->Valor,
                             'origen' => "Tarifario SAHI ({$tb->DesTarifa})",
                             'facturas' => 0,
-                        ];
-                    }
-                }
-            }
-
-            // 4. Fallback histórico si aún restan productos sin valor
-            $idsAunSinValor = array_diff($ids, array_map(fn ($c) => array_search($c, $idToCups), array_keys($tarifasPorCups)));
-            if (! empty($idsAunSinValor)) {
-                $tarifasHistoricas = DB::connection('sqlsrv')->select("
-                    SELECT 
-                        det.IdProducto,
-                        ROUND(AVG(det.ValTotal / NULLIF(det.Cantidad, 0)), 0) as precio_promedio,
-                        COUNT(det.IdFactura) as total_facturas
-                    FROM facFacturaDet det
-                    WHERE det.IdProducto IN (".implode(',', $idsAunSinValor).')
-                      AND det.ValTotal > 0
-                    GROUP BY det.IdProducto
-                ');
-
-                foreach ($tarifasHistoricas as $th) {
-                    $cups = $idToCups[$th->IdProducto] ?? null;
-                    if ($cups && ! isset($tarifasPorCups[$cups])) {
-                        $tarifasPorCups[$cups] = [
-                            'valor' => (float) $th->precio_promedio,
-                            'origen' => 'Facturación Histórica Previa',
-                            'facturas' => (int) $th->total_facturas,
                         ];
                     }
                 }
@@ -269,7 +304,8 @@ class ProductosEspinalSyncService extends BaseService
         string $filePath,
         bool $actualizarExcel = true,
         bool $actualizarDb = true,
-        int $year = 2026
+        int $year = 2026,
+        ?int $contratoId = 5082
     ): array {
         if (! file_exists($filePath)) {
             return $this->error("El archivo especificado no existe: {$filePath}", 404);
@@ -314,7 +350,7 @@ class ProductosEspinalSyncService extends BaseService
             }
 
             // Paso 2: Consulta financiera en SAHI
-            $tarifasSahi = $this->consultarTarifasSahi($cupsParaCotizar, $year);
+            $tarifasSahi = $this->consultarTarifasSahi($cupsParaCotizar, $year, $contratoId);
 
             $valoresActualizados = 0;
             $dbActualizados = 0;
@@ -375,7 +411,7 @@ class ProductosEspinalSyncService extends BaseService
                             if (empty($productoLocal->cod_cups)) {
                                 $updates['cod_cups'] = $cups;
                             }
-                            if ((empty($productoLocal->val_produc) || (float) $productoLocal->val_produc <= 0) && $val > 0) {
+                            if ($val > 0 && (float) $productoLocal->val_produc != (float) $val) {
                                 $updates['val_produc'] = $val;
                             }
 
