@@ -83,6 +83,7 @@ La aplicación está compuesta por los siguientes módulos especializados:
 
 -   Permite la asignación de estudios radiológicos a los médicos radiólogos para su lectura e interpretación.
 -   Facilita la distribución equitativa y organizada de los estudios pendientes.
+-   **Tablero de asignación:** Marca en azul los estudios que ya tienen lectura (`reportado`: producto activo con `fechor_lectura`, calculado en `Dcm4chee\StudyService::studyPksReportados`) para distinguir lo leído de lo pendiente.
 
 ### 2. Citas
 
@@ -97,6 +98,7 @@ La aplicación está compuesta por los siguientes módulos especializados:
 
 -   Maneja el ciclo de vida de los estudios de Rayos X, Tomografía Axial Computarizada (TAC), Resonancia Magnética y Mamografía.
 -   Separado operativamente del área de ecografías para alinearse con la estructura organizacional de la empresa.
+-   **Informe centrado:** Al generar el DOCX con la plantilla de la sede se igualan los márgenes izquierdo y derecho (`PlantillaEstudioService::igualarMargenesLaterales`; se usa el mayor de los dos para no correr el texto bajo el membrete). Los márgenes superior e inferior no se tocan.
 
 ### 4. Ecografías
 
@@ -104,7 +106,7 @@ La aplicación está compuesta por los siguientes módulos especializados:
 
 -   Módulo dedicado exclusivamente al flujo de trabajo de ecografías.
 -   Permite el registro, lectura y reporte de hallazgos ecográficos con plantillas específicas.
--   Incluye flujo de **consentimientos informados** (plantillas, generación de PDF/ZIP y firma por token).
+-   Incluye flujo de **consentimientos informados** (plantillas, generación de PDF/ZIP y firma por token). La versión genérica, para cualquier servicio, es el módulo 19.
 
 ### 5. Interface (Integración SAHI)
 
@@ -147,6 +149,7 @@ La aplicación está compuesta por los siguientes módulos especializados:
 -   Administración de parámetros generales del sistema, sedes hospitalarias, aseguradoras (EPS), y catálogos de servicios.
 -   Parametrización de HelpDesk (categorías, prioridades y estados).
 -   Configuración de plantillas de lectura, tipos de documentos, consentimientos informados y WhatsApp.
+-   **Marca institucional por sede:** Logo, encabezado y pie de página (`/config-sede-logo`, `POST /api/config-sedes/{id}/branding`, permiso `config.sedes.edit`), que se usan en el PDF de los consentimientos informados.
 
 ### 10. Seguridad y Auditoría
 
@@ -161,6 +164,7 @@ La aplicación está compuesta por los siguientes módulos especializados:
     -   **Eventos de Soporte y Seguridad:** `cambio_estado_ticket`, `reasignar_ticket`, creación/edición de roles y sincronización de permisos.
     -   **Filtros y Búsqueda Fulltext:** Filtrado por tipo de evento, usuario, rango de fechas y búsqueda textual por descripción, modelo, IP y nombre de usuario.
     -   **Exportación:** Descarga de registros a Excel, CSV, PDF, Portapapeles e Impresión con DataTables.
+-   **Foto de perfil por sexo:** Columna `users.sexo` (`M`/`F`, migración `2026_10_22_100000_add_sexo_to_users_table`) y helper `resources/js/helpers/avatarUsuario.js`: si el usuario no subió foto se muestra la silueta de hombre o de mujer según su sexo, y la neutra de siempre si no lo tiene registrado. El sexo se elige al crear o editar el usuario (`usuarioComponent.vue`) y se refleja en la cabecera y en el perfil.
 -   **UI y Rutas:** Pantallas web en `/seguridad.usuarios.listar`, `/seguridad.roles.listar`, `/seguridad.perfil`, `/seguridad-auditoria`, `/seguridad-backups`, `/seguridad-tokens`.
 
 #### 🔑 Gestor de Tokens por Sede para Agentes Edge (`/seguridad-tokens`)
@@ -283,6 +287,28 @@ Módulo administrativo para la emisión, rotación segura y monitorización de c
 
 -   **Oviyam:** Integración nativa con Dcm4chee para visualización en pestaña auxiliar (`tap_oviyam`).
 -   **OHIF Viewer:** Servicio preparado para visualización DICOM web zero-footprint de series multimodales.
+
+### 19. Consentimientos Informados (módulo genérico)
+
+**Propósito:** Gestión trazable de consentimientos informados para cualquier servicio (no solo ecografías): plantillas con versiones, firma del paciente por enlace con token, firma del médico y PDF final.
+
+-   **Plantillas:** Formatos con versiones, vista previa e imágenes, asignables a productos (`consentimiento_plantillas`, `consentimiento_plantilla_productos`). El encabezado, el pie de página y el logo del PDF salen de la marca institucional de la sede.
+-   **Flujo:** Generar el documento (`POST /api/consentimientos`) → crear el token de firma → el paciente o su acompañante firma sin iniciar sesión en `/firma/consentimiento/{token}` → firma del médico → PDF (`POST /api/consentimientos/{id}/pdf`). Estados: `GENERADO` → `PENDIENTE_PACIENTE` → `PENDIENTE_MEDICO` → `COMPLETO`, más `ANULADO` y `EXPIRADO`.
+-   **Seguridad:** El token son 64 caracteres aleatorios y solo se guarda su SHA-256; vence a los 10 minutos (configurable al crearlo) y el documento a las 24 horas. La firma pública tiene límite de peticiones (`throttle:60,1` para consultar y `throttle:20,1` para firmar). Las firmas, los PDF y los adjuntos se guardan cifrados (`encrypt()`) en discos privados (`firmas_consntimientos`, `files_consentimientos`, `adjuntos_consentimientos`); `imagenes_consentimientos` guarda las imágenes de las plantillas. Cada documento lleva su auditoría (`consentimiento_documento_auditoria`).
+-   **Complementos:** Marcas sobre imágenes (`consentimientoMarcasCanvas.vue`), adjuntos, anulación y restauración, y estadísticas por sede, producto, médico y tiempos (`/api/consentimientos/estadisticas/*`, con exportación).
+-   **Vencimientos y recordatorios:** `consentimientos:expirar` marca como `EXPIRADO` los documentos vencidos y `consentimientos:notificar-medicos` avisa a cada médico de sus firmas pendientes (ver *Colas (Queue) y Scheduler*).
+-   **UI y Rutas:** Pantallas web en `/consentimientos-generar`, `/consentimientos-medico`, `/consentimientos-plantillas-config`, `/consentimientos-dashboard` y `/config-sede-logo`; API en `/api/consentimientos*` (permisos `consentimientos.*`). Componentes en `resources/js/components/modulos/consentimientos/`.
+-   **Convivencia:** El flujo anterior de ecografías (`ecografias_consentimientos`, `/firma/consentimiento-ecografia/{token}`) sigue funcionando sin cambios.
+
+### 20. Entrega de Resultados al Paciente (enlace por WhatsApp / correo)
+
+**Propósito:** Hacer llegar al paciente su informe y sus imágenes sin usuario ni contraseña: LIDiag envía la lectura al portal de pacientes (`lidiag-reportes`), el portal genera un enlace con token (`/p/{token}`; la vigencia la define el portal, 180 días por defecto) y LIDiag se lo entrega por WhatsApp y/o correo.
+
+-   **Disparo:** Al guardar la transcripción se genera el PDF, se envía al portal (`/api/almacenarLectura`, firmado con HMAC) y se programa el job `EntregarResultadoPaciente` (cifrado y sin reintentos automáticos; con la cola `sync` corre al terminar de enviar la respuesta, sin dejar esperando al médico). Un fallo de la entrega nunca afecta el guardado de la lectura.
+-   **Qué hace (`EntregaResultadoService`):** Pide el enlace al portal y comprueba que sea del dominio `REPORTES_URL_PUBLICA` (si no, no envía nada), sube las imágenes JPEG del PACS por lotes, envía el enlace por WhatsApp (plantilla aprobada en Meta con un botón de URL cuyo sufijo es el token) y/o por correo (solo el enlace, sin adjuntos ni contraseña) y registra cada envío, con el destino enmascarado, en `entregas_resultado`. En modo automático un canal que ya envió con éxito no se repite; el reenvío manual (`notificarEmail`) sí.
+-   **Apagado por defecto:** No sale ningún mensaje hasta activarlo en el `.env` (ver *Variables de entorno clave*); `ENTREGA_SEDES` permite un piloto en una sola sede.
+-   **Soporte:** `php artisan entrega:estado {estudio_producto_id}` y `php artisan entrega:revocar {lectura_id} [--regenerar]` (ver *Comandos Personalizados*).
+-   **Portal:** El lado del portal (token, imágenes, visor, cuentas de paciente) está en el README y en `docs/ENLACE_PACIENTE.md` del proyecto `lidiag-reportes`.
 
 ---
 
@@ -419,6 +445,38 @@ php artisan lidiag:enviar-paciente --reintentar="storage/logs/sync_fallidos_2026
 - `--id=ID`: ID específico de `estudio_producto` a sincronizar.
 - `--reintentar=RUTA`: Ruta del archivo `.txt` con los estudios fallidos para reintentar únicamente dichos IDs tras corregir contingencias (plantillas, red, etc.).
 - `--dry-run`: Modo de simulación previa que valida la existencia de plantillas, sedes y formato sin invocar LibreOffice ni transferir por red.
+
+### Entrega de Resultados al Paciente (enlace del portal)
+
+Consulta y revoca los enlaces de resultados que LIDiag entrega al paciente (módulo 20).
+
+```bash
+# Envíos hechos para un estudio (canal, estado, destino enmascarado) y estado del enlace en el portal
+php artisan entrega:estado 257022
+
+# Revocar el enlace de una lectura del portal
+php artisan entrega:revocar 123
+
+# Revocar los enlaces anteriores y crear uno nuevo
+php artisan entrega:revocar 123 --regenerar
+```
+
+**Parámetros:**
+- `estudio_producto_id`: ID de `estudios_productos`.
+- `lectura_id`: ID de la lectura en el portal (`lectura_portal_id` de `entregas_resultado`).
+- `--regenerar`: Crea un enlace nuevo y revoca los anteriores.
+
+### Consentimientos Informados (vencimientos y recordatorios)
+
+```bash
+# Marcar como EXPIRADO los consentimientos vigentes que vencieron sin completarse (e invalidar sus tokens de firma)
+php artisan consentimientos:expirar --limit=500
+
+# Notificar (canal database) a cada médico con consentimientos pendientes de su firma
+php artisan consentimientos:notificar-medicos
+```
+
+Ambos corren solos desde el scheduler (ver *Colas (Queue) y Scheduler*).
 
 ### Reconciliación de Órdenes Modality Worklist (MWL vs PACS Dcm4chee)
 
@@ -672,6 +730,7 @@ El frontend está organizado como **componentes Vue montados en vistas Blade**. 
 ### Entry point
 
 - `resources/js/app.js`: registra componentes por módulo y hace `app.mount('#app')`.
+- Páginas propias de LIDiag (Consentimientos, logo por sede y Otras plataformas): cada una tiene su ruta de servidor (`routes/web.php`, shell `layouts.app`), su ruta de Vue Router (`resources/js/router/routes.js`) y su enlace en el menú (`resources/js/layouts/AppSidebar.vue`). `tests/Feature/PaginasPropiasSpaTest.php` avisa si alguno de los tres se pierde al copiar la versión del equipo.
 
 ### Componentes por módulo (`resources/js/components/modulos`)
 
@@ -682,6 +741,8 @@ El frontend está organizado como **componentes Vue montados en vistas Blade**. 
   - Asignar, leer, transcribir, notificar, y pantallas auxiliares.
 - **Ecografías**: `resources/js/components/modulos/ecografias/*`
   - Admisión, lectura, admisionadas y consentimiento informado (captura/firma/plantillas).
+- **Consentimientos**: `resources/js/components/modulos/consentimientos/*`
+  - Generar, firmas del médico, plantillas (asignación y versiones), dashboard, marcas sobre imágenes y firma pública del paciente.
 - **HelpDesk**: `resources/js/components/modulos/help-desk/*`
   - Listado/creación/detalle de tickets, reportes y notificaciones.
 - **Agenda**: `resources/js/components/modulos/agenda/*`
@@ -720,6 +781,7 @@ El frontend integra un sistema de diseño clínico orientado a la alta productiv
     -   `Ctrl+S` / `Cmd+S`: Guardado y aprobación rápida de informes y citas asistenciales (Estudios, Ecografías y Citas) con cancelación de la acción nativa de descarga HTML del navegador y protección de concurrencia.
     -   `Escape`: Cierre ágil y ordenado de paneles laterales y modales activos.
     -   `F2`: Alternar dictado por voz y reconocimiento Whisper tanto en Estudios como en Ecografías.
+    -   **Órdenes habladas en la lectura de Estudios:** «punto y coma» escribe `;`, «punto y aparte» cierra con `.` y abre un párrafo nuevo (la palabra siguiente va en mayúscula) y «espacio» (dicho solo, «dar espacio» o «un espacio») inserta un espacio; suelto dentro de una frase se respeta («espacio pleural», «espacios intercostales»). Funcionan en el dictado en vivo (`useDictationFlow.js`) y en el audio transcrito con Whisper (`TranscripcionService::convertirOrdenesHabladas()`; pruebas en `tests/Unit/TranscripcionOrdenesHabladasTest.php`).
     -   **Puente WYSIWYG (`WysiwygEditor.vue`):** Reenvío sintético de teclas desde el `iframe` de edición hacia `window` para guardar sin abandonar el editor.
     -   **Foco Accesible (`a11y`):** Autofoco automático reactivo en el primer campo interactivo de cada formulario y modal.
 -   **Transición Suave y Backdrop Overlay Desacoplador:** Eliminación del parpadeo abrupto de `display: none/block` en paneles laterales (`.right-sidebar`) con aceleración ergonómica `cubic-bezier(0.16, 1, 0.3, 1)` a 350ms, fondos atenuados (`.sidebar-backdrop`) con `backdrop-filter: blur(2px)` y modales con cierre exterior (`@click.self`), unificando anchos responsivos en Estudios, Ecografías y Citas.
@@ -904,6 +966,7 @@ Además de `APP_*`, las variables más importantes que suelen requerir ajuste so
 -   **Twilio (WhatsApp)**: `TWILIO_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_NUMBER`
 -   **Telegram Bot**: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ALLOWED_CHAT_IDS` (IDs separados por coma), `TELEGRAM_WEBHOOK_URL`, `TELEGRAM_SSL_VERIFY`
 -   **Servicio externo de reportes**: `URL_API_REPORTES`, `PASSWORD_API_REPORTES`
+-   **Entrega de resultados al paciente** (todo apagado por defecto; ver `config/entrega_resultados.php`): `ENTREGA_RESULTADOS_ACTIVO`, `ENTREGA_SEDES` (ids de sedes para un piloto), `ENTREGA_WHATSAPP_ACTIVO`, `ENTREGA_WHATSAPP_PLANTILLA`, `ENTREGA_CORREO_ACTIVO`, `ENTREGA_IMAGENES_ACTIVO` (más `ENTREGA_IMAGENES_MAX`, `ENTREGA_IMAGENES_LOTE`, `ENTREGA_IMAGENES_BYTES_LOTE` y `ENTREGA_IMAGENES_MAX_SEGUNDOS`), `REPORTES_URL_PUBLICA` (obligatoria: la URL del portal que ve el paciente, https en producción), `REPORTES_VERIFICAR_TLS`, `REPORTES_CA_BUNDLE`, `REPORTES_TIMEOUT`, `REPORTES_PAUSA_REINTENTO_MS` y `API_HMAC_SECRET` (el mismo secreto que el portal)
 -   **FFmpeg/FFprobe (audios)**: `FFMPEG_BINARIES`, `FFPROBE_BINARIES` (ver sección de FFmpeg arriba)
 -   **Transcripción Whisper**: `TRANSCRIPTOR_SERVICE_URL`, `TRANSCRIPTOR_TIMEOUT` (ver sección de transcripción arriba)
 
@@ -932,6 +995,8 @@ En Laragon, normalmente accederás por tu vhost, por ejemplo `https://lidiag.tes
 | Frecuencia | Comando | Propósito |
 |------------|---------|-----------|
 | **Cada 5 min** | `worklist:reconcile` | Auto-reconciliación de órdenes Modality Worklist (MWL) contra tabla `study` en Dcm4chee |
+| **Cada 5 min** | `consentimientos:expirar --limit=500` | Marca como `EXPIRADO` los consentimientos vencidos e invalida sus tokens de firma |
+| **Diario 07:00 AM** | `consentimientos:notificar-medicos` | Recordatorio a cada médico con consentimientos pendientes de su firma |
 | **Cada 10 min** | `ecografias:sahi-reconcile --minutes=10 --limit=200` | Reconciliación bidireccional de estados de ecografías con SAHI |
 | **Cada 10 min** | `citas:notificar-2h` | Recordatorios automáticos de citas próximas (2h antes) vía WhatsApp |
 | **Diario 07:30 AM** | `telegram:daily-digest` | Despacho ejecutivo matutino de resumen y semáforo asistencial a Telegram |
@@ -945,6 +1010,17 @@ Para ejecutar el scheduler en entornos de producción (Linux cron o Windows Task
 ```bash
 php artisan schedule:run
 ```
+
+## Pruebas
+
+```bash
+php artisan test
+php artisan test --filter=Consentimiento
+```
+
+La suite usa una BD de pruebas aparte definida en `.env.testing` (archivo local); no la apuntes a la BD real. `TelegramServiceTest` necesita la extensión `curl` de PHP y `SahiInteroperabilidadTest` una conexión viva al SQL Server del SAHI: sin ellos fallan 2 + 2 pruebas.
+
+Última corrida verificada (2026-11-11, sin `curl` ni conexión al SAHI): 292 pruebas y 751 aserciones; 287 pasan, 1 aviso y fallan las 4 anteriores. Pruebas propias: `tests/Feature/Entrega/*` (entrega al paciente), `ConsentimientoFlujoTest` y `ConsentimientoPlantillaServiceTest` (consentimientos), `PaginasPropiasSpaTest` (cableado de nuestras páginas en la SPA) y `tests/Unit/TranscripcionOrdenesHabladasTest.php` (órdenes de dictado).
 
 ## Solución de Problemas (Troubleshooting)
 
