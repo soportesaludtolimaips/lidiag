@@ -5,6 +5,12 @@ namespace App\Models\Dcm4chee;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Modelo de Estudio en Dcm4chee PACS.
+ *
+ * @property int $pk
+ * @property int $agendado
+ */
 class Study extends Model
 {
     use HasFactory;

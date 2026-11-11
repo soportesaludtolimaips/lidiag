@@ -223,7 +223,9 @@
                                         :key="item.study_pk"
                                         :id="item.study_pk"
                                         :class="{
-                                            'text-info': item.agendado !== 0,
+                                            'text-info':
+                                                Number(item.agendado) === 1 ||
+                                                item.agendado === true,
                                             'selected-row': estudioSeleccionado(item),
                                         }"
                                     >
@@ -248,6 +250,16 @@
                                         </td>
                                         <td class="align-middle font-weight-bold">
                                             {{ item.pat_name }}
+                                            <span
+                                                v-if="
+                                                    Number(item.agendado) === 1 ||
+                                                    item.agendado === true
+                                                "
+                                                class="badge badge-info ml-1"
+                                                title="Este estudio ya fue asignado para lectura"
+                                            >
+                                                <i class="fa fa-check-circle"></i> Asignado
+                                            </span>
                                         </td>
                                         <td class="text-nowrap align-middle">
                                             {{ item.accession_no }}
@@ -259,8 +271,18 @@
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
                                                 :disabled="loadingAbrirRegistroIndex === index"
                                                 @click="mostrarRegistro(item, index)"
-                                                title="Asignar estudio"
-                                                aria-label="Asignar estudio"
+                                                :title="
+                                                    Number(item.agendado) === 1 ||
+                                                    item.agendado === true
+                                                        ? 'Estudio ya asignado a lectura (Clic para reasignar/editar)'
+                                                        : 'Asignar estudio'
+                                                "
+                                                :aria-label="
+                                                    Number(item.agendado) === 1 ||
+                                                    item.agendado === true
+                                                        ? 'Estudio ya asignado a lectura'
+                                                        : 'Asignar estudio'
+                                                "
                                             >
                                                 <i
                                                     v-if="loadingAbrirRegistroIndex === index"

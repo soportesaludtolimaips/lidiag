@@ -37,6 +37,86 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-11 — Corrección de Detección y Resaltado Azul de Estudios Asignados a Lectura (`StudyService.php`, `AsignarEstudioComponent.vue`, `Study.php`):**
+  - **Diagnóstico del Problema:**
+    * El usuario reportó con capturas comparativas entre desarrollo (`lidiag.test`) y producción (`lidiag.com`) que en `/estudios.asignar.listar`, un estudio ya asignado para lectura aparecía en color azul (`text-info`) en desarrollo pero no en producción.
+    * **Causa Raíz en Backend ([`StudyService.php`](file:///c:/laragon/www/lidiag/app/Services/Dcm4chee/StudyService.php)):**
+      1. La consulta `$agendados` forzaba un `->join('pacientes', 'estudios.paciente_id', '=', 'pacientes.id')` innecesario (no filtraba ni seleccionaba nada de pacientes). Si en producción un estudio no tenía `paciente_id` o no empataba exactamente en `pacientes`, el `INNER JOIN` descartaba el registro, retornando `agendado = 0`.
+      2. La consulta limitaba estrictamente la búsqueda a `estudios.study_pk` únicamente. Si el estudio en producción fue creado/asignado mediante Worklist, Tele-radiología o API sin poblar `study_pk` o con un PK diferente, no coincidía con el resultado del PACS.
+      3. No se comparaba por `study_iuid` (Study Instance UID global de DICOM) ni por `accession_no`.
+      4. El filtro estricto `where('estudios.sede_id', $sedeId)` excluía estudios reasignados o con identificador divergente.
+    * **Causa en Frontend ([`AsignarEstudioComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/AsignarEstudioComponent.vue)):**
+      - La condición de clase en la fila dependía de `item.agendado !== 0`.
+      - No existía ningún indicador visual explícito (badge o tooltip) que confirmara inequívocamente al operador que el estudio ya estaba asignado a lectura.
+  - **Solución Implementada:**
+    * **1. Reconciliación Multi-Criterio Resiliente en Backend ([`StudyService.php`](file:///c:/laragon/www/lidiag/app/Services/Dcm4chee/StudyService.php)):**
+      - Eliminado el `join('pacientes')` superfluo y frágil.
+      - Reconciliación por triple identificador: `study_pk` (con sede), `study_iuid` (DICOM UID global inmutable) y `accession_no` (número de acceso/orden).
+      - Construcción de índices en memoria `$agendadosPks`, `$agendadosIuids`, `$agendadosAccessions` para resolución instantánea $O(1)$.
+    * **2. Fortalecimiento Visual y Ergonomía en Frontend ([`AsignarEstudioComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/AsignarEstudioComponent.vue)):**
+      - Condición normalizada: `:class="{ 'text-info': Number(item.agendado) === 1 || item.agendado === true }"`.
+      - Añadido badge asistencial destacado junto al nombre del paciente: `<span v-if="Number(item.agendado) === 1 || item.agendado === true" class="badge badge-info ml-1" title="Este estudio ya fue asignado para lectura"><i class="fa fa-check-circle"></i> Asignado</span>`.
+      - Tooltip dinámico en el botón de acción: `'Estudio ya asignado a lectura (Clic para reasignar/editar)'`.
+    * **3. Modelo Eloquent ([`Study.php`](file:///c:/laragon/www/lidiag/app/Models/Dcm4chee/Study.php)):**
+      - Tipado `@property int $agendado` para análisis estático estricto.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% (0 errores) ✅.
+    * Larastan / PHPStan Nivel 5: `2/2 [100%] [OK] No errors` ✅.
+    * ESLint y Prettier 100% limpios en `AsignarEstudioComponent.vue` ✅.
+    * Compilación Vite de producción completada con éxito (`npm run build` en 1.48s) ✅.
+- [x] **2026-11-11 — Renombramiento de Tabla `config_sede_whatsapp_numbers` a `config_whatsapp_numbers` (`Migration`, `ConfigWhatsappNumber.php`, `ConfigSedeWhatsappNumber.php`, `Requests`, `SeedFaltantesCommand.php`):**
+  - **Requerimiento del Usuario:**
+    * Renombrar la tabla física `config_sede_whatsapp_numbers` a `config_whatsapp_numbers` para alineación del estándar de nomenclaturas de WhatsApp.
+  - **Ajustes Implementados:**
+    * **Migración Idempotente ([`2026_11_11_153500_rename_config_sede_whatsapp_numbers_to_config_whatsapp_numbers_table.php`](file:///c:/laragon/www/lidiag/database/migrations/2026_11_11_153500_rename_config_sede_whatsapp_numbers_to_config_whatsapp_numbers_table.php)):**
+      - `up()`: Ejecuta `RENAME TABLE \`config_sede_whatsapp_numbers\` TO \`config_whatsapp_numbers\`` preservando índices únicos (`phone_number_id`), registros y llaves foráneas a `config_sedes`.
+      - `down()`: Reversión limpia restaurando `config_sede_whatsapp_numbers`.
+      - Migración ejecutada con éxito en MySQL local (46ms).
+    * **Modelos Eloquent ([`ConfigWhatsappNumber.php`](file:///c:/laragon/www/lidiag/app/Models/Configuracion/ConfigWhatsappNumber.php), [`ConfigSedeWhatsappNumber.php`](file:///c:/laragon/www/lidiag/app/Models/Configuracion/ConfigSedeWhatsappNumber.php)):**
+      - Creado modelo formal `ConfigWhatsappNumber` con `$table = 'config_whatsapp_numbers'` y relación tipada `: BelongsTo` a `sede()`.
+      - Adaptado `ConfigSedeWhatsappNumber` para heredar de `ConfigWhatsappNumber`, garantizando 100% de compatibilidad con todo el código existente.
+    * **FormRequests ([`StoreConfigSedeWhatsappNumberRequest.php`](file:///c:/laragon/www/lidiag/app/Http/Requests/Configuracion/StoreConfigSedeWhatsappNumberRequest.php), [`UpdateConfigSedeWhatsappNumberRequest.php`](file:///c:/laragon/www/lidiag/app/Http/Requests/Configuracion/UpdateConfigSedeWhatsappNumberRequest.php)):**
+      - Actualizada regla `unique:config_whatsapp_numbers,numero`.
+    * **Comando de Auditoría ([`SeedFaltantesCommand.php`](file:///c:/laragon/www/lidiag/app/Console/Commands/SeedFaltantesCommand.php)):**
+      - Auditoría defensiva evaluando `config_whatsapp_numbers` con fallback a `config_sede_whatsapp_numbers`.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% (0 errores) ✅.
+    * Larastan PHPStan Nivel 5 completado con 0 errores ✅.
+    * Consulta y relaciones verificadas en MySQL mediante Tinker con datos intactos ✅.
+    * `php artisan seed:faltantes --dry-run` reporta 46/46 aplicados ✅.
+- [x] **2026-11-11 — Centralización Integral de Recomendaciones y Requerimientos de Productos para Citas y Bot de WhatsApp (`ConfigRecomendacionProductoSeeder.php`, `configWhatsappComponent.vue`, `recomendacionProductoComponent.vue`, `WhatsAppFlowService.php`, `ConfigWhatsappEcografiasRequerimientos.php`, `ConfigWhatsappEcografiasRecomendaciones.php`):**
+  - **Problema Diagnosticado:**
+    * Discrepancia y duplicidad entre pantallas de configuración: `/config-servicio-producto` y `/config-whatsapp-listar` (Pestaña 3: "Productos por Sede") duplicaban la asociación de productos con servicios sobre la tabla vacía `config_whatsapp_producto_servicio`.
+    * Las recomendaciones y requerimientos clínicos de ecografías (ej. paquete de 3 órdenes y 3 autorizaciones para biopsias Trucut/BACAF de mama y tiroides, ayunos, vejiga llena, enemas rectales) estaban aislados en tablas paralelas huérfanas (`config_whatsapp_requerimeintos` y `config_whatsapp_recomendaciones`) con IDs inexistentes en MySQL (`producto_id: 250`, etc.).
+    * En `https://lidiag.test/config-whatsapp-listar` no se visualizaban las recomendaciones tras ejecutar el seeder.
+  - **Solución Implementada:**
+    * **Fuente Única de Verdad (Backend & Base de Datos):**
+      - Se consolidó la tabla `config_recomendacion_productos` como la única entidad canónica consumida tanto por el motor de agendamiento (`AgendaCita::recomendaciones()`, `citasRevisionComponent.vue`) como por el bot de WhatsApp (`WhatsAppService::enviarConfirmacionCita()`).
+      - Se refactorizó [`ConfigRecomendacionProductoSeeder.php`](file:///c:/laragon/www/lidiag/database/seeders/ConfigRecomendacionProductoSeeder.php) con 24 productos clínicos mapeados con precisión por código CUPS y nombre (Biopsias Trucut de mama 851102, BACAF de mama 851101, BACAF de tiroides 061002, Ecografía abdomen total 881302, Vías urinarias 881332, Transvaginal 881432, Próstata transrectal 881502, Doppler renal 882222, Doppler portal 882296, Doppler pélvico 881360, Translucencia nucal 881436, Mamografía 876802, TAC y Resonancia).
+      - Los seeders legacy `ConfigWhatsappEcografiasRequerimientos.php` y `ConfigWhatsappEcografiasRecomendaciones.php` se redirigieron para invocar a `ConfigRecomendacionProductoSeeder`, garantizando compatibilidad retroactiva e idempotencia total.
+    * **Flujo Asistencial del Bot ([`WhatsAppFlowService.php`](file:///c:/laragon/www/lidiag/app/Services/WhatsAppFlowService.php)):**
+      - En el paso `procesarSeleccionServicio`, al seleccionar servicios de Ecografía o Biopsia, el bot orienta proactivamente al paciente en el resumen para adjuntar el paquete completo de 3 órdenes médicas y 3 autorizaciones vigentes antes de solicitar los archivos.
+    * **Interfaz Unificada ([`configWhatsappComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/configuracion/configWhatsappComponent.vue), [`recomendacionProductoComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/citas/recomendacionProductoComponent.vue)):**
+      - Se transformó la Pestaña 3 de `/config-whatsapp-listar` a **"Recomendaciones por Producto"**, embebiendo directamente `RecomendacionProductoComponent` con prop `:embedded="true"` (ocultando breadcrumb redundante).
+      - Se expusieron los métodos `buscar` y `mostrarRegistro` para que los botones globales "Refrescar" y "Nuevo registro" operen de forma transparente según la pestaña activa.
+      - En `recomendacionProductoComponent.vue`, se incorporó `cargarTodosLosProductos()` en `onMounted()`, permitiendo que el selector de productos del formulario muestre inmediatamente el catálogo completo con formato `CUPS - Producto`.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% (0 errores) ✅.
+    * ESLint y Prettier 100% limpios en `configWhatsappComponent.vue` y `recomendacionProductoComponent.vue` ✅.
+    * Compilación Vite (`npm run build`) exitosa en 1.37s ✅.
+    * Seeder ejecutado con éxito: 24 recomendaciones activas verificadas en base de datos ✅.
+    * Verificación integral `php artisan seed:faltantes --dry-run`: 46 de 46 seeders aplicados ✅.
+
+- [x] **2026-11-11 — Variables Dinámicas en Drawer y Corrección de Z-Index en Modal Vista Previa (`configWhatsappSaludos.vue`):**
+  - **Problema Reportado:**
+    * En el drawer lateral de creación/edición de saludos no se mostraban las variables dinámicas disponibles (`${num_docu_paciente}`, `${nom_paciente}`, `${cod_cups}`, `${nom_produc}`).
+    * Al abrir el modal de vista previa ("Vista previa"), este quedaba por debajo del drawer lateral (entre la página y el drawer).
+  - **Ajustes Realizados ([`configWhatsappSaludos.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/configuracion/configWhatsappSaludos.vue)):**
+    * **Panel de Variables Interactivas:** Añadido bloque visual directamente debajo del editor de WhatsApp con las 4 variables disponibles y ejemplos explicativos. Cada variable es un botón interactivo que inserta el tag (`${...}`) en la posición actual del cursor (`insertVariable()`).
+    * **Corrección de Profundidad (Z-Index):** Asignado `z-index: 1200 !important` a `#modalPreviewSaludo` y `#modalProbarEnvio` en el scoped CSS, y ajustado el `modal-backdrop` a `z-index: 1190` en `show.bs.modal`, garantizando que la vista previa se despliegue siempre por encima del drawer (`z-index: 1100`).
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios en `configWhatsappSaludos.vue` ✅.
+    * Compilación Vite (`npm run build`) completada con éxito en 3.15s ✅.
 - [x] **2026-11-11 — Corrección de Visibilidad del Saludo Inicial Global en Módulo WhatsApp (`ConfigWhatsappService.php`, `configWhatsappSaludos.vue`, `StoreConfigWhatsappRequest.php`, `UpdateConfigWhatsappRequest.php`, `ConfigWhatsapp.php`):**
   - **Problema Reportado:**
     * Al ingresar a `https://lidiag.test/config-whatsapp-listar` en la pestaña "Saludos del Bot", el saludo inicial configurado por defecto (`sede_id = null`) no se visualizaba.
