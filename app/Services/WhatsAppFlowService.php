@@ -649,8 +649,15 @@ class WhatsAppFlowService
                  ."1. 📷 Foto del *frente* de su cédula\n"
                  ."2. 📷 Foto del *reverso* de su cédula\n"
                  ."3. 📄 *Orden* médica\n"
-                 ."4. 📄 *Autorización* médica\n"
-                 .self::SEPARADOR
+                 ."4. 📄 *Autorización* médica\n";
+
+        $nombreServicioLower = mb_strtolower($servicio->nombre);
+        if (str_contains($nombreServicioLower, 'ecograf') || str_contains($nombreServicioLower, 'biopsia')) {
+            $mensaje .= "\n💡 *Nota para Biopsias / BACAF:*\n"
+                     ."Si su orden médica es para Biopsia o BACAF, recuerde que se requiere enviar el paquete de *3 órdenes y 3 autorizaciones* (Procedimiento + Patología + Guía ecográfica) y el reporte previo.\n";
+        }
+
+        $mensaje .= self::SEPARADOR
                  ."¿Está listo para continuar?\n\n"
                  ."• *1* o *Si* — Continuar\n"
                  ."• *0* o *menu* — Cambiar de servicio";

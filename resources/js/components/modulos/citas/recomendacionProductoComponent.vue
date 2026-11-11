@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="row page-titles">
+        <div v-if="!embedded" class="row page-titles">
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Producto</h3>
                 <ol class="breadcrumb">
@@ -375,6 +375,13 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
+defineProps({
+    embedded: {
+        type: Boolean,
+        default: false,
+    },
+});
+
 const dt = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
@@ -385,6 +392,7 @@ import axios from "axios";
 
 const registros = ref([]);
 const productos = ref([]);
+const todosLosProductos = ref([]);
 const sedes = ref([]);
 const servicios = ref([]);
 const serviciosFiltrados = ref([]);
@@ -426,10 +434,12 @@ const filterProductoOptions = computed(() => {
     }));
 });
 const formProductoOptions = computed(() => {
-    return (productos.value || []).map((p) => ({
+    const list = todosLosProductos.value.length > 0 ? todosLosProductos.value : productos.value;
+    return (list || []).map((p) => ({
         id: String(p.id),
         cod_cups: p.cod_cups,
         nom_produc: p.nom_produc,
+        text: (p.cod_cups ? p.cod_cups + " - " : "") + p.nom_produc,
     }));
 });
 
@@ -598,6 +608,15 @@ function abrirModal() {
     });
 }
 
+async function cargarTodosLosProductos() {
+    try {
+        const res = await axios.get("/api/config-productos");
+        todosLosProductos.value = res.data?.data || [];
+    } catch {
+        todosLosProductos.value = [];
+    }
+}
+
 function cerrarModal() {
     showSidebar.value = false;
 }
@@ -613,11 +632,17 @@ onMounted(() => {
     cargarSedes();
     cargarServicios();
     cargarProductos();
+    cargarTodosLosProductos();
     buscar();
 });
 
 onBeforeUnmount(() => {
     safeDestroyDataTable(dt.value || "#tablaRecomendaciones");
+});
+
+defineExpose({
+    buscar,
+    mostrarRegistro,
 });
 </script>
 <style scoped>

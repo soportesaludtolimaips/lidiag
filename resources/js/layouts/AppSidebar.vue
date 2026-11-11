@@ -812,14 +812,6 @@
                                 </router-link>
                             </li>
                             <li
-                                v-if="can('config.servicio.citas.index')"
-                                :class="{ active: isRouteActive('/config-servicio-producto') }"
-                            >
-                                <router-link to="/config-servicio-producto" active-class="active">
-                                    <i class="fa fa-cubes text-info"></i> Productos por Servicio
-                                </router-link>
-                            </li>
-                            <li
                                 v-if="can('config.plantillas.index')"
                                 :class="{
                                     active: isRouteActive('/config-tipos-plantillas.listar'),

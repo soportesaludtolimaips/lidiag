@@ -445,14 +445,6 @@ const todosLosModulos = [
         permiso: "config.servicio.citas.index",
     },
     {
-        id: "config-servicio-producto",
-        titulo: "Productos por Servicio",
-        categoria: "Configuración",
-        url: "/config-servicio-producto",
-        icono: "fa fa-link",
-        permiso: "config.servicio.citas.index",
-    },
-    {
         id: "config-plantillas",
         titulo: "Plantillas de Informes",
         categoria: "Configuración",

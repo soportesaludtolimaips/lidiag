@@ -5,6 +5,7 @@ namespace App\Models\Configuracion;
 use App\Models\Estudio\EstudioProducto;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ConfigProducto extends Model
 {
@@ -60,5 +61,17 @@ class ConfigProducto extends Model
     public function recomendacionProducto()
     {
         return $this->hasOne(ConfigRecomendacionProducto::class, 'producto_id');
+    }
+
+    /**
+     * Servicio asistencial de citas al que pertenece el producto.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-11
+     */
+    public function servicio(): BelongsTo
+    {
+        return $this->belongsTo(ConfigServicio::class, 'servicio_id');
     }
 }

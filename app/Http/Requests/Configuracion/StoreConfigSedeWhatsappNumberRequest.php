@@ -30,7 +30,7 @@ class StoreConfigSedeWhatsappNumberRequest extends FormRequest
         return [
             'sede_id' => 'required|integer|exists:config_sedes,id',
             'phone_number_id' => 'nullable|string|max:255',
-            'numero' => 'required|string|max:50|unique:config_sede_whatsapp_numbers,numero',
+            'numero' => 'required|string|max:50|unique:config_whatsapp_numbers,numero',
             'descripcion' => 'nullable|string|max:255',
             'activo' => 'nullable|boolean',
         ];

@@ -246,6 +246,63 @@
                                                 placeholder="Escriba el mensaje de bienvenida que verá el paciente al iniciar el chat..."
                                             ></textarea>
                                         </div>
+                                        <div class="m-t-10 p-2 bg-light rounded border">
+                                            <div
+                                                class="m-b-5 font-12 text-dark font-weight-bold d-flex align-items-center justify-content-between"
+                                            >
+                                                <span>
+                                                    <i class="fa fa-code text-info m-r-5"></i
+                                                    >Variables dinámicas disponibles (clic para
+                                                    insertar):
+                                                </span>
+                                            </div>
+                                            <div class="d-flex flex-wrap">
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-xs btn-outline-info m-r-5 m-b-5"
+                                                    @click="insertVariable('${num_docu_paciente}')"
+                                                    title="Insertar número de documento del paciente"
+                                                >
+                                                    <code>${num_docu_paciente}</code>
+                                                    <span class="text-muted font-11"
+                                                        >→ 1234567890</span
+                                                    >
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-xs btn-outline-info m-r-5 m-b-5"
+                                                    @click="insertVariable('${nom_paciente}')"
+                                                    title="Insertar nombre del paciente"
+                                                >
+                                                    <code>${nom_paciente}</code>
+                                                    <span class="text-muted font-11"
+                                                        >→ Paciente</span
+                                                    >
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-xs btn-outline-info m-r-5 m-b-5"
+                                                    @click="insertVariable('${cod_cups}')"
+                                                    title="Insertar código CUPS del examen"
+                                                >
+                                                    <code>${cod_cups}</code>
+                                                    <span class="text-muted font-11"
+                                                        >→ CUPS001</span
+                                                    >
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-xs btn-outline-info m-r-5 m-b-5"
+                                                    @click="insertVariable('${nom_produc}')"
+                                                    title="Insertar nombre del producto o estudio"
+                                                >
+                                                    <code>${nom_produc}</code>
+                                                    <span class="text-muted font-11"
+                                                        >→ Producto</span
+                                                    >
+                                                </button>
+                                            </div>
+                                        </div>
                                         <span
                                             class="text-danger"
                                             v-if="errores.mensaje_bienvenida"
@@ -671,6 +728,20 @@ function insertEmoji(emoji) {
         ta.selectionEnd = pos;
     });
 }
+function insertVariable(variable) {
+    const ta = mensajeTextarea.value;
+    if (!ta) return;
+    const start = ta.selectionStart ?? (form.value.mensaje_bienvenida || "").length;
+    const end = ta.selectionEnd ?? start;
+    const text = form.value.mensaje_bienvenida || "";
+    form.value.mensaje_bienvenida = text.substring(0, start) + variable + text.substring(end);
+    nextTick(() => {
+        ta.focus();
+        const pos = start + variable.length;
+        ta.selectionStart = pos;
+        ta.selectionEnd = pos;
+    });
+}
 async function probarEnvio() {
     if (!testPhoneNumber.value || loadingTestEnvio.value) return;
     loadingTestEnvio.value = true;
@@ -707,6 +778,11 @@ watch(
 onMounted(() => {
     recargar();
 
+    $(document).on("show.bs.modal", "#modalPreviewSaludo, #modalProbarEnvio", function () {
+        setTimeout(() => {
+            $(".modal-backdrop").last().css("z-index", 1190);
+        }, 10);
+    });
     $(document).on("hidden.bs.modal", "#modalPreviewSaludo", function () {
         modalPreviewVisible.value = false;
     });
@@ -716,6 +792,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+    $(document).off("show.bs.modal", "#modalPreviewSaludo, #modalProbarEnvio");
     $(document).off("hidden.bs.modal", "#modalPreviewSaludo");
     $(document).off("hidden.bs.modal", "#modalProbarEnvio");
     $("#modalPreviewSaludo").modal("hide");
@@ -726,6 +803,11 @@ onBeforeUnmount(() => {
 });
 </script>
 <style scoped>
+#modalPreviewSaludo,
+#modalProbarEnvio {
+    z-index: 1200 !important;
+}
+
 .sidebar-backdrop {
     position: fixed;
     top: 0;

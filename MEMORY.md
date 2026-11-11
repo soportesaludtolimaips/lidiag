@@ -37,6 +37,34 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-11 — Eliminación Definitiva de `/config-servicio-producto` y Centralización de Relación de Servicio en `/config-productos-listar` (`ConfigProducto.php`, `ConfigProductoRequest.php`, `ConfigProductoResource.php`, `ConfigProductoService.php`, `AgendaCitaQueryService.php`, `configProductoComponent.vue`, `AppSidebar.vue`, `routes.js`, `commandPaletteComponent.vue`, `routes/web.php`):**
+  - **Decisión de Arquitectura y Requerimiento del Usuario:**
+    * Eliminar la pantalla redundante `https://lidiag.test/config-servicio-producto` y su componente.
+    * Centralizar la asignación del Servicio Asistencial directamente en el maestro de Productos (`https://lidiag.test/config-productos-listar`), aprovechando la columna existente `config_productos.servicio_id`.
+  - **Ajustes Implementados:**
+    * **Backend Eloquent & Consultas:**
+      - En [`ConfigProducto.php`](file:///c:/laragon/www/lidiag/app/Models/Configuracion/ConfigProducto.php): Añadida la relación `servicio(): BelongsTo` hacia `ConfigServicio`.
+      - En [`ConfigProductoRequest.php`](file:///c:/laragon/www/lidiag/app/Http/Requests/Configuracion/ConfigProductoRequest.php): Agregada la regla `'servicio_id' => 'nullable|integer|exists:config_servicios,id'`.
+      - En [`ConfigProductoResource.php`](file:///c:/laragon/www/lidiag/app/Http/Resources/Configuracion/ConfigProductoResource.php): Integrado `ConfigServicioResource::make($this->whenLoaded('servicio'))`.
+      - En [`ConfigProductoService.php`](file:///c:/laragon/www/lidiag/app/Services/Configuracion/ConfigProductoService.php): Eager loading `with('servicio.sede')` en `all()` y `find()`.
+      - En [`AgendaCitaQueryService.php`](file:///c:/laragon/www/lidiag/app/Services/Agenda/AgendaCitaQueryService.php): `productosPorServicio()` ahora consulta los productos directamente por `servicio_id` en `config_productos` y los unifica con los de la tabla pivote, asegurando disponibilidad inmediata en agendamiento y revisión.
+    * **Frontend ([`configProductoComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/configuracion/configProductoComponent.vue)):**
+      - Añadida columna `Servicio` en la tabla principal con badge informativo (`item.servicio.nombre (Sede)`).
+      - Añadido selector de `Servicio Asistencial` en el drawer lateral para asignar o reasignar el servicio de cada producto.
+      - Carga reactiva de servicios asistenciales vía `GET /api/config-servicio-citas` en `onMounted()`.
+    * **Depuración y Limpieza Integral:**
+      - Removida la ruta web en `routes/web.php`.
+      - Removida la ruta SPA en `routes.js`.
+      - Removido el enlace del menú en `AppSidebar.vue`.
+      - Removido el comando en `commandPaletteComponent.vue`.
+      - Removido el registro en `app.js`.
+      - Eliminado el archivo de vista `resources/views/modulos/configuracion/config-servicio-producto.blade.php`.
+      - Eliminado el componente `configServicioProductoComponent.vue`.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% (0 errores) ✅.
+    * Larastan PHPStan Nivel 5 completado con 0 errores ✅.
+    * ESLint y Prettier 100% limpios en todos los componentes modificados ✅.
+    * Compilación Vite (`npm run build`) exitosa en 1.39s ✅.
 - [x] **2026-11-11 — Corrección de Detección y Resaltado Azul de Estudios Asignados a Lectura (`StudyService.php`, `AsignarEstudioComponent.vue`, `Study.php`):**
   - **Diagnóstico del Problema:**
     * El usuario reportó con capturas comparativas entre desarrollo (`lidiag.test`) y producción (`lidiag.com`) que en `/estudios.asignar.listar`, un estudio ya asignado para lectura aparecía en color azul (`text-info`) en desarrollo pero no en producción.

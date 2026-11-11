@@ -16,6 +16,7 @@ use Database\Seeders\Configuracion\ConfigProductoSeeder;
 use Database\Seeders\Configuracion\ConfigSedeSeeder;
 use Database\Seeders\Configuracion\ConfigWhatsappEcografiasRecomendaciones;
 use Database\Seeders\Configuracion\ConfigWhatsappEcografiasRequerimientos;
+use Database\Seeders\Configuracion\ConfigWhatsappSaludoSeeder;
 use Database\Seeders\Configuracion\ConfigWhatsappSedeNumberSeeder;
 use Database\Seeders\HelpDesk\HelpDeskCatalogosSeeder;
 use Database\Seeders\HelpDesk\HelpDeskPermisosSeeder;
@@ -70,7 +71,7 @@ class DatabaseSeeder extends Seeder
         // WhatsApp Citas
         $this->call(PermisionServicioCitasSeeder::class);
         $this->call(PermisoAuditoriaSeeder::class);
-        $this->call(ConfigWhatsappSeeder::class);
+        $this->call(ConfigWhatsappSaludoSeeder::class);
         $this->call(ConfigRecomendacionProductoSeeder::class);
 
         // Contratación

@@ -25,8 +25,8 @@ use Database\Seeders\Configuracion\ConfigProductoSeeder;
 use Database\Seeders\Configuracion\ConfigSedeSeeder;
 use Database\Seeders\Configuracion\ConfigWhatsappEcografiasRecomendaciones;
 use Database\Seeders\Configuracion\ConfigWhatsappEcografiasRequerimientos;
+use Database\Seeders\Configuracion\ConfigWhatsappSaludoSeeder;
 use Database\Seeders\Configuracion\ConfigWhatsappSedeNumberSeeder;
-use Database\Seeders\ConfigWhatsappSeeder;
 use Database\Seeders\HelpDesk\HelpDeskCatalogosSeeder;
 use Database\Seeders\HelpDesk\HelpDeskPermisosSeeder;
 use Database\Seeders\InterfaceTeleRadiologiaSeeder;
@@ -306,10 +306,10 @@ class SeedFaltantesCommand extends Command
             [
                 "class" => ConfigWhatsappSedeNumberSeeder::class,
                 "descripcion" => "Líneas telefónicas de WhatsApp por sede",
-                "check" => fn () => DB::table("config_sede_whatsapp_numbers")->exists(),
+                "check" => fn () => DB::table(Schema::hasTable("config_whatsapp_numbers") ? "config_whatsapp_numbers" : "config_sede_whatsapp_numbers")->exists(),
             ],
             [
-                "class" => ConfigWhatsappSeeder::class,
+                "class" => ConfigWhatsappSaludoSeeder::class,
                 "descripcion" => "Mensajes de bienvenida y saludos del Bot de WhatsApp",
                 "check" => fn () => ConfigWhatsapp::query()->exists(),
             ],

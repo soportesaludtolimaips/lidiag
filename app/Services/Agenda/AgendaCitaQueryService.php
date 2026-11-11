@@ -5,6 +5,7 @@ namespace App\Services\Agenda;
 use App\Models\Agenda\AgendaCita;
 use App\Models\Agenda\AgendaDisponibilidaDetalle;
 use App\Models\Citas\WhatsAppConversation;
+use App\Models\Configuracion\ConfigProducto;
 use App\Models\Configuracion\ConfigServicio;
 use App\Services\BaseService;
 use Carbon\Carbon;
@@ -197,7 +198,13 @@ class AgendaCitaQueryService extends BaseService
             return $this->success([]);
         }
 
-        return $this->success($servicio->productos);
+        $directos = ConfigProducto::where("servicio_id", $servicioCitaId)
+            ->where("estado", true)
+            ->get();
+
+        $todos = $servicio->productos->merge($directos)->unique("id")->values();
+
+        return $this->success($todos);
     }
 
     /**

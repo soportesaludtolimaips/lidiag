@@ -74,11 +74,11 @@
                             <li class="nav-item">
                                 <a
                                     class="nav-link"
-                                    :class="{ active: tabActivo === 'productos' }"
+                                    :class="{ active: tabActivo === 'recomendaciones' }"
                                     href="#"
-                                    @click.prevent="cambiarTab('productos')"
+                                    @click.prevent="cambiarTab('recomendaciones')"
                                 >
-                                    <i class="fa fa-cubes"></i> Productos por Sede
+                                    <i class="fa fa-list-alt"></i> Recomendaciones por Producto
                                 </a>
                             </li>
                         </ul>
@@ -93,10 +93,10 @@
                             ref="saludosRef"
                             :sede-id="sedeId"
                         />
-                        <ConfigWhatsappProductos
-                            v-if="tabActivo === 'productos'"
-                            ref="productosRef"
-                            :sede-id="sedeId"
+                        <RecomendacionProductoComponent
+                            v-if="tabActivo === 'recomendaciones'"
+                            ref="recomendacionesRef"
+                            :embedded="true"
                         />
                     </div>
                 </div>
@@ -111,8 +111,8 @@ import axios from "axios";
 import { toastMessage } from "@/helpers/alerts.js";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 import ConfigWhatsappNumeros from "./configWhatsappNumeros.vue";
-import ConfigWhatsappProductos from "./configWhatsappProductos.vue";
 import ConfigWhatsappSaludos from "./configWhatsappSaludos.vue";
+import RecomendacionProductoComponent from "@/components/modulos/citas/recomendacionProductoComponent.vue";
 
 const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
@@ -126,7 +126,7 @@ const sedes = ref([]);
 const sedeId = ref(obtenerSedeActiva());
 const numerosRef = ref(null);
 const saludosRef = ref(null);
-const productosRef = ref(null);
+const recomendacionesRef = ref(null);
 const loadingListar = ref(false);
 
 async function listarDatos() {
@@ -137,8 +137,8 @@ async function listarDatos() {
             await numerosRef.value?.listar?.();
         } else if (tabActivo.value === "saludos") {
             await saludosRef.value?.listar?.();
-        } else if (tabActivo.value === "productos") {
-            await productosRef.value?.listar?.();
+        } else if (tabActivo.value === "recomendaciones") {
+            await recomendacionesRef.value?.buscar?.();
         }
     } finally {
         loadingListar.value = false;
@@ -157,8 +157,8 @@ function nuevoRegistro() {
         numerosRef.value?.nuevo();
     } else if (tabActivo.value === "saludos") {
         saludosRef.value?.nuevo();
-    } else {
-        productosRef.value?.agregar();
+    } else if (tabActivo.value === "recomendaciones") {
+        recomendacionesRef.value?.mostrarRegistro?.(null);
     }
 }
 async function listarSedes() {

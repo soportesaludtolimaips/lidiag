@@ -80,6 +80,7 @@
                                     <tr>
                                         <th>Cups</th>
                                         <th>Producto</th>
+                                        <th>Servicio</th>
                                         <th>Lectura</th>
                                         <th>Oral</th>
                                         <th>Venoso</th>
@@ -92,6 +93,18 @@
                                     <tr v-for="item in registros" :key="item.id">
                                         <td>{{ item.cod_cups }}</td>
                                         <td>{{ item.nom_produc }}</td>
+                                        <td>
+                                            <span
+                                                class="badge badge-info"
+                                                v-if="item.servicio?.nombre"
+                                            >
+                                                {{ item.servicio.nombre }}
+                                                <small v-if="item.servicio.sede?.nom_sede">
+                                                    ({{ item.servicio.sede.nom_sede }})</small
+                                                >
+                                            </span>
+                                            <span class="text-muted" v-else>—</span>
+                                        </td>
                                         <td>{{ item.requi_lectura }}</td>
                                         <td>{{ item.tipo_oral }}</td>
                                         <td>{{ item.tipo_venoso }}</td>
@@ -200,6 +213,35 @@
                                         />
                                         <span class="text-danger" v-if="hasError('nom_produc')">{{
                                             getError("nom_produc")
+                                        }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="servicio_id"
+                                            >Servicio Asistencial</label
+                                        >
+                                        <select
+                                            id="servicio_id"
+                                            name="servicio_id"
+                                            v-model="registro.servicio_id"
+                                            class="form-control"
+                                            :class="{ 'is-invalid': hasError('servicio_id') }"
+                                        >
+                                            <option value="">-- Sin Servicio Asignado --</option>
+                                            <option
+                                                v-for="s in servicios"
+                                                :key="s.id"
+                                                :value="s.id"
+                                            >
+                                                {{ s.nombre }} — {{ s.sede?.nom_sede || "General" }}
+                                            </option>
+                                        </select>
+                                        <span class="text-danger" v-if="hasError('servicio_id')">{{
+                                            getError("servicio_id")
                                         }}</span>
                                     </div>
                                 </div>
@@ -326,9 +368,11 @@ import axios from "axios";
 
 const id = ref(0);
 const registros = ref([]);
+const servicios = ref([]);
 const registro = ref({
     cod_cups: "",
     nom_produc: "",
+    servicio_id: "",
     requi_lectura: false,
     tipo_oral: false,
     tipo_venoso: false,
@@ -468,12 +512,22 @@ async function eliminarRegistro(idEliminar, nom) {
     }
 }
 
+async function cargarServicios() {
+    try {
+        const res = await axios.get("/api/config-servicio-citas");
+        servicios.value = res.data?.data || res.data || [];
+    } catch {
+        servicios.value = [];
+    }
+}
+
 function prepararEdicion(item) {
     actualizar.value = true;
     tituloModal.value = "Actualizar el registro: " + item.nom_produc;
     id.value = item.id;
     registro.value.cod_cups = item.cod_cups;
     registro.value.nom_produc = item.nom_produc;
+    registro.value.servicio_id = item.servicio_id || item.servicio?.id || "";
     registro.value.requi_lectura = Boolean(item.requi_lectura);
     registro.value.tipo_oral = Boolean(item.tipo_oral);
     registro.value.tipo_venoso = Boolean(item.tipo_venoso);
@@ -489,6 +543,7 @@ function prepararNuevo() {
     id.value = 0;
     registro.value.cod_cups = "";
     registro.value.nom_produc = "";
+    registro.value.servicio_id = "";
     registro.value.requi_lectura = false;
     registro.value.tipo_oral = false;
     registro.value.tipo_venoso = false;
@@ -504,6 +559,7 @@ function limpiar() {
     id.value = 0;
     registro.value.cod_cups = "";
     registro.value.nom_produc = "";
+    registro.value.servicio_id = "";
     registro.value.requi_lectura = false;
     registro.value.tipo_oral = false;
     registro.value.tipo_venoso = false;
@@ -524,6 +580,7 @@ function cerrarSidebar() {
 }
 
 onMounted(() => {
+    cargarServicios();
     ListarDatos();
 });
 

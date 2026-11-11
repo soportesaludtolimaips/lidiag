@@ -117,12 +117,6 @@ app.component(
     )
 );
 app.component(
-    "ConfigServicioProductoComponent",
-    defineAsyncComponent(
-        () => import("./components/modulos/configuracion/configServicioProductoComponent.vue")
-    )
-);
-app.component(
     "ConfigTipoPlantillaComponent",
     defineAsyncComponent(() => import("./components/modulos/configuracion/configTipoPlantilla.vue"))
 );

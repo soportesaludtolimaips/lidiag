@@ -28,6 +28,7 @@ class ConfigProductoResource extends JsonResource
             'factura' => $this->factura,
             'estado' => $this->estado,
             'servicio_id' => $this->servicio_id,
+            'servicio' => ConfigServicioResource::make($this->whenLoaded('servicio')),
             'recomendacionProducto' => ConfigRecomendacionProductoResource::make($this->whenLoaded('recomendacionProducto')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

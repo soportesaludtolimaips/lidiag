@@ -416,17 +416,6 @@ export const routes = [
         },
     },
     {
-        path: "/config-servicio-producto",
-        name: "config.servicioproducto",
-        component: () =>
-            import("../components/modulos/configuracion/configServicioProductoComponent.vue"),
-        meta: {
-            title: "Productos por Servicio",
-            permission: "config.productos.index",
-            auth: true,
-        },
-    },
-    {
         path: "/config-servicio-citas-listar",
         name: "config.serviciocitas",
         component: () =>

@@ -2,34 +2,29 @@
 
 namespace App\Models\Configuracion;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class ConfigSedeWhatsappNumber extends Model
+/**
+ * Modelo de compatibilidad para números de WhatsApp de sedes.
+ *
+ * Mapea a la tabla canónica config_whatsapp_numbers.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-11-11
+ */
+class ConfigSedeWhatsappNumber extends ConfigWhatsappNumber
 {
-    protected $table = 'config_sede_whatsapp_numbers';
-
-    protected $fillable = [
-        'sede_id',
-        'phone_number_id',
-        'numero',
-        'descripcion',
-        'activo',
-    ];
-
-    protected $casts = [
-        'activo' => 'boolean',
-    ];
+    protected $table = 'config_whatsapp_numbers';
 
     /**
      * Sede a la que pertenece el número de WhatsApp.
-     *
-     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-10-13
      */
-    public function sede()
+    public function sede(): BelongsTo
     {
         return $this->belongsTo(ConfigSede::class, 'sede_id');
     }

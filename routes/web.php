@@ -287,10 +287,6 @@ Route::get('/config-tipos-plantillas.listar', fn () => view('layouts.app'))
     ->name('config.tipos.plantillas.listar')
     ->middleware(['auth', 'permission:config.plantillas.index']);
 
-Route::get('/config-servicio-producto', fn () => view('layouts.app'))
-    ->name('config.servicio.producto')
-    ->middleware(['auth', 'permission:config.productos.index']);
-
 Route::get('/config-servicio-citas-listar', fn () => view('layouts.app'))
     ->name('config.servicio.citas.listar')
     ->middleware(['auth', 'permission:config.servicio.citas.index']);
