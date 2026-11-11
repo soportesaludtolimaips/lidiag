@@ -37,6 +37,19 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-11 — Comando Artisan para Relacionar Productos con Módulos (`ProductosRelacionarModulosCommand.php`):**
+  - **Requerimiento del Usuario:**
+    * Crear un comando de consola (`php artisan productos:relacionar-modulos`) para clasificar y vincular automáticamente los productos registrados en `config_productos` con sus modalidades en `config_modulos`.
+  - **Ajustes Implementados:**
+    * **Comando Artisan ([`ProductosRelacionarModulosCommand.php`](file:///c:/laragon/www/lidiag/app/Console/Commands/ProductosRelacionarModulosCommand.php)):**
+      - Firma: `php artisan productos:relacionar-modulos {--force} {--dry-run}`.
+      - Garantiza la presencia de los módulos base (`Rx`, `Ecografias`, `Tomografia`, `Resonancia`, `Mamografia`, `Oftalmologia`).
+      - Aplica reglas clínicas jerárquicas: códigos CUPS exactos de ecografías (24 procedimientos), palabras clave clínicas de modalidades (mamografía, ultrasonido/ecografía, TAC/tomografía, RMN/resonancia, radiografía/Rx, oftalmología) e insumos específicos (medios de contraste, agujas de biopsia trucut, etc.).
+      - Despliega tablas informativas con el conteo de asignaciones por módulo y lista de productos sin clasificar.
+      - Ejecución de prueba clasifica con éxito 216 de 218 productos (quedando únicamente 2 de salud bucal/odontología).
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% (0 errores) ✅.
+    * Larastan / PHPStan Nivel 5: 0 errores ✅.
 - [x] **2026-11-11 — Eliminación del Filtro Manual, Filtrado Automático por Sede/Servicios y Asignación de Módulos a Productos (`2026_11_11_164500_update_config_productos_modulo_id_relations.php`, `ConfigRecomendacionProductoService.php`, `ConfigRecomendacionProductoController.php`, `ConfigRecomendacionProducto.php`, `recomendacionProductoComponent.vue`, `configWhatsappComponent.vue`):**
   - **Requerimiento del Usuario:**
     * En el tab "Recomendaciones por Productos" de WhatsApp Bot, eliminar la tarjeta de filtros manuales (Sede, Servicio, Producto).
@@ -55,7 +68,8 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
       - En `ConfigRecomendacionProducto.php`, tipada explícitamente la relación `producto(): BelongsTo` para Larastan Nivel 5.
     * **Frontend (`recomendacionProductoComponent.vue` & `configWhatsappComponent.vue`):**
       - Removida la tarjeta de filtros de búsqueda cuando el componente está embebido en el tab (`v-if="!embedded"`).
-      - Reemplazado el componente Select2 del campo Producto en el drawer lateral por un `<select>` estándar de HTML con clase `form-control` y `v-model="form.producto_id"`, garantizando un funcionamiento fluido y sin problemas de overlay.
+      - Reemplazado el componente Select2 del campo Producto en el drawer lateral por un `<select>` estándar de HTML con clase `form-control` y `v-model="form.producto_id"`, incorporando el nombre del módulo asistencial entre corchetes `[Módulo]` en cada opción y ordenando la lista alfabéticamente por módulo y nombre de producto.
+      - En la tabla de recomendaciones, añadida la visualización del módulo correspondiente con badge informativo `badge-info`.
       - Recepción de prop `:sede-id="sedeId"` desde `configWhatsappComponent.vue`, cálculo reactivo de `sedeActual` y escucha global del evento `sedeSeleccionada` vía `emitter`.
       - Inclusión automática de `sede_id: sedeActual.value` en las peticiones a `GET /api/config-recomendacion-productos`.
   - **Verificaciones:**

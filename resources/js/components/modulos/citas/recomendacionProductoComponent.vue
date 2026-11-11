@@ -211,6 +211,12 @@
                                     <tbody>
                                         <tr v-for="item in registros" :key="item.id">
                                             <td>
+                                                <span
+                                                    v-if="item.producto?.modulo?.modulo"
+                                                    class="badge badge-info mb-1"
+                                                >
+                                                    {{ item.producto.modulo.modulo }} </span
+                                                ><br v-if="item.producto?.modulo?.modulo" />
                                                 <strong>{{
                                                     item.producto?.nom_produc || "—"
                                                 }}</strong
@@ -317,7 +323,9 @@
                                         :key="p.id"
                                         :value="p.id"
                                     >
-                                        {{ p.cod_cups ? p.cod_cups + " — " : "" }}{{ p.nom_produc }}
+                                        {{ p.modulo?.modulo ? `[${p.modulo.modulo}] ` : ""
+                                        }}{{ p.cod_cups ? p.cod_cups + " — " : ""
+                                        }}{{ p.nom_produc }}
                                     </option>
                                 </select>
                                 <span class="text-danger" v-if="errores.producto_id">{{
@@ -461,7 +469,15 @@ const filterProductoOptions = computed(() => {
     }));
 });
 const listaProductosForm = computed(() => {
-    return todosLosProductos.value.length > 0 ? todosLosProductos.value : productos.value;
+    const list = todosLosProductos.value.length > 0 ? todosLosProductos.value : productos.value;
+    return [...(list || [])].sort((a, b) => {
+        const modA = a.modulo?.modulo || "ZZZ";
+        const modB = b.modulo?.modulo || "ZZZ";
+        if (modA !== modB) {
+            return modA.localeCompare(modB);
+        }
+        return (a.nom_produc || "").localeCompare(b.nom_produc || "");
+    });
 });
 
 async function cargarSedes() {
