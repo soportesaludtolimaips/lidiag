@@ -29,11 +29,29 @@ class ActivityLog extends Model
         'new_values' => 'array',
     ];
 
+    /**
+     * Usuario que generó el registro.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Modelo al que pertenece el registro.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\MorphTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function loggable(): MorphTo
     {
         return $this->morphTo();

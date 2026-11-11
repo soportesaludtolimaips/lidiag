@@ -28,6 +28,18 @@
                     <li class="breadcrumb-item active">Transcribir Estudios</li>
                 </ol>
             </div>
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    :disabled="loadingBuscar"
+                    title="Actualizar listado de estudios"
+                    @click="listarPendientesTrascribir()"
+                >
+                    <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loadingBuscar }"></i>
+                    Refrescar
+                </button>
+            </div>
         </div>
         <!-- ============================================================== -->
         <!-- End Bread crumb and right sidebar toggle -->
@@ -41,7 +53,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> Filtros para busqueda de mis pendientes por
+                            <i class="fa fa-filter"></i> Filtros para búsqueda de mis pendientes por
                             transcribir
                         </h4>
                         <form action="#">
@@ -49,21 +61,20 @@
                                 <div class="row p-t-2">
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <label for="quien_asigno_id">Quien asigno</label>
+                                            <label for="quien_asigno_id">Quién asignó</label>
                                             <select
                                                 v-model="busqueda.quien_asigno_id"
                                                 name="quien_asigno_id"
                                                 id="quien_asigno_id"
                                                 class="form-control custom-select"
+                                                @change="listarPendientesTrascribir()"
                                             >
                                                 <option value="">
                                                     ...::: Todos los usuarios :::...
                                                 </option>
                                                 <option
-                                                    v-for="(
-                                                        ItemUsuario, index
-                                                    ) in quienes_asignaron"
-                                                    :key="index"
+                                                    v-for="ItemUsuario in quienesAsignaronActivos"
+                                                    :key="ItemUsuario.id"
                                                     :value="ItemUsuario.id"
                                                 >
                                                     {{ ItemUsuario.name }}
@@ -73,19 +84,20 @@
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <label for="medico_id">Medicos</label>
+                                            <label for="medico_id">Médicos</label>
                                             <select
                                                 v-model="busqueda.medico_id"
                                                 name="medico_id"
                                                 id="medico_id"
                                                 class="form-control custom-select"
+                                                @change="listarPendientesTrascribir()"
                                             >
                                                 <option value="" selected>
-                                                    ...::: Todos los medicos :::...
+                                                    ...::: Todos los médicos :::...
                                                 </option>
                                                 <option
-                                                    v-for="(ItemUsuario, index) in medicos"
-                                                    :key="index"
+                                                    v-for="ItemUsuario in medicosActivos"
+                                                    :key="ItemUsuario.id"
                                                     :value="ItemUsuario.id"
                                                 >
                                                     {{ ItemUsuario.name }}
@@ -120,6 +132,7 @@
                                                 name="bus_fech_ini"
                                                 v-model="busqueda.bus_fech_ini"
                                                 class="form-control"
+                                                @keyup.enter="listarPendientesTrascribir()"
                                             />
                                         </div>
                                     </div>
@@ -134,6 +147,7 @@
                                                 name="fecha_fin"
                                                 v-model="busqueda.bus_fecha_fin"
                                                 class="form-control"
+                                                @keyup.enter="listarPendientesTrascribir()"
                                             />
                                         </div>
                                     </div>
@@ -157,6 +171,14 @@
                                     >
                                         <i class="fa fa-refresh"></i> Limpiar
                                     </button>
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-primary ml-2"
+                                        @click="listarPendientesTrascribir()"
+                                        :disabled="loadingBuscar"
+                                    >
+                                        <i class="fa fa-sync"></i> Actualizar
+                                    </button>
                                 </div>
                             </div>
                         </form>
@@ -171,22 +193,53 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div>
-                                <h4 class="card-title">Listado de estudios disponibles</h4>
+                                <h4 class="card-title">
+                                    Listado de estudios pendientes por transcribir
+                                </h4>
                                 <h6 class="card-subtitle text-info">
-                                    Asigne los estudios a los médicos para su respectiva lectura.
+                                    Estudios con lectura médica realizada pendientes por
+                                    transcribir.
                                 </h6>
                             </div>
-                            <div class="text-right">
-                                <span class="badge badge-primary" v-if="contadorRegistros > 0"
+                            <div class="text-right d-flex align-items-center">
+                                <span class="badge badge-primary mr-1" v-if="contadorRegistros > 0"
                                     >{{ contadorRegistros }} registro(s)</span
                                 >
-                                <span class="badge badge-secondary" v-else>Sin resultados</span>
+                                <span class="badge badge-secondary mr-1" v-else
+                                    >Sin resultados</span
+                                >
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-rounded ml-1"
+                                    :class="isDarkMode ? 'btn-warning' : 'btn-outline-secondary'"
+                                    @click="toggleDarkMode"
+                                    :title="
+                                        isDarkMode
+                                            ? 'Cambiar a Modo Claro'
+                                            : 'Cambiar a Modo Oscuro (Lectura)'
+                                    "
+                                >
+                                    <i :class="isDarkMode ? 'fa fa-sun-o' : 'fa fa-moon-o'"></i>
+                                    {{ isDarkMode ? "Modo Claro" : "Modo Oscuro" }}
+                                </button>
                             </div>
                         </div>
-                        <loading-spinner :visible="loadingBuscar" />
-                        <div class="table-responsive" :class="{ 'd-none': loadingBuscar }">
+                        <table-skeleton-loader :visible="loadingBuscar" :rows="6" :columns="11" />
+                        <empty-state-component
+                            v-if="!loadingBuscar && registros.length === 0"
+                            icon="fa fa-folder-open-o"
+                            title="No hay estudios pendientes por transcribir"
+                            description="No se encontraron estudios pendientes para transcripción con los filtros seleccionados o use los filtros para buscar."
+                            action-text="Limpiar filtros"
+                            action-icon="fa fa-refresh"
+                            @action="btnLimpiar()"
+                        />
+                        <div
+                            class="table-responsive"
+                            v-show="!loadingBuscar && registros.length > 0"
+                        >
                             <table
-                                id="example23"
+                                id="tablaTranscribirEstudio"
                                 ref="dt"
                                 class="table table-bordered table-striped"
                                 cellspacing="0"
@@ -194,17 +247,17 @@
                             >
                                 <thead>
                                     <tr>
-                                        <th></th>
-                                        <th>Sede</th>
-                                        <th>Toma</th>
-                                        <th width="50%">Lectura</th>
-                                        <th>Asignación</th>
-                                        <th>Quien Asigno</th>
-                                        <th width="50%">Medico</th>
-                                        <th width="50%">Paciente</th>
-                                        <th>Detalle</th>
-                                        <th>Producto</th>
-                                        <th></th>
+                                        <th style="width: 35px" class="text-center">P</th>
+                                        <th style="width: 140px">Sede</th>
+                                        <th style="width: 110px">Toma</th>
+                                        <th style="width: 110px">Lectura</th>
+                                        <th style="width: 110px">Asignación</th>
+                                        <th style="width: 130px">Quién Asignó</th>
+                                        <th style="width: 150px">Médico</th>
+                                        <th style="width: 170px">Paciente</th>
+                                        <th style="width: 160px">Detalle</th>
+                                        <th style="width: 160px">Producto</th>
+                                        <th style="width: 110px" class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -213,11 +266,12 @@
                                         :key="item.estudio_producto_id"
                                         :id="'row-' + item.estudio_producto_id"
                                     >
-                                        <td>
+                                        <td class="text-center align-middle">
                                             <button
                                                 type="button"
                                                 v-if="item.priori_id == 1"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-danger"
+                                                title="Alta"
                                             >
                                                 A
                                             </button>
@@ -225,6 +279,7 @@
                                                 type="button"
                                                 v-else-if="item.priori_id == 2"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-warning"
+                                                title="Media"
                                             >
                                                 M
                                             </button>
@@ -232,6 +287,7 @@
                                                 type="button"
                                                 v-else-if="item.priori_id == 3"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-info"
+                                                title="Baja"
                                             >
                                                 B
                                             </button>
@@ -239,27 +295,62 @@
                                                 type="button"
                                                 v-else-if="item.priori_id == 4"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm"
+                                                title="Sin prioridad"
                                             >
                                                 S
                                             </button>
                                         </td>
-                                        <td>{{ item.nom_sede }}</td>
-                                        <td>{{ item.fec_estudio }}</td>
-                                        <td>{{ item.fechor_lectura }}</td>
-                                        <td>{{ formatDate(item.created_at) }}</td>
-                                        <td>{{ item.quien_registro }}</td>
-                                        <td>{{ item.medico }}</td>
-                                        <td>
-                                            # Docu: {{ item.num_docu }} <br />
-                                            Nombres: {{ item.nom_pacien }}
+                                        <td class="align-middle font-weight-bold">
+                                            {{ item.nom_sede }}
                                         </td>
-                                        <td>
-                                            Atención: {{ item.atencion }} <br />
-                                            Descrip: {{ item.study_desc }} <br />
-                                            {{ item.accession_no }}
+                                        <td class="align-middle text-nowrap">
+                                            {{ item.fec_estudio }}
                                         </td>
-                                        <td>{{ item.nom_produc }}</td>
-                                        <td class="text-nowrap">
+                                        <td class="align-middle text-nowrap">
+                                            {{ item.fechor_lectura }}
+                                        </td>
+                                        <td class="align-middle text-nowrap">
+                                            {{ formatDate(item.created_at) }}
+                                        </td>
+                                        <td class="align-middle">{{ item.quien_registro }}</td>
+                                        <td class="align-middle">
+                                            {{ item.nombres_medico || item.medico }}
+                                        </td>
+                                        <td class="align-middle">
+                                            <div class="font-weight-bold text-dark">
+                                                {{ item.nom_pacien }}
+                                            </div>
+                                            <div
+                                                class="text-primary font-weight-bold"
+                                                style="font-size: 15px"
+                                            >
+                                                <i class="fa fa-id-card-o mr-1"></i>
+                                                {{ item.num_docu }}
+                                            </div>
+                                        </td>
+                                        <td class="align-middle">
+                                            <div v-if="item.atencion">
+                                                <small
+                                                    ><strong>Atención:</strong>
+                                                    {{ item.atencion }}</small
+                                                >
+                                            </div>
+                                            <div v-if="item.accession_no">
+                                                <small class="text-muted"
+                                                    ><strong>Acc:</strong>
+                                                    {{ item.accession_no }}</small
+                                                >
+                                            </div>
+                                            <div v-if="item.study_desc">
+                                                <small class="text-info">{{
+                                                    item.study_desc
+                                                }}</small>
+                                            </div>
+                                        </td>
+                                        <td class="align-middle font-weight-bold">
+                                            {{ item.nom_produc }}
+                                        </td>
+                                        <td class="text-nowrap text-center align-middle">
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
@@ -267,10 +358,8 @@
                                                     loadingAbrirRegistroId ===
                                                     item.estudio_producto_id
                                                 "
-                                                @click="
-                                                    actualizar = true;
-                                                    mostrarRegistro(item);
-                                                "
+                                                title="Transcribir lectura"
+                                                @click="mostrarRegistro(item)"
                                             >
                                                 <i
                                                     v-if="
@@ -283,10 +372,19 @@
                                             </button>
                                             <button
                                                 type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
+                                                title="Ver imágenes DICOM"
+                                                @click="verImagenDirecta(item)"
+                                            >
+                                                <i class="fa fa-file-image-o"></i>
+                                            </button>
+                                            <button
+                                                type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
                                                 :disabled="
                                                     loadingAnularId === item.estudio_producto_id
                                                 "
+                                                title="Anular asignación"
                                                 @click="
                                                     anularAsignacion(
                                                         item.estudio_producto_id,
@@ -307,13 +405,6 @@
                                     </tr>
                                 </tbody>
                             </table>
-                            <div
-                                v-if="registros.length === 0 && !loadingBuscar"
-                                class="text-center py-4 text-muted"
-                            >
-                                <i class="fa fa-inbox fa-3x mb-3"></i>
-                                <p>No hay estudios para transcribir</p>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -326,19 +417,62 @@
         <!-- ============================================================== -->
         <!-- Right sidebar -->
         <!-- ============================================================== -->
+        <!-- Backdrop para cerrar al hacer clic y atenuar fondo -->
+        <transition name="fade">
+            <div
+                v-if="sidebarVisible"
+                class="sidebar-backdrop"
+                @click="btnCerrarModalForm()"
+                @mousedown.prevent="btnCerrarModalForm()"
+                aria-hidden="true"
+            ></div>
+        </transition>
+
         <!-- .right-sidebar -->
-        <div class="right-sidebar sidebar-scroll">
+        <div
+            class="right-sidebar sidebar-scroll"
+            :class="{ 'shw-rside': sidebarVisible, 'dark-mode': isDarkMode, 'zen-mode': isZenMode }"
+        >
             <div class="slimscrollright">
-                <div class="rpanel-title">
-                    {{ tituloModal }}
-                    <button
-                        type="button"
-                        class="right-side-toggle"
-                        @click="btnCerralModalForm()"
-                        aria-label="Cerrar panel"
-                    >
-                        <i class="ti-close"></i>
-                    </button>
+                <div class="rpanel-title d-flex justify-content-between align-items-center">
+                    <span>{{ tituloModal }}</span>
+                    <div class="d-flex align-items-center">
+                        <button
+                            type="button"
+                            class="btn btn-xs btn-outline-light m-r-5"
+                            @click="toggleZenMode"
+                            :title="
+                                isZenMode
+                                    ? 'Salir de pantalla completa'
+                                    : 'Pantalla completa (Modo Zen)'
+                            "
+                            style="padding: 2px 8px; font-size: 11px; border-radius: 12px"
+                        >
+                            <i :class="isZenMode ? 'fa fa-compress' : 'fa fa-expand'"></i>
+                            {{ isZenMode ? "Normal" : "Zen" }}
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-xs btn-outline-light m-r-10"
+                            @click="toggleDarkMode"
+                            :title="isDarkMode ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Oscuro'"
+                            style="padding: 2px 8px; font-size: 11px; border-radius: 12px"
+                        >
+                            <i
+                                :class="isDarkMode ? 'fa fa-sun-o text-warning' : 'fa fa-moon-o'"
+                            ></i>
+                            {{ isDarkMode ? "Claro" : "Oscuro" }}
+                        </button>
+                        <button
+                            type="button"
+                            class="right-side-toggle text-white border-0 bg-transparent p-0 cursor-pointer"
+                            @click="btnCerrarModalForm()"
+                            @mousedown.prevent="btnCerrarModalForm()"
+                            aria-label="Cerrar panel"
+                        >
+                            <i class="ti-close"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="r-panel-body">
                     <!-- ============================================================== -->
@@ -401,7 +535,9 @@
                                             <div class="form-group">
                                                 <label class="control-label" for="email_reportar"
                                                     >Reportar al Email
-                                                    <span class="text-danger">*</span></label
+                                                    <small class="text-muted"
+                                                        >(Opcional)</small
+                                                    ></label
                                                 >
                                                 <input
                                                     type="email"
@@ -409,9 +545,17 @@
                                                     name="email_reportar"
                                                     v-model="registro.email_reportar"
                                                     class="form-control"
+                                                    :class="getInputClass(statusEmailReportar)"
                                                     placeholder="Ingrese aquí el email a reportar"
                                                     ref="primerInput"
+                                                    @blur="touch('email_reportar')"
                                                 />
+                                                <div
+                                                    class="invalid-feedback d-block"
+                                                    v-if="statusEmailReportar.isInvalid"
+                                                >
+                                                    {{ statusEmailReportar.message }}
+                                                </div>
                                             </div>
 
                                             <div class="form-group">
@@ -438,30 +582,35 @@
                                     <br />
                                 </div>
                                 <div class="col-md-6">
-                                    <div class="row">
+                                    <div class="row align-items-center">
                                         <div class="col-9">
-                                            <h5 class="card-title text-info">
+                                            <h5 class="card-title text-info mb-0">
                                                 <i class="fa fa-edit"></i> Lectura
                                             </h5>
-                                            <hr />
                                         </div>
-                                        <div class="col-3">
-                                            <div
-                                                class="col-md-7 align-self-center text-right d-none d-md-block"
+                                        <div class="col-3 text-right">
+                                            <button
+                                                type="button"
+                                                class="btn btn-secondary btn-xs"
+                                                @click="
+                                                    verImagen(
+                                                        datosImagen.urlOviyam,
+                                                        datosImagen.patientId,
+                                                        datosImagen.studyUID,
+                                                        datosImagen.serverName
+                                                    )
+                                                "
+                                                :disabled="loadingVerImagen"
                                             >
-                                                <button
-                                                    type="button"
-                                                    class="btn btn-secondary btn-xs"
-                                                    @click="verImagen()"
-                                                    :disabled="loadingImagen"
-                                                >
-                                                    <i
-                                                        v-if="loadingImagen"
-                                                        class="fa fa-spinner fa-spin"
-                                                    ></i>
-                                                    <i v-else class="fa fa-file-image-o"></i>
-                                                </button>
-                                            </div>
+                                                <i
+                                                    v-if="loadingVerImagen"
+                                                    class="fa fa-spinner fa-spin"
+                                                ></i>
+                                                <i v-else class="fa fa-file-image-o"></i>
+                                            </button>
+                                        </div>
+                                        <div class="col-12">
+                                            <hr />
                                         </div>
                                     </div>
                                     <span class="text-danger" v-if="errores.lectura">{{
@@ -470,14 +619,17 @@
                                     <div class="row">
                                         <div class="col-12">
                                             <div class="form-group">
-                                                <textarea
+                                                <WysiwygEditor
+                                                    ref="wysiwygEditorRef"
                                                     v-model="registro.lectura"
-                                                    class="textarea_editor form-control"
-                                                    rows="20"
-                                                    id="lectura"
-                                                    style="height: 100%"
+                                                    :draft-key="
+                                                        registro.id_estudio
+                                                            ? `estudio_${registro.id_estudio}`
+                                                            : ''
+                                                    "
+                                                    :rows="20"
                                                     placeholder="Ingrese aquí la lectura del estudio ..."
-                                                ></textarea>
+                                                />
                                             </div>
                                         </div>
                                     </div>
@@ -523,27 +675,27 @@
                                                 >
                                                     <div
                                                         class="col-md-8 col-lg-9"
-                                                        v-for="(itemArchivo, index) in soportesHC"
-                                                        :key="index"
+                                                        v-for="itemArchivo in soportesHC"
+                                                        :key="itemArchivo.archivo_encrip"
                                                     >
                                                         <a
                                                             href="javascript:void(0)"
                                                             :style="{
                                                                 pointerEvents:
-                                                                    loadingDescargaSoporte ===
+                                                                    loadingDescarga ===
                                                                     itemArchivo.archivo_encrip
                                                                         ? 'none'
                                                                         : 'auto',
                                                             }"
                                                             @click="
-                                                                descargaSoportte(
+                                                                descargaSoporte(
                                                                     itemArchivo.archivo_encrip
                                                                 )
                                                             "
                                                         >
                                                             <i
                                                                 v-if="
-                                                                    loadingDescargaSoporte ===
+                                                                    loadingDescarga ===
                                                                     itemArchivo.archivo_encrip
                                                                 "
                                                                 class="fa fa-spinner fa-spin"
@@ -670,12 +822,82 @@
                                 </div>
                             </div>
 
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div
+                                        class="p-2 rounded border border-danger d-flex align-items-center justify-content-between"
+                                        style="background-color: #fff5f5; border: 1px solid #f5c2c7"
+                                    >
+                                        <div class="d-flex align-items-center">
+                                            <i
+                                                class="fa fa-exclamation-triangle fa-2x text-danger mr-3"
+                                            ></i>
+                                            <div>
+                                                <h6 class="mb-0 text-danger font-weight-bold">
+                                                    Hallazgo Crítico en Urgencias / UCI
+                                                </h6>
+                                                <small class="text-muted">
+                                                    Escala automáticamente a prioridad urgente y
+                                                    alerta de inmediato al equipo asistencial por
+                                                    Telegram.
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <div
+                                            class="custom-control custom-checkbox custom-control-inline m-0"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                id="check_es_critico_transcribir"
+                                                v-model="registro.es_critico"
+                                                class="custom-control-input"
+                                            />
+                                            <label
+                                                class="custom-control-label text-danger font-weight-bold"
+                                                for="check_es_critico_transcribir"
+                                            >
+                                                Marcar Crítico
+                                            </label>
+                                        </div>
+                                        <div
+                                            v-if="registro.es_critico"
+                                            class="w-100 mt-2 pt-2 border-top border-danger"
+                                        >
+                                            <label
+                                                class="small font-weight-bold text-danger mb-1"
+                                                for="input_motivo_critico_transcribir"
+                                            >
+                                                <i class="fa fa-stethoscope mr-1"></i>
+                                                ¿Por qué se requiere valoración inmediata? (Hallazgo
+                                                puntual opcional):
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="input_motivo_critico_transcribir"
+                                                v-model="registro.motivo_critico"
+                                                class="form-control form-control-sm border-danger"
+                                                placeholder="Ej: Neumotórax a tensión derecho / Hemorragia subaracnoidea aguda..."
+                                                maxlength="500"
+                                            />
+                                            <small
+                                                class="text-muted d-block mt-1"
+                                                style="font-size: 11px"
+                                            >
+                                                Si se deja en blanco, el sistema extraerá
+                                                automáticamente la conclusión u opinión del informe.
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="form-actions mt-3">
                                 <button
                                     type="button"
                                     class="btn btn-success m-r-5"
                                     :disabled="loadingGuardar"
                                     @click="guardarRegistro()"
+                                    title="Guardar transcripción (Ctrl + S)"
                                 >
                                     <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
                                     <i v-else class="fa fa-check"></i>
@@ -686,9 +908,11 @@
                                     type="button"
                                     class="btn btn-inverse"
                                     ref="btnCerrarForm"
-                                    @click="btnCerralModalForm()"
+                                    @click="btnCerrarModalForm()"
+                                    @mousedown.prevent="btnCerrarModalForm()"
+                                    title="Cerrar panel (Esc)"
                                 >
-                                    Cancel
+                                    Cancelar
                                 </button>
                             </div>
                         </div>
@@ -702,44 +926,46 @@
     </div>
 </template>
 <script setup>
-const { proxy } = getCurrentInstance();
-const emitter = proxy.emitter;
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
-
-import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { listarUsuariosYSedes } from "@/helpers/usuarios";
-import {
-    safeDestroyDataTable,
-    safeInitDataTable,
-    safeRemoveDataTableRow,
-} from "@/helpers/datatables.js";
-import {
-    confirmAction,
-    alertSuccess,
-    alertError,
-    handleAxiosErrorToast,
-    getUserSafeError,
-} from "@/helpers/alerts";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
+import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import { confirmAction, getUserSafeError, toastMessage } from "@/helpers/alerts";
+import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
+import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
+import { useFormValidation } from "@/composables/useFormValidation";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import axios from "axios";
 
-const props = defineProps({ usuarioactual: Object });
+const { proxy } = getCurrentInstance();
+const emitter = proxy.emitter;
+
+defineProps({ usuarioactual: { type: Object, default: () => ({}) } });
+
+const {
+    loadingDescarga,
+    loadingAudios,
+    loadingVerImagen,
+    audiosDeEstudio,
+    formatDate,
+    descargaSoporte,
+    listarAudios,
+    verImagen,
+} = useEstudioHelpers();
 
 const dt = ref(null);
 const primerInput = ref(null);
-const actualizar = ref(false);
 
 const id = ref(0);
 const diagnosticosEstudio = ref([]);
 const soportesHC = ref([]);
 const registros = ref([]);
-const tituloModal = ref("Transcirbir estudio");
+const tituloModal = ref("Transcribir estudio");
 const registro = ref({
     id_estudio: 0,
     estudio_producto_id: 0,
+    es_critico: false,
+    motivo_critico: "",
     lectura: "",
     fec_lectura: "",
     fec_estudio: "",
@@ -749,6 +975,7 @@ const registro = ref({
     email_reportar: "",
     num_docu: "",
     nom_pacien: "",
+    nombres: "",
     sexo: "",
     fec_naci: "",
     email: "",
@@ -769,36 +996,98 @@ const registro = ref({
     tap_oviyam: null,
     study_iuid: null,
 });
-const fechaDefectoIni = dayjs().startOf("month").format("YYYY-MM-DD");
-const fechaDefectoFin = dayjs().endOf("month").format("YYYY-MM-DD");
 const busqueda = ref({
-    estudioParaTranscibir: "si",
+    estudioParaTranscribir: "si",
     quien_asigno_id: "",
     medico_id: "",
     sede_id: "",
     bus_nom_num_docu: "",
-    bus_fech_ini: fechaDefectoIni,
-    bus_fecha_fin: fechaDefectoFin,
+    bus_fech_ini: "",
+    bus_fecha_fin: "",
     destino_estudio: "Salud Tolima",
 });
 const datosImagen = ref({ urlOviyam: "", patientId: "", studyUID: "", serverName: "" });
-const audiosDeEstudio = ref([]);
 const quienes_asignaron = ref([]);
+const quienesAsignaronActivos = computed(() => {
+    return (quienes_asignaron.value || [])
+        .filter(
+            (u) =>
+                u &&
+                (u.estado === undefined || u.estado === 1 || u.estado === true || u.estado === "1")
+        )
+        .map((u) => ({
+            ...u,
+            name: (u.name || "").trim(),
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
+});
 const medicos = ref([]);
+const medicosActivos = computed(() => {
+    return (medicos.value || [])
+        .filter(
+            (u) =>
+                u &&
+                (u.estado === undefined || u.estado === 1 || u.estado === true || u.estado === "1")
+        )
+        .map((u) => ({
+            ...u,
+            name: (u.name || "").trim(),
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
+});
 const errores = ref({});
 const idRow = ref(null);
 const loadingBuscar = ref(false);
 const loadingGuardar = ref(false);
 const loadingAbrirRegistroId = ref(null);
 const loadingAnularId = ref(null);
-const loadingDescargaSoporte = ref(null);
-const loadingAudios = ref(false);
-const loadingImagen = ref(false);
+const sidebarVisible = ref(false);
+const wysiwygEditorRef = ref(null);
+
+const isDarkMode = ref(localStorage.getItem("lidiag_dark_mode") === "true");
+
+function toggleDarkMode() {
+    isDarkMode.value = !isDarkMode.value;
+    localStorage.setItem("lidiag_dark_mode", isDarkMode.value ? "true" : "false");
+}
+
+const isZenMode = ref(false);
+
+function toggleZenMode() {
+    isZenMode.value = !isZenMode.value;
+}
+
+function verImagenDirecta(item) {
+    if (!item) return;
+    verImagen(item.url_oviyam, item.num_docu, item.study_iuid, item.tap_oviyam);
+}
 
 const contadorRegistros = computed(() => {
     return registros.value.length;
 });
 
+const { touch, getFieldStatus, getInputClass, validators, resetTouched } = useFormValidation();
+
+const statusEmailReportar = computed(() => {
+    const val = registro.value.email_reportar;
+    if (!val || val === "null" || val === "undefined" || String(val).trim() === "") {
+        return { isInvalid: false, isValid: false, message: "" };
+    }
+    return getFieldStatus("email_reportar", String(val).trim(), [validators.email], errores.value);
+});
+
+useKeyboardShortcuts({
+    onSave: guardarRegistro,
+    onEscape: btnCerrarModalForm,
+    isActive: () => sidebarVisible.value,
+    isLoading: loadingGuardar,
+});
+
+/**
+ * Aplica un prellenado del dashboard si existe un accession almacenado en sessionStorage. Si se encuentra un accession válido, se busca el estudio correspondiente y se muestra en la interfaz. Si no hay un accession válido, simplemente se listan los estudios pendientes.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
 function applyDashboardPrefill() {
     try {
         const accession = sessionStorage.getItem("ST-accession");
@@ -806,185 +1095,266 @@ function applyDashboardPrefill() {
             busqueda.value.bus_nom_num_docu = String(accession).trim();
             // Consumir para no pegar el filtro en siguientes visitas
             sessionStorage.removeItem("ST-accession");
-            // Lanzar búsqueda
+        }
+        const sedeActualPrefill =
+            sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede");
+        if (sedeActualPrefill != null) {
             destroyDataTable();
             listarPendientesTrascribir();
         }
-    } catch (e) {
+    } catch {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar el prellenado del dashboard.",
+            icon: "error",
+        });
         listarPendientesTrascribir();
     }
 }
-function initWysiwyg() {
-    try {
-        const $root = $(getCurrentInstance().proxy.$el);
-        // soporte legacy: id textarea_editor y/o clase textarea_editor
-        const $targets = $root.find("#textarea_editor, .textarea_editor");
-        $targets.each((_, el) => {
-            const $el = $(el);
-            // si ya tiene toolbar asociada, no reinicializar
-            if ($el.data("wysihtml5")) return;
-            if ($el.prevAll(".wysihtml5-toolbar").length) return;
-            $el.wysihtml5({ stylesheets: ["/lib/css/wysiwyg-color.css"] });
-        });
-    } catch (e) {}
-}
+
 function destroyDataTable() {
-    safeDestroyDataTable(dt.value || "#example23");
+    safeDestroyDataTable(dt.value || "#tablaTranscribirEstudio");
 }
+
 function btnLimpiar() {
-    const hoy = new Date();
-    const yearActual = hoy.getFullYear();
     busqueda.value.quien_asigno_id = "";
     busqueda.value.medico_id = "";
     busqueda.value.bus_nom_num_docu = "";
-    busqueda.value.bus_fech_ini = yearActual + "-01-01";
-    busqueda.value.bus_fecha_fin = hoy.toISOString().slice(0, 10);
+    busqueda.value.bus_fech_ini = "";
+    busqueda.value.bus_fecha_fin = "";
     errores.value = {};
     destroyDataTable();
     registros.value = [];
     limpiar();
 }
+
+/**
+ * Lista los estudios pendientes de transcribir según los filtros de búsqueda. Si no se ha establecido una sede en sessionStorage, muestra un mensaje de advertencia. De lo contrario, realiza una solicitud al backend para obtener los estudios y los muestra en la tabla.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
 async function listarPendientesTrascribir() {
     if (loadingBuscar.value) return;
     loadingBuscar.value = true;
     try {
-        if (sessionStorage.getItem("ST-sede") == null) {
-            $.toast({
-                heading: "Upsss!!!",
-                text: "Debes establece la sede en la cual vas a trabajar.",
-                position: "top-right",
-                loaderBg: "#ff6849",
+        const sedeActual =
+            sessionStorage.getItem("ST-sede") ||
+            localStorage.getItem("ST-sede") ||
+            busqueda.value.sede_id;
+        if (sedeActual == null) {
+            toastMessage({
+                heading: "Atención",
+                text: "Debes establecer la sede en la cual vas a trabajar.",
                 icon: "warning",
-                hideAfter: 3500,
-                stack: 6,
             });
         } else {
+            busqueda.value.sede_id = sedeActual;
+            if (!sessionStorage.getItem("ST-sede")) {
+                sessionStorage.setItem("ST-sede", String(sedeActual));
+            }
             destroyDataTable();
 
-            const res = await axios.post("/api/estudio-listarPendientesTrascribir", busqueda.value);
-
-            registros.value = res.data.data;
+            const payload = {
+                ...busqueda.value,
+                sede_id: sedeActual,
+                quien_asigno_id: busqueda.value.quien_asigno_id || null,
+                medico_id: busqueda.value.medico_id || null,
+                bus_fech_ini: busqueda.value.bus_fech_ini || null,
+                bus_fecha_fin: busqueda.value.bus_fecha_fin || null,
+                bus_nom_num_docu: busqueda.value.bus_nom_num_docu
+                    ? String(busqueda.value.bus_nom_num_docu).trim()
+                    : null,
+            };
+            const res = await axios.post("/api/estudio-listarPendientesTrascribir", payload);
+            registros.value = Array.isArray(res?.data?.data) ? res.data.data : [];
 
             nextTick(() => {
-                safeInitDataTable(dt.value || "#example23", {
-                    dom: "Bfrtip",
-                    buttons: ["copy", "csv", "excel", "pdf", "print"],
-                });
+                if (registros.value.length > 0) {
+                    safeInitDataTable(dt.value || "#tablaTranscribirEstudio", {
+                        dom: "Bfrtip",
+                        buttons: ["copy", "csv", "excel", "pdf", "print"],
+                        autoWidth: false,
+                        columnDefs: [
+                            { targets: [0, 10], orderable: false },
+                            { targets: 0, width: "35px", className: "text-center" },
+                            { targets: 1, width: "140px" },
+                            { targets: [2, 3, 4], width: "110px", className: "text-nowrap" },
+                            { targets: 5, width: "130px" },
+                            { targets: 6, width: "150px" },
+                            { targets: 7, width: "170px" },
+                            { targets: 8, width: "160px" },
+                            { targets: 9, width: "160px" },
+                            { targets: 10, width: "110px", className: "text-center text-nowrap" },
+                        ],
+                    });
+                }
             });
         }
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar los pendientes.");
+        const msg =
+            error?.response?.data?.message ||
+            error?.response?.data?.errors?.sede_id?.[0] ||
+            "No fue posible listar los estudios pendientes de transcribir.";
+        toastMessage({
+            heading: "Error",
+            text: getUserSafeError(error, msg),
+            icon: "error",
+        });
     } finally {
         loadingBuscar.value = false;
     }
 }
+
+/**
+ * Guarda la transcripción del estudio en el backend. Si ya se está guardando, la función retorna inmediatamente. Muestra mensajes de estado durante el proceso y maneja errores de validación y otros errores del servidor.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
+
+    if (registro.value.email_reportar && String(registro.value.email_reportar).trim() !== "") {
+        touch("email_reportar");
+        if (statusEmailReportar.value.isInvalid) {
+            toastMessage({
+                heading: "Email inválido",
+                text:
+                    statusEmailReportar.value.message ||
+                    "Por favor ingrese un email válido para reportar.",
+                icon: "warning",
+            });
+            return;
+        }
+    }
+
     loadingGuardar.value = true;
     try {
-        $.toast({
+        toastMessage({
             heading: "Procesando...",
             text: "Enviando lectura, por favor espere",
-            position: "top-right",
-            loaderBg: "#ff6849",
             icon: "info",
-            hideAfter: 3500,
-            stack: 6,
         });
 
-        const res = await axios.post("/api/estudio-guardarTranscripcion", registro.value);
+        const cleanEmail =
+            registro.value.email_reportar &&
+            registro.value.email_reportar !== "null" &&
+            registro.value.email_reportar !== "undefined" &&
+            String(registro.value.email_reportar).trim() !== ""
+                ? String(registro.value.email_reportar).trim()
+                : null;
+
+        const payload = {
+            estudio_producto_id: registro.value.estudio_producto_id,
+            id_estudio: registro.value.id_estudio,
+            atencion: registro.value.atencion ?? null,
+            atencion_id: registro.value.atencion ? parseInt(registro.value.atencion, 10) : null,
+            destino_estudio: registro.value.destino_estudio ?? null,
+            lectura: registro.value.lectura,
+            url_oviyam: registro.value.url_oviyam,
+            study_iuid: registro.value.study_iuid,
+            tap_oviyam: registro.value.tap_oviyam,
+            nom_sede: registro.value.nom_sede,
+            sede_id: registro.value.sede_id,
+            medico_id: registro.value.medico_id,
+            cod_cups: registro.value.cod_cups,
+            nom_produc: registro.value.nom_produc,
+            num_docu: registro.value.num_docu,
+            nom_pacien: registro.value.nom_pacien,
+            email: registro.value.email,
+            email_reportar: cleanEmail,
+            fec_naci: registro.value.fec_naci,
+            fec_estudio: registro.value.fec_estudio,
+            fec_lectura: registro.value.fec_lectura,
+            es_critico: Boolean(registro.value.es_critico),
+            motivo_critico: registro.value.motivo_critico || null,
+            nombres_medico: registro.value.nombres_medico ?? null,
+            reg_medico: registro.value.reg_medico ?? null,
+            num_docu_medico: registro.value.num_docu_medico ?? null,
+            firma_medico: registro.value.firma_medico ?? null,
+        };
+        const res = await axios.post("/api/estudio-guardarTranscripcion", payload);
 
         if (res.status == 200) {
-            const estudioEliminar = registros.value.findIndex(
-                (x) => x.estudio_producto_id == idRow.value
-            );
-            if (estudioEliminar >= 0) {
-                // No destruir/reinicializar: remover solo la fila guardada.
-                try {
-                    safeRemoveDataTableRow(dt.value || "#example23", "#row-" + idRow.value);
-                } catch (e) {}
-                registros.value.splice(estudioEliminar, 1);
-            }
+            wysiwygEditorRef.value?.clearDraft();
+            const rowTargetId = idRow.value;
 
-            $.toast({
+            btnCerrarModalForm();
+
+            toastMessage({
                 heading: "Completado",
                 text: res.data.message,
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "success",
-                hideAfter: 3500,
-                stack: 6,
             });
 
-            btnCerralModalForm();
-            limpiar();
+            requestAnimationFrame(() => {
+                if (rowTargetId != null) {
+                    const estudioEliminar = registros.value.findIndex(
+                        (x) => x.estudio_producto_id == rowTargetId
+                    );
+                    if (estudioEliminar >= 0) {
+                        destroyDataTable();
+                        registros.value.splice(estudioEliminar, 1);
+                        nextTick(() => {
+                            if (registros.value.length > 0) {
+                                safeInitDataTable(dt.value || "#tablaTranscribirEstudio", {
+                                    dom: "Bfrtip",
+                                    buttons: ["copy", "csv", "excel", "pdf", "print"],
+                                });
+                            }
+                        });
+                    }
+                }
+                if (!sidebarVisible.value) {
+                    limpiar();
+                }
+            });
         } else {
-            $.toast({
-                heading: "Upss!!!",
-                text: res.data.message,
-                position: "top-right",
-                loaderBg: "#ff6849",
-                icon: "danger",
-                hideAfter: 3500,
-                stack: 6,
+            toastMessage({
+                heading: "Error",
+                text: res.data.message || "No fue posible guardar la transcripción.",
+                icon: "error",
             });
         }
     } catch (error) {
         const status = error?.response?.status;
         // Errores de validación (400) vienen como objeto con campos
-        if (status == 400 && error?.response?.data && typeof error.response.data === "object") {
+        if (
+            (status == 400 || status == 422) &&
+            error?.response?.data &&
+            typeof error.response.data === "object"
+        ) {
             const data = error.response.data;
             errores.value = data.errors && typeof data.errors === "object" ? data.errors : data;
         }
         if (status == 402) {
-            $.toast({
-                heading: "Upss!!!",
+            toastMessage({
+                heading: "Error",
                 text: getUserSafeError(error, "La plantilla no está configurada para esta sede."),
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "error",
-                hideAfter: 3500,
-                stack: 6,
             });
         } else {
-            $.toast({
-                heading: "Upss!!!",
+            toastMessage({
+                heading: "Error",
                 text: getUserSafeError(error, "No fue posible guardar la transcripción."),
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "error",
-                hideAfter: 3500,
-                stack: 6,
             });
         }
     } finally {
         loadingGuardar.value = false;
     }
 }
-function descargaSoportte(nomArchivoEncriptado) {
-    if (loadingDescargaSoporte.value) return;
-    loadingDescargaSoporte.value = nomArchivoEncriptado;
-    const url = `/api/descarga-soportes-hc/${nomArchivoEncriptado}`;
-    axios
-        .get(url, { responseType: "blob" })
-        .then((response) => {
-            const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement("a");
-            link.href = blobUrl;
-            link.setAttribute("download", nomArchivoEncriptado);
-            document.body.appendChild(link);
-            link.click();
-            // cleanup best-effort
-            setTimeout(() => window.URL.revokeObjectURL(blobUrl), 2000);
-        })
-        .catch(() => {})
-        .finally(() => {
-            loadingDescargaSoporte.value = null;
-        });
-}
+
+/**
+ * Anula la asignación de un estudio para un paciente y producto específico. Solicita confirmación al usuario antes de proceder. Si la acción es confirmada, realiza una solicitud al backend para anular la asignación y actualiza la lista de registros en la interfaz. Maneja errores y muestra mensajes de estado durante el proceso.
+ * @param {number} idProductoEstudio - ID del producto de estudio a anular.
+ * @param {string} paciente - Nombre del paciente.
+ * @param {string} producto - Nombre del producto.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
 async function anularAsignacion(idProductoEstudio, paciente, producto) {
     const ok = await confirmAction({
-        title: `Estas seguro de anular la lectura del paciente ${paciente} con el producto ${producto} ?`,
+        title: `¿Está seguro de anular la lectura del paciente ${paciente} con el producto ${producto}?`,
         text: "No podrás recuperar este registro!",
         icon: "warning",
     });
@@ -1001,74 +1371,64 @@ async function anularAsignacion(idProductoEstudio, paciente, producto) {
                 (x) => x.estudio_producto_id == idProductoEstudio
             );
             if (idx >= 0) {
-                try {
-                    safeRemoveDataTableRow(dt.value || "#example23", "#row-" + idProductoEstudio);
-                } catch (e) {}
+                destroyDataTable();
                 registros.value.splice(idx, 1);
+                nextTick(() => {
+                    if (registros.value.length > 0) {
+                        safeInitDataTable(dt.value || "#tablaTranscribirEstudio", {
+                            dom: "Bfrtip",
+                            buttons: ["copy", "csv", "excel", "pdf", "print"],
+                        });
+                    }
+                });
             }
-            alertSuccess("Anulado!", "El producto se anulo correctamente.", "success");
+            toastMessage({
+                heading: "¡Completado!",
+                text: "El producto se anuló correctamente.",
+                icon: "success",
+            });
         } else {
-            alertError("Ups!", "No fue posible anular el producto.", "error");
+            toastMessage({
+                heading: "Error",
+                text: "No fue posible anular el producto.",
+                icon: "error",
+            });
         }
-    } catch (err) {
-        handleAxiosErrorToast(err, "No fue posible anular el producto.");
-        alertError("Error", "No fue posible anular el producto.", "error");
+    } catch {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible anular el producto.",
+            icon: "error",
+        });
     } finally {
         loadingAnularId.value = null;
     }
 }
-function verImagen() {
-    if (loadingImagen.value) return;
-    loadingImagen.value = true;
-    try {
-        const base = datosImagen.value.urlOviyam || "";
-        const params = new URLSearchParams({
-            patientID: String(datosImagen.value.patientId ?? ""),
-            studyUID: String(datosImagen.value.studyUID ?? ""),
-            serverName: String(datosImagen.value.serverName ?? ""),
-        });
-        window.open(`${base}?${params.toString()}`, "_blank", "noopener,noreferrer");
-    } finally {
-        setTimeout(() => {
-            loadingImagen.value = false;
-        }, 500);
-    }
-}
-async function listarAudios(estudioProductoId) {
-    loadingAudios.value = true;
-    try {
-        const url = "/api/listar-audios-estudio/" + estudioProductoId;
-        const res = await axios.get(url);
-        audiosDeEstudio.value = res.data.data || [];
-    } catch (e) {
-        handleAxiosErrorToast(e, "No fue posible listar audios.");
-        audiosDeEstudio.value = [];
-    } finally {
-        loadingAudios.value = false;
-    }
-}
+
 function audioUrl(item) {
     if (!item || !item.audio) return null;
     return "/audios/" + item.audio;
 }
+
 function formatDuracion(segundos) {
     if (!segundos) return "0:00";
     const mins = Math.floor(segundos / 60);
     const secs = Math.floor(segundos % 60);
     return mins + ":" + (secs < 10 ? "0" : "") + secs;
 }
+
 function previewTranscripcion(texto, maxLen) {
     if (!texto) return "";
     if (texto.length <= maxLen) return texto;
     return texto.substring(0, maxLen);
 }
-function establecerSede() {
-    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
-    registros.value = [];
-}
-function formatDate(timestamp) {
-    return dayjs.utc(timestamp).local().format("YYYY-MM-DD HH:mm:ss");
-}
+
+/**
+ * Muestra el registro de un estudio específico en el modal de transcripción. Si ya se está cargando un registro, la función retorna inmediatamente. Realiza una solicitud al backend para obtener los detalles del estudio y los muestra en la interfaz. Maneja errores y muestra mensajes de estado si no es posible cargar el registro.
+ * @param {Object} data - Objeto que contiene los datos del estudio a mostrar.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
 async function mostrarRegistro(data = {}) {
     if (loadingAbrirRegistroId.value !== null) return;
     loadingAbrirRegistroId.value = data.estudio_producto_id;
@@ -1088,7 +1448,7 @@ async function mostrarRegistro(data = {}) {
             ":" +
             ("0" + date.getSeconds()).slice(-2);
 
-        tituloModal.value = "Transcribir la lectura del paciente: " + data.nom_pacien;
+        tituloModal.value = `Transcribir la lectura del paciente: ${data.nom_pacien} ${data.num_docu ? `(${data.num_docu})` : ""}`;
         id.value = data.id;
         idRow.value = data.estudio_producto_id;
         registro.value.estudio_producto_id = data.estudio_producto_id;
@@ -1101,6 +1461,7 @@ async function mostrarRegistro(data = {}) {
         registro.value.medico_id = data.medico_id;
         registro.value.num_docu = data.num_docu;
         registro.value.nom_pacien = data.nom_pacien;
+        registro.value.nombres = data.nom_pacien;
         registro.value.direccion = data.direccion;
         registro.value.email = data.email;
         // Unificar campo teléfono: el backend espera `tel`
@@ -1114,7 +1475,7 @@ async function mostrarRegistro(data = {}) {
         registro.value.reg_medico = data.reg_medico;
         registro.value.nombres_medico = data.nombres_medico;
         registro.value.firma_medico = data.firma_medico;
-        registro.value.lectura = `Atención: ${data.atencion}\nFecha y Hora del estudio: ${data.fec_estudio}\nFecha y Hora de transcripción: ${fechaActual}\n\n${data.nom_produc}\n\n${data.lectura}`;
+        registro.value.lectura = `Atención: ${data.atencion}\nFecha y Hora del estudio: ${data.fec_estudio}\nFecha y Hora de transcripción: ${fechaActual}\n\n${data.nom_produc}\n\n${data.lectura || ""}`;
         datosImagen.value.urlOviyam = data.url_oviyam;
         datosImagen.value.patientId = data.num_docu;
         datosImagen.value.studyUID = data.study_iuid;
@@ -1126,6 +1487,9 @@ async function mostrarRegistro(data = {}) {
         registro.value.url_oviyam = data.url_oviyam;
         registro.value.study_iuid = data.study_iuid;
         registro.value.tap_oviyam = data.tap_oviyam;
+        // Fix: id_estudio y destino_estudio son necesarios para Tele-Radiología
+        registro.value.id_estudio = data.id;
+        registro.value.destino_estudio = data.destino_estudio ?? null;
 
         const res = await axios.get("/api/study-listar-diagnostico-por-estudio?id=" + id.value);
         diagnosticosEstudio.value = res.data.data;
@@ -1134,61 +1498,145 @@ async function mostrarRegistro(data = {}) {
         soportesHC.value = resSoportesHC.data.data;
 
         audiosDeEstudio.value = [];
+        registro.value.motivo_critico = "";
+        registro.value.es_critico = Boolean(
+            data.observaciones?.includes("HALLAZGO CRÍTICO") || data.prioridad_id === 1
+        );
         abrirModal();
 
         await listarAudios(registro.value.estudio_producto_id);
         errores.value = {};
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible cargar el estudio seleccionado.");
+        toastMessage({
+            heading: "Atención",
+            text: getUserSafeError(
+                error,
+                "No fue posible cargar diagnósticos/soportes del estudio."
+            ),
+            icon: "warning",
+        });
     } finally {
         loadingAbrirRegistroId.value = null;
     }
 }
 function limpiar() {
-    actualizar.value = false;
     tituloModal.value = "Nuevo registro";
+    registro.value.es_critico = false;
+    registro.value.motivo_critico = "";
     registro.value.email_reportar = "";
     registro.value.email = "";
+    registro.value.nom_pacien = "";
+    registro.value.nombres = "";
 
-    btnCerralModalForm();
+    btnCerrarModalForm();
     errores.value = {};
 }
 function abrirModal() {
-    $(".right-sidebar").addClass("shw-rside");
+    sidebarVisible.value = true;
     nextTick(() => {
-        primerInput.value?.focus();
+        if (typeof window !== "undefined" && window.innerWidth >= 768) {
+            primerInput.value?.focus();
+        }
     });
 }
-function btnCerralModalForm() {
-    $(".right-sidebar").removeClass("shw-rside");
+function btnCerrarModalForm() {
+    sidebarVisible.value = false;
+    resetTouched();
+    errores.value = {};
 }
 
-onMounted(async () => {
-    nextTick(() => initWysiwyg());
-    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
+/**
+ * Carga o recarga los usuarios asignadores y médicos filtrando por la sede activa.
+ *
+ * Flujo del proceso:
+ * 1. Resuelve el ID de la sede objetivo a partir del argumento, de busqueda.sede_id o de sessionStorage.
+ * 2. Invoca listarUsuariosYSedes pasando options.sedeId para restringir el listado de asignadores.
+ * 3. Captura cualquier fallo de red de forma silenciosa para no interrumpir el montaje.
+ *
+ * @param {string|number|null} [sedeId=null] - ID opcional de la sede a filtrar.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-10-29
+ */
+const cargarAsignadoresYSedes = async (sedeId = null) => {
+    const targetSede =
+        sedeId ??
+        busqueda.value.sede_id ??
+        sessionStorage.getItem("ST-sede") ??
+        localStorage.getItem("ST-sede");
+    try {
+        await listarUsuariosYSedes(
+            {
+                get quienes_asignaron() {
+                    return quienes_asignaron.value;
+                },
+                set quienes_asignaron(v) {
+                    quienes_asignaron.value = Array.isArray(v) ? v : [];
+                },
+                get medicos() {
+                    return medicos.value;
+                },
+                set medicos(v) {
+                    medicos.value = Array.isArray(v) ? v : [];
+                },
+            },
+            { moduloId: "1", sedeId: targetSede }
+        );
+    } catch (e) {
+        console.error("Error al inicializar usuarios y médicos:", e);
+    }
+};
 
-    await listarUsuariosYSedes(
-        {
-            set quienes_asignaron(v) {
-                quienes_asignaron.value = v;
-            },
-            set medicos(v) {
-                medicos.value = v;
-            },
-        },
-        { moduloId: "1" }
-    );
+onMounted(async () => {
+    busqueda.value.sede_id =
+        sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "";
+
+    await cargarAsignadoresYSedes(busqueda.value.sede_id);
 
     applyDashboardPrefill();
 
-    emitter.on("sedeSeleccionada", (data) => {
-        busqueda.value.sede_id = data.idSede;
-        destroyDataTable();
-        listarPendientesTrascribir();
-    });
+    emitter.on("sedeSeleccionada", onSedeSeleccionada);
+    if (!busqueda.value.sede_id && emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
 });
 
+/**
+ * Maneja el evento "sedeSeleccionada" emitido por el selector global de sede: actualiza
+ * busqueda.sede_id, limpia los filtros de asignador y médico, recarga los asignadores y médicos
+ * para la nueva sede, destruye la tabla y vuelve a listar los pendientes de transcribir.
+ *
+ * @param {Object} data - Payload del evento, contiene data.idSede con el ID de la sede elegida.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-10-29
+ */
+function onSedeSeleccionada(data) {
+    const nuevaSede =
+        data?.idSede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede");
+    if (!nuevaSede) return;
+    const cambioSede = String(busqueda.value.sede_id || "") !== String(nuevaSede);
+    busqueda.value.sede_id = nuevaSede;
+
+    if (cambioSede || !quienes_asignaron.value?.length || !medicos.value?.length) {
+        busqueda.value.quien_asigno_id = "";
+        busqueda.value.medico_id = "";
+        cargarAsignadoresYSedes(nuevaSede);
+        if (cambioSede) {
+            destroyDataTable();
+            listarPendientesTrascribir();
+        }
+    }
+}
+
 onBeforeUnmount(() => {
+    emitter.off("sedeSeleccionada", onSedeSeleccionada);
     destroyDataTable();
     registros.value = [];
     registro.value = { productosEstudio: [], diagnosticosEstudio: [], soportesHC: [] };
@@ -1197,44 +1645,157 @@ onBeforeUnmount(() => {
 });
 </script>
 <style scoped>
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1090;
+    cursor: pointer;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.25s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
 .right-sidebar {
     position: fixed;
     right: -80%;
     width: 80%;
-    display: none;
+    display: block !important;
     z-index: 1100;
     background: #ffffff;
     top: 0px;
     padding-bottom: 20px;
     height: 100%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
+    height: 100dvh;
+    box-shadow: -5px 0 35px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.right-sidebar.zen-mode {
+    width: 100% !important;
+    max-width: 100vw !important;
+}
+
+.right-sidebar.dark-mode {
+    background: #1a1a24;
+    color: #e0e0e0;
+}
+
+.right-sidebar.dark-mode .card {
+    background: #242433;
+    border-color: #38384a;
+}
+
+.right-sidebar.dark-mode .rpanel-title {
+    background: #0f172a;
+}
+
+.right-sidebar.dark-mode .form-control {
+    background-color: #2b2b3d;
+    border-color: #3f3f58;
+    color: #f0f0f0;
+}
+
+.right-sidebar.dark-mode .tab-content {
+    background: #242433;
+    border-color: #38384a;
+}
+
+.right-sidebar .rpanel-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    word-break: break-word;
+}
+
+.right-sidebar .rpanel-title .right-side-toggle {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 18px;
+    line-height: 1;
+    padding: 4px 8px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.shw-rside {
+    right: 0px !important;
+    width: 80%;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+@media (max-width: 991px) {
+    .right-sidebar {
+        right: -92%;
+        width: 92%;
+    }
+
+    .shw-rside {
+        width: 92%;
+    }
 }
 
 @media (max-width: 767px) {
     .right-sidebar {
         right: -100%;
-        width: 100%;
+        width: 100% !important;
+        max-width: 100vw;
     }
-}
 
-.shw-rside {
-    right: 0px;
-    width: 80%;
-    display: block;
-}
-
-@media (max-width: 767px) {
     .shw-rside {
-        width: 100%;
+        width: 100% !important;
+        max-width: 100vw;
+    }
+
+    .right-sidebar .rpanel-title {
+        padding: 14px 16px;
+        font-size: 14px;
+    }
+
+    .right-sidebar .r-panel-body {
+        padding: 12px 14px 80px 14px !important;
+    }
+
+    :deep(.wysihtml5-toolbar) {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-bottom: 6px !important;
+    }
+
+    :deep(.wysihtml5-toolbar > li) {
+        margin: 0 !important;
+        padding: 2px 0 !important;
+    }
+
+    :deep(.wysihtml5-sandbox),
+    :deep(.textarea_editor) {
+        width: 100% !important;
+        min-height: 240px !important;
     }
 }
+
 .sidebar-scroll {
     overflow-x: hidden;
-    overflow-y: scroll;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     height: 100%;
 }
 </style>

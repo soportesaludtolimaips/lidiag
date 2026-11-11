@@ -9,10 +9,30 @@ use Illuminate\Http\Request;
 
 class PlantillaEstudioController extends Controller
 {
+    /**
+     * Constructor del controlador de plantillas de estudio
+     *
+     * @param  PlantillaEstudioService  $plantillaEstudioService  Servicio de plantillas
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-05-18
+     */
     public function __construct(
         private readonly PlantillaEstudioService $plantillaEstudioService,
     ) {}
 
+    /**
+     * Genera un reporte Word/PDF a partir de la plantilla de la sede con los datos del estudio
+     *
+     * @param  Request  $request  Solicitud con datos completos: sede, paciente, lectura, médico, producto
+     *
+     * @returns JsonResponse Respuesta con el nombre del archivo PDF generado
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-05-18
+     */
     public function editWord(Request $request): JsonResponse
     {
         $data = $request->validate([

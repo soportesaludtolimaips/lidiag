@@ -108,7 +108,10 @@
                                 <small class="text-muted">Resumen en tiempo real</small>
                             </div>
                             <div class="ml-auto">
-                                <small class="text-muted">Rol: {{ rolesusuario }}</small>
+                                <span v-if="!rolesusuario" class="badge badge-warning text-dark">
+                                    <i class="fa fa-exclamation-triangle mr-1"></i> Sin rol asignado
+                                </span>
+                                <small v-else class="text-muted">Rol: {{ rolesusuario }}</small>
                             </div>
                         </div>
                     </div>
@@ -965,8 +968,14 @@
     </div>
 </template>
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
+import { useRouter } from "vue-router";
 import axios from "axios";
+import { useAuth } from "../../composables/useAuth";
+
+const { proxy } = getCurrentInstance();
+const auth = useAuth();
+const router = useRouter();
 
 const props = defineProps({
     rolesusuario: { type: String, default: "" },
@@ -976,8 +985,16 @@ const loading = ref(false);
 const error = ref(null);
 const days = ref(30);
 const alerts = ref([]);
-const nomSedeActual = ref(null);
-const sedeSeleccionada = ref(null);
+const nomSedeActual = computed(() => {
+    return (
+        sessionStorage.getItem("ST-nomsede") ||
+        localStorage.getItem("ST-nomsede") ||
+        "Todas las sedes"
+    );
+});
+const sedeGuardadaInicial =
+    sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || null;
+const sedeSeleccionada = ref(sedeGuardadaInicial ? Number(sedeGuardadaInicial) : null);
 const sedes = ref([]);
 const filters = ref({
     selected: { sede_id: null, medico_id: null },
@@ -1049,7 +1066,7 @@ const charts = ref({
 });
 
 const isAdmin = computed(() => {
-    return props.rolesusuario === "Administrador";
+    return props.rolesusuario === "Administrador" || auth.hasRole("Administrador");
 });
 const heatmapDays = computed(() => {
     const arr = series.value?.heatmap7d?.[heatmapMetric.value] || [];
@@ -1279,7 +1296,7 @@ async function fetchDashboard() {
 
         reindexHeatmap();
         renderCharts();
-    } catch (e) {
+    } catch (error) {
         error.value = "No fue posible cargar las estadísticas del dashboard.";
     } finally {
         loading.value = false;
@@ -1489,23 +1506,41 @@ function formatPacienteNombre(row) {
 }
 function goToLectura(row) {
     try {
-        if (row && row.sede_id) sessionStorage.setItem("ST-sede", String(row.sede_id));
-        if (row && row.accession_no)
+        if (row && row.sede_id) {
+            sessionStorage.setItem("ST-sede", String(row.sede_id));
+            localStorage.setItem("ST-sede", String(row.sede_id));
+        }
+        if (row && row.accession_no) {
             sessionStorage.setItem("ST-accession", String(row.accession_no));
-    } catch (e) {
+            localStorage.setItem("ST-accession", String(row.accession_no));
+        }
+    } catch {
         /* noop */
     }
-    window.location.href = "/estudios.leer.estudio.listar";
+    if (router) {
+        router.push("/estudios.leer.estudio.listar");
+    } else {
+        window.location.href = "/estudios.leer.estudio.listar";
+    }
 }
 function goToTranscripcion(row) {
     try {
-        if (row && row.sede_id) sessionStorage.setItem("ST-sede", String(row.sede_id));
-        if (row && row.accession_no)
+        if (row && row.sede_id) {
+            sessionStorage.setItem("ST-sede", String(row.sede_id));
+            localStorage.setItem("ST-sede", String(row.sede_id));
+        }
+        if (row && row.accession_no) {
             sessionStorage.setItem("ST-accession", String(row.accession_no));
-    } catch (e) {
+            localStorage.setItem("ST-accession", String(row.accession_no));
+        }
+    } catch {
         /* noop */
     }
-    window.location.href = "/estudios.transcribir.listar";
+    if (router) {
+        router.push("/estudios.transcribir.listar");
+    } else {
+        window.location.href = "/estudios.transcribir.listar";
+    }
 }
 async function listarSedes() {
     try {
@@ -1516,21 +1551,45 @@ async function listarSedes() {
     }
 }
 
+function onSedeSeleccionada(event) {
+    const raw =
+        event?.sede ??
+        (typeof event === "object" ? event.idSede || event.id : event) ??
+        sessionStorage.getItem("ST-sede") ??
+        localStorage.getItem("ST-sede");
+    const nuevaSede = raw ? Number(raw) : null;
+    if (sedeSeleccionada.value === nuevaSede) return;
+    sedeSeleccionada.value = nuevaSede;
+    fetchDashboard();
+}
+
+function destroyCharts() {
+    try {
+        if (charts.value.resumen?.destroy) charts.value.resumen.destroy();
+        if (charts.value.agingLectura?.destroy) charts.value.agingLectura.destroy();
+        if (charts.value.agingTranscripcion?.destroy) charts.value.agingTranscripcion.destroy();
+        if (charts.value.porHoraHoy?.destroy) charts.value.porHoraHoy.destroy();
+        if (charts.value.porSede?.destroy) charts.value.porSede.destroy();
+        if (charts.value.slaLectura?.destroy) charts.value.slaLectura.destroy();
+        if (charts.value.slaTranscripcion?.destroy) charts.value.slaTranscripcion.destroy();
+    } catch {
+        /* noop */
+    }
+}
+
 onMounted(async () => {
+    proxy?.emitter?.on("sedeSeleccionada", onSedeSeleccionada);
+    if (!sedeGuardadaInicial) {
+        proxy?.emitter?.emit("solicitarSedeActiva");
+    }
     initCharts();
     await listarSedes();
     await fetchDashboard();
-    charts.value = {
-        modalidades: null,
-        resumen: null,
-        transcritos: null,
-        agingLectura: null,
-        agingTranscripcion: null,
-        porHoraHoy: null,
-        porSede: null,
-        slaLectura: null,
-        slaTranscripcion: null,
-    };
+});
+
+onBeforeUnmount(() => {
+    proxy?.emitter?.off("sedeSeleccionada", onSedeSeleccionada);
+    destroyCharts();
 });
 </script>
 <style></style>

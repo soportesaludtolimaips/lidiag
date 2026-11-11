@@ -4,14 +4,32 @@
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Helpdesk</h3>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
+                    <li class="breadcrumb-item">
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
+                    </li>
                     <li class="breadcrumb-item active">Tickets</li>
                 </ol>
             </div>
-            <div class="col-md-7 align-self-center text-right">
-                <a href="/helpdesk-tickets/crear" class="btn btn-info btn-sm">
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary m-r-5"
+                    :disabled="loading"
+                    title="Actualizar listado de tickets"
+                    @click="buscar()"
+                >
+                    <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loading }"></i>
+                    Refrescar
+                </button>
+                <router-link to="/helpdesk-tickets/crear" class="btn btn-info btn-sm">
                     <i class="fa fa-plus"></i> Crear ticket
-                </a>
+                </router-link>
             </div>
         </div>
 
@@ -113,6 +131,7 @@
                                     type="text"
                                     class="form-control"
                                     placeholder="Folio / título / descripción"
+                                    @keyup.enter="buscar()"
                                 />
                             </div>
                         </div>
@@ -125,6 +144,8 @@
                                     v-model="filters.desde"
                                     type="date"
                                     class="form-control"
+                                    @change="buscar()"
+                                    @keyup.enter="buscar()"
                                 />
                             </div>
                             <div class="col-md-2">
@@ -134,6 +155,8 @@
                                     v-model="filters.hasta"
                                     type="date"
                                     class="form-control"
+                                    @change="buscar()"
+                                    @keyup.enter="buscar()"
                                 />
                             </div>
                             <div class="col-md-3">
@@ -142,6 +165,7 @@
                                     id="ticketSede"
                                     v-model="filters.sede_id"
                                     class="form-control custom-select"
+                                    @change="buscar()"
                                 >
                                     <option value="">Todas</option>
                                     <option v-for="s in sedes" :key="s.id" :value="s.id">
@@ -167,7 +191,7 @@
                                     :disabled="loading"
                                     @click="limpiar()"
                                 >
-                                    <i class="fa fa-refresh"></i> Limpiar
+                                    <i class="fa fa-eraser"></i> Limpiar
                                 </button>
                             </div>
                         </div>
@@ -185,11 +209,17 @@
                             Orden por defecto: Prioridad (Alta→Baja) y luego fecha.
                         </h6>
 
-                        <div v-if="loading" class="text-center p-5">
-                            <i class="fa fa-spinner fa-spin fa-3x"></i>
-                            <p class="m-t-10">Cargando tickets...</p>
-                        </div>
-                        <div v-else class="table-responsive">
+                        <table-skeleton-loader :visible="loading" :rows="8" :columns="11" />
+                        <empty-state-component
+                            v-if="!loading && !tickets.length"
+                            title="No se encontraron tickets"
+                            description="No hay tickets registrados para los filtros seleccionados."
+                            icon="fa-ticket"
+                        />
+                        <div
+                            v-show="!loading && tickets.length > 0"
+                            class="table-responsive m-t-20"
+                        >
                             <table
                                 id="helpdeskTicketsTable"
                                 ref="dt"
@@ -216,20 +246,15 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-if="!tickets.length">
-                                        <td colspan="11" class="text-center text-muted">
-                                            No se encontraron tickets.
-                                        </td>
-                                    </tr>
                                     <tr
                                         v-for="t in tickets"
                                         :key="t.id"
                                         :class="prioridadRowClass(t.prioridad?.nombre)"
                                     >
                                         <td>
-                                            <a :href="`/helpdesk-tickets/${t.id}`">{{
+                                            <router-link :to="`/helpdesk-tickets/${t.id}`">{{
                                                 t.folio || "#" + t.id
-                                            }}</a>
+                                            }}</router-link>
                                         </td>
                                         <td>{{ t.titulo }}</td>
                                         <td>{{ t.estado?.nombre || "" }}</td>
@@ -263,12 +288,20 @@
     </div>
 </template>
 <script setup>
-import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
+import { toastMessage } from "@/helpers/alerts.js";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { handleAxiosErrorToast } from "@/helpers/alerts.js";
 import { formatDateTime } from "@/helpers/dateUtils.js";
 import { helpdesk } from "@/helpers/api.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
+
+const { appContext } = getCurrentInstance();
+const emitter = appContext.config.globalProperties.emitter;
+
+function obtenerSedeActiva() {
+    return sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "";
+}
 
 const scope = ref("mine");
 const loading = ref(false);
@@ -282,7 +315,7 @@ const filters = ref({
     estado_id: "",
     categoria_id: "",
     prioridad_id: "",
-    sede_id: "",
+    sede_id: obtenerSedeActiva(),
     desde: "",
     hasta: "",
     q: "",
@@ -295,6 +328,7 @@ function prioridadRowClass(nombre) {
     if (p.includes("media") || p.includes("normal")) return "table-warning";
     return "";
 }
+
 async function cargarCatalogos() {
     try {
         const [cats, prios, ests, sedesRes] = await Promise.all([
@@ -303,18 +337,30 @@ async function cargarCatalogos() {
             helpdesk.estados(),
             helpdesk.sedesActivas(),
         ]);
-        categorias.value = (cats.data || []).filter((x) => x.activo);
-        prioridades.value = (prios.data || []).filter((x) => x.activo);
-        estados.value = (ests.data || []).filter((x) => x.activo);
-        sedes.value = sedesRes.data || [];
-    } catch (error) {
-        handleAxiosErrorToast(error, "No se pudieron cargar catálogos.");
+        const extractArray = (res) =>
+            Array.isArray(res?.data?.data)
+                ? res.data.data
+                : Array.isArray(res?.data)
+                  ? res.data
+                  : [];
+        categorias.value = extractArray(cats).filter((x) => x.activo);
+        prioridades.value = extractArray(prios).filter((x) => x.activo);
+        estados.value = extractArray(ests).filter((x) => x.activo);
+        sedes.value = extractArray(sedesRes);
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudieron cargar los catálogos.",
+            icon: "error",
+        });
     }
 }
+
 function setScope(newScope) {
     scope.value = newScope;
     buscar();
 }
+
 function limpiar() {
     filters.value = {
         estado_id: "",
@@ -326,14 +372,16 @@ function limpiar() {
         q: "",
     };
     try {
-        const sedeActiva = sessionStorage.getItem("ST-sede");
+        const sedeActiva = obtenerSedeActiva();
         if (sedeActiva) filters.value.sede_id = sedeActiva;
     } catch (e) {
-        console.warn("No se pudo leer sede activa de sessionStorage", e);
+        console.warn("No se pudo leer sede activa de storage", e);
     }
     buscar();
 }
+
 function initDataTable() {
+    if (!tickets.value.length) return;
     safeInitDataTable(dt.value || "#helpdeskTicketsTable", {
         dom: "Bfrtip",
         buttons: [
@@ -343,51 +391,80 @@ function initDataTable() {
             { extend: "pdf", titleAttr: "Exportar a PDF" },
             { extend: "print", titleAttr: "Imprimir" },
         ],
-        retrieve: true,
+        autoWidth: false,
+        columnDefs: [{ targets: [10], orderable: false }],
         order: [],
     });
 }
+
 function destroyDataTable() {
     safeDestroyDataTable(dt.value || "#helpdeskTicketsTable");
 }
+
 async function buscar() {
+    if (loading.value) return;
     loading.value = true;
+    destroyDataTable();
+
     try {
         const res = await helpdesk.tickets({
             scope: scope.value,
             ...filters.value,
         });
-        tickets.value = res.data?.data?.items || [];
-        nextTick(() => {
-            destroyDataTable();
-            initDataTable();
-        });
-    } catch (error) {
-        handleAxiosErrorToast(error, "No se pudieron cargar los tickets.");
+        const payload = res.data?.data ?? res.data;
+        tickets.value = payload?.items || (Array.isArray(payload) ? payload : []);
+    } catch (_error) {
         tickets.value = [];
-        nextTick(() => {
-            destroyDataTable();
-            initDataTable();
-        });
     } finally {
         loading.value = false;
+        await nextTick();
+        if (tickets.value.length > 0) {
+            destroyDataTable();
+            initDataTable();
+        }
     }
 }
 
+function onSedeSeleccionada(data) {
+    const raw =
+        data?.sede ??
+        (typeof data === "object" ? data.idSede || data.id : data) ??
+        obtenerSedeActiva();
+    const idSede = raw ? String(raw) : "";
+    if (filters.value.sede_id === idSede) return;
+    filters.value.sede_id = idSede;
+    buscar();
+}
+
+useKeyboardShortcuts({
+    onSearch: () => {
+        buscar();
+    },
+    onEscape: () => {
+        limpiar();
+    },
+});
+
 onMounted(async () => {
     try {
-        // sede activa por defecto
-        const sedeActiva = sessionStorage.getItem("ST-sede");
-        if (sedeActiva) filters.value.sede_id = sedeActiva;
+        // sede activa por defecto con fallback
+        const sedeActiva = obtenerSedeActiva();
+        if (sedeActiva) {
+            filters.value.sede_id = sedeActiva;
+        } else if (emitter) {
+            emitter.emit("solicitarSedeActiva");
+        }
     } catch (e) {
-        console.warn("No se pudo leer sede activa de sessionStorage", e);
+        console.warn("No se pudo leer sede activa de storage", e);
     }
 
+    emitter.on("sedeSeleccionada", onSedeSeleccionada);
     await cargarCatalogos();
     await buscar();
 });
 
 onBeforeUnmount(() => {
+    emitter.off("sedeSeleccionada", onSedeSeleccionada);
     destroyDataTable();
 });
 </script>

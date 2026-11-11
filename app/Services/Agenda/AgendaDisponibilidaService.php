@@ -6,10 +6,20 @@ use App\Models\Agenda\AgendaDisponibilida;
 use App\Models\Agenda\AgendaDisponibilidaDetalle;
 use App\Services\BaseService;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 
 class AgendaDisponibilidaService extends BaseService
 {
+    /**
+     * Lista las disponibilidades de agenda con filtros por sede, servicio y rango de fechas.
+     *
+     * @param  array  $filters  filtros: sede_id, servicio_id, bus_fech_ini, bus_fecha_fin.
+     *
+     * @returns array resultado con las disponibilidades encontradas (máx. 1000 registros).
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function list(array $filters): array
     {
         $user = auth()->user();
@@ -25,8 +35,8 @@ class AgendaDisponibilidaService extends BaseService
             $query->where('sede_id', $filters['sede_id']);
         }
 
-        if (! empty($filters['servicio_cita_id'])) {
-            $query->where('servicio_cita_id', $filters['servicio_cita_id']);
+        if (! empty($filters['servicio_id'])) {
+            $query->where('servicio_id', $filters['servicio_id']);
         }
 
         if (! empty($filters['bus_fech_ini']) && ! empty($filters['bus_fecha_fin'])) {
@@ -38,6 +48,17 @@ class AgendaDisponibilidaService extends BaseService
         return $this->success($query->limit(1000)->get());
     }
 
+    /**
+     * Crea una nueva disponibilidad de agenda y genera sus slots de detalle automáticamente.
+     *
+     * @param  array  $data  datos de la disponibilidad: sede_id, servicio_id, fecha_hora_ini, total_citas, dura_cita.
+     *
+     * @returns array resultado con la disponibilidad creada y sus detalles.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function create(array $data): array
     {
         $user = auth()->user();
@@ -47,9 +68,9 @@ class AgendaDisponibilidaService extends BaseService
                 return $this->unauthorized('La sede seleccionada no está asignada a tu usuario.');
             }
 
-            if (! empty($data['servicio_cita_id'])) {
-                $serviciosUsuario = $user->serviciosCita()->pluck('config_servicio_citas.id')->toArray();
-                if (! empty($serviciosUsuario) && ! in_array((int) $data['servicio_cita_id'], $serviciosUsuario, true)) {
+            if (! empty($data['servicio_id'])) {
+                $serviciosUsuario = $user->serviciosCita()->pluck('config_servicios.id')->toArray();
+                if (! empty($serviciosUsuario) && ! in_array((int) $data['servicio_id'], $serviciosUsuario, true)) {
                     return $this->unauthorized('El servicio de cita seleccionado no está asignado a tu usuario.');
                 }
             }
@@ -60,11 +81,11 @@ class AgendaDisponibilidaService extends BaseService
         $dura = (int) $data['dura_cita'];
         $fin = $inicio->copy()->addMinutes($totalCitas * $dura);
 
-        $created = DB::transaction(function () use ($data, $inicio, $fin, $totalCitas, $dura) {
+        $created = $this->transaction(function () use ($data, $inicio, $fin, $totalCitas, $dura) {
             $disponibilidad = AgendaDisponibilida::create([
                 'quien_registro_id' => auth()->id(),
                 'sede_id' => (int) $data['sede_id'],
-                'servicio_cita_id' => ! empty($data['servicio_cita_id']) ? (int) $data['servicio_cita_id'] : null,
+                'servicio_id' => ! empty($data['servicio_id']) ? (int) $data['servicio_id'] : null,
                 'fecha_hora_ini' => $inicio,
                 'fecha_hora_fin' => $fin,
                 'total_citas' => $totalCitas,
@@ -93,6 +114,17 @@ class AgendaDisponibilidaService extends BaseService
         ]);
     }
 
+    /**
+     * Busca una disponibilidad por su identificador con relaciones cargadas.
+     *
+     * @param  int  $id  identificador de la disponibilidad.
+     *
+     * @returns array resultado con la disponibilidad o error si no existe.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function find(int $id): array
     {
         $disponibilidad = AgendaDisponibilida::with(['sede', 'servicioCita'])->find($id);
@@ -104,6 +136,18 @@ class AgendaDisponibilidaService extends BaseService
         return $this->success($disponibilidad);
     }
 
+    /**
+     * Actualiza una disponibilidad existente, eliminando y regenerando sus slots de detalle.
+     *
+     * @param  int  $id  identificador de la disponibilidad a actualizar.
+     * @param  array  $data  datos actualizados.
+     *
+     * @returns array resultado con la disponibilidad actualizada.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function update(int $id, array $data): array
     {
         $disponibilidad = AgendaDisponibilida::find($id);
@@ -117,10 +161,10 @@ class AgendaDisponibilidaService extends BaseService
         $dura = (int) $data['dura_cita'];
         $fin = $inicio->copy()->addMinutes($totalCitas * $dura);
 
-        DB::transaction(function () use ($disponibilidad, $data, $inicio, $fin, $totalCitas, $dura) {
+        $this->transaction(function () use ($disponibilidad, $data, $inicio, $fin, $totalCitas, $dura) {
             $disponibilidad->update([
                 'sede_id' => (int) $data['sede_id'],
-                'servicio_cita_id' => ! empty($data['servicio_cita_id']) ? (int) $data['servicio_cita_id'] : null,
+                'servicio_id' => ! empty($data['servicio_id']) ? (int) $data['servicio_id'] : null,
                 'fecha_hora_ini' => $inicio,
                 'fecha_hora_fin' => $fin,
                 'total_citas' => $totalCitas,
@@ -148,6 +192,17 @@ class AgendaDisponibilidaService extends BaseService
         ]);
     }
 
+    /**
+     * Elimina una disponibilidad y sus detalles asociados, validando que no tenga slots reservados.
+     *
+     * @param  int  $id  identificador de la disponibilidad a eliminar.
+     *
+     * @returns array resultado de la eliminación o error si tiene slots reservados.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function delete(int $id): array
     {
         $disponibilidad = AgendaDisponibilida::find($id);

@@ -5,15 +5,37 @@
                 <h3 class="text-themecolor">Citas</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Citas</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Citas
+                        </button>
                     </li>
-                    <li class="breadcrumb-item active">Gesti&oacute;n de citas</li>
+                    <li class="breadcrumb-item active">Disponibilidad de citas</li>
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary m-r-5"
+                    @click="buscarStudy()"
+                    :disabled="loadingBuscar"
+                    title="Actualizar listado"
+                >
+                    <i class="fa" :class="loadingBuscar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                    Refrescar
+                </button>
                 <button
                     type="button"
                     class="btn btn-info btnDesplegarRigthSidebar"
@@ -32,32 +54,38 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> Filtros de b&uacute;squeda
+                            <i class="fa fa-filter"></i> Filtros de búsqueda
                         </h4>
                         <form action="#">
                             <div class="form-body">
                                 <div class="row p-t-2">
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <label class="control-label">Fecha Inicio</label>
+                                            <label for="bus_fech_ini" class="control-label"
+                                                >Fecha Inicio</label
+                                            >
                                             <input
                                                 type="date"
                                                 id="bus_fech_ini"
                                                 name="bus_fech_ini"
                                                 v-model="busqueda.bus_fech_ini"
                                                 class="form-control"
+                                                @keyup.enter="buscarDisponibilidad()"
                                             />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <label class="control-label">Fecha Fin</label>
+                                            <label for="bus_fecha_fin" class="control-label"
+                                                >Fecha Fin</label
+                                            >
                                             <input
                                                 type="date"
                                                 id="bus_fecha_fin"
                                                 name="bus_fecha_fin"
                                                 v-model="busqueda.bus_fecha_fin"
                                                 class="form-control"
+                                                @keyup.enter="buscarDisponibilidad()"
                                             />
                                         </div>
                                     </div>
@@ -103,83 +131,87 @@
                             Gestione las disponibilidades de citas para estudios.
                         </h6>
 
-                        <loading-spinner :visible="loadingBuscar" />
+                        <table-skeleton-loader :visible="loadingBuscar" :rows="5" :columns="5" />
 
-                        <div :class="{ 'd-none': loadingBuscar }">
-                            <div v-if="!registros.length" class="text-center p-5">
-                                <i class="fa fa-calendar fa-3x text-muted"></i>
-                                <p class="mt-3 text-muted">No se encontraron disponibilidades.</p>
-                                <p class="text-muted">
-                                    Presione <strong>"Nuevo registro"</strong> para crear una.
-                                </p>
-                            </div>
+                        <empty-state-component
+                            v-if="!loadingBuscar && !registros.length"
+                            title="No hay disponibilidades registradas"
+                            description="No se encontraron disponibilidades para la sede y fechas seleccionadas. Presione 'Nuevo registro' para crear una."
+                            icon="fa-calendar"
+                        />
 
-                            <div class="table-responsive" v-if="registros.length">
-                                <table
-                                    id="tabla-disponibilidad"
-                                    ref="dt"
-                                    class="table table-bordered table-striped"
-                                    cellspacing="0"
-                                    width="100%"
-                                >
-                                    <thead>
-                                        <tr>
-                                            <th width="5%">Fecha Inicio</th>
-                                            <th width="5%">Fecha Fin</th>
-                                            <th width="30%">Sede</th>
-                                            <th>Servicio de Cita</th>
-                                            <th class="sr-only">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="item in registros" :key="item.id">
-                                            <td>{{ formatFecha(item.fecha_hora_ini) }}</td>
-                                            <td>{{ formatFecha(item.fecha_hora_fin) }}</td>
-                                            <td>{{ item.sede?.nom_sede || item.sede_id }}</td>
-                                            <td>{{ item.servicio_cita?.nombre || "-" }}</td>
-                                            <td class="text-nowrap">
-                                                <button
-                                                    type="button"
-                                                    class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
-                                                    title="Editar disponibilidad"
-                                                    aria-label="Editar"
-                                                    @click="editarRegistro(item)"
-                                                >
-                                                    <i class="fa fa-pencil"></i>
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                    title="Eliminar disponibilidad"
-                                                    aria-label="Eliminar"
-                                                    @click="elimnarRegistro(item.id)"
-                                                    :disabled="loadingEliminarId === item.id"
-                                                >
-                                                    <i
-                                                        class="fa"
-                                                        :class="
-                                                            loadingEliminarId === item.id
-                                                                ? 'fa-spinner fa-spin'
-                                                                : 'fa-trash'
-                                                        "
-                                                    ></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                        <div
+                            class="table-responsive m-t-20"
+                            v-show="!loadingBuscar && registros.length > 0"
+                        >
+                            <table
+                                id="tablaAgendaDisponibilidad"
+                                ref="dt"
+                                class="display nowrap table table-hover table-striped table-bordered"
+                                cellspacing="0"
+                                width="100%"
+                            >
+                                <thead>
+                                    <tr>
+                                        <th width="5%">Fecha Inicio</th>
+                                        <th width="5%">Fecha Fin</th>
+                                        <th width="30%">Sede</th>
+                                        <th>Servicio de Cita</th>
+                                        <th class="sr-only">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="item in registros" :key="item.id">
+                                        <td>{{ formatFecha(item.fecha_hora_ini) }}</td>
+                                        <td>{{ formatFecha(item.fecha_hora_fin) }}</td>
+                                        <td>{{ item.sede?.nom_sede || item.sede_id }}</td>
+                                        <td>{{ item.servicio_cita?.nombre || "-" }}</td>
+                                        <td class="text-nowrap">
+                                            <button
+                                                type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
+                                                title="Editar disponibilidad"
+                                                aria-label="Editar"
+                                                @click="editarRegistro(item)"
+                                            >
+                                                <i class="fa fa-pencil"></i>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
+                                                title="Eliminar disponibilidad"
+                                                aria-label="Eliminar"
+                                                @click="elimnarRegistro(item.id)"
+                                                :disabled="loadingEliminarId === item.id"
+                                            >
+                                                <i
+                                                    class="fa"
+                                                    :class="
+                                                        loadingEliminarId === item.id
+                                                            ? 'fa-spinner fa-spin'
+                                                            : 'fa-trash'
+                                                    "
+                                                ></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- Backdrop overlay para cerrar al hacer clic afuera -->
+        <div v-if="showSidebar" class="sidebar-backdrop" @click="cerrarModal()"></div>
+
         <!-- Right sidebar -->
         <div
             class="right-sidebar"
             id="right-sidebar"
-            style="overflow-x: hidden; overflow-y: scroll; height: 100%"
+            :class="{ 'shw-rside': showSidebar }"
+            style="overflow-x: hidden; overflow-y: auto; height: 100%"
         >
             <div class="slimscrollright">
                 <div class="rpanel-title">
@@ -187,9 +219,10 @@
                     <button
                         type="button"
                         class="close right-side-toggle"
-                        id="btnCerralModalForm"
+                        id="btnCerrarModalForm"
                         @click="cerrarModal()"
-                        aria-label="Cerrar"
+                        aria-label="Cerrar panel"
+                        title="Cerrar (Esc)"
                     >
                         <i class="ti-close"></i>
                     </button>
@@ -206,7 +239,7 @@
                                     <div class="row">
                                         <div class="col-md-3">
                                             <div class="form-group">
-                                                <label class="control-label">
+                                                <label for="total_citas" class="control-label">
                                                     Total de citas
                                                     <span class="text-danger">*</span>
                                                 </label>
@@ -228,7 +261,7 @@
 
                                         <div class="col-md-5">
                                             <div class="form-group">
-                                                <label class="control-label">
+                                                <label for="dura_cita" class="control-label">
                                                     Minutos Por Cita
                                                     <span class="text-danger">*</span>
                                                 </label>
@@ -248,14 +281,14 @@
 
                                         <div class="col-md-5">
                                             <div class="form-group">
-                                                <label class="control-label">
+                                                <label for="servicio_id" class="control-label">
                                                     Servicio de Cita
                                                     <span class="text-danger">*</span>
                                                 </label>
                                                 <select
-                                                    v-model="registro.servicio_cita_id"
-                                                    name="servicio_cita_id"
-                                                    id="servicio_cita_id"
+                                                    v-model="registro.servicio_id"
+                                                    name="servicio_id"
+                                                    id="servicio_id"
                                                     class="form-control custom-select"
                                                 >
                                                     <option value="">-- Seleccione --</option>
@@ -270,16 +303,16 @@
                                                 </select>
                                                 <span
                                                     class="text-danger"
-                                                    v-if="errores.servicio_cita_id"
+                                                    v-if="errores.servicio_id"
                                                 >
-                                                    {{ errores.servicio_cita_id[0] }}
+                                                    {{ errores.servicio_id[0] }}
                                                 </span>
                                             </div>
                                         </div>
 
                                         <div class="col-md-5">
                                             <div class="form-group">
-                                                <label class="control-label">
+                                                <label for="fecha_hora_ini" class="control-label">
                                                     Fec. Inicio
                                                     <span class="text-danger">*</span>
                                                 </label>
@@ -308,6 +341,11 @@
                                     class="btn btn-success m-r-5"
                                     @click="guardarRegistro()"
                                     :disabled="loadingGuardar"
+                                    :title="
+                                        editando
+                                            ? 'Actualizar disponibilidad'
+                                            : 'Guardar disponibilidad'
+                                    "
                                 >
                                     <i
                                         class="fa"
@@ -326,6 +364,7 @@
                                     type="button"
                                     class="btn btn-inverse"
                                     @click="cerrarModal()"
+                                    title="Cancelar y cerrar"
                                 >
                                     Cancelar
                                 </button>
@@ -338,32 +377,40 @@
     </div>
 </template>
 <script setup>
-const { proxy } = getCurrentInstance();
-const emitter = proxy.emitter;
-import { nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
+import { getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { handleAxiosErrorToast, confirmAction } from "@/helpers/alerts";
-import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
+import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import axios from "axios";
 
-const props = defineProps({ usuarioactual: Object });
+const { appContext } = getCurrentInstance();
+const emitter = appContext.config.globalProperties.emitter;
+
+const props = defineProps({ usuarioactual: { type: Object, default: () => ({}) } });
 
 const dt = ref(null);
 
 const editando = ref(false);
 const editandoId = ref(null);
 const tituloModal = ref("Guardar disponibilidad de citas");
+const showSidebar = ref(false);
+const sedeActual = ref(
+    sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || null
+);
 const registro = ref({
-    sede_id: sedeActual,
+    sede_id: sedeActual.value,
     quien_registro_id: props.usuarioactual.id,
-    servicio_cita_id: "",
+    servicio_id: "",
     total_citas: 1,
     dura_cita: 15,
     fecha_hora_ini: "",
 });
-const busqueda = ref({ sede_id: sedeActual, bus_fech_ini: "", bus_fecha_fin: "" });
-const sedeActual = ref(sessionStorage.getItem("ST-sede"));
+const busqueda = ref({
+    sede_id: sedeActual.value,
+    bus_fech_ini: "",
+    bus_fecha_fin: "",
+});
 const serviciosCitas = ref([]);
 const errores = ref([]);
 const registros = ref([]);
@@ -371,49 +418,75 @@ const loadingBuscar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
 
+useKeyboardShortcuts({
+    onSearch: () => {
+        if (!showSidebar.value) {
+            buscarStudy();
+        }
+    },
+    onSave: guardarRegistro,
+    onEscape: cerrarModal,
+    isActive: () => true,
+    isLoading: loadingGuardar,
+});
+
 async function buscarStudy() {
     if (loadingBuscar.value) return;
     loadingBuscar.value = true;
+    safeDestroyDataTable(dt.value || "#tablaAgendaDisponibilidad");
+
     try {
+        const sedeActiva =
+            busqueda.value.sede_id ||
+            sessionStorage.getItem("ST-sede") ||
+            localStorage.getItem("ST-sede");
         const params = {
-            sede_id: busqueda.value.sede_id,
+            sede_id: sedeActiva,
             bus_fech_ini: busqueda.value.bus_fech_ini || undefined,
             bus_fecha_fin: busqueda.value.bus_fecha_fin || undefined,
         };
         const res = await axios.get("/api/agenda-disponibilidad", { params });
-        safeDestroyDataTable(dt.value || "#tabla-disponibilidad");
-        registros.value = res.data.data || [];
-        nextTick(() => {
-            if (registros.value.length) {
-                safeInitDataTable(dt.value || "#tabla-disponibilidad", {
-                    dom: "Bfrtip",
-                    buttons: ["copy", "csv", "excel", "pdf", "print"],
-                });
+        let data = res.data.data;
+        if (typeof data === "string") {
+            try {
+                data = JSON.parse(data);
+            } catch (_e) {
+                data = [];
             }
-        });
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar disponibilidades.");
+        }
+        registros.value = Array.isArray(data) ? data : [];
+    } catch {
         registros.value = [];
     } finally {
         loadingBuscar.value = false;
+        await nextTick();
+        if (registros.value.length) {
+            safeDestroyDataTable(dt.value || "#tablaAgendaDisponibilidad");
+            safeInitDataTable(dt.value || "#tablaAgendaDisponibilidad", {
+                dom: "Bfrtip",
+                buttons: ["copy", "csv", "excel", "pdf", "print"],
+                autoWidth: false,
+                columnDefs: [{ targets: [4], orderable: false }],
+            });
+        }
     }
 }
 function validarFormulario() {
-    const errores = {};
+    const errs = {};
     if (!registro.value.fecha_hora_ini) {
-        errores.fecha_hora_ini = ["Debe seleccionar la fecha de inicio."];
+        errs.fecha_hora_ini = ["Debe seleccionar la fecha de inicio."];
     }
-    if (!registro.value.servicio_cita_id) {
-        errores.servicio_cita_id = ["Debe seleccionar un servicio de cita."];
+    if (!registro.value.servicio_id) {
+        errs.servicio_id = ["Debe seleccionar un servicio de cita."];
     }
     if (!registro.value.total_citas || registro.value.total_citas < 1) {
-        errores.total_citas = ["El total de citas debe ser al menos 1."];
+        errs.total_citas = ["El total de citas debe ser al menos 1."];
     }
     if (!registro.value.dura_cita || registro.value.dura_cita < 1) {
-        errores.dura_cita = ["La duraci\u00f3n debe ser al menos 1 minuto."];
+        errs.dura_cita = ["La duración debe ser al menos 1 minuto."];
     }
-    errores.value = errores;
-    return Object.keys(errores).length === 0;
+    errores.value = errs;
+    return Object.keys(errs).length === 0;
 }
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
@@ -422,7 +495,7 @@ async function guardarRegistro() {
     try {
         const payload = {
             sede_id: registro.value.sede_id,
-            servicio_cita_id: registro.value.servicio_cita_id || null,
+            servicio_id: registro.value.servicio_id || null,
             total_citas: registro.value.total_citas,
             dura_cita: registro.value.dura_cita,
             fecha_hora_ini: registro.value.fecha_hora_ini,
@@ -435,20 +508,14 @@ async function guardarRegistro() {
             res = await axios.post("/api/agenda-disponibilidad", payload);
         }
 
-        $.toast({
-            heading: "Bien hecho!!!",
-            text: res?.data?.message || "La disponibilidad de citas se ha guardado con \u00e9xito.",
-            position: "top-right",
-            loaderBg: "#ff6849",
-            icon: "success",
-            hideAfter: 5500,
-            stack: 6,
-        });
+        alertSuccess(
+            "Éxito",
+            res?.data?.message || "La disponibilidad de citas se ha guardado con éxito."
+        );
         cerrarModal();
         await buscarStudy();
     } catch (error) {
         errores.value = error?.response?.data?.errors || {};
-        handleAxiosErrorToast(error, "No fue posible guardar la disponibilidad.");
     } finally {
         loadingGuardar.value = false;
     }
@@ -458,15 +525,18 @@ async function editarRegistro(item) {
     editandoId.value = item.id;
     registro.value = {
         sede_id: item.sede_id,
-        quien_registro_id: usuarioactual.id,
-        servicio_cita_id: item.servicio_cita_id || "",
+        quien_registro_id: props.usuarioactual.id,
+        servicio_id: item.servicio_id || "",
         total_citas: item.total_citas,
         dura_cita: item.dura_cita,
         fecha_hora_ini: item.fecha_hora_ini ? item.fecha_hora_ini.substring(0, 10) : "",
     };
     tituloModal.value = "Actualizar disponibilidad de citas";
     errores.value = [];
-    $("#right-sidebar").addClass("shw-rside");
+    showSidebar.value = true;
+    nextTick(() => {
+        document.getElementById("total_citas")?.focus();
+    });
 }
 async function elimnarRegistro(id) {
     const ok = await confirmAction({
@@ -479,18 +549,10 @@ async function elimnarRegistro(id) {
     loadingEliminarId.value = id;
     try {
         const res = await axios.delete("/api/agenda-disponibilidad/" + id);
-        $.toast({
-            heading: "Ok!!!",
-            text: res?.data?.message || "Registro eliminado.",
-            position: "top-right",
-            loaderBg: "#ff6849",
-            icon: "success",
-            hideAfter: 3500,
-            stack: 6,
-        });
+        alertSuccess("Éxito", res?.data?.message || "Registro eliminado.");
         await buscarStudy();
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible eliminar la disponibilidad.");
+    } catch {
+        alertError("Error", "No se pudo eliminar la disponibilidad");
     } finally {
         loadingEliminarId.value = null;
     }
@@ -501,15 +563,23 @@ async function listarServiciosCitas() {
             params: { sede_id: sedeActual.value },
         });
         serviciosCitas.value = res.data.data;
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar servicios de cita.");
+    } catch {
+        alertError("Error", "No se pudieron cargar los servicios");
     }
 }
-function establecerSede() {
-    registro.value.sede_id = sessionStorage.getItem("ST-sede");
-    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
-    sedeActual.value = sessionStorage.getItem("ST-sede");
+function establecerSede(data = null) {
+    const sede =
+        data?.idSede ??
+        sessionStorage.getItem("ST-sede") ??
+        localStorage.getItem("ST-sede") ??
+        null;
+    registro.value.sede_id = sede;
+    busqueda.value.sede_id = sede;
+    sedeActual.value = sede;
     registros.value = [];
+    if (!sede && emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
 }
 function btnLimpiar() {
     busqueda.value.bus_fech_ini = "";
@@ -522,17 +592,20 @@ function mostrarRegistro() {
     tituloModal.value = "Guardar disponibilidad de citas";
     registro.value = {
         sede_id: sedeActual.value,
-        quien_registro_id: usuarioactual.id,
-        servicio_cita_id: "",
+        quien_registro_id: props.usuarioactual.id,
+        servicio_id: "",
         total_citas: 1,
         dura_cita: 15,
         fecha_hora_ini: "",
     };
     errores.value = [];
-    $("#right-sidebar").addClass("shw-rside");
+    showSidebar.value = true;
+    nextTick(() => {
+        document.getElementById("total_citas")?.focus();
+    });
 }
 function cerrarModal() {
-    $("#right-sidebar").removeClass("shw-rside");
+    showSidebar.value = false;
 }
 function formatFecha(fecha) {
     if (!fecha) return "-";
@@ -546,42 +619,63 @@ function formatFecha(fecha) {
     return `${dia}/${mes}/${anio} ${horas}:${minutos}`;
 }
 
+function onSedeSeleccionada(data) {
+    establecerSede(data);
+    safeDestroyDataTable(dt.value || "#tablaAgendaDisponibilidad");
+    buscarStudy();
+}
+
 onMounted(() => {
     establecerSede();
     listarServiciosCitas();
     buscarStudy();
 
-    emitter.on("sedeSeleccionada", () => {
-        establecerSede();
-        safeDestroyDataTable(dt.value || "#tabla-disponibilidad");
-    });
+    emitter?.on("sedeSeleccionada", onSedeSeleccionada);
 });
 
 onBeforeUnmount(() => {
-    safeDestroyDataTable(dt.value || "#tabla-disponibilidad");
+    emitter?.off("sedeSeleccionada", onSedeSeleccionada);
+    safeDestroyDataTable(dt.value || "#tablaAgendaDisponibilidad");
 });
 </script>
 <style scoped>
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1090;
+}
+
 .right-sidebar {
     position: fixed;
     right: -50%;
     width: 50%;
-    display: none;
+    height: 100%;
+    top: 0px;
     z-index: 1100;
     background: #ffffff;
-    top: 0px;
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
+    visibility: hidden;
+    pointer-events: none;
     padding-bottom: 20px;
-    height: 100%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
 }
 
 .shw-rside {
-    right: 0px;
-    width: 50%;
-    display: block;
+    right: 0 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+@media (max-width: 767px) {
+    .right-sidebar {
+        width: 100% !important;
+        right: -100% !important;
+    }
 }
 </style>

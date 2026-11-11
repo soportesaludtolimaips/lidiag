@@ -4,18 +4,27 @@
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Helpdesk</h3>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
+                    <li class="breadcrumb-item">
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
+                    </li>
                     <li class="breadcrumb-item active">Reportes</li>
                 </ol>
             </div>
-            <div class="col-md-7 align-self-center text-right">
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     class="btn btn-success btn-sm m-r-5"
                     type="button"
                     :disabled="loading"
+                    title="Consultar reporte"
                     @click="buscar()"
                 >
-                    <i class="fa" :class="loading ? 'fa-spinner fa-spin' : 'fa-search'"></i>
+                    <i class="fa mr-1" :class="loading ? 'fa-spinner fa-spin' : 'fa-search'"></i>
                     Consultar
                 </button>
                 <button
@@ -24,7 +33,7 @@
                     :disabled="!canExport"
                     @click="exportExcel()"
                 >
-                    <i class="fa fa-file-excel-o"></i> Excel
+                    <i class="fa fa-file-excel-o mr-1"></i> Excel
                 </button>
                 <button
                     class="btn btn-danger btn-sm"
@@ -32,7 +41,7 @@
                     :disabled="!canExport"
                     @click="exportPdf()"
                 >
-                    <i class="fa fa-file-pdf-o"></i> PDF
+                    <i class="fa fa-file-pdf-o mr-1"></i> PDF
                 </button>
             </div>
         </div>
@@ -50,6 +59,7 @@
                                     type="date"
                                     class="form-control"
                                     v-model="filters.fechaIni"
+                                    @keyup.enter="buscar()"
                                 />
                             </div>
                             <div class="col-md-2">
@@ -59,6 +69,7 @@
                                     type="date"
                                     class="form-control"
                                     v-model="filters.fechaFin"
+                                    @keyup.enter="buscar()"
                                 />
                             </div>
                             <div class="col-md-3">
@@ -124,6 +135,7 @@
                                     class="form-control"
                                     v-model="filters.solicitanteId"
                                     placeholder="Opcional"
+                                    @keyup.enter="buscar()"
                                 />
                             </div>
                             <div class="col-md-3">
@@ -134,6 +146,7 @@
                                     class="form-control"
                                     v-model="filters.tecnicoId"
                                     placeholder="Opcional"
+                                    @keyup.enter="buscar()"
                                 />
                             </div>
                             <div class="col-md-3 d-flex align-items-end">
@@ -141,9 +154,10 @@
                                     class="btn btn-inverse btn-sm"
                                     type="button"
                                     :disabled="loading"
+                                    title="Limpiar filtros"
                                     @click="limpiar()"
                                 >
-                                    <i class="fa fa-refresh"></i> Limpiar
+                                    <i class="fa fa-eraser mr-1"></i> Limpiar
                                 </button>
                             </div>
                         </div>
@@ -209,8 +223,8 @@
                                 </thead>
                                 <tbody>
                                     <tr
-                                        v-for="r in indicadores.totales_por_estado || []"
-                                        :key="r.estado"
+                                        v-for="(r, idx) in indicadores.totales_por_estado || []"
+                                        :key="idx"
                                     >
                                         <td>{{ r.estado }}</td>
                                         <td>{{ r.total }}</td>
@@ -315,14 +329,17 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Detalle (últimos {{ limit }} registros)</h4>
-                        <div v-if="loading" class="text-center p-5">
-                            <i class="fa fa-spinner fa-spin fa-3x"></i>
-                            <p class="m-t-10">Cargando reporte...</p>
-                        </div>
-                        <div v-else-if="!detallado.length" class="text-center p-5 text-muted">
-                            No se encontraron registros para los filtros seleccionados.
-                        </div>
-                        <div v-else class="table-responsive">
+                        <table-skeleton-loader :visible="loading" :rows="8" :columns="12" />
+                        <empty-state-component
+                            v-if="!loading && !detallado.length"
+                            title="No se encontraron registros"
+                            description="No hay registros detallados para los filtros seleccionados."
+                            icon="fa-bar-chart"
+                        />
+                        <div
+                            v-show="!loading && detallado.length > 0"
+                            class="table-responsive m-t-20"
+                        >
                             <table
                                 id="helpdeskReportesDetallado"
                                 ref="dt"
@@ -352,9 +369,9 @@
                                 <tbody>
                                     <tr v-for="t in detallado" :key="t.id">
                                         <td>
-                                            <a :href="`/helpdesk-tickets/${t.id}`">{{
+                                            <router-link :to="`/helpdesk-tickets/${t.id}`">{{
                                                 t.folio || "#" + t.id
-                                            }}</a>
+                                            }}</router-link>
                                         </td>
                                         <td>{{ t.titulo }}</td>
                                         <td>{{ t.estado }}</td>
@@ -378,12 +395,16 @@
     </div>
 </template>
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { toastMessage, handleAxiosErrorToast } from "@/helpers/alerts.js";
+import { toastMessage } from "@/helpers/alerts.js";
 import { formatDateTime } from "@/helpers/dateUtils.js";
 import { helpdesk } from "@/helpers/api.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
+
+const { appContext } = getCurrentInstance();
+const emitter = appContext.config.globalProperties.emitter;
 
 const dt = ref(null);
 const loading = ref(false);
@@ -396,11 +417,16 @@ const categorias = ref([]);
 const prioridades = ref([]);
 const _today = new Date();
 const _todayStr = `${_today.getFullYear()}-${String(_today.getMonth() + 1).padStart(2, "0")}-${String(_today.getDate()).padStart(2, "0")}`;
+const _firstDayStr = `${_today.getFullYear()}-${String(_today.getMonth() + 1).padStart(2, "0")}-01`;
+
+function obtenerSedeActiva() {
+    return sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "";
+}
 
 const filters = ref({
-    fechaIni: _todayStr,
+    fechaIni: _firstDayStr,
     fechaFin: _todayStr,
-    sedeId: "",
+    sedeId: obtenerSedeActiva(),
     estadoId: "",
     categoriaId: "",
     prioridadId: "",
@@ -418,6 +444,7 @@ function formatHoras(segundos) {
     if (Number.isNaN(h)) return "";
     return h.toFixed(2);
 }
+
 async function cargarCatalogos() {
     try {
         const [cats, prios, ests, sedesRes] = await Promise.all([
@@ -426,38 +453,45 @@ async function cargarCatalogos() {
             helpdesk.estados(),
             helpdesk.sedesActivas(),
         ]);
-        categorias.value = (cats.data || []).filter((x) => x.activo);
-        prioridades.value = (prios.data || []).filter((x) => x.activo);
-        estados.value = (ests.data || []).filter((x) => x.activo);
-        sedes.value = sedesRes.data || [];
-    } catch (error) {
-        handleAxiosErrorToast(error, "No se pudieron cargar catálogos.");
+        const extractArray = (res) =>
+            Array.isArray(res?.data?.data)
+                ? res.data.data
+                : Array.isArray(res?.data)
+                  ? res.data
+                  : [];
+        categorias.value = extractArray(cats).filter((x) => x.activo);
+        prioridades.value = extractArray(prios).filter((x) => x.activo);
+        estados.value = extractArray(ests).filter((x) => x.activo);
+        sedes.value = extractArray(sedesRes);
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudieron cargar los catálogos.",
+            icon: "error",
+        });
     }
 }
+
 function limpiar() {
     const today = new Date();
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, "0");
     const dd = String(today.getDate()).padStart(2, "0");
     const todayStr = `${yyyy}-${mm}-${dd}`;
+    const firstDayStr = `${yyyy}-${mm}-01`;
     filters.value = {
-        fechaIni: todayStr,
+        fechaIni: firstDayStr,
         fechaFin: todayStr,
-        sedeId: "",
+        sedeId: obtenerSedeActiva(),
         estadoId: "",
         categoriaId: "",
         prioridadId: "",
         solicitanteId: "",
         tecnicoId: "",
     };
-    try {
-        const sedeActiva = sessionStorage.getItem("ST-sede");
-        if (sedeActiva) filters.value.sedeId = sedeActiva;
-    } catch (e) {
-        console.warn("No se pudo leer sede activa de sessionStorage", e);
-    }
     buscar();
 }
+
 function buildParams(extra = {}) {
     return {
         fechaIni: filters.value.fechaIni,
@@ -471,7 +505,9 @@ function buildParams(extra = {}) {
         ...extra,
     };
 }
+
 function initDT() {
+    if (!detallado.value.length) return;
     safeInitDataTable(dt.value || "#helpdeskReportesDetallado", {
         dom: "Bfrtip",
         buttons: [
@@ -481,12 +517,13 @@ function initDT() {
             { extend: "pdf", titleAttr: "Exportar a PDF" },
             { extend: "print", titleAttr: "Imprimir" },
         ],
-        retrieve: true,
+        autoWidth: false,
+        columnDefs: [{ targets: [11], orderable: false }],
         order: [],
     });
 }
+
 async function buscar() {
-    if (!canExport.value) return;
     if (loading.value) return;
     if (
         filters.value.fechaIni &&
@@ -502,48 +539,80 @@ async function buscar() {
         return;
     }
     loading.value = true;
+    safeDestroyDataTable(dt.value || "#helpdeskReportesDetallado");
+
     try {
         const params = buildParams({ limit: limit.value });
         const [ind, det] = await Promise.all([
             helpdesk.indicadores(params),
             helpdesk.detallado(params),
         ]);
-        indicadores.value = ind.data || null;
-        detallado.value = det.data?.items || [];
-        nextTick(() => {
-            safeDestroyDataTable(dt.value || "#helpdeskReportesDetallado");
-            initDT();
+        indicadores.value = ind.data?.data ?? ind.data ?? null;
+        const detPayload = det.data?.data ?? det.data;
+        detallado.value = detPayload?.items || (Array.isArray(detPayload) ? detPayload : []);
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudieron cargar los reportes.",
+            icon: "error",
         });
-    } catch (error) {
-        handleAxiosErrorToast(error, "No se pudo generar el reporte.");
+        detallado.value = [];
     } finally {
         loading.value = false;
+        await nextTick();
+        if (detallado.value.length > 0) {
+            safeDestroyDataTable(dt.value || "#helpdeskReportesDetallado");
+            initDT();
+        }
     }
 }
+
 function exportExcel() {
     toastMessage({ heading: "Exportando", text: "Generando archivo Excel...", icon: "info" });
     const params = new URLSearchParams(buildParams());
     window.open(helpdesk.exportExcelUrl(params), "_blank", "noopener,noreferrer");
 }
+
 function exportPdf() {
     toastMessage({ heading: "Exportando", text: "Generando archivo PDF...", icon: "info" });
     const params = new URLSearchParams(buildParams());
     window.open(helpdesk.exportPdfUrl(params), "_blank", "noopener,noreferrer");
 }
 
+function onSedeSeleccionada(data) {
+    const raw =
+        data?.sede ??
+        (typeof data === "object" ? data.idSede || data.id : data) ??
+        obtenerSedeActiva();
+    const idSede = raw ? String(raw) : "";
+    if (filters.value.sedeId === idSede) return;
+    filters.value.sedeId = idSede;
+    buscar();
+}
+
+useKeyboardShortcuts({
+    onSearch: () => {
+        buscar();
+    },
+    onEscape: () => {
+        limpiar();
+    },
+});
+
 onMounted(async () => {
-    // sede activa por defecto
-    try {
-        const sedeActiva = sessionStorage.getItem("ST-sede");
-        if (sedeActiva) filters.value.sedeId = sedeActiva;
-    } catch (e) {
-        console.warn("No se pudo leer sede activa de sessionStorage", e);
+    emitter.on("sedeSeleccionada", onSedeSeleccionada);
+    const sedeActiva = obtenerSedeActiva();
+    if (sedeActiva) {
+        filters.value.sedeId = sedeActiva;
+    } else if (emitter) {
+        emitter.emit("solicitarSedeActiva");
     }
     await cargarCatalogos();
     await buscar();
 });
 
 onBeforeUnmount(() => {
+    emitter.off("sedeSeleccionada", onSedeSeleccionada);
     safeDestroyDataTable(dt.value || "#helpdeskReportesDetallado");
 });
 </script>

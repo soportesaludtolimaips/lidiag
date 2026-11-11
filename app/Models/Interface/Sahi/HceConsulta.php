@@ -12,4 +12,6 @@ class HceConsulta extends Model
     protected $connection = 'sqlsrv';
 
     protected $table = 'hceConsulta';
+
+    protected $guarded = [];
 }

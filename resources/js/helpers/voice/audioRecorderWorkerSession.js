@@ -1,19 +1,39 @@
 import { getVoiceAudioConstraints } from "./audioRecorder";
 
+/**
+ * Indica si el entorno soporta Web Workers y MediaRecorder para grabar en un hilo separado.
+ *
+ * @returns {boolean}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
 export function isWorkerSupported() {
     try {
         if (typeof Worker === "undefined") return false;
         if (typeof MediaRecorder === "undefined") return false;
         return true;
-    } catch (e) {
+    } catch {
         return false;
     }
 }
 
+/**
+ * Crea una sesion de grabacion de audio delegada a un Web Worker, con los mismos controles que la sesion local.
+ *
+ * @param object $opts Opciones (constraints, mimeType, audioBitsPerSecond).
+ *
+ * @returns {object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-11
+ */
 export async function createAudioRecorderWorkerSession({
-    constraints = getVoiceAudioConstraints(),
-    mimeType = "audio/wav",
-    audioBitsPerSecond = 64000,
+    _constraints = getVoiceAudioConstraints(),
+    _mimeType = "audio/wav",
+    _audioBitsPerSecond = 64000,
 } = {}) {
     const worker = new Worker(new URL("./audioRecordingWorker.js", import.meta.url));
 
@@ -56,7 +76,17 @@ export async function createAudioRecorderWorkerSession({
             if (resolveStop) {
                 const url = blob ? URL.createObjectURL(blob) : null;
                 lastUrl = url;
-                resolveStop({ blob, url, chunks: [...chunkList], revoke: () => { if (lastUrl) { URL.revokeObjectURL(lastUrl); lastUrl = null; } } });
+                resolveStop({
+                    blob,
+                    url,
+                    chunks: [...chunkList],
+                    revoke: () => {
+                        if (lastUrl) {
+                            URL.revokeObjectURL(lastUrl);
+                            lastUrl = null;
+                        }
+                    },
+                });
             }
             return;
         }
@@ -69,7 +99,9 @@ export async function createAudioRecorderWorkerSession({
     };
 
     const mediaRecorderMock = {
-        get state() { return recorderState; },
+        get state() {
+            return recorderState;
+        },
         stop() {},
         pause() {},
         resume() {},
@@ -78,7 +110,9 @@ export async function createAudioRecorderWorkerSession({
     return {
         stream: streamMock,
         mediaRecorder: mediaRecorderMock,
-        get chunks() { return chunkList; },
+        get chunks() {
+            return chunkList;
+        },
 
         start() {
             return new Promise((resolve, reject) => {
@@ -88,7 +122,12 @@ export async function createAudioRecorderWorkerSession({
                     if (msg.action === "start" && msg.result) {
                         worker.removeEventListener("message", onMsg);
                         if (msg.result.success) resolve();
-                        else reject(new Error(msg.result.error || "Error al iniciar grabación en Worker"));
+                        else
+                            reject(
+                                new Error(
+                                    msg.result.error || "Error al iniciar grabación en Worker"
+                                )
+                            );
                     }
                 };
                 worker.addEventListener("message", onMsg);
@@ -111,7 +150,12 @@ export async function createAudioRecorderWorkerSession({
                 resolveStop = resolve;
                 const timer = setTimeout(() => {
                     if (resolveStop) {
-                        resolveStop({ blob: null, url: null, chunks: [...chunkList], revoke: () => {} });
+                        resolveStop({
+                            blob: null,
+                            url: null,
+                            chunks: [...chunkList],
+                            revoke: () => {},
+                        });
                         resolveStop = null;
                     }
                 }, 5000);
@@ -126,8 +170,15 @@ export async function createAudioRecorderWorkerSession({
         },
 
         cleanup() {
-            try { worker.terminate(); } catch (e) { /* ignore */ }
-            if (lastUrl) { URL.revokeObjectURL(lastUrl); lastUrl = null; }
+            try {
+                worker.terminate();
+            } catch {
+                /* ignore */
+            }
+            if (lastUrl) {
+                URL.revokeObjectURL(lastUrl);
+                lastUrl = null;
+            }
             chunkList = [];
         },
     };

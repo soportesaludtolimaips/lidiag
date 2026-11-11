@@ -7,6 +7,15 @@ use App\Services\BaseService;
 
 class HelpDeskUsuarioService extends BaseService
 {
+    /**
+     * Obtiene los usuarios activos con roles de soporte que pueden asignarse a tickets.
+     *
+     * @returns array respuesta con los usuarios asignables (id, nombre, email y roles).
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     public function asignables(): array
     {
         $usuarios = User::query()

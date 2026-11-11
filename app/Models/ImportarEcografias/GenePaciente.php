@@ -33,6 +33,15 @@ class GenePaciente extends Model
     ];
 
     // --- Relaciones ---
+    /**
+     * Tipo de documento del paciente.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function tipoDocumento()
     {
         return $this->belongsTo(ConfigTipoDocumento::class, 'id_tipo_docu', 'id_tipo');

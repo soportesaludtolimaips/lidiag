@@ -3,7 +3,8 @@
         <div class="card-body">
             <h5 class="card-title">Logo e información por sede (encabezado de PDF)</h5>
             <p class="text-muted">
-                El logo y la información aparecen en el encabezado de los PDF (consentimientos, etc.).
+                El logo y la información aparecen en el encabezado de los PDF (consentimientos,
+                etc.).
             </p>
 
             <div v-if="cargando" class="text-muted">Cargando…</div>
@@ -35,7 +36,9 @@
                             </div>
 
                             <div class="mb-2">
-                                <label class="form-label">Encabezado (dirección, teléfono, NIT…)</label>
+                                <label class="form-label"
+                                    >Encabezado (dirección, teléfono, NIT…)</label
+                                >
                                 <textarea
                                     v-model="sede.encabezado"
                                     class="form-control form-control-sm"

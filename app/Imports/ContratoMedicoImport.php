@@ -1,0 +1,333 @@
+<?php
+
+namespace App\Imports;
+
+use App\Exceptions\CupsFaltantesException;
+use App\Imports\Concerns\ValidaEncabezados;
+use App\Models\Configuracion\ConfigProducto;
+use App\Models\Contratacion\ContratoMedico;
+use App\Models\Contratacion\ContratoProducto;
+use Carbon\Carbon;
+use DateTimeInterface;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Concerns\ToCollection;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
+
+/**
+ * Import de médicos-producto a un contrato desde Excel.
+ * El médico se selecciona previamente en el modal y el Contrato ID se valida
+ * contra la celda C2 del archivo (hecho por el controller). Cada fila vincula
+ * un producto con sus valores de lectura. Crea registros en contratos_medicos
+ * resolviendo el CUPS contra contratos_productos del contrato; si el producto
+ * del catálogo aún no está en el contrato, se crea con valor_contrato = 0
+ * (la única vía de carga es la plantilla de detalle).
+ *
+ * El campo valor_contrato NO viene en la plantilla porque queda establecido
+ * en contratos_productos; se guarda en 0 a nivel de médico.
+ *
+ * Si el Excel contiene códigos CUPS inexistentes en config_productos:
+ * - Con crear_faltantes = false (pre-validación): lanza CupsFaltantesException
+ *   con la lista completa de faltantes para que el usuario confirme.
+ * - Con crear_faltantes = true: crea los productos en el catálogo (usando la
+ *   columna PRODUCTO como nombre) y continúa.
+ * Los códigos que existen en el catálogo pero NO están configurados en el
+ * contrato siguen siendo error duro (requieren tarifa definida por el usuario).
+ *
+ * Estructura esperada del Excel:
+ * - Fila 1: Título
+ * - Fila 2: Sede: ... | Inicio: ... | Contrato ID: N  (celda C2 validada)
+ * - Fila 3: Encabezados (Código CUPS | Producto | Valor Consulta | Valor Urgencias | Fecha Ingreso opcional)
+ * - Filas 4+: Productos con los valores del médico; las filas sin valor
+ *   diligenciado se ignoran.
+ *
+ * La columna Fecha Ingreso es opcional para compatibilidad con plantillas
+ * viejas: si no viene, fecha_ingreso queda en null.
+ *
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-08-24
+ */
+class ContratoMedicoImport implements ToCollection, WithHeadingRow
+{
+    use ValidaEncabezados;
+
+    /**
+     * Contador de filas importadas correctamente.
+     */
+    public int $importados = 0;
+
+    /**
+     * Constructor del import.
+     *
+     * @param  int  $contratoId  Identificador del contrato destino (validado contra C2).
+     * @param  int  $medicoId  Identificador del médico seleccionado en el modal.
+     * @param  bool  $crearFaltantes  Si true, crea automáticamente los productos inexistentes en config_productos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-24
+     */
+    public function __construct(
+        protected int $contratoId,
+        protected int $medicoId,
+        protected bool $crearFaltantes = false,
+    ) {}
+
+    /**
+     * Número de fila donde comienzan los encabezados.
+     * Fila 1 = título, Fila 2 = info del contrato, Fila 3 = headers.
+     *
+     * @return int Fila de encabezados.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-24
+     */
+    public function headingRow(): int
+    {
+        return 3;
+    }
+
+    /**
+     * Procesa las filas del Excel dentro de una transacción atómica.
+     * Primero valida los encabezados de la fila 3 y que existan códigos CUPS
+     * legibles. Luego detecta los códigos inexistentes en config_productos;
+     * si hay faltantes y no se autorizó su creación, lanza CupsFaltantesException
+     * con la lista completa. Finalmente crea en contratos_productos los
+     * productos del catálogo que falten en el contrato (valor_contrato = 0)
+     * y hace upsert de contratos_medicos por (contrato, médico,
+     * contratos_productos).
+     *
+     * @param  Collection<int, Collection<string, mixed>>  $rows  Filas del Excel mapeadas por encabezados.
+     *
+     * @throws \Exception Si los encabezados no coinciden con el formato esperado o no hay códigos legibles.
+     * @throws CupsFaltantesException Si hay CUPS inexistentes en el catálogo y no se autorizó crearlos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-08-24
+     */
+    public function collection(Collection $rows): void
+    {
+        if ($rows->isEmpty()) {
+            throw new \Exception('El archivo Excel no contiene datos para importar.');
+        }
+
+        // ── FASE 0: validar encabezados de la fila 3 ───────────────────
+        // Fecha Ingreso es opcional: no se exige para seguir aceptando
+        // plantillas viejas sin esa columna (fecha_ingreso queda en null).
+        $this->validarEncabezados(
+            $rows->first(),
+            ['codigo_cups', 'producto', 'valor_consulta', 'valor_urgencias'],
+            'Código CUPS | Producto | Valor Consulta | Valor Urgencias | Fecha Ingreso opcional (encabezados en fila 3, datos desde fila 4)'
+        );
+
+        // ── FASE 0b: validar que existan códigos CUPS legibles ─────────
+        // Si ninguna fila trae código CUPS, los datos no inician en la fila 4.
+        $hayCodigos = false;
+
+        foreach ($rows as $row) {
+            if (trim((string) ($row['codigo_cups'] ?? '')) !== '') {
+                $hayCodigos = true;
+                break;
+            }
+        }
+
+        if (! $hayCodigos) {
+            throw new \Exception(
+                'No se encontraron códigos CUPS válidos en el archivo. Verifique que los datos inicien en la fila 4, debajo de los encabezados.'
+            );
+        }
+
+        // ── FASE 1: parsear filas y detectar faltantes en el catálogo ──
+        // La plantilla lista todo el catálogo con las columnas de valor en
+        // blanco: solo se importan las filas que el usuario diligenció
+        // (al menos Valor Consulta o Valor Urgencias distinto de vacío).
+        $productosCache = ConfigProducto::where('estado', 1)
+            ->pluck('id', 'cod_cups')
+            ->toArray();
+
+        $items = [];
+        $faltantes = [];
+
+        foreach ($rows as $row) {
+            $codCups = trim((string) ($row['codigo_cups'] ?? ''));
+
+            if ($codCups === '') {
+                continue;
+            }
+
+            $valorConsulta = $row['valor_consulta'] ?? null;
+            $valorUrgencias = $row['valor_urgencias'] ?? null;
+
+            if ($this->celdaVacia($valorConsulta) && $this->celdaVacia($valorUrgencias)) {
+                continue;
+            }
+
+            $actividad = trim((string) ($row['producto'] ?? ''));
+
+            $items[] = [
+                'codigo' => $codCups,
+                'valor_consulta' => (float) ($valorConsulta ?? 0),
+                'valor_urgencias' => (float) ($valorUrgencias ?? 0),
+                'fecha_ingreso' => $this->parseFechaIngreso($row['fecha_ingreso'] ?? null, $codCups),
+            ];
+
+            if (! isset($productosCache[$codCups]) && ! isset($faltantes[$codCups])) {
+                $faltantes[$codCups] = [
+                    'codigo' => $codCups,
+                    'actividad' => $actividad,
+                ];
+            }
+        }
+
+        if (empty($items)) {
+            throw new \Exception(
+                'No hay filas con valores diligenciados. Complete Valor Consulta o Valor Urgencias en las filas que vaya a importar.'
+            );
+        }
+
+        if (! empty($faltantes)) {
+            if (! $this->crearFaltantes) {
+                // Pre-validación: no importa nada, devuelve la lista al frontend
+                throw new CupsFaltantesException(array_values($faltantes));
+            }
+
+            // Crear los productos faltantes en el catálogo maestro
+            foreach ($faltantes as $f) {
+                $producto = ConfigProducto::create([
+                    'cod_cups' => $f['codigo'],
+                    'nom_produc' => $f['actividad'] !== '' ? $f['actividad'] : $f['codigo'],
+                    'requi_lectura' => 1,
+                    'estado' => 1,
+                ]);
+
+                $productosCache[$f['codigo']] = $producto->id;
+            }
+        }
+
+        // ── FASE 2: upsert de contratos_medicos ────────────────────────
+        // Mapa producto_id => contratos_productos.id configurados en este
+        // contrato. Los productos del catálogo que no estén en el contrato
+        // se crean en la misma transacción con valor_contrato = 0: la
+        // plantilla de detalle es la única vía de carga y la liquidación
+        // usa valor_consulta/valor_urgencias de contratos_medicos.
+        $mapaProductos = ContratoProducto::where('contrato_id', $this->contratoId)
+            ->pluck('id', 'producto_id')
+            ->toArray();
+
+        DB::transaction(function () use ($items, $productosCache, &$mapaProductos) {
+            foreach ($items as $item) {
+                $productoId = $productosCache[$item['codigo']];
+
+                if (! isset($mapaProductos[$productoId])) {
+                    $contratoProducto = ContratoProducto::create([
+                        'contrato_id' => $this->contratoId,
+                        'producto_id' => $productoId,
+                        'valor_contrato' => 0,
+                        'estado' => 1,
+                    ]);
+
+                    $mapaProductos[$productoId] = $contratoProducto->id;
+                }
+
+                ContratoMedico::updateOrCreate(
+                    [
+                        'contrato_id' => $this->contratoId,
+                        'medico_id' => $this->medicoId,
+                        'contratos_productos_id' => $mapaProductos[$productoId],
+                    ],
+                    [
+                        'valor_contrato' => 0,
+                        'valor_consulta' => $item['valor_consulta'],
+                        'valor_urgencias' => $item['valor_urgencias'],
+                        'fecha_ingreso' => $item['fecha_ingreso'],
+                        'estado' => 1,
+                    ]
+                );
+
+                $this->importados++;
+            }
+        });
+    }
+
+    /**
+     * Indica si una celda de valor llegó sin diligenciar.
+     *
+     * Excel devuelve null para celdas vacías y '' para celdas con espacio en
+     * blanco o texto vacío; ambos casos cuentan como "sin valor". El cero sí
+     * es un valor legítimo (lectura no pagada), por lo que solo los vacíos
+     * descartan la fila.
+     *
+     * @param  mixed  $valor  Valor crudo de la celda del Excel.
+     *
+     * @returns bool true si la celda está vacía.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-06
+     */
+    private function celdaVacia(mixed $valor): bool
+    {
+        if ($valor === null) {
+            return true;
+        }
+
+        return is_string($valor) && trim($valor) === '';
+    }
+
+    /**
+     * Normaliza la celda Fecha Ingreso a Y-m-d o null.
+     * Excel entrega fechas como celda vacía, texto o serial numérico:
+     * vacío → null, serial → Y-m-d vía ExcelDate, texto → Y-m-d vía
+     * Carbon::parse (mismo criterio de ContratoService::calcularDiffMedicos).
+     * Valor inválido → excepción dura como el CUPS no configurado en el contrato.
+     *
+     * @param  mixed  $valor  Valor crudo de la columna fecha_ingreso (ausente en plantillas viejas).
+     * @param  string  $codCups  Código CUPS de la fila, para el mensaje de error.
+     * @return string|null Fecha en Y-m-d o null si la celda viene vacía/ausente.
+     *
+     * @throws \Exception Si el valor no es una fecha válida.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-09-30
+     */
+    private function parseFechaIngreso(mixed $valor, string $codCups): ?string
+    {
+        if ($valor === null) {
+            return null;
+        }
+
+        if ($valor instanceof DateTimeInterface) {
+            return Carbon::instance($valor)->format('Y-m-d');
+        }
+
+        if (is_int($valor) || is_float($valor) || (is_string($valor) && is_numeric(trim($valor)))) {
+            try {
+                return ExcelDate::excelToDateTimeObject((float) $valor)->format('Y-m-d');
+            } catch (\Throwable $e) {
+                throw new \Exception(
+                    "Fecha Ingreso inválida '{$valor}' para el CUPS '{$codCups}'. Use formato Y-m-d o una fecha válida de Excel."
+                );
+            }
+        }
+
+        $texto = trim((string) $valor);
+
+        if ($texto === '') {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($texto)->format('Y-m-d');
+        } catch (\Throwable $e) {
+            throw new \Exception(
+                "Fecha Ingreso inválida '{$texto}' para el CUPS '{$codCups}'. Use formato Y-m-d o una fecha válida de Excel."
+            );
+        }
+    }
+}

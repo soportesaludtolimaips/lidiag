@@ -2,223 +2,141 @@
 
 namespace App\Exports;
 
+use App\Exports\Sheets\ProduccionDetalladaDetalleSheet;
+use App\Exports\Sheets\ProduccionDetalladaEstadisticasSheet;
+use App\Models\Configuracion\ConfigSede;
+use App\Models\User;
+use App\Services\Liquidacion\CruceFinancieroService;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithColumnWidths;
-use Maatwebsite\Excel\Concerns\WithCustomStartCell;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class ProduccionDetalladaExport implements FromCollection, WithColumnWidths, WithCustomStartCell, WithHeadings, WithMapping, WithStyles
+/**
+ * Libro Excel Multi-Hoja de Producción Detallada de Estudios Radiológicos.
+ *
+ * Flujo del proceso:
+ * 1. Recibe los filtros de consulta: rango de fechas ($fechaInicio, $fechaFin), $sedeId, $quienAsignoId y $medicoId.
+ * 2. Consulta y consolida la producción de estudios clínicos y productos una sola vez.
+ * 3. Compone un libro multi-hoja con:
+ *    - Hoja 1: Estadísticas y Gráficas (KPIs ejecutivos, tabla de modalidades diagnósticas, ranking de médicos y gráficos nativos).
+ *    - Hoja 2: Detalle de Producción (Listado completo de estudios con sus 19 columnas analíticas).
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-11-04
+ */
+class ProduccionDetalladaExport implements WithMultipleSheets
 {
-    protected $fechaInicio;
+    protected string $fechaInicio;
 
-    protected $fechaFin;
+    protected string $fechaFin;
 
-    protected $sedeId;
+    protected mixed $sedeId;
 
-    protected $quienAsignoId;
+    protected mixed $quienAsignoId;
 
-    protected $medicoId;
+    protected mixed $medicoId;
 
-    public function __construct($fechaInicio, $fechaFin, $sedeId, $quienAsignoId, $medicoId)
+    protected string $sedeNombre = "Todas las Sedes";
+
+    protected string $medicoNombre = "Todos los Médicos Radiólogos";
+
+    protected Collection $estudios;
+
+    /**
+     * Recibe los filtros del reporte de producción de estudios.
+     *
+     * @param  mixed  $fechaInicio  Fecha de inicio del rango.
+     * @param  mixed  $fechaFin  Fecha de fin del rango.
+     * @param  mixed  $sedeId  Identificador de la sede hospitalaria o null.
+     * @param  mixed  $quienAsignoId  Identificador del usuario asignador o null.
+     * @param  mixed  $medicoId  Identificador del médico radiólogo o null.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-04
+     */
+    public function __construct($fechaInicio, $fechaFin, $sedeId = null, $quienAsignoId = null, $medicoId = null)
     {
-        $this->fechaInicio = $fechaInicio;
-        $this->fechaFin = $fechaFin;
+        $this->fechaInicio = (string) $fechaInicio;
+        $this->fechaFin = (string) $fechaFin;
         $this->sedeId = $sedeId;
         $this->quienAsignoId = $quienAsignoId;
         $this->medicoId = $medicoId;
+
+        $this->resolverMetadatos();
+        $this->estudios = $this->consultarEstudiosProduccion();
     }
 
-    public function collection()
+    /**
+     * Resuelve los nombres descriptivos de sede y médico para encabezados ejecutivos.
+     *
+     * @returns void
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-04
+     */
+    protected function resolverMetadatos(): void
     {
-        $quien_asigno_id = $this->quienAsignoId;
-        $medico_id = $this->medicoId;
+        if (! empty($this->sedeId)) {
+            $sede = ConfigSede::find($this->sedeId);
+            if ($sede) {
+                $this->sedeNombre = (string) $sede->nom_sede;
+            }
+        }
 
-        $estudios = DB::table('estudios_productos')
-            ->join('estudios', 'estudios_productos.estudio_id', '=', 'estudios.id')
-            ->join('config_sedes', 'estudios.sede_id', '=', 'config_sedes.id')
-            ->join('config_prioridades', 'estudios.prioridad_id', '=', 'config_prioridades.id')
-            ->join('users as registro', 'estudios.quien_registro_id', '=', 'registro.id')
-            ->join('users as medico', 'medico.id', '=', 'estudios.medico_id')
-            ->join('pacientes', 'estudios.paciente_id', '=', 'pacientes.id')
-            ->leftJoin('users as transcrip', 'transcrip.id', '=', 'estudios_productos.transcriptor_id')
-            ->whereBetween(DB::raw('DATE(estudios_productos.fechor_lectura)'), [$this->fechaInicio, $this->fechaFin])
-            ->when($this->sedeId, function ($query) {
-                return $query->where('estudios.sede_id', $this->sedeId);
-            })
-            ->when($this->quienAsignoId, function ($query) use ($quien_asigno_id) {
-                return $query->where('estudios.quien_registro_id', $quien_asigno_id);
-            })
-            ->when($this->medicoId, function ($query) use ($medico_id) {
-                return $query->where('estudios.medico_id', $medico_id);
-            })
-            ->where('estudios_productos.activo', '=', 1)
-            ->select(
-                'estudios.id',
-                'config_sedes.nom_sede',
-                'estudios.fec_estudio',
-                'estudios_productos.created_at',
-                'estudios_productos.fechor_lectura',
-                'estudios.atencion',
-                'config_prioridades.nom_priori',
-                'registro.name as quien_registro',
-                'medico.name as medico',
-                'pacientes.num_docu',
-                'pacientes.nombres',
-                'estudios_productos.cod_cups',
-                'estudios_productos.nom_produc',
-                'transcrip.name as transcriptor',
-                'estudios.eps',
-                'estudios.contrato',
-                'estudios.plan',
-                DB::raw("(SELECT GROUP_CONCAT('- ', nom_diagnos SEPARATOR '\n')
-                            FROM estudios_diagnosticos
-                            WHERE estudio_id = estudios.id) as diagnosticos"),
-                'estudios_productos.lectura'
-            )
-            ->get();
-
-        return $estudios;
-        // return new Collection($estudios);
+        if (! empty($this->medicoId)) {
+            $medico = User::find($this->medicoId);
+            if ($medico) {
+                $this->medicoNombre = (string) $medico->name;
+            }
+        }
     }
 
-    public function headings(): array
+    /**
+     * Consulta y devuelve los estudios del reporte de producción valorados mediante el motor de cruce financiero.
+     *
+     * @returns Collection Registros de estudios productivos con métricas operativas y financieras.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-10
+     */
+    protected function consultarEstudiosProduccion(): Collection
     {
-        return [
-            'ID',
-            'Sede',
-            'Fecha de Estudio',
-            'Fecha de Asignacion',
-            'Fecha de Lectura',
-            'Atención',
-            'Prioridad',
-            'Quien Registró',
-            'Médico',
-            'Documento Paciente',
-            'Nombre Paciente',
-            'Código CUPS',
-            'Nombre Producto',
-            'Diagnostico',
-            'Transcriptor',
-            'EPS',
-            'Contrato',
-            'Plan',
-            'Lectura',
-        ];
+        return app(CruceFinancieroService::class)->consultarProduccionValorada(
+            $this->fechaInicio,
+            $this->fechaFin,
+            ! empty($this->sedeId) ? (int) $this->sedeId : null,
+            ! empty($this->quienAsignoId) ? (int) $this->quienAsignoId : null,
+            ! empty($this->medicoId) ? (int) $this->medicoId : null
+        );
     }
 
-    public function map($estudio): array
+    /**
+     * Define las hojas que conforman el libro Excel de producción.
+     *
+     * @returns array<int, object>
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-04
+     */
+    public function sheets(): array
     {
         return [
-            $estudio->id ?? 'N/A',
-            $estudio->nom_sede ?? 'N/A',
-            $estudio->fec_estudio ?? 'N/A',
-            $estudio->created_at ?? 'N/A',
-            $estudio->fechor_lectura ?? 'N/A',
-            $estudio->atencion ?? 'N/A',
-            $estudio->nom_priori ?? 'N/A',
-            $estudio->quien_registro ?? 'N/A',
-            $estudio->medico ?? 'N/A',
-            $estudio->num_docu ?? 'N/A',
-            $estudio->nombres ?? 'N/A',
-            $estudio->cod_cups ?? 'N/A',
-            $estudio->nom_produc ?? 'N/A',
-            $estudio->diagnosticos ?? 'N/A',
-            $estudio->transcriptor ?? 'N/A',
-            $estudio->eps ?? 'N/A',
-            $estudio->contrato ?? 'N/A',
-            $estudio->plan ?? 'N/A',
-            $estudio->lectura ?? 'N/A',
-
+            new ProduccionDetalladaEstadisticasSheet(
+                $this->estudios,
+                $this->sedeNombre,
+                $this->medicoNombre,
+                $this->fechaInicio,
+                $this->fechaFin,
+                $this->medicoId,
+                $this->sedeId
+            ),
+            new ProduccionDetalladaDetalleSheet(
+                $this->estudios
+            ),
         ];
-    }
-
-    public function styles(Worksheet $sheet)
-    {
-        // Agrega el encabezado personalizado
-        $sheet->setCellValue('A1', 'Salud Tolima - Reporte de Producción');
-        $sheet->mergeCells('A1:S1'); // A1 to P1 to include the new column
-        $sheet->getStyle('A1')->applyFromArray([
-            'font' => [
-                'bold' => true,
-                'color' => ['rgb' => 'FFFFFF'],
-                'size' => 14,
-            ],
-            'fill' => [
-                'fillType' => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '1A2274'],
-            ],
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-            ],
-        ]);
-
-        // Establece el estilo para el encabezado de los datos
-        $sheet->getStyle('A3:S3')->applyFromArray([
-            'font' => [
-                'bold' => true,
-                'color' => ['rgb' => 'FFFFFF'],
-            ],
-            'fill' => [
-                'fillType' => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '1A2274'],
-            ],
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-            ],
-        ]);
-
-        // Establece bordes para todas las celdas de datos
-        $sheet->getStyle('A4:S'.($sheet->getHighestRow()))->applyFromArray([
-            'borders' => [
-                'allBorders' => [
-                    'borderStyle' => Border::BORDER_THIN,
-                    'color' => ['rgb' => '000000'],
-                ],
-            ],
-        ]);
-
-        return [
-            1 => ['font' => ['bold' => true]],
-            3 => ['font' => ['bold' => true]], // Estilo para el encabezado de los datos
-        ];
-    }
-
-    public function columnWidths(): array
-    {
-        return [
-            'A' => 10,
-            'B' => 20, // Ancho para la columna de Sede
-            'C' => 18,
-            'D' => 18,
-            'E' => 18,
-            'F' => 9,
-            'G' => 9,
-            'H' => 20,
-            'I' => 25,
-            'J' => 20,
-            'K' => 30,
-            'L' => 12,
-            'M' => 30,
-            'N' => 30,
-            'O' => 25,
-            'P' => 35,
-            'Q' => 35,
-            'R' => 35,
-            'S' => 35,
-            'T' => 50,
-        ];
-    }
-
-    public function startCell(): string
-    {
-        return 'A3'; // Los datos comenzarán desde la celda A4
     }
 }

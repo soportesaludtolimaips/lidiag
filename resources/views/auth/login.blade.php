@@ -58,14 +58,15 @@
                         <img src="{{ asset('admin-wrap-login/assets/images/logo-text.png') }}" alt="Home" />
                     </a>
 
-                    @foreach ($errors->all() as $error)
-                        <div class="alert alert-warning">
-                            <i class="fa fa-ban">{{ $error }}</i>
+                    @if ($errors->any())
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            <i class="fa fa-exclamation-triangle mr-2"></i>
+                            {{ $errors->first() }}
                             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
-                    @endforeach
+                    @endif
 
                     <div class="form-group m-t-40">
                         <div class="col-xs-12">

@@ -46,11 +46,11 @@ Esto genera una URL como `https://xxx.trycloudflare.com`. Úsala en la configura
 
 ## Stack Tecnológico (resumen)
 
--   **Backend**: Laravel 10 (PHP >= 8.0.2), MySQL
--   **Frontend**: Vue 3 + Vite (Laravel Vite Plugin), Bootstrap 5
--   **Seguridad**: `spatie/laravel-permission` (roles/permisos)
--   **Integraciones**: HIS/SAHI (SQL Server), PACS Dcm4chee (MySQL multisede), Twilio (WhatsApp), generación de PDF/Excel (DomPDF / Maatwebsite Excel)
--   **Estándares Médicos / DICOM**: Modality Worklist (MWL) DICOM nativo, codificación binaria Little Endian Explicit VR y compresión zlib *Deflated Explicit VR Little Endian* (`1.2.840.10008.1.2.1.99`)
+-   **Backend**: Laravel 13 (PHP ^8.4), MySQL
+-   **Frontend**: Vue 3 + Vite (Laravel Vite Plugin), Bootstrap 5, Chart.js + vue-chartjs (analítica clínica)
+-   **Seguridad y Auditoría**: `spatie/laravel-permission` (roles/permisos), módulo de auditoría de eventos de usuario (`audit_logs` + `AuditLogger`), anonimización criptográfica SHA-256 de identificadores de pacientes (ISO/IEC 27001)
+-   **Integraciones**: HIS/SAHI (SQL Server), PACS Dcm4chee (MySQL multisede), Visores DICOM (Oviyam / OHIF), Twilio (WhatsApp), Telegram Bot API (Long-Polling desatendido y Webhook), generación de PDF/Excel (DomPDF / Maatwebsite Excel)
+-   **Estándares Médicos / DICOM**: Modality Worklist (MWL) DICOM nativo, codificación binaria Little Endian Explicit VR, compresión zlib *Deflated Explicit VR Little Endian* (`1.2.840.10008.1.2.1.99`), telemetría Edge de dosimetría radiológica (`pydicom`) con extracción de `CTDIvol`, `DLP`, `DGM` y `DAP` conforme a la Resolución 482 de 2018 (Colombia)
 -   **Autenticación API**: `auth:sanctum` (Sanctum stateful para SPA)
 -   **Multimedia**: FFmpeg (conversión/compresión de audios a MP3)
 -   **Transcripción de voz a texto**: Whisper (OpenAI) + FastAPI (servicio Python local, puerto 8001)
@@ -133,21 +133,52 @@ La aplicación está compuesta por los siguientes módulos especializados:
 
 ### 8. HelpDesk
 
-**Propósito:** Soporte técnico.
+**Propósito:** Gestión integral de soporte técnico e incidencias hospitalarias.
 
--   Módulo de uso interno para la gestión de tickets de soporte y requerimientos técnicos de la aplicación.
+-   **Folios Secuenciales por Sede:** Asignación automática de folio correlativo diario con formato estándar `SED-YYYYMMDD-#####` (ej. `ESP-20261029-00001`).
+-   **Ciclo de Vida y Transiciones Flexibles:** Máquina de estados con validación de transiciones entre `Abierto`, `En Progreso`, `Resuelto` y `Cerrado`, control de reapertura y registro de solución obligatoria.
+-   **Trazabilidad e Historial:** Registro detallado de comentarios, adjuntos, reasignaciones de agentes y cambios de estado con marcas de tiempo.
+-   **Dashboard de Analítica y Reportes:** Pantalla en `/helpdesk-reportes` con KPIs de tickets por sede, estado, categoría y tiempos de resolución, con filtros de fechas flexibles.
+-   **Centro de Notificaciones en Vivo:** Alertas en base de datos para solicitantes y personal técnico asignado.
+-   **UI y Rutas:** Pantallas web en `/helpdesk-tickets`, `/helpdesk-tickets/crear`, `/helpdesk-reportes`, `/helpdesk-notificaciones`, API en `/api/helpdesk-*`.
 
 ### 9. Configuración
 
--   Administración de parámetros generales del sistema, sedes, aseguradoras, y catálogos de servicios.
+-   Administración de parámetros generales del sistema, sedes hospitalarias, aseguradoras (EPS), y catálogos de servicios.
+-   Parametrización de HelpDesk (categorías, prioridades y estados).
+-   Configuración de plantillas de lectura, tipos de documentos, consentimientos informados y WhatsApp.
 
-### 10. Seguridad
+### 10. Seguridad y Auditoría
 
--   Gestión de usuarios, roles y permisos (basado en `spatie/laravel-permission`).
--   Control de acceso y auditoría.
+**Propósito:** Control de acceso, gobernanza y trazabilidad forense de eventos de usuario.
 
-<<<<<<< HEAD
-=======
+-   **Roles y Permisos:** Control de acceso granular basado en `spatie/laravel-permission` (guard `web`), con auditoría estricta (`php artisan permissions:audit`).
+-   **Módulo Centralizado de Auditoría (`/seguridad-auditoria`):**
+    -   Persistencia en tabla `audit_logs` mediante el helper institucional `AuditLogger`.
+    -   **Eventos de Autenticación:** `inicio_sesion`, `cierre_sesion`, `inicio_sesion_fallido` con captura de IP y User-Agent.
+    -   **Eventos Asistenciales de Estudios:** `asignar_estudio` (paciente, médico, prioridad), `lectura_estudio` (médico especialista), `transcripcion_estudio` (transcriptor clínico) y `anular_estudio`.
+    -   **Eventos de Citas y Agendamiento:** Creación, eliminación, `asignar_cita` (sede y fecha), `confirmar_cita`, `cancelar_cita` (con motivo), `cumplir_cita`, `inasistencia_cita` y `rechazar_cita`.
+    -   **Eventos de Soporte y Seguridad:** `cambio_estado_ticket`, `reasignar_ticket`, creación/edición de roles y sincronización de permisos.
+    -   **Filtros y Búsqueda Fulltext:** Filtrado por tipo de evento, usuario, rango de fechas y búsqueda textual por descripción, modelo, IP y nombre de usuario.
+    -   **Exportación:** Descarga de registros a Excel, CSV, PDF, Portapapeles e Impresión con DataTables.
+-   **UI y Rutas:** Pantallas web en `/seguridad.usuarios.listar`, `/seguridad.roles.listar`, `/seguridad.perfil`, `/seguridad-auditoria`, `/seguridad-backups`, `/seguridad-tokens`.
+
+#### 🔑 Gestor de Tokens por Sede para Agentes Edge (`/seguridad-tokens`)
+
+Módulo administrativo para la emisión, rotación segura y monitorización de credenciales de acceso API Sanctum utilizadas por los Agentes Edge distribuidos en los servidores hospitalarios (Backups de BD, Sincronización de Imágenes y Dosimetría Radiológica).
+
+**Paso a paso para generar y desplegar tokens por sede:**
+1. **Acceso:** En el menú lateral, dirígete a **Administración → Seguridad → Tokens de Sedes** (ruta `/seguridad-tokens`).
+2. **Localización:** En la tabla principal, identifica la sede hospitalaria deseada (ej. *Espinal - Hospital San Rafael*).
+3. **Generación / Rotación:**
+   - Haz clic en **`Generar`** si la sede no posee credenciales activas, o en **`Rotar`** si requieres revocar el token previo e instaurar uno nuevo (política de 1 token activo por sede).
+   - Confirma la acción en la ventana emergente de SweetAlert.
+4. **Descarga de Configuración:**
+   - En el modal de entrega, haz clic en **`Descargar config.json`** para obtener el archivo completo preconfigurado con el nuevo Bearer Token incrustado y los parámetros de red de la sede (o copia el token en texto plano con **`Copiar Token`**).
+   - *Nota:* Por seguridad criptográfica de Sanctum, este valor no volverá a mostrarse tras cerrar el modal.
+5. **Despliegue Local:** Copia el archivo en el servidor local de la sede dentro de `C:\agente_backups_dcm\config.json`.
+6. **Monitoreo en Tiempo Real:** Verifica en la tabla del panel central que los semáforos de las columnas **DB DCM**, **Img Dicom** y **Dosi** cambien a **`OK`** con sus respectivos tiempos de reporte.
+
 ### 11. Contratación
 
 **Propósito:** Tarifas por sede como fuente para la liquidación de pagos a médicos.
@@ -177,10 +208,82 @@ La aplicación está compuesta por los siguientes módulos especializados:
 -   **Accession Number Secuencial:** Generación automática de consecutivo diario por sede con formato `RX-YYYYMMDD-####`.
 -   **Codificación DICOM Estándar:** Empaquetamiento binario con cabecera File Meta Information y compresión nativa *Deflated Explicit VR Little Endian* (`1.2.840.10008.1.2.1.99`) vía `DicomDatasetBuilder`, garantizando la deserialización por parte del servicio Java de Dcm4chee.
 -   **Multisede 100% Dinámica:** Detección en vivo de los equipos/salas de adquisición registrados en la tabla `ae` de la sede correspondiente (`GET /api/pacientes/worklist-estaciones`). Cero valores fijos o hardcodeados; si la sede agrega o renombra una consola, LIDiag la refleja de inmediato.
--   **Trazabilidad y Cancelación:** Control de estado de órdenes (`PENDIENTE`, `CANCELADO`), prevención de duplicidad por `sps_id` único, y retiro de pacientes de la consola del equipo en caliente.
+-   **Auto-Reconciliación PACS Dcm4chee (Ciclo Cerrado):**
+    -   **Detección de Adquisición:** Monitoreo automatizado que cruza las órdenes pendientes con la tabla `study` del PACS de la sede. Al detectar las imágenes tomadas por el tecnólogo, transiciona la orden automáticamente a `ADQUIRIDO` (*Imágenes en PACS / Listo para Asignar*) y actualiza `sps_status = 1` (COMPLETED) en `pacsdb.mwl_item` para limpiar la consola del equipo.
+    -   **Auto-Cierre en Asignación:** Al asignar formalmente el estudio a un radiólogo en `/estudios/asignar`, la orden pasa a `COMPLETADO`.
+    -   **Feedback Visual Tricolor:** Badges semánticos en la tabla de pacientes (`🟡 En espera de Rayos X`, `🔵 Imágenes en PACS`, `🟢 Asignado a Lectura`).
+    -   **Acción Rápida:** Botón directo para navegar a Asignación de Estudios con 1 clic cuando las imágenes ya ingresaron al PACS.
+    -   **Botón Asistencial:** Botón *"Reconciliar PACS"* en cabecera para verificación manual bajo demanda (`POST /api/pacientes/worklist-reconciliar`).
+-   **Trazabilidad y Cancelación:** Control de estado de órdenes (`PENDIENTE`, `ADQUIRIDO`, `COMPLETADO`, `CANCELADO`), prevención de duplicidad por `sps_id` único, y retiro de pacientes de la consola del equipo en caliente.
 -   **UI y Rutas:** Pantalla web en `/pacientes/admision`, API en `/api/pacientes/*` (permisos `gestion.pacientes.*`). Documentación técnica en `docs/WORKLIST_FLUJO_DCM.md`.
 
->>>>>>> 01b98816 (feat(worklist): modulo de admision y modality worklist (MWL DICOM) multisede dinamico)
+### 14. Dosimetría y Control de Radiación (Resolución 482 de 2018 / ISO/IEC 27001)
+
+**Propósito:** Monitoreo automatizado Edge-to-Cloud de dosis de radiación ionizante, evaluación de Niveles de Referencia para Diagnóstico (NRD) y detección predictiva de derivas técnicas de tubos emisores por sede hospitalaria.
+
+-   **Modelo Edge-to-Cloud:** Agente desatendido en Python 3 (`agente_dosimetria.py`) que se ejecuta localmente en cada sede, consulta `pacsdb` de Dcm4chee y extrae los metadatos dosimétricos directamente desde las cabeceras DICOM sin saturar la red ni exponer puertos entrantes.
+-   **Seguridad de Grado Clínico (ISO 27001 / Ley 1581):** Anonimización irreversible del `PatientID` con hash HMAC-SHA256 salado (`dosimetria_salt` único por hospital) antes de transmitir; ninguna Información de Salud Protegida (PHI) viaja por la red ni se almacena en el servidor central, permitiendo calcular la dosis efectiva acumulada por paciente anónimo.
+-   **Métricas Multimodales:**
+    -   **Tomografía Computarizada (CT):** Índice de Dosis en TC por Volumen (`CTDIvol` en mGy) y Producto Dosis-Longitud (`DLP` en mGy·cm).
+    -   **Mamografía Digital (MG):** Dosis Glandular Media (`DGM` en mGy) y Entrada en Superficie (`ESD`).
+    -   **Radiografía Digital / Computarizada (DX / CR / XA):** Producto Dosis-Área (`DAP` / `KAP` en Gy·cm² o dGy·cm²).
+    -   **Dosis Efectiva Media ($E$ en mSv):** Cálculo automatizado basado en factores de ponderación tisular según la publicación ICRP 103 ($E = \text{DLP} \times k$).
+-   **Resiliencia y Tolerancia a Fallos:** Cola persistente transaccional SQLite local (`logs/cola_dosimetria.db`), transmisión HTTPS autenticada mediante Bearer Token Sanctum (`/api/dosimetria/registros`), reintentos con backoff exponencial y micro-lotes de 50 registros para evitar errores HTTP 429.
+-   **Detección Predictiva de Deriva Técnica (*Machine Drift Detection*):**
+    -   Algoritmo heurístico que compara ventanas temporales históricas dentro del período de consulta para alertar oportunamente sobre desgastes físicos del ánodo o descalibraciones del emisor (+20% de incremento).
+    -   **Calibración y Filtro de Suelo de Ruido (*Noise Floor*):** Descarte automático de topogramas, scouts y disparos residuales insignificantes (`CTDIvol < 1.0 mGy`, `DLP < 20 mGy·cm`, etc.) y exigencia de umbrales absolutos mínimos ($\Delta \ge 1.5\text{ mGy}$ en CT, $\Delta \ge 25\text{ mGy}\cdot\text{cm}$ en DLP) y al menos 3 disparos por ventana temporal, erradicando falsos positivos por sesgo de base pequeña.
+-   **Dashboard Analítico Institucional (Vue 3 + Chart.js con Estándar AdminWrap):**
+    -   **Header y Acciones Canónicas:** Ruta de navegación con `row page-titles`, botón de exportación a Excel y modal interactivo del Catálogo NRD regulatorio.
+    -   **Info-Boxes Superiores (Estilo `index.html`):** Tarjetas con indicadores `.display-6`, íconos temáticos (`icon-Target-Market`, `icon-Desktop-Monitor`, `icon-Contrast`, `icon-Pulse`) y micro-barras de progreso de 3px para Estudios Monitoreados, Equipos Emisores, Cumplimiento NRD y Dosis Efectiva Media ($E$).
+    -   **Monitor de Latidos Edge (*Dead Man's Switch*):** Panel de telemetría en vivo con badges `.label.label-rounded` para supervisar la conectividad continua de los agentes en cada hospital.
+    -   **Alertas Semánticas de Radioprotección:** Paneles nativos `.alert.alert-danger` y `.alert.alert-warning` ante superaciones de NRD o advertencias de deriva técnica con delta absoluto y porcentual.
+    -   **Gráficos Clínicos Comparativos:** Gráfico de barras de Dosis Medida vs Límite NRD por sede, gráfico de dona de Conformidad Normativa (Seguro, Alerta, Crítico), gráfico de líneas de Tendencia Mensual (ALARA) y dona de Distribución por Modalidad.
+    -   **Ranking de Equipos Emisores (Estilo "Projects of the Month"):** Tabla estructurada con `.table.vm.no-th-brd.pro-of-month`, avatares circulares `.round`, estado clínico y dosis media por emisor.
+    -   **Timeline de Auditoría Clínica (Estilo "Today's Schedule"):** Línea de tiempo interactiva con `.steamline` y `.sl-item` para trazabilidad de informes RDSR y eventos.
+    -   **Tabla Maestra de Mediciones:** Historial reciente de muestreo con identificador anonimizado HMAC, parámetros técnicos ($kV_p$, $mA$, $ms$) y estado de verificación.
+-   **UI y Rutas:** Pantalla web en `/dosimetria/dashboard`, API en `/api/dosimetria/*` (permisos `dosimetria.*`).
+-   **Documentación Especializada:** Manuales dedicados en `storage/app_lidiag/agente_backups_dcm/README_DOSIMETRIA.md` e informe para proveedores en `storage/app_lidiag/agente_backups_dcm/INFORME_TECNICO_DOSIMETRIA_PROVEEDORES.md`.
+
+### 15. Tele-Radiología
+
+**Propósito:** Flujo de trabajo para asignación, descarga y lectura deslocalizada de estudios entre sedes remotas y especialistas externos.
+
+-   **Asignación Deslocalizada:** Distribución de estudios a médicos radiólogos remotos con destino configurable (`Tele-Radiología`).
+-   **Transcripción y Notificación Remota:** Pantallas especializadas para transcripción a distancia (`/tele-radiologia-transcribir`) y visualización de cola de trabajo remota (`/tele-radiologia`).
+-   **Integración con Plantillas Word/PDF:** Sincronización de formatos institucionales de reporte según la sede de origen.
+-   **UI y Rutas:** Pantallas web en `/tele-radiologia` y `/tele-radiologia-transcribir`.
+
+### 16. Bot de Telegram & Telemetría Asistencial (`@salud_tolima_bot`)
+
+**Propósito:** Canal móvil bidireccional y automatizado para monitoreo asistencial, alertas operativas y telemetría de sedes hospitalarias.
+
+-   **Modo Dual (Long-Polling / Webhook):**
+    -   *Long-Polling desatendido:* `php artisan telegram:poll` con resiliencia y auto-reinicio ante cortes de red. Óptimo para servidores Windows detrás de firewalls o sin certificado intermedio.
+    -   *Webhook HTTPS:* Endpoint en `/api/telegram/webhook` con verificación de secreto criptográfico.
+-   **Seguridad de Acceso:** Lista blanca institucional estricta mediante `TELEGRAM_ALLOWED_CHAT_IDS`.
+-   **Comandos Interactivos:**
+    -   `/start`: Menú interactivo de opciones y estado del bot.
+    -   `/retrasados`: Semáforo asistencial de estudios prioritarios que exceden el tiempo límite de lectura.
+    -   `/sedes`: Telemetría operativa y carga de trabajo agrupada por sede hospitalaria.
+    -   `/resumen` / `wiz:red:hoy`: Resumen ejecutivo consolidado del día.
+-   **Daily Digest Matutino:** Despacho automatizado a las 07:30 AM (`php artisan telegram:daily-digest`) con los indicadores clave del día.
+-   **Automatización Windows (Servicio 24/7):** Scripts por lotes para Windows Task Scheduler (`instalar_tarea_telegram_bot.bat`, `ejecutar_telegram_bot.bat`, `detener_tarea_telegram_bot.bat`).
+
+### 17. Monitoreo de Backups en Tiempo Real
+
+**Propósito:** Supervisión centralizada de la integridad y vigencia de las copias de seguridad de todas las sedes hospitalarias.
+
+-   **Telemetría de Sedes:** Monitoreo en `/seguridad-backups` del estado de los respaldos locales de `pacsdb` y almacenamiento clínico.
+-   **Verificación Criptográfica:** Validación de hashes SHA-256 e integridad ZIP de cada respaldo generado.
+-   **Ejecución Manual:** Capacidad de forzar copias de seguridad inmediatas bajo demanda.
+
+### 18. Visores Diagnósticos Web (Oviyam y OHIF Viewer)
+
+**Propósito:** Visualización de estudios e imágenes médicas DICOM en navegadores web sin requerir instalación de software cliente.
+
+-   **Oviyam:** Integración nativa con Dcm4chee para visualización en pestaña auxiliar (`tap_oviyam`).
+-   **OHIF Viewer:** Servicio preparado para visualización DICOM web zero-footprint de series multimodales.
+
 ---
 
 ## Comandos Personalizados (Console Commands)
@@ -239,9 +342,131 @@ php artisan sync:dicom-ecografias
 -   **Productos:** Actualiza el listado de procedimientos (CUPS).
 -   **Ecografías:** Migra el historial de lecturas, asociándolas a pacientes, médicos y atenciones correspondientes.
 
+### Sistema de Backups Automáticos Separados (BD y Storage)
+
+```bash
+# Respaldo completo (Base de Datos MySQL + 16 carpetas de Storage clínico)
+php artisan lidiag:backup
+
+# Respaldo solo de Base de Datos MySQL
+php artisan lidiag:backup --only-db
+
+# Respaldo solo de archivos clínicos de Storage
+php artisan lidiag:backup --only-files
+
+# Personalizar ruta de destino y retención (días)
+php artisan lidiag:backup --destination="D:\Backups" --retention=60
+```
+
+**Descripción:** Genera respaldos independientes en archivos `.zip` dentro de `C:\Backups_Lidiag` (`backup_lidiag_db_*.zip` y `backup_lidiag_storage_*.zip`) para desacoplar escalabilidad, evitar corrupción de archivos masivos, verificar integridad interna ZIP (`ZipArchive::CHECKCONS`), generar checksums criptográficos SHA-256 (`.sha256`), emitir manifiestos de salud (`backup_manifest.json`) y purgar automáticamente copias con más de 30 días de antigüedad.
+
+### Sistema de Backups de Bases de Datos DCM / PACS por Sedes
+
+Para las bases de datos de imágenes de los hospitales remotos (bases de datos de gran tamaño, >47 GB combinados), se implementó una **arquitectura local descentralizada** para máxima velocidad y sincronización desatendida hacia el NAS QNAP:
+
+#### 1. Agente Local en cada Servidor Hospitalario (`storage/app_lidiag/agente_backups_dcm/`):
+- **Script en Python 3 puro:** `storage/app_lidiag/agente_backups_dcm/backup_dcm_agent.py` (sin dependencias `pip`).
+- **Ruta de destino:** `C:\backups_dcm\` (sincronizada automáticamente por el cliente **Qsync de QNAP** hacia el almacenamiento NAS).
+- **Protección PACS y disco:** Pre-flight check de espacio libre en disco, `--hex-blob` y `--max_allowed_packet=512M`.
+- **Compresión e Integridad:** Vuelca `pacsdb` a velocidad de disco SSD local, comprime a `.zip`, valida integridad CRC32 interna (`testzip`), genera hash SHA-256 (`.sha256`) y emite manifiesto de telemetría (`backup_status_sede_{id}.json`).
+- **Purga de retención:** Elimina automáticamente de `C:\backups_dcm` los respaldos y hashes con más de **30 días**.
+- **Instalación en 1 clic:** Incluye `storage/app_lidiag/agente_backups_dcm/instalar_tarea_programada.bat` para registrar la tarea `LIDiag_Local_DCM_Backup` en el Programador de Tareas de Windows a las **02:00 AM** con permisos `SYSTEM`.
+- **Paquetes listos para distribución:** Disponibles en `storage/app_lidiag/agente_backups_dcm.rar` y `.zip`.
+
+```bash
+# Ejecución manual del agente en el servidor DCM
+python backup_dcm_agent.py --config config.json
+```
+
+#### 2. Respaldo Central vía Red (Fallback):
+```bash
+# Respaldar todas las sedes activas vía TCP directo
+php artisan lidiag:backup-dcm
+
+# Respaldar una sede específica por su ID
+php artisan lidiag:backup-dcm --sede=1
+
+# Ajustar timeout de volcado (segundos) y días de retención
+php artisan lidiag:backup-dcm --timeout=600 --retention=45
+```
+
+### Sincronización de Estudios al Portal de Pacientes (`lidiag-reportes`)
+
+Permite la transmisión masiva o individual de estudios radiológicos transcritos hacia el microservicio externo del portal de pacientes (`lidiag-reportes`), emitiendo el PDF clínico oficial generado mediante la plantilla de la sede y firmando digitalmente la solicitud con HMAC SHA-256 (`/api/almacenarLectura`).
+
+```bash
+# Simular ejecución sin generar PDFs ni transferir (dry-run)
+php artisan lidiag:enviar-paciente --dry-run --limite=10
+
+# Filtrar por rango de fechas de transcripción
+php artisan lidiag:enviar-paciente --desde=2026-10-01 --hasta=2026-10-15
+
+# Filtrar por sede hospitalaria específica con límite
+php artisan lidiag:enviar-paciente --sede=1 --limite=50
+
+# Enviar un único estudio_producto por su ID (pruebas / reintentos puntuales)
+php artisan lidiag:enviar-paciente --id=257022
+
+# Reintentar únicamente los estudios fallidos desde archivo .txt generado automáticamente
+php artisan lidiag:enviar-paciente --reintentar="storage/logs/sync_fallidos_2026-09-01_al_2026-09-07_154500.txt"
+```
+
+**Parámetros:**
+- `--desde=YYYY-MM-DD`: Fecha de transcripción inicial (`estudios_productos.fechor_trascrito`).
+- `--hasta=YYYY-MM-DD`: Fecha de transcripción final.
+- `--sede=ID`: Filtro por ID de la sede hospitalaria (`config_sedes.id`).
+- `--limite=N`: Límite máximo de estudios a procesar en el lote.
+- `--id=ID`: ID específico de `estudio_producto` a sincronizar.
+- `--reintentar=RUTA`: Ruta del archivo `.txt` con los estudios fallidos para reintentar únicamente dichos IDs tras corregir contingencias (plantillas, red, etc.).
+- `--dry-run`: Modo de simulación previa que valida la existencia de plantillas, sedes y formato sin invocar LibreOffice ni transferir por red.
+
+### Reconciliación de Órdenes Modality Worklist (MWL vs PACS Dcm4chee)
+
+Cruza automáticamente las órdenes activas en LIDiag con la tabla `study` de Dcm4chee para detectar cuándo las imágenes tomadas por el equipo de Rayos X han ingresado al PACS, actualizando el estado de la orden a `ADQUIRIDO` y marcándola como completada en `mwl_item` de la consola de la sala.
+
+```bash
+# Reconciliar todas las órdenes pendientes en todas las sedes con PACS
+php artisan worklist:reconcile
+
+# Reconciliar una sede hospitalaria específica por su ID
+php artisan worklist:reconcile --sede=1
+```
+
+**Parámetros:**
+- `--sede=ID`: Filtro opcional por ID de la sede hospitalaria (`config_sedes.id`). Si se omite, evalúa todas las sedes activas con parámetros de conexión PACS válidos.
+
+### Bot de Telegram y Telemetría (`@salud_tolima_bot`)
+
+Permite la operación móvil desatendida del bot de Telegram para monitoreo de estudios, alertas asistenciales y consultas operativas.
+
+```bash
+# Iniciar el bot en modo Long-Polling continuo (ideal para entornos locales y producción)
+php artisan telegram:poll
+
+# Procesar una única iteración de mensajes pendientes y salir (pruebas y depuración)
+php artisan telegram:poll --once
+
+# Ejecutar el despacho matutino de resumen y semáforo asistencial (Daily Digest)
+php artisan telegram:daily-digest
+```
+
+### Automatización en Windows (Task Scheduler)
+
+El proyecto incluye scripts por lotes para programar tareas desatendidas:
+1. **Agente Bot de Telegram (`instalar_tarea_telegram_bot.bat`):**
+   - Registra la tarea programada `LIDiag_Telegram_Bot` en Windows con inicio automático al arrancar el sistema (`/sc ONSTART /ru "SYSTEM" /rl HIGHEST`).
+   - `ejecutar_telegram_bot.bat`: Bucle de resiliencia con autodetección de PHP y volcado de logs a `storage/logs/telegram_bot.log`.
+   - `detener_tarea_telegram_bot.bat`: Detiene el bot y limpia procesos huérfanos.
+2. **En Servidor Central LIDiag (`storage/app_lidiag/agente_backups_dcm/programar_tarea_backup.bat`):**
+   - `LIDiag_Daily_Backup`: Respaldo central de Base de Datos y Storage clínico a las **02:00 AM**.
+   - `LIDiag_Daily_Backup_DCM`: Tarea central programada a las **02:30 AM** como respaldo secundario.
+3. **En Servidores de Hospitales DCM (`storage/app_lidiag/agente_backups_dcm/instalar_tarea_programada.bat`):**
+   - `LIDiag_Local_DCM_Backup`: Ejecución local a las **02:00 AM** generando el `.zip` en `C:\backups_dcm` para sincronización con **QNAP Qsync**.
+
+
 ### Rate limiting (API / Login)
 
-Por defecto (ver `app/Providers/RouteServiceProvider.php`):
+Por defecto (ver `app/Providers/AppServiceProvider.php`):
 
 -   **API**: 60 requests/minuto por usuario autenticado (o por IP si no hay usuario).
 -   **Login**: 10 intentos/minuto por combinación email+IP (`throttle:login` en `POST /login`).
@@ -373,15 +598,20 @@ El sistema utiliza varios servicios de terceros configurados en el archivo `.env
     -   Usado en flujos de generación de reportes a partir de plantillas Word (por ejemplo, en `PlantillaEstudioController`).
     -   En este repositorio hay utilidades en `Documentos/` relacionadas con `unoconv`. En producción normalmente se instala LibreOffice y se expone `unoconv` en PATH (o se ajusta el comando/ruta).
 
--   **Speech-to-text (Whisper + FastAPI)**:
-    -   Servicio Python independiente (`storage/transcriptor/`) que expone un endpoint HTTP en el puerto 8001.
-    -   Recibe archivos de audio desde Laravel, los transcribe usando Whisper (modelo base, CPU) y devuelve el texto.
-    -   Configuración: `TRANSCRIPTOR_SERVICE_URL` (por defecto `http://localhost:8001`).
-    -   Instalación: `cd storage/transcriptor && pip install -r requirements.txt`
-    -   Inicio: `python main.py` (o ejecutar `start.bat` en Windows).
+-   **Bot de Telegram (`@salud_tolima_bot`)**:
+    -   Servicio de telemetría y consultas asistenciales móviles.
+    -   Opera bajo Long-Polling con `php artisan telegram:poll` o vía Webhook en `/api/telegram/webhook`.
+    -   Configuración en `.env`: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ALLOWED_CHAT_IDS`, `TELEGRAM_WEBHOOK_URL`, `TELEGRAM_SSL_VERIFY`.
+    -   Servicio desatendido 24/7 en Windows con `instalar_tarea_telegram_bot.bat`.
 
 -   **Servicio externo de reportes (`URL_API_REPORTES`, `PASSWORD_API_REPORTES`)**:
     -   Variables usadas por flujos de notificación/reportes (revisar `.env` en cada entorno).
+
+-   **Sistema de Backups DCM / PACS por Sedes (`storage/app_lidiag/agente_backups_dcm/`)**:
+    -   **Agente en Python 3 puro** sin dependencias externas (`backup_dcm_agent.py`) desplegado en el servidor local de cada hospital o sede.
+    -   Ejecuta el volcado local de `pacsdb` a velocidad de disco SSD, lo comprime a ZIP in situ en `C:\backups_dcm` para sincronización con **QNAP Qsync**, verifica integridad interna CRC32, genera checksum SHA-256 y emite manifiesto de telemetría.
+    -   Documentación y manual de automatización completo en: `storage/app_lidiag/agente_backups_dcm/README.md`.
+    -   Paquetes comprimidos listos para distribución en: `storage/app_lidiag/agente_backups_dcm.rar` y `.zip`.
 
 ---
 
@@ -396,7 +626,10 @@ A continuación, una guía rápida de las ubicaciones clave en el código fuente
 -   **Rutas**:
     -   `routes/web.php`: pantallas Blade (MPA) con `auth` + `permission:...` (Spatie).
     -   `routes/api_*.php`: endpoints API por módulo (generalmente bajo `auth:sanctum`).
-    -   Registro centralizado: `app/Providers/RouteServiceProvider.php` (incluye `api_configuracion`, `api_estudios`, `api_ecografias`, `api_seguridad`, `api_interfaces`, `api_agendamiento_dashboard`, `api_helpdesk`).
+    -   Registro centralizado: `bootstrap/app.php` (incluye `api_configuracion`,
+        `api_estudios`, `api_ecografias`, `api_seguridad`, `api_interfaces`,
+        `api_agendamiento_dashboard`, `api_helpdesk`, `api_contratacion`,
+        `api_liquidacion`).
 
 -   **Modelos de Datos**:
 
@@ -475,6 +708,23 @@ El frontend está organizado como **componentes Vue montados en vistas Blade**. 
 - `resources/js/helpers/voice/*`: helpers para captura/dictado/voz.
 - `resources/js/data/*`: archivos de datos (por ejemplo diccionarios/reemplazos médicos usados en transcripción).
 
+### Sistema de Experiencia de Usuario y Ergonomía Clínica (UI/UX)
+
+El frontend integra un sistema de diseño clínico orientado a la alta productividad médica y el uso en salas oscuras de radiología:
+
+-   **Skeleton Loaders con Shimmer (`TableSkeletonLoader.vue`):** Reemplazo de spinners intrusivos por esqueletos de carga animados que previenen saltos visuales (Cumulative Layout Shift, CLS = 0) en tablas de Estudios, Citas y Ecografías.
+-   **Centro de Notificaciones en Topbar (`userProfileAndSearchComponent.vue`):** Campana unificada con dropdown interactivo y selector por pestañas (`[ Todas | Citas | Helpdesk ]`) que consolida en tiempo real solicitudes asistenciales de WhatsApp y tickets técnicos, con auto-dismiss y polling inteligente respetando el foco de la pestaña (`document.hidden`).
+-   **Notificaciones No Invasivas (`toastMessage` en `alerts.js`):** Mensajes flotantes con auto-cierre a 3500ms para operaciones rutinarias de guardado o actualización, eliminando popups modales bloqueantes.
+-   **Validación Visual Inline (`useFormValidation.js`):** Feedback visual en tiempo real en formularios asistenciales con estados semánticos (`.is-invalid`, `.is-valid`, `.invalid-feedback`) validados tanto al desenfocar (`touched`) como al corregir.
+-   **Atajos de Teclado Clínicos y Accesibilidad (`useKeyboardShortcuts.js`):**
+    -   `Ctrl+S` / `Cmd+S`: Guardado y aprobación rápida de informes y citas asistenciales (Estudios, Ecografías y Citas) con cancelación de la acción nativa de descarga HTML del navegador y protección de concurrencia.
+    -   `Escape`: Cierre ágil y ordenado de paneles laterales y modales activos.
+    -   `F2`: Alternar dictado por voz y reconocimiento Whisper tanto en Estudios como en Ecografías.
+    -   **Puente WYSIWYG (`WysiwygEditor.vue`):** Reenvío sintético de teclas desde el `iframe` de edición hacia `window` para guardar sin abandonar el editor.
+    -   **Foco Accesible (`a11y`):** Autofoco automático reactivo en el primer campo interactivo de cada formulario y modal.
+-   **Transición Suave y Backdrop Overlay Desacoplador:** Eliminación del parpadeo abrupto de `display: none/block` en paneles laterales (`.right-sidebar`) con aceleración ergonómica `cubic-bezier(0.16, 1, 0.3, 1)` a 350ms, fondos atenuados (`.sidebar-backdrop`) con `backdrop-filter: blur(2px)` y modales con cierre exterior (`@click.self`), unificando anchos responsivos en Estudios, Ecografías y Citas.
+-   **Modo Oscuro Radiológico (`resources/css/dark-theme.css`):** Paleta de colores *Slate Clínico* de alto contraste optimizada para minimizar la fatiga visual en estaciones diagnósticas PACS/RIS.
+
 ## Storage / Filesystems (detalle)
 
 Además de `public`, el proyecto define múltiples discos públicos (driver `local`) en `config/filesystems.php`:
@@ -492,9 +742,13 @@ Además de `public`, el proyecto define múltiples discos públicos (driver `loc
 
 Al ejecutar `php artisan storage:link` se crean symlinks en `public/` para cada uno (por eso es un paso obligatorio en local/producción).
 
-## Documentación del Código
+## Documentación del Código y Roadmap
 
-El proyecto cuenta con documentación detallada para facilitar el mantenimiento y comprensión del código:
+El proyecto cuenta con documentación detallada para facilitar el mantenimiento, la comprensión técnica y la evolución estratégica del sistema:
+
+### Roadmap Estratégico y Arquitectura Futura
+
+-   **[`ROADMAP.md`](ROADMAP.md)**: Plan maestro de arquitectura de software y estrategia de producto médico. Incluye matriz de impacto vs. esfuerzo, optimizaciones de resiliencia (Outbox, Circuit Breaker), protección de datos de salud (PHI / ISO 27001), innovaciones asistenciales (IA, hallazgos críticos, informes estructurados RSNA, visor OHIF) y cronograma de fases PHVA.
 
 ### Estándares de Codificación
 
@@ -528,7 +782,7 @@ Siga estos pasos para desplegar la aplicación en un entorno local o de producci
 
 ### Requisitos Previos
 
--   **PHP**: >= 8.0.2
+-   **PHP**: ^8.4 (ver `composer.json`)
 -   **Composer**
 -   **Servidor Web**: Apache o Nginx
 -   **Base de Datos**: MySQL (Principal) y SQL Server (Integraciones opcionales)
@@ -648,9 +902,10 @@ Además de `APP_*`, las variables más importantes que suelen requerir ajuste so
 -   **Migración/importación (si aplica)**: `DB_CONNECTION_IMPORTAR`, `DB_HOST_IMPORTAR`, `DB_DATABASE_IMPORTAR`, etc.
 -   **HIS/SAHI (SQL Server)**: `DB_CONNECTION_SQLSRV=sqlsrv`, `DB_HOST_SQLSRV`, `DB_DATABASE_SQLSRV`, `DB_USERNAME_SQLSRV`, `DB_PASSWORD_SQLSRV`
 -   **Twilio (WhatsApp)**: `TWILIO_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_NUMBER`
+-   **Telegram Bot**: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ALLOWED_CHAT_IDS` (IDs separados por coma), `TELEGRAM_WEBHOOK_URL`, `TELEGRAM_SSL_VERIFY`
 -   **Servicio externo de reportes**: `URL_API_REPORTES`, `PASSWORD_API_REPORTES`
 -   **FFmpeg/FFprobe (audios)**: `FFMPEG_BINARIES`, `FFPROBE_BINARIES` (ver sección de FFmpeg arriba)
--   **Transcripción Whisper**: `TRANSCRIPTOR_SERVICE_URL`, `TRANSCRIPTOR_TIMEOUT` (ver sección de transcripción abajo)
+-   **Transcripción Whisper**: `TRANSCRIPTOR_SERVICE_URL`, `TRANSCRIPTOR_TIMEOUT` (ver sección de transcripción arriba)
 
 > Nota: este repositorio incluye `.env.example` como referencia. **No uses credenciales reales** allí (y evita subir secretos al repositorio). Si vas a compartir/publicar el proyecto, revisa y sanitiza `.env.example` para que solo tenga placeholders.
 
@@ -670,8 +925,26 @@ En Laragon, normalmente accederás por tu vhost, por ejemplo `https://lidiag.tes
 
 ## Colas (Queue) y Scheduler
 
-- En `.env` el valor típico es `QUEUE_CONNECTION=sync` (ejecución síncrona).
-- `app/Console/Kernel.php` no tiene tareas programadas por defecto (scheduler vacío).
+- **Colas:** En `.env` el valor típico en desarrollo es `QUEUE_CONNECTION=sync` (ejecución síncrona).
+- **Scheduler de Laravel (`routes/console.php`):**
+  Las tareas programadas se gestionan de forma centralizada y protegida contra solapamiento (`withoutOverlapping()`):
+
+| Frecuencia | Comando | Propósito |
+|------------|---------|-----------|
+| **Cada 5 min** | `worklist:reconcile` | Auto-reconciliación de órdenes Modality Worklist (MWL) contra tabla `study` en Dcm4chee |
+| **Cada 10 min** | `ecografias:sahi-reconcile --minutes=10 --limit=200` | Reconciliación bidireccional de estados de ecografías con SAHI |
+| **Cada 10 min** | `citas:notificar-2h` | Recordatorios automáticos de citas próximas (2h antes) vía WhatsApp |
+| **Diario 07:30 AM** | `telegram:daily-digest` | Despacho ejecutivo matutino de resumen y semáforo asistencial a Telegram |
+| **Diario 08:00 AM** | `citas:notificar` | Notificaciones matutinas de citas del día vía WhatsApp |
+| **Diario 02:00 AM** | `lidiag:backup` | Respaldo automático de Base de Datos MySQL y las 16 carpetas de Storage clínico |
+| **Diario 02:30 AM** | `lidiag:backup-dcm` | Respaldo automático de bases de datos DCM/PACS por sede |
+| **Cada hora** | `sessions:prune --hours=24 --user-hours=168` | Purga de sesiones inactivas |
+| **Diario** | `notifications:prune --days=90` | Purga de notificaciones con más de 90 días |
+
+Para ejecutar el scheduler en entornos de producción (Linux cron o Windows Task Scheduler):
+```bash
+php artisan schedule:run
+```
 
 ## Solución de Problemas (Troubleshooting)
 

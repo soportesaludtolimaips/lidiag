@@ -19,16 +19,43 @@ class ConsentimientoInformado extends Model
         'estado',
     ];
 
+    /**
+     * Producto al que aplica el consentimiento.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function producto()
     {
         return $this->belongsTo(ConfigProducto::class, 'producto_id');
     }
 
+    /**
+     * Sede a la que pertenece el consentimiento.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function sede()
     {
         return $this->belongsTo(ConfigSede::class, 'sede_id');
     }
 
+    /**
+     * Usuario que creó el consentimiento.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function usuarioCrea()
     {
         return $this->belongsTo(User::class, 'usuario_crea_id');

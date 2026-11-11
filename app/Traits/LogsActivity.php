@@ -7,6 +7,16 @@ use Illuminate\Support\Facades\Auth;
 
 trait LogsActivity
 {
+    /**
+     * Registra los escuchadores de eventos del modelo en el arranque del trait.
+     *
+     * Asocia los eventos created, updated y deleted con la escritura del
+     * registro de actividad.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected static function bootLogsActivity(): void
     {
         $events = ['created', 'updated', 'deleted'];
@@ -17,6 +27,15 @@ trait LogsActivity
         }
     }
 
+    /**
+     * Guarda en activity_log los valores anterior y nuevo del evento.
+     *
+     * @param  string  $event  Evento ocurrido (created, updated o deleted).
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function logActivity(string $event): void
     {
         if (! Auth::check()) {

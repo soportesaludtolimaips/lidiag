@@ -1,0 +1,1035 @@
+<template>
+    <div>
+        <!-- BREADCRUMB -->
+        <div class="row page-titles">
+            <div class="col-md-5 align-self-center">
+                <h3 class="text-themecolor">Liquidación</h3>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <router-link to="/">Inicio</router-link>
+                    </li>
+                    <li class="breadcrumb-item active">Liquidación</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- FILTROS -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">Filtros de liquidación</h4>
+                        <h6 class="card-subtitle">
+                            Seleccione la sede y el rango de fechas a liquidar. Ambas fechas son
+                            obligatorias. Contrato y médico son opcionales para acotar.
+                        </h6>
+                        <form @submit.prevent="calcular">
+                            <div class="row m-t-20">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="liq-sede">Sede</label>
+                                        <select
+                                            id="liq-sede"
+                                            v-model="filtros.sede_id"
+                                            class="form-control custom-select"
+                                            :disabled="loadingSedes"
+                                            @change="alCambiarSede"
+                                        >
+                                            <option value="">
+                                                ...::: Seleccione una sede :::...
+                                            </option>
+                                            <option
+                                                v-for="sede in sedes"
+                                                :key="sede.id"
+                                                :value="sede.id"
+                                            >
+                                                {{ sede.nom_sede }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="liq-contrato">Contrato (opcional)</label>
+                                        <select
+                                            id="liq-contrato"
+                                            v-model="filtros.contrato_id"
+                                            class="form-control custom-select"
+                                            :disabled="!filtros.sede_id || loadingContratos"
+                                        >
+                                            <option value="">...::: Todos :::...</option>
+                                            <option
+                                                v-for="c in contratos"
+                                                :key="c.id"
+                                                :value="c.id"
+                                            >
+                                                {{ etiquetaContrato(c) }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="liq-medico">Médico (opcional)</label>
+                                        <select
+                                            id="liq-medico"
+                                            v-model="filtros.medico_id"
+                                            class="form-control custom-select"
+                                            :disabled="loadingMedicos"
+                                        >
+                                            <option value="">...::: Todos :::...</option>
+                                            <option v-for="m in medicos" :key="m.id" :value="m.id">
+                                                {{ etiquetaMedico(m) }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row m-t-10">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="liq-inicio">Fecha inicio</label>
+                                        <input
+                                            id="liq-inicio"
+                                            v-model="filtros.fecha_inicio"
+                                            type="date"
+                                            class="form-control"
+                                            @keyup.enter="calcular"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="liq-fin">Fecha fin</label>
+                                        <input
+                                            id="liq-fin"
+                                            v-model="filtros.fecha_fin"
+                                            type="date"
+                                            class="form-control"
+                                            @keyup.enter="calcular"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="d-none d-md-block">&nbsp;</label>
+                                        <div>
+                                            <button
+                                                type="submit"
+                                                class="btn btn-info m-r-5"
+                                                :disabled="loading"
+                                                title="Calcular liquidación"
+                                            >
+                                                <i
+                                                    class="fa"
+                                                    :class="
+                                                        loading
+                                                            ? 'fa-spinner fa-spin'
+                                                            : 'fa-calculator'
+                                                    "
+                                                ></i>
+                                                {{ loading ? "Calculando..." : "Calcular" }}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn btn-success"
+                                                :disabled="loading || !resultado?.lineas?.length"
+                                                @click="exportar"
+                                                title="Exportar liquidación a Excel"
+                                            >
+                                                <i class="fa fa-file-excel-o m-r-5"></i>
+                                                Excel
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SKELETON LOADER -->
+        <div v-if="loading" class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <table-skeleton-loader :rows="6" :columns="7" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESULTADOS -->
+        <div v-else-if="resultado" class="row">
+            <!-- LÍNEAS -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            Líneas liquidables
+                            <span class="badge badge-info m-l-5">{{ lineas.length }}</span>
+                        </h4>
+                        <div v-if="!lineas.length" class="m-t-20">
+                            <empty-state-component
+                                title="Sin líneas liquidables"
+                                description="No se encontraron líneas liquidables para los filtros seleccionados."
+                                icon="fa-calculator"
+                            />
+                        </div>
+                        <div v-else class="table-responsive m-t-20">
+                            <table
+                                id="tablaLiquidacionLineas"
+                                class="display nowrap table table-hover table-striped table-bordered"
+                                cellspacing="0"
+                                width="100%"
+                            >
+                                <thead>
+                                    <tr>
+                                        <th>Médico</th>
+                                        <th>CUPS</th>
+                                        <th>Producto</th>
+                                        <th>Clase</th>
+                                        <th>Valor</th>
+                                        <th>Fecha lectura</th>
+                                        <th>Contrato</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(linea, i) in lineas" :key="i">
+                                        <td>{{ linea.medico_name }}</td>
+                                        <td>{{ linea.cod_cups }}</td>
+                                        <td>{{ linea.nom_produc }}</td>
+                                        <td>
+                                            <span
+                                                v-if="linea.clase === 'urgencias'"
+                                                class="badge badge-warning"
+                                            >
+                                                Urgencias
+                                            </span>
+                                            <span v-else class="badge badge-info">Consulta</span>
+                                        </td>
+                                        <td>{{ formatMoney(linea.valor) }}</td>
+                                        <td>{{ formatDate(linea.fecha_lectura) }}</td>
+                                        <td>#{{ linea.contrato_id }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TOTALES POR MÉDICO -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">Totales por médico</h4>
+                        <div class="table-responsive m-t-20">
+                            <table
+                                id="tablaLiquidacionTotales"
+                                class="table table-hover table-striped table-bordered"
+                            >
+                                <thead>
+                                    <tr>
+                                        <th>Médico</th>
+                                        <th>Consulta</th>
+                                        <th>Urgencias</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="item in porMedico" :key="item.medico_id">
+                                        <td>{{ item.medico_name }}</td>
+                                        <td>{{ formatMoney(item.total_consulta) }}</td>
+                                        <td>{{ formatMoney(item.total_urgencias) }}</td>
+                                        <td>{{ formatMoney(item.total) }}</td>
+                                    </tr>
+                                    <tr v-if="!porMedico.length">
+                                        <td colspan="4" class="text-center">Sin totales.</td>
+                                    </tr>
+                                </tbody>
+                                <tfoot v-if="porMedico.length">
+                                    <tr>
+                                        <th>Gran total</th>
+                                        <th colspan="3">{{ formatMoney(granTotal) }}</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EXCLUSIONES -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            Exclusiones
+                            <span class="badge badge-secondary m-l-5">{{ totalExcluidos }}</span>
+                        </h4>
+                        <h6 class="card-subtitle">Lecturas que no se liquidaron, por categoría.</h6>
+                        <ul class="list-group m-t-20">
+                            <li
+                                v-for="item in exclusiones"
+                                :key="item.categoria"
+                                class="list-group-item d-flex justify-content-between align-items-center"
+                                :class="{ 'cursor-pointer hover-item bg-light': item.conteo > 0 }"
+                                :style="item.conteo > 0 ? 'cursor: pointer;' : ''"
+                                :title="
+                                    item.conteo > 0
+                                        ? 'Haga clic para ver el detalle de los estudios excluidos'
+                                        : ''
+                                "
+                                @click="item.conteo > 0 ? abrirModalExclusion(item) : null"
+                            >
+                                <span>
+                                    <i
+                                        v-if="item.conteo > 0"
+                                        class="fa fa-search m-r-5 text-info"
+                                    ></i>
+                                    {{ etiquetaExclusion(item.categoria) }}
+                                </span>
+                                <span
+                                    class="badge badge-pill"
+                                    :class="item.conteo > 0 ? 'badge-danger' : 'badge-secondary'"
+                                >
+                                    {{ item.conteo }}
+                                </span>
+                            </li>
+                            <li v-if="!exclusiones.length" class="list-group-item text-center">
+                                Sin exclusiones.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL DETALLE DE EXCLUSIONES -->
+        <div
+            v-if="modalExclusionVisible"
+            class="modal show"
+            tabindex="-1"
+            role="dialog"
+            style="display: block; background: rgba(0, 0, 0, 0.5); z-index: 1050"
+            @click.self="cerrarModalExclusion"
+        >
+            <div class="modal-dialog modal-xl" role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h4 class="modal-title text-white">
+                            <i class="fa fa-exclamation-triangle m-r-5"></i>
+                            Detalle de Exclusión:
+                            {{ etiquetaExclusion(exclusionSeleccionada?.categoria) }}
+                            <span class="badge badge-light text-dark m-l-5">{{
+                                exclusionSeleccionada?.conteo
+                            }}</span>
+                        </h4>
+                        <button
+                            type="button"
+                            class="close text-white"
+                            aria-label="Cerrar modal"
+                            @click="cerrarModalExclusion"
+                        >
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row m-b-15">
+                            <div class="col-md-6">
+                                <p class="text-muted m-b-0">
+                                    A continuación se relacionan los estudios médicos excluidos del
+                                    cálculo. Verifique los motivos para ajustar el contrato o la
+                                    parametrización de tarifas.
+                                </p>
+                            </div>
+                            <div class="col-md-6 text-right">
+                                <label for="busqueda-exclusion" class="sr-only"
+                                    >Buscar exclusiones</label
+                                >
+                                <input
+                                    id="busqueda-exclusion"
+                                    v-model="busquedaExclusion"
+                                    type="text"
+                                    class="form-control"
+                                    placeholder="Buscar por paciente, documento, CUPS o médico..."
+                                />
+                            </div>
+                        </div>
+
+                        <div class="table-responsive" style="max-height: 480px; overflow-y: auto">
+                            <table
+                                id="tablaLiquidacionExclusiones"
+                                class="table table-hover table-striped table-bordered"
+                            >
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Paciente</th>
+                                        <th>Médico Lector</th>
+                                        <th>CUPS</th>
+                                        <th>Procedimiento</th>
+                                        <th>Motivo del Rechazo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="(item, idx) in detalleExclusionesFiltrado"
+                                        :key="idx"
+                                    >
+                                        <td>{{ formatDate(item.fecha_lectura) }}</td>
+                                        <td>
+                                            <strong>{{ item.paciente_documento }}</strong
+                                            ><br />
+                                            <small>{{ item.paciente_nombre }}</small>
+                                        </td>
+                                        <td>{{ item.medico_name }}</td>
+                                        <td>
+                                            <span class="badge badge-secondary">{{
+                                                item.cod_cups
+                                            }}</span>
+                                        </td>
+                                        <td>{{ item.nom_produc }}</td>
+                                        <td class="text-danger font-weight-bold">
+                                            <i class="fa fa-info-circle m-r-5"></i>
+                                            {{ item.motivo }}
+                                        </td>
+                                    </tr>
+                                    <tr v-if="!detalleExclusionesFiltrado.length">
+                                        <td colspan="6" class="text-center text-muted py-3">
+                                            No se encontraron registros que coincidan con la
+                                            búsqueda.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <span class="text-muted mr-auto">
+                            Mostrando {{ detalleExclusionesFiltrado.length }} de
+                            {{ exclusionSeleccionada?.detalle?.length || 0 }} registros
+                        </span>
+                        <button
+                            type="button"
+                            class="btn btn-secondary"
+                            @click="cerrarModalExclusion"
+                        >
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script setup>
+import { computed, nextTick, onMounted, onBeforeUnmount, ref, getCurrentInstance } from "vue";
+import axios from "axios";
+import { toastMessage } from "@/helpers/alerts.js";
+
+const { proxy } = getCurrentInstance();
+
+/**
+ * Control del modal interactivo de detalle de exclusiones.
+ */
+const modalExclusionVisible = ref(false);
+const exclusionSeleccionada = ref(null);
+const busquedaExclusion = ref("");
+
+/**
+ * Obtiene la sede actual desde sessionStorage o localStorage (key: ST-sede).
+ *
+ * @returns {string}
+ */
+function obtenerSedeGuardada() {
+    return window.sessionStorage.getItem("ST-sede") || window.localStorage.getItem("ST-sede") || "";
+}
+
+/**
+ * Etiquetas legibles para las categorías de exclusión del backend.
+ * El servicio devuelve: sin_asignado, sin_contrato, producto_sin_tarifa,
+ * medico_fuera_detalle y anulada.
+ *
+ * @type {Object<string, string>}
+ */
+const ETIQUETAS_EXCLUSION = {
+    sin_asignado: "Sin médico asignado",
+    sin_contrato: "Sin contrato vigente",
+    producto_sin_tarifa: "Producto sin tarifa",
+    medico_fuera_detalle: "Médico fuera del detalle",
+    anulada: "Lectura anulada",
+};
+
+/**
+ * Fecha de hoy en formato YYYY-MM-DD para los inputs type="date".
+ *
+ * @returns {string} Hoy en formato YYYY-MM-DD
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-09-30
+ */
+function fechaHoy() {
+    return new Date().toISOString().slice(0, 10);
+}
+
+/**
+ * Primer día del mes actual en formato YYYY-MM-DD.
+ * Se usa como fecha de inicio por defecto para acotar el cálculo al mes actual:
+ * el backend carga todo el rango en memoria, así que no se permiten rangos abiertos.
+ *
+ * @returns {string} Primer día del mes actual en formato YYYY-MM-DD
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-09-30
+ */
+function primerDiaMesActual() {
+    const ahora = new Date();
+    const mes = String(ahora.getMonth() + 1).padStart(2, "0");
+    return `${ahora.getFullYear()}-${mes}-01`;
+}
+
+/**
+ * Filtros de la liquidación (sede y rango de fechas cerrado, más contrato y médico opcionales).
+ * Por defecto se sugiere el mes actual; ambas fechas son obligatorias.
+ *
+ * @type {import('vue').Ref<{sede_id: string|number, fecha_inicio: string, fecha_fin: string, contrato_id: string|number, medico_id: string|number}>}
+ */
+const filtros = ref({
+    sede_id: obtenerSedeGuardada(),
+    fecha_inicio: primerDiaMesActual(),
+    fecha_fin: fechaHoy(),
+    contrato_id: "",
+    medico_id: "",
+});
+
+/**
+ * Sedes activas para el select de filtros.
+ *
+ * @type {import('vue').Ref<Array>}
+ */
+const sedes = ref([]);
+
+/**
+ * Contratos de la sede seleccionada para el filtro opcional.
+ *
+ * @type {import('vue').Ref<Array>}
+ */
+const contratos = ref([]);
+
+/**
+ * Médicos (usuarios con reg_med) para el filtro opcional.
+ *
+ * @type {import('vue').Ref<Array>}
+ */
+const medicos = ref([]);
+
+/**
+ * Resultado del cálculo: { lineas, exclusiones, totales } o null si aún no se calcula.
+ *
+ * @type {import('vue').Ref<Object|null>}
+ */
+const resultado = ref(null);
+
+/**
+ * Flag de carga del cálculo de liquidación.
+ *
+ * @type {import('vue').Ref<boolean>}
+ */
+const loading = ref(false);
+
+/**
+ * Flag de carga del listado de sedes.
+ *
+ * @type {import('vue').Ref<boolean>}
+ */
+const loadingSedes = ref(false);
+
+/**
+ * Flag de carga del listado de contratos de la sede.
+ *
+ * @type {import('vue').Ref<boolean>}
+ */
+const loadingContratos = ref(false);
+
+/**
+ * Flag de carga del listado de médicos.
+ *
+ * @type {import('vue').Ref<boolean>}
+ */
+const loadingMedicos = ref(false);
+
+/**
+ * Líneas liquidables del resultado actual.
+ *
+ * @returns {Array} Líneas con médico, CUPS, producto, clase, valor, fecha y contrato
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-09-30
+ */
+const lineas = computed(() => resultado.value?.lineas || []);
+
+/**
+ * Totales agregados por médico del resultado actual.
+ *
+ * @returns {Array} Totales con medico_id, medico_name, total_consulta, total_urgencias y total
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-09-30
+ */
+const porMedico = computed(() => resultado.value?.totales?.por_medico || []);
+
+/**
+ * Gran total de la liquidación actual.
+ *
+ * @returns {number} Suma de los totales por médico
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-09-30
+ */
+const granTotal = computed(() => resultado.value?.totales?.gran_total ?? 0);
+
+/**
+ * Exclusiones del resultado actual con categoría y conteo.
+ *
+ * @returns {Array} Exclusiones con categoria, conteo y detalle
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-09-30
+ */
+const exclusiones = computed(() => resultado.value?.exclusiones || []);
+
+/**
+ * Total de lecturas excluidas (suma de conteos por categoría).
+ *
+ * @returns {number} Cantidad total de excluidos
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-09-30
+ */
+const totalExcluidos = computed(() =>
+    exclusiones.value.reduce((acc, item) => acc + (item.conteo || 0), 0)
+);
+
+/**
+ * Formatea una fecha ISO a formato local colombiano (dd/mm/yyyy).
+ *
+ * @param {string|null} dateStr - Fecha en formato ISO o null
+ * @returns {string} Fecha formateada o cadena vacía
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-09-30
+ */
+function formatDate(dateStr) {
+    if (!dateStr) return "";
+    const cleanDate = String(dateStr).split(/[ T]/)[0];
+    const parts = cleanDate.split("-");
+    if (parts.length === 3) {
+        const [year, month, day] = parts;
+        return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+    }
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? "" : d.toLocaleDateString("es-CO");
+}
+
+/**
+ * Formatea un número a moneda colombiana (COP).
+ *
+ * @param {number|null} value - Valor numérico a formatear
+ * @returns {string} Cadena con formato de moneda o "$0"
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-09-30
+ */
+function formatMoney(value) {
+    const num = Number(value);
+    if (value === null || value === undefined || isNaN(num)) return "$ 0";
+    return new Intl.NumberFormat("es-CO", {
+        style: "currency",
+        currency: "COP",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(num);
+}
+
+/**
+ * Devuelve la etiqueta legible de una categoría de exclusión.
+ *
+ * @param {string} categoria - Categoría devuelta por el backend
+ * @returns {string} Etiqueta legible o la categoría original si no está mapeada
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-09-30
+ */
+function etiquetaExclusion(categoria) {
+    return ETIQUETAS_EXCLUSION[categoria] || categoria;
+}
+
+/**
+ * Carga las sedes activas para el select de filtros.
+ * Reutiliza el endpoint de sedes activas usado en el resto de módulos
+ * (contratoComponent no tiene select: lee la sede readonly de ST-sede).
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-09-30
+ */
+async function cargarSedes() {
+    if (loadingSedes.value) return;
+    loadingSedes.value = true;
+    try {
+        const res = await axios.get("/api/config-sedes/listar/sedes/activas");
+        sedes.value = res.data.data || [];
+
+        const sedeGuardada = obtenerSedeGuardada();
+        if (sedeGuardada && sedes.value.some((s) => String(s.id) === String(sedeGuardada))) {
+            filtros.value.sede_id = sedeGuardada;
+        } else if (!filtros.value.sede_id && sedes.value.length > 0) {
+            filtros.value.sede_id = sedes.value[0].id;
+        }
+
+        if (filtros.value.sede_id) {
+            await cargarContratos();
+        }
+    } catch (error) {
+        console.error(error);
+        toastMessage({ heading: "Error", text: "No fue posible cargar las sedes", icon: "error" });
+    } finally {
+        loadingSedes.value = false;
+    }
+}
+
+/**
+ * Etiqueta legible de un contrato para el select: #id · inicio al fin (+ inactivo).
+ *
+ * @param {Object} c - Contrato con id, fecha_inicio, fecha_fin y estado
+ * @returns {string} Etiqueta del contrato
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-09-30
+ */
+function etiquetaContrato(c) {
+    const inicio = String(c.fecha_inicio || "").slice(0, 10);
+    const fin = String(c.fecha_fin || "").slice(0, 10);
+    const inactivo = Number(c.estado) === 0 ? " (inactivo)" : "";
+    return `#${c.id} · ${inicio} al ${fin}${inactivo}`;
+}
+
+/**
+ * Etiqueta legible de un médico para el select: reg_med - name si hay registro.
+ * Mismo criterio que medicoOptions en contratoComponent (reg_med real).
+ *
+ * @param {Object} m - Usuario médico con id, name y reg_med opcional
+ * @returns {string} Etiqueta del médico
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-09-30
+ */
+function etiquetaMedico(m) {
+    return m.reg_med ? `${m.reg_med} - ${m.name}` : m.name;
+}
+
+/**
+ * Carga los contratos de la sede seleccionada para el filtro opcional.
+ * Se invoca al cambiar de sede y limpia el contrato elegido anterior.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-09-30
+ */
+async function cargarContratos() {
+    contratos.value = [];
+    if (!filtros.value.sede_id || loadingContratos.value) return;
+    loadingContratos.value = true;
+    try {
+        const res = await axios.get("/api/contratos", {
+            params: { sede_id: filtros.value.sede_id },
+        });
+        contratos.value = res.data?.data?.data || res.data?.data || [];
+    } catch (error) {
+        console.error(error);
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar los contratos",
+            icon: "error",
+        });
+    } finally {
+        loadingContratos.value = false;
+    }
+}
+
+/**
+ * Al cambiar de sede: limpia el contrato elegido y recarga la lista.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-09-30
+ */
+async function alCambiarSede() {
+    filtros.value.contrato_id = "";
+    await cargarContratos();
+}
+
+/**
+ * Listener reactivo ante cambio de sede en el navbar.
+ *
+ * @param {Object} event
+ * @returns {void}
+ */
+function onSedeSeleccionada(event) {
+    const rawSede =
+        event?.sede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede");
+    if (!rawSede || String(filtros.value.sede_id) === String(rawSede)) return;
+    filtros.value.sede_id = rawSede;
+    alCambiarSede();
+}
+
+/**
+ * Carga el catálogo de médicos (usuarios con reg_med) una sola vez.
+ * Mismo endpoint que contratoComponent (ST-modulo del módulo actual).
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-09-30
+ */
+async function cargarMedicos() {
+    if (loadingMedicos.value || medicos.value.length) return;
+    loadingMedicos.value = true;
+    try {
+        const moduloId =
+            sessionStorage.getItem("ST-modulo") || localStorage.getItem("ST-modulo") || "1";
+        const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
+        medicos.value = res.data.data || [];
+    } catch (error) {
+        console.error(error);
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar los médicos",
+            icon: "error",
+        });
+    } finally {
+        loadingMedicos.value = false;
+    }
+}
+
+/**
+ * Valida que los filtros estén completos: sede y ambas fechas, con fin >= inicio.
+ * El rango cerrado es obligatorio porque el backend carga todo el periodo en memoria.
+ *
+ * @returns {boolean} True si los filtros son válidos para calcular
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-09-30
+ */
+function filtrosValidos() {
+    if (!filtros.value.sede_id) {
+        toastMessage({ heading: "Atención", text: "Seleccione una sede", icon: "warning" });
+        return false;
+    }
+    if (!filtros.value.fecha_inicio || !filtros.value.fecha_fin) {
+        toastMessage({
+            heading: "Atención",
+            text: "Seleccione la fecha de inicio y la fecha de fin",
+            icon: "warning",
+        });
+        return false;
+    }
+    if (filtros.value.fecha_fin < filtros.value.fecha_inicio) {
+        toastMessage({
+            heading: "Atención",
+            text: "La fecha de fin no puede ser anterior a la fecha de inicio",
+            icon: "warning",
+        });
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Calcula la liquidación con los filtros seleccionados.
+ * Consume GET /api/liquidacion y asigna res.data.data (lineas, exclusiones, totales).
+ * Contrato y médico viajan solo cuando se eligen (opcionales).
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-09-30
+ */
+async function calcular() {
+    if (loading.value) return;
+    if (!filtrosValidos()) return;
+    loading.value = true;
+    try {
+        const params = {
+            sede_id: filtros.value.sede_id,
+            fecha_inicio: filtros.value.fecha_inicio,
+            fecha_fin: filtros.value.fecha_fin,
+        };
+        if (filtros.value.contrato_id) params.contrato_id = filtros.value.contrato_id;
+        if (filtros.value.medico_id) params.medico_id = filtros.value.medico_id;
+        const res = await axios.get("/api/liquidacion", { params });
+        resultado.value = res.data.data;
+        if (!resultado.value?.lineas?.length) {
+            toastMessage({
+                heading: "Información",
+                text: "Sin líneas liquidables para los filtros seleccionados",
+                icon: "info",
+            });
+        }
+    } catch (error) {
+        console.error(error);
+        const msg = error.response?.data?.message || "Error al calcular la liquidación";
+        toastMessage({ heading: "Error", text: msg, icon: "error" });
+    } finally {
+        loading.value = false;
+    }
+}
+
+/**
+ * Exporta la liquidación del periodo a Excel en una ventana nueva.
+ * La ruta /api/liquidacion/exportar se crea en la Task 6: si da 404 antes,
+ * es esperado (patrón window.open de contratoComponent.vue:1244).
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-09-30
+ */
+function exportar() {
+    if (!filtrosValidos()) return;
+    if (!resultado.value?.lineas?.length) {
+        toastMessage({
+            heading: "Atención",
+            text: "Calcule primero la liquidación con resultados antes de exportar.",
+            icon: "warning",
+        });
+        return;
+    }
+    toastMessage({
+        heading: "Procesando...",
+        text: "Generando archivo de liquidación en Excel.",
+        icon: "info",
+    });
+    const params = new URLSearchParams({
+        sede_id: String(filtros.value.sede_id),
+        fecha_inicio: filtros.value.fecha_inicio,
+        fecha_fin: filtros.value.fecha_fin,
+    });
+    if (filtros.value.contrato_id) params.append("contrato_id", String(filtros.value.contrato_id));
+    if (filtros.value.medico_id) params.append("medico_id", String(filtros.value.medico_id));
+    window.open(`/api/liquidacion/exportar?${params.toString()}`, "_blank");
+}
+
+/**
+ * Filtra los registros excluidos por documento, nombre, médico, CUPS o motivo.
+ *
+ * @type {import('vue').ComputedRef<Array<Object>>}
+ */
+const detalleExclusionesFiltrado = computed(() => {
+    const list = exclusionSeleccionada.value?.detalle || [];
+    const q = busquedaExclusion.value.trim().toLowerCase();
+    if (!q) return list;
+    return list.filter((item) => {
+        return (
+            String(item.paciente_documento || "")
+                .toLowerCase()
+                .includes(q) ||
+            String(item.paciente_nombre || "")
+                .toLowerCase()
+                .includes(q) ||
+            String(item.medico_name || "")
+                .toLowerCase()
+                .includes(q) ||
+            String(item.cod_cups || "")
+                .toLowerCase()
+                .includes(q) ||
+            String(item.nom_produc || "")
+                .toLowerCase()
+                .includes(q) ||
+            String(item.motivo || "")
+                .toLowerCase()
+                .includes(q)
+        );
+    });
+});
+
+/**
+ * Despliega el modal interactivo con el detalle de los estudios excluidos.
+ *
+ * @param {Object} item Objeto de la categoría de exclusión seleccionada.
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-10-21
+ */
+function abrirModalExclusion(item) {
+    exclusionSeleccionada.value = item;
+    busquedaExclusion.value = "";
+    modalExclusionVisible.value = true;
+    nextTick(() => {
+        document.getElementById("busqueda-exclusion")?.focus();
+    });
+}
+
+/**
+ * Cierra el modal de detalle de exclusiones y restablece los filtros.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-10-21
+ */
+function cerrarModalExclusion() {
+    modalExclusionVisible.value = false;
+    exclusionSeleccionada.value = null;
+    busquedaExclusion.value = "";
+}
+
+/**
+ * Manejador de teclado para cerrar el modal al presionar Escape.
+ *
+ * @param {KeyboardEvent} e
+ * @returns {void}
+ */
+function onKeyDown(e) {
+    if (e.key === "Escape" && modalExclusionVisible.value) {
+        cerrarModalExclusion();
+    }
+}
+
+/**
+ * Lifecycle onMounted: carga sedes y médicos para los selects de filtros.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-09-30
+ */
+onMounted(() => {
+    proxy?.emitter?.on("sedeSeleccionada", onSedeSeleccionada);
+    window.addEventListener("keydown", onKeyDown);
+    if (!obtenerSedeGuardada()) {
+        proxy?.emitter?.emit("solicitarSedeActiva");
+    }
+    cargarSedes();
+    cargarMedicos();
+});
+
+onBeforeUnmount(() => {
+    proxy?.emitter?.off("sedeSeleccionada", onSedeSeleccionada);
+    window.removeEventListener("keydown", onKeyDown);
+});
+</script>
+<style scoped>
+@media (max-width: 767px) {
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+}
+</style>

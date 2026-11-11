@@ -6,11 +6,29 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class HelpDeskPrioridadRequest extends FormRequest
 {
+    /**
+     * Autoriza la petición (sin restricciones adicionales).
+     *
+     * @return bool
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function authorize()
     {
         return true;
     }
 
+    /**
+     * Reglas de validación de prioridades de HelpDesk.
+     *
+     * @return array
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function rules()
     {
         $rules = [
@@ -27,6 +45,15 @@ class HelpDeskPrioridadRequest extends FormRequest
         return $rules;
     }
 
+    /**
+     * Mensajes en español para las reglas de validación.
+     *
+     * @return array
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function messages()
     {
         return [

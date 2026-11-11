@@ -9,27 +9,88 @@ use Illuminate\Http\Request;
 
 class SAHIController extends Controller
 {
+    /**
+     * Inyecta el servicio de integración con SAHI.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function __construct(
         private readonly SAHIService $sahiService,
     ) {}
 
+    /**
+     * Lista las atenciones de un paciente en SAHI por número de documento.
+     *
+     * @param  Request  $request  Solicitud HTTP con el parámetro numDocu (cuerpo o ruta).
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function listarAtenciones(Request $request): JsonResponse
     {
-        $result = $this->sahiService->listarAtenciones($request->numDocu);
+        $numDocu = $request->input('numDocu') ?? $request->route('numDocu');
+
+        $result = $this->sahiService->listarAtenciones($numDocu);
 
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Lista los productos diagnósticos de una atención de SAHI.
+     *
+     * @param  Request  $request  Solicitud HTTP con el parámetro idAtencion (cuerpo o ruta).
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function listarProductosDiagnosticos(Request $request): JsonResponse
     {
-        $result = $this->sahiService->listarProductosDiagnosticos($request->idAtencion);
+        $idAtencion = $request->input('idAtencion') ?? $request->route('idAtencion');
+
+        $result = $this->sahiService->listarProductosDiagnosticos($idAtencion ? (int) $idAtencion : null);
 
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Busca productos de atención en SAHI por nombre o número de documento.
+     *
+     * @param  Request  $request  Solicitud HTTP con el parámetro bus_nom_num_docu.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function listarProductosAtencion(Request $request): JsonResponse
     {
-        $result = $this->sahiService->listarProductosAtencion($request->bus_nom_num_docu);
+        $atencionId = $request->input('atencion_id')
+            ?? $request->input('bus_nom_num_docu')
+            ?? $request->input('idAtencion');
+
+        $result = $this->sahiService->listarProductosAtencion($atencionId);
+
+        return response()->json($result, $result['status']);
+    }
+
+    /**
+     * Verifica la conectividad directa y tiempo de respuesta con el servidor SAHI (SQL Server).
+     *
+     * Flujo del proceso:
+     * 1. Invoca el método verificarConexion del servicio SAHIService.
+     * 2. Retorna la respuesta en formato JSON con el código de estado correspondiente (200 o 503).
+     *
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-21
+     */
+    public function verificarConexion(): JsonResponse
+    {
+        $result = $this->sahiService->verificarConexion();
 
         return response()->json($result, $result['status']);
     }

@@ -14,6 +14,15 @@ class PruneSessions extends Command
 
     protected $description = 'Limpia sesiones antiguas de la tabla sessions';
 
+    /**
+     * Elimina las sesiones antiguas de invitados y usuarios según los umbrales de inactividad.
+     *
+     * @returns int Código de salida del comando.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function handle()
     {
         $hours = (int) $this->option('hours');

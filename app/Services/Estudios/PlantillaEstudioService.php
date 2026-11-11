@@ -3,6 +3,7 @@
 namespace App\Services\Estudios;
 
 use App\Helpers\PdfConverterHelper;
+use App\Helpers\QrCodeHelper;
 use App\Models\Configuracion\ConfigSede;
 use App\Services\BaseService;
 use Carbon\Carbon;
@@ -11,6 +12,17 @@ use PhpOffice\PhpWord\TemplateProcessor;
 
 class PlantillaEstudioService extends BaseService
 {
+    /**
+     * Genera un reporte Word/PDF a partir de la plantilla configurada para la sede
+     *
+     * @param  array  $data  Datos completos: sede_id, paciente, lectura, médico, producto, fechas
+     *
+     * @returns array Respuesta con el nombre del archivo PDF generado
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function editWord(array $data): array
     {
         $sede = ConfigSede::find($data['sede_id'] ?? null);
@@ -29,6 +41,8 @@ class PlantillaEstudioService extends BaseService
         $template = new TemplateProcessor($filePath);
 
         $nombrePaciente = str_replace(['^^^', ' ^', '^'], ['', '', ' '], $data['nom_pacien'] ?? '');
+        $safePaciente = trim(preg_replace('/[\\\\\\/\\:\\*\\?\\"\\<\\>\\|]+/', '', $nombrePaciente));
+        $safePaciente = preg_replace('/\\s+/', ' ', $safePaciente);
 
         $template->setValue('nombre_paciente', $nombrePaciente);
         $template->setValue('num_docu', $data['num_docu'] ?? '');
@@ -36,6 +50,9 @@ class PlantillaEstudioService extends BaseService
         $template->setValue('edad', $data['edad'] ?? '');
         $template->setValue('eps', $data['eps'] ?? '');
         $template->setValue('contrato', $data['contrato'] ?? '');
+        $template->setValue('plan', $data['plan'] ?? '');
+        $template->setValue('servicio', $data['servicio'] ?? '');
+        $template->setValue('medico_ordena', $data['medico_ordena'] ?? '');
 
         $fecEstudio = ! empty($data['fec_estudio']) ? Carbon::parse($data['fec_estudio'])->format('d/m/Y') : '';
         $fecLectura = ! empty($data['fechor_lectura']) ? Carbon::parse($data['fechor_lectura'])->format('d/m/Y H:i') : '';
@@ -43,16 +60,24 @@ class PlantillaEstudioService extends BaseService
 
         $template->setValue('fechor_estudio', $fecEstudio);
         $template->setValue('fechor_lectura', $fecLectura);
-        $template->setValue('fechor_transcipcion', $fecTrascrito);
+        $template->setValue('fechor_transcripcion', $fecTrascrito);
 
         $template->setValue('atencion', ($data['atencion'] ?? '') === 'null' ? '' : ($data['atencion'] ?? ''));
 
         $textRun = new TextRun;
-        foreach (explode("\n", $data['lectura'] ?? '') as $line) {
+        $lecturaSanitizada = $this->sanitizarTextoParaDocx($data['lectura'] ?? '');
+        foreach (explode("\n", $lecturaSanitizada) as $line) {
+            $line = trim($line);
+            if ($line === '') {
+                $textRun->addTextBreak();
+
+                continue;
+            }
+
             $boldKeywords = ['Atención:', 'Fecha y Hora:', 'HALLAZGOS:', 'IMPRESIÓN DIAGNÓSTICA:', 'CONCLUSIÓN:', $data['nom_produc'] ?? '__NOMATCH__'];
             $isBold = false;
             foreach ($boldKeywords as $keyword) {
-                if (strpos($line, $keyword) !== false) {
+                if (stripos($line, $keyword) !== false) {
                     $isBold = true;
                     break;
                 }
@@ -60,6 +85,24 @@ class PlantillaEstudioService extends BaseService
             $textRun->addText($line, $isBold ? ['bold' => true] : []);
             $textRun->addTextBreak();
         }
+
+        // Generación de Token y URL de Verificación Digital Pública
+        $productoId = (int) ($data['estudio_producto_id'] ?? 0);
+        $signature = substr(hash_hmac('sha256', "lidiag_estudio_{$productoId}", (string) config('app.key')), 0, 16);
+        $tokenPayload = json_encode(['p' => $productoId, 's' => $signature]);
+        $token = strtr(base64_encode($tokenPayload ?: ''), '+/', '-_');
+        $token = rtrim($token, '=');
+        $urlValidacion = url("/validar-informe/{$token}");
+        $timestampFirma = Carbon::now()->format('d/m/Y H:i:s');
+
+        // Pie de firma digital dentro del cuerpo del informe
+        $textRun->addTextBreak();
+        $textRun->addText('_________________________________________________________________________________', ['color' => 'CCCCCC', 'size' => 7]);
+        $textRun->addTextBreak();
+        $textRun->addText('DOCUMENTO FIRMADO DIGITALMENTE — RESOLUCIÓN 1995 DE 1999 Y LEY 527 DE 1999', ['bold' => true, 'size' => 8, 'color' => '334155']);
+        $textRun->addTextBreak();
+        $textRun->addText("Certificación Digital: {$timestampFirma} • Verifique autenticidad en: {$urlValidacion}", ['size' => 8, 'color' => '0284C7']);
+
         $template->setComplexValue('lectura', $textRun);
 
         $template->setValue('nom_sede', $data['nom_sede'] ?? '');
@@ -68,6 +111,26 @@ class PlantillaEstudioService extends BaseService
         $template->setValue('nombres_medico', $data['nombres_medico'] ?? '');
         $template->setValue('reg_medico', $data['reg_medico'] ?? '');
         $template->setValue('num_docu_medico', $data['num_docu_medico'] ?? '');
+        $template->setValue('url_validacion', $urlValidacion);
+        $template->setValue('timestamp_firma', $timestampFirma);
+        $template->setValue('token_validacion', $token);
+
+        // Generar código QR PNG temporal para incrustar en plantillas que posean ${qr_validacion}
+        $qrTempPath = storage_path("app/reporte_lecturas/qr_{$productoId}_".time().'.png');
+        $qrGenerado = QrCodeHelper::generatePng($urlValidacion, $qrTempPath, 5, 2);
+
+        if ($qrGenerado && file_exists($qrTempPath)) {
+            try {
+                $template->setImageValue('qr_validacion', [
+                    'path' => $qrTempPath,
+                    'width' => 75,
+                    'height' => 75,
+                    'ratio' => false,
+                ]);
+            } catch (\Throwable $e) {
+                // Etiqueta opcional en plantilla Word
+            }
+        }
 
         if (! empty($data['firma_medico'])) {
             $firmaPath = storage_path('app/'.$data['firma_medico']);
@@ -81,9 +144,17 @@ class PlantillaEstudioService extends BaseService
             }
         }
 
-        $nomArchivo = ($data['estudio_producto_id'] ?? 'temp').'-'.($data['num_docu'] ?? '0').'-'.$nombrePaciente;
+        $nomArchivo = trim(($data['estudio_producto_id'] ?? 'temp').'-'.($data['num_docu'] ?? '0').'-'.$safePaciente);
         $outputDocx = storage_path('app/reporte_lecturas/'.$nomArchivo.'.docx');
         $template->saveAs($outputDocx);
+
+        if ($qrGenerado && file_exists($qrTempPath)) {
+            @unlink($qrTempPath);
+        }
+
+        // Iguala el margen izquierdo y derecho de la página para que el informe salga centrado,
+        // sin importar cómo venga configurada la plantilla DOCX de la sede.
+        $this->igualarMargenesLaterales($outputDocx);
 
         $converted = $this->convertDocxToPdf($nomArchivo);
         if (! $converted) {
@@ -99,9 +170,21 @@ class PlantillaEstudioService extends BaseService
 
         return $this->success([
             'output_name' => $nomArchivo.'.pdf',
+            'plantilla' => $nomArchivo.'.pdf',
         ], 'Plantilla creada correctamente');
     }
 
+    /**
+     * Convierte un archivo DOCX a PDF utilizando el helper de conversión
+     *
+     * @param  string  $nomPlantilla  Nombre base del archivo (sin extensión)
+     *
+     * @returns bool true si la conversión fue exitosa, false en caso contrario
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function convertDocxToPdf(string $nomPlantilla): bool
     {
         $sourceFile = storage_path('app/reporte_lecturas/'.$nomPlantilla.'.docx');
@@ -110,6 +193,17 @@ class PlantillaEstudioService extends BaseService
         return PdfConverterHelper::convert($sourceFile, $destinationFile);
     }
 
+    /**
+     * Elimina los archivos de reporte PDF y DOCX generados
+     *
+     * @param  string  $reportePath  Nombre del archivo de reporte (con extensión PDF)
+     *
+     * @returns void
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function eliminarReporte(string $reportePath): void
     {
         $paths = [
@@ -122,5 +216,88 @@ class PlantillaEstudioService extends BaseService
                 @unlink($path);
             }
         }
+    }
+
+    /**
+     * Iguala los márgenes izquierdo y derecho de la página del DOCX generado.
+     *
+     * El reporte salía "corrido" cuando la plantilla de la sede traía el margen izquierdo distinto
+     * del derecho (p. ej. izq 3 cm / der 2 cm). Se abre el DOCX (es un ZIP), se busca cada
+     * {@code <w:pgMar>} y se fija izquierda = derecha = el mayor de los dos (en twips). Usar el mayor
+     * evita que el texto se corra hacia afuera por debajo de un logo o membrete de la cabecera.
+     * No se tocan los márgenes superior/inferior.
+     */
+    private function igualarMargenesLaterales(string $docxPath): void
+    {
+        if (! class_exists(\ZipArchive::class) || ! file_exists($docxPath)) {
+            return;
+        }
+
+        $zip = new \ZipArchive;
+        if ($zip->open($docxPath) !== true) {
+            return;
+        }
+
+        $xml = $zip->getFromName('word/document.xml');
+        if (! is_string($xml) || $xml === '') {
+            $zip->close();
+
+            return;
+        }
+
+        $nuevo = preg_replace_callback('/<w:pgMar\b[^>]*>/', function (array $m): string {
+            $tag = $m[0];
+            $left = preg_match('/w:left="(-?\d+)"/', $tag, $l) ? (int) $l[1] : null;
+            $right = preg_match('/w:right="(-?\d+)"/', $tag, $r) ? (int) $r[1] : null;
+
+            if ($left === null || $right === null || $left === $right) {
+                return $tag;
+            }
+
+            $igual = max($left, $right);
+            $tag = (string) preg_replace('/w:left="-?\d+"/', 'w:left="'.$igual.'"', $tag);
+
+            return (string) preg_replace('/w:right="-?\d+"/', 'w:right="'.$igual.'"', $tag);
+        }, $xml);
+
+        if (is_string($nuevo) && $nuevo !== $xml) {
+            $zip->addFromString('word/document.xml', $nuevo);
+        }
+
+        $zip->close();
+    }
+
+    /**
+     * Sanitiza el texto de lectura eliminando entidades HTML corruptas para OpenXML.
+     *
+     * Flujo del proceso:
+     * 1. Convierte saltos de línea HTML en saltos de línea planos \n.
+     * 2. Reemplaza entidades &nbsp; y &#160; por espacios estándar.
+     * 3. Decodifica entidades HTML a caracteres UTF-8 reales.
+     * 4. Normaliza espacios de no separación UTF-8 (\u{00A0}) a espacios regulares.
+     * 5. Elimina etiquetas HTML restantes.
+     *
+     * @param  string  $texto  Texto de la lectura clínico
+     * @return string Texto plano limpio y seguro para el archivo DOCX/XML
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-30
+     */
+    private function sanitizarTextoParaDocx(string $texto): string
+    {
+        if (trim($texto) === '') {
+            return '';
+        }
+
+        $texto = preg_replace('/<\s*br\s*\/?>/i', "\n", $texto);
+        $texto = preg_replace('/<\/\s*(?:p|div|h[1-6])\s*>/i', "\n", $texto);
+        $texto = str_ireplace(['&nbsp;', '&#160;'], ' ', $texto);
+        $texto = html_entity_decode($texto, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $texto = preg_replace('/\x{00A0}/u', ' ', $texto);
+        $texto = strip_tags($texto);
+        $texto = preg_replace("/\r\n|\r/", "\n", $texto);
+
+        return trim($texto);
     }
 }

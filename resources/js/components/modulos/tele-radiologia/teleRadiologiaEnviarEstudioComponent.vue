@@ -1,29 +1,46 @@
 <template>
     <div>
-        <!-- ============================================================== -->
-        <!-- Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
+        <!-- Bread crumb -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Estudios</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Estudios</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Estudios
+                        </button>
                     </li>
-                    <li class="breadcrumb-item active">Tele radiologia</li>
+                    <li class="breadcrumb-item active">Tele radiología</li>
                 </ol>
             </div>
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    :disabled="loadingBuscar"
+                    title="Actualizar listado de estudios"
+                    @click="buscarStudy()"
+                >
+                    <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loadingBuscar }"></i>
+                    Refrescar
+                </button>
+            </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Start Page Content -->
-        <!-- ============================================================== -->
+        <!-- Filtros -->
         <div class="row">
             <div class="col-12">
                 <div class="card">
@@ -31,12 +48,12 @@
                         <h4 class="card-title text-themecolor">
                             <i class="fa fa-filter"></i> Filtros para busqueda de estudios
                         </h4>
-                        <form action="#">
+                        <form action="#" @submit.prevent="buscarStudy()">
                             <div class="form-body">
                                 <div class="row p-t-2">
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label class="control-label"
+                                            <label class="control-label" for="bus_nom_num_docu"
                                                 >Nombres de paciente o # de documento
                                             </label>
                                             <input
@@ -52,25 +69,31 @@
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <label class="control-label">Fecha Inicio</label>
+                                            <label class="control-label" for="bus_fech_ini"
+                                                >Fecha Inicio</label
+                                            >
                                             <input
                                                 type="date"
                                                 id="bus_fech_ini"
                                                 name="bus_fech_ini"
                                                 v-model="busqueda.bus_fech_ini"
                                                 class="form-control"
+                                                @keyup.enter="buscarStudy()"
                                             />
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <label class="control-label">Fecha Fin</label>
+                                            <label class="control-label" for="bus_fecha_fin"
+                                                >Fecha Fin</label
+                                            >
                                             <input
                                                 type="date"
                                                 id="bus_fecha_fin"
                                                 name="bus_fecha_fin"
                                                 v-model="busqueda.bus_fecha_fin"
                                                 class="form-control"
+                                                @keyup.enter="buscarStudy()"
                                             />
                                         </div>
                                     </div>
@@ -89,10 +112,23 @@
 
                                     <button
                                         type="button"
+                                        class="btn btn-outline-primary m-r-5"
+                                        @click="buscarStudy()"
+                                        :disabled="loadingBuscar"
+                                    >
+                                        <i
+                                            class="fa fa-refresh"
+                                            :class="{ 'fa-spin': loadingBuscar }"
+                                        ></i>
+                                        Actualizar
+                                    </button>
+
+                                    <button
+                                        type="button"
                                         class="btn btn-inverse"
                                         @click="btnLimpiar()"
                                     >
-                                        <i class="fa fa-refresh"></i> Limpiar
+                                        <i class="fa fa-eraser"></i> Limpiar
                                     </button>
                                 </div>
                             </div>
@@ -102,6 +138,7 @@
             </div>
         </div>
 
+        <!-- Tabla estudios -->
         <div class="row">
             <div class="col-12 table-responsive">
                 <div class="card">
@@ -110,9 +147,19 @@
                         <h6 class="card-subtitle text-info">
                             Asigne los estudios a los médicos para su respectiva lectura.
                         </h6>
-                        <div class="table-responsive">
+                        <table-skeleton-loader :visible="loadingBuscar" :rows="6" :columns="6" />
+                        <empty-state-component
+                            v-if="!loadingBuscar && registros.length === 0"
+                            title="No hay estudios para mostrar"
+                            description="No se encontraron estudios con los filtros seleccionados. Use los filtros para buscar."
+                            icon="fa-search"
+                        />
+                        <div
+                            v-show="!loadingBuscar && registros.length > 0"
+                            class="table-responsive m-t-20"
+                        >
                             <table
-                                id="example23"
+                                id="tablaTeleRadiologiaEnviar"
                                 ref="dt"
                                 class="table table-bordered table-striped"
                                 cellspacing="0"
@@ -120,9 +167,9 @@
                             >
                                 <thead>
                                     <tr>
-                                        <th with="5%">Fecha del Estudio</th>
-                                        <th with="5%"># Documento</th>
-                                        <th with="30%">Paciente</th>
+                                        <th>Fecha del Estudio</th>
+                                        <th># Documento</th>
+                                        <th>Paciente</th>
                                         <th>Accession</th>
                                         <th>Descripción</th>
                                         <th></th>
@@ -130,13 +177,21 @@
                                 </thead>
                                 <tbody>
                                     <tr
-                                        v-for="(item, index) in registros"
+                                        v-for="item in registros"
                                         :key="item.study_pk"
                                         :id="item.study_pk"
                                         :class="{ 'text-info': item.agendado !== 0 }"
                                     >
                                         <td>{{ item.study_datetime }}</td>
-                                        <td>{{ item.pat_id }}</td>
+                                        <td class="text-nowrap align-middle">
+                                            <div
+                                                class="text-primary font-weight-bold"
+                                                style="font-size: 15px"
+                                            >
+                                                <i class="fa fa-id-card-o mr-1"></i>
+                                                {{ item.pat_id }}
+                                            </div>
+                                        </td>
                                         <td>{{ item.pat_name }}</td>
                                         <td>{{ item.accession_no }}</td>
                                         <td>{{ item.study_desc }}</td>
@@ -144,12 +199,12 @@
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
-                                                :disabled="loadingAbrirIndex === index"
-                                                @click="mostrarRegistro(item, index)"
+                                                :disabled="loadingAbrirIndex === item.study_pk"
+                                                @click="mostrarRegistro(item)"
                                                 title="Ordenar estudio"
                                             >
                                                 <i
-                                                    v-if="loadingAbrirIndex === index"
+                                                    v-if="loadingAbrirIndex === item.study_pk"
                                                     class="fa fa-spinner fa-spin"
                                                 ></i>
                                                 <i v-else class="fa fa-child"></i>
@@ -157,14 +212,18 @@
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
-                                                :disabled="loadingImagenIndex === index"
+                                                :disabled="loadingImagenIndex === item.study_pk"
                                                 @click="
-                                                    verImagen(item.pat_id, item.study_iuid, index)
+                                                    verImagen(
+                                                        item.pat_id,
+                                                        item.study_iuid,
+                                                        item.study_pk
+                                                    )
                                                 "
                                                 title="Ver imagenes"
                                             >
                                                 <i
-                                                    v-if="loadingImagenIndex === index"
+                                                    v-if="loadingImagenIndex === item.study_pk"
                                                     class="fa fa-spinner fa-spin"
                                                 ></i>
                                                 <i v-else class="fa fa-file-photo-o"></i>
@@ -178,34 +237,37 @@
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Page Content -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
+        <!-- Backdrop para cerrar al hacer clic y atenuar fondo -->
+        <transition name="fade">
+            <div
+                v-if="sidebarVisible"
+                class="sidebar-backdrop"
+                @click="btnCerrarModal()"
+                aria-hidden="true"
+            ></div>
+        </transition>
+
         <!-- Right sidebar -->
-        <!-- ============================================================== -->
-        <!-- .right-sidebar -->
         <div
             class="right-sidebar"
-            id="right-sidebar"
-            style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%"
+            :class="{ 'shw-rside': sidebarVisible }"
+            style="overflow-x: hidden; overflow-y: scroll; height: 100%"
         >
             <div class="slimscrollright">
-                <div class="rpanel-title">
-                    {{ tituloModal }}
-                    <span>
-                        <i
-                            class="ti-close right-side-toggle"
-                            id="btnCerralModalForm"
-                            @click="cerrarModal()"
-                        ></i>
-                    </span>
+                <div class="rpanel-title d-flex justify-content-between align-items-center">
+                    <span>{{ tituloModal }}</span>
+                    <button
+                        type="button"
+                        class="right-side-toggle text-white border-0 bg-transparent"
+                        @click="btnCerrarModal()"
+                        aria-label="Cerrar panel"
+                        title="Cerrar panel (Esc)"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
                 </div>
                 <div class="r-panel-body">
-                    <!-- ============================================================== -->
-                    <!-- Aqui va el contenido de los formularios -->
-                    <!-- ============================================================== -->
                     <form action="#">
                         <div class="form-body">
                             <div class="row">
@@ -217,52 +279,61 @@
                                     <div class="row">
                                         <div class="col-md-3">
                                             <div class="form-group">
-                                                <label class="control-label"># Documento</label>
+                                                <label
+                                                    class="control-label"
+                                                    for="orden_paciente_num_docu"
+                                                    ># Documento</label
+                                                >
                                                 <input
+                                                    id="orden_paciente_num_docu"
                                                     type="text"
-                                                    id="num_docu"
-                                                    name="num_docu"
                                                     v-model="orden.paciente.num_docu"
                                                     class="form-control"
                                                     placeholder="# de Documento"
                                                 />
                                             </div>
                                         </div>
-
                                         <div class="col-md-5">
                                             <div class="form-group">
-                                                <label class="control-label">Nombres</label>
+                                                <label
+                                                    class="control-label"
+                                                    for="orden_paciente_nom_pacien"
+                                                    >Nombres</label
+                                                >
                                                 <input
+                                                    id="orden_paciente_nom_pacien"
                                                     type="text"
-                                                    id="nombres"
-                                                    name="nombres"
                                                     v-model="orden.paciente.nom_pacien"
                                                     class="form-control"
                                                     placeholder="Nombres"
                                                 />
                                             </div>
                                         </div>
-
                                         <div class="col-md-2">
                                             <div class="form-group">
-                                                <label class="control-label">Sexo</label>
+                                                <label
+                                                    class="control-label"
+                                                    for="orden_paciente_sexo"
+                                                    >Sexo</label
+                                                >
                                                 <input
+                                                    id="orden_paciente_sexo"
                                                     type="text"
-                                                    id="sexo"
-                                                    name="sexo"
                                                     v-model="orden.paciente.sexo"
                                                     class="form-control"
                                                 />
                                             </div>
                                         </div>
-
                                         <div class="col-md-2">
                                             <div class="form-group">
-                                                <label class="control-label">Fec. Nacimi</label>
+                                                <label
+                                                    class="control-label"
+                                                    for="orden_paciente_fec_naci"
+                                                    >Fec. Nacim.</label
+                                                >
                                                 <input
+                                                    id="orden_paciente_fec_naci"
                                                     type="date"
-                                                    id="fec_naci"
-                                                    name="fec_naci"
                                                     v-model="orden.paciente.fec_naci"
                                                     class="form-control"
                                                 />
@@ -272,11 +343,14 @@
                                     <div class="row">
                                         <div class="col-md-4">
                                             <div class="form-group">
-                                                <label class="control-label">Dirección</label>
+                                                <label
+                                                    class="control-label"
+                                                    for="orden_paciente_direccion"
+                                                    >Dirección</label
+                                                >
                                                 <input
+                                                    id="orden_paciente_direccion"
                                                     type="text"
-                                                    id="direccion"
-                                                    name="direccion"
                                                     v-model="orden.paciente.direccion"
                                                     class="form-control"
                                                 />
@@ -284,11 +358,14 @@
                                         </div>
                                         <div class="col-md-3">
                                             <div class="form-group">
-                                                <label class="control-label">Télefono</label>
+                                                <label
+                                                    class="control-label"
+                                                    for="orden_paciente_tel"
+                                                    >Teléfono</label
+                                                >
                                                 <input
+                                                    id="orden_paciente_tel"
                                                     type="number"
-                                                    id="telefono"
-                                                    name="telefono"
                                                     v-model="orden.paciente.tel"
                                                     class="form-control"
                                                 />
@@ -296,11 +373,14 @@
                                         </div>
                                         <div class="col-md-5">
                                             <div class="form-group">
-                                                <label class="control-label">E - Mail</label>
+                                                <label
+                                                    class="control-label"
+                                                    for="orden_paciente_email"
+                                                    >Correo Electrónico</label
+                                                >
                                                 <input
+                                                    id="orden_paciente_email"
                                                     type="email"
-                                                    id="email"
-                                                    name="email"
                                                     v-model="orden.paciente.email"
                                                     class="form-control"
                                                 />
@@ -313,59 +393,47 @@
                                     </h5>
                                     <hr />
 
-                                    <input
-                                        type="hidden"
-                                        id="study_pk"
-                                        name="study_pk"
-                                        v-model="orden.study_pk"
-                                    />
-                                    <input
-                                        type="hidden"
-                                        id="study_iuid"
-                                        name="study_iuid"
-                                        v-model="orden.study_iuid"
-                                    />
-                                    <input
-                                        type="hidden"
-                                        id="study_id"
-                                        name="study_id"
-                                        v-model="orden.study_id"
-                                    />
+                                    <input type="hidden" v-model="orden.study_pk" />
+                                    <input type="hidden" v-model="orden.study_iuid" />
+                                    <input type="hidden" v-model="orden.study_id" />
 
                                     <div class="row">
                                         <div class="col-md-5">
                                             <div class="form-group">
-                                                <label class="control-label">Descripción</label>
+                                                <label class="control-label" for="orden_study_desc"
+                                                    >Descripción</label
+                                                >
                                                 <input
+                                                    id="orden_study_desc"
                                                     type="text"
-                                                    id="study_desc"
-                                                    name="study_desc"
                                                     v-model="orden.study_desc"
                                                     class="form-control"
                                                 />
                                             </div>
                                         </div>
-
                                         <div class="col-md-4">
                                             <div class="form-group">
-                                                <label class="control-label">Detalle</label>
+                                                <label
+                                                    class="control-label"
+                                                    for="orden_accession_no"
+                                                    >Detalle</label
+                                                >
                                                 <input
+                                                    id="orden_accession_no"
                                                     type="text"
-                                                    id="accession_no"
-                                                    name="accession_no"
                                                     v-model="orden.accession_no"
                                                     class="form-control"
                                                 />
                                             </div>
                                         </div>
-
                                         <div class="col-md-3">
                                             <div class="form-group">
-                                                <label class="control-label">Fecha</label>
+                                                <label class="control-label" for="orden_fec_estudio"
+                                                    >Fecha</label
+                                                >
                                                 <input
+                                                    id="orden_fec_estudio"
                                                     type="text"
-                                                    id="study_datetime"
-                                                    name="study_datetime"
                                                     v-model="orden.fec_estudio"
                                                     class="form-control"
                                                 />
@@ -375,54 +443,49 @@
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
-                                                <label class="control-label">Observaciones</label>
+                                                <label
+                                                    class="control-label"
+                                                    for="orden_observaciones"
+                                                    >Observaciones</label
+                                                >
                                                 <input
+                                                    id="orden_observaciones"
                                                     type="text"
-                                                    id="observaciones"
-                                                    name="observaciones"
                                                     v-model="orden.observaciones"
                                                     class="form-control"
-                                                    placeholder="Ingrese aqi las observaciones del estudio"
+                                                    placeholder="Ingrese las observaciones del estudio"
                                                 />
                                             </div>
                                         </div>
                                     </div>
 
                                     <h5 class="card-title text-info">
-                                        <i class="fa fa-edit"></i> Adjunto
+                                        <i class="fa fa-edit"></i> Adjuntos
                                     </h5>
                                     <hr />
 
                                     <div class="row">
                                         <div class="col-md-12">
-                                            <div class="form-group">
+                                            <div
+                                                v-for="(adj, adjIdx) in adjuntosFileInputs"
+                                                :key="adjIdx"
+                                                class="form-group"
+                                            >
+                                                <label class="control-label">
+                                                    Archivo adjunto {{ adjIdx + 1 }}
+                                                    <span
+                                                        v-if="adj.nombre"
+                                                        class="text-success ml-2"
+                                                    >
+                                                        <i class="fa fa-check"></i>
+                                                        {{ adj.nombre }}
+                                                    </span>
+                                                </label>
                                                 <input
                                                     type="file"
                                                     class="form-control"
-                                                    id="exampleInputFile1"
-                                                    aria-describedby="fileHelp"
-                                                    @change="obtenerArchivo1"
-                                                    accept=".pdf,.doc,.docx"
-                                                />
-                                            </div>
-                                            <div class="form-group">
-                                                <input
-                                                    type="file"
-                                                    class="form-control"
-                                                    id="exampleInputFile2"
-                                                    aria-describedby="fileHelp"
-                                                    @change="obtenerArchivo2"
-                                                    accept=".pdf,.doc,.docx"
-                                                />
-                                            </div>
-                                            <div class="form-group">
-                                                <input
-                                                    type="file"
-                                                    class="form-control"
-                                                    id="exampleInputFile3"
-                                                    aria-describedby="fileHelp"
-                                                    @change="obtenerArchivo3"
-                                                    accept=".pdf,.doc,.docx"
+                                                    :accept="ADJUNTO_ACCEPT"
+                                                    @change="(e) => obtenerArchivo(e, adjIdx)"
                                                 />
                                             </div>
                                         </div>
@@ -436,25 +499,24 @@
                                     <div class="row">
                                         <div class="col-md-4">
                                             <div class="form-group">
-                                                <label class="control-label">Prioridad</label>
+                                                <label
+                                                    class="control-label"
+                                                    for="orden_prioridad_id"
+                                                    >Prioridad</label
+                                                >
                                                 <select
+                                                    id="orden_prioridad_id"
                                                     v-model="orden.priori.id"
-                                                    name="prioridad_id"
-                                                    id="prioridad_id"
                                                     class="form-control custom-select"
                                                     @change="establecerPrioridad"
                                                 >
                                                     <option
-                                                        v-for="(
-                                                            ItemPrioridad, index
-                                                        ) in prioridades"
-                                                        :key="index"
-                                                        :value="ItemPrioridad.id"
+                                                        v-for="item in prioridades"
+                                                        :key="item.id"
+                                                        :value="item.id"
                                                     >
-                                                        {{ ItemPrioridad.nom_priori }} -
-                                                        {{ ItemPrioridad.tiempo }}
-                                                        {{ ItemPrioridad.tipo_tiempo }}
-                                                        {{ ItemPrioridad.observacion }}
+                                                        {{ item.nom_priori }} - {{ item.tiempo }}
+                                                        {{ item.tipo_tiempo }}
                                                     </option>
                                                 </select>
                                                 <span
@@ -465,26 +527,26 @@
                                                 </span>
                                             </div>
                                         </div>
-
-                                        <div class="col-md-4" v-if="sedeInterface === true">
+                                        <div class="col-md-4" v-if="sedeInterface">
                                             <div class="form-group">
-                                                <label class="control-label">Atención</label>
+                                                <label
+                                                    class="control-label"
+                                                    for="interface_atencion_select"
+                                                    >Atención</label
+                                                >
                                                 <select
+                                                    id="interface_atencion_select"
                                                     v-model="interfaceAtencionSeleccionada"
-                                                    name="interfaceAtencionSeleccionada"
-                                                    id="interfaceAtencionSeleccionada"
                                                     class="form-control custom-select"
                                                     @change="interfaceListarProductosDiagnosticos()"
                                                 >
                                                     <option
-                                                        v-for="(
-                                                            ItemAtencion, index
-                                                        ) in interfaceAtenciones"
-                                                        :key="index"
-                                                        :value="ItemAtencion.IdAtencion"
+                                                        v-for="item in interfaceAtenciones"
+                                                        :key="item.IdAtencion"
+                                                        :value="item.IdAtencion"
                                                     >
-                                                        {{ ItemAtencion.IdAtencion }} -
-                                                        {{ ItemAtencion.FecIngreso }}
+                                                        {{ item.IdAtencion }} -
+                                                        {{ item.FecIngreso }}
                                                     </option>
                                                 </select>
                                             </div>
@@ -494,7 +556,6 @@
                                     <h5 class="card-title text-info">
                                         <i class="fa fa-user"></i> PRODUCTOS
                                     </h5>
-
                                     <hr />
 
                                     <span class="text-danger" v-if="errores.productosEstudio">
@@ -503,25 +564,29 @@
                                     <div class="row">
                                         <div
                                             class="col-md-12"
-                                            v-if="sedeInterface === false"
+                                            v-if="!sedeInterface"
                                             id="productos-parent"
                                         >
+                                            <label class="control-label" for="select-producto">
+                                                Buscar y agregar producto
+                                            </label>
                                             <Select2
-                                                :value="productoSelecciondo"
+                                                ref="selProducto"
+                                                select-id="select-producto"
+                                                :value="productoSeleccionado"
                                                 :options="productoOptions"
                                                 width="100%"
                                                 :allow-clear="true"
+                                                placeholder="Buscar por código CUPS o nombre del producto..."
+                                                dropdown-parent-selector="#productos-parent"
                                                 @input="onProductoSelect"
                                             />
                                         </div>
                                         <div
-                                            class="col-md-12 table-responsive"
+                                            class="col-md-12 table-responsive m-t-10"
                                             style="overflow-y: scroll; height: 250px"
                                         >
-                                            <table
-                                                id="myTable"
-                                                class="table table-bordered table-striped"
-                                            >
+                                            <table class="table table-bordered table-striped">
                                                 <thead>
                                                     <tr>
                                                         <th></th>
@@ -532,15 +597,15 @@
                                                 </thead>
                                                 <tbody>
                                                     <tr
-                                                        v-for="(item, index) in productosInterface"
-                                                        :key="item.id"
+                                                        v-for="(item, pIdx) in sedeInterface
+                                                            ? productosInterface
+                                                            : registro.productosEstudio"
+                                                        :key="item.id || item.cod_cups || pIdx"
                                                     >
                                                         <td>
                                                             <input
                                                                 type="checkbox"
-                                                                class="iCheck-helper"
-                                                                :id="`flat-checkbox-producto-interface-${index}`"
-                                                                data-checkbox="icheckbox_flat-red"
+                                                                :id="`prod-check-${pIdx}`"
                                                                 :checked="
                                                                     orden.producto.some(
                                                                         (p) =>
@@ -557,7 +622,7 @@
                                                                 "
                                                             />
                                                             <label
-                                                                :for="`flat-checkbox-producto-interface-${index}`"
+                                                                :for="`prod-check-${pIdx}`"
                                                             ></label>
                                                         </td>
                                                         <td>{{ item.cod_cups }}</td>
@@ -571,6 +636,7 @@
                                                                         item.cod_cups
                                                                     )
                                                                 "
+                                                                title="Quitar producto"
                                                             >
                                                                 <i class="fa fa-trash"></i>
                                                             </button>
@@ -581,21 +647,122 @@
                                         </div>
                                     </div>
 
-                                    <h5 class="card-title text-info">
+                                    <h5 class="card-title text-info m-t-20">
+                                        <i class="fa fa-user"></i> DIAGNÓSTICOS
+                                    </h5>
+                                    <hr />
+
+                                    <span class="text-danger" v-if="errores.diagnosticosEstudio">
+                                        {{ errores.diagnosticosEstudio[0] }}
+                                    </span>
+
+                                    <div class="row">
+                                        <div
+                                            class="col-md-12"
+                                            v-if="!sedeInterface"
+                                            id="diagnosticos-parent"
+                                        >
+                                            <label class="control-label" for="select-diagnostico">
+                                                Buscar y agregar diagnóstico
+                                            </label>
+                                            <Select2
+                                                ref="selDiagnostico"
+                                                select-id="select-diagnostico"
+                                                :value="diagnosticoSeleccionado"
+                                                :options="diagnosticoOptions"
+                                                width="100%"
+                                                :allow-clear="true"
+                                                :label-fields="['cod_diagnos', 'nom_diagnos']"
+                                                placeholder="Buscar por código CIE o nombre del diagnóstico..."
+                                                dropdown-parent-selector="#diagnosticos-parent"
+                                                @input="onDiagnosticoSelect"
+                                            />
+                                        </div>
+                                        <div
+                                            class="col-md-12 table-responsive m-t-10"
+                                            style="overflow-y: scroll; max-height: 200px"
+                                        >
+                                            <table class="table table-bordered table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Código</th>
+                                                        <th>Diagnóstico</th>
+                                                        <th v-if="!sedeInterface"></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr
+                                                        v-for="(
+                                                            item, dIdx
+                                                        ) in registro.diagnosticosEstudio"
+                                                        :key="
+                                                            item.id ||
+                                                            item.cod_diagnos ||
+                                                            item.cod_cie9 ||
+                                                            dIdx
+                                                        "
+                                                    >
+                                                        <td>
+                                                            {{
+                                                                item.cod_diagnos ||
+                                                                item.cod_cie9 ||
+                                                                item.CodCie9
+                                                            }}
+                                                        </td>
+                                                        <td>
+                                                            {{
+                                                                item.nom_diagnos ||
+                                                                item.nom_diagnostico ||
+                                                                item.NomDiagnostico
+                                                            }}
+                                                        </td>
+                                                        <td
+                                                            v-if="!sedeInterface"
+                                                            class="text-nowrap"
+                                                        >
+                                                            <button
+                                                                type="button"
+                                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
+                                                                @click="
+                                                                    quitarDiagnosticoEstudio(dIdx)
+                                                                "
+                                                                title="Quitar diagnóstico"
+                                                            >
+                                                                <i class="fa fa-trash"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                    <tr
+                                                        v-if="
+                                                            !registro.diagnosticosEstudio ||
+                                                            registro.diagnosticosEstudio.length ===
+                                                                0
+                                                        "
+                                                    >
+                                                        <td
+                                                            :colspan="!sedeInterface ? 3 : 2"
+                                                            class="text-center text-muted"
+                                                        >
+                                                            No hay diagnósticos seleccionados
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <h5 class="card-title text-info m-t-20">
                                         <i class="fa fa-pencil"></i> MOTIVO DEL EXAMEN
                                     </h5>
-
                                     <hr />
 
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
                                                 <textarea
-                                                    id="motivo_examen"
-                                                    name="motivo_examen"
                                                     v-model="orden.motivo_examen"
                                                     class="form-control"
-                                                    placeholder="Ingrese aqi las observaciones del estudio"
+                                                    placeholder="Ingrese las observaciones del estudio"
                                                     rows="11"
                                                 ></textarea>
                                             </div>
@@ -610,6 +777,7 @@
                                     class="btn btn-success m-r-5"
                                     @click="guardarRegistro()"
                                     :disabled="loadingGuardar"
+                                    title="Guardar orden"
                                 >
                                     <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
                                     <i v-else class="fa fa-check"></i> Guardar
@@ -618,9 +786,10 @@
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    @click="cerrarModal()"
+                                    @click="btnCerrarModal()"
+                                    title="Cerrar panel"
                                 >
-                                    Cancel
+                                    Cancelar
                                 </button>
                             </div>
                         </div>
@@ -628,59 +797,50 @@
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Right sidebar -->
-        <!-- ============================================================== -->
     </div>
 </template>
+
 <script setup>
-const { proxy } = getCurrentInstance();
-const emitter = proxy.emitter;
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
-
+import {
+    computed,
+    getCurrentInstance,
+    nextTick,
+    onBeforeUnmount,
+    onMounted,
+    ref,
+    watch,
+} from "vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { handleAxiosErrorToast } from "@/helpers/alerts";
+import { confirmAction, getUserSafeError, toastMessage } from "@/helpers/alerts";
+import { normalizarFecha } from "@/helpers/dateUtils";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 import axios from "axios";
+import usePermissions from "@/helpers/permissions.js";
 
-const props = defineProps({ usuarioactual: Object });
+const { appContext } = getCurrentInstance();
+const emitter = appContext.config.globalProperties.emitter;
+
+const DESTINO_TELE_RADIOLOGIA = "Tele Radiologia";
+const ADJUNTO_ACCEPT = ".pdf,.doc,.docx";
+const ADJUNTO_COUNT = 3;
+
+const props = defineProps({
+    usuarioactual: { type: Object, required: true },
+    permisos: { type: Array, default: () => [] },
+});
+
+usePermissions(props.permisos);
 
 const dt = ref(null);
-
-const dataIndex = ref(0);
-const id = ref(0);
+const selProducto = ref(null);
+const selDiagnostico = ref(null);
+const sidebarVisible = ref(false);
 const registros = ref([]);
 const tituloModal = ref("Nuevo registro");
-const registro = ref({
-    study_pk: "",
-    study_iuid: "",
-    study_datetime: "",
-    study_id: "",
-    accession_no: "",
-    study_desc: "",
-    mods_in_study: "",
-    observaciones: "",
-    medico_id: "",
-    prioridad_id: "",
-    sede_id: sedeActual,
-    quien_registro_id: props.usuarioactual.id,
-    num_docu: "",
-    nombres: "",
-    sexo: "",
-    fec_naci: "",
-    email: "",
-    email_reportar: "",
-    direccion: "",
-    tel: "",
-    productosEstudio: [],
-    diagnosticosEstudio: [],
-    atencion_id: null,
-    destino_estudio: "Tele Radiologia",
-    destino_estudio_id: null,
-    motivo_examen: null,
-});
 const orden = ref({
     study_pk: "",
     study_iuid: "",
+    study_id: "",
     fec_estudio: "",
     accession_no: "",
     study_desc: "",
@@ -702,16 +862,49 @@ const orden = ref({
         nom_priori: "",
     },
     sede: {
-        id: idSedeActual,
-        nom_sede: nomSedeActual,
+        id: "",
+        nom_sede: "",
     },
     producto: [],
     adjuntos: [],
     motivo_examen: null,
 });
-const soportesHC = ref({ archivo1: null, archivo2: null, archivo3: null });
+const registro = ref({
+    study_pk: "",
+    study_iuid: "",
+    study_datetime: "",
+    study_id: "",
+    accession_no: "",
+    study_desc: "",
+    mods_in_study: "",
+    observaciones: "",
+    medico_id: "",
+    prioridad_id: "",
+    sede_id: "",
+    quien_registro_id: props.usuarioactual.id,
+    num_docu: "",
+    nombres: "",
+    sexo: "",
+    fec_naci: "",
+    email: "",
+    email_reportar: "",
+    direccion: "",
+    tel: "",
+    productosEstudio: [],
+    diagnosticosEstudio: [],
+    atencion_id: null,
+    destino_estudio: DESTINO_TELE_RADIOLOGIA,
+    destino_estudio_id: null,
+    motivo_examen: null,
+});
+const adjuntosFileInputs = ref(
+    Array.from({ length: ADJUNTO_COUNT }, () => ({
+        nombre: null,
+        archivo: null,
+    }))
+);
 const busqueda = ref({
-    sede_id: sedeActual,
+    sede_id: "",
     bus_nom_num_docu: "",
     bus_fech_ini: "",
     bus_fecha_fin: "",
@@ -720,28 +913,19 @@ const sedeInterface = ref(false);
 const interfaceAtenciones = ref([]);
 const interfaceAtencionSeleccionada = ref(null);
 const errores = ref({});
-const erroresBusqueda = ref({});
 const prioridades = ref([]);
 const productos = ref([]);
 const productosInterface = ref([]);
-const productoSelecciondo = ref("");
-const productoSelecciondoOrder = ref([]);
+const productoSeleccionado = ref("");
+const diagnosticos = ref([]);
+const diagnosticoSeleccionado = ref("");
 const idSedeActual = ref("");
 const nomSedeActual = ref("");
-const productosAtencion = ref([]);
-const idRow = ref(null);
-const selectedRows = ref({});
 const loadingBuscar = ref(false);
 const loadingGuardar = ref(false);
 const loadingAbrirIndex = ref(null);
 const loadingImagenIndex = ref(null);
 
-const diagnosticoOptions = computed(() => {
-    return (diagnosticos || []).map((d) => ({
-        id: String(d.id),
-        nom_diagnos: d.nom_diagnos,
-    }));
-});
 const productoOptions = computed(() => {
     return (productos.value || []).map((p) => ({
         id: String(p.id),
@@ -749,132 +933,153 @@ const productoOptions = computed(() => {
         nom_produc: p.nom_produc,
     }));
 });
-const medicoOptions = computed(() => {
-    return (medicos || []).map((p) => ({ id: String(p.id), name: p.name }));
+
+const diagnosticoOptions = computed(() => {
+    return (diagnosticos.value || []).map((d) => ({
+        id: String(d.id),
+        cod_diagnos: d.cod_diagnos || d.cod_cie9 || "",
+        nom_diagnos: d.nom_diagnos || "",
+    }));
 });
 
 function initDataTable() {
-    safeInitDataTable(dt.value || "#example23", {
+    if (registros.value.length === 0) return;
+    safeInitDataTable(dt.value || "#tablaTeleRadiologiaEnviar", {
         dom: "Bfrtip",
         buttons: ["copy", "csv", "excel", "pdf", "print"],
-        retrieve: true,
+        autoWidth: false,
+        columnDefs: [{ targets: [5], orderable: false }],
     });
 }
+
 function destroyDataTable() {
-    safeDestroyDataTable(dt.value || "#example23");
+    safeDestroyDataTable(dt.value || "#tablaTeleRadiologiaEnviar");
 }
+
 async function buscarStudy() {
     if (loadingBuscar.value) return;
+
+    const sedeActual =
+        sessionStorage.getItem("ST-sede") ||
+        localStorage.getItem("ST-sede") ||
+        busqueda.value.sede_id ||
+        idSedeActual.value;
+
+    if (!sedeActual) {
+        toastMessage({
+            heading: "Upsss!!!",
+            text: "Debes seleccionar una sede para realizar la busqueda.",
+            icon: "warning",
+        });
+        return;
+    }
+
+    if (!sessionStorage.getItem("ST-sede")) {
+        sessionStorage.setItem("ST-sede", String(sedeActual));
+    }
+    if (
+        busqueda.value.bus_nom_num_docu == "" &&
+        busqueda.value.bus_fech_ini == "" &&
+        busqueda.value.bus_fecha_fin == ""
+    ) {
+        toastMessage({
+            heading: "Upsss!!!",
+            text: "Debes establecer la fecha de inicio o finalización para la busqueda.",
+            icon: "warning",
+        });
+        return;
+    }
+
     loadingBuscar.value = true;
     destroyDataTable();
-    try {
-        if (sessionStorage.getItem("ST-sede") == null) {
-            $.toast({
-                heading: "Upsss!!!",
-                text: "Debes seleccionar una sede para realizar la busqueda.",
-                position: "top-right",
-                loaderBg: "#ff6849",
-                icon: "warning",
-                hideAfter: 3500,
-                stack: 6,
-            });
-        } else if (
-            busqueda.value.bus_nom_num_docu == "" &&
-            busqueda.value.bus_fech_ini == "" &&
-            busqueda.value.bus_fecha_fin == ""
-        ) {
-            $.toast({
-                heading: "Upsss!!!",
-                text: "Debes establece la fecha de inicio o finalización para la busqueda.",
-                position: "top-right",
-                loaderBg: "#ff6849",
-                icon: "warning",
-                hideAfter: 3500,
-                stack: 6,
-            });
-        } else {
-            // En Tele-radiología consultamos estudios vía endpoint del módulo
-            const res = await axios.post("/api/tele-radiologia-listar-estudios", busqueda.value);
-            if (res.status == 200) {
-                destroyDataTable();
 
-                registros.value = res.data.data;
-                nextTick(() => {
-                    initDataTable();
-                });
-            } else if (res.status == 500) {
-                $.toast({
-                    heading: "Upsss!!!",
-                    text: res.data.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "danger",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
+    try {
+        const res = await axios.post("/api/tele-radiologia-listar-estudios", busqueda.value);
+        let data = res?.data?.data;
+        if (typeof data === "string") {
+            try {
+                data = JSON.parse(data);
+            } catch (_error) {
+                data = [];
             }
         }
+        registros.value = Array.isArray(data) ? data : [];
     } catch (error) {
-        if (error.response && error.response.status == 500) {
-            $.toast({
-                heading: "Upss!!!",
-                text: error.response.data.message,
-                position: "top-right",
-                loaderBg: "#ff6849",
-                icon: "error",
-                hideAfter: 3500,
-                stack: 6,
-            });
-        }
-        if (error.response && error.response.data && error.response.data.errors) {
-            erroresBusqueda.value = error.response.data.errors;
-        }
-        handleAxiosErrorToast(error, "No fue posible listar estudios.");
+        toastMessage({
+            heading: "Upsss!!!",
+            text: getUserSafeError(error, "Error al listar estudios."),
+            icon: "error",
+        });
+        registros.value = [];
     } finally {
         loadingBuscar.value = false;
+        await nextTick();
+        if (registros.value.length > 0) {
+            destroyDataTable();
+            initDataTable();
+        }
     }
 }
+
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
     try {
         if (orden.value.producto.length === 0) {
-            $.toast({
+            toastMessage({
                 heading: "Upsss!!!",
-                text: "Debes seleccional al menos un producto",
-                position: "top-right",
-                loaderBg: "#ff6849",
+                text: "Debes seleccionar al menos un producto",
                 icon: "warning",
-                hideAfter: 5500,
-                stack: 6,
             });
-
             return;
         }
 
         if (orden.value.priori.id === "") {
-            $.toast({
+            toastMessage({
                 heading: "Upsss!!!",
-                text: "Debes seleccional la prioridad de la orden",
-                position: "top-right",
-                loaderBg: "#ff6849",
+                text: "Debes seleccionar la prioridad de la orden",
                 icon: "warning",
-                hideAfter: 5500,
-                stack: 6,
             });
-
             return;
         }
 
-        // Mantener compatibilidad con backend externo: duplicar tel/telefono
         orden.value.paciente.telefono = orden.value.paciente.tel;
         registro.value.tel = orden.value.paciente.tel;
         registro.value.direccion = orden.value.paciente.direccion;
         registro.value.email = orden.value.paciente.email;
         registro.value.motivo_examen = orden.value.motivo_examen;
 
+        const primerCups = orden.value.producto[0]?.cod_cups || "";
+        const payloadOrden = {
+            study_pk: orden.value.study_pk,
+            study_iuid: orden.value.study_iuid,
+            study_id: orden.value.study_id || String(orden.value.study_pk || ""),
+            fec_estudio: orden.value.fec_estudio,
+            accession_no: orden.value.accession_no,
+            study_desc: orden.value.study_desc,
+            mods_in_study: orden.value.mods_in_study,
+            observaciones: orden.value.observaciones,
+            paciente: { ...orden.value.paciente },
+            priori: { ...orden.value.priori },
+            sede: { ...orden.value.sede },
+            cod_cups: primerCups,
+            medico: {
+                num_docu: String(props.usuarioactual?.num_docu || props.usuarioactual?.id || ""),
+                name: props.usuarioactual?.name || "Usuario Asignador",
+            },
+            producto: orden.value.producto.map((p) => ({ ...p })),
+            diagnostico: (registro.value.diagnosticosEstudio || []).map((d) => ({
+                cod_diagnos: d.cod_diagnos || d.cod_cie9 || d.CodCie9 || "",
+                nom_diagnos: d.nom_diagnos || d.nom_diagnostico || d.NomDiagnostico || "",
+            })),
+            adjuntos: orden.value.adjuntos.map((a) => ({
+                file_exten: a.file_exten,
+            })),
+            motivo_examen: orden.value.motivo_examen,
+        };
+
         const resOrdenTele = await axios.post("/api/tele-radiologia-enviar-orden", {
-            orden: orden.value,
+            orden: payloadOrden,
         });
 
         const confirmation =
@@ -884,53 +1089,57 @@ async function guardarRegistro() {
             null;
 
         if (resOrdenTele.status == 201 || resOrdenTele.status == 200) {
-            //Asigno el id de la orden de tele radiologia al estudio
-            registro.value.destino_estudio_id = confirmation;
+            registro.value.destino_estudio_id =
+                confirmation !== null && !isNaN(Number(confirmation)) ? Number(confirmation) : null;
+            registro.value.medico_id = null;
+            registro.value.prioridad_id = orden.value.priori.id;
+            registro.value.fec_estudio = orden.value.fec_estudio;
+            registro.value.study_datetime =
+                orden.value.fec_estudio || registro.value.study_datetime;
+            registro.value.destino_estudio = DESTINO_TELE_RADIOLOGIA;
 
-            $.toast({
-                heading: "Ok!!!",
+            toastMessage({
+                heading: "Completado",
                 text: resOrdenTele?.data?.details || "Orden enviada correctamente.",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "success",
-                hideAfter: 3500,
-                stack: 6,
             });
 
             const formData = new FormData();
             formData.append("registro", JSON.stringify(registro.value));
-            if (soportesHC.value.archivo1) formData.append("archivo1", soportesHC.value.archivo1);
-            if (soportesHC.value.archivo2) formData.append("archivo2", soportesHC.value.archivo2);
-            if (soportesHC.value.archivo3) formData.append("archivo3", soportesHC.value.archivo3);
+            adjuntosFileInputs.value.forEach((adj, idx) => {
+                if (adj.archivo) {
+                    formData.append(`archivo${idx + 1}`, adj.archivo);
+                }
+            });
 
             const resEstudio = await axios.post("/api/estudios", formData, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
 
-            if (resEstudio.status == 200) {
-                $.toast({
-                    heading: "Ok!!!",
-                    text: resEstudio.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
+            if (resEstudio.status == 200 || resEstudio.status == 201) {
+                toastMessage({
+                    heading: "Completado",
+                    text: resEstudio.data.message || "Estudio guardado correctamente.",
                     icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
                 });
+                btnCerrarModal();
+                btnLimpiar();
             }
         }
-
-        btnCerralModalForm();
-        btnLimpiar();
     } catch (error) {
         if (error.response) {
             errores.value = error.response.data;
         }
-        handleAxiosErrorToast(error, "No fue posible guardar/enviar el estudio.");
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible enviar la orden.",
+            icon: "error",
+        });
     } finally {
         loadingGuardar.value = false;
     }
 }
+
 function toBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -939,9 +1148,9 @@ function toBase64(file) {
         reader.onerror = (error) => reject(error);
     });
 }
+
 function extensionDesdeBase64(base64) {
     const mime = base64.substring(base64.indexOf(":") + 1, base64.indexOf(";"));
-
     const mapa = {
         "image/jpeg": "jpg",
         "image/png": "png",
@@ -949,41 +1158,28 @@ function extensionDesdeBase64(base64) {
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
         "application/msword": "doc",
     };
-
     return mapa[mime] ?? null;
 }
-async function obtenerArchivo1(e) {
+
+async function obtenerArchivo(e, index) {
     const file = e.target.files[0];
+    if (!file) return;
     const fileBase64 = await toBase64(file);
     const extension = extensionDesdeBase64(fileBase64);
-    agregarArchivoOrden(fileBase64, extension);
-    soportesHC.value.archivo1 = e.target.files[0];
-}
-async function obtenerArchivo2(e) {
-    const file = e.target.files[0];
-    const fileBase64 = await toBase64(file);
-    const extension = extensionDesdeBase64(fileBase64);
-    agregarArchivoOrden(fileBase64, extension);
-    soportesHC.value.archivo2 = e.target.files[0];
-}
-async function obtenerArchivo3(e) {
-    const file = e.target.files[0];
-    const fileBase64 = await toBase64(file);
-    const extension = extensionDesdeBase64(fileBase64);
-    agregarArchivoOrden(fileBase64, extension);
-    soportesHC.value.archivo3 = e.target.files[0];
-}
-async function agregarArchivoOrden(file, file_exten) {
     orden.value.adjuntos.push({
-        file: file,
-        file_exten: file_exten,
+        file: fileBase64,
+        file_exten: extension,
     });
+    adjuntosFileInputs.value[index].nombre = file.name;
+    adjuntosFileInputs.value[index].archivo = file;
 }
-async function mostrarRegistro(data = {}, index) {
+
+async function mostrarRegistro(data = {}) {
     limpiar();
-    tituloModal.value = "Generar orden: " + data.pat_name;
+    tituloModal.value = `Generar orden: ${data.pat_name} ${data.pat_id ? `(${data.pat_id})` : ""}`;
     orden.value.study_pk = data.study_pk;
     orden.value.study_iuid = data.study_iuid;
+    orden.value.study_id = data.study_id ?? String(data.study_pk ?? "");
     orden.value.fec_estudio = data.study_datetime;
     orden.value.accession_no = data.accession_no;
     orden.value.study_desc = data.study_desc;
@@ -991,7 +1187,7 @@ async function mostrarRegistro(data = {}, index) {
     orden.value.paciente.num_docu = data.pat_id;
     orden.value.paciente.nom_pacien = data.pat_name;
     orden.value.paciente.sexo = data.pat_sex;
-    orden.value.paciente.fec_naci = data.pat_birthdate;
+    orden.value.paciente.fec_naci = normalizarFecha(data.pat_birthdate) ?? "";
 
     registro.value.study_pk = data.study_pk;
     registro.value.study_iuid = data.study_iuid;
@@ -1001,96 +1197,161 @@ async function mostrarRegistro(data = {}, index) {
     registro.value.study_desc = data.study_desc;
     registro.value.mods_in_study = data.mods_in_study;
     registro.value.email = "";
-    registro.value.email_reportar = sessionStorage.getItem("ST-email_repor");
+    registro.value.email_reportar =
+        sessionStorage.getItem("ST-email_repor") || localStorage.getItem("ST-email_repor") || "";
     registro.value.num_docu = data.pat_id;
     registro.value.nombres = data.pat_name;
     registro.value.sexo = data.pat_sex;
-    registro.value.fec_naci = data.pat_birthdate;
+    registro.value.fec_naci = normalizarFecha(data.pat_birthdate) ?? "";
 
     abrirModal();
 
-    /**
-     * Verificar si la sede tiene interface, traigo la informacion de las producto y diagnosticos
-     */
-    const res = await axios.get("/api/config-sedes/" + idSedeActual.value + "/buscarPorId");
-    sedeInterface.value = res.data.data.interface_software != null;
-    if (sedeInterface.value) {
-        const resAtenciones = await axios.get(
-            "/api/interface-sahi-listar-atenciones/" + orden.value.paciente.num_docu
-        );
-        interfaceAtenciones.value = resAtenciones.data.data;
+    try {
+        const res = await axios.get("/api/config-sedes/" + idSedeActual.value + "/buscarPorId");
+        sedeInterface.value = res.data.data.interface_software != null;
+        if (sedeInterface.value) {
+            const resAtenciones = await axios.get(
+                "/api/interface-sahi-listar-atenciones/" + orden.value.paciente.num_docu
+            );
+            interfaceAtenciones.value = resAtenciones.data.data;
+        } else {
+            await nextTick();
+            setTimeout(() => {
+                selProducto.value?.rebuild();
+                selDiagnostico.value?.rebuild();
+            }, 60);
+        }
+    } catch (_e) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar los datos de la sede.",
+            icon: "error",
+        });
     }
 }
+
 async function interfaceListarProductosDiagnosticos() {
-    const resProuctos = await axios.get(
-        "/api/interface-sahi-listar-listarProductosDiagnosticos/" +
-            interfaceAtencionSeleccionada.value
-    );
-    const data = resProuctos.data.data;
-    productosInterface.value = data.productos;
+    try {
+        const resProductos = await axios.get(
+            "/api/interface-sahi-listar-productos-diagnosticos/" +
+                interfaceAtencionSeleccionada.value
+        );
+        const data = resProductos.data.data;
+        productosInterface.value = data.productos;
 
-    let EnfermedadActualDiagnosticos = "";
+        let EnfermedadActualDiagnosticos = "";
 
-    const consultas = data.consultas || [];
-    EnfermedadActualDiagnosticos = "Enfermedad Actual: ";
-    if (consultas.length > 0) {
-        consultas.forEach((c) => {
-            EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos}\n ${c.DesEnfermedadActual} \n`;
+        const consultas = data.consultas || [];
+        EnfermedadActualDiagnosticos = "Enfermedad Actual: ";
+        if (consultas.length > 0) {
+            consultas.forEach((c) => {
+                const enfermedad =
+                    c.DesEnfermedadActual ||
+                    c.des_enfermedad_actual ||
+                    c.EnfermedadActual ||
+                    c.enfermedad_actual;
+                if (enfermedad) {
+                    EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos}\n ${enfermedad} \n`;
+                }
+            });
+        }
+
+        const diagnosticos = data.diagnosticos || [];
+        EnfermedadActualDiagnosticos += `\nDiagnosticos:`;
+        if (diagnosticos.length > 0) {
+            diagnosticos.forEach((d) => {
+                const codigo = d.cod_diagnos || d.CodCie9 || d.cod_cie9 || "";
+                const nombre = d.nom_diagnos || d.NomDiagnostico || d.nom_diagnostico || "";
+                if (codigo || nombre) {
+                    EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos} \n ${codigo} - ${nombre}`;
+                }
+            });
+        }
+
+        orden.value.motivo_examen = EnfermedadActualDiagnosticos;
+        registro.value.motivo_examen = EnfermedadActualDiagnosticos;
+
+        registro.value.diagnosticosEstudio = diagnosticos.length > 0 ? diagnosticos : [];
+        registro.value.atencion_id = interfaceAtencionSeleccionada.value;
+    } catch (_e) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar productos/diagnósticos de la atención.",
+            icon: "error",
         });
     }
-
-    const diagnosticos = data.diagnosticos || [];
-    EnfermedadActualDiagnosticos += `\nDiagnosticos:`;
-    if (diagnosticos.length > 0) {
-        diagnosticos.forEach((d) => {
-            EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos} \n ${d.cod_diagnos} - ${d.nom_diagnos}`;
-        });
-    }
-
-    orden.value.motivo_examen = EnfermedadActualDiagnosticos;
-    registro.value.motivo_examen = EnfermedadActualDiagnosticos;
-
-    registro.value.diagnosticosEstudio = [];
-    if (diagnosticos.length > 0) {
-        registro.value.diagnosticosEstudio = diagnosticos;
-    }
-
-    registro.value.atencion_id = interfaceAtencionSeleccionada.value;
 }
-function establecerPrioridad(e) {
+
+function establecerPrioridad() {
     const seleccion = prioridades.value.find((p) => p.id === orden.value.priori.id);
-
-    orden.value.priori.id = seleccion.id;
-    registro.value.prioridad_id = seleccion.id;
-    orden.value.priori.nom_priori = seleccion.nom_priori;
+    if (seleccion) {
+        orden.value.priori.nom_priori = seleccion.nom_priori;
+        registro.value.prioridad_id = seleccion.id;
+    }
 }
+
 async function establecerSede() {
-    orden.value.sede.id = sessionStorage.getItem("ST-sede");
-    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
-    idSedeActual.value = sessionStorage.getItem("ST-sede");
-    nomSedeActual.value = sessionStorage.getItem("ST-nomsede");
-    registro.value.sede_id = sessionStorage.getItem("ST-sede");
-    await establecerSede();
+    const sede = sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || null;
+    const nomSede =
+        sessionStorage.getItem("ST-nomsede") || localStorage.getItem("ST-nomsede") || "";
+    orden.value.sede.id = sede;
+    busqueda.value.sede_id = sede;
+    idSedeActual.value = sede;
+    nomSedeActual.value = nomSede;
+    registro.value.sede_id = sede;
     registros.value = [];
+    if (!sede && emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
 }
-function btnCerralModalForm() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").toggleClass("shw-rside");
+
+/**
+ * Maneja el evento global sedeSeleccionada sincronizando la sede activa
+ * y limpiando los resultados previos para evitar mezclar información.
+ *
+ * @param {Object} data - Datos del evento con idSede y nomSede.
+ * @returns {void}
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-10-16
+ */
+function onSedeSeleccionada(data) {
+    const idSede =
+        data?.idSede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede");
+    if (!idSede) return;
+    const cambioSede = String(idSedeActual.value || "") !== String(idSede);
+    orden.value.sede.id = idSede;
+    busqueda.value.sede_id = idSede;
+    idSedeActual.value = idSede;
+    nomSedeActual.value =
+        data?.nomSede ??
+        sessionStorage.getItem("ST-nomsede") ??
+        localStorage.getItem("ST-nomsede") ??
+        "";
+    registro.value.sede_id = idSede;
+    if (cambioSede) {
+        destroyDataTable();
+        registros.value = [];
+        limpiar();
+    }
 }
+
+function btnCerrarModal() {
+    sidebarVisible.value = false;
+    errores.value = {};
+}
+
 function abrirModal() {
-    $(".right-sidebar").addClass("shw-rside");
+    sidebarVisible.value = true;
+    nextTick(() => {
+        document.getElementById("orden_paciente_num_docu")?.focus();
+        setTimeout(() => {
+            selProducto.value?.rebuild();
+            selDiagnostico.value?.rebuild();
+        }, 60);
+    });
 }
-function cerrarModal() {
-    $(".right-sidebar").removeClass("shw-rside");
-}
-function btnLimpiar() {
-    busqueda.value.bus_nom_num_docu = "";
-    busqueda.value.bus_fech_ini = "";
-    busqueda.value.bus_fecha_fin = "";
 
-    registros.value = [];
-    destroyDataTable();
-
+function limpiar() {
     orden.value.study_pk = "";
     orden.value.study_iuid = "";
     orden.value.study_id = "";
@@ -1103,57 +1364,76 @@ function btnLimpiar() {
     orden.value.paciente.nom_pacien = "";
     orden.value.paciente.sexo = "";
     orden.value.paciente.fec_naci = "";
+    orden.value.paciente.tel = "";
+    orden.value.paciente.email = "";
+    orden.value.paciente.direccion = "";
     orden.value.priori.id = "";
-
-    productoSelecciondo.value = "";
-
+    orden.value.priori.nom_priori = "";
     orden.value.producto = [];
     orden.value.adjuntos = [];
-    productosInterface.value = [];
-    diagnosticosInterface = [];
-    interfaceAtenciones.value = [];
+    orden.value.motivo_examen = null;
+
     registro.value.diagnosticosEstudio = [];
     registro.value.productosEstudio = [];
     registro.value.atencion_id = null;
     registro.value.destino_estudio_id = null;
-    registro.value.destino_estudio = "Tele Radiologia";
+    registro.value.destino_estudio = DESTINO_TELE_RADIOLOGIA;
 
-    soportesHC.value.archivo1 = null;
-    soportesHC.value.archivo2 = null;
-    soportesHC.value.archivo3 = null;
+    productoSeleccionado.value = "";
+    diagnosticoSeleccionado.value = "";
+    productosInterface.value = [];
+    interfaceAtenciones.value = [];
+    interfaceAtencionSeleccionada.value = null;
+    sedeInterface.value = false;
 
-    cerrarModal();
+    adjuntosFileInputs.value = Array.from({ length: ADJUNTO_COUNT }, () => ({
+        nombre: null,
+        archivo: null,
+    }));
+
+    errores.value = {};
 }
+
+function btnLimpiar() {
+    busqueda.value.bus_nom_num_docu = "";
+    busqueda.value.bus_fech_ini = "";
+    busqueda.value.bus_fecha_fin = "";
+
+    registros.value = [];
+    destroyDataTable();
+
+    limpiar();
+    btnCerrarModal();
+}
+
 async function listarPrioridades() {
     try {
         const res = await axios.get("/api/config-prioridades");
         prioridades.value = res.data.data;
-    } catch (error) {
+    } catch (_e) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar las prioridades.",
+            icon: "error",
+        });
         prioridades.value = [];
-        handleAxiosErrorToast(error, "No fue posible listar prioridades.");
     }
 }
+
 async function listarProductos() {
     try {
         const res = await axios.get("/api/config-productos");
         productos.value = res.data.data;
-    } catch (error) {
+    } catch (_e) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar los productos.",
+            icon: "error",
+        });
         productos.value = [];
-        handleAxiosErrorToast(error, "No fue posible listar productos.");
     }
 }
-function onMedicoSelect(value) {
-    let selectedId = null;
-    if (Array.isArray(value) && value.length > 0) {
-        const v = value[0];
-        selectedId = String(typeof v === "object" && v && v.id != null ? v.id : v);
-    } else if (value && typeof value === "object" && value.id != null) {
-        selectedId = String(value.id);
-    } else if (value != null) {
-        selectedId = String(value);
-    }
-    orden.value.medico.id = selectedId || "";
-}
+
 function onProductoSelect(value) {
     let selectedId = null;
     if (Array.isArray(value) && value.length > 0) {
@@ -1164,14 +1444,79 @@ function onProductoSelect(value) {
     } else if (value != null) {
         selectedId = String(value);
     }
-    if (selectedId != null) {
-        productoSelecciondo.value = selectedId;
+    if (selectedId != null && selectedId !== "" && selectedId !== "0" && selectedId !== 0) {
+        productoSeleccionado.value = selectedId;
         const prod = productos.value.find((p) => String(p.id) === selectedId);
         if (prod) {
             guardarProductosEstudio(prod.id, prod.cod_cups, prod.nom_produc);
         }
     }
 }
+
+function guardarProductosEstudio(id, cod_cups, nom_produc) {
+    const yaExisteIndex = orden.value.producto.findIndex((p) => p.cod_cups == cod_cups);
+    if (yaExisteIndex !== -1) {
+        orden.value.producto.splice(yaExisteIndex, 1);
+        const registroIndex = registro.value.productosEstudio.findIndex(
+            (p) => p.cod_cups == cod_cups
+        );
+        if (registroIndex !== -1) {
+            registro.value.productosEstudio.splice(registroIndex, 1);
+        }
+    } else {
+        orden.value.producto.push({
+            cod_cups: cod_cups,
+            nom_produc: nom_produc,
+        });
+        registro.value.productosEstudio.push({
+            checked: true,
+            id: id,
+            cod_cups: cod_cups,
+            nom_produc: nom_produc,
+        });
+    }
+    productoSeleccionado.value = "";
+    nextTick(() => {
+        selProducto.value?.rebuild();
+    });
+}
+
+function quitarProductoEstudio(codCups) {
+    const idxOrden = orden.value.producto.findIndex((p) => p.cod_cups === codCups);
+    if (idxOrden !== -1) orden.value.producto.splice(idxOrden, 1);
+    const idxRegistro = registro.value.productosEstudio.findIndex((p) => p.cod_cups === codCups);
+    if (idxRegistro !== -1) registro.value.productosEstudio.splice(idxRegistro, 1);
+}
+
+/**
+ * Consulta la lista de diagnósticos configurados en el sistema.
+ *
+ * @returns {Promise<void>}
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-09
+ */
+async function listarDiagnosticos() {
+    try {
+        const res = await axios.get("/api/config-diagnosticos");
+        diagnosticos.value = res.data.data || [];
+    } catch (_e) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar los diagnósticos.",
+            icon: "error",
+        });
+        diagnosticos.value = [];
+    }
+}
+
+/**
+ * Maneja el evento de selección de diagnóstico desde el componente Select2.
+ *
+ * @param {Array|Object|string|number} value - Valor emitido por el Select2.
+ * @returns {void}
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-09
+ */
 function onDiagnosticoSelect(value) {
     let selectedId = null;
     if (Array.isArray(value) && value.length > 0) {
@@ -1182,65 +1527,108 @@ function onDiagnosticoSelect(value) {
     } else if (value != null) {
         selectedId = String(value);
     }
-    if (selectedId != null) {
-        diagnosticoSelecciondo = selectedId;
-        guardarDiagnosticosEstudio();
+    if (selectedId != null && selectedId !== "" && selectedId !== "0" && selectedId !== 0) {
+        diagnosticoSeleccionado.value = selectedId;
+        guardarDiagnosticosEstudio(selectedId);
     }
 }
-function guardarProductosEstudio(id, cod_cups, nom_produc) {
-    const productoEstudioId = id;
-    const productoEstudioCod_Cubs = cod_cups;
-    const productoEstudioNomProduc = nom_produc;
 
-    const yaExisteIndex = orden.value.producto.findIndex(
-        (p) => p.cod_cups == productoEstudioCod_Cubs
-    );
-    if (yaExisteIndex !== -1) {
-        // Si ya existe, quitarlo
-        orden.value.producto.splice(yaExisteIndex, 1);
-        // También quitarlo de registro.productosEstudio
-        const registroIndex = registro.value.productosEstudio.findIndex(
-            (p) => p.cod_cups == productoEstudioCod_Cubs
+/**
+ * Agrega un diagnóstico seleccionado a la lista de diagnósticos del estudio.
+ *
+ * @param {string|number|null} idDiag - Identificador del diagnóstico a agregar.
+ * @returns {void}
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-09
+ */
+function guardarDiagnosticosEstudio(idDiag = null) {
+    const targetId = idDiag ?? diagnosticoSeleccionado.value;
+    if (!targetId || targetId === "" || targetId === "0" || targetId === 0) return;
+
+    const idx = diagnosticos.value.findIndex((x) => String(x.id) === String(targetId));
+    if (idx >= 0) {
+        const diag = diagnosticos.value[idx];
+        const yaExiste = registro.value.diagnosticosEstudio.some(
+            (d) => String(d.id) === String(diag.id)
         );
-        if (registroIndex !== -1) {
-            registro.value.productosEstudio.splice(registroIndex, 1);
+        if (!yaExiste) {
+            registro.value.diagnosticosEstudio.push({
+                id: diag.id,
+                cod_diagnos: diag.cod_diagnos || diag.cod_cie9 || "",
+                nom_diagnos: diag.nom_diagnos || "",
+            });
         }
-    } else {
-        // Si no existe, agregarlo
-        orden.value.producto.push({
-            cod_cups: productoEstudioCod_Cubs,
-            nom_produc: productoEstudioNomProduc,
-        });
-
-        registro.value.productosEstudio.push({
-            checked: true,
-            id: productoEstudioId,
-            cod_cups: productoEstudioCod_Cubs,
-            nom_produc: productoEstudioNomProduc,
-        });
     }
-
-    productoSelecciondo.value = "";
-}
-function quitarProductoEstudio(codCups) {
-    const idxOrden = orden.value.producto.findIndex((p) => p.cod_cups === codCups);
-    if (idxOrden !== -1) orden.value.producto.splice(idxOrden, 1);
-    const idxRegistro = registro.value.productosEstudio.findIndex((p) => p.cod_cups === codCups);
-    if (idxRegistro !== -1) registro.value.productosEstudio.splice(idxRegistro, 1);
-}
-function verImagen(pat_id, study_iuid, index = null) {
-    if (index !== null) {
-        if (loadingImagenIndex.value !== null) return;
-        loadingImagenIndex.value = index;
-    }
-    const base = sessionStorage.getItem("ST-urlsede") || "";
-    const params = new URLSearchParams({
-        patientID: String(pat_id ?? ""),
-        studyUID: String(study_iuid ?? ""),
-        serverName: String(sessionStorage.getItem("ST-servername") ?? ""),
+    diagnosticoSeleccionado.value = "";
+    nextTick(() => {
+        selDiagnostico.value?.rebuild();
     });
+}
+
+/**
+ * Elimina un diagnóstico del estudio solicitando confirmación previa.
+ *
+ * @param {number} indexEliminar - Índice del diagnóstico en registro.diagnosticosEstudio.
+ * @returns {Promise<void>}
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-09
+ */
+async function quitarDiagnosticoEstudio(indexEliminar) {
+    const ok = await confirmAction({
+        title: "¿Está seguro?",
+        text: "¿Desea eliminar este diagnóstico del estudio?",
+        icon: "warning",
+    });
+    if (!ok) return;
+    registro.value.diagnosticosEstudio.splice(indexEliminar, 1);
+}
+
+function verImagen(pat_id, study_iuid, studyPk) {
+    if (loadingImagenIndex.value !== null) return;
+
+    const base = sessionStorage.getItem("ST-urlsede") || localStorage.getItem("ST-urlsede") || "";
+    if (!base || base === "undefined" || base === "null" || !base.trim()) {
+        toastMessage({
+            heading: "Upsss!!!",
+            text: "No hay visor de imágenes configurado para la sede actual.",
+            icon: "warning",
+        });
+        return;
+    }
+
+    loadingImagenIndex.value = studyPk;
+
+    const rawServer =
+        sessionStorage.getItem("ST-servername") || localStorage.getItem("ST-servername");
+    const cleanServer =
+        !rawServer || rawServer === "undefined" || rawServer === "null"
+            ? ""
+            : String(rawServer).trim();
+
+    const queryObj = {
+        patientID: String(pat_id ?? "").trim(),
+        studyUID: String(study_iuid ?? "").trim(),
+    };
+    if (cleanServer) {
+        queryObj.serverName = cleanServer;
+    }
+
+    const params = new URLSearchParams(queryObj);
+    const separator = base.includes("?") ? "&" : "?";
+
     try {
-        window.open(`${base}?${params.toString()}`, "_blank", "noopener,noreferrer");
+        const newWindow = window.open(
+            `${base.trim()}${separator}${params.toString()}`,
+            "_blank",
+            "noopener,noreferrer"
+        );
+        if (!newWindow) {
+            toastMessage({
+                heading: "Atención",
+                text: "El navegador bloqueó la apertura de la ventana. Permita pop-ups para este sitio.",
+                icon: "warning",
+            });
+        }
     } finally {
         setTimeout(() => {
             loadingImagenIndex.value = null;
@@ -1248,49 +1636,134 @@ function verImagen(pat_id, study_iuid, index = null) {
     }
 }
 
+useKeyboardShortcuts({
+    onSave: () => {
+        if (sidebarVisible.value && !loadingGuardar.value) {
+            guardarRegistro();
+        }
+    },
+    onEscape: () => {
+        if (sidebarVisible.value) {
+            btnCerrarModal();
+        }
+    },
+    onSearch: () => {
+        if (!sidebarVisible.value) {
+            buscarStudy();
+        }
+    },
+});
+
+watch(
+    () => [sidebarVisible.value, sedeInterface.value],
+    ([visible, isInterface]) => {
+        if (visible && !isInterface) {
+            nextTick(() => {
+                setTimeout(() => {
+                    selProducto.value?.rebuild();
+                    selDiagnostico.value?.rebuild();
+                }, 60);
+            });
+        }
+    }
+);
+
 onMounted(() => {
     listarPrioridades();
     listarProductos();
+    listarDiagnosticos();
     establecerSede();
-    limpiar();
-
-    emitter.on("sedeSeleccionada", (data) => {
-        orden.value.sede.id = data.idSede;
-        establecerSede();
-        destroyDataTable();
-    });
+    emitter.on("sedeSeleccionada", onSedeSeleccionada);
+    if (!idSedeActual.value && emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
 });
 
 onBeforeUnmount(() => {
+    emitter.off("sedeSeleccionada", onSedeSeleccionada);
     destroyDataTable();
 });
 </script>
+
 <style scoped>
 .right-sidebar {
     position: fixed;
     right: -80%;
     width: 80%;
-    display: none;
-    z-index: 180;
+    z-index: 1100;
     background: #ffffff;
     top: 0px;
     padding-bottom: 20px;
-    height: 80%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
+    height: 100%;
+    box-shadow: -5px 0 35px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+@media (max-width: 768px) {
+    .right-sidebar {
+        right: -100%;
+        width: 100%;
+    }
 }
 
 .shw-rside {
-    right: 0px;
+    right: 0px !important;
     width: 80%;
-    display: block;
+    visibility: visible;
+    pointer-events: auto;
 }
 
-.audio {
-    width: 50px;
-    height: 5px;
+@media (max-width: 768px) {
+    .shw-rside {
+        width: 100%;
+    }
+}
+
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1050;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
+:deep(.select2-container) {
+    width: 100% !important;
+}
+
+:deep(.select2-dropdown) {
+    z-index: 9999 !important;
+}
+
+:deep(.select2-container--default .select2-selection--single) {
+    height: 38px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+}
+
+:deep(.select2-container--default .select2-selection--single .select2-selection__rendered) {
+    line-height: 36px;
+    padding-left: 12px;
+}
+
+:deep(.select2-container--default .select2-selection--single .select2-selection__arrow) {
+    height: 36px;
+    right: 8px;
 }
 </style>

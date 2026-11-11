@@ -5,19 +5,45 @@
                 <h3 class="text-themecolor">Gestión de Citas - Tablero</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Citas</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Citas
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Tablero de gestión</li>
                 </ol>
             </div>
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-info"
+                    @click="cargarDashboard()"
+                    :disabled="loading"
+                    title="Actualizar datos del tablero"
+                >
+                    <i class="fa" :class="loading ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                    Refrescar
+                </button>
+            </div>
         </div>
 
-        <loading-spinner :visible="loading" />
+        <div v-if="loading" class="m-t-20">
+            <table-skeleton-loader :rows="6" :columns="4" />
+        </div>
 
-        <div :class="{ 'd-none': loading }">
+        <div v-else>
             <div class="row">
                 <div class="col-md-3" v-for="stat in stats" :key="stat.label">
                     <div class="card" :class="stat.cardClass">
@@ -54,14 +80,27 @@
                                     </thead>
                                     <tbody>
                                         <tr v-if="proximas.length === 0">
-                                            <td colspan="5" class="text-center text-muted">
-                                                No hay citas próximas
+                                            <td colspan="5" class="text-center text-muted py-4">
+                                                <i
+                                                    class="fa fa-calendar-o fa-2x text-muted mb-2 d-block"
+                                                ></i>
+                                                No hay citas programadas para hoy o mañana
                                             </td>
                                         </tr>
                                         <tr v-for="item in proximas" :key="item.id">
                                             <td>
-                                                {{ item.paciente?.nombres }}
-                                                {{ item.paciente?.pri_ape }}
+                                                <div class="font-weight-bold">
+                                                    {{ item.paciente?.nombres }}
+                                                    {{ item.paciente?.pri_ape }}
+                                                </div>
+                                                <div
+                                                    v-if="item.paciente?.num_docu"
+                                                    class="text-primary font-weight-bold"
+                                                    style="font-size: 13px"
+                                                >
+                                                    <i class="fa fa-id-card-o mr-1"></i>
+                                                    {{ item.paciente?.num_docu }}
+                                                </div>
                                             </td>
                                             <td>{{ item.servicio?.nombre }}</td>
                                             <td>{{ formatFecha(item.fecha_hora_inicio) }}</td>
@@ -87,15 +126,22 @@
                         <div class="card-body">
                             <h4 class="card-title">Acciones Rápidas</h4>
                             <div class="list-group">
-                                <a :href="'/citas'" class="list-group-item list-group-item-action">
-                                    <i class="fa fa-list"></i> Ir al listado de citas
-                                </a>
-                                <a
-                                    href="javascript:void(0)"
+                                <router-link
+                                    to="/citas"
                                     class="list-group-item list-group-item-action"
-                                    @click="cargarProximas()"
                                 >
-                                    <i class="fa fa-refresh"></i> Refrescar datos
+                                    <i class="fa fa-list"></i> Ir al listado de citas
+                                </router-link>
+                                <a
+                                    href="#"
+                                    class="list-group-item list-group-item-action"
+                                    @click.prevent="cargarDashboard()"
+                                >
+                                    <i
+                                        class="fa"
+                                        :class="loading ? 'fa-spinner fa-spin' : 'fa-refresh'"
+                                    ></i>
+                                    Refrescar datos
                                 </a>
                             </div>
                         </div>
@@ -150,28 +196,52 @@
     </div>
 </template>
 <script setup>
-import { onMounted, ref, getCurrentInstance } from "vue";
+/**
+ * Tablero de Gestión de Citas
+ * Visualiza estadísticas por estado y citas próximas con sincronización reactiva multisede.
+ *
+ * Flujo del proceso:
+ * 1. Inicializa sede actual desde sessionStorage o evento global emitter.
+ * 2. Carga estadísticas consolidadas y próximas citas concurrentemente vía Promise.all.
+ * 3. Actualiza reactivamente ante cambios en la sede activa.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-10-19
+ */
+import { getCurrentInstance, onBeforeUnmount, onMounted, ref } from "vue";
 
-const { proxy } = getCurrentInstance();
-import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { formatFecha, getEstadoLabel, getEstadoClase } from "@/composables/useCitasUtils.js";
 import axios from "axios";
+
+const { appContext } = getCurrentInstance() || {};
+const emitter = appContext?.config?.globalProperties?.emitter;
 
 const stats = ref([]);
 const statsPorEstado = ref({});
 const proximas = ref([]);
 const loading = ref(false);
+const sedeActual = ref(sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "");
 
-function cargarDashboard() {
-    cargarStats();
-    cargarProximas();
+function onSedeSeleccionada(data) {
+    const nuevaSede =
+        data?.idSede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede") ?? "";
+    const cambioSede = String(sedeActual.value || "") !== String(nuevaSede);
+    sedeActual.value = String(nuevaSede);
+    if (cambioSede || !stats.value.length) {
+        cargarDashboard();
+    }
 }
-function cargarStats() {
-    var thisVue = proxy;
 
-    axios.get("/api/citas?per_page=1").then(function (response) {
-        var total = response.data.total || 0;
-        thisVue.stats = [
+async function cargarStats() {
+    try {
+        const params = { per_page: 1 };
+        if (sedeActual.value) {
+            params.sede_id = sedeActual.value;
+        }
+
+        const resTotal = await axios.get("/api/citas", { params });
+        const total = resTotal.data?.total ?? resTotal.data?.data?.total ?? 0;
+        stats.value = [
             {
                 label: "Total Citas",
                 count: total,
@@ -179,55 +249,86 @@ function cargarStats() {
                 cardClass: "bg-info text-white",
             },
         ];
-    });
 
-    var estados = ["solicitada", "asignada", "confirmada", "cancelada", "cumplida", "no_asistio"];
-    thisVue.statsPorEstado = {};
+        const estados = [
+            "solicitada",
+            "asignada",
+            "confirmada",
+            "cancelada",
+            "cumplida",
+            "no_asistio",
+        ];
 
-    estados.forEach(function (estado) {
-        axios.get("/api/citas?estado=" + estado + "&per_page=1").then(function (response) {
-            thisVue.statsPorEstado[estado] = response.data.total || 0;
+        const promises = estados.map((estado) => {
+            const p = { ...params, estado };
+            return axios
+                .get("/api/citas", { params: p })
+                .then((res) => ({
+                    estado,
+                    count: res.data?.total ?? res.data?.data?.total ?? 0,
+                }))
+                .catch(() => ({ estado, count: 0 }));
         });
-    });
+
+        const results = await Promise.all(promises);
+        const newStats = {};
+        results.forEach((r) => {
+            newStats[r.estado] = r.count;
+        });
+        statsPorEstado.value = newStats;
+    } catch {
+        // Fallback defensivo ante interrupciones de red
+    }
 }
-function cargarProximas() {
-    var thisVue = proxy;
-    thisVue.loading = true;
 
-    var hoy = new Date();
-    var manana = new Date(hoy);
-    manana.setDate(manana.getDate() + 1);
+async function cargarProximas() {
+    try {
+        const hoy = new Date();
+        const manana = new Date(hoy);
+        manana.setDate(manana.getDate() + 1);
 
-    var fmt = function (d) {
-        return (
-            d.getFullYear() +
-            "-" +
-            String(d.getMonth() + 1).padStart(2, "0") +
-            "-" +
-            String(d.getDate()).padStart(2, "0")
-        );
-    };
+        const fmt = (d) =>
+            `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
-    axios
-        .get("/api/citas", {
-            params: {
-                fecha_inicio: fmt(hoy),
-                fecha_fin: fmt(manana),
-                per_page: 20,
-            },
-        })
-        .then(function (response) {
-            thisVue.proximas = response.data.data || [];
-        })
-        .catch(function () {
-            thisVue.proximas = [];
-        })
-        .then(function () {
-            thisVue.loading = false;
-        });
+        const params = {
+            fecha_inicio: fmt(hoy),
+            fecha_fin: fmt(manana),
+            per_page: 20,
+        };
+        if (sedeActual.value) {
+            params.sede_id = sedeActual.value;
+        }
+
+        const res = await axios.get("/api/citas", { params });
+        proximas.value = res.data?.data || res.data || [];
+    } catch {
+        proximas.value = [];
+    }
+}
+
+async function cargarDashboard() {
+    if (loading.value) return;
+    loading.value = true;
+    try {
+        await Promise.all([cargarStats(), cargarProximas()]);
+    } finally {
+        loading.value = false;
+    }
 }
 
 onMounted(() => {
+    if (emitter) {
+        emitter.on("sedeSeleccionada", onSedeSeleccionada);
+        if (!sedeActual.value) {
+            emitter.emit("solicitarSedeActiva");
+        }
+    }
     cargarDashboard();
+});
+
+onBeforeUnmount(() => {
+    if (emitter) {
+        emitter.off("sedeSeleccionada", onSedeSeleccionada);
+    }
 });
 </script>

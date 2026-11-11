@@ -622,12 +622,14 @@ import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js
 import { handleAxiosErrorToast } from "@/helpers/alerts";
 import axios from "axios";
 
-const props = defineProps({ usuarioactual: Object });
+const props = defineProps({ usuarioactual: { type: Object, default: () => ({}) } });
+
+// Se declara antes de `registro` y `busqueda`, que la usan al crearse (antes fallaba con "Cannot access before initialization").
+const sedeActual = ref(sessionStorage.getItem("ST-sede"));
 
 const dt = ref(null);
 const actualizar = ref(false);
 
-const dataIndex = ref(0);
 const id = ref(0);
 const registros = ref([]);
 const tituloModal = ref("Nuevo registro");
@@ -674,8 +676,6 @@ const productos = ref([]);
 const diagnosticos = ref([]);
 const productoSelecciondo = ref("");
 const diagnosticoSelecciondo = ref("");
-const sedeActual = ref(sessionStorage.getItem("ST-sede"));
-const productosAtencion = ref([]);
 const sedeInterface = ref(false);
 const idRow = ref(null);
 const selectedRows = ref({});
@@ -697,10 +697,6 @@ const productoOptions = computed(() => {
         cod_cups: p.cod_cups,
         nom_produc: p.nom_produc,
     }));
-});
-const medicoOptions = computed(() => {
-    // Opciones para el Select2 local de medicos.
-    return (medicos.value || []).map((p) => ({ id: String(p.id), name: p.name }));
 });
 
 async function buscarStudy() {
@@ -836,15 +832,6 @@ async function guardarRegistro() {
         loadingGuardar.value = false;
     }
 }
-function obtenerArchivo1(e) {
-    soportesHC.value.archivo1 = e.target.files[0];
-}
-function obtenerArchivo2(e) {
-    soportesHC.value.archivo2 = e.target.files[0];
-}
-function obtenerArchivo3(e) {
-    soportesHC.value.archivo3 = e.target.files[0];
-}
 async function mostrarRegistro(data = {}, index) {
     btnLimpiar();
 
@@ -916,14 +903,10 @@ async function establecerSede() {
     try {
         const res = await axios.get(`/config-sedes/${sedeActual.value}/buscarPorId`);
         sedeInterface.value = res?.data?.data?.interface_software != null;
-    } catch (error) {
+    } catch {
         sedeInterface.value = false;
     }
     registros.value = [];
-}
-function btnCerralModalForm() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").toggleClass("shw-rside");
 }
 function abrirModal() {
     $(".right-sidebar").addClass("shw-rside");
@@ -1003,18 +986,6 @@ async function listarDiagnosticos() {
         handleAxiosErrorToast(error, "No fue posible listar diagnósticos.");
         diagnosticos.value = [];
     }
-}
-function onMedicoSelect(value) {
-    let selectedId = null;
-    if (Array.isArray(value) && value.length > 0) {
-        const v = value[0];
-        selectedId = String(typeof v === "object" && v && v.id != null ? v.id : v);
-    } else if (value && typeof value === "object" && value.id != null) {
-        selectedId = String(value.id);
-    } else if (value != null) {
-        selectedId = String(value);
-    }
-    registro.value.medico_id = selectedId || "";
 }
 function onProductoSelect(value) {
     let selectedId = null;

@@ -7,6 +7,17 @@ use App\Services\BaseService;
 
 class ConfigServicioCitaService extends BaseService
 {
+    /**
+     * Obtiene los servicios de citas, filtrando por sede si se indica.
+     *
+     * @param  int|null  $sedeId  Identificador de la sede para filtrar (opcional).
+     *
+     * @returns array Respuesta con la lista de servicios de citas y el estado de la operación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function all(?int $sedeId = null): array
     {
         $query = ConfigServicioCita::with('sede');
@@ -18,6 +29,17 @@ class ConfigServicioCitaService extends BaseService
         return $this->success($query->get());
     }
 
+    /**
+     * Busca un servicio de cita por su identificador.
+     *
+     * @param  int  $id  Identificador único del servicio de cita.
+     *
+     * @returns array Respuesta con los datos del servicio de cita o un error si no existe.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function find(int $id): array
     {
         $item = ConfigServicioCita::with('sede')->find($id);
@@ -29,6 +51,17 @@ class ConfigServicioCitaService extends BaseService
         return $this->success($item);
     }
 
+    /**
+     * Crea un nuevo servicio de cita con los datos proporcionados.
+     *
+     * @param  array  $data  Datos validados del servicio de cita a crear.
+     *
+     * @returns array Respuesta con el servicio de cita creado y el estado de la operación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function create(array $data): array
     {
         $item = ConfigServicioCita::create($data);
@@ -36,6 +69,18 @@ class ConfigServicioCitaService extends BaseService
         return $this->created($item->load('sede'));
     }
 
+    /**
+     * Actualiza un servicio de cita existente con los datos proporcionados.
+     *
+     * @param  int  $id  Identificador único del servicio de cita.
+     * @param  array  $data  Datos validados a actualizar.
+     *
+     * @returns array Respuesta con el servicio de cita actualizado y el estado de la operación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function update(int $id, array $data): array
     {
         $item = ConfigServicioCita::findOrFail($id);
@@ -44,6 +89,17 @@ class ConfigServicioCitaService extends BaseService
         return $this->updated($item->load('sede'));
     }
 
+    /**
+     * Elimina un servicio de cita existente según su identificador.
+     *
+     * @param  int  $id  Identificador único del servicio de cita a eliminar.
+     *
+     * @returns array Respuesta con el estado de la operación de eliminación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function delete(int $id): array
     {
         $item = ConfigServicioCita::findOrFail($id);

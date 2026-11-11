@@ -1,12 +1,26 @@
 /**
  * Orquestador de voz (sin librerías externas).
  * Combina dictado (SpeechRecognition) + grabación (MediaRecorder) en una sola sesión.
- *
  * Diseñado para ser reutilizable en múltiples componentes sin tocar UI.
  */
-import { createAudioRecorderSession, createAudioRecorderSessionSmart, getVoiceAudioConstraints } from "./audioRecorder";
+import {
+    createAudioRecorderSession,
+    createAudioRecorderSessionSmart,
+    getVoiceAudioConstraints,
+} from "./audioRecorder";
 import { createSpeechDictation, isSpeechRecognitionSupported } from "./speechDictation";
 
+/**
+ * Crea una sesion de voz que combina dictado (SpeechRecognition) y grabacion (MediaRecorder) con controles unificados.
+ *
+ * @param object $options Opciones de audio, dictado y callbacks.
+ *
+ * @returns {object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 export function createVoiceSession({
     enableAudio = true,
     enableDictation = true,
@@ -30,6 +44,15 @@ export function createVoiceSession({
     let audioSession = null;
     let dictation = null;
 
+    /**
+     * Crea o retorna la instancia de dictado de voz, lanzando error si no es soportada.
+     *
+     * @returns {object|null}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     const ensureDictation = () => {
         if (!enableDictation) return null;
         if (dictation) return dictation;
@@ -54,6 +77,15 @@ export function createVoiceSession({
         return dictation;
     };
 
+    /**
+     * Crea o retorna la sesion de grabacion de audio, usando Worker con fallback al hilo principal.
+     *
+     * @returns {Promise<object|null>}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     const ensureAudio = async () => {
         if (!enableAudio) return null;
         if (audioSession) return audioSession;
@@ -72,10 +104,16 @@ export function createVoiceSession({
         if (a) {
             try {
                 await a.start();
-            } catch (e) {
+            } catch {
                 // Worker interno falló → reintenta con main thread
-                try { a.cleanup(); } catch (e2) {}
-                const fallback = await createAudioRecorderSession({ constraints, mimeType, audioBitsPerSecond });
+                try {
+                    a.cleanup();
+                } catch {}
+                const fallback = await createAudioRecorderSession({
+                    constraints,
+                    mimeType,
+                    audioBitsPerSecond,
+                });
                 fallback.start();
                 audioSession = fallback;
                 return { audioSession: fallback, dictation: d };
@@ -87,19 +125,19 @@ export function createVoiceSession({
     const pause = () => {
         try {
             if (audioSession) audioSession.pause();
-        } catch (e) {}
+        } catch {}
         try {
             if (dictation) dictation.pause();
-        } catch (e) {}
+        } catch {}
     };
 
     const resume = () => {
         try {
             if (audioSession) audioSession.resume();
-        } catch (e) {}
+        } catch {}
         try {
             if (dictation) dictation.resume();
-        } catch (e) {}
+        } catch {}
     };
 
     const stopAudio = async () => {
@@ -110,13 +148,13 @@ export function createVoiceSession({
     const stopDictation = () => {
         try {
             if (dictation) dictation.stop();
-        } catch (e) {}
+        } catch {}
     };
 
     const cleanup = () => {
         try {
             if (audioSession) audioSession.cleanup();
-        } catch (e) {}
+        } catch {}
     };
 
     const destroy = () => {

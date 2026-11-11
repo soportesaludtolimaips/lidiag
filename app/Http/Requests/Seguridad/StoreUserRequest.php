@@ -3,15 +3,45 @@
 namespace App\Http\Requests\Seguridad;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
 
 class StoreUserRequest extends FormRequest
 {
+    /**
+     * Autoriza la petición (sin restricciones adicionales).
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function authorize(): bool
     {
-        return Auth::check() && Auth::user()->can('seguridad.usuarios.create');
+        return true;
     }
 
+    /**
+     * Prepara los datos antes de la validación saneando archivos opcionales.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-28
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('firma') && in_array($this->input('firma'), ['null', 'undefined', '', null], true)) {
+            $this->request->remove('firma');
+        }
+        if ($this->has('avatar') && in_array($this->input('avatar'), ['null', 'undefined', '', null], true)) {
+            $this->request->remove('avatar');
+        }
+    }
+
+    /**
+     * Reglas de validación para registrar un usuario.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function rules(): array
     {
         return [
@@ -21,6 +51,13 @@ class StoreUserRequest extends FormRequest
         ];
     }
 
+    /**
+     * Mensajes en español para las reglas de validación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function messages(): array
     {
         return [
@@ -33,6 +70,13 @@ class StoreUserRequest extends FormRequest
         ];
     }
 
+    /**
+     * Decodifica el campo registro (JSON) a arreglo asociativo.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function decoded(): array
     {
         return json_decode($this->input('registro'), true) ?? [];

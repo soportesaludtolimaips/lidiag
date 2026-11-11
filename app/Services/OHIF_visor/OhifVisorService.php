@@ -6,7 +6,6 @@ use App\Models\Configuracion\ConfigSede;
 use App\Models\Dcm4chee\Instance;
 use App\Models\Dcm4chee\Series;
 use App\Models\Dcm4chee\Study;
-use App\Models\Estudio\Estudio;
 use App\Services\BaseService;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +13,16 @@ use Illuminate\Support\Facades\Http;
 
 class OhifVisorService extends BaseService
 {
+    /**
+     * Obtiene los metadatos DICOM de las instancias de un estudio para el visor OHIF.
+     *
+     * @param  string  $studyUID  UID del estudio DICOM
+     * @param  string|null  $seriesUID  UID de la serie DICOM para filtrar
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function getOhifMetadataOhif(string $studyUID, ?string $seriesUID = null): array
     {
         try {
@@ -44,7 +53,11 @@ class OhifVisorService extends BaseService
                     "InstanceNumber" => ["vr" => "IS", "Value" => (string) $inst->inst_no],
                     "7FE00010" => [
                         "vr" => "OW",
-                        "BulkDataURI" => "https://lidiag.test/api/wado/{$inst->study_iuid}/{$inst->series_iuid}/{$inst->sop_iuid}",
+                        "BulkDataURI" => route('api.ohif.wado.retrieve', [
+                            'studyUID' => $inst->study_iuid,
+                            'seriesUID' => $inst->series_iuid,
+                            'objectUID' => $inst->sop_iuid,
+                        ]),
                     ],
                 ];
             }
@@ -55,9 +68,22 @@ class OhifVisorService extends BaseService
         }
     }
 
+    /**
+     * Obtiene los metadatos DICOM de un estudio consultando la base de la sede dcm4chee.
+     *
+     * @param  int  $sedeId  Identificador de la sede con la conexión al PACS
+     * @param  string  $study_iuid  UID del estudio DICOM
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function getOhifMetadata(int $sedeId, string $study_iuid): array
     {
         $sedeActual = ConfigSede::find($sedeId);
+        if (! $sedeActual) {
+            return $this->error('Sede no encontrada.', 404);
+        }
 
         config(['database.connections.mysql_sucursal' => [
             'driver' => 'mysql',
@@ -109,6 +135,15 @@ class OhifVisorService extends BaseService
         }
     }
 
+    /**
+     * Lista los estudios recientes de la sede en formato de metadatos QIDO para el visor.
+     *
+     * @param  int  $sedeId  Identificador de la sede con la conexión al PACS
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function listStudies(int $sedeId): array
     {
         $originalDefault = Config::get('database.default');
@@ -153,11 +188,23 @@ class OhifVisorService extends BaseService
         }
     }
 
+    /**
+     * Descarga un archivo DICOM del PACS de la sede mediante la petición WADO.
+     *
+     * @param  array  $params  Parámetros: sedeId, study, series, object
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function downloadDicom(array $params): array
     {
-        $sede = ConfigSede::find($params['sedeId']);
+        $sede = ConfigSede::find($params['sedeId'] ?? null);
+        if (! $sede) {
+            return $this->error('Sede no encontrada.', 404);
+        }
 
-        $wadoUrl = "http://{$sede->ip_dcm}:8080/wado?requestType=WADO"
+        $wadoUrl = "http://{$sede->ip_dcm}:{$sede->puerto_dcm}/wado?requestType=WADO"
             ."&studyUID={$params['study']}"
             ."&seriesUID={$params['series']}"
             ."&objectUID={$params['object']}"
@@ -177,241 +224,12 @@ class OhifVisorService extends BaseService
     }
 
     /**
-     * Exporta una imagen del estudio como JPEG desde el PACS (WADO), para
-     * enviarla a sistemas externos que solo aceptan JPG/JPEG.
+     * Obtiene la lista de estudios recientes en formato QIDO-RS desde la base dcm4chee local.
      *
-     * @param  bool  $conDatos  false = imagen limpia (solo el estudio);
-     *                          true  = con datos del paciente/técnica quemados
-     *                          sobre la imagen (estilo visor K-PACS),
-     *                          usando el parámetro WADO `annotation`.
-     */
-    public function exportarJpeg(
-        int $sedeId,
-        string $study,
-        string $series,
-        string $object,
-        bool $conDatos = false,
-        ?int $rows = null
-    ): array {
-        $sede = ConfigSede::find($sedeId);
-        if (! $sede) {
-            return $this->notFound('Sede no encontrada');
-        }
-
-        // Base configurable: soporta dcm4chee 2.x (/wado) y arc 5.x (/dcm4chee-arc/aets/{aet}/wado)
-        $base = str_replace(
-            ['{ip}', '{aet}'],
-            [(string) $sede->ip_dcm, (string) config('services.pacs.aet', 'DCM4CHEE')],
-            (string) config('services.pacs.wado_url', 'http://{ip}:8080/wado')
-        );
-
-        $wadoUrl = $base.'?requestType=WADO'
-            ."&studyUID={$study}"
-            ."&seriesUID={$series}"
-            ."&objectUID={$object}"
-            .'&contentType=image/jpeg';
-
-        if ($rows) {
-            $wadoUrl .= "&rows={$rows}";
-        }
-
-        try {
-            $response = Http::connectTimeout((int) config('services.pacs.connect_timeout', 15))
-                ->timeout((int) config('services.pacs.timeout', 60))
-                ->withHeaders(['Accept' => 'image/jpeg'])
-                ->get($wadoUrl);
-
-            if (! $response->successful()) {
-                return $this->error('Error al obtener JPEG del PACS', $response->status(), ['details' => $response->body()]);
-            }
-
-            $body = $response->body();
-
-            // El overlay tipo K-PACS se quema en la app (dcm4chee-arc 5.x ignora
-            // el parámetro WADO `annotation`), usando datos de la BD de LIDiag.
-            if ($conDatos) {
-                $body = $this->quemarOverlay($body, $study, (string) $sede->ip_dcm);
-            }
-
-            return $this->success([
-                'body' => $body,
-                'content_type' => 'image/jpeg',
-                'con_datos' => $conDatos,
-            ]);
-        } catch (\Throwable $e) {
-            return $this->error('Fallo de conexión con el PACS: '.$e->getMessage(), 500);
-        }
-    }
-
-    /**
-     * Construye las líneas del overlay: primero desde la BD de LIDiag
-     * (Estudio→Paciente); si no hay estudio local, cae al QIDO-RS del PACS.
+     * @author Jhon Javer Lozano Arce
      *
-     * @return array{0: array<int, string>, 1: array<int, string>} [superiorIzq, superiorDer]
+     * @date 2026-10-13
      */
-    private function datosOverlay(string $studyUID, string $ip = ""): array
-    {
-        $estudio = Estudio::query()->with('paciente')->where('study_iuid', $studyUID)->first();
-
-        if ($estudio && $estudio->paciente) {
-            $p = $estudio->paciente;
-
-            return [
-                array_values(array_filter([
-                    trim((string) ($p->nombres.' '.$p->pri_ape.' '.$p->seg_ape)),
-                    $p->num_docu ? 'Doc: '.$p->num_docu : null,
-                    $p->fec_naci ? 'Nac: '.$p->fec_naci : null,
-                ])),
-                array_values(array_filter([
-                    $estudio->created_at ? 'Fecha: '.$estudio->created_at->format('Y-m-d H:i') : null,
-                    $p->sexo ? 'Sexo: '.$p->sexo : null,
-                ])),
-            ];
-        }
-
-        return $this->overlayDesdeQido($studyUID, $ip);
-    }
-
-    /**
-     * Fallback: obtiene demografía del estudio desde el QIDO-RS del PACS
-     * (solo dcm4chee-arc 5.x; requiere services.pacs.qido_url configurado).
-     *
-     * @return array{0: array<int, string>, 1: array<int, string>}
-     */
-    private function overlayDesdeQido(string $studyUID, string $ip = ""): array
-    {
-        $qidoBase = (string) config('services.pacs.qido_url', '');
-        if ($qidoBase === '') {
-            return [[], []];
-        }
-
-        $qidoBase = str_replace(['{ip}', '{aet}'], [$ip, (string) config('services.pacs.aet', 'DCM4CHEE')], $qidoBase);
-
-        try {
-            $resp = Http::connectTimeout((int) config('services.pacs.connect_timeout', 15))
-                ->timeout((int) config('services.pacs.timeout', 60))
-                ->acceptJson()
-                ->get(rtrim($qidoBase, '/')."/studies", ['StudyInstanceUID' => $studyUID, 'limit' => 1]);
-
-            if (! $resp->successful()) {
-                return [[], []];
-            }
-            $j = $resp->json()[0] ?? null;
-            if (! $j) {
-                return [[], []];
-            }
-
-            $nombre = $j['00100010']['Value'][0]['Alphabetic'] ?? '';
-            $docId = $j['00100020']['Value'][0] ?? '';
-            $nac = $j['00100030']['Value'][0] ?? '';
-            $fecha = $j['00080020']['Value'][0] ?? '';
-            $mods = $j['00080061']['Value'] ?? [];
-
-            return [
-                array_values(array_filter([
-                    $nombre ? str_replace('^', ' ', (string) $nombre) : null,
-                    $docId ? 'ID: '.$docId : null,
-                    $nac ? 'Nac: '.$nac : null,
-                ])),
-                array_values(array_filter([
-                    $fecha ? 'Fecha: '.$fecha : null,
-                    $mods ? 'Mod: '.implode(',', (array) $mods) : null,
-                ])),
-            ];
-        } catch (\Throwable $e) {
-            return [[], []];
-        }
-    }
-
-    /**
-     * Quema sobre el JPEG los datos del paciente/estudio (estilo visor K-PACS),
-     * tomados de la BD de LIDiag por study_iuid. Si algo falla, devuelve el
-     * JPEG original sin overlay.
-     */
-    private function quemarOverlay(string $jpeg, string $studyUID, string $ip = ""): string
-    {
-        $img = @imagecreatefromstring($jpeg);
-        if (! $img) {
-            return $jpeg;
-        }
-
-        [$superior, $superiorDer] = $this->datosOverlay($studyUID, $ip);
-
-        $amarillo = imagecolorallocate($img, 255, 255, 0);
-        $negro = imagecolorallocate($img, 0, 0, 0);
-        $font = 3;
-        $lineH = imagefontheight($font) + 2;
-
-        // Esquina superior izquierda (demografía)
-        $y = 4;
-        foreach ($superior as $linea) {
-            imagestring($img, $font, 5, $y + 1, $linea, $negro); // sombra
-            imagestring($img, $font, 4, $y, $linea, $amarillo);
-            $y += $lineH;
-        }
-
-        // Esquina superior derecha (fecha/estudio)
-        $w = imagesx($img);
-        $y = 4;
-        foreach ($superiorDer as $linea) {
-            $x = $w - (imagefontwidth($font) * strlen($linea)) - 5;
-            imagestring($img, $font, $x + 1, $y + 1, $linea, $negro);
-            imagestring($img, $font, $x, $y, $linea, $amarillo);
-            $y += $lineH;
-        }
-
-        ob_start();
-        imagejpeg($img, null, 90);
-        $out = (string) ob_get_clean();
-        imagedestroy($img);
-
-        return $out !== '' ? $out : $jpeg;
-    }
-
-    /**
-     * Envía un JPEG al sistema externo configurado (services.imagen_externa).
-     * Soporta multipart (archivo) o base64 (JSON) según IMAGEN_EXTERNA_METODO.
-     */
-    public function enviarImagenExterna(string $jpeg, string $filename = 'estudio.jpg'): array
-    {
-        if (! config('services.imagen_externa.enabled')) {
-            return $this->error('Envío a sistema externo deshabilitado (IMAGEN_EXTERNA_ENABLED=false)', 422);
-        }
-
-        $url = (string) config('services.imagen_externa.url', '');
-        if ($url === '') {
-            return $this->error('Falta configurar IMAGEN_EXTERNA_URL', 422);
-        }
-
-        $token = config('services.imagen_externa.token');
-        $metodo = (string) config('services.imagen_externa.metodo', 'multipart');
-        $campo = (string) config('services.imagen_externa.campo_archivo', 'file');
-
-        try {
-            $req = Http::connectTimeout((int) config('services.imagen_externa.connect_timeout', 15))
-                ->timeout((int) config('services.imagen_externa.timeout', 60));
-
-            if ($token) {
-                $req = $req->withToken($token);
-            }
-
-            $resp = $metodo === 'base64'
-                ? $req->post($url, [$campo => base64_encode($jpeg), 'filename' => $filename])
-                : $req->attach($campo, $jpeg, $filename)->post($url);
-
-            if ($resp->successful()) {
-                return $this->success([
-                    'receptor_status' => $resp->status(),
-                    'respuesta' => $resp->json() ?? $resp->body(),
-                ], 'Imagen enviada al sistema externo');
-            }
-
-            return $this->error('El receptor respondió error', $resp->status(), ['details' => $resp->body()]);
-        } catch (\Throwable $e) {
-            return $this->error('Fallo al enviar al receptor: '.$e->getMessage(), 500);
-        }
-    }
-
     public function qidoStudies(): array
     {
         $estudios = Study::with(['patient:pk,pat_id,pat_name', 'series'])
@@ -465,6 +283,15 @@ class OhifVisorService extends BaseService
         return $this->success($response);
     }
 
+    /**
+     * Obtiene las series de un estudio en formato QIDO-RS desde la base dcm4chee local.
+     *
+     * @param  string  $studyUID  UID del estudio DICOM
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function qidoSeries(string $studyUID): array
     {
         try {
@@ -491,6 +318,16 @@ class OhifVisorService extends BaseService
         }
     }
 
+    /**
+     * Obtiene las instancias de una serie en formato QIDO-RS desde la base dcm4chee local.
+     *
+     * @param  string  $studyUID  UID del estudio DICOM
+     * @param  string  $seriesUID  UID de la serie DICOM
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function qidoInstances(string $studyUID, string $seriesUID): array
     {
         try {
@@ -515,11 +352,31 @@ class OhifVisorService extends BaseService
         }
     }
 
+    /**
+     * Recupera una imagen JPEG de una instancia DICOM mediante WADO-RS desde el PACS.
+     *
+     * @param  string  $studyUID  UID del estudio DICOM
+     * @param  string  $seriesUID  UID de la serie DICOM
+     * @param  string  $objectUID  UID de la instancia DICOM
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function wadoRetrieve(string $studyUID, string $seriesUID, string $objectUID): array
     {
         return $this->wadoProxy($studyUID, $seriesUID, $objectUID);
     }
 
+    /**
+     * Sirve una imagen DICOM vía WADO-URI redirigiendo la petición al PACS de la sede activa.
+     *
+     * @param  array  $params  Parámetros: studyUID, seriesUID, objectUID
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function wadoUri(array $params): array
     {
         return $this->wadoProxy(
@@ -529,6 +386,15 @@ class OhifVisorService extends BaseService
         );
     }
 
+    /**
+     * Configura y activa la conexión a la base de datos dcm4chee de la sede indicada.
+     *
+     * @param  int  $sedeId  Identificador de la sede con la conexión al PACS
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function conectarSede(int $sedeId): void
     {
         $sedeActual = ConfigSede::findOrFail($sedeId);
@@ -550,11 +416,25 @@ class OhifVisorService extends BaseService
         Config::set('database.default', 'mysql_sucursal');
     }
 
+    /**
+     * Realiza la petición WADO al PACS de la sede activa y devuelve la imagen JPEG resultante.
+     *
+     * @param  string  $studyUID  UID del estudio DICOM
+     * @param  string  $seriesUID  UID de la serie DICOM
+     * @param  string  $objectUID  UID de la instancia DICOM
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function wadoProxy(string $studyUID, string $seriesUID, string $objectUID): array
     {
-        $dcmIp = '10.35.47.3';
+        $sede = ConfigSede::where('estado', true)->first();
+        if (! $sede) {
+            return $this->error('No hay una sede activa configurada para conectar al PACS.', 500);
+        }
 
-        $wadoUrl = "http://{$dcmIp}:8080/wado?requestType=WADO"
+        $wadoUrl = "http://{$sede->ip_dcm}:{$sede->puerto_dcm}/wado?requestType=WADO"
             ."&studyUID={$studyUID}"
             ."&seriesUID={$seriesUID}"
             ."&objectUID={$objectUID}"

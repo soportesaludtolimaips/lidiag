@@ -18,6 +18,13 @@ class EcografiasNormalizeEstadosCommand extends Command
 
     private const VALID = ['EN PROCESO', 'ANULADO', 'LEIDO'];
 
+    /**
+     * Normaliza los estados inválidos o vacíos de ecografias_productos según el estado de su ecografía padre.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function handle(): int
     {
         $dryRun = (bool) $this->option('dry-run');

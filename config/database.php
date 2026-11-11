@@ -125,8 +125,9 @@ return [
             'prefix_indexes' => true,
             'encrypt' => env('DB_ENCRYPT', 'yes'),
             'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'true'),
+            'connect_timeout' => (int) env('DB_SQLSRV_CONNECT_TIMEOUT', 5),
             'options' => extension_loaded('pdo_sqlsrv') ? [
-                PDO::SQLSRV_ATTR_QUERY_TIMEOUT => 3,
+                PDO::SQLSRV_ATTR_QUERY_TIMEOUT => (int) env('DB_SQLSRV_QUERY_TIMEOUT', 5),
             ] : [],
         ],
 

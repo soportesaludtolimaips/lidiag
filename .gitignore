@@ -3,19 +3,44 @@ node_modules/
 npm-debug.log
 yarn-error.log
 
+# Archivos comprimidos y backups locales
+*.zip
+*.rar
+*.7z
+*.tar.gz
+temp_backups/
+
+# Archivos temporales de Office (Excel, Word)
+~$*
+**/~$*
+
+# Vite dev y hot-reload
 public/hot
 public_html/hot
+
+# Logs
 storage/logs/*.log
+*.log
+
+# Storage
 storage/*.key
 storage/app
+storage/phpstan/cache/PHPStan
 
+# Variables de entorno
 .env
+.env.production
+.env.staging
 Homestead.yaml
 Homestead.json
 /.vagrant
 .phpunit.result.cache
+.phpunit.cache/
 
-storage/phpstan/cache/PHPStan
+# .NET build artifacts
+resources/burner/bin/
+resources/burner/obj/
+resources/burner/publish/
 
 # Vite build output (no versionar artefactos)
 public/build/
@@ -34,13 +59,35 @@ public/firmas_consntimientos
 public/files_consentimientos
 public/build/manifest.json
 
+# IDEs, agentes y herramientas locales
 /.agents
 /.cursor
 /.vscode
+/.idea
+/.superpowers
 
-/tests
+# Tests
+!/tests/
 
 # SSL certs (no comitear)
 ssl.crt
 ssl.key
+resources/js/admin-wrap/assets/node_modules.rar
 
+# app_lidiag: Excluir binarios pesados (>100MB) y entornos virtuales
+storage/app_lidiag/LibreOfficePortable/
+storage/app_lidiag/**/venv/
+storage/app_lidiag/**/__pycache__/
+storage/app_lidiag/**/uploads/
+storage/app_lidiag/lo_profile/
+storage/app_lidiag/**/lo_profile/
+storage/app_lidiag/src-tauri/target/
+
+# Credenciales y archivos de estado en app_lidiag
+storage/app_lidiag/**/config.json
+storage/app_lidiag/**/last_alert_state.json
+storage/app_lidiag/telegram_authorized_chats.json
+storage/app_lidiag/**/*.log*
+storage/app_lidiag/**/*.bak*
+storage/app_lidiag/**/*.lock
+storage/app_lidiag/**/logs/

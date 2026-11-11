@@ -9,6 +9,15 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class HelpDeskReporteService extends BaseService
 {
+    /**
+     * Normaliza un valor crudo convirtiendo vacíos y cadenas nulas en null.
+     *
+     * @param  mixed  $value  Valor crudo a normalizar
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function normalizeNullable($value)
     {
         if ($value === null) {
@@ -22,6 +31,17 @@ class HelpDeskReporteService extends BaseService
         return $v;
     }
 
+    /**
+     * Normaliza los filtros crudos de la petición en un arreglo estandarizado para los reportes.
+     *
+     * @param  array  $raw  arreglo con los filtros crudos enviados por el cliente.
+     *
+     * @returns array filtros normalizados con fechas, sede, estado, categoría, prioridad, solicitante y técnico.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     public function normalizeFilters(array $raw): array
     {
         return [
@@ -36,6 +56,15 @@ class HelpDeskReporteService extends BaseService
         ];
     }
 
+    /**
+     * Construye la consulta base de tickets con los joins y filtros aplicados.
+     *
+     * @param  array  $filters  Filtros normalizados de la consulta
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function baseQuery(array $filters)
     {
         return DB::table('help_desk_tickets as t')
@@ -46,7 +75,15 @@ class HelpDeskReporteService extends BaseService
             ->leftJoin('users as u_sol', 'u_sol.id', '=', 't.quien_registra_id')
             ->leftJoin('users as u_asg', 'u_asg.id', '=', 't.quien_atiende_id')
             ->whereNull('t.deleted_at')
-            ->whereBetween(DB::raw('DATE(t.created_at)'), [$filters['fechaIni'], $filters['fechaFin']])
+            ->when($filters['fechaIni'] && $filters['fechaFin'], function ($q) use ($filters) {
+                $q->whereBetween(DB::raw('DATE(t.created_at)'), [$filters['fechaIni'], $filters['fechaFin']]);
+            })
+            ->when($filters['fechaIni'] && ! $filters['fechaFin'], function ($q) use ($filters) {
+                $q->whereDate('t.created_at', '>=', $filters['fechaIni']);
+            })
+            ->when(! $filters['fechaIni'] && $filters['fechaFin'], function ($q) use ($filters) {
+                $q->whereDate('t.created_at', '<=', $filters['fechaFin']);
+            })
             ->when($filters['sedeId'], fn ($q) => $q->where('t.sedes_id', (int) $filters['sedeId']))
             ->when($filters['estadoId'], fn ($q) => $q->where('t.estado_id', (int) $filters['estadoId']))
             ->when($filters['categoriaId'], fn ($q) => $q->where('t.categoria_id', (int) $filters['categoriaId']))
@@ -55,6 +92,17 @@ class HelpDeskReporteService extends BaseService
             ->when($filters['tecnicoId'], fn ($q) => $q->where('t.quien_atiende_id', (int) $filters['tecnicoId']));
     }
 
+    /**
+     * Calcula los indicadores agregados de los tickets aplicando los filtros recibidos.
+     *
+     * @param  array  $filters  filtros normalizados (fechas, sede, estado, categoría, prioridad, solicitante, técnico).
+     *
+     * @returns array respuesta con totales, promedios y desgloses por estado, mes, categoría, solicitante y técnico.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     public function indicadores(array $filters): array
     {
         $base = $this->baseQuery($filters);
@@ -118,6 +166,18 @@ class HelpDeskReporteService extends BaseService
         ]);
     }
 
+    /**
+     * Obtiene el listado detallado de tickets aplicando los filtros y un límite máximo.
+     *
+     * @param  array  $filters  filtros normalizados de la consulta.
+     * @param  int  $limit  cantidad máxima de registros a retornar (entre 1 y 2000).
+     *
+     * @returns array respuesta con los tickets detallados y los filtros aplicados.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     public function detallado(array $filters, int $limit): array
     {
         $limit = max(1, min(2000, $limit));
@@ -150,6 +210,17 @@ class HelpDeskReporteService extends BaseService
         ]);
     }
 
+    /**
+     * Genera y descarga un archivo de Excel con el detalle de tickets según los filtros.
+     *
+     * @param  array  $filters  filtros normalizados de la consulta.
+     *
+     * @returns \Symfony\Component\HttpFoundation\BinaryFileResponse descarga del archivo Excel generado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     public function exportExcel(array $filters)
     {
         $name = 'helpdesk_tickets_'.$filters['fechaIni'].'_a_'.$filters['fechaFin'].'.xlsx';
@@ -180,6 +251,17 @@ class HelpDeskReporteService extends BaseService
         return Excel::download(new HelpDeskTicketsDetalladoExport($items), $name);
     }
 
+    /**
+     * Genera y descarga un archivo PDF con los indicadores de los tickets según los filtros.
+     *
+     * @param  array  $filters  filtros normalizados de la consulta.
+     *
+     * @returns \Symfony\Component\HttpFoundation\BinaryFileResponse descarga del archivo PDF generado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     public function exportPdf(array $filters)
     {
         $indicadoresResult = $this->indicadores($filters);

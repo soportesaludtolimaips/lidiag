@@ -11,6 +11,10 @@ Schedule::command('ecografias:sahi-reconcile --minutes=10 --limit=200')
     ->everyTenMinutes()
     ->withoutOverlapping();
 
+Schedule::command('estudios:sahi-reconcile --minutes=5 --limit=50')
+    ->everyFiveMinutes()
+    ->withoutOverlapping();
+
 Schedule::command('citas:notificar')
     ->dailyAt('08:00')
     ->withoutOverlapping();
@@ -25,6 +29,22 @@ Schedule::command('sessions:prune --hours=24 --user-hours=168')
 
 Schedule::command('notifications:prune --days=90')
     ->daily()
+    ->withoutOverlapping();
+
+Schedule::command('lidiag:backup')
+    ->dailyAt('02:00')
+    ->withoutOverlapping();
+
+Schedule::command('lidiag:backup-dcm')
+    ->dailyAt('02:30')
+    ->withoutOverlapping();
+
+Schedule::command('telegram:daily-digest')
+    ->dailyAt('07:30')
+    ->withoutOverlapping();
+
+Schedule::command('worklist:reconcile')
+    ->everyFiveMinutes()
     ->withoutOverlapping();
 
 Schedule::command('consentimientos:expirar --limit=500')

@@ -6,11 +6,25 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateEstudioProductoRequest extends FormRequest
 {
+    /**
+     * Autoriza la petición (sin restricciones adicionales).
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     public function authorize(): bool
     {
         return true;
     }
 
+    /**
+     * Reglas de validación para actualizar productos de estudio.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     public function rules(): array
     {
         return [

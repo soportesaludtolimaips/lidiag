@@ -7,6 +7,13 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class ConfigPlantillaResource extends JsonResource
 {
+    /**
+     * Datos de la plantilla en formato array.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function toArray($request): array
     {
         return [

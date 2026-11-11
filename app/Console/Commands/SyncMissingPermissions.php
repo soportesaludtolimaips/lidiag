@@ -12,6 +12,13 @@ class SyncMissingPermissions extends Command
 
     protected $description = 'Sync permissions that exist in code but not in database';
 
+    /**
+     * Sincroniza los permisos que existen en código pero faltan en la base de datos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function handle(): int
     {
         $this->info('Running permissions audit...');
@@ -51,12 +58,9 @@ class SyncMissingPermissions extends Command
 
         $created = 0;
         foreach ($missing as $permission) {
-            $parts = explode('.', $permission);
-            $guard = array_pop($parts);
-
-            Permission::create([
+            Permission::firstOrCreate([
                 'name' => $permission,
-                'guard_name' => $guard,
+                'guard_name' => 'web',
             ]);
             $created++;
         }
@@ -78,6 +82,13 @@ class SyncMissingPermissions extends Command
         return Command::SUCCESS;
     }
 
+    /**
+     * Devuelve el catálogo de permisos usados en el código de la aplicación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function getCodePermissions(): array
     {
         // Common permissions used in the application

@@ -4,11 +4,21 @@ namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
-use Database\Seeders\configuracion\ConfigAdminSaludSeeder;
+use Database\Seeders\Configuracion\ConfigAdminSaludSeeder;
 use Database\Seeders\Configuracion\ConfigDiagnosticoSeeder;
-use Database\Seeders\configuracion\ConfigPrioridadeSeeder;
+use Database\Seeders\Configuracion\ConfigPrioridadeSeeder;
+use Database\Seeders\Configuracion\ConfigProductosDedupeSeeder;
+use Database\Seeders\Configuracion\ConfigProductosEcografias1Seeder;
+use Database\Seeders\Configuracion\ConfigProductosEcografias2Seeder;
+use Database\Seeders\Configuracion\ConfigProductosEcografias3Seeder;
+use Database\Seeders\Configuracion\ConfigProductosEcografias4Seeder;
 use Database\Seeders\Configuracion\ConfigProductoSeeder;
 use Database\Seeders\Configuracion\ConfigSedeSeeder;
+use Database\Seeders\Configuracion\ConfigWhatsappEcografiasRecomendaciones;
+use Database\Seeders\Configuracion\ConfigWhatsappEcografiasRequerimientos;
+use Database\Seeders\Configuracion\ConfigWhatsappSedeNumberSeeder;
+use Database\Seeders\HelpDesk\HelpDeskCatalogosSeeder;
+use Database\Seeders\HelpDesk\HelpDeskPermisosSeeder;
 use Database\Seeders\Seguridad\RoleSeeder;
 use Database\Seeders\Seguridad\UserSeeder;
 use Illuminate\Database\Seeder;
@@ -29,6 +39,7 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'test@example.com',
         // ]);
 
+        // Configuracion
         $this->call(ConfigAdminSaludSeeder::class);
         $this->call(ConfigDiagnosticoSeeder::class);
         $this->call(ConfigPrioridadeSeeder::class);
@@ -46,25 +57,45 @@ class DatabaseSeeder extends Seeder
         $this->call(PermisionEcografiasSeeder::class);
         $this->call(PermisionConsentimientosEcografiasSeeder::class);
         $this->call(PermisionConsentimientosSeeder::class);
+        $this->call(OtrasInterfacesSeeder::class);
+        $this->call(PermisionEstudiosSeeder::class);
+
+        $this->call(ConfigServiciosSeeder::class);
 
         // HelpDesk
         $this->call(HelpDeskCatalogosSeeder::class);
         $this->call(HelpDeskPermisosSeeder::class);
 
-        $this->call(OtrasInterfacesSeeder::class);
         $this->call(InterfaceTeleRadiologiaSeeder::class);
         $this->call(PermisosAgendamientoSeeder::class);
 
         // WhatsApp Citas
-        $this->call(ConfigServicioCitasSeeder::class);
-        $this->call(ConfigSedeWhatsappNumberSeeder::class);
         $this->call(PermisionServicioCitasSeeder::class);
-        $this->call(PermisionWhatsAppSeeder::class);
         $this->call(PermisoAuditoriaSeeder::class);
         $this->call(ConfigWhatsappSeeder::class);
         $this->call(ConfigRecomendacionProductoSeeder::class);
 
         // Contratación
         $this->call(PermisionContratacionSeeder::class);
+
+        // Liquidación de pagos a médicos
+        $this->call(PermisionLiquidacionSeeder::class);
+
+        // Nuevos productos de ecografías
+        $this->call(ConfigProductosEcografiasSeeder::class);
+        $this->call(ConfigProductosEcografias1Seeder::class);
+        $this->call(ConfigProductosEcografias2Seeder::class);
+        $this->call(ConfigProductosEcografias3Seeder::class);
+        $this->call(ConfigProductosEcografias4Seeder::class);
+
+        // Bot whatsapp
+        $this->call(ConfigWhatsappSedeNumberSeeder::class);
+        $this->call(PermisionWhatsAppSeeder::class);
+
+        $this->call(ConfigWhatsappEcografiasRequerimientos::class);
+        $this->call(ConfigWhatsappEcografiasRecomendaciones::class);
+
+        // Dedupe de CUPS repetidos (debe ir después de todos los seeders de productos)
+        $this->call(ConfigProductosDedupeSeeder::class);
     }
 }

@@ -21,10 +21,24 @@
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-info waves-effect waves-light m-r-10"
+                    @click="listarPendiestePorLectura()"
+                    :disabled="isBuscandoPendientes"
+                    title="Actualizar lista de pendientes"
+                >
+                    <i
+                        class="fa mr-1"
+                        :class="isBuscandoPendientes ? 'fa-spinner fa-spin' : 'fa-refresh'"
+                    ></i>
+                    Refrescar
+                </button>
                 <i
                     class="fa fa-life-ring model_img img-responsive text-info"
                     data-toggle="modal"
                     data-target=".bs-example-modal-lg"
+                    title="Comandos de voz"
                 ></i>
             </div>
             <!-- sample modal content -->
@@ -138,101 +152,62 @@
         <!-- Start Page Content -->
         <!-- ============================================================== -->
         <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> Filtros para búsqueda de atención
-                        </h4>
-                        <form action="#">
-                            <div class="form-body">
-                                <div class="row p-t-2">
-                                    <div class="col-md-3">
-                                        <div class="form-group">
-                                            <label class="control-label">
-                                                # de atención, # de documento ó Nombres de paciente
-                                            </label>
-                                            <input
-                                                type="text"
-                                                id="bus_nom_num_docu"
-                                                name="bus_nom_num_docu"
-                                                v-model="busqueda.bus_nom_num_docu"
-                                                class="form-control"
-                                                placeholder=" Atención, Nombres de paciente o # de documento"
-                                                @keyup.enter="buscarStudy()"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label class="control-label">Fecha Inicio</label>
-                                            <input
-                                                type="date"
-                                                id="bus_fech_ini"
-                                                name="bus_fech_ini"
-                                                v-model="busqueda.bus_fech_ini"
-                                                class="form-control"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label class="control-label">Fecha Fin</label>
-                                            <input
-                                                type="date"
-                                                id="bus_fecha_fin"
-                                                name="bus_fecha_fin"
-                                                v-model="busqueda.bus_fecha_fin"
-                                                class="form-control"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="form-actions mt-3">
-                                    <button
-                                        type="button"
-                                        class="btn btn-success m-r-5"
-                                        @click="listarPendiestePorLectura()"
-                                        :disabled="isBuscandoPendientes"
-                                    >
-                                        <i
-                                            class="fa"
-                                            :class="
-                                                isBuscandoPendientes
-                                                    ? 'fa-spinner fa-spin'
-                                                    : 'fa-search'
-                                            "
-                                        ></i>
-                                        {{ isBuscandoPendientes ? "Buscando..." : "Buscar" }}
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        class="btn btn-inverse"
-                                        @click="btnLimpiar()"
-                                    >
-                                        <i class="fa fa-refresh"></i> Limpiar
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
             <div class="col-12 table-responsive">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title">Listado de atenciones disponibles.</h4>
-                        <h6 class="card-subtitle text-info">
-                            Asigne los médicos para su respectiva lectura.
-                        </h6>
-                        <div class="table-responsive">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <h4 class="card-title mb-0">Listado de atenciones disponibles.</h4>
+                                <h6 class="card-subtitle text-info mb-0">
+                                    Asigne los médicos para su respectiva lectura.
+                                </h6>
+                            </div>
+                            <div>
+                                <button
+                                    type="button"
+                                    class="btn btn-sm"
+                                    :class="isDarkMode ? 'btn-warning' : 'btn-outline-dark'"
+                                    @click="toggleDarkMode"
+                                    :title="
+                                        isDarkMode
+                                            ? 'Cambiar a Modo Claro'
+                                            : 'Cambiar a Modo Oscuro / Ecografía'
+                                    "
+                                >
+                                    <i :class="isDarkMode ? 'fa fa-sun-o' : 'fa fa-moon-o'"></i>
+                                    {{ isDarkMode ? "Modo Claro" : "Modo Oscuro" }}
+                                </button>
+                            </div>
+                        </div>
+                        <div v-if="!busqueda.medico_id" class="alert alert-warning mt-3">
+                            <i class="fa fa-exclamation-triangle"></i>
+                            Seleccione un médico desde el menú superior (Módulo → Médico) para
+                            listar las ecografías pendientes.
+                        </div>
+                        <table-skeleton-loader
+                            :visible="isBuscandoPendientes"
+                            :rows="6"
+                            :columns="8"
+                        />
+                        <empty-state-component
+                            v-if="
+                                !isBuscandoPendientes &&
+                                busqueda.medico_id &&
+                                registros.length === 0
+                            "
+                            icon="fa fa-stethoscope"
+                            title="No hay ecografías pendientes"
+                            description="No se encontraron ecografías pendientes de lectura para el médico seleccionado."
+                            action-text="Actualizar lista"
+                            action-icon="fa fa-refresh"
+                            @action="listarPendiestePorLectura()"
+                        />
+                        <div
+                            class="table-responsive"
+                            v-show="!isBuscandoPendientes && registros.length > 0"
+                        >
                             <table
-                                id="example23"
+                                id="tablaEcografiasLectura"
                                 ref="dt"
                                 class="table table-bordered table-striped"
                                 cellspacing="0"
@@ -240,20 +215,31 @@
                             >
                                 <thead>
                                     <tr>
-                                        <th with="5%">Atención</th>
-                                        <th with="5%"># Documento</th>
+                                        <th with="3%">Atención</th>
+                                        <th with="3%"># Documento</th>
                                         <th with="30%">Paciente</th>
-                                        <th>Examen</th>
-                                        <th>Administradora</th>
+                                        <th with="30%">Examen</th>
+                                        <th with="30%">Administradora</th>
                                         <th>Contrato</th>
                                         <th>Plan</th>
                                         <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(item, index) in registros" :key="index">
+                                    <tr
+                                        v-for="(item, index) in registros"
+                                        :key="item.ecografia_producto_id || item.id || index"
+                                    >
                                         <td>{{ item.atencion_id }}</td>
-                                        <td>{{ item.paciente.num_docu }}</td>
+                                        <td class="text-nowrap align-middle">
+                                            <div
+                                                class="text-primary font-weight-bold"
+                                                style="font-size: 15px"
+                                            >
+                                                <i class="fa fa-id-card-o mr-1"></i>
+                                                {{ item.paciente.num_docu }}
+                                            </div>
+                                        </td>
                                         <td>{{ item.paciente.nombres }}</td>
                                         <td>
                                             <div>{{ item.nom_produc }}</div>
@@ -353,22 +339,72 @@
         <!-- ============================================================== -->
         <!-- Right sidebar -->
         <!-- ============================================================== -->
+        <!-- Backdrop para cerrar al hacer clic y atenuar fondo -->
+        <transition name="fade">
+            <div
+                v-if="sidebarVisible && !isZenMode"
+                class="sidebar-backdrop"
+                @click="cerrarSidebar()"
+                aria-hidden="true"
+            ></div>
+        </transition>
+
         <!-- .right-sidebar -->
-        <div class="right-sidebar sidebar-scroll">
+        <div
+            class="right-sidebar sidebar-scroll"
+            :class="{ 'shw-rside': sidebarVisible, 'dark-mode': isDarkMode, 'zen-mode': isZenMode }"
+        >
             <div class="slimscrollright">
-                <div class="rpanel-title">
-                    {{ tituloAtencion }}
-                    <br />
-                    {{ tituloModal }}
-                    <br />
-                    {{ subTituloModal }}
-                    <span @click="btnCerralModalForm()">
-                        <i
-                            class="ti-close right-side-toggle"
-                            id="btnCerralModalForm"
-                            @click="btnCerralModalForm()"
-                        ></i>
-                    </span>
+                <div class="rpanel-title d-flex justify-content-between align-items-center">
+                    <div>
+                        {{ tituloAtencion }}
+                        <br />
+                        {{ tituloModal }}
+                        <br />
+                        {{ subTituloModal }}
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-link p-0 mr-3"
+                            style="color: inherit; text-decoration: none"
+                            @click="toggleZenMode"
+                            :title="
+                                isZenMode
+                                    ? 'Salir de Pantalla Completa / Modo Zen'
+                                    : 'Modo Pantalla Completa / Modo Zen (100% Pantalla)'
+                            "
+                        >
+                            <i :class="isZenMode ? 'fa fa-compress' : 'fa fa-expand'"></i>
+                            <span class="ml-1 d-none d-sm-inline">{{
+                                isZenMode ? "Normal" : "Zen"
+                            }}</span>
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-link p-0 mr-3"
+                            style="color: inherit; text-decoration: none"
+                            @click="toggleDarkMode"
+                            :title="
+                                isDarkMode
+                                    ? 'Cambiar a Modo Claro'
+                                    : 'Cambiar a Modo Oscuro / Ecografía'
+                            "
+                        >
+                            <i :class="isDarkMode ? 'fa fa-sun-o' : 'fa fa-moon-o'"></i>
+                            <span class="ml-1 d-none d-sm-inline">{{
+                                isDarkMode ? "Claro" : "Oscuro"
+                            }}</span>
+                        </button>
+                        <button
+                            type="button"
+                            class="right-side-toggle"
+                            @click="btnCerrarModalForm()"
+                            aria-label="Cerrar panel"
+                        >
+                            <i class="ti-close" id="btnCerrarModalForm"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="r-panel-body">
                     <!-- ============================================================== -->
@@ -387,19 +423,39 @@
                                         <div class="ml-auto">
                                             <ul class="list-inline text-center">
                                                 <li>
-                                                    <a
-                                                        class="mic-link"
+                                                    <button
+                                                        type="button"
+                                                        class="btn-mic"
                                                         @click="toggleSpeechRecognition"
-                                                        role="button"
-                                                        aria-label="Grabadora"
+                                                        :aria-label="
+                                                            voiceState === 'active'
+                                                                ? 'Detener grabación de voz'
+                                                                : 'Iniciar grabación de voz'
+                                                        "
+                                                        :aria-pressed="
+                                                            String(voiceState === 'active')
+                                                        "
+                                                        style="
+                                                            width: 44px;
+                                                            height: 44px;
+                                                            padding: 0;
+                                                            border: none;
+                                                            background: none;
+                                                            cursor: pointer;
+                                                        "
                                                     >
                                                         <img title="Grabadora" :src="microfono" />
-                                                    </a>
+                                                    </button>
                                                 </li>
                                                 <li>
                                                     <i
                                                         class="fa fa-file-pdf-o text-danger fa-2x model_img img-responsive"
-                                                        @click="generarReporte"
+                                                        :class="{
+                                                            'opacity-50': isGenerandoReporte,
+                                                        }"
+                                                        @click="
+                                                            !isGenerandoReporte && generarReporte()
+                                                        "
                                                         data-toggle="modal"
                                                         data-target=".bs-example-modal-lg-impri-repor"
                                                     />
@@ -414,24 +470,32 @@
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label>Tipos de plantillas</label>
+                                    <label class="control-label font-weight-bold"
+                                        >Tipos de plantillas</label
+                                    >
                                     <Select2
+                                        ref="selTipoPlantilla"
+                                        :value="registro.tipo_plantilla_id"
                                         :options="tiposPlantillasOptions"
                                         width="100%"
                                         :allow-clear="true"
                                         :label-fields="['nom_tipo']"
+                                        placeholder="Elija el tipo de plantilla"
                                         @input="onTipoPlantillaSelect"
                                     />
                                 </div>
                             </div>
                             <div class="col-md-5">
                                 <div class="form-group">
-                                    <label>Plantilla</label>
+                                    <label class="control-label font-weight-bold">Plantilla</label>
                                     <Select2
+                                        ref="selPlantilla"
+                                        :value="registro.plantilla_id"
                                         width="100%"
                                         :allow-clear="true"
                                         :options="plantillasOptions"
                                         :label-fields="['nom_plantilla']"
+                                        placeholder="Elija la plantilla"
                                         @input="onPlantillaSelect"
                                     />
                                 </div>
@@ -444,14 +508,11 @@
                                     <i class="fa fa-pencil"></i> Lectura
                                 </h5>
                                 <div class="form-group">
-                                    <textarea
-                                        id="plantilla"
-                                        name="plantilla"
+                                    <WysiwygEditor
                                         v-model="registro.lectura"
-                                        class="form-control"
                                         placeholder="Ingrese aquí la lectura del procedimiento"
-                                        rows="17"
-                                    ></textarea>
+                                        :rows="17"
+                                    />
                                     <span class="text-danger" v-if="errores.plantilla">{{
                                         errores.plantilla[0]
                                     }}</span>
@@ -462,14 +523,11 @@
                                     <h5 class="card-title text-info">
                                         <i class="fa fa-info"></i> Opinión
                                     </h5>
-                                    <textarea
-                                        id="opinion"
-                                        name="opinion"
+                                    <WysiwygEditor
                                         v-model="registro.opinion"
-                                        class="form-control"
                                         placeholder="Ingrese aquí la opinión del procedimiento"
-                                        rows="17"
-                                    ></textarea>
+                                        :rows="17"
+                                    />
                                     <span class="text-danger" v-if="errores.opinion">{{
                                         errores.opinion[0]
                                     }}</span>
@@ -479,25 +537,30 @@
                         <div class="form-actions mt-3">
                             <button
                                 type="button"
-                                class="btn btn-success m-r-5"
+                                class="btn btn-success waves-effect waves-light m-r-5"
                                 @click="guardarRegistro()"
                                 :disabled="
                                     isGuardandoLectura ||
                                     (sedeInterface && registro.estado_envio_sahi === 'ENVIANDO')
                                 "
+                                title="Guardar informe ecográfico"
                             >
-                                <i class="fa fa-check"></i> Guardar
+                                <i
+                                    class="fa mr-1"
+                                    :class="isGuardandoLectura ? 'fa-spinner fa-spin' : 'fa-check'"
+                                ></i>
+                                {{ isGuardandoLectura ? "Guardando..." : "Guardar" }}
                             </button>
 
                             <button
                                 v-if="sedeInterface && registro.ecografia_producto_id"
                                 type="button"
-                                class="btn btn-info m-r-5"
+                                class="btn btn-info waves-effect waves-light m-r-5"
                                 @click="consultarEstadoSahi(false)"
                                 :disabled="isConsultando"
                             >
                                 <i
-                                    class="fa"
+                                    class="fa mr-1"
                                     :class="isConsultando ? 'fa-spinner fa-spin' : 'fa-refresh'"
                                 ></i>
                                 {{ isConsultando ? "Consultando..." : "Actualizar SAHI" }}
@@ -506,11 +569,11 @@
                             <button
                                 v-if="sedeInterface && registro.estado_envio_sahi === 'ERROR'"
                                 type="button"
-                                class="btn btn-warning m-r-5"
+                                class="btn btn-warning waves-effect waves-light m-r-5"
                                 @click="enviarASahiEcografiaProducto()"
                                 :disabled="isEnviando || registro.estado_envio_sahi === 'ENVIANDO'"
                             >
-                                <i class="fa fa-refresh"></i> Reintentar SAHI
+                                <i class="fa fa-refresh mr-1"></i> Reintentar SAHI
                             </button>
 
                             <span
@@ -539,15 +602,86 @@
 
                             <button
                                 type="button"
-                                class="btn btn-inverse"
-                                @click="btnCerralModalForm()"
+                                class="btn btn-inverse waves-effect waves-light"
+                                @click="btnCerrarModalForm()"
+                                title="Cerrar panel"
                             >
-                                Cancel
+                                Cancelar
                             </button>
                         </div>
                     </form>
                 </div>
             </div>
+
+            <!-- ============================================================== -->
+            <!-- Floating Dictation Capsule (Widget flotante de dictado por voz)-->
+            <!-- ============================================================== -->
+            <transition name="fade-slide">
+                <div
+                    v-if="sidebarVisible"
+                    class="floating-dictation-pill"
+                    :class="{
+                        'is-recording': voiceState === 'active',
+                        'is-paused': voiceState === 'paused',
+                        'is-idle': voiceState === 'inactive',
+                        'is-dark': isDarkMode,
+                    }"
+                >
+                    <div class="pill-indicator">
+                        <span class="status-dot"></span>
+                    </div>
+
+                    <div class="pill-waveform" v-if="voiceState === 'active'">
+                        <span class="wave-bar bar-1"></span>
+                        <span class="wave-bar bar-2"></span>
+                        <span class="wave-bar bar-3"></span>
+                        <span class="wave-bar bar-4"></span>
+                    </div>
+
+                    <div class="pill-info">
+                        <span class="pill-status-text">
+                            {{
+                                voiceState === "active"
+                                    ? "Grabando Audio"
+                                    : voiceState === "paused"
+                                      ? "Dictado en Pausa"
+                                      : "Dictado Inactivo"
+                            }}
+                        </span>
+                        <span class="pill-shortcut text-muted">Voz STT</span>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="btn btn-circle pill-btn"
+                        :class="
+                            voiceState === 'active'
+                                ? 'btn-danger'
+                                : voiceState === 'paused'
+                                  ? 'btn-warning'
+                                  : 'btn-info'
+                        "
+                        @click="toggleSpeechRecognition()"
+                        :title="
+                            voiceState === 'active'
+                                ? 'Pausar dictado por voz'
+                                : voiceState === 'paused'
+                                  ? 'Reanudar dictado por voz'
+                                  : 'Iniciar dictado por voz'
+                        "
+                    >
+                        <i
+                            :class="
+                                voiceState === 'active'
+                                    ? 'fa fa-pause'
+                                    : voiceState === 'paused'
+                                      ? 'fa fa-play'
+                                      : 'fa fa-microphone'
+                            "
+                        ></i>
+                    </button>
+                </div>
+            </transition>
         </div>
         <!-- ============================================================== -->
         <!-- End Right sidebar -->
@@ -561,7 +695,8 @@
         role="dialog"
         aria-labelledby="myLargeModalLabel-impri-repor"
         aria-hidden="true"
-        style="display: none"
+        v-show="modalReporteVisible"
+        :style="{ display: modalReporteVisible ? 'block' : 'none' }"
     >
         <div class="modal-dialog modal-xl" style="max-width: 70%">
             <div class="modal-content">
@@ -569,7 +704,13 @@
                     <h4 class="modal-title" id="myLargeModalLabel-impri-repor">
                         Reporte de lectura
                     </h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    <button
+                        type="button"
+                        class="close"
+                        data-dismiss="modal"
+                        aria-hidden="true"
+                        @click="cerrarModalReporte()"
+                    >
                         ×
                     </button>
                 </div>
@@ -588,6 +729,7 @@
                         type="button"
                         class="btn btn-danger waves-effect text-left"
                         data-dismiss="modal"
+                        @click="cerrarModalReporte()"
                     >
                         Close
                     </button>
@@ -606,7 +748,8 @@
         role="dialog"
         aria-labelledby="modal-pendientes-consentimientos-title"
         aria-hidden="true"
-        style="display: none"
+        v-show="modalPendientesConsentimientosVisible"
+        :style="{ display: modalPendientesConsentimientosVisible ? 'block' : 'none' }"
     >
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -687,19 +830,45 @@
     </div>
 </template>
 <script setup>
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
+
+const isDarkMode = ref(localStorage.getItem("lidiag_dark_mode") === "true");
+
+function toggleDarkMode() {
+    isDarkMode.value = !isDarkMode.value;
+    try {
+        localStorage.setItem("lidiag_dark_mode", String(isDarkMode.value));
+    } catch {
+        // Fallback silencioso si localStorage está restringido
+    }
+}
+
+const isZenMode = ref(false);
+
+function toggleZenMode() {
+    isZenMode.value = !isZenMode.value;
+}
 
 import usePermissions from "@/helpers/permissions.js";
-import { handleAxiosErrorToast, toastMessage } from "@/helpers/alerts";
-import { setMapValue } from "@/helpers/sahi";
+import { toastMessage } from "@/helpers/alerts";
 import { createVoiceSession } from "@/helpers/voice/voiceSession";
 import medicalReplacements from "@/data/medical_replacements.json";
 import medicalTermsRaw from "@/data/terminos_medicos.txt?raw";
+import { useSede } from "@/composables/useSede.js";
+import { useSahiInterface } from "@/composables/useSahiInterface.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
+import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import axios from "axios";
 
-const props = defineProps({ usuarioactual: Object, permisos: Array });
+const props = defineProps({
+    usuarioactual: { type: Object, default: () => ({}) },
+    permisos: { type: Array, default: () => [] },
+});
+const { can } = usePermissions(props.permisos);
+const { sedeInterface, sedeNombre, establecerSede: establecerSedeComposable } = useSede();
+const { consultarEstado, enviarEcografiaProducto, startPolling, stopPolling } = useSahiInterface();
 
 const dt = ref(null);
 const actualizar = ref(false);
@@ -708,7 +877,7 @@ const tituloModal = ref("Nueva admisión");
 const subTituloModal = ref("");
 const tituloAtencion = ref("");
 const busqueda = ref({
-    sede_id: sedeActual,
+    sede_id: "",
     medico_id: "",
     bus_nom_num_docu: "",
     bus_fech_ini: "",
@@ -719,13 +888,15 @@ const registro = ref({
     ecografia_id: "",
     ecografia_producto_id: "",
     producto_id: "",
-    sede_id: sedeActual,
+    sede_id: "",
     medico_id: "",
     quien_registro_id: props.usuarioactual.id,
     atencion_id: null,
     lectura: null,
     opinion: null,
     tipo_estudio: null,
+    tipo_plantilla_id: "",
+    plantilla_id: "",
     nom_pacien: null,
     estado_envio_sahi: null,
     fechor_envio_sahi: null,
@@ -734,10 +905,7 @@ const registro = ref({
     sahi_esquema_150: null,
 });
 const errores = ref({});
-const erroresBusqueda = ref({});
-const medicos = ref([]);
 const accion = ref(null);
-const productosAgenda = ref([]);
 const tiposPlantillas = ref([]);
 const plantillas = ref([]);
 const url = ref("");
@@ -752,48 +920,80 @@ const medicalVocabularyKeys = ref([]);
 const medicalVocabularyIndex = ref({});
 const isGuardandoLectura = ref(false);
 const isBuscandoPendientes = ref(false);
+const isConsultando = ref(false);
+const isEnviando = ref(false);
+const isGenerandoReporte = ref(false);
 const bloqueoLectura = ref(false);
 const pendientesDiaAnterior = ref([]);
 const isFirmandoConsentimiento = ref({});
+const sidebarVisible = ref(false);
+const selTipoPlantilla = ref(null);
+const selPlantilla = ref(null);
+const modalPendientesConsentimientosVisible = ref(false);
+const modalReporteVisible = ref(false);
 
+function cerrarSidebar() {
+    if (sidebarVisible.value) {
+        sidebarVisible.value = false;
+        stopSahiPolling();
+    }
+}
+
+useKeyboardShortcuts({
+    onSearch: () => {
+        if (!sidebarVisible.value) {
+            listarPendiestePorLectura();
+        }
+    },
+    onSave: guardarRegistro,
+    onEscape: cerrarSidebar,
+    onDictate: toggleSpeechRecognition,
+    isActive: () => true,
+    isLoading: isGuardandoLectura,
+});
+
+/**
+ * Compila las opciones de tipos de plantillas para el Select2 local a partir de `tiposPlantillas`.
+ *
+ * @returns {Array} Array de objetos con las propiedades `id` y `nom_tipo`.
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 const tiposPlantillasOptions = computed(() => {
-    // Opciones para el Select2 local de medicos.
     return (tiposPlantillas.value || []).map((p) => ({
         id: String(p.id),
         nom_tipo: p.nom_tipo,
     }));
 });
+
+/**
+ * Compila las opciones de plantillas para el Select2 local a partir de `plantillas`.
+ *
+ * @returns {Array} Array de objetos con las propiedades `id`, `nom_plantilla`, `plantilla` y `opinion`.
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 const plantillasOptions = computed(() => {
-    // Opciones para el Select2 local de medicos.
-    return (plantillas.value || []).map((p) => ({
+    const opts = (plantillas.value || []).map((p) => ({
         id: String(p.id),
         nom_plantilla: p.nom_plantilla,
         plantilla: p.plantilla,
         opinion: p.opinion,
     }));
+    return opts;
 });
 
-function buscarStudy() {
-    // Soporte para Enter en el input de búsqueda
-    return listarPendiestePorLectura();
-}
-function btnLimpiar() {
-    // Limpia criterios de búsqueda (mantiene sede/medico del contexto)
-    busqueda.value.bus_nom_num_docu = "";
-    busqueda.value.bus_fech_ini = "";
-    busqueda.value.bus_fecha_fin = "";
-    erroresBusqueda.value = {};
-
-    safeDestroyDataTable(dt.value || "#example23");
-    registros.value = [];
-    pendientesDiaAnterior.value = [];
-    bloqueoLectura.value = false;
-    limpiarFormulario();
-}
+/**
+ * Compila las reglas de reemplazo médico desde el archivo JSON y las almacena en `medicalReplCompiled`.
+ *
+ * @returns {Array} Array de reglas compiladas, cada una como un array con un RegExp y un string de reemplazo.
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 function getMedicalReplacementsCompiled() {
     if (medicalReplCompiled.value) return medicalReplCompiled.value;
     const compiled = [];
-    MEDICAL_REPLACEMENTS_FROM_JSON.forEach((rule) => {
+    medicalReplacements.forEach((rule) => {
         if (!Array.isArray(rule) || rule.length < 3) return;
         const [regexString, flags, replacement] = rule;
         try {
@@ -801,13 +1001,21 @@ function getMedicalReplacementsCompiled() {
                 new RegExp(String(regexString), String(flags || "")),
                 String(replacement),
             ]);
-        } catch (e) {
+        } catch {
             // ignore regla inválida
         }
     });
     medicalReplCompiled.value = compiled;
     return compiled;
 }
+
+/**
+ * Aplica las reglas de reemplazo médico al texto dado.
+ *
+ * @returns {string} Texto con los reemplazos aplicados.
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 function applyMedicalReplacements(text) {
     let out = String(text ?? "");
     const compiled = getMedicalReplacementsCompiled();
@@ -816,23 +1024,66 @@ function applyMedicalReplacements(text) {
     });
     return out;
 }
+
+/**
+ * Elimina los diacríticos (acentos) de un texto dado.
+ *
+ * @param {string} text - El texto del cual se eliminarán los diacríticos.
+ * @returns {string} El texto sin diacríticos.
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 function stripDiacritics(text) {
     try {
         return String(text)
             .normalize("NFD")
-            .replace(/[u0300-u036f]/g, "");
-    } catch (e) {
+            .replace(/[\u0300-\u036f]/g, "");
+    } catch {
         return String(text);
     }
 }
+/**
+ * Escapa los caracteres especiales de una cadena para que pueda usarse de forma segura dentro de una expresión regular.
+ *
+ * @param {string} text Texto del cual se escaparán los caracteres especiales.
+ *
+ * @returns {string}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-11-18
+ */
 function escapeRegExp(text) {
     return String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
+/**
+ * Normaliza una palabra eliminando diacríticos, pasándola a minúsculas y removiendo caracteres no alfanuméricos.
+ *
+ * @param {string} text Texto de la palabra a normalizar.
+ *
+ * @returns {string}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-11-18
+ */
 function normalizeWord(text) {
     return stripDiacritics(String(text))
         .toLowerCase()
         .replace(/[^a-z0-9ñ]+/gi, "");
 }
+
+/**
+ * Calcula la distancia de Levenshtein entre dos cadenas, con un límite máximo de distancia.
+ * Si la distancia excede `maxDist`, la función devuelve `maxDist + 1` para indicar que las cadenas son demasiado diferentes.
+ *
+ * @param {string} a - La primera cadena.
+ * @param {string} b - La segunda cadena.
+ * @param {number} [maxDist=2] - La distancia máxima permitida antes de devolver un valor que indica que las cadenas son demasiado diferentes.
+ * @returns {number} La distancia de Levenshtein entre las dos cadenas, o `maxDist + 1` si la distancia excede `maxDist`.
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 function levenshteinMax(a, b, maxDist = 2) {
     if (a === b) return 0;
     if (!a || !b) return Math.max(a ? a.length : 0, b ? b.length : 0);
@@ -861,6 +1112,14 @@ function levenshteinMax(a, b, maxDist = 2) {
     }
     return prev[lb];
 }
+
+/**
+ * Reconstruye el vocabulario médico a partir de un archivo de términos médicos y lo almacena en `medicalVocabularyMap`, `medicalVocabularyKeys` y `medicalVocabularyIndex`.
+ *
+ * @returns {void}
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 function rebuildMedicalVocabulary() {
     const map = {};
     const addPhrase = (phrase) => {
@@ -879,7 +1138,7 @@ function rebuildMedicalVocabulary() {
     };
 
     // Fuente principal: archivo grande de términos
-    MEDICAL_TERMS_FROM_TXT.forEach(addPhrase);
+    medicalTermsRaw.split("\n").forEach(addPhrase);
 
     medicalVocabularyMap.value = map;
     const keys = Object.keys(map);
@@ -896,6 +1155,15 @@ function rebuildMedicalVocabulary() {
     });
     medicalVocabularyIndex.value = index;
 }
+
+/**
+ * Aplica correcciones médicas al texto dado, incluyendo normalizaciones y correcciones basadas en un vocabulario médico indexado.
+ *
+ * @param {string} text - El texto al que aplicar las correcciones.
+ * @returns {string} - El texto corregido.
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 function applyMedicalCorrections(text) {
     // 1) Normalizaciones (regex)
     let out = applyMedicalReplacements(text);
@@ -905,8 +1173,8 @@ function applyMedicalCorrections(text) {
     const vocabIndex = medicalVocabularyIndex.value || {};
     if (!vocabMap || !Object.keys(vocabMap).length) return out;
 
-    out = String(out).replace(/[p{L}p{N}]+/gu, (token) => {
-        if (/^d+$/u.test(token)) return token;
+    out = String(out).replace(/[\p{L}\p{N}]+/gu, (token) => {
+        if (/^\d+$/u.test(token)) return token;
         if (token.length < 4) return token;
         const n = normalizeWord(token);
         if (!n) return token;
@@ -939,6 +1207,19 @@ function applyMedicalCorrections(text) {
 
     return out;
 }
+/**
+ * Reemplaza en el texto los comandos de voz reconocidos por su resultado, invocando una función por cada coincidencia.
+ *
+ * @param {string} text Texto original sobre el cual se aplican los comandos.
+ * @param {Object} commandMap Mapa de comandos con su función o valor de reemplazo.
+ * @param {Object} options Opciones con la función onEachMatch que se ejecuta por cada coincidencia.
+ *
+ * @returns {string}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-11-18
+ */
 function applyCommandMap(text, commandMap, { onEachMatch } = {}) {
     if (!commandMap) return text;
     const keys = Object.keys(commandMap).sort((a, b) => b.length - a.length);
@@ -949,7 +1230,7 @@ function applyCommandMap(text, commandMap, { onEachMatch } = {}) {
             if (typeof onEachMatch === "function") {
                 try {
                     onEachMatch(command);
-                } catch (e) {
+                } catch {
                     /* noop */
                 }
             }
@@ -960,6 +1241,15 @@ function applyCommandMap(text, commandMap, { onEachMatch } = {}) {
     });
     return text;
 }
+/**
+ * Retorna el mapa de comandos de voz que activan o desactivan el modo de mayúsculas sostenidas.
+ *
+ * @returns {Object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-11-18
+ */
 function getUppercaseCommands() {
     return {
         "iniciar mayúscula sostenida": () => {
@@ -1044,16 +1334,34 @@ function getUppercaseCommands() {
         },
     };
 }
+/**
+ * Retorna el mapa de comandos de voz que insertan saltos de línea en el texto dictado.
+ *
+ * @returns {Object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-11-18
+ */
 function getLineBreakCommands() {
     return {
-        "punto aparte": () => ".nn",
-        "salto de línea": () => "n",
-        "doble salto de línea": () => "nn",
-        enter: () => "n",
-        "doble enter": () => "nn",
-        "línea en blanco": () => "nn",
+        "punto aparte": () => ".\nn",
+        "salto de línea": () => "\n",
+        "doble salto de línea": () => "\nn",
+        enter: () => "\n",
+        "doble enter": () => "\nn",
+        "línea en blanco": () => "\nn",
     };
 }
+/**
+ * Retorna el mapa de comandos de voz que insertan puntuación, espacios y símbolos en el texto dictado.
+ *
+ * @returns {Object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-11-18
+ */
 function getPunctuationCommands() {
     return {
         punto: () => {
@@ -1084,6 +1392,15 @@ function getPunctuationCommands() {
         "nueva oración": () => ". ",
     };
 }
+/**
+ * Construye y retorna el conjunto completo de comandos de voz (mayúsculas, saltos y puntuación) incluyendo variantes sin tildes.
+ *
+ * @returns {Object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-11-18
+ */
 function getAllVoiceCommands() {
     // Agrega claves sin tildes para tolerar dictado sin acentos
     const uppercaseCommands = getUppercaseCommands();
@@ -1104,6 +1421,17 @@ function getAllVoiceCommands() {
     addNormalizedKeys(punctuationCommands);
     return { uppercaseCommands, lineBreakCommands, punctuationCommands };
 }
+/**
+ * Procesa el texto dictado aplicando los comandos de voz, mayúsculas sostenidas y capitalización de nuevas oraciones.
+ *
+ * @param {string} text Texto reconocido por voz a procesar.
+ *
+ * @returns {string}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-11-18
+ */
 function processCommands(text) {
     const { uppercaseCommands, lineBreakCommands, punctuationCommands } = getAllVoiceCommands();
     let out = String(text ?? "");
@@ -1116,13 +1444,22 @@ function processCommands(text) {
     out = applyCommandMap(out, punctuationCommands);
     out = uppercase.value ? out.toUpperCase() : out;
     if (capitalizeNext.value) {
-        out = out.replace(/(^|n)(s*)([a-záéíóúüñ])/i, (m, start, spaces, first) => {
+        out = out.replace(/(^|\n)(\s*)([a-záéíóúüñ])/i, (m, start, spaces, first) => {
             capitalizeNext.value = false;
             return `${start}${spaces}${first.toUpperCase()}`;
         });
     }
     return out;
 }
+/**
+ * Crea y retorna la sesión de reconocimiento de voz configurada para dictado, gramática de comandos y manejo de errores.
+ *
+ * @returns {Object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-11-18
+ */
 function ensureVoiceSession() {
     if (voiceSession.value) return voiceSession.value;
     const { uppercaseCommands, lineBreakCommands, punctuationCommands } = getAllVoiceCommands();
@@ -1174,6 +1511,15 @@ function ensureVoiceSession() {
     });
     return voiceSession.value;
 }
+/**
+ * Alterna el estado del reconocimiento de voz (iniciar, pausar o reanudar) y actualiza el icono del micrófono.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-11-18
+ */
 async function toggleSpeechRecognition() {
     // Mantener el ícono/animación actual, sin tocar template.
     try {
@@ -1192,22 +1538,31 @@ async function toggleSpeechRecognition() {
             voiceState.value = "active";
             microfono.value = "admin-wrap/assets/images/mic-animate.gif";
         }
-    } catch (e) {
+    } catch (error) {
         voiceState.value = "inactive";
         microfono.value = "admin-wrap/assets/images/mic.gif";
         toastMessage({
             heading: "Error",
-            text: e && e.message ? e.message : "No fue posible iniciar el dictado.",
+            text: error && error.message ? error.message : "No fue posible iniciar el dictado.",
             icon: "error",
             hideAfter: 5000,
         });
     }
 }
+/**
+ * Destruye la sesión de reconocimiento de voz activa y restablece el estado e icono del micrófono.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-11-18
+ */
 function stopVoice() {
     if (voiceSession.value) {
         try {
             voiceSession.value.destroy();
-        } catch (e) {
+        } catch {
             /* noop */
         }
         voiceSession.value = null;
@@ -1215,8 +1570,17 @@ function stopVoice() {
     voiceState.value = "inactive";
     microfono.value = "admin-wrap/assets/images/mic.gif";
 }
+/**
+ * Inicia el sondeo periódico del estado de envío a SAHI para la ecografía producto actual.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-11-18
+ */
 function startSahiPolling() {
-    if (!sedeInterface) return;
+    if (!sedeInterface.value) return;
     if (!registro.value?.ecografia_producto_id) return;
 
     const id = registro.value.ecografia_producto_id;
@@ -1238,11 +1602,28 @@ function startSahiPolling() {
     };
     startPolling(id, onUpdate, onError);
 }
+/**
+ * Detiene el sondeo periódico del estado de envío a SAHI.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-11-18
+ */
 function stopSahiPolling() {
     stopPolling();
 }
+
+/**
+ * Consulta el estado de envío a SAHI para la ecografía actual y actualiza el registro con la información obtenida.
+ * @param {any} silent=false - Si es true, no muestra mensajes de toast al usuario.
+ * @returns {any}
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 async function consultarEstadoSahi(silent = false) {
-    if (!sedeInterface) return;
+    if (!sedeInterface.value) return;
     const id = registro.value.ecografia_producto_id;
     if (!id) return;
 
@@ -1280,7 +1661,14 @@ async function consultarEstadoSahi(silent = false) {
         }
     }
 }
-function safeDestroyDataTable(selector = "#example23") {
+
+/**
+ * Destruye de manera segura un DataTable en el selector dado, si existe y está inicializado.
+ * @param {string} selector - Selector del DataTable a destruir (por defecto: "#tablaEcografiasLectura").
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
+function safeDestroyDataTable(selector = "#tablaEcografiasLectura") {
     if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
         return;
     const $t = window.$(selector);
@@ -1289,7 +1677,14 @@ function safeDestroyDataTable(selector = "#example23") {
         $t.DataTable().clear().destroy();
     }
 }
-function safeInitDataTable(selector = "#example23") {
+
+/**
+ * Inicializa de manera segura un DataTable en el selector dado, si no está ya inicializado.
+ * @param {string} selector - Selector del DataTable a inicializar (por defecto: "#tablaEcografiasLectura").
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
+function safeInitDataTable(selector = "#tablaEcografiasLectura") {
     if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
         return;
     nextTick(() => {
@@ -1306,19 +1701,20 @@ function safeInitDataTable(selector = "#example23") {
         });
     });
 }
+/**
+ * Lista las ecografías pendientes de lectura para el médico actual y evalúa consentimientos pendientes del día anterior.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-11-18
+ */
 async function listarPendiestePorLectura() {
     // Evita llamar al backend con "null"/vacío (causa 404 "El medico no se encontro")
     const medicoId = String(busqueda.value?.medico_id ?? "").trim();
-    if (!medicoId || medicoId === "null" || medicoId === "undefined") {
+    if (!medicoId || medicoId === "null" || medicoId === "undefined" || isNaN(Number(medicoId))) {
         registros.value = [];
-        handleAxiosErrorToast(
-            {
-                response: {
-                    data: { message: "No hay médico seleccionado para listar pendientes." },
-                },
-            },
-            "No fue posible listar pendientes por lectura."
-        );
         return;
     }
     try {
@@ -1326,21 +1722,29 @@ async function listarPendiestePorLectura() {
 
         const res = await axios.post("/api/ecografia-listarPendientesPorLectura/" + medicoId);
         if (res.status == 200) {
-            safeDestroyDataTable(dt.value || "#example23");
+            safeDestroyDataTable(dt.value || "#tablaEcografiasLectura");
 
             registros.value = res.data.data.ecografias;
 
-            safeInitDataTable(dt.value || "#example23");
+            safeInitDataTable(dt.value || "#tablaEcografiasLectura");
 
             evaluarPendientesConsentimientosDiaAnterior();
         }
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar pendientes por lectura.");
+    } catch {
         registros.value = [];
     } finally {
         isBuscandoPendientes.value = false;
     }
 }
+/**
+ * Determina los consentimientos firmados por el paciente el día anterior pendientes de firma del médico y bloquea la lectura si existen.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-11-18
+ */
 function evaluarPendientesConsentimientosDiaAnterior() {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
@@ -1356,20 +1760,29 @@ function evaluarPendientesConsentimientosDiaAnterior() {
     pendientesDiaAnterior.value = pendientes;
     bloqueoLectura.value = pendientes.length > 0;
 
-    if (bloqueoLectura.value && window.$) {
-        window
-            .$("#modal-pendientes-consentimientos")
-            .modal({ backdrop: "static", keyboard: false });
-    } else if (!bloqueoLectura.value && window.$) {
-        window.$("#modal-pendientes-consentimientos").modal("hide");
+    if (bloqueoLectura.value) {
+        modalPendientesConsentimientosVisible.value = true;
+    } else if (!bloqueoLectura.value) {
+        modalPendientesConsentimientosVisible.value = false;
     }
 }
+/**
+ * Envía la firma del médico sobre un consentimiento pendiente y actualiza su estado a COMPLETO.
+ *
+ * @param {Object} item Registro del consentimiento que el médico firma.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-11-18
+ */
 async function firmarConsentimientoMedico(item) {
     const id = item?.consentimiento_id;
     if (!id) return;
     if (isFirmandoConsentimiento.value[id]) return;
     try {
-        setMapValue(proxy, "isFirmandoConsentimiento", id, true);
+        isFirmandoConsentimiento.value[id] = true;
         await axios.post("/api/ecografias-consentimientos/firmar-medico", {
             consentimiento_id: id,
         });
@@ -1382,11 +1795,24 @@ async function firmarConsentimientoMedico(item) {
 
         evaluarPendientesConsentimientosDiaAnterior();
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible firmar el consentimiento.");
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible firmar el consentimiento.",
+            icon: "error",
+        });
     } finally {
-        setMapValue(proxy, "isFirmandoConsentimiento", id, false);
+        isFirmandoConsentimiento.value[id] = false;
     }
 }
+/**
+ * Envía al backend el guardado de la lectura de la ecografía actual y retorna si la operación fue exitosa.
+ *
+ * @returns {Promise<boolean>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-11-18
+ */
 async function generarLectura() {
     try {
         // Enviar solicitud para guardar la ecografía
@@ -1395,7 +1821,7 @@ async function generarLectura() {
             registro: registro.value,
         });
 
-        if (res.status === 201) {
+        if (res.status === 200 || res.status === 201) {
             // Mostrar notificación de éxito
             toastMessage({
                 heading: "¡Éxito!",
@@ -1405,23 +1831,42 @@ async function generarLectura() {
 
             return true;
         } else {
-            toastMessage({ heading: "Upss!!!", text: res.data.data.message, icon: "error" });
+            toastMessage({
+                heading: "Error",
+                text:
+                    res.data?.message ||
+                    res.data?.data?.message ||
+                    "No se pudo guardar la lectura.",
+                icon: "error",
+            });
 
             return false;
         }
     } catch (error) {
-        handleAxiosErrorToast(error, "Ocurrió un error al guardar la lectura.");
-
         // Mostrar errores específicos en el formulario
         if (error.response?.data?.errors) {
             errores.value = error.response.data.errors;
         }
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "Ocurrió un error al guardar la lectura.",
+            icon: "error",
+        });
 
         return false;
     }
 }
+/**
+ * Envía la ecografía producto a SAHI, gestiona el estado de envío y, de ser necesario, inicia el sondeo de estado.
+ *
+ * @returns {Promise<boolean>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-11-18
+ */
 async function enviarASahiEcografiaProducto() {
-    if (!sedeInterface) return true;
+    if (!sedeInterface.value) return true;
 
     const id = registro.value.ecografia_producto_id;
     if (!id) {
@@ -1490,7 +1935,26 @@ async function enviarASahiEcografiaProducto() {
         return false;
     }
 }
+
+/**
+ * Guarda el registro de lectura actual y, si corresponde, envía la información a SAHI.
+ * Después de guardar, actualiza la lista de pendientes y limpia el formulario.
+ *
+ * @returns {Promise<boolean>} - Una promesa que resuelve a true si el registro se guardó correctamente, false en caso contrario.
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 async function guardarRegistro() {
+    const lecturaTexto = (registro.value.lectura || "").replace(/<[^>]*>/g, "").trim();
+    if (!lecturaTexto) {
+        toastMessage({
+            heading: "Atención",
+            text: "El informe de la ecografía no puede estar vacío antes de guardar.",
+            icon: "warning",
+        });
+        return;
+    }
+
     const accionActual = "TERMINAR_LECTURA";
     accion.value = accionActual;
 
@@ -1502,19 +1966,36 @@ async function guardarRegistro() {
     if (!guardadoOk) return;
 
     // Enviar a SAHI solo si la sede tiene interface y la acción fue TERMINAR_LECTURA
-    if (sedeInterface && accionActual === "TERMINAR_LECTURA") {
-        await enviarASahiEcografiaProducto();
+    if (sedeInterface.value && accionActual === "TERMINAR_LECTURA") {
+        const sahiOk = await enviarASahiEcografiaProducto();
+        if (!sahiOk) {
+            listarPendiestePorLectura();
+            return;
+        }
     }
 
     listarPendiestePorLectura();
     limpiarFormulario();
-    btnCerralModalForm();
+    btnCerrarModalForm();
 }
+
+/**
+ * Genera un reporte de la lectura actual y lo muestra en un iframe.
+ * Después de generar el reporte, actualiza la lista de pendientes.
+ *
+ * @returns {Promise<boolean>} - Una promesa que resuelve a true si el reporte se generó correctamente, false en caso contrario.
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 async function generarReporte() {
+    if (isGenerandoReporte.value) return;
+    isGenerandoReporte.value = true;
     try {
         accion.value = "IMPRIMIR_LECTURA";
-        generarLectura();
+        const guardadoOk = await generarLectura();
         accion.value = null;
+
+        if (!guardadoOk) return;
 
         const iframe = document.getElementById("ifrReporteEcografia");
         iframe.src = "";
@@ -1523,81 +2004,195 @@ async function generarReporte() {
             "/api/ecografia-generar-reporte/" + registro.value.ecografia_id,
             registro.value
         );
-        const pathReporte = res.data.data.plantilla;
+        const pathReporte = res.data?.data?.plantilla || res.data?.plantilla;
 
-        // Mostrar el reporte en el iframe
-        iframe.src = pathReporte;
+        if (iframe) iframe.src = pathReporte;
+        modalReporteVisible.value = true;
 
         listarPendiestePorLectura();
 
         return true;
     } catch (error) {
-        handleAxiosErrorToast(error, "Ocurrió un error al generar el reporte.");
-
-        // Mostrar errores específicos en el formulario
         if (error.response?.data?.errors) {
             errores.value = error.response.data.errors;
         }
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible generar el reporte.",
+            icon: "error",
+        });
+        modalReporteVisible.value = false;
+    } finally {
+        isGenerandoReporte.value = false;
     }
 }
-async function establecerSede() {
-    registro.value.sede_id = sessionStorage.getItem("ST-sede");
-    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
-    sedeActual = sessionStorage.getItem("ST-sede");
-    await establecerSede(); // composable call
-    registros.value = [];
+
+/**
+ * Cierra la visualización del modal de reporte de lectura.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-10-15
+ */
+function cerrarModalReporte() {
+    modalReporteVisible.value = false;
 }
+
+/**
+ * Inicializa la sede actual del usuario a partir del almacenamiento de sesión y establece la sede en el composable correspondiente.
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando la sede ha sido establecida correctamente.
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
+async function initSede() {
+    const sede = sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede");
+    registro.value.sede_id = sede || null;
+    busqueda.value.sede_id = sede || null;
+    if (sede && !sessionStorage.getItem("ST-sede")) {
+        sessionStorage.setItem("ST-sede", String(sede));
+    }
+    await establecerSedeComposable();
+}
+
+/**
+ * Establece el médico actual a partir del almacenamiento local o del usuario actual y actualiza los registros pendientes de lectura.
+ * @returns {void}
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 function establecerMedico() {
-    // Siempre usar el usuario logueado como médico (evita null y evita depender de sessionStorage)
-    const medicoId = usuarioactual?.id != null ? String(usuarioactual.id) : "";
+    const medicoId = localStorage.getItem("ST-ecografia-medico") || props.usuarioactual?.id;
 
-    busqueda.value.medico_id = medicoId;
-    registro.value.medico_id = medicoId;
-
-    // Opcional: sincronizamos para otras pantallas que lean ST-medico
-    if (medicoId) sessionStorage.setItem("ST-medico", medicoId);
+    if (medicoId && !isNaN(Number(medicoId))) {
+        busqueda.value.medico_id = String(medicoId);
+        registro.value.medico_id = String(medicoId);
+    }
 
     listarPendiestePorLectura();
 }
+
+/**
+ * Lista los tipos de plantillas activas desde el backend y actualiza la variable `tiposPlantillas`.
+ * Si hay tipos de plantillas disponibles, selecciona automáticamente el primer tipo y carga sus plantillas correspondientes.
+ *
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando la operación de listado ha finalizado.
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 async function listarTiposPlantillas() {
     try {
         const res = await axios.get("/api/config-tipos-plantillas/listar/activos");
         tiposPlantillas.value = res.data.data;
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar tipos de plantillas.");
+    } catch {
         tiposPlantillas.value = [];
     }
 }
+
+/**
+ * Maneja la selección de un tipo de plantilla, cargando las plantillas correspondientes desde el backend.
+ * Si no se selecciona un tipo válido, limpia la lista de plantillas y el campo `tipo_estudio` del registro.
+ *
+ * @param {string|null} value - El ID del tipo de plantilla seleccionado. Si es null o vacío, se considera que no se ha seleccionado un tipo válido.
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando la operación de carga de plantillas ha finalizado.
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 async function onTipoPlantillaSelect(value) {
-    let selectedId = value || null;
-    if (selectedId == null) return;
+    let selectedId = null;
+    if (value != null && value !== "" && value !== "0" && value !== 0) {
+        selectedId = String(value);
+    }
+    registro.value.tipo_plantilla_id = selectedId || "";
+
+    if (!selectedId) {
+        plantillas.value = [];
+        registro.value.tipo_estudio = "";
+        registro.value.plantilla_id = "";
+        return;
+    }
 
     try {
-        const res = await axios.get(`/api/config-plantillas/listar/activos/${selectedId}`);
+        const url = `/api/config-plantillas/listar/activos/${selectedId}/${registro.value.medico_id}`;
+        const res = await axios.get(url);
 
         plantillas.value = res.data.data;
-        plantillasOptions.value;
         var tipo = tiposPlantillasOptions.value.find(function (t) {
             return String(t.id) === String(selectedId);
         });
         registro.value.tipo_estudio = (tipo && tipo.nom_tipo) || "";
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar plantillas.");
+    } catch {
+        plantillas.value = [];
+        toastMessage({
+            heading: "Plantillas",
+            text: "No se pudieron cargar las plantillas para este tipo.",
+            icon: "warning",
+        });
     }
 }
+
+/**
+ * Maneja la selección de una plantilla específica, actualizando los campos `lectura` y `opinion` del registro con los valores correspondientes de la plantilla seleccionada.
+ * Si no se encuentra la plantilla seleccionada, se establecen los campos `lectura` y `opinion` como null.
+ *
+ * @param {string} value - El ID de la plantilla seleccionada.
+ * @returns {void}
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-06-10
+ */
 function onPlantillaSelect(value) {
+    let selectedId = null;
+    if (value != null && value !== "" && value !== "0" && value !== 0) {
+        selectedId = String(value);
+    }
+    registro.value.plantilla_id = selectedId || "";
+
+    if (!selectedId) {
+        registro.value.lectura = null;
+        registro.value.opinion = null;
+        return;
+    }
+
     var plantilla = plantillasOptions.value.find(function (p) {
-        return String(p.id) === String(value);
+        return String(p.id) === String(selectedId);
     });
     registro.value.lectura = (plantilla && plantilla.plantilla) || null;
     registro.value.opinion = (plantilla && plantilla.opinion) || null;
 }
-function btnCerralModalForm() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").toggleClass("shw-rside");
+/**
+ * Cierra/despliega el panel lateral del formulario de lectura y detiene el sondeo SAHI.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-11-18
+ */
+function btnCerrarModalForm() {
+    sidebarVisible.value = !sidebarVisible.value;
+    if (sidebarVisible.value) {
+        // El panel nace oculto (display:none): Select2 se niega a inicializar
+        // dentro de contenedores ocultos, así que se reconstruye al abrir.
+        nextTick(() => {
+            selTipoPlantilla.value?.rebuild();
+            selPlantilla.value?.rebuild();
+        });
+    }
     // al cerrar, detenemos polling para evitar fugas
     stopSahiPolling();
 }
+/**
+ * Carga los datos de la ecografía seleccionada en el formulario de lectura y prepara el panel lateral.
+ *
+ * @param {Object} data Datos de la atención/ecografía seleccionada a mostrar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-11-18
+ */
 function mostrarRegistro(data = {}) {
     tituloAtencion.value = `Atención N°: ${data.atencion_id}`;
     tituloModal.value = `Paciente: ${data.paciente.num_docu} - Nombres: ${data.paciente.nombres} ${data.paciente.seg_nom} ${data.paciente.pri_ape} ${data.paciente.seg_ape} `;
@@ -1609,38 +2204,77 @@ function mostrarRegistro(data = {}) {
     registro.value.atencion_id = data.atencion_id;
     registro.value.paciente_id = data.paciente_id;
     registro.value.num_docu = data.paciente.num_docu;
-    registro.value.nom_pacien = data.paciente.nombres;
+    registro.value.nom_pacien =
+        `${data.paciente.nombres || ""} ${data.paciente.seg_nom || ""} ${data.paciente.pri_ape || ""} ${data.paciente.seg_ape || ""}`.trim();
     registro.value.seg_nom = data.paciente.seg_nom;
     registro.value.pri_ape = data.paciente.pri_ape;
     registro.value.seg_ape = data.paciente.seg_ape;
     registro.value.sexo = data.paciente.sexo;
     registro.value.fec_naci = data.paciente.fec_naci;
     registro.value.direccion = data.paciente.direccion;
+    registro.value.dir = data.paciente.direccion;
     registro.value.tel = data.paciente.tel;
     registro.value.cel = data.paciente.cel;
-    registro.value.atencion_id = data.atencion_id;
     registro.value.contrato = data.contrato;
     registro.value.plan = data.plan;
-    registro.value.admin_salud = data.admin_salud.nom_admin_salud;
+    registro.value.admin_salud = data.admin_salud?.nom_admin_salud || "";
+
+    registro.value.fec_estudio = data.fec_cita_sahi || "";
+    registro.value.nom_produc = data.nom_produc || "";
+    registro.value.cod_cups = data.cod_cups || "";
+    registro.value.nom_sede = sedeNombre.value || "";
+    registro.value.atencion = String(data.atencion_id || "");
+    registro.value.tipo_estudio = data.tipo_estudio || "";
+
+    if (data.paciente.fec_naci) {
+        const partes = String(data.paciente.fec_naci).substring(0, 10).split("-");
+        if (partes.length === 3) {
+            const anio = parseInt(partes[0], 10);
+            const mes = parseInt(partes[1], 10) - 1;
+            const dia = parseInt(partes[2], 10);
+            const hoy = new Date();
+            let edad = hoy.getFullYear() - anio;
+            const mesDiff = hoy.getMonth() - mes;
+            if (mesDiff < 0 || (mesDiff === 0 && hoy.getDate() < dia)) {
+                edad--;
+            }
+            registro.value.edad = String(edad);
+        } else {
+            registro.value.edad = "";
+        }
+    } else {
+        registro.value.edad = "";
+    }
 
     registro.value.lectura = data.lectura;
     registro.value.opinion = data.opinion;
+    registro.value.tipo_plantilla_id = "";
+    registro.value.plantilla_id = "";
+    plantillas.value = [];
 
-    // Estado de envío a SAHI (si viene en el select)
     registro.value.estado_envio_sahi = data.estado_envio_sahi || null;
     registro.value.fechor_envio_sahi = data.fechor_envio_sahi || null;
     registro.value.error_envio_sahi = data.error_envio_sahi || null;
     registro.value.sahi_esquema_149 = data.sahi_esquema_149 || null;
     registro.value.sahi_esquema_150 = data.sahi_esquema_150 || null;
 
-    if (sedeInterface && registro.value.estado_envio_sahi === "ENVIANDO") {
+    if (sedeInterface.value && registro.value.estado_envio_sahi === "ENVIANDO") {
         startSahiPolling();
     } else {
         stopSahiPolling();
     }
 
-    btnCerralModalForm();
+    btnCerrarModalForm();
 }
+/**
+ * Reinicia los campos del formulario de lectura y detiene el sondeo SAHI.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-11-18
+ */
 function limpiarFormulario() {
     tituloModal.value = "";
     stopSahiPolling();
@@ -1666,58 +2300,283 @@ function limpiarFormulario() {
     errores.value = {};
 }
 
+/**
+ * Hook de ciclo de vida que inicializa sede, tipos de plantillas, médico, vocabulario médico y suscripciones a eventos del emitter.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-11-18
+ */
+function onSedeSeleccionada(data) {
+    const nuevaSede =
+        data?.idSede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede");
+    if (!nuevaSede) return;
+    registro.value.sede_id = nuevaSede;
+    busqueda.value.sede_id = nuevaSede;
+    initSede();
+}
+
+function onMedicoSeleccionado(data) {
+    if (data?.idMedico) {
+        registro.value.medico_id = data.idMedico;
+        busqueda.value.medico_id = String(data.idMedico);
+    }
+    establecerMedico();
+}
+
+/**
+ * Hook de ciclo de vida que inicializa sede, tipos de plantillas, médico, vocabulario médico y suscripciones a eventos del emitter.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2025-11-18
+ */
+function handleKeydown(e) {
+    if (e.key === "F2") {
+        e.preventDefault();
+        toggleSpeechRecognition();
+    }
+}
+
 onMounted(() => {
-    establecerSede();
+    initSede();
     listarTiposPlantillas();
     establecerMedico();
     rebuildMedicalVocabulary();
 
-    emitter.on("sedeSeleccionada", (data) => {
-        registro.value.sede_id = data.idSede;
-        establecerSede();
-    });
-
-    emitter.on("medicoSeleccionado", (data) => {
-        registro.value.medico_id = data.idMedico;
-        establecerMedico();
-        listarPendiestePorLectura();
-    });
+    emitter.on("sedeSeleccionada", onSedeSeleccionada);
+    emitter.on("medicoSeleccionado", onMedicoSeleccionado);
+    if (!registro.value.sede_id && emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
+    window.addEventListener("keydown", handleKeydown);
 
     url.value = window.location.pathname;
-    establecerMedico();
 });
 
 onBeforeUnmount(() => {
+    window.removeEventListener("keydown", handleKeydown);
+    emitter.off("sedeSeleccionada", onSedeSeleccionada);
+    emitter.off("medicoSeleccionado", onMedicoSeleccionado);
     stopSahiPolling();
     try {
         stopVoice();
-    } catch (e) {
+    } catch {
         /* noop */
     }
 });
 </script>
 <style scoped>
+/* ============================================================== */
+/* Floating Dictation Pill Widget                                 */
+/* ============================================================== */
+.floating-dictation-pill {
+    position: fixed;
+    bottom: 30px;
+    right: 40px;
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    padding: 6px 10px 6px 14px;
+    border-radius: 50px;
+    box-shadow:
+        0 10px 25px -5px rgba(0, 0, 0, 0.2),
+        0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+}
+
+.floating-dictation-pill.is-dark {
+    background: #1e222b;
+    border-color: #3b4254;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+}
+
+.floating-dictation-pill .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #94a3b8;
+    display: inline-block;
+    margin-right: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.floating-dictation-pill.is-recording .status-dot {
+    background-color: #ef4444;
+    box-shadow: 0 0 10px #ef4444;
+    animation: pulse 1.2s infinite;
+}
+
+.floating-dictation-pill.is-paused .status-dot {
+    background-color: #f59e0b;
+    box-shadow: 0 0 8px #f59e0b;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.pill-waveform {
+    display: flex;
+    align-items: center;
+    height: 16px;
+    margin-right: 10px;
+    gap: 3px;
+}
+
+.wave-bar {
+    width: 3px;
+    background-color: #ef4444;
+    border-radius: 2px;
+    animation: soundWave 0.8s ease-in-out infinite alternate;
+}
+
+.wave-bar.bar-1 {
+    height: 6px;
+    animation-delay: 0.1s;
+}
+.wave-bar.bar-2 {
+    height: 14px;
+    animation-delay: 0.3s;
+}
+.wave-bar.bar-3 {
+    height: 10px;
+    animation-delay: 0.2s;
+}
+.wave-bar.bar-4 {
+    height: 16px;
+    animation-delay: 0.4s;
+}
+
+@keyframes soundWave {
+    0% {
+        height: 4px;
+    }
+    100% {
+        height: 18px;
+    }
+}
+
+.pill-info {
+    display: flex;
+    flex-direction: column;
+    margin-right: 12px;
+    min-width: 110px;
+}
+
+.pill-status-text {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: #1e293b;
+}
+
+.floating-dictation-pill.is-dark .pill-status-text {
+    color: #f8fafc;
+}
+
+.pill-shortcut {
+    font-size: 10px;
+    line-height: 1;
+}
+
+.pill-btn {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    transition: transform 0.15s ease;
+}
+
+.pill-btn:hover {
+    transform: scale(1.08);
+}
+
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+    transition: all 0.3s ease;
+}
+
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+    opacity: 0;
+    transform: translateY(15px);
+}
+
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1090;
+    cursor: pointer;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.25s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
 .right-sidebar {
     position: fixed;
     right: -96%;
     width: 96%;
-    display: none;
-    z-index: 96;
+    z-index: 1100;
     background: #ffffff;
     top: 0px;
     padding-bottom: 20px;
-    height: 96%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
+    height: 100%;
+    box-shadow: -5px 0 35px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+@media (max-width: 767px) {
+    .right-sidebar {
+        right: -100%;
+        width: 100%;
+    }
 }
 
 .shw-rside {
-    right: 0px;
+    right: 0px !important;
     width: 96%;
-    display: block;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+@media (max-width: 767px) {
+    .shw-rside {
+        width: 100%;
+    }
 }
 
 .audio {
@@ -1731,6 +2590,16 @@ onBeforeUnmount(() => {
     height: 100%;
 }
 
+/* ============================================================== */
+/* Modo Zen / Pantalla Completa (100% viewport)                   */
+/* ============================================================== */
+.right-sidebar.zen-mode {
+    width: 100% !important;
+    right: 0 !important;
+    height: 100% !important;
+    z-index: 2500 !important;
+}
+
 .breadcrumb-btn {
     vertical-align: baseline;
 }
@@ -1739,5 +2608,111 @@ onBeforeUnmount(() => {
     width: 30px;
     height: 30px;
     display: inline-block;
+}
+
+/* ============================================================== */
+/* Modo Oscuro / Radiología (Dark Mode para entorno Ecografías)   */
+/* ============================================================== */
+.right-sidebar.dark-mode {
+    background: #181a20 !important;
+    color: #e2e8f0 !important;
+}
+
+.right-sidebar.dark-mode .rpanel-title {
+    background: #12141a !important;
+    color: #f1f5f9 !important;
+    border-bottom: 1px solid #2d3343 !important;
+}
+
+.right-sidebar.dark-mode .r-panel-body {
+    background: #181a20 !important;
+}
+
+.right-sidebar.dark-mode hr {
+    border-top-color: #2d3343 !important;
+}
+
+.right-sidebar.dark-mode dt,
+.right-sidebar.dark-mode label {
+    color: #cbd5e1 !important;
+}
+
+.right-sidebar.dark-mode dd,
+.right-sidebar.dark-mode p,
+.right-sidebar.dark-mode span,
+.right-sidebar.dark-mode li {
+    color: #e2e8f0;
+}
+
+.right-sidebar.dark-mode .form-control {
+    background-color: #222632 !important;
+    color: #f8fafc !important;
+    border-color: #3b4254 !important;
+}
+
+.right-sidebar.dark-mode .form-control:focus {
+    background-color: #262b38 !important;
+    border-color: #00bcd4 !important;
+    color: #ffffff !important;
+}
+
+.right-sidebar.dark-mode .nav-tabs {
+    border-bottom-color: #2d3343 !important;
+}
+
+.right-sidebar.dark-mode .nav-tabs .nav-link {
+    color: #94a3b8 !important;
+    background-color: transparent !important;
+    border-color: transparent !important;
+}
+
+.right-sidebar.dark-mode .nav-tabs .nav-link.active {
+    color: #38bdf8 !important;
+    background-color: #222632 !important;
+    border-color: #2d3343 #2d3343 transparent !important;
+}
+
+.right-sidebar.dark-mode .tab-content {
+    background: #1f232d !important;
+    border-color: #2d3343 !important;
+}
+
+.right-sidebar.dark-mode .list-group-item {
+    background-color: #222632 !important;
+    border-color: #2d3343 !important;
+    color: #e2e8f0 !important;
+}
+
+.right-sidebar.dark-mode .table {
+    color: #e2e8f0 !important;
+}
+
+.right-sidebar.dark-mode .table-bordered,
+.right-sidebar.dark-mode .table-bordered th,
+.right-sidebar.dark-mode .table-bordered td {
+    border-color: #2d3343 !important;
+}
+
+.right-sidebar.dark-mode :deep(.wysihtml5-toolbar) {
+    background: #222632 !important;
+    border-color: #3b4254 !important;
+    padding: 6px !important;
+    border-radius: 4px 4px 0 0 !important;
+}
+
+.right-sidebar.dark-mode :deep(.wysihtml5-toolbar .btn) {
+    background-color: #2d3343 !important;
+    border-color: #3b4254 !important;
+    color: #f1f5f9 !important;
+}
+
+.right-sidebar.dark-mode :deep(.wysihtml5-toolbar .btn:hover) {
+    background-color: #3b4254 !important;
+    color: #38bdf8 !important;
+}
+
+.right-sidebar.dark-mode :deep(.wysihtml5-sandbox) {
+    border-color: #3b4254 !important;
+    background-color: #1e222b !important;
 }
 </style>

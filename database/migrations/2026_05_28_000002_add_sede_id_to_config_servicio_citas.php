@@ -9,10 +9,10 @@ return new class extends Migration
 {
     public function up(): void
     {
-        $columns = DB::getSchemaBuilder()->getColumnListing('config_servicio_citas');
+        $columns = DB::getSchemaBuilder()->getColumnListing('config_servicios');
 
         if (! in_array('sede_id', $columns)) {
-            Schema::table('config_servicio_citas', function (Blueprint $table) {
+            Schema::table('config_servicios', function (Blueprint $table) {
                 $table->foreignId('sede_id')->nullable()->constrained('config_sedes')->nullOnDelete()->after('id');
             });
         }
@@ -20,7 +20,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::table('config_servicio_citas', function (Blueprint $table) {
+        Schema::table('config_servicios', function (Blueprint $table) {
             $table->dropForeign(['sede_id']);
             $table->dropColumn('sede_id');
         });

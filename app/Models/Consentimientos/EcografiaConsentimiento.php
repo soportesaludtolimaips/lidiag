@@ -66,41 +66,113 @@ class EcografiaConsentimiento extends Model
         'pdf_generated_at' => 'datetime',
     ];
 
+    /**
+     * Ecografía producto a la que pertenece el consentimiento.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function ecografiaProducto()
     {
         return $this->belongsTo(EcografiaProducto::class, 'ecografia_producto_id');
     }
 
+    /**
+     * Producto asociado al consentimiento.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function producto()
     {
         return $this->belongsTo(ConfigProducto::class, 'producto_id');
     }
 
+    /**
+     * Sede a la que pertenece el consentimiento.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function sede()
     {
         return $this->belongsTo(ConfigSede::class, 'sede_id');
     }
 
+    /**
+     * Módulo al que pertenece el consentimiento.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function modulo()
     {
         return $this->belongsTo(ConfigModulo::class, 'config_modulo_id');
     }
 
+    /**
+     * Plantilla de consentimiento utilizada.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function plantilla()
     {
         return $this->belongsTo(ConsentimientoPlantilla::class, 'plantilla_id');
     }
 
+    /**
+     * Transcriptor que registró el consentimiento.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function transcriptor()
     {
         return $this->belongsTo(User::class, 'transcriptor_id');
     }
 
+    /**
+     * Médico asociado al consentimiento.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function medico()
     {
         return $this->belongsTo(User::class, 'medico_id');
     }
 
+    /**
+     * Usuario que anuló el consentimiento.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function anuladaPor()
     {
         return $this->belongsTo(User::class, 'anulada_por_id');

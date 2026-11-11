@@ -10,9 +10,12 @@ class TrustProxies extends Middleware
     /**
      * The trusted proxies for this application.
      *
+     * Permite que proxies reversos (Cloudflare, Apache/Nginx SSL termination)
+     * reporten el protocolo HTTPS y headers del cliente adecuadamente.
+     *
      * @var array<int, string>|string|null
      */
-    protected $proxies;
+    protected $proxies = "*";
 
     /**
      * The headers that should be used to detect proxies.

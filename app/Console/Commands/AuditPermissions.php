@@ -29,6 +29,13 @@ class AuditPermissions extends Command
      */
     protected $description = 'Audita permisos usados en código vs permisos existentes (Spatie) en BD.';
 
+    /**
+     * Ejecuta la auditoría de permisos: compara los permisos usados en código con los existentes en BD.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function handle(): int
     {
         $guard = (string) ($this->option('guard') ?: 'web');
@@ -124,7 +131,7 @@ class AuditPermissions extends Command
     private function collectUsedPermissions(): array
     {
         $paths = [
-            base_path('routes/web.php'),
+            base_path('routes'),
             base_path('app/Http'),
             base_path('resources/views'),
             base_path('resources/js/components'),
@@ -138,7 +145,8 @@ class AuditPermissions extends Command
                 continue;
             }
 
-            $paths[] = File::isAbsolutePath($extra) ? $extra : base_path($extra);
+            $isAbsolute = str_starts_with($extra, '/') || (bool) preg_match('/^[A-Za-z]:[\\\\\/]/', $extra);
+            $paths[] = $isAbsolute ? $extra : base_path($extra);
         }
 
         $files = $this->expandToFiles($paths);
@@ -219,11 +227,17 @@ class AuditPermissions extends Command
     {
         $perms = [];
 
-        // 1) Middleware "permission:foo|bar" (routes/web.php, controllers, etc)
+        // 1) Middleware "permission:foo|bar" o "permission:foo|bar,guard" (routes/web.php, controllers, etc)
         if (preg_match_all('/permission:([^\'"]+)/', $content, $m)) {
             foreach ($m[1] as $chunk) {
-                foreach (explode('|', (string) $chunk) as $p) {
-                    $perms[] = $p;
+                // Si incluye guard explícito ej: "permiso1|permiso2,web", separar los permisos del guard
+                $parts = explode(',', (string) $chunk);
+                $permString = $parts[0];
+                foreach (explode('|', $permString) as $p) {
+                    $clean = trim((string) $p);
+                    if ($clean !== '') {
+                        $perms[] = $clean;
+                    }
                 }
             }
         }
@@ -312,6 +326,16 @@ class AuditPermissions extends Command
         return $out;
     }
 
+    /**
+     * Sugiere hasta 3 permisos existentes similares al indicado mediante distancia de Levenshtein.
+     *
+     * @param  string  $needle  Permiso faltante a buscar.
+     * @param  Collection  $haystack  Permisos existentes en BD.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function suggestSimilar(string $needle, Collection $haystack): Collection
     {
         $needle = (string) $needle;

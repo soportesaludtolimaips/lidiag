@@ -5,13 +5,37 @@
                 <h3 class="text-themecolor">Configuración</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Configuración</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Configuración
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Servicios de Citas</li>
                 </ol>
+            </div>
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary m-r-5"
+                    @click="cargarServicios"
+                    :disabled="loadingListar"
+                    title="Actualizar listado"
+                >
+                    <i class="fa" :class="loadingListar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                    Refrescar
+                </button>
             </div>
         </div>
 
@@ -77,7 +101,20 @@
                             </button>
                         </div>
 
-                        <div class="table-responsive m-t-20">
+                        <table-skeleton-loader :visible="loadingListar" :rows="4" :columns="4" />
+                        <empty-state-component
+                            v-if="!loadingListar && productosVinculados.length === 0"
+                            icon="fa fa-cubes"
+                            title="No hay productos vinculados"
+                            description="Este servicio aún no tiene productos asociados."
+                            action-text="Agregar producto"
+                            action-icon="fa fa-plus"
+                            @action="mostrarModalAgregar()"
+                        />
+                        <div
+                            v-show="!loadingListar && productosVinculados.length > 0"
+                            class="table-responsive m-t-20"
+                        >
                             <table class="table table-bordered table-striped">
                                 <thead>
                                     <tr>
@@ -128,30 +165,32 @@
             </div>
         </div>
 
+        <!-- Backdrop overlay para cerrar al hacer clic afuera -->
+        <div v-if="sidebarVisible" class="sidebar-backdrop" @click="cerrarModal()"></div>
+
         <!-- ============================================================== -->
         <!-- Right sidebar -->
         <!-- ============================================================== -->
-        <div
-            class="right-sidebar"
-            id="right-sidebar"
-            style="overflow-x: hidden; overflow-y: scroll; height: 100%"
-        >
+        <div ref="sidebarRef" class="right-sidebar" :class="{ 'shw-rside': sidebarVisible }">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     Agregar Producto
-                    <span>
-                        <i
-                            class="ti-close right-side-toggle"
-                            id="btnCerralModalForm"
-                            @click="cerrarModal()"
-                        ></i>
-                    </span>
+                    <button
+                        type="button"
+                        class="right-side-toggle"
+                        @click="cerrarModal()"
+                        aria-label="Cerrar panel"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
                 </div>
                 <div class="r-panel-body">
-                    <form action="#">
+                    <form action="#" @submit.prevent="agregarProducto()">
                         <div class="form-body">
                             <div class="form-group" id="producto-parent">
-                                <label class="control-label">Producto *</label>
+                                <label class="control-label font-weight-bold"
+                                    >Producto <span class="text-danger">*</span></label
+                                >
                                 <Select2
                                     :value="productoSeleccionado"
                                     :options="productosDisponiblesOptions"
@@ -165,7 +204,7 @@
                                     >${num_docu_paciente}, ${nom_paciente} ${cod_cups},
                                     ${nom_produc}</code
                                 >
-                                <label class="control-label">Recomendación</label>
+                                <label class="control-label font-weight-bold">Recomendación</label>
                                 <FormattedTextEditor
                                     v-model="recomendacion"
                                     rows="8"
@@ -179,12 +218,9 @@
                             </div>
                         </div>
                         <div class="form-actions mt-3">
-                            <button type="button" class="btn btn-inverse" @click="cerrarModal()">
-                                Cerrar
-                            </button>
                             <button
                                 type="button"
-                                class="btn btn-success m-l-5"
+                                class="btn btn-success m-r-5"
                                 @click="agregarProducto()"
                                 :disabled="loadingGuardar || !productoSeleccionado"
                             >
@@ -194,6 +230,9 @@
                                 ></i>
                                 {{ loadingGuardar ? "Guardando..." : "Guardar" }}
                             </button>
+                            <button type="button" class="btn btn-inverse" @click="cerrarModal()">
+                                Cancelar
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -202,10 +241,9 @@
     </div>
 </template>
 <script setup>
-import { computed, onMounted, ref, getCurrentInstance } from "vue";
-
-const { proxy } = getCurrentInstance();
-import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts.js";
+import { computed, nextTick, onMounted, ref } from "vue";
+import { toastMessage, confirmAction } from "@/helpers/alerts.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import FormattedTextEditor from "@/components/shared/FormattedTextEditor.vue";
 import axios from "axios";
 
@@ -218,11 +256,30 @@ const productoSeleccionado = ref("");
 const recomendacion = ref("");
 const loadingGuardar = ref(false);
 const loadingListar = ref(false);
+const sidebarVisible = ref(false);
+const sidebarRef = ref(null);
+
+useKeyboardShortcuts({
+    onSearch: () => {
+        if (!sidebarVisible.value) {
+            cargarServicios();
+        }
+    },
+    onSave: () => {
+        if (sidebarVisible.value) {
+            agregarProducto();
+        }
+    },
+    onEscape: cerrarModal,
+    isActive: () => true,
+    isLoading: loadingGuardar,
+});
 
 const servicioIdDesdeUrl = computed(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get("servicio_id");
 });
+
 const productosDisponiblesOptions = computed(() => {
     return (productosDisponibles.value || []).map(function (p) {
         return {
@@ -234,76 +291,98 @@ const productosDisponiblesOptions = computed(() => {
 });
 
 function cargarServicios() {
-    var thisVue = proxy;
-
+    loadingListar.value = true;
     axios
         .get("/api/config-servicio-citas/mis-servicios")
         .then(function (response) {
-            thisVue.servicios = response.data;
+            servicios.value = response.data?.data || response.data || [];
 
-            var servicioIdUrl = thisVue.servicioIdDesdeUrl;
+            var servicioIdUrl = servicioIdDesdeUrl.value;
             if (servicioIdUrl) {
-                var encontrado = thisVue.servicios.find(function (s) {
+                var encontrado = servicios.value.find(function (s) {
                     return s.id == servicioIdUrl;
                 });
                 if (encontrado) {
-                    thisVue.seleccionarServicio(encontrado);
+                    seleccionarServicio(encontrado);
                     return;
                 }
             }
 
-            if (thisVue.servicios.length > 0) {
-                thisVue.seleccionarServicio(thisVue.servicios[0]);
+            if (servicios.value.length > 0) {
+                seleccionarServicio(servicios.value[0]);
             }
         })
-        .catch(function (error) {
-            console.error("Error:", error);
+        .catch(function (_error) {
+            toastMessage({
+                heading: "Error",
+                text: "No se pudieron cargar los servicios.",
+                icon: "error",
+            });
+        })
+        .finally(function () {
+            loadingListar.value = false;
         });
 }
+
 function seleccionarServicio(servicio) {
     servicioSeleccionado.value = servicio.id;
     servicioActual.value = servicio;
     cargarProductosVinculados();
 }
-function cargarProductosVinculados() {
-    var thisVue = proxy;
 
-    if (!thisVue.servicioSeleccionado) {
+function cargarProductosVinculados() {
+    if (!servicioSeleccionado.value) {
         return;
     }
 
     axios
         .get("/api/servicio-producto", {
-            params: { servicio_cita_id: thisVue.servicioSeleccionado },
+            params: { servicio_id: servicioSeleccionado.value },
         })
         .then(function (response) {
-            thisVue.productosVinculados = response.data;
+            productosVinculados.value = response.data?.data || response.data || [];
         })
-        .catch(function (error) {
-            console.error("Error:", error);
+        .catch(function (_error) {
+            toastMessage({
+                heading: "Error",
+                text: "No se pudieron cargar los productos vinculados.",
+                icon: "error",
+            });
         });
 }
-function mostrarModalAgregar() {
-    var thisVue = proxy;
 
-    thisVue.productoSeleccionado = "";
-    thisVue.recomendacion = "";
-    thisVue.loadingGuardar = false;
+function mostrarModalAgregar() {
+    productoSeleccionado.value = "";
+    recomendacion.value = "";
+    loadingGuardar.value = false;
 
     axios
         .get("/api/servicio-producto/productos-no-vinculados", {
-            params: { servicio_cita_id: thisVue.servicioSeleccionado },
+            params: {
+                sede_id: servicioActual.value?.sede_id,
+                servicio_id: servicioSeleccionado.value,
+            },
         })
         .then(function (response) {
-            thisVue.productosDisponibles = response.data;
-            thisVue.abrirModal();
+            productosDisponibles.value = response.data?.data || response.data || [];
+            abrirModal();
         })
-        .catch(function (error) {
-            console.error("Error:", error);
+        .catch(function (_error) {
+            toastMessage({
+                heading: "Error",
+                text: "No se pudieron cargar los productos disponibles.",
+                icon: "error",
+            });
         });
 }
+
 function onProductoSelect(value) {
     productoSeleccionado.value = value || "";
+
+    if (!value) {
+        recomendacion.value = "";
+        return;
+    }
 
     var encontrado = productosDisponibles.value.find(function (p) {
         return String(p.id) === String(value);
@@ -314,75 +393,85 @@ function onProductoSelect(value) {
             encontrado.recomendacion_producto.recomendacion) ||
         "";
 }
-function abrirModal() {
-    $(".right-sidebar").addClass("shw-rside");
-}
-function cerrarModal() {
-    $(".right-sidebar").removeClass("shw-rside");
-}
-function agregarProducto() {
-    var thisVue = proxy;
 
-    if (!thisVue.productoSeleccionado) {
+function abrirModal() {
+    sidebarVisible.value = true;
+    nextTick(() => {
+        document.querySelector("#producto-parent .select2-selection")?.focus();
+    });
+}
+
+function cerrarModal() {
+    sidebarVisible.value = false;
+}
+
+function agregarProducto() {
+    if (!productoSeleccionado.value) {
         return;
     }
 
-    thisVue.loadingGuardar = true;
+    loadingGuardar.value = true;
 
     axios
         .post("/api/servicio-producto", {
-            servicio_cita_id: thisVue.servicioSeleccionado,
-            producto_id: thisVue.productoSeleccionado,
+            sede_id: servicioActual.value?.sede_id,
+            servicio_id: servicioSeleccionado.value,
+            producto_id: productoSeleccionado.value,
         })
-        .then(function (response) {
-            // Guardar también la recomendación si se ingresó texto
-            if (thisVue.recomendacion && thisVue.recomendacion.trim()) {
+        .then(function (_response) {
+            if (recomendacion.value && recomendacion.value.trim()) {
                 return axios.post("/api/config-recomendacion-productos", {
-                    producto_id: thisVue.productoSeleccionado,
-                    recomendacion: thisVue.recomendacion,
+                    producto_id: productoSeleccionado.value,
+                    recomendacion: recomendacion.value,
                 });
             }
         })
         .then(function () {
-            thisVue.mostrarExito("Producto agregado correctamente");
-            thisVue.cerrarModal();
-            thisVue.cargarProductosVinculados();
+            toastMessage({
+                heading: "Éxito",
+                text: "Producto agregado correctamente.",
+                icon: "success",
+            });
+            cerrarModal();
+            cargarProductosVinculados();
         })
         .catch(function (error) {
-            thisVue.mostrarError(error);
+            var mensaje = error.response?.data?.message || error.message || "Error desconocido";
+            toastMessage({
+                heading: "Error",
+                text: mensaje,
+                icon: "error",
+            });
         })
         .then(function () {
-            thisVue.loadingGuardar = false;
+            loadingGuardar.value = false;
         });
 }
-function eliminarVinculo(id) {
-    var thisVue = proxy;
 
-    confirmAction({
+async function eliminarVinculo(id) {
+    const confirmado = await confirmAction({
         title: "¿Está seguro?",
         text: "El producto se desvinculará del servicio.",
-        confirmButtonText: "Sí, eliminar",
-        cancelButtonText: "Cancelar",
-    }).then(function (confirmado) {
-        if (confirmado) {
-            axios
-                .delete("/api/servicio-producto/" + id)
-                .then(function () {
-                    thisVue.mostrarExito("Producto desvinculado");
-                    thisVue.cargarProductosVinculados();
-                })
-                .catch(function (error) {
-                    thisVue.mostrarError(error);
-                });
-        }
+        icon: "warning",
     });
-}
-function mostrarError(error) {
-    var mensaje = error.response?.data?.message || error.message || "Error desconocido";
-    alertError("Error", mensaje);
-}
-function mostrarExito(mensaje) {
-    alertSuccess("Éxito", mensaje);
+    if (!confirmado) return;
+
+    try {
+        await axios.delete("/api/servicio-producto/" + id);
+        toastMessage({
+            heading: "Éxito",
+            text: "Producto desvinculado correctamente.",
+            icon: "success",
+        });
+        cargarProductosVinculados();
+    } catch (error) {
+        var mensaje = error.response?.data?.message || error.message || "Error desconocido";
+        toastMessage({
+            heading: "Error",
+            text: mensaje,
+            icon: "error",
+        });
+    }
 }
 
 onMounted(() => {
@@ -390,27 +479,44 @@ onMounted(() => {
 });
 </script>
 <style scoped>
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1090;
+}
+
 .right-sidebar {
     position: fixed;
     right: -50%;
     width: 50%;
-    display: none;
     z-index: 1100;
     background: #ffffff;
     top: 0px;
     padding-bottom: 20px;
     height: 100%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .shw-rside {
-    right: 0px;
-    width: 50%;
-    display: block;
+    right: 0px !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+@media (max-width: 767px) {
+    .right-sidebar {
+        width: 100% !important;
+        right: -100% !important;
+    }
 }
 </style>
 <style>

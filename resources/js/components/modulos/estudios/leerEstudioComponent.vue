@@ -30,25 +30,34 @@
         <div class="col-md-7 align-self-center text-right d-none d-md-block">
             <i
                 class="fa fa-life-ring model_img img-responsive"
-                data-toggle="modal"
-                data-target=".bs-example-modal-lg"
+                @click="abrirModalAyuda()"
+                role="button"
+                aria-label="Ayuda: comandos de voz"
+                tabindex="0"
             ></i>
         </div>
 
         <!-- sample modal content -->
         <div
-            class="modal fade bs-example-modal-lg"
+            v-if="modalAyudaVisible"
+            class="modal fade bs-example-modal-lg show"
+            style="display: block; background: rgba(0, 0, 0, 0.5)"
             tabindex="-1"
             role="dialog"
             aria-labelledby="myLargeModalLabel"
             aria-hidden="true"
-            style="display: none"
+            @click.self="cerrarModalAyuda()"
         >
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h4 class="modal-title" id="myLargeModalLabel">Comando de voz</h4>
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <button
+                            type="button"
+                            class="close"
+                            @click="cerrarModalAyuda()"
+                            aria-hidden="true"
+                        >
                             ×
                         </button>
                     </div>
@@ -118,7 +127,7 @@
                         <button
                             type="button"
                             class="btn btn-danger waves-effect text-left"
-                            data-dismiss="modal"
+                            @click="cerrarModalAyuda()"
                         >
                             Close
                         </button>
@@ -165,12 +174,43 @@
                             >
                                 <i class="fa fa-refresh"></i> {{ autoRefreshInterval / 1000 }}s
                             </button>
+                            <button
+                                class="btn btn-sm btn-outline-primary ml-2"
+                                @click="listarMisPendientes()"
+                                :disabled="loadingListar"
+                                title="Actualizar lista"
+                            >
+                                <i class="fa fa-sync"></i> Actualizar
+                            </button>
+                            <button
+                                type="button"
+                                class="btn btn-sm ml-2"
+                                :class="isDarkMode ? 'btn-warning' : 'btn-outline-dark'"
+                                @click="toggleDarkMode"
+                                :title="
+                                    isDarkMode
+                                        ? 'Cambiar a Modo Claro'
+                                        : 'Cambiar a Modo Oscuro / Radiología'
+                                "
+                            >
+                                <i :class="isDarkMode ? 'fa fa-sun-o' : 'fa fa-moon-o'"></i>
+                                {{ isDarkMode ? "Modo Claro" : "Modo Oscuro" }}
+                            </button>
                         </div>
                     </div>
-                    <loading-spinner :visible="!tablaVisible" />
-                    <div class="table-responsive" v-show="tablaVisible">
+                    <table-skeleton-loader :visible="!tablaVisible" :rows="6" :columns="9" />
+                    <empty-state-component
+                        v-if="tablaVisible && registros.length === 0"
+                        icon="fa fa-folder-open-o"
+                        title="No hay estudios pendientes por leer"
+                        description="Excelente trabajo. Todos los estudios asignados han sido informados o no hay registros pendientes."
+                        action-text="Actualizar lista"
+                        action-icon="fa fa-refresh"
+                        @action="listarMisPendientes()"
+                    />
+                    <div class="table-responsive" v-show="tablaVisible && registros.length > 0">
                         <table
-                            id="example23"
+                            id="tablaLeerEstudios"
                             ref="dt"
                             class="table table-bordered table-striped"
                             cellspacing="0"
@@ -201,6 +241,7 @@
                                             type="button"
                                             v-if="item.priori_id == 1"
                                             class="btn waves-effect waves-light btn-rounded btn-sm btn-danger"
+                                            title="Alta"
                                         >
                                             A
                                         </button>
@@ -208,6 +249,7 @@
                                             type="button"
                                             v-else-if="item.priori_id == 2"
                                             class="btn waves-effect waves-light btn-rounded btn-sm btn-warning"
+                                            title="Media"
                                         >
                                             M
                                         </button>
@@ -215,6 +257,7 @@
                                             type="button"
                                             v-else-if="item.priori_id == 3"
                                             class="btn waves-effect waves-light btn-rounded btn-sm btn-info"
+                                            title="Baja"
                                         >
                                             B
                                         </button>
@@ -222,6 +265,7 @@
                                             type="button"
                                             v-else-if="item.priori_id == 4"
                                             class="btn waves-effect waves-light btn-rounded btn-sm"
+                                            title="Sin prioridad"
                                         >
                                             S
                                         </button>
@@ -231,8 +275,16 @@
                                     <td>{{ formatDate(item.created_at) }}</td>
                                     <td>{{ item.quien_registro }}</td>
                                     <td>
-                                        {{ item.num_docu }} <br />
-                                        {{ item.nom_pacien }}
+                                        <div class="font-weight-bold text-dark">
+                                            {{ item.nom_pacien }}
+                                        </div>
+                                        <div
+                                            class="text-primary font-weight-bold"
+                                            style="font-size: 15px"
+                                        >
+                                            <i class="fa fa-id-card-o mr-1"></i>
+                                            {{ item.num_docu }}
+                                        </div>
                                     </td>
                                     <td>
                                         {{ item.study_desc }} <br />
@@ -262,7 +314,9 @@
                                         <button
                                             type="button"
                                             class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm"
-                                            :disabled="loadingImagenId === item.estudio_producto_id"
+                                            :disabled="
+                                                loadingVerImagen === item.estudio_producto_id
+                                            "
                                             @click="
                                                 verImagen(
                                                     item.url_oviyam,
@@ -276,7 +330,7 @@
                                             aria-label="Ver imágenes"
                                         >
                                             <i
-                                                v-if="loadingImagenId === item.estudio_producto_id"
+                                                v-if="loadingVerImagen === item.estudio_producto_id"
                                                 class="fa fa-spinner fa-spin"
                                             ></i>
                                             <i v-else class="fa fa-file-photo-o"></i>
@@ -318,19 +372,66 @@
     <!-- ============================================================== -->
     <!-- Right sidebar -->
     <!-- ============================================================== -->
+    <!-- Backdrop para cerrar al hacer clic y atenuar fondo -->
+    <transition name="fade">
+        <div
+            v-if="sidebarVisible && !isZenMode"
+            class="sidebar-backdrop"
+            @click="cerrarSidebar()"
+            aria-hidden="true"
+        ></div>
+    </transition>
+
     <!-- .right-sidebar -->
-    <div class="right-sidebar sidebar-scroll">
+    <div
+        class="right-sidebar sidebar-scroll"
+        :class="{ 'shw-rside': sidebarVisible, 'dark-mode': isDarkMode, 'zen-mode': isZenMode }"
+    >
         <div class="slimscrollright" style="overflow-x: hidden">
-            <div class="rpanel-title">
-                {{ tituloModal }}
-                <button
-                    type="button"
-                    class="right-side-toggle"
-                    @click="cerrarSidebar()"
-                    aria-label="Cerrar panel"
-                >
-                    <i class="ti-close"></i>
-                </button>
+            <div class="rpanel-title d-flex justify-content-between align-items-center">
+                <span>{{ tituloModal }}</span>
+                <div class="d-flex align-items-center">
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-link p-0 mr-3"
+                        style="color: inherit; text-decoration: none"
+                        @click="toggleZenMode"
+                        :title="
+                            isZenMode
+                                ? 'Salir de Pantalla Completa / Modo Zen'
+                                : 'Modo Pantalla Completa / Modo Zen (100% Pantalla)'
+                        "
+                    >
+                        <i :class="isZenMode ? 'fa fa-compress' : 'fa fa-expand'"></i>
+                        <span class="ml-1 d-none d-sm-inline">{{
+                            isZenMode ? "Normal" : "Zen"
+                        }}</span>
+                    </button>
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-link p-0 mr-3"
+                        style="color: inherit; text-decoration: none"
+                        @click="toggleDarkMode"
+                        :title="
+                            isDarkMode
+                                ? 'Cambiar a Modo Claro'
+                                : 'Cambiar a Modo Oscuro / Radiología'
+                        "
+                    >
+                        <i :class="isDarkMode ? 'fa fa-sun-o' : 'fa fa-moon-o'"></i>
+                        <span class="ml-1 d-none d-sm-inline">{{
+                            isDarkMode ? "Claro" : "Oscuro"
+                        }}</span>
+                    </button>
+                    <button
+                        type="button"
+                        class="right-side-toggle"
+                        @click="cerrarSidebar()"
+                        aria-label="Cerrar panel"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
+                </div>
             </div>
             <div class="r-panel-body">
                 <!-- ============================================================== -->
@@ -446,18 +547,19 @@
                                                 <button
                                                     type="button"
                                                     class="btn btn-secondary btn-xs"
-                                                    :disabled="loadingImagenSidebar"
+                                                    :disabled="loadingVerImagen !== null"
                                                     @click="
                                                         verImagen(
                                                             registro.urlOviyam,
                                                             registro.patientId,
                                                             registro.studyUID,
-                                                            registro.serverName
+                                                            registro.serverName,
+                                                            registro.estudio_producto_id
                                                         )
                                                     "
                                                 >
                                                     <i
-                                                        v-if="loadingImagenSidebar"
+                                                        v-if="loadingVerImagen"
                                                         class="fa fa-spinner fa-spin"
                                                     ></i>
                                                     <i v-else class="fa fa-file-image-o"></i>
@@ -517,19 +619,24 @@
                                     </div>
                                 </div>
 
-                                <span class="text-danger" v-if="errores.lectura">{{
-                                    errores.lectura[0]
-                                }}</span>
+                                <div class="invalid-feedback d-block mb-2" v-if="errores.lectura">
+                                    <i class="fa fa-exclamation-circle mr-1"></i>
+                                    {{ errores.lectura[0] }}
+                                </div>
                                 <div class="row">
                                     <div class="col-12">
                                         <div class="form-group">
-                                            <textarea
+                                            <WysiwygEditor
+                                                ref="wysiwygEditorRef"
                                                 v-model="registro.lectura"
-                                                class="form-control lectura-textarea"
-                                                rows="15"
-                                                id="lectura"
+                                                :draft-key="
+                                                    registro.estudio_producto_id
+                                                        ? `estudio_prod_${registro.estudio_producto_id}`
+                                                        : ''
+                                                "
+                                                :rows="18"
                                                 placeholder="Ingrese aquí la lectura del estudio ..."
-                                            ></textarea>
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -556,7 +663,9 @@
                                                     data-toggle="tab"
                                                     href="#audios_hc"
                                                     role="tab"
-                                                    @click="listarAudios()"
+                                                    @click="
+                                                        listarAudios(registro.estudio_producto_id)
+                                                    "
                                                 >
                                                     <span>
                                                         <h5 class="card-title text-info">
@@ -612,13 +721,13 @@
                                                         href="javascript:void(0)"
                                                         :style="{
                                                             pointerEvents:
-                                                                loadingDescargaSoporte ===
+                                                                loadingDescarga ===
                                                                 itemArchivo.archivo_encrip
                                                                     ? 'none'
                                                                     : 'auto',
                                                         }"
                                                         @click="
-                                                            descargaSoportte(
+                                                            descargaSoporte(
                                                                 itemArchivo.archivo_original,
                                                                 itemArchivo.archivo_encrip
                                                             )
@@ -626,7 +735,7 @@
                                                     >
                                                         <i
                                                             v-if="
-                                                                loadingDescargaSoporte ===
+                                                                loadingDescarga ===
                                                                 itemArchivo.archivo_encrip
                                                             "
                                                             class="fa fa-spinner fa-spin"
@@ -1112,8 +1221,19 @@
                                                 id="history_estudios"
                                                 role="tabpanel"
                                             >
+                                                <div
+                                                    v-if="historial_estudios.length === 0"
+                                                    class="text-center py-4 text-muted"
+                                                >
+                                                    <i class="fa fa-history fa-2x mb-3"></i>
+                                                    <p>
+                                                        No hay historial de estudios para este
+                                                        paciente.
+                                                    </p>
+                                                </div>
                                                 <table
-                                                    id="example23-1"
+                                                    v-else
+                                                    id="tablaLeerEstudiosPrevios"
                                                     class="table table-bordered table-striped"
                                                     cellspacing="0"
                                                     width="100%"
@@ -1142,13 +1262,13 @@
                                                                     title="Imprimir reporte"
                                                                     aria-label="Imprimir reporte"
                                                                     :disabled="
-                                                                        loadingImprimirId ===
+                                                                        loadingImprimir ===
                                                                         item.estudio_producto_id
                                                                     "
                                                                 >
                                                                     <i
                                                                         v-if="
-                                                                            loadingImprimirId ===
+                                                                            loadingImprimir ===
                                                                             item.estudio_producto_id
                                                                         "
                                                                         class="fa fa-spinner fa-spin"
@@ -1169,40 +1289,171 @@
                             </div>
                         </div>
 
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div
+                                    class="p-2 rounded border border-danger d-flex align-items-center justify-content-between"
+                                    style="background-color: #fff5f5; border: 1px solid #f5c2c7"
+                                >
+                                    <div class="d-flex align-items-center">
+                                        <i
+                                            class="fa fa-exclamation-triangle fa-2x text-danger mr-3"
+                                        ></i>
+                                        <div>
+                                            <h6 class="mb-0 text-danger font-weight-bold">
+                                                Hallazgo Crítico en Urgencias / UCI
+                                            </h6>
+                                            <small class="text-muted">
+                                                Escala a prioridad máxima y emite alerta inmediata a
+                                                Telegram asistencial.
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="custom-control custom-checkbox custom-control-inline m-0"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            id="check_es_critico_leer"
+                                            v-model="registro.es_critico"
+                                            class="custom-control-input"
+                                        />
+                                        <label
+                                            class="custom-control-label text-danger font-weight-bold"
+                                            for="check_es_critico_leer"
+                                        >
+                                            Marcar Crítico
+                                        </label>
+                                    </div>
+                                    <div
+                                        v-if="registro.es_critico"
+                                        class="w-100 mt-2 pt-2 border-top border-danger"
+                                    >
+                                        <label
+                                            class="small font-weight-bold text-danger mb-1"
+                                            for="input_motivo_critico_leer"
+                                        >
+                                            <i class="fa fa-stethoscope mr-1"></i>
+                                            ¿Por qué se requiere valoración inmediata? (Hallazgo
+                                            puntual opcional):
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="input_motivo_critico_leer"
+                                            v-model="registro.motivo_critico"
+                                            class="form-control form-control-sm border-danger"
+                                            placeholder="Ej: Neumotórax a tensión derecho / Hemorragia subaracnoidea aguda..."
+                                            maxlength="500"
+                                        />
+                                        <small
+                                            class="text-muted d-block mt-1"
+                                            style="font-size: 11px"
+                                        >
+                                            Si se deja en blanco, el sistema extraerá
+                                            automáticamente la conclusión u opinión del informe.
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="form-actions mt-3">
                             <button
                                 type="button"
                                 class="btn btn-success m-r-5"
                                 @click="guardarRegistro()"
                                 :disabled="loadingGuardar"
+                                title="Guardar informe (Ctrl + S)"
                             >
                                 <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
                                 <i v-else class="fa fa-check"></i>
                                 Guardar
+                                <span
+                                    class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                                    style="font-size: 10px"
+                                    >Ctrl+S</span
+                                >
                             </button>
 
-                            <button type="button" class="btn btn-inverse" @click="cerrarSidebar()">
-                                Cancel
+                            <button
+                                type="button"
+                                class="btn btn-inverse"
+                                @click="cerrarSidebar()"
+                                title="Cerrar panel (Esc)"
+                            >
+                                Cancelar
+                                <span
+                                    class="badge badge-secondary ml-1 d-none d-md-inline"
+                                    style="font-size: 10px"
+                                    >Esc</span
+                                >
                             </button>
                         </div>
                     </div>
                 </form>
             </div>
         </div>
+
+        <!-- ============================================================== -->
+        <!-- Floating Dictation Capsule (Widget flotante de dictado por voz)-->
+        <!-- ============================================================== -->
+        <transition name="fade-slide">
+            <div
+                v-if="sidebarVisible"
+                class="floating-dictation-pill"
+                :class="{
+                    'is-recording': recording,
+                    'is-listening': recognizing && !recording,
+                    'is-idle': !recording && !recognizing,
+                    'is-dark': isDarkMode,
+                }"
+            >
+                <div class="pill-indicator">
+                    <span class="status-dot"></span>
+                </div>
+
+                <div class="pill-waveform" v-if="recording || recognizing">
+                    <span class="wave-bar bar-1"></span>
+                    <span class="wave-bar bar-2"></span>
+                    <span class="wave-bar bar-3"></span>
+                    <span class="wave-bar bar-4"></span>
+                </div>
+
+                <div class="pill-info">
+                    <span class="pill-status-text">
+                        {{
+                            recording
+                                ? "Grabando Audio"
+                                : recognizing
+                                  ? "Escuchando Voz"
+                                  : "Dictado Inactivo"
+                        }}
+                    </span>
+                    <span class="pill-shortcut text-muted">F2</span>
+                </div>
+
+                <button
+                    type="button"
+                    class="btn btn-circle pill-btn"
+                    :class="recording || recognizing ? 'btn-danger' : 'btn-info'"
+                    @click="toggleSpeechRecognition"
+                    :title="
+                        recording || recognizing
+                            ? 'Pausar / Detener dictado (F2)'
+                            : 'Iniciar dictado por voz (F2)'
+                    "
+                >
+                    <i :class="recording || recognizing ? 'fa fa-stop' : 'fa fa-microphone'"></i>
+                </button>
+            </div>
+        </transition>
     </div>
     <!-- ============================================================== -->
     <!-- End Right sidebar -->
     <!-- ============================================================== -->
 </template>
 <script setup>
-const { proxy } = getCurrentInstance();
-const emitter = proxy.emitter;
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
-
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
-import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import DatosPacienteDisplay from "@/components/comunes/datosPacienteDisplayComponent.vue";
 import { normalizarFecha } from "@/helpers/dateUtils.js";
 import {
@@ -1210,36 +1461,87 @@ import {
     safeInitDataTable,
     safeRemoveDataTableRow,
 } from "@/helpers/datatables.js";
-import {
-    confirmAction,
-    alertSuccess,
-    alertError,
-    handleAxiosErrorToast,
-    toastMessage,
-} from "@/helpers/alerts";
-import { useMedicalDictionary } from "@/composables/useMedicalDictionary";
+import { toastMessage, getUserSafeError } from "@/helpers/alerts";
 import { useDictationFlow } from "@/composables/useDictationFlow";
 import { useAudioUploadFlow } from "@/composables/useAudioUploadFlow";
+import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
+import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import axios from "axios";
 
-const props = defineProps({ usuarioactual: Object });
+const { proxy } = getCurrentInstance();
+const emitter = proxy.emitter;
 
-const medicalDict = useMedicalDictionary();
+const isDarkMode = ref(localStorage.getItem("lidiag_dark_mode") === "true");
+
+function toggleDarkMode() {
+    isDarkMode.value = !isDarkMode.value;
+    try {
+        localStorage.setItem("lidiag_dark_mode", String(isDarkMode.value));
+    } catch {
+        // Fallback silencioso si el almacenamiento local está restringido
+    }
+}
+
+const props = defineProps({
+    usuarioactual: { type: Object, default: null },
+    permisos: { type: Array, default: () => [] },
+});
+
 const dictationFlow = useDictationFlow();
-const audioUploadFlow = useAudioUploadFlow({ showToast: (cfg) => $.toast(cfg) });
+const {
+    recording,
+    recognizing,
+    uppercase,
+    microfono,
+    toggleSpeechRecognition,
+    stopAll,
+    stopRecording,
+    clearAudioBuffer,
+    setCallbacks,
+    setupKeyboardShortcut,
+    audioBlob,
+} = dictationFlow;
+const audioUploadFlow = useAudioUploadFlow({ showToast: (cfg) => toastMessage(cfg) });
+const {
+    audiosCargadosPendientes,
+    audioSeleccionados,
+    modoTranscripcion,
+    transcribiendo,
+    insertandoAudios,
+    eliminandoAudioId,
+    audiosSubiendo,
+    obtenerAudioUrl,
+    previewTranscripcion,
+    badgeClaseEstado,
+    formatDuracion,
+    formatSize,
+} = audioUploadFlow;
+const {
+    loadingDescarga,
+    loadingAudios,
+    loadingImprimir,
+    loadingVerImagen,
+    audiosDeEstudio,
+    formatDate,
+    descargaSoporte,
+    listarAudios,
+    imprimirReporte,
+    verImagen,
+} = useEstudioHelpers();
 const dt = ref(null);
-const loadingBuscar = ref(false);
 
 const id = ref(0);
 const registros = ref([]);
 const productoEstudio = ref({ cod_produc: "", nom_produc: "" });
 const diagnosticosEstudio = ref([]);
 const historial_estudios = ref([]);
-const loadingImprimirId = ref(null);
 const soportesHC = ref([]);
 const tituloModal = ref("Nuevo registro");
 const registro = ref({
     estudio_producto_id: 0,
+    es_critico: false,
+    motivo_critico: "",
     lectura: "",
     fec_estudio: "",
     accession_no: "",
@@ -1269,17 +1571,36 @@ const autoRefreshInterval = ref(30000);
 const autoRefreshTimer = ref(null);
 const loadingGuardar = ref(false);
 const loadingAbrirId = ref(null);
+const lockLecturaParams = ref(null);
+let lockHeartbeatTimer = null;
 const loadingVistoId = ref(null);
-const loadingDescargaSoporte = ref(null);
-const loadingImagenId = ref(null);
-const loadingImagenSidebar = ref(false);
-const loadingAudios = ref(false);
-const audiosDeEstudio = ref([]);
+const sidebarVisible = ref(false);
+const isZenMode = ref(false);
+const wysiwygEditorRef = ref(null);
+
+useKeyboardShortcuts({
+    onSave: guardarRegistro,
+    onEscape: cerrarSidebar,
+    isActive: () => sidebarVisible.value,
+    isLoading: loadingGuardar,
+});
+
+function toggleZenMode() {
+    isZenMode.value = !isZenMode.value;
+}
+const modalAyudaVisible = ref(false);
 
 const contadorPendientes = computed(() => {
     return registros.value ? registros.value.length : 0;
 });
 
+/**
+ * Aplica un prellenado del dashboard si existe un accession almacenado en sessionStorage. Si se encuentra un accession válido, se busca el estudio
+ * correspondiente y se muestra en la interfaz. Si no hay un accession válido, simplemente se listan los estudios pendientes.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ * @date 2026-09-29
+ */
 function applyDashboardPrefill() {
     try {
         const accession = sessionStorage.getItem("ST-accession");
@@ -1296,14 +1617,24 @@ function applyDashboardPrefill() {
             });
             return;
         }
-    } catch (e) {}
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar el prellenado del dashboard.",
+            icon: "error",
+        });
+    }
     listarMisPendientes();
 }
-function normalizeWord(text) {
-    return medicalDict.normalizeWord(text);
-}
+
+/**
+ * Inicializa la tabla de datos con las configuraciones necesarias, incluyendo botones de exportación y opciones de idioma.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ * @date 2026-09-29
+ */
 function initDataTable() {
-    safeInitDataTable(dt.value || "#example23", {
+    safeInitDataTable(dt.value || "#tablaLeerEstudios", {
         dom: "Bfrtip",
         buttons: ["copy", "csv", "excel", "pdf", "print"],
         retrieve: true,
@@ -1322,33 +1653,26 @@ function initDataTable() {
     });
 }
 function destroyDataTable() {
-    safeDestroyDataTable("#example23");
+    safeDestroyDataTable(dt.value || "#tablaLeerEstudios");
 }
 function destroyDataTableHistorial() {
-    safeDestroyDataTable("#example23-1");
+    safeDestroyDataTable("#tablaLeerEstudiosPrevios");
 }
-async function listarAudios() {
-    if (loadingAudios.value) return;
-    loadingAudios.value = true;
-    try {
-        if (!registro.value.estudio_producto_id) {
-            audiosDeEstudio.value = [];
-            return;
-        }
-        const res = await axios.get(
-            "/api/listar-audios-estudio/" + registro.value.estudio_producto_id
-        );
-        audiosDeEstudio.value = res.data.data || [];
-    } catch (e) {
-        handleAxiosErrorToast(e, "No fue posible listar audios.");
-        audiosDeEstudio.value = [];
-    } finally {
-        loadingAudios.value = false;
-    }
-}
+
 function handleAudioFileSelect(event) {
-    audioUploadFlow.handleAudioFileSelect(event, id.value, registro.value.estudio_producto_id);
+    audioUploadFlow.handleAudioFileSelect(
+        event,
+        id.value,
+        registro.value.estudio_producto_id,
+        (texto) => {
+            registro.value.lectura = audioUploadFlow.insertarTranscripcion(
+                texto,
+                registro.value.lectura
+            );
+        }
+    );
 }
+
 async function transcribirAudiosSeleccionados() {
     const texto = await audioUploadFlow.transcribirAudiosSeleccionados();
     if (texto) {
@@ -1358,6 +1682,7 @@ async function transcribirAudiosSeleccionados() {
         );
     }
 }
+
 function insertarAudioIndividual(audio) {
     const texto = audioUploadFlow.insertarAudioIndividual(audio);
     if (texto) {
@@ -1367,19 +1692,41 @@ function insertarAudioIndividual(audio) {
         );
     }
 }
+
 function eliminarAudioCargado(audioId) {
     audioUploadFlow.eliminarAudioCargado(audioId, () => {
-        listarAudios();
+        listarAudios(registro.value.estudio_producto_id);
     });
 }
+
+/**
+ * Lista los estudios pendientes del médico autenticado en la sede seleccionada
+ * y actualiza la tabla de datos con los resultados obtenidos. Los pendientes son
+ * siempre del usuario en sesión, por lo que el selector global de médicos no
+ * interviene. Si no hay sede establecida en sessionStorage, muestra una
+ * advertencia y no realiza la consulta.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 async function listarMisPendientes() {
-    if (sessionStorage.getItem("ST-sede") == null) {
+    const sedeActual =
+        sede_id.value || sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede");
+
+    if (!sedeActual) {
         toastMessage({
             heading: "Upsss!!!",
-            text: "Debes establece la sede en la cual vas a trabajar.",
+            text: "Debes establecer la sede en la cual vas a trabajar.",
             icon: "warning",
         });
     } else {
+        sede_id.value = sedeActual;
+        if (!sessionStorage.getItem("ST-sede")) {
+            sessionStorage.setItem("ST-sede", String(sedeActual));
+        }
         if (loadingListar.value) return;
 
         tablaVisible.value = false;
@@ -1387,24 +1734,38 @@ async function listarMisPendientes() {
 
         try {
             const res = await axios.post("/api/estudio-listarPendientesMedico", {
-                id: props.usuarioactual.id,
+                id: props.usuarioactual?.id,
                 sede_id: sede_id.value,
             });
-            destroyDataTable();
 
             registros.value = res.data.data;
 
             nextTick(() => {
+                destroyDataTable();
                 initDataTable();
                 tablaVisible.value = true;
             });
         } catch (error) {
-            handleAxiosErrorToast(error, "No fue posible listar los estudios pendientes.");
+            // Restaurar visibilidad de la tabla para no dejar el spinner eterno
+            tablaVisible.value = true;
+            toastMessage({
+                heading: "Error",
+                text: getUserSafeError(error, "No fue posible listar tus estudios pendientes."),
+                icon: "error",
+            });
         } finally {
             loadingListar.value = false;
         }
     }
 }
+
+/**
+ * Activa o desactiva la función de auto-refresh para actualizar automáticamente la lista de estudios pendientes cada cierto intervalo de tiempo.
+ * Si el auto-refresh está activado, se detiene; si está desactivado, se inicia un temporizador que llama a
+ * la función `listarMisPendientes` cada `autoRefreshInterval` milisegundos.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
 function toggleAutoRefresh() {
     if (autoRefreshEnabled.value) {
         if (autoRefreshTimer.value) {
@@ -1412,10 +1773,9 @@ function toggleAutoRefresh() {
             autoRefreshTimer.value = null;
         }
         autoRefreshEnabled.value = false;
-        $.toast({
+        toastMessage({
             heading: "Auto-refresh",
             text: "Auto-refresh desactivado",
-            position: "top-right",
             icon: "info",
             hideAfter: 2000,
         });
@@ -1431,12 +1791,16 @@ function toggleAutoRefresh() {
         });
     }
 }
+
+/**
+ * Guarda el registro de lectura del estudio actual. Antes de guardar, detiene cualquier dictado en curso y verifica que haya un estudio seleccionado.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
     try {
-        await dictationFlow.stopAll();
-
         if (!registro.value || !registro.value.estudio_producto_id) {
             toastMessage({
                 heading: "Upsss!!!",
@@ -1446,10 +1810,53 @@ async function guardarRegistro() {
             return;
         }
 
-        const res = await axios.post("/api/estudio-leerEstudio", registro.value);
+        const textoLimpio = (registro.value.lectura || "")
+            .replace(/<[^>]*>/g, "")
+            .replace(/&nbsp;/g, " ")
+            .trim();
+        if (!textoLimpio) {
+            toastMessage({
+                heading: "Lectura requerida",
+                text: "Debe ingresar o dictar el informe de lectura antes de guardar.",
+                icon: "warning",
+            });
+            return;
+        }
 
-        if (res.status == 200) {
-            await dictationFlow.sendToBackend(id.value, registro.value.estudio_producto_id);
+        if (recording.value) {
+            await stopRecording();
+        }
+
+        const res = await axios.post("/api/estudio-leerEstudio", {
+            estudio_producto_id: registro.value.estudio_producto_id,
+            lectura: registro.value.lectura,
+            es_critico: Boolean(registro.value.es_critico),
+            motivo_critico: registro.value.motivo_critico || null,
+        });
+
+        if (res.status >= 200 && res.status < 300) {
+            const blobToSend = audioBlob.value;
+            const estudioId = id.value;
+            const productoId = registro.value.estudio_producto_id;
+
+            // Subir audio ANTES de cerrar el panel: si falla, el médico
+            // recibe feedback pero el estudio ya quedó guardado en BD.
+            if (blobToSend && blobToSend instanceof Blob) {
+                const formData = new FormData();
+                formData.append("audio", blobToSend, "audio.webm");
+                formData.append("estudio_id", estudioId);
+                formData.append("estudio_producto_id", productoId);
+                try {
+                    await axios.post("/api/upload-audio", formData);
+                } catch (audioErr) {
+                    console.error("Audio upload failed:", audioErr);
+                    toastMessage({
+                        heading: "Aviso",
+                        text: "La lectura fue guardada, pero no fue posible subir el audio. Intente nuevamente.",
+                        icon: "warning",
+                    });
+                }
+            }
 
             toastMessage({
                 heading: "Completado",
@@ -1457,20 +1864,32 @@ async function guardarRegistro() {
                 icon: "success",
             });
 
-            const estudioEliminar = registros.value.findIndex(
-                (x) => x.estudio_producto_id == idRow.value
-            );
-            if (estudioEliminar >= 0) {
-                // En guardado NO destruimos/reinicializamos la tabla:
-                // solo removemos la fila correspondiente y mantenemos el resto de pendientes visible.
-                try {
-                    safeRemoveDataTableRow(dt.value || "#example23", "#row-" + idRow.value);
-                } catch (e) {
-                    // best-effort: si DataTables no está listo, seguimos con el splice (Vue actualizará el DOM)
+            const targetId = idRow.value ?? productoId;
+            if (targetId != null) {
+                // Ocultar nodo del DOM de inmediato para feedback instantáneo
+                const rowEl = document.getElementById("row-" + targetId);
+                if (rowEl) {
+                    rowEl.style.display = "none";
                 }
-                registros.value.splice(estudioEliminar, 1);
+                safeRemoveDataTableRow(dt.value || "#tablaLeerEstudios", "#row-" + targetId);
+
+                const estudioEliminar = registros.value.findIndex(
+                    (x) => String(x.estudio_producto_id) === String(targetId)
+                );
+                if (estudioEliminar >= 0) {
+                    destroyDataTable();
+                    registros.value.splice(estudioEliminar, 1);
+                    nextTick(() => {
+                        if (registros.value.length > 0) {
+                            initDataTable();
+                        }
+                    });
+                } else {
+                    listarMisPendientes();
+                }
             }
 
+            wysiwygEditorRef.value?.clearDraft();
             cerrarSidebar();
             limpiar();
         }
@@ -1479,19 +1898,32 @@ async function guardarRegistro() {
             error?.response?.data?.errors && typeof error.response.data.errors === "object"
                 ? error.response.data.errors
                 : {};
-        handleAxiosErrorToast(error, "No fue posible guardar la lectura.");
+        toastMessage({
+            heading: "Error",
+            text: getUserSafeError(error, "No fue posible guardar la lectura del estudio."),
+            icon: "error",
+        });
     } finally {
+        await stopAll();
         loadingGuardar.value = false;
     }
 }
+
+/**
+ * Marca un estudio como "visto" en la interfaz y realiza una llamada al backend para actualizar el estado en la base de datos.
+ * @param {number} id - El ID del estudio a marcar como visto.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
 async function visto(id) {
     if (loadingVistoId.value) return;
-    loadingVistoId.value = id;
 
     const row = document.getElementById("row-" + id);
 
     // Evitar doble click verificando de forma inmediata si ya tiene la clase
     if (row && row.classList.contains("text-info")) return;
+
+    loadingVistoId.value = id;
 
     // 1. Modificación directa del DOM (Instantáneo y compatible con DataTables)
     if (row) {
@@ -1505,17 +1937,29 @@ async function visto(id) {
     }
 
     try {
-        // 3. Verdadera llamada "fire-and-forget" en segundo plano
-        const marcarVisto = await axios.post("/api/marcar-visto/" + id).catch(() => {
-            // Opcional: Si falla, podríamos revertir la clase
-            if (row) row.classList.remove("text-info");
-        });
+        // 3. Llamada en segundo plano; si falla, revertir DOM y estado reactivo
+        await axios.post("/api/marcar-visto/" + id);
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible marcar como visto.");
+        if (row) row.classList.remove("text-info");
+        if (idx !== -1) {
+            registros.value[idx].visto = 0;
+        }
+        toastMessage({
+            heading: "Error",
+            text: getUserSafeError(error, "No fue posible marcar el estudio como visto."),
+            icon: "error",
+        });
     } finally {
         loadingVistoId.value = null;
     }
 }
+
+/**
+ * Lista el historial de estudios de un paciente según su número de documento y actualiza la tabla correspondiente en la interfaz.
+ * @param {string} num_docu - El número de documento del paciente.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
 async function listar_historial_estudios(num_docu) {
     try {
         const res = await axios.post("/api/listar.estudios.notificaciones", {
@@ -1523,63 +1967,138 @@ async function listar_historial_estudios(num_docu) {
         });
 
         if (res.status == 200) {
-            destroyDataTableHistorial();
-
             historial_estudios.value = res.data.data;
 
             nextTick(() => {
-                safeInitDataTable("#example23-1", {
+                destroyDataTableHistorial();
+                safeInitDataTable("#tablaLeerEstudiosPrevios", {
                     dom: "Bfrtip",
                     buttons: ["copy", "csv", "excel", "pdf", "print"],
                 });
             });
         }
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar el historial de estudios.");
-    } finally {
-        loadingBuscar.value = false;
-    }
-}
-async function imprimirReporte(estudio) {
-    if (loadingImprimirId.value) return;
-    loadingImprimirId.value = estudio.estudio_producto_id;
-    try {
-        $.toast({
-            heading: "Procesando...",
-            text: "Generando reportes, por favor espere",
-            position: "top-right",
-            loaderBg: "#ff6849",
-            icon: "info",
-            hideAfter: 3500,
-            stack: 6,
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar el historial de estudios.",
+            icon: "error",
         });
-
-        const res = await axios.post("/api/edit-word", estudio);
-
-        window.open(
-            `/descargar.pdf.lectura/${res.data.data.plantilla}`,
-            "_blank",
-            "noopener,noreferrer"
-        );
-    } catch (error) {
-        errores.value =
-            error?.response?.data?.errors && typeof error.response.data.errors === "object"
-                ? error.response.data.errors
-                : {};
-    } finally {
-        loadingImprimirId.value = null;
     }
 }
+
+/**
+ * Toma la reserva (lock) del producto de estudio antes de abrir el panel de lectura.
+ * Si otro usuario lo tiene reservado, muestra el aviso y devuelve false.
+ * @param {number} estudioProductoId - ID del producto de estudio a reservar.
+ * @returns {Promise<boolean>} true si la reserva fue adquirida.
+ * @author: Jhon Javer Lozano Arce
+ */
+async function tomarLockLectura(estudioProductoId) {
+    const params = { tipo: "lectura", estudio_producto_id: estudioProductoId };
+
+    try {
+        await axios.post("/api/estudio-lock/tomar", params);
+        liberarLockLectura();
+        lockLecturaParams.value = params;
+        iniciarHeartbeatLockLectura();
+        return true;
+    } catch (error) {
+        if (error.response?.status === 409) {
+            toastMessage({
+                heading: "Estudio en uso",
+                text: error.response.data.message,
+                icon: "warning",
+                hideAfter: 5500,
+            });
+        } else {
+            toastMessage({
+                heading: "Error",
+                text: getUserSafeError(error, "No fue posible reservar el estudio."),
+                icon: "error",
+            });
+        }
+        return false;
+    }
+}
+
+/**
+ * Renueva la reserva cada 45 segundos mientras el panel de lectura esté abierto.
+ * Si la reserva la tomó otro usuario, cierra el panel.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
+function iniciarHeartbeatLockLectura() {
+    detenerHeartbeatLockLectura();
+    lockHeartbeatTimer = setInterval(async () => {
+        if (!lockLecturaParams.value) return;
+        try {
+            await axios.post("/api/estudio-lock/tomar", lockLecturaParams.value);
+        } catch (error) {
+            if (error.response?.status === 409) {
+                detenerHeartbeatLockLectura();
+                lockLecturaParams.value = null;
+                toastMessage({
+                    heading: "Reserva perdida",
+                    text: "Otro usuario tomó la reserva de este estudio. El panel se cerrará.",
+                    icon: "warning",
+                    hideAfter: 5500,
+                });
+                cerrarSidebar();
+            }
+        }
+    }, 45000);
+}
+
+/**
+ * Detiene el timer de renovación de la reserva.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
+function detenerHeartbeatLockLectura() {
+    if (lockHeartbeatTimer) {
+        clearInterval(lockHeartbeatTimer);
+        lockHeartbeatTimer = null;
+    }
+}
+
+/**
+ * Libera la reserva activa del panel de lectura (idempotente, best-effort).
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
+async function liberarLockLectura() {
+    if (!lockLecturaParams.value) return;
+    const params = lockLecturaParams.value;
+    lockLecturaParams.value = null;
+    detenerHeartbeatLockLectura();
+    try {
+        await axios.post("/api/estudio-lock/liberar", params);
+    } catch {
+        /* la reserva expira sola si falla la liberación */
+    }
+}
+
+/**
+ * Muestra el registro del estudio seleccionado en el panel lateral, deteniendo cualquier dictado en curso y cargando los datos relevantes del estudio.
+ * @param {Object} data - Los datos del estudio a mostrar.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
 async function mostrarRegistro(data = {}) {
     if (loadingAbrirId.value !== null) return;
     loadingAbrirId.value = data.estudio_producto_id;
 
-    await dictationFlow.stopAll();
+    const reservado = await tomarLockLectura(data.estudio_producto_id);
+    if (!reservado) {
+        loadingAbrirId.value = null;
+        return;
+    }
+
+    await stopAll();
     audiosDeEstudio.value = [];
     audioUploadFlow.limpiarAudiosCargados();
 
-    tituloModal.value =
-        "Lectura de paciente: " + data.nom_pacien + " — Producto: " + data.nom_produc;
+    tituloModal.value = `Lectura de paciente: ${data.nom_pacien} ${data.num_docu ? `(${data.num_docu})` : ""} — Producto: ${data.nom_produc}`;
     id.value = data.id;
     idRow.value = data.estudio_producto_id;
     registro.value.estudio_producto_id = data.estudio_producto_id;
@@ -1587,6 +2106,10 @@ async function mostrarRegistro(data = {}) {
     registro.value.accession_no = data.accession_no;
     registro.value.study_desc = data.study_desc;
     registro.value.observaciones = data.observaciones;
+    registro.value.motivo_critico = "";
+    registro.value.es_critico = Boolean(
+        data.observaciones?.includes("HALLAZGO CRÍTICO") || data.prioridad_id === 1
+    );
     registro.value.motivo_examen = data.motivo_examen;
     registro.value.num_docu = data.num_docu;
     registro.value.nom_pacien = data.nom_pacien;
@@ -1605,6 +2128,8 @@ async function mostrarRegistro(data = {}) {
 
     listar_historial_estudios(data.num_docu);
 
+    // El panel debe abrirse aunque fallen las cargas complementarias;
+    // el médico necesita ver los datos base del estudio.
     try {
         const res = await axios.get("/api/study-listar-diagnostico-por-estudio?id=" + id.value);
         diagnosticosEstudio.value = res.data.data;
@@ -1612,70 +2137,47 @@ async function mostrarRegistro(data = {}) {
         const resSoportesHC = await axios.get("/api/listar-soportes-hc-estudio?id=" + id.value);
         soportesHC.value = resSoportesHC.data.data;
 
-        await listarAudios();
+        await listarAudios(registro.value.estudio_producto_id);
 
-        abrirSidebar();
         errores.value = {};
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible cargar el estudio seleccionado.");
+        toastMessage({
+            heading: "Atención",
+            text: getUserSafeError(
+                error,
+                "No fue posible cargar diagnósticos/soportes del estudio."
+            ),
+            icon: "warning",
+        });
     } finally {
+        abrirSidebar();
         loadingAbrirId.value = null;
     }
 }
-function descargaSoportte(nomArchivoOriginal, nomArchivoEncriptado) {
-    if (loadingDescargaSoporte.value) return;
-    loadingDescargaSoporte.value = nomArchivoEncriptado;
-    const url = `/api/descarga-soportes-hc/${nomArchivoEncriptado}`;
 
-    axios
-        .get(url, { responseType: "blob" })
-        .then((response) => {
-            const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement("a");
-            link.href = blobUrl;
-            link.setAttribute("download", nomArchivoOriginal);
-            document.body.appendChild(link);
-            link.click();
-            setTimeout(() => window.URL.revokeObjectURL(blobUrl), 2000);
-        })
-        .catch((error) => {
-            handleAxiosErrorToast(error, "No fue posible descargar el soporte.");
-        })
-        .finally(() => {
-            loadingDescargaSoporte.value = null;
-        });
-}
-function verImagen(url, pat_id, study_iuid, servername, estudio_producto_id = null) {
-    // No hace axios, pero evitamos doble click y mostramos spinner breve
-    if (estudio_producto_id !== null) {
-        if (loadingImagenId.value) return;
-        loadingImagenId.value = estudio_producto_id;
-    } else {
-        if (loadingImagenSidebar.value) return;
-        loadingImagenSidebar.value = true;
-    }
-
-    try {
-        const Url = `${url}?patientID=${encodeURIComponent(pat_id)}&studyUID=${encodeURIComponent(study_iuid)}&serverName=${encodeURIComponent(servername)}`;
-        window.open(Url, "_blank", "noopener,noreferrer");
-    } finally {
-        setTimeout(() => {
-            loadingImagenId.value = null;
-            loadingImagenSidebar.value = false;
-        }, 500);
-    }
-}
+/**
+ * Establece la sede de trabajo a partir de sessionStorage (ST-sede) y limpia la lista de registros.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-07-14
+ */
 function establecerSede() {
-    sede_id.value = sessionStorage.getItem("ST-sede");
+    sede_id.value = sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || null;
     registros.value = [];
+    if (!sede_id.value && emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
 }
-function formatDate(timestamp) {
-    // Convertir el timestamp UTC a la zona horaria local y formatear
-    return dayjs.utc(timestamp).local().format("YYYY-MM-DD HH:mm:ss");
-}
+
 function limpiar() {
     tituloModal.value = "";
     id.value = 0;
+    idRow.value = null;
+    registro.value.es_critico = false;
+    registro.value.motivo_critico = "";
     registro.value.estudio_producto_id = "";
     registro.value.fec_estudio = "";
     registro.value.accession_no = "";
@@ -1689,49 +2191,93 @@ function limpiar() {
     registro.value.direccion = "";
     registro.value.lectura = "";
 
-    dictationFlow.clearAudioBuffer();
+    clearAudioBuffer();
     audioUploadFlow.limpiarAudiosCargados();
     audiosDeEstudio.value = [];
 }
 async function abrirSidebar() {
-    await dictationFlow.stopAll();
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").addClass("shw-rside");
+    await stopAll();
+    sidebarVisible.value = true;
 }
 async function cerrarSidebar() {
-    await dictationFlow.stopAll();
-    $(".right-sidebar").slideUp(50);
-    $(".right-sidebar").removeClass("shw-rside");
+    await stopAll();
+    sidebarVisible.value = false;
+    await liberarLockLectura();
 }
+
+/**
+ * Abre el modal de ayuda con los comandos de voz del dictado.
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
+function abrirModalAyuda() {
+    modalAyudaVisible.value = true;
+}
+
+/**
+ * Cierra el modal de ayuda de comandos de voz.
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
+function cerrarModalAyuda() {
+    modalAyudaVisible.value = false;
+}
+
+/**
+ * Maneja el evento "sedeSeleccionada" emitido por el selector global de sede: actualiza
+ * sede_id, destruye la tabla y vuelve a listar los pendientes en la nueva sede.
+ *
+ * @param {Object} data - Payload del evento, contiene data.idSede con el ID de la sede elegida.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-07-14
+ */
+function onSedeSeleccionada(data) {
+    const nuevaSede =
+        data?.idSede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede");
+    if (!nuevaSede) return;
+    const cambioSede = String(sede_id.value || "") !== String(nuevaSede);
+    sede_id.value = nuevaSede;
+    if (cambioSede || !registros.value?.length) {
+        destroyDataTable();
+        listarMisPendientes();
+    }
+}
+
+let cleanupKeyboardShortcut = null;
 
 onMounted(() => {
     establecerSede();
-    sede_id.value = sessionStorage.getItem("ST-sede");
     applyDashboardPrefill();
 
-    dictationFlow.setCallbacks({
+    setCallbacks({
         onText: (text) => {
             if (registro.value) registro.value.lectura += text;
         },
-        showToast: (cfg) => {
-            $.toast(cfg);
-        },
-        onState: (state) => {},
+        showToast: (cfg) => toastMessage(cfg),
+        onState: () => {},
         onAudioSaved: () => {
-            listarAudios();
+            listarAudios(registro.value.estudio_producto_id);
         },
     });
 
-    emitter.on("sedeSeleccionada", (data) => {
-        sede_id.value = data.idSede;
-        destroyDataTable();
-        listarMisPendientes();
-    });
+    emitter.on("sedeSeleccionada", onSedeSeleccionada);
 
-    dictationFlow.setupKeyboardShortcut();
+    cleanupKeyboardShortcut = setupKeyboardShortcut();
 });
 
 onBeforeUnmount(() => {
+    stopAll();
+    liberarLockLectura();
+    cleanupKeyboardShortcut?.();
+    emitter.off("sedeSeleccionada", onSedeSeleccionada);
     if (autoRefreshTimer.value) {
         clearInterval(autoRefreshTimer.value);
         autoRefreshTimer.value = null;
@@ -1762,21 +2308,180 @@ onBeforeUnmount(() => {
     }
 }
 
+/* ============================================================== */
+/* Floating Dictation Pill Widget                                 */
+/* ============================================================== */
+.floating-dictation-pill {
+    position: fixed;
+    bottom: 30px;
+    right: 40px;
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    padding: 6px 10px 6px 14px;
+    border-radius: 50px;
+    box-shadow:
+        0 10px 25px -5px rgba(0, 0, 0, 0.2),
+        0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+}
+
+.floating-dictation-pill.is-dark {
+    background: #1e222b;
+    border-color: #3b4254;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+}
+
+.floating-dictation-pill .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #94a3b8;
+    display: inline-block;
+    margin-right: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.floating-dictation-pill.is-recording .status-dot {
+    background-color: #ef4444;
+    box-shadow: 0 0 10px #ef4444;
+    animation: pulse 1.2s infinite;
+}
+
+.floating-dictation-pill.is-listening .status-dot {
+    background-color: #f59e0b;
+    box-shadow: 0 0 8px #f59e0b;
+}
+
+.pill-waveform {
+    display: flex;
+    align-items: center;
+    height: 16px;
+    margin-right: 10px;
+    gap: 3px;
+}
+
+.wave-bar {
+    width: 3px;
+    background-color: #ef4444;
+    border-radius: 2px;
+    animation: soundWave 0.8s ease-in-out infinite alternate;
+}
+
+.wave-bar.bar-1 {
+    height: 6px;
+    animation-delay: 0.1s;
+}
+.wave-bar.bar-2 {
+    height: 14px;
+    animation-delay: 0.3s;
+}
+.wave-bar.bar-3 {
+    height: 10px;
+    animation-delay: 0.2s;
+}
+.wave-bar.bar-4 {
+    height: 16px;
+    animation-delay: 0.4s;
+}
+
+@keyframes soundWave {
+    0% {
+        height: 4px;
+    }
+    100% {
+        height: 18px;
+    }
+}
+
+.pill-info {
+    display: flex;
+    flex-direction: column;
+    margin-right: 12px;
+    min-width: 110px;
+}
+
+.pill-status-text {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: #1e293b;
+}
+
+.floating-dictation-pill.is-dark .pill-status-text {
+    color: #f8fafc;
+}
+
+.pill-shortcut {
+    font-size: 10px;
+    line-height: 1;
+}
+
+.pill-btn {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    transition: transform 0.15s ease;
+}
+
+.pill-btn:hover {
+    transform: scale(1.08);
+}
+
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+    transition: all 0.3s ease;
+}
+
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+    opacity: 0;
+    transform: translateY(15px);
+}
+
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1090;
+    cursor: pointer;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.25s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
 .right-sidebar {
     position: fixed;
     right: -80%;
     width: 80%;
-    display: none;
     z-index: 1100;
     background: #ffffff;
     top: 0px;
     padding-bottom: 20px;
     height: 100%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
+    box-shadow: -5px 0 35px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 @media (max-width: 767px) {
@@ -1787,9 +2492,10 @@ onBeforeUnmount(() => {
 }
 
 .shw-rside {
-    right: 0px;
+    right: 0px !important;
     width: 80%;
-    display: block;
+    visibility: visible;
+    pointer-events: auto;
 }
 
 @media (max-width: 767px) {
@@ -1802,12 +2508,125 @@ onBeforeUnmount(() => {
     width: 50px;
     height: 5px;
 }
+
 .sidebar-scroll {
     overflow-x: hidden;
     overflow-y: scroll;
     height: 100%;
 }
-.lectura-textarea {
-    height: 100%;
+
+/* ============================================================== */
+/* Modo Zen / Pantalla Completa (100% viewport)                   */
+/* ============================================================== */
+.right-sidebar.zen-mode {
+    width: 100% !important;
+    right: 0 !important;
+    z-index: 2500 !important;
+}
+
+/* ============================================================== */
+/* Modo Oscuro / Radiología (Dark Mode para entorno PACS)         */
+/* ============================================================== */
+.right-sidebar.dark-mode {
+    background: #181a20 !important;
+    color: #e2e8f0 !important;
+}
+
+.right-sidebar.dark-mode .rpanel-title {
+    background: #12141a !important;
+    color: #f1f5f9 !important;
+    border-bottom: 1px solid #2d3343 !important;
+}
+
+.right-sidebar.dark-mode .r-panel-body {
+    background: #181a20 !important;
+}
+
+.right-sidebar.dark-mode hr {
+    border-top-color: #2d3343 !important;
+}
+
+.right-sidebar.dark-mode dt,
+.right-sidebar.dark-mode label {
+    color: #cbd5e1 !important;
+}
+
+.right-sidebar.dark-mode dd,
+.right-sidebar.dark-mode p,
+.right-sidebar.dark-mode span,
+.right-sidebar.dark-mode li {
+    color: #e2e8f0;
+}
+
+.right-sidebar.dark-mode .form-control {
+    background-color: #222632 !important;
+    color: #f8fafc !important;
+    border-color: #3b4254 !important;
+}
+
+.right-sidebar.dark-mode .form-control:focus {
+    background-color: #262b38 !important;
+    border-color: #00bcd4 !important;
+    color: #ffffff !important;
+}
+
+.right-sidebar.dark-mode .nav-tabs {
+    border-bottom-color: #2d3343 !important;
+}
+
+.right-sidebar.dark-mode .nav-tabs .nav-link {
+    color: #94a3b8 !important;
+    background-color: transparent !important;
+    border-color: transparent !important;
+}
+
+.right-sidebar.dark-mode .nav-tabs .nav-link.active {
+    color: #38bdf8 !important;
+    background-color: #222632 !important;
+    border-color: #2d3343 #2d3343 transparent !important;
+}
+
+.right-sidebar.dark-mode .tab-content {
+    background: #1f232d !important;
+    border-color: #2d3343 !important;
+}
+
+.right-sidebar.dark-mode .list-group-item {
+    background-color: #222632 !important;
+    border-color: #2d3343 !important;
+    color: #e2e8f0 !important;
+}
+
+.right-sidebar.dark-mode .table {
+    color: #e2e8f0 !important;
+}
+
+.right-sidebar.dark-mode .table-bordered,
+.right-sidebar.dark-mode .table-bordered th,
+.right-sidebar.dark-mode .table-bordered td {
+    border-color: #2d3343 !important;
+}
+
+.right-sidebar.dark-mode :deep(.wysihtml5-toolbar) {
+    background: #222632 !important;
+    border-color: #3b4254 !important;
+    padding: 6px !important;
+    border-radius: 4px 4px 0 0 !important;
+}
+
+.right-sidebar.dark-mode :deep(.wysihtml5-toolbar .btn) {
+    background-color: #2d3343 !important;
+    border-color: #3b4254 !important;
+    color: #f1f5f9 !important;
+}
+
+.right-sidebar.dark-mode :deep(.wysihtml5-toolbar .btn:hover) {
+    background-color: #3b4254 !important;
+    color: #38bdf8 !important;
+}
+
+.right-sidebar.dark-mode :deep(.wysihtml5-sandbox) {
+    border-color: #3b4254 !important;
+    background-color: #1e222b !important;
 }
 </style>

@@ -2,6 +2,8 @@
 
 namespace App\Services\Interfaces;
 
+use App\Helpers\SahiConnectionHelper;
+use App\Models\Configuracion\ConfigSede;
 use App\Models\Ecografias\EcografiaProducto;
 use App\Models\Interface\Sahi\ASI_USUA;
 use App\Models\Interface\Sahi\Atencion;
@@ -19,6 +21,17 @@ use Illuminate\Support\Facades\Log;
 
 class SAHIEcografiasEnviarService extends BaseService
 {
+    /**
+     * Retorna el estado de envío a SAHI de un producto de ecografía.
+     *
+     * @param  int  $ecografiaProductoId  Identificador del producto de ecografía.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-01-29
+     */
     public function estadoPorEcografiaProducto(int $ecografiaProductoId): array
     {
         $ecoProd = EcografiaProducto::select([
@@ -44,6 +57,17 @@ class SAHIEcografiasEnviarService extends BaseService
         ], 'Estado SAHI consultado.');
     }
 
+    /**
+     * Envía (o reenvía) un producto de ecografía al sistema SAHI.
+     *
+     * @param  int  $ecografiaProductoId  Identificador del producto de ecografía.
+     *
+     * @returns {array}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-01-29
+     */
     public function enviarPorEcografiaProducto(int $ecografiaProductoId): array
     {
         $ecoProd = EcografiaProducto::where('id', $ecografiaProductoId)->first();
@@ -83,12 +107,21 @@ class SAHIEcografiasEnviarService extends BaseService
         return $this->success($result['data'] ?? null, $result['message'] ?? 'Ecografía enviada a SAHI correctamente.');
     }
 
+    /**
+     * Ejecuta el envío completo del producto de ecografía a SAHI, validando, insertando y actualizando estados.
+     *
+     * @param  int  $ecografiaProductoId  Identificador del producto de ecografía
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function sendToSahiByEcografiaProductoId(int $ecografiaProductoId): array
     {
         $ecoProd = null;
         $ecoProds = collect();
 
-        [$ecoProd, $ecoProds] = DB::transaction(function () use ($ecografiaProductoId) {
+        $txResult = $this->transaction(function () use ($ecografiaProductoId) {
             $row = EcografiaProducto::where('id', $ecografiaProductoId)
                 ->lockForUpdate()
                 ->with(['ecografia.medico'])
@@ -105,6 +138,12 @@ class SAHIEcografiasEnviarService extends BaseService
             return [$row, $all];
         });
 
+        if (isset($txResult['success']) && ! $txResult['success']) {
+            return $txResult;
+        }
+
+        [$ecoProd, $ecoProds] = $txResult;
+
         $validated = $this->validateSendPrerequisites($ecoProd, $ecoProds);
         if (! $validated['ok'] || ! empty($validated['already_sent'])) {
             return $validated;
@@ -120,6 +159,9 @@ class SAHIEcografiasEnviarService extends BaseService
         $fecRegistro = $validated['fec_registro'];
 
         try {
+            $sedeEco = $ecografia->sede_id ? ConfigSede::find($ecografia->sede_id) : null;
+            SahiConnectionHelper::configureForSede($sedeEco);
+
             $result = DB::connection('sqlsrv')->transaction(
                 fn () => $this->executeSahiInsert($medico, $atencionId, (int) $ecografia->id, $productoIds, $fecRegistro, $memo)
             );
@@ -144,6 +186,16 @@ class SAHIEcografiasEnviarService extends BaseService
         }
     }
 
+    /**
+     * Valida los prerrequisitos del envío a SAHI y marca los productos como ENVIANDO.
+     *
+     * @param  mixed  $ecoProd  Producto de ecografía a enviar
+     * @param  mixed  $ecoProds  Colección de productos de la misma ecografía
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function validateSendPrerequisites($ecoProd, $ecoProds): array
     {
         if (! $ecoProd) {
@@ -177,7 +229,7 @@ class SAHIEcografiasEnviarService extends BaseService
             ];
         }
 
-        DB::transaction(function () use ($ecoProdIds) {
+        $this->transaction(function () use ($ecoProdIds) {
             EcografiaProducto::whereIn('id', $ecoProdIds)
                 ->where(function ($q) {
                     $q->whereNull('estado_envio_sahi')
@@ -230,6 +282,20 @@ class SAHIEcografiasEnviarService extends BaseService
         ];
     }
 
+    /**
+     * Ejecuta las inserciones en SAHI dentro de una transacción con lock de aplicación.
+     *
+     * @param  mixed  $medico  Modelo del médico con interface_id de SAHI
+     * @param  int  $atencionId  Identificador de la atención en SAHI
+     * @param  int  $ecografiaId  Identificador de la ecografía en Lidiag
+     * @param  array  $productoIds  Identificadores de los productos a insertar
+     * @param  string  $fecRegistro  Fecha y hora de registro del envío
+     * @param  string  $memo  Texto del reporte consolidado para el memo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function executeSahiInsert($medico, int $atencionId, int $ecografiaId, array $productoIds, string $fecRegistro, string $memo): array
     {
         $lockKey = "LIDiag:SAHI:Atencion:{$atencionId}:Ecografia:{$ecografiaId}";
@@ -386,9 +452,20 @@ class SAHIEcografiasEnviarService extends BaseService
         ];
     }
 
+    /**
+     * Actualiza el estado de los productos de ecografía como ENVIADOS tras el éxito en SAHI.
+     *
+     * @param  array  $ecoProdIds  Identificadores de los productos a actualizar
+     * @param  mixed  $ecoProds  Colección de productos de la ecografía
+     * @param  array  $result  Resultado del envío con los consecutivos de SAHI
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function updateProductsAfterSahiSend(array $ecoProdIds, $ecoProds, array $result): void
     {
-        DB::transaction(function () use ($ecoProdIds, $ecoProds, $result) {
+        $this->transaction(function () use ($ecoProdIds, $ecoProds, $result) {
             $data = $result['data'] ?? [];
             $id149 = $data['IdEsquemaEncabezado149'] ?? null;
             $id150 = $data['IdEsquemaEncabezado150'] ?? null;
@@ -420,6 +497,16 @@ class SAHIEcografiasEnviarService extends BaseService
         });
     }
 
+    /**
+     * Marca un conjunto de productos de ecografía como ERROR de envío a SAHI.
+     *
+     * @param  array  $ecografiaProductoIds  Identificadores de los productos a marcar
+     * @param  string  $error  Mensaje de error a registrar
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function markEnvioErrorMany(array $ecografiaProductoIds, string $error): void
     {
         $ids = array_values(array_filter(array_map('intval', $ecografiaProductoIds)));
@@ -428,7 +515,7 @@ class SAHIEcografiasEnviarService extends BaseService
         }
 
         try {
-            DB::transaction(function () use ($ids, $error) {
+            $this->transaction(function () use ($ids, $error) {
                 EcografiaProducto::whereIn('id', $ids)
                     ->where(function ($q) {
                         $q->whereNull('estado_envio_sahi')
@@ -449,6 +536,15 @@ class SAHIEcografiasEnviarService extends BaseService
         }
     }
 
+    /**
+     * Incrementa y persiste el consecutivo de una tabla de SAHI para generar nuevos esquemas.
+     *
+     * @param  string  $nomTabla  Nombre de la tabla SAHI cuyo consecutivo se incrementa
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function incrementSisTablaConsecutivo(string $nomTabla): int
     {
         $row = sisTabla::where('NomTabla', $nomTabla)
@@ -460,6 +556,15 @@ class SAHIEcografiasEnviarService extends BaseService
         return (int) $row->Consecutivo;
     }
 
+    /**
+     * Incrementa el consecutivo del esquema padre en la tabla HceEsquema de SAHI.
+     *
+     * @param  int  $idEsquema  Identificador del esquema en SAHI
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function incrementHceEsquemaConsecutivo(int $idEsquema): void
     {
         $encabezadoPadre = HceEsquema::where('IdEsquema', $idEsquema)->firstOrFail();
@@ -467,6 +572,15 @@ class SAHIEcografiasEnviarService extends BaseService
         $encabezadoPadre->save();
     }
 
+    /**
+     * Inserta un registro de encabezado de esquema en la tabla hceEsquemaEncabeza de SAHI.
+     *
+     * @param  array  $data  Datos del encabezado: IdEsquemaEncabezado, IdEsquema, idEncabezadoPadre, IdUbicacion, idAtencion, IdUsuarioR, FecRegistro
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function insertEncabezadoEsquema(array $data): hceEsquemaEncabeza
     {
         $row = new hceEsquemaEncabeza;
@@ -491,6 +605,15 @@ class SAHIEcografiasEnviarService extends BaseService
         return $row;
     }
 
+    /**
+     * Inserta el registro de esquema de atención en la tabla hceEsquemasdeAte de SAHI.
+     *
+     * @param  array  $data  Datos de la relación: IdEsquemadeAtencion, IdEsquema, IdAtencion, IdUbicacion, IdMedico, FecEsquema, FecCerrado, IdUsuarioR
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function insertEsquemaAtencion(array $data): hceEsquemasdeAte
     {
         $row = new hceEsquemasdeAte;
@@ -510,6 +633,15 @@ class SAHIEcografiasEnviarService extends BaseService
         return $row;
     }
 
+    /**
+     * Inserta el memo con el texto del reporte en la tabla hceEsquemaDetMemo de SAHI.
+     *
+     * @param  array  $data  Datos del memo: IdMemo, IdEsquemaEncabezado, DesMemo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function insertMemo(array $data): hceEsquemaDetMemo
     {
         $row = new hceEsquemaDetMemo;
@@ -521,6 +653,15 @@ class SAHIEcografiasEnviarService extends BaseService
         return $row;
     }
 
+    /**
+     * Inserta el detalle del médico transcriptor en la tabla hceEsquemaDetProc de SAHI.
+     *
+     * @param  array  $data  Datos del detalle: IdEsquemaEncabezado, FecRegistro, IdUsuarioR, NomMedico
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function insertDetalleMedico(array $data): hceEsquemaDetProc
     {
         $row = new hceEsquemaDetProc;
@@ -554,6 +695,15 @@ class SAHIEcografiasEnviarService extends BaseService
         return $row;
     }
 
+    /**
+     * Inserta el detalle del producto CUPS en la tabla hceEsquemaDetProc de SAHI.
+     *
+     * @param  array  $data  Datos del producto: IdDetalleValor, IdEsquemaEncabezado, IdUsuarioR, FecRegistro, IdProducto, NomProducto, CodLegal
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function insertDetalleProducto(array $data): hceEsquemaDetProc
     {
         $row = new hceEsquemaDetProc;
@@ -587,6 +737,16 @@ class SAHIEcografiasEnviarService extends BaseService
         return $row;
     }
 
+    /**
+     * Busca si ya existe un esquema 150 en SAHI para la atención y producto indicados.
+     *
+     * @param  int  $atencionId  Identificador de la atención en SAHI
+     * @param  int  $productoId  Identificador del producto a buscar
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function findExistingEsquema150ForAtencionProducto(int $atencionId, int $productoId): ?array
     {
         $row = DB::connection('sqlsrv')
@@ -629,6 +789,15 @@ class SAHIEcografiasEnviarService extends BaseService
         ];
     }
 
+    /**
+     * Convierte HTML simple a texto plano limpiando etiquetas y normalizando saltos de línea.
+     *
+     * @param  string  $value  Cadena HTML a convertir
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function normalizeHtmlToText(string $value): string
     {
         $v = trim($value);
@@ -637,10 +806,12 @@ class SAHIEcografiasEnviarService extends BaseService
         }
 
         $v = preg_replace('/<\s*br\s*\/?>/i', "\n", $v);
-        $v = preg_replace('/<\/\s*div\s*>/i', "\n", $v);
-        $v = preg_replace('/<\/\s*h[1-6]\s*>/i', "\n", $v);
+        $v = preg_replace('/<\/\s*(?:p|div|h[1-6])\s*>/i', "\n\n", $v);
+        $v = str_ireplace(['&nbsp;', '&#160;'], ' ', $v);
         $v = strip_tags($v);
         $v = html_entity_decode($v, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $v = preg_replace('/\x{00A0}/u', ' ', $v);
+        $v = preg_replace("/\r\n|\r/", "\n", $v);
         $v = preg_replace("/\n{3,}/", "\n\n", $v);
 
         return trim($v);

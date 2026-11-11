@@ -37,7 +37,7 @@
     </div>
 </template>
 <script setup>
-const props = defineProps({
-    ruta: {},
+defineProps({
+    ruta: { default: "" },
 });
 </script>

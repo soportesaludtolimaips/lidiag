@@ -207,13 +207,24 @@ class HtmlToPhpWordHelper
     private static function cleanHtml(string $html): string
     {
         $html = strip_tags($html, '<p><br><strong><b><em><i><ul><ol><li>');
+        $html = str_ireplace(['&nbsp;', '&#160;'], ' ', $html);
         $html = html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $html = preg_replace('/\x{00A0}/u', ' ', $html);
         $html = preg_replace('/\s+/', ' ', $html);
         $html = trim($html);
 
         return $html;
     }
 
+    /**
+     * Elimina todas las etiquetas HTML del texto proporcionado.
+     *
+     * @param  string  $text  Texto de entrada que puede contener HTML.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private static function stripAllTags(string $text): string
     {
         return strip_tags($text);

@@ -50,6 +50,21 @@
     <link href="{{ asset('admin-wrap/css/style.css') }}" rel="stylesheet">
     <!-- You can change the theme colors from here -->
     <link href="{{ asset('admin-wrap/css/colors/default.css') }}" id="theme" rel="stylesheet">
+
+    <style>
+        /* Corrección de submenús flotantes en mini-sidebar para evitar desborde inferior */
+        .mini-sidebar .sidebar-nav #sidebarnav > li:hover > ul {
+            max-height: calc(100vh - 100px) !important;
+            overflow-y: auto !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            border-radius: 4px;
+        }
+        .mini-sidebar .sidebar-nav #sidebarnav > li:last-child > ul,
+        .mini-sidebar .sidebar-nav #sidebarnav > li:nth-last-child(-n+4) > ul {
+            top: auto !important;
+            bottom: 0px !important;
+        }
+    </style>
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -61,9 +76,35 @@
 
     <script src="https://cdn.jsdelivr.net/npm/howler"></script>
     <script src="https://cdn.jsdelivr.net/npm/animejs"></script>
+    @php
+        $initialState = Auth::check() ? [
+            'user' => Auth::user(),
+            'roles' => Auth::user()->roles->pluck('name')->values()->toArray(),
+            'permissions' => Auth::user()->getAllPermissions()->pluck('name')->values()->toArray(),
+        ] : null;
+    @endphp
+    <script>
+        (function() {
+            try {
+                if (localStorage.getItem("lidiag_dark_mode") === "true") {
+                    document.documentElement.classList.add("theme-dark");
+                }
+            } catch (e) {}
+        })();
+        window.__INITIAL_STATE__ = @json($initialState);
+    </script>
 </head>
 
 <body class="fix-header card-no-border fix-sidebar">
+    <script>
+        (function() {
+            try {
+                if (localStorage.getItem("lidiag_dark_mode") === "true") {
+                    document.body.classList.add("theme-dark");
+                }
+            } catch (e) {}
+        })();
+    </script>
 
     <!-- ============================================================== -->
     <!-- Preloader - style you can find in spinners.css -->
@@ -79,74 +120,77 @@
     <!-- ============================================================== -->
 
     <div id="app">
+        @hasSection('content')
+            <!-- ============================================================== -->
+            <!-- Topbar header - style you can find in pages.scss -->
+            <!-- ============================================================== -->
+            <header class="topbar">
+                <nav class="navbar top-navbar navbar-expand-md navbar-light">
+                    <!-- ============================================================== -->
+                    <!-- Logo -->
+                    <!-- ============================================================== -->
+                    @include('comunes.logo')
+                    <!-- ============================================================== -->
+                    <!-- End Logo -->
+                    <!-- ============================================================== -->
+                    <div class="navbar-collapse">
+                        <!-- ============================================================== -->
+                        <!-- toggle and nav items -->
+                        <!-- ============================================================== -->
+                        @include('comunes.toggleAndNavItems')
+                        <!-- ============================================================== -->
+                        <!-- User profile and search -->
+                        <!-- ============================================================== -->
+                        {{-- @include('comunes.userProfileAndSearch') --}}
+                        <user-profile-and-search-component
+                            :usuarioactual='@json(Auth::user())'
+                            perfil-url="{{ route('seguridad.perfil') }}"
+                        />
+                    </div>
+                </nav>
+            </header>
+            <!-- ============================================================== -->
+            <!-- End Topbar header -->
+            <!-- ============================================================== -->
+            <!-- ============================================================== -->
+            <!-- Left Sidebar - style you can find in sidebar.scss  -->
+            <!-- ============================================================== -->
+            @include('comunes.sidebar')
+            <!-- ============================================================== -->
+            <!-- End Left Sidebar - style you can find in sidebar.scss  -->
+            <!-- ============================================================== -->
+            <!-- ============================================================== -->
+            <!-- Page wrapper  -->
+            <!-- ============================================================== -->
+            <div class="page-wrapper">
 
-
-        <!-- ============================================================== -->
-        <!-- Topbar header - style you can find in pages.scss -->
-        <!-- ============================================================== -->
-        <header class="topbar">
-            <nav class="navbar top-navbar navbar-expand-md navbar-light">
                 <!-- ============================================================== -->
-                <!-- Logo -->
+                <!-- Container fluid  -->
                 <!-- ============================================================== -->
-                @include('comunes.logo')
-                <!-- ============================================================== -->
-                <!-- End Logo -->
-                <!-- ============================================================== -->
-                <div class="navbar-collapse">
-                    <!-- ============================================================== -->
-                    <!-- toggle and nav items -->
-                    <!-- ============================================================== -->
-                    @include('comunes.toggleAndNavItems')
-                    <!-- ============================================================== -->
-                    <!-- User profile and search -->
-                    <!-- ============================================================== -->
-                    {{-- @include('comunes.userProfileAndSearch') --}}
-                    <user-profile-and-search-component
-                        :usuarioactual='@json(Auth::user())'
-                        perfil-url="{{ route('seguridad.perfil') }}"
-                    />
+                <div class="container-fluid">
+                    @yield('content')
                 </div>
-            </nav>
-        </header>
-        <!-- ============================================================== -->
-        <!-- End Topbar header -->
-        <!-- ============================================================== -->
-        <!-- ============================================================== -->
-        <!-- Left Sidebar - style you can find in sidebar.scss  -->
-        <!-- ============================================================== -->
-        @include('comunes.sidebar')
-        <!-- ============================================================== -->
-        <!-- End Left Sidebar - style you can find in sidebar.scss  -->
-        <!-- ============================================================== -->
-        <!-- ============================================================== -->
-        <!-- Page wrapper  -->
-        <!-- ============================================================== -->
-        <div class="page-wrapper">
 
-            <!-- ============================================================== -->
-            <!-- Container fluid  -->
-            <!-- ============================================================== -->
-            <div class="container-fluid">
-                @yield('content')
+                <!-- ============================================================== -->
+                <!-- End Container fluid  -->
+                <!-- ============================================================== -->
+
+                <!-- ============================================================== -->
+                <!-- footer -->
+                <!-- ============================================================== -->
+                {{-- @include('comunes.footer') --}}
+                <footer-component />
+                <!-- ============================================================== -->
+                <!-- End footer -->
+                <!-- ============================================================== -->
             </div>
-
             <!-- ============================================================== -->
-            <!-- End Container fluid  -->
+            <!-- End Page wrapper  -->
             <!-- ============================================================== -->
-
-            <!-- ============================================================== -->
-            <!-- footer -->
-            <!-- ============================================================== -->
-            {{-- @include('comunes.footer') --}}
-            <footer-component />
-            <!-- ============================================================== -->
-            <!-- End footer -->
-            <!-- ============================================================== -->
-        </div>
-        <!-- ============================================================== -->
-        <!-- End Page wrapper  -->
-        <!-- ============================================================== -->
+        @else
+            <!-- Shell SPA Reactivo con Vue Router -->
+            <app-layout />
+        @endif
     </div>
     <!-- ============================================================== -->
     <!-- End Wrapper -->

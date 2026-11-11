@@ -8,15 +8,37 @@
                 <h3 class="text-themecolor">Configuración</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Configuración</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Configuración
+                        </button>
                     </li>
-                    <li class="breadcrumb-item active">sedes</li>
+                    <li class="breadcrumb-item active">Sedes</li>
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary m-r-5"
+                    @click="ListarDatos"
+                    :disabled="loadingListar"
+                    title="Actualizar listado"
+                >
+                    <i class="fa" :class="loadingListar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                    Refrescar
+                </button>
                 <button
                     type="button"
                     class="btn btn-info btnDesplegarRigthSidebar"
@@ -45,9 +67,25 @@
                             Administración de sedes para la distribucion y asignacion de estudios y
                             agenda de lecturas de imagenes díagnosticas.
                         </h6>
-                        <div class="table-responsive m-t-40">
+                        <table-skeleton-loader :visible="loadingListar" :rows="5" :columns="8" />
+                        <empty-state-component
+                            v-if="!loadingListar && registros.length === 0"
+                            icon="fa fa-hospital-o"
+                            title="No hay sedes registradas"
+                            description="No se encontraron sedes configuradas en el sistema."
+                            action-text="Nuevo registro"
+                            action-icon="fa fa-plus"
+                            @action="
+                                actualizar = false;
+                                mostrarRegistro();
+                            "
+                        />
+                        <div
+                            v-show="!loadingListar && registros.length > 0"
+                            class="table-responsive m-t-40"
+                        >
                             <table
-                                id="example23"
+                                id="tablaSedes"
                                 ref="dt"
                                 class="display nowrap table table-hover table-striped table-bordered"
                                 cellspacing="0"
@@ -95,7 +133,7 @@
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                @click="elimnarRegistro(item.id)"
+                                                @click="eliminarRegistro(item.id)"
                                                 :disabled="loadingEliminarId === item.id"
                                             >
                                                 <i
@@ -120,28 +158,33 @@
         <!-- End PAge Content -->
         <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
+        <!-- Backdrop overlay para cerrar al hacer clic afuera -->
+        <div v-if="sidebarVisible" class="sidebar-backdrop" @click="cerrarSidebar()"></div>
+
         <!-- Right sidebar -->
-        <!-- ============================================================== -->
-        <!-- .right-sidebar -->
-        <div class="right-sidebar">
+        <div ref="sidebarRef" class="right-sidebar" :class="{ 'shw-rside': sidebarVisible }">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
-                    <span>
-                        <i class="ti-close right-side-toggle" id="btnCerralModalForm"></i>
-                    </span>
+                    <button
+                        type="button"
+                        class="right-side-toggle"
+                        @click="cerrarSidebar()"
+                        aria-label="Cerrar panel"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
                 </div>
                 <div class="r-panel-body">
                     <!-- ============================================================== -->
                     <!-- Aqui va el contenido de los formularios -->
                     <!-- ============================================================== -->
-                    <form action="#">
+                    <form action="#" @submit.prevent="guardarRegistro()">
                         <div class="form-body">
                             <div class="row p-t-20">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="control-label">Sede</label>
+                                        <label class="control-label" for="nom_sede">Sede</label>
                                         <input
                                             type="text"
                                             id="nom_sede"
@@ -157,7 +200,9 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="control-label">Email Para Reportar</label>
+                                        <label class="control-label" for="email_repor"
+                                            >Email Para Reportar</label
+                                        >
                                         <input
                                             type="text"
                                             id="email_repor"
@@ -181,7 +226,9 @@
                             <div class="row">
                                 <div class="col-md-3">
                                     <div class="form-group">
-                                        <label class="control-label">Ip BD Dcm4chee</label>
+                                        <label class="control-label" for="ip_dcm"
+                                            >Ip BD Dcm4chee</label
+                                        >
                                         <input
                                             type="text"
                                             id="ip_dcm"
@@ -198,7 +245,9 @@
 
                                 <div class="col-md-3">
                                     <div class="form-group">
-                                        <label class="control-label">BD DCM4CHEE</label>
+                                        <label class="control-label" for="bd_dcm"
+                                            >BD DCM4CHEE</label
+                                        >
                                         <input
                                             type="text"
                                             id="bd_dcm"
@@ -215,7 +264,9 @@
 
                                 <div class="col-md-2">
                                     <div class="form-group">
-                                        <label class="control-label">Usuario Bd</label>
+                                        <label class="control-label" for="usuario_dcm"
+                                            >Usuario Bd</label
+                                        >
                                         <input
                                             type="text"
                                             id="usuario_dcm"
@@ -232,7 +283,9 @@
 
                                 <div class="col-md-2">
                                     <div class="form-group">
-                                        <label class="control-label">Password</label>
+                                        <label class="control-label" for="password_dcm"
+                                            >Password</label
+                                        >
                                         <input
                                             type="text"
                                             id="password_dcm"
@@ -249,7 +302,7 @@
 
                                 <div class="col-md-2">
                                     <div class="form-group">
-                                        <label class="control-label">Puerto</label>
+                                        <label class="control-label" for="puerto_dcm">Puerto</label>
                                         <input
                                             type="number"
                                             id="puerto_dcm"
@@ -266,6 +319,89 @@
                             </div>
 
                             <h5 class="card-title text-info">
+                                <i class="fa fa-list"></i> Lista de trabajo (Worklist)
+                            </h5>
+                            <hr />
+
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <div class="checkbox checkbox-success">
+                                            <input
+                                                type="checkbox"
+                                                id="worklist_activo"
+                                                name="worklist_activo"
+                                                v-model="registro.worklist_activo"
+                                            />
+                                            <label for="worklist_activo">
+                                                Enviar citas al PACS
+                                            </label>
+                                        </div>
+                                        <small class="text-muted">
+                                            Usa la IP del Dcm4chee de arriba (2.x o 5.x).
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="control-label">Puerto HL7</label>
+                                        <input
+                                            type="number"
+                                            id="worklist_puerto"
+                                            name="worklist_puerto"
+                                            v-model="registro.worklist_puerto"
+                                            class="form-control"
+                                            placeholder="2575"
+                                        />
+                                        <span class="text-danger" v-if="errores.worklist_puerto">{{
+                                            errores.worklist_puerto[0]
+                                        }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="control-label">AET del PACS</label>
+                                        <input
+                                            type="text"
+                                            id="worklist_aet"
+                                            name="worklist_aet"
+                                            v-model="registro.worklist_aet"
+                                            class="form-control"
+                                            maxlength="16"
+                                            placeholder="DCM4CHEE"
+                                        />
+                                        <span class="text-danger" v-if="errores.worklist_aet">{{
+                                            errores.worklist_aet[0]
+                                        }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="control-label"
+                                            >AET del equipo (opcional)</label
+                                        >
+                                        <input
+                                            type="text"
+                                            id="worklist_estacion_aet"
+                                            name="worklist_estacion_aet"
+                                            v-model="registro.worklist_estacion_aet"
+                                            class="form-control"
+                                            maxlength="16"
+                                            placeholder="Ej: AGFA_NX"
+                                        />
+                                        <span
+                                            class="text-danger"
+                                            v-if="errores.worklist_estacion_aet"
+                                            >{{ errores.worklist_estacion_aet[0] }}</span
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h5 class="card-title text-info">
                                 <i class="fa fa-paperclip"></i> Datos de configuración de OVIYAM
                             </h5>
                             <hr />
@@ -273,7 +409,9 @@
                             <div class="row">
                                 <div class="col-md-2">
                                     <div class="form-group">
-                                        <label class="control-label">Usuario Oviyam</label>
+                                        <label class="control-label" for="usuario_oviyam"
+                                            >Usuario Oviyam</label
+                                        >
                                         <input
                                             type="text"
                                             id="usuario_oviyam"
@@ -290,7 +428,9 @@
 
                                 <div class="col-md-2">
                                     <div class="form-group">
-                                        <label class="control-label">Password Oviyam</label>
+                                        <label class="control-label" for="password_oviyam"
+                                            >Password Oviyam</label
+                                        >
                                         <input
                                             type="text"
                                             id="password_oviyam"
@@ -307,7 +447,9 @@
 
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="control-label">Url Oviyam</label>
+                                        <label class="control-label" for="url_oviyam"
+                                            >Url Oviyam</label
+                                        >
                                         <input
                                             type="text"
                                             id="url_oviyam"
@@ -323,7 +465,9 @@
                                 </div>
                                 <div class="col-md-2">
                                     <div class="form-group">
-                                        <label class="control-label">Tab Oviyam</label>
+                                        <label class="control-label" for="tap_oviyam"
+                                            >Tab Oviyam</label
+                                        >
                                         <input
                                             type="text"
                                             id="tap_oviyam"
@@ -348,7 +492,9 @@
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
-                                                <label class="control-label"
+                                                <label
+                                                    class="control-label"
+                                                    for="exampleInputFileRx"
                                                     >Plantilla para Rx, Tomografía y
                                                     resonancia</label
                                                 >
@@ -362,7 +508,9 @@
                                                 />
                                             </div>
                                             <div class="form-group">
-                                                <label class="control-label"
+                                                <label
+                                                    class="control-label"
+                                                    for="exampleInputFileEcografia"
                                                     >Plantilla para ecografias</label
                                                 >
                                                 <input
@@ -493,9 +641,9 @@
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    @click="btnCerralModalForm()"
+                                    @click="cerrarSidebar()"
                                 >
-                                    Cancel
+                                    Cancelar
                                 </button>
                             </div>
                         </div>
@@ -514,17 +662,16 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 const dt = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import {
-    alertError,
-    alertSuccess,
-    confirmAction,
-    handleAxiosErrorToast,
-} from "@/helpers/alerts.js";
+import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import axios from "axios";
 
-const id = ref(0);
 const registros = ref([]);
 const registro = ref({
+    worklist_activo: false,
+    worklist_puerto: 2575,
+    worklist_aet: "DCM4CHEE",
+    worklist_estacion_aet: "",
     id: null,
     nom_sede: "",
     email_repor: "",
@@ -547,52 +694,91 @@ const errores = ref({});
 const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
+const sidebarVisible = ref(false);
+const sidebarRef = ref(null);
+
+useKeyboardShortcuts({
+    onSearch: () => {
+        if (!sidebarVisible.value) {
+            ListarDatos();
+        }
+    },
+    onSave: () => {
+        if (sidebarVisible.value) {
+            guardarRegistro();
+        }
+    },
+    onEscape: cerrarSidebar,
+    isActive: () => true,
+    isLoading: loadingGuardar,
+});
+
+function abrirSidebar() {
+    sidebarVisible.value = true;
+    nextTick(() => {
+        document.getElementById("nom_sede")?.focus();
+    });
+}
+
+function cerrarSidebar() {
+    sidebarVisible.value = false;
+}
 
 async function ListarDatos() {
     if (loadingListar.value) return;
     loadingListar.value = true;
     try {
         const res = await axios.get("/api/config-sedes");
-        safeDestroyDataTable(dt.value || "#example23");
-        registros.value = res.data.data;
+        safeDestroyDataTable(dt.value || "#tablaSedes");
+        registros.value = res.data?.data || res.data || [];
         nextTick(() => {
-            safeInitDataTable(dt.value || "#example23", {
+            safeInitDataTable(dt.value || "#tablaSedes", {
                 dom: "Bfrtip",
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
         });
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar sedes.");
         registros.value = [];
+        toastMessage({
+            heading: "Error",
+            text: error?.response?.data?.message || "No fue posible cargar las sedes.",
+            icon: "error",
+        });
     } finally {
         loadingListar.value = false;
     }
 }
+
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
     try {
         const formData = new FormData();
         formData.append("registro", JSON.stringify(registro.value));
-        formData.append("plantilla_rx", plantillaRx.value);
-        formData.append("plantilla_ecografia", plantillaEcografia.value);
+        if (plantillaRx.value) {
+            formData.append("plantilla_rx", plantillaRx.value);
+        }
+        if (plantillaEcografia.value) {
+            formData.append("plantilla_ecografia", plantillaEcografia.value);
+        }
 
         if (actualizar.value === false) {
-            const res = await axios.post("/api/config-sedes", formData);
+            const res = await axios.post("/api/config-sedes", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
 
-            if (res.status == 200) {
-                $.toast({
-                    heading: "Ok!!!",
-                    text: res.data.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
+            if (res.status >= 200 && res.status < 300) {
+                toastMessage({
+                    heading: "Completado",
+                    text:
+                        res.data?.data?.message ||
+                        res.data?.message ||
+                        "Sede creada correctamente.",
                     icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
                 });
 
                 ListarDatos();
-                btnCerralModalForm();
+                cerrarSidebar();
                 limpiar();
             }
         } else {
@@ -600,30 +786,36 @@ async function guardarRegistro() {
                 headers: { "Content-Type": "multipart/form-data" },
             });
 
-            if (res.status == 200) {
-                $.toast({
-                    heading: "Ok!!!",
-                    text: res.data.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
+            if (res.status >= 200 && res.status < 300) {
+                toastMessage({
+                    heading: "Completado",
+                    text:
+                        res.data?.data?.message ||
+                        res.data?.message ||
+                        "Sede actualizada correctamente.",
                     icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
                 });
 
                 ListarDatos();
-                btnCerralModalForm();
+                cerrarSidebar();
                 limpiar();
             }
         }
     } catch (error) {
         errores.value = error?.response?.data?.errors || {};
-        handleAxiosErrorToast(error, "No fue posible guardar la sede.");
+        if (error?.response?.status !== 422) {
+            toastMessage({
+                heading: "Error",
+                text: error?.response?.data?.message || "No fue posible guardar la sede.",
+                icon: "error",
+            });
+        }
     } finally {
         loadingGuardar.value = false;
     }
 }
-async function elimnarRegistro(id) {
+
+async function eliminarRegistro(id) {
     const ok = await confirmAction({
         title: "¿Estas seguro?",
         text: "No podrás recuperar este registro!",
@@ -637,19 +829,29 @@ async function elimnarRegistro(id) {
         const response = await axios.delete("/api/config-sedes/" + id);
         alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
         ListarDatos();
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible eliminar el registro.");
+    } catch {
         alertError("Error", "No fue posible eliminar el registro.", "error");
     } finally {
         loadingEliminarId.value = null;
     }
 }
+
 function obtenerPlantillaRx(e) {
     plantillaRx.value = e.target.files[0];
 }
+
 function obtenerPlantillaEcografia(e) {
     plantillaEcografia.value = e.target.files[0];
 }
+
+// Lista de trabajo (worklist HL7) de la sede: valores por defecto cuando la sede aún no los tiene.
+function asignarWorklist(data = {}) {
+    registro.value.worklist_activo = Boolean(data.worklist_activo);
+    registro.value.worklist_puerto = data.worklist_puerto ?? 2575;
+    registro.value.worklist_aet = data.worklist_aet ?? "DCM4CHEE";
+    registro.value.worklist_estacion_aet = data.worklist_estacion_aet ?? "";
+}
+
 function mostrarRegistro(data = {}) {
     if (actualizar.value) {
         tituloModal.value = "Actualizar el registro: " + data.nom_sede;
@@ -666,10 +868,11 @@ function mostrarRegistro(data = {}) {
         registro.value.url_oviyam = data.url_oviyam;
         registro.value.tap_oviyam = data.tap_oviyam;
         registro.value.plantilla = data.plantilla_rx;
+        asignarWorklist(data);
         registro.value.estado = Boolean(data.estado);
 
-        $("#btnCerralModalForm").click();
-        errores.value = [];
+        abrirSidebar();
+        errores.value = {};
     } else {
         actualizar.value = false;
         tituloModal.value = "Nuevo registro";
@@ -686,12 +889,14 @@ function mostrarRegistro(data = {}) {
         registro.value.url_oviyam = "";
         registro.value.tap_oviyam = "";
         registro.value.plantilla = "";
+        asignarWorklist();
         registro.value.estado = true;
 
-        $("#btnCerralModalForm").click();
-        errores.value = [];
+        abrirSidebar();
+        errores.value = {};
     }
 }
+
 function limpiar() {
     actualizar.value = false;
     tituloModal.value = "Nuevo registro";
@@ -706,15 +911,13 @@ function limpiar() {
     registro.value.usuario_oviyam = "";
     registro.value.password_oviyam = "";
     registro.value.url_oviyam = "";
+    registro.value.tap_oviyam = "";
     registro.value.plantilla = "";
+    asignarWorklist();
     registro.value.estado = true;
 
-    $("#btnCerralModalForm").click();
-    errores.value = [];
-}
-function btnCerralModalForm() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").toggleClass("shw-rside");
+    cerrarSidebar();
+    errores.value = {};
 }
 
 onMounted(() => {
@@ -722,30 +925,47 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-    safeDestroyDataTable(dt.value || "#example23");
+    safeDestroyDataTable(dt.value || "#tablaSedes");
 });
 </script>
 <style scoped>
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1090;
+}
+
 .right-sidebar {
     position: fixed;
     right: -50%;
     width: 50%;
-    display: none;
     z-index: 1100;
     background: #ffffff;
     top: 0px;
     padding-bottom: 20px;
     height: 100%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .shw-rside {
-    right: 0px;
-    width: 50%;
-    display: block;
+    right: 0px !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+@media (max-width: 767px) {
+    .right-sidebar {
+        width: 100% !important;
+        right: -100% !important;
+    }
 }
 </style>

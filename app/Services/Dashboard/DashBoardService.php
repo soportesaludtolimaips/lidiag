@@ -22,6 +22,15 @@ class DashBoardService extends BaseService
         STRAIGHT_JOIN estudios_productos ep ON ep.estudio_id = e.id AND ep.activo = 1
         STRAIGHT_JOIN config_productos cp ON cp.id = ep.producto_id AND cp.requi_lectura = 1 AND cp.estado = 1';
 
+    /**
+     * Construye el payload completo del panel de control con caché y alcance por usuario.
+     *
+     * @param  array  $filters  Filtros: days, sede_id, medico_id
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function dashboard(array $filters): array
     {
         $days = (int) ($filters['days'] ?? 30);
@@ -50,6 +59,13 @@ class DashBoardService extends BaseService
         return $this->success($payload);
     }
 
+    /**
+     * Determina si el usuario autenticado tiene el rol de Administrador.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function isAdministrador(): bool
     {
         $user = auth()->user();
@@ -60,6 +76,17 @@ class DashBoardService extends BaseService
         return $user->hasRole('Administrador');
     }
 
+    /**
+     * Resuelve el alcance de los datos según los filtros, el rol y el usuario autenticado.
+     *
+     * @param  array  $filters  Filtros enviados por el usuario
+     * @param  bool  $isAdmin  Indica si el usuario es administrador
+     * @param  int  $userId  Identificador del usuario autenticado
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function resolveScope(array $filters, bool $isAdmin, int $userId): array
     {
         $sedeId = $filters['sede_id'] ?? null;
@@ -85,6 +112,15 @@ class DashBoardService extends BaseService
         ];
     }
 
+    /**
+     * Construye la cláusula WHERE y los parámetros de alcance por médico y sede.
+     *
+     * @param  array  $scope  Alcance con medico_id y sede_id
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function scopeWhere(array $scope): array
     {
         $sql = '';
@@ -101,6 +137,17 @@ class DashBoardService extends BaseService
         return [$sql, $params];
     }
 
+    /**
+     * Ensambla todas las secciones del payload del dashboard en un único arreglo.
+     *
+     * @param  array  $scope  Alcance de datos por médico y sede
+     * @param  int  $days  Número de días del rango de análisis
+     * @param  bool  $isAdmin  Indica si el usuario es administrador
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function buildDashboardPayload(array $scope, int $days, bool $isAdmin): array
     {
         $indicadores = $this->getIndicadores($scope, $days);
@@ -135,6 +182,16 @@ class DashBoardService extends BaseService
         ]);
     }
 
+    /**
+     * Calcula los indicadores principales: estudios asignados, leídos y por transcribir.
+     *
+     * @param  array  $scope  Alcance de datos por médico y sede
+     * @param  int  $days  Número de días del rango de análisis
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function getIndicadores(array $scope, int $days): array
     {
         $fechaInicio = Carbon::now()->subDays($days)->startOfDay();
@@ -169,6 +226,15 @@ class DashBoardService extends BaseService
         ];
     }
 
+    /**
+     * Obtiene los datos de operación del día: asignados, leídos y pendientes.
+     *
+     * @param  array  $scope  Alcance de datos por médico y sede
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function getOperacion(array $scope): array
     {
         [$scopeSql, $scopeParams] = $this->scopeWhere($scope);
@@ -208,6 +274,16 @@ class DashBoardService extends BaseService
         ];
     }
 
+    /**
+     * Genera las series temporales diarias, por hora y heatmap de asignados, leídos y transcritos.
+     *
+     * @param  array  $scope  Alcance de datos por médico y sede
+     * @param  int  $days  Número de días del rango de análisis
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function getSeries(array $scope, int $days): array
     {
         $maxDays = max($days, 7);
@@ -288,6 +364,16 @@ class DashBoardService extends BaseService
         ];
     }
 
+    /**
+     * Calcula los indicadores de calidad: aging de pendientes y tiempos promedio.
+     *
+     * @param  array  $scope  Alcance de datos por médico y sede
+     * @param  int  $days  Número de días del rango de análisis
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function getCalidad(array $scope, int $days): array
     {
         $fechaInicio = Carbon::now()->subDays($days)->startOfDay();
@@ -346,6 +432,16 @@ class DashBoardService extends BaseService
         ];
     }
 
+    /**
+     * Obtiene los 10 estudios más solicitados por modalidad en el rango de fechas.
+     *
+     * @param  array  $scope  Alcance de datos por médico y sede
+     * @param  int  $days  Número de días del rango de análisis
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function getEstudiosMasSolicitados(array $scope, int $days): array
     {
         $fechaInicio = Carbon::now()->subDays($days)->startOfDay();
@@ -363,6 +459,15 @@ class DashBoardService extends BaseService
             ->toArray();
     }
 
+    /**
+     * Obtiene las tablas de los 10 primeros pendientes de lectura y transcripción.
+     *
+     * @param  array  $scope  Alcance de datos por médico y sede
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function getTablas(array $scope): array
     {
         [$scopeSql, $scopeParams] = $this->scopeWhere($scope);
@@ -427,6 +532,16 @@ class DashBoardService extends BaseService
         ];
     }
 
+    /**
+     * Calcula la productividad por médico y sede comparando el período actual con el anterior.
+     *
+     * @param  array  $scope  Alcance de datos por médico y sede
+     * @param  int  $days  Número de días del rango de análisis
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function getProductividad(array $scope, int $days): array
     {
         $fechaInicio = Carbon::now()->subDays($days)->startOfDay();
@@ -513,6 +628,16 @@ class DashBoardService extends BaseService
         ];
     }
 
+    /**
+     * Calcula el cumplimiento de SLA por prioridad para lectura y transcripción.
+     *
+     * @param  array  $scope  Alcance de datos por médico y sede
+     * @param  int  $days  Número de días del rango de análisis
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function getSla(array $scope, int $days): array
     {
         $fechaInicio = Carbon::now()->subDays($days)->startOfDay();
@@ -573,6 +698,16 @@ class DashBoardService extends BaseService
         ];
     }
 
+    /**
+     * Obtiene el ranking de los 10 transcriptores con más estudios transcritos y su tiempo promedio.
+     *
+     * @param  array  $scope  Alcance de datos por médico y sede
+     * @param  int  $days  Número de días del rango de análisis
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function getRankingTranscriptores(array $scope, int $days): array
     {
         $fechaInicio = Carbon::now()->subDays($days)->startOfDay();
@@ -602,6 +737,16 @@ class DashBoardService extends BaseService
         ], $rows);
     }
 
+    /**
+     * Obtiene los indicadores de lectura y transcripción agrupados por prioridad.
+     *
+     * @param  array  $scope  Alcance de datos por médico y sede
+     * @param  int  $days  Número de días del rango de análisis
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function getPrioridades(array $scope, int $days): array
     {
         $fechaInicio = Carbon::now()->subDays($days)->startOfDay();
@@ -639,6 +784,16 @@ class DashBoardService extends BaseService
         ], $rows);
     }
 
+    /**
+     * Calcula el embudo de conversión total, leídos y transcritos con sus tasas.
+     *
+     * @param  array  $scope  Alcance de datos por médico y sede
+     * @param  int  $days  Número de días del rango de análisis
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function getEmbudo(array $scope, int $days): array
     {
         $fechaInicio = Carbon::now()->subDays($days)->startOfDay();
@@ -670,6 +825,15 @@ class DashBoardService extends BaseService
         ];
     }
 
+    /**
+     * Obtiene los catálogos de sedes y médicos para los filtros del dashboard.
+     *
+     * @param  bool  $isAdmin  Indica si el usuario es administrador
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function getCatalogos(bool $isAdmin): array
     {
         $sedes = DB::table('config_sedes')

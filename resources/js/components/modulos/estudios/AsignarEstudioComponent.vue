@@ -28,6 +28,11 @@
                     <li class="breadcrumb-item active">Asignar Estudios</li>
                 </ol>
             </div>
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button type="button" class="btn btn-info" @click="nuevoRegistro()">
+                    <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
+                </button>
+            </div>
         </div>
         <!-- ============================================================== -->
         <!-- End Bread crumb and right sidebar toggle -->
@@ -144,17 +149,45 @@
                                     Asigne los estudios a los médicos para su respectiva lectura.
                                 </h6>
                             </div>
-                            <div class="text-right">
+                            <div class="text-right d-flex align-items-center">
+                                <button
+                                    v-if="estudiosSeleccionados.length > 0"
+                                    type="button"
+                                    class="btn btn-danger m-r-5"
+                                    @click="abrirSidebarQuemarMultiples"
+                                >
+                                    <i class="fa fa-fire"></i>
+                                    Quemar {{ estudiosSeleccionados.length }}
+                                    estudio(s)
+                                </button>
+                                <span
+                                    v-if="estudiosSeleccionados.length > 0"
+                                    class="badge badge-danger m-r-5"
+                                >
+                                    {{ estudiosSeleccionados.length }} seleccionado(s)
+                                </span>
                                 <span class="badge badge-primary" v-if="contadorRegistros > 0"
                                     >{{ contadorRegistros }} registro(s)</span
                                 >
                                 <span class="badge badge-secondary" v-else>Sin resultados</span>
                             </div>
                         </div>
-                        <loading-spinner :visible="loadingBuscar" />
-                        <div class="table-responsive" v-show="!loadingBuscar">
+                        <table-skeleton-loader :visible="loadingBuscar" :rows="6" :columns="7" />
+                        <empty-state-component
+                            v-if="!loadingBuscar && registros.length === 0"
+                            icon="fa fa-folder-open-o"
+                            title="No hay estudios para mostrar"
+                            description="No se encontraron estudios con los filtros seleccionados o use los filtros para buscar."
+                            action-text="Limpiar filtros"
+                            action-icon="fa fa-refresh"
+                            @action="btnLimpiar()"
+                        />
+                        <div
+                            class="table-responsive"
+                            v-show="!loadingBuscar && registros.length > 0"
+                        >
                             <table
-                                id="example23"
+                                id="tablaAsignarEstudio"
                                 ref="dt"
                                 class="table table-bordered table-striped"
                                 cellspacing="0"
@@ -162,40 +195,70 @@
                             >
                                 <thead>
                                     <tr>
-                                        <th with="5%">Fecha del Estudio</th>
-                                        <th with="5%"># Documento</th>
-                                        <th with="30%">Paciente</th>
-                                        <th>Accession</th>
+                                        <th style="width: 35px" class="text-center">
+                                            <input
+                                                type="checkbox"
+                                                :checked="todoSeleccionado"
+                                                @change="toggleSeleccionarTodo"
+                                                title="Seleccionar todo"
+                                            />
+                                        </th>
+                                        <th style="width: 140px" class="text-nowrap">
+                                            Fecha del Estudio
+                                        </th>
+                                        <th style="width: 120px" class="text-nowrap">
+                                            # Documento
+                                        </th>
+                                        <th style="width: 220px">Paciente</th>
+                                        <th style="width: 110px" class="text-nowrap">Accession</th>
                                         <th>Descripción</th>
-                                        <th></th>
+                                        <th style="width: 140px" class="text-center text-nowrap">
+                                            Acciones
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-if="registros.length === 0">
-                                        <td colspan="6" class="text-center text-muted py-3">
-                                            Sin resultados
-                                        </td>
-                                    </tr>
                                     <tr
                                         v-for="(item, index) in registros"
                                         :key="item.study_pk"
                                         :id="item.study_pk"
-                                        :class="{ 'text-info': item.agendado !== 0 }"
+                                        :class="{
+                                            'text-info': item.reportado === 1,
+                                            'selected-row': estudioSeleccionado(item),
+                                        }"
                                     >
-                                        <td>{{ item.study_datetime }}</td>
-                                        <td>{{ item.pat_id }}</td>
-                                        <td>{{ item.pat_name }}</td>
-                                        <td>{{ item.accession_no }}</td>
-                                        <td>{{ item.study_desc }}</td>
-                                        <td class="text-nowrap">
+                                        <td class="text-center align-middle">
+                                            <input
+                                                type="checkbox"
+                                                :checked="estudioSeleccionado(item)"
+                                                @change="alternarSeleccion(item)"
+                                            />
+                                        </td>
+                                        <td class="text-nowrap align-middle">
+                                            {{ item.study_datetime }}
+                                        </td>
+                                        <td class="text-nowrap align-middle">
+                                            <div
+                                                class="text-primary font-weight-bold"
+                                                style="font-size: 15px"
+                                            >
+                                                <i class="fa fa-id-card-o mr-1"></i>
+                                                {{ item.pat_id }}
+                                            </div>
+                                        </td>
+                                        <td class="align-middle font-weight-bold">
+                                            {{ item.pat_name }}
+                                        </td>
+                                        <td class="text-nowrap align-middle">
+                                            {{ item.accession_no }}
+                                        </td>
+                                        <td class="align-middle">{{ item.study_desc }}</td>
+                                        <td class="text-nowrap text-center align-middle">
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
                                                 :disabled="loadingAbrirRegistroIndex === index"
-                                                @click="
-                                                    actualizar = true;
-                                                    mostrarRegistro(item, index);
-                                                "
+                                                @click="mostrarRegistro(item, index)"
                                                 title="Asignar estudio"
                                                 aria-label="Asignar estudio"
                                             >
@@ -207,27 +270,40 @@
                                             </button>
                                             <button
                                                 type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
-                                                @click="
-                                                    verImagen(
-                                                        item.pat_id,
-                                                        item.study_iuid,
-                                                        item.estudio_producto_id
-                                                    )
-                                                "
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
+                                                @click="verImagenItem(item)"
                                                 title="Ver imagenes"
                                                 aria-label="Ver imagenes"
                                                 :disabled="
-                                                    loadingImagenId === item.estudio_producto_id
+                                                    loadingVerImagen === item.estudio_producto_id
                                                 "
                                             >
                                                 <i
                                                     v-if="
-                                                        loadingImagenId === item.estudio_producto_id
+                                                        loadingVerImagen ===
+                                                        item.estudio_producto_id
                                                     "
                                                     class="fa fa-spinner fa-spin"
                                                 ></i>
                                                 <i v-else class="fa fa-file-photo-o"></i>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
+                                                @click="abrirQuemador(item)"
+                                                title="Quemar CD"
+                                                aria-label="Quemar CD"
+                                            >
+                                                <i class="fa fa-fire"></i>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm"
+                                                @click="abrirDescargaZip(item)"
+                                                title="Descargar ZIP"
+                                                aria-label="Descargar ZIP"
+                                            >
+                                                <i class="fa fa-file-archive-o"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -245,8 +321,22 @@
         <!-- ============================================================== -->
         <!-- Right sidebar -->
         <!-- ============================================================== -->
+        <!-- Backdrop para cerrar al hacer clic y atenuar fondo -->
+        <transition name="fade">
+            <div
+                v-if="sidebarVisible || sidebarQuemarMultiplesVisible || quemadorModalVisible"
+                class="sidebar-backdrop"
+                @click="cerrarCualquierSidebar()"
+                aria-hidden="true"
+            ></div>
+        </transition>
+
         <!-- .right-sidebar -->
-        <div class="right-sidebar sidebar-scroll" id="right-sidebar">
+        <div
+            class="right-sidebar sidebar-scroll"
+            id="right-sidebar"
+            :class="{ 'shw-rside': sidebarVisible }"
+        >
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
@@ -270,7 +360,7 @@
                                     <form-paciente
                                         :registro="registro"
                                         :errores="errores"
-                                        :mostrar-errores="false"
+                                        :mostrar-errores="true"
                                     />
 
                                     <h5 class="card-title text-info">
@@ -310,19 +400,23 @@
                                                     name="study_desc"
                                                     v-model="registro.study_desc"
                                                     class="form-control"
+                                                    :class="getInputClass(statusStudyDesc)"
                                                     ref="primerInput"
+                                                    @blur="touch('study_desc')"
                                                 />
-                                                <span class="text-danger" v-if="errores.study_desc">
-                                                    {{ errores.study_desc[0] }}
-                                                </span>
+                                                <div
+                                                    class="invalid-feedback d-block"
+                                                    v-if="statusStudyDesc.isInvalid"
+                                                >
+                                                    {{ statusStudyDesc.message }}
+                                                </div>
                                             </div>
                                         </div>
 
                                         <div class="col-md-4">
                                             <div class="form-group">
                                                 <label class="control-label" for="accession_no"
-                                                    >Detalle
-                                                    <span class="text-danger">*</span></label
+                                                    >Detalle</label
                                                 >
                                                 <input
                                                     type="text"
@@ -331,12 +425,6 @@
                                                     v-model="registro.accession_no"
                                                     class="form-control"
                                                 />
-                                                <span
-                                                    class="text-danger"
-                                                    v-if="errores.accession_no"
-                                                >
-                                                    {{ errores.accession_no[0] }}
-                                                </span>
                                             </div>
                                         </div>
 
@@ -351,13 +439,15 @@
                                                     name="study_datetime"
                                                     v-model="registro.study_datetime"
                                                     class="form-control"
+                                                    :class="getInputClass(statusStudyDatetime)"
+                                                    @blur="touch('study_datetime')"
                                                 />
-                                                <span
-                                                    class="text-danger"
-                                                    v-if="errores.study_datetime"
+                                                <div
+                                                    class="invalid-feedback d-block"
+                                                    v-if="statusStudyDatetime.isInvalid"
                                                 >
-                                                    {{ errores.study_datetime[0] }}
-                                                </span>
+                                                    {{ statusStudyDatetime.message }}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -366,7 +456,9 @@
                                             <div class="form-group">
                                                 <label class="control-label" for="email_reportar"
                                                     >Reportar al Email
-                                                    <span class="text-danger">*</span></label
+                                                    <small class="text-muted"
+                                                        >(Opcional)</small
+                                                    ></label
                                                 >
                                                 <input
                                                     type="email"
@@ -374,6 +466,7 @@
                                                     name="email_reportar"
                                                     v-model="registro.email_reportar"
                                                     class="form-control"
+                                                    placeholder="correo@ejemplo.com"
                                                 />
                                             </div>
                                         </div>
@@ -402,34 +495,70 @@
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
+                                                <label
+                                                    for="exampleInputFile1"
+                                                    class="control-label"
+                                                >
+                                                    <i class="fa fa-paperclip"></i> Adjunto 1
+                                                </label>
                                                 <input
                                                     type="file"
-                                                    class="form-control"
+                                                    class="form-control-file"
                                                     id="exampleInputFile1"
-                                                    aria-describedby="fileHelp"
                                                     accept=".pdf,.jpg,.png,.doc,.docx"
-                                                    @change="obtenerArchivo1"
+                                                    @change="(e) => obtenerArchivo(e, 1)"
                                                 />
+                                                <small
+                                                    v-if="soportesHC.archivo1"
+                                                    class="text-success"
+                                                >
+                                                    <i class="fa fa-check"></i>
+                                                    {{ soportesHC.archivo1.name }}
+                                                </small>
                                             </div>
                                             <div class="form-group">
+                                                <label
+                                                    for="exampleInputFile2"
+                                                    class="control-label"
+                                                >
+                                                    <i class="fa fa-paperclip"></i> Adjunto 2
+                                                </label>
                                                 <input
                                                     type="file"
-                                                    class="form-control"
+                                                    class="form-control-file"
                                                     id="exampleInputFile2"
-                                                    aria-describedby="fileHelp"
                                                     accept=".pdf,.jpg,.png,.doc,.docx"
-                                                    @change="obtenerArchivo2"
+                                                    @change="(e) => obtenerArchivo(e, 2)"
                                                 />
+                                                <small
+                                                    v-if="soportesHC.archivo2"
+                                                    class="text-success"
+                                                >
+                                                    <i class="fa fa-check"></i>
+                                                    {{ soportesHC.archivo2.name }}
+                                                </small>
                                             </div>
                                             <div class="form-group">
+                                                <label
+                                                    for="exampleInputFile3"
+                                                    class="control-label"
+                                                >
+                                                    <i class="fa fa-paperclip"></i> Adjunto 3
+                                                </label>
                                                 <input
                                                     type="file"
-                                                    class="form-control"
+                                                    class="form-control-file"
                                                     id="exampleInputFile3"
-                                                    aria-describedby="fileHelp"
                                                     accept=".pdf,.jpg,.png,.doc,.docx"
-                                                    @change="obtenerArchivo3"
+                                                    @change="(e) => obtenerArchivo(e, 3)"
                                                 />
+                                                <small
+                                                    v-if="soportesHC.archivo3"
+                                                    class="text-success"
+                                                >
+                                                    <i class="fa fa-check"></i>
+                                                    {{ soportesHC.archivo3.name }}
+                                                </small>
                                             </div>
                                         </div>
                                     </div>
@@ -447,11 +576,13 @@
                                                     <span class="text-danger">*</span></label
                                                 >
                                                 <Select2
+                                                    ref="selMedico"
                                                     :value="registro.medico_id"
                                                     :options="medicoOptions"
                                                     width="100%"
                                                     :allow-clear="true"
                                                     :label-fields="['name']"
+                                                    dropdown-parent-selector="#medicos-parent"
                                                     @input="onMedicoSelect"
                                                 />
 
@@ -471,6 +602,8 @@
                                                     name="prioridad_id"
                                                     id="prioridad_id"
                                                     class="form-control custom-select"
+                                                    :class="getInputClass(statusPrioridadId)"
+                                                    @blur="touch('prioridad_id')"
                                                 >
                                                     <option
                                                         v-for="(
@@ -485,12 +618,12 @@
                                                         {{ ItemPrioridad.observacion }}
                                                     </option>
                                                 </select>
-                                                <span
-                                                    class="text-danger"
-                                                    v-if="errores.prioridad_id"
+                                                <div
+                                                    class="invalid-feedback d-block"
+                                                    v-if="statusPrioridadId.isInvalid"
                                                 >
-                                                    {{ errores.prioridad_id[0] }}
-                                                </span>
+                                                    {{ statusPrioridadId.message }}
+                                                </div>
                                             </div>
                                         </div>
 
@@ -519,6 +652,36 @@
                                                         {{ ItemAtencion.FecIngreso }}
                                                     </option>
                                                 </select>
+                                                <div
+                                                    v-if="contratoInfoResumen"
+                                                    class="alert alert-info py-2 px-3 mt-2 mb-0"
+                                                    style="font-size: 13px; line-height: 1.4"
+                                                >
+                                                    <div>
+                                                        <strong>EPS:</strong>
+                                                        {{
+                                                            contratoInfoResumen.NomTercero || "N/A"
+                                                        }}
+                                                    </div>
+                                                    <div>
+                                                        <strong>Contrato:</strong>
+                                                        {{
+                                                            contratoInfoResumen.DesContrato || "N/A"
+                                                        }}
+                                                    </div>
+                                                    <div>
+                                                        <strong>Plan:</strong>
+                                                        {{ contratoInfoResumen.DesPlan || "N/A" }}
+                                                    </div>
+                                                    <div v-if="contratoInfoResumen.NomUbicacion">
+                                                        <strong>Servicio:</strong>
+                                                        {{ contratoInfoResumen.NomUbicacion }}
+                                                    </div>
+                                                    <div v-if="contratoInfoResumen.quien_ordeno">
+                                                        <strong>Médico que ordenó:</strong>
+                                                        {{ contratoInfoResumen.quien_ordeno }}
+                                                    </div>
+                                                </div>
                                                 <!-- <span class="text-danger" v-if="errores.prioridad_id">
                                                     {{ errores.prioridad_id[0] }}
                                                 </span> -->
@@ -542,10 +705,12 @@
                                             id="productos-parent"
                                         >
                                             <Select2
+                                                ref="selProducto"
                                                 :value="productoSelecciondo"
                                                 :options="productoOptions"
                                                 width="100%"
                                                 :allow-clear="true"
+                                                dropdown-parent-selector="#productos-parent"
                                                 @input="onProductoSelect"
                                             />
                                         </div>
@@ -583,7 +748,16 @@
                                                             ></label>
                                                         </td>
                                                         <td>{{ item.cod_cups }}</td>
-                                                        <td>{{ item.nom_produc }}</td>
+                                                        <td>
+                                                            {{ item.nom_produc }}
+                                                            <div v-if="item.medico_ordena">
+                                                                <small class="text-muted"
+                                                                    ><i class="fa fa-user-md"></i>
+                                                                    Ordena:
+                                                                    {{ item.medico_ordena }}</small
+                                                                >
+                                                            </div>
+                                                        </td>
                                                         <td class="text-nowrap">
                                                             <button
                                                                 type="button"
@@ -616,11 +790,13 @@
                                             id="diagnosticos-parent"
                                         >
                                             <Select2
+                                                ref="selDiagnostico"
                                                 :value="diagnosticoSelecciondo"
                                                 :options="diagnosticoOptions"
                                                 width="100%"
                                                 :allow-clear="true"
                                                 :label-fields="['nom_diagnos']"
+                                                dropdown-parent-selector="#diagnosticos-parent"
                                                 @input="onDiagnosticoSelect"
                                             />
                                         </div>
@@ -664,6 +840,17 @@
 
                                     <h5 class="card-title text-info m-t-40">
                                         <i class="fa fa-history"></i> MOTIVO DEL EXAMEN
+                                        <span
+                                            v-if="
+                                                props.usuarioactual.transcrip_remoto == 0 ||
+                                                props.usuarioactual.transcrip_remoto == null
+                                            "
+                                            class="text-danger"
+                                            >*</span
+                                        >
+                                        <small v-else class="text-muted font-normal"
+                                            >(Opcional para usuarios remotos)</small
+                                        >
                                     </h5>
 
                                     <div class="row">
@@ -695,18 +882,30 @@
                                     class="btn btn-success m-r-5"
                                     @click="guardarRegistro()"
                                     :disabled="loadingGuardar"
+                                    title="Guardar asignación (Ctrl + S)"
                                 >
                                     <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
                                     <i v-else class="fa fa-check"></i>
                                     Guardar
+                                    <span
+                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                                        style="font-size: 10px"
+                                        >Ctrl+S</span
+                                    >
                                 </button>
 
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
                                     @click="cerrarModal()"
+                                    title="Cerrar panel (Esc)"
                                 >
-                                    Cancel
+                                    Cancelar
+                                    <span
+                                        class="badge badge-secondary ml-1 d-none d-md-inline"
+                                        style="font-size: 10px"
+                                        >Esc</span
+                                    >
                                 </button>
                             </div>
                             <div class="progress mt-2 progress-thin" v-if="progresoUpload !== null">
@@ -727,30 +926,192 @@
         <!-- ============================================================== -->
         <!-- End Right sidebar -->
         <!-- ============================================================== -->
+
+        <!-- ============================================================== -->
+        <!-- Sidebar Quemar Múltiples Estudios -->
+        <!-- ============================================================== -->
+        <div
+            class="right-sidebar sidebar-scroll"
+            :class="{ 'shw-rside': sidebarQuemarMultiplesVisible }"
+        >
+            <div class="slimscrollright">
+                <div class="rpanel-title">
+                    <i class="fa fa-fire text-danger"></i> Quemar Múltiples Estudios
+                    <button
+                        type="button"
+                        class="right-side-toggle"
+                        @click="cerrarSidebarQuemarMultiples"
+                        aria-label="Cerrar panel"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
+                </div>
+                <div class="r-panel-body">
+                    <quemar-multiples-component
+                        v-if="sidebarQuemarMultiplesVisible"
+                        :estudios="estudiosSeleccionados"
+                        :usuarioactual="usuarioactual"
+                        @cerrar="cerrarSidebarQuemarMultiples"
+                        @completado="onQuemadoMultiplesCompletado"
+                    />
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- Sidebar Quemador CD Individual -->
+        <!-- ============================================================== -->
+        <div class="right-sidebar sidebar-scroll" :class="{ 'shw-rside': quemadorModalVisible }">
+            <div class="slimscrollright">
+                <div class="rpanel-title">
+                    <i class="fa fa-compact-disc text-danger mr-1"></i> Quemador de CD/DVD
+                    <button
+                        type="button"
+                        class="right-side-toggle"
+                        @click="cerrarQuemador"
+                        aria-label="Cerrar panel"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
+                </div>
+                <div class="r-panel-body">
+                    <quemador-cd-component
+                        v-if="quemadorModalVisible && estudioParaQuemar !== null"
+                        :estudio="estudioParaQuemar"
+                        :usuarioactual="usuarioactual"
+                        @cerrar="cerrarQuemador"
+                        @completado="onQuemadoCompletado"
+                    />
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- Modal Descargar ZIP -->
+        <!-- ============================================================== -->
+        <div
+            v-if="descargaModalVisible"
+            class="modal fade show"
+            id="descargarZipModal"
+            tabindex="-1"
+            role="dialog"
+            aria-labelledby="descargarZipModalLabel"
+            aria-hidden="true"
+            style="display: block; background: rgba(0, 0, 0, 0.5)"
+            @click.self="cerrarDescargaZip()"
+        >
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="descargarZipModalLabel">
+                            <i class="fa fa-file-archive-o"></i> Descargar Estudio ZIP
+                        </h5>
+                        <button
+                            type="button"
+                            class="close"
+                            @click="cerrarDescargaZip()"
+                            aria-label="Close"
+                        >
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <descargar-zip-component
+                            v-if="estudioParaDescargar !== null"
+                            :estudio="estudioParaDescargar"
+                            :usuarioactual="usuarioactual"
+                            @cerrar="cerrarDescargaZip"
+                            @completado="onDescargaZipCompletado"
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
-import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
-import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
-import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { confirmAction, handleAxiosErrorToast } from "@/helpers/alerts";
-import { normalizarFecha } from "@/helpers/dateUtils.js";
-import { useSede } from "@/composables/useSede";
 import axios from "axios";
+
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
+import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
+import { safeDestroyDataTable, safeGetDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import { confirmAction, toastMessage, getUserSafeError, swalSuccess } from "@/helpers/alerts";
+import { normalizarFecha } from "@/helpers/dateUtils.js";
+import { getModuloIdActual } from "@/helpers/usuarios";
+import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
+import QuemadorCdComponent from "@/components/modulos/estudios/QuemadorCdComponent.vue";
+import QuemarMultiplesComponent from "@/components/modulos/estudios/QuemarMultiplesComponent.vue";
+import DescargarZipComponent from "@/components/modulos/estudios/DescargarZipComponent.vue";
+import { useFormValidation } from "@/composables/useFormValidation";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 
 const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
 
+const { loadingVerImagen, verImagen } = useEstudioHelpers();
+
+/**
+ * Abre el visor de imágenes del estudio. Lee sessionStorage en scope de
+ * script porque el template de Vue 3 no puede acceder a globales del
+ * navegador (compila a _ctx.sessionStorage = undefined).
+ * Si la URL no está en memoria o quedó con "undefined", intenta recuperarla
+ * de la configuración de la sede activa.
+ */
+async function verImagenItem(item) {
+    let url = sessionStorage.getItem("ST-urlsede") || localStorage.getItem("ST-urlsede");
+    let serverName =
+        sessionStorage.getItem("ST-servername") || localStorage.getItem("ST-servername");
+
+    if (!url || url === "undefined" || url === "null" || !url.trim()) {
+        const sedeId =
+            sedeActual.value ||
+            sessionStorage.getItem("ST-sede") ||
+            localStorage.getItem("ST-sede");
+        if (sedeId) {
+            try {
+                const res = await axios.get("/api/config-sedes/" + sedeId + "/buscarPorId");
+                const sedeData = res?.data?.data || res?.data || {};
+                url = sedeData.url_oviyam || "";
+                serverName = sedeData.tap_oviyam || "";
+                if (url) {
+                    sessionStorage.setItem("ST-urlsede", url);
+                    sessionStorage.setItem("ST-servername", serverName);
+                    localStorage.setItem("ST-urlsede", url);
+                    localStorage.setItem("ST-servername", serverName);
+                }
+            } catch {
+                /* Si falla la petición, se informará con el toastMessage */
+            }
+        }
+    }
+
+    if (!url || url === "undefined" || url === "null" || !url.trim()) {
+        toastMessage({
+            heading: "Upsss!!!",
+            text: "No hay visor de imágenes configurado para la sede actual.",
+            icon: "warning",
+        });
+        return;
+    }
+
+    const cleanServerName =
+        !serverName || serverName === "undefined" || serverName === "null"
+            ? ""
+            : String(serverName).trim();
+
+    verImagen(url.trim(), item.pat_id, item.study_iuid, cleanServerName, item.estudio_producto_id);
+}
+
 const props = defineProps({
-    usuarioactual: Object,
+    usuarioactual: { type: Object, default: () => ({}) },
+    permisos: { type: Array, default: () => [] },
 });
-const dataIndex = ref(0);
-const id = ref(0);
 const registros = ref([]);
 const tituloModal = ref("Nuevo registro");
 const sedeInterface = ref(false);
-const sedeActual = ref(sessionStorage.getItem("ST-sede"));
+const sedeActual = ref(
+    sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || null
+);
 const dt = ref(null);
 const registro = ref({
     study_pk: "",
@@ -778,6 +1139,11 @@ const registro = ref({
     atencion_id: null,
     destino_estudio: "Salud Tolima",
     motivo_examen: "",
+    eps: "",
+    contrato: "",
+    plan: "",
+    servicio: "",
+    medico_ordena: "",
 });
 const soportesHC = ref({ archivo1: null, archivo2: null, archivo3: null });
 const busqueda = ref({
@@ -788,6 +1154,7 @@ const busqueda = ref({
 });
 const interfaceAtenciones = ref([]);
 const interfaceAtencionSeleccionada = ref(null);
+const contratoInfoResumen = ref(null);
 const errores = ref({});
 const erroresBusqueda = ref({});
 const medicos = ref([]);
@@ -796,19 +1163,147 @@ const productos = ref([]);
 const diagnosticos = ref([]);
 const productoSelecciondo = ref("");
 const diagnosticoSelecciondo = ref("");
-const productosAtencion = ref([]);
 const idRow = ref(null);
-const selectedRows = ref({});
 const loadingBuscar = ref(false);
 const loadingGuardar = ref(false);
 const loadingAbrirRegistroIndex = ref(null);
-const loadingImagenId = ref(null);
+const lockAsignParams = ref(null);
+let lockHeartbeatTimer = null;
 const progresoUpload = ref(null);
 const primerInput = ref(null);
+const selMedico = ref(null);
+const selProducto = ref(null);
+const selDiagnostico = ref(null);
+const estudioParaQuemar = ref(null);
+const estudioParaDescargar = ref(null);
+const quemadorModalVisible = ref(false);
+const descargaModalVisible = ref(false);
+const sidebarVisible = ref(false);
+
+const estudiosSeleccionados = ref([]);
+const sidebarQuemarMultiplesVisible = ref(false);
 
 const contadorRegistros = computed(() => {
     return registros.value.length;
 });
+
+const { touch, touchAll, getFieldStatus, getInputClass, validators, resetTouched } =
+    useFormValidation();
+
+const statusStudyDesc = computed(() =>
+    getFieldStatus("study_desc", registro.value.study_desc, [validators.required], errores.value)
+);
+
+const statusStudyDatetime = computed(() =>
+    getFieldStatus(
+        "study_datetime",
+        registro.value.study_datetime,
+        [validators.required],
+        errores.value
+    )
+);
+
+const statusPrioridadId = computed(() =>
+    getFieldStatus(
+        "prioridad_id",
+        registro.value.prioridad_id,
+        [validators.required],
+        errores.value
+    )
+);
+
+useKeyboardShortcuts({
+    onSave: guardarRegistro,
+    onEscape: () => {
+        if (quemadorModalVisible.value) {
+            cerrarQuemador();
+        } else if (sidebarQuemarMultiplesVisible.value) {
+            cerrarSidebarQuemarMultiples();
+        } else if (sidebarVisible.value) {
+            cerrarModal();
+        }
+    },
+    isActive: () =>
+        sidebarVisible.value || sidebarQuemarMultiplesVisible.value || quemadorModalVisible.value,
+    isLoading: loadingGuardar,
+});
+
+const todoSeleccionado = computed(() => {
+    if (registros.value.length === 0) return false;
+    return registros.value.every((r) =>
+        estudiosSeleccionados.value.some((s) => s.study_pk === r.study_pk)
+    );
+});
+
+/**
+ * Indica si un estudio ya está en la lista de selección múltiple.
+ *
+ * @param {Object} item Estudio de la fila, identificado por `study_pk`.
+ *
+ * @returns {boolean} true si el estudio está seleccionado.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
+function estudioSeleccionado(item) {
+    return estudiosSeleccionados.value.some((s) => s.study_pk === item.study_pk);
+}
+
+/**
+ * Selecciona todos los estudios listados o vacía la selección si ya estaban todos.
+ * Solo se guardan los campos necesarios para las acciones de descarga y quema.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
+function toggleSeleccionarTodo() {
+    if (todoSeleccionado.value) {
+        estudiosSeleccionados.value = [];
+    } else {
+        estudiosSeleccionados.value = registros.value.map((r) => ({
+            study_pk: r.study_pk,
+            study_iuid: r.study_iuid,
+            pat_name: r.pat_name,
+            pat_id: r.pat_id,
+            study_desc: r.study_desc,
+            study_datetime: r.study_datetime,
+            accession_no: r.accession_no,
+        }));
+    }
+}
+
+/**
+ * Agrega o quita un estudio de la selección múltiple.
+ *
+ * @param {Object} item Estudio de la fila.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
+function alternarSeleccion(item) {
+    const idx = estudiosSeleccionados.value.findIndex((s) => s.study_pk === item.study_pk);
+    if (idx >= 0) {
+        estudiosSeleccionados.value.splice(idx, 1);
+    } else {
+        estudiosSeleccionados.value.push({
+            study_pk: item.study_pk,
+            study_iuid: item.study_iuid,
+            pat_name: item.pat_name,
+            pat_id: item.pat_id,
+            study_desc: item.study_desc,
+            study_datetime: item.study_datetime,
+            accession_no: item.accession_no,
+        });
+    }
+}
+
 const diagnosticoOptions = computed(() => {
     // Adaptar opciones al Select2 local: usa optionValue='id' y labelFields.
     return (diagnosticos.value || []).map((d) => ({
@@ -816,6 +1311,7 @@ const diagnosticoOptions = computed(() => {
         nom_diagnos: d.nom_diagnos,
     }));
 });
+
 const productoOptions = computed(() => {
     // Opciones para el Select2 local de productos.
     return (productos.value || []).map((p) => ({
@@ -824,72 +1320,87 @@ const productoOptions = computed(() => {
         nom_produc: p.nom_produc,
     }));
 });
+
 const medicoOptions = computed(() => {
-    // Opciones para el Select2 local de medicos.
-    return (medicos.value || []).map((p) => ({ id: String(p.id), name: p.name }));
+    // Opciones para el Select2 local de médicos activos ordenados alfabéticamente.
+    return (medicos.value || [])
+        .filter(
+            (u) =>
+                u &&
+                (u.estado === undefined || u.estado === 1 || u.estado === true || u.estado === "1")
+        )
+        .map((p) => ({ id: String(p.id), name: (p.name || "").trim() }))
+        .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
 });
 
+/**
+ * Destruye la instancia de DataTables antes de recargar o al desmontar el componente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function destroyDataTable() {
-    safeDestroyDataTable(dt.value || "#example23");
+    safeDestroyDataTable(dt.value || "#tablaAsignarEstudio");
 }
 
 /**
  * Buscar estudios según los criterios de búsqueda.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
  */
 async function buscarStudy() {
     destroyDataTable();
 
     try {
-        if (sessionStorage.getItem("ST-sede") == null) {
-            $.toast({
+        const sedeActiva =
+            sessionStorage.getItem("ST-sede") ||
+            localStorage.getItem("ST-sede") ||
+            busqueda.value.sede_id ||
+            registro.value.sede_id;
+
+        if (!sedeActiva) {
+            toastMessage({
                 heading: "Upsss!!!",
-                text: "Debes establece la sede en la cual vas a trabajar.",
-                position: "top-right",
-                loaderBg: "#ff6849",
+                text: "Debes establecer la sede en la cual vas a trabajar.",
                 icon: "warning",
-                hideAfter: 3500,
-                stack: 6,
             });
+            return;
+        }
+
+        busqueda.value.sede_id = sedeActiva;
+        if (!sessionStorage.getItem("ST-sede")) {
+            sessionStorage.setItem("ST-sede", String(sedeActiva));
         } else if (
             busqueda.value.bus_nom_num_docu == "" &&
             busqueda.value.bus_fech_ini == "" &&
             busqueda.value.bus_fecha_fin == ""
         ) {
-            $.toast({
+            toastMessage({
                 heading: "Upsss!!!",
                 text: "Debes establece la fecha de inicio o finalización para la busqueda.",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "warning",
-                hideAfter: 3500,
-                stack: 6,
             });
         } else if (
             busqueda.value.bus_nom_num_docu == "" &&
             (busqueda.value.bus_fech_ini == "" || busqueda.value.bus_fecha_fin == "")
         ) {
-            $.toast({
+            toastMessage({
                 heading: "Upsss!!!",
                 text: "Para buscar por fecha debes seleccionar fecha inicio y fecha fin.",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "warning",
-                hideAfter: 3500,
-                stack: 6,
             });
         } else if (
             busqueda.value.bus_fech_ini &&
             busqueda.value.bus_fecha_fin &&
             busqueda.value.bus_fech_ini > busqueda.value.bus_fecha_fin
         ) {
-            $.toast({
+            toastMessage({
                 heading: "Upsss!!!",
                 text: "La fecha inicio no puede ser mayor a la fecha fin.",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "warning",
-                hideAfter: 3500,
-                stack: 6,
             });
         } else {
             if (loadingBuscar.value) return;
@@ -897,60 +1408,104 @@ async function buscarStudy() {
             const res = await axios.post("/api/study.listarEstudios", busqueda.value);
 
             if (res.status == 200) {
-                destroyDataTable();
-
                 // Asegurar que siempre sea un array (por si llega string JSON)
                 let data = res.data.data;
                 if (typeof data === "string") {
                     try {
                         data = JSON.parse(data);
-                    } catch (e) {
+                    } catch (_error) {
                         data = [];
                     }
                 }
                 registros.value = Array.isArray(data) ? data : [];
                 nextTick(() => {
-                    safeInitDataTable(dt.value || "#example23", {
+                    destroyDataTable();
+                    safeInitDataTable(dt.value || "#tablaAsignarEstudio", {
                         dom: "Bfrtip",
                         buttons: ["copy", "csv", "excel", "pdf", "print"],
+                        autoWidth: false,
+                        columnDefs: [
+                            { targets: [0, 6], orderable: false },
+                            { targets: 0, width: "35px", className: "text-center align-middle" },
+                            { targets: 1, width: "140px", className: "text-nowrap align-middle" },
+                            { targets: 2, width: "120px", className: "text-nowrap align-middle" },
+                            { targets: 3, width: "220px", className: "align-middle" },
+                            { targets: 4, width: "110px", className: "text-nowrap align-middle" },
+                            { targets: 5, className: "align-middle" },
+                            {
+                                targets: 6,
+                                width: "140px",
+                                className: "text-nowrap text-center align-middle",
+                            },
+                        ],
                     });
-                });
-            } else if (res.status == 500) {
-                $.toast({
-                    heading: "Upsss!!!",
-                    text: res.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "danger",
-                    hideAfter: 3500,
-                    stack: 6,
                 });
             }
         }
     } catch (error) {
         erroresBusqueda.value = error?.response?.data?.errors || {};
-        handleAxiosErrorToast(error, "No fue posible listar estudios.");
+        toastMessage({
+            heading: "Error",
+            text: getUserSafeError(error, "No fue posible listar los estudios."),
+            icon: "error",
+        });
     } finally {
         loadingBuscar.value = false;
     }
 }
+
+/**
+ * Guardar el registro del estudio asignado.
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa el guardado del registro.
+ * @author: Jhon Javer Lozano Arce
+ */
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
+
+    touchAll(["study_desc", "study_datetime", "prioridad_id"]);
+    if (registro.value.email_reportar && String(registro.value.email_reportar).trim() !== "") {
+        touch("email_reportar");
+    }
+
+    if (
+        statusStudyDesc.value.isInvalid ||
+        statusStudyDatetime.value.isInvalid ||
+        statusPrioridadId.value.isInvalid
+    ) {
+        toastMessage({
+            heading: "Formulario incompleto",
+            text: "Por favor complete o corrija los campos requeridos del estudio antes de continuar.",
+            icon: "warning",
+        });
+
+        loadingGuardar.value = false;
+        return;
+    }
 
     if (
         (props.usuarioactual.transcrip_remoto == 0 ||
             props.usuarioactual.transcrip_remoto == null) &&
         registro.value.motivo_examen == ""
     ) {
-        $.toast({
+        toastMessage({
             heading: "Upsss!!!",
             text: "El motivo del examen es obligatorio. Debes ingresarlo antes de guardar.",
-            position: "top-right",
-            loaderBg: "#ff6849",
             icon: "warning",
-            hideAfter: 3500,
-            stack: 6,
+        });
+
+        loadingGuardar.value = false;
+        return;
+    }
+
+    if (
+        registro.value.destino_estudio !== "Tele Radiologia" &&
+        (!registro.value.medico_id || registro.value.medico_id === "")
+    ) {
+        toastMessage({
+            heading: "Upsss!!!",
+            text: "Debes seleccionar un médico antes de guardar.",
+            icon: "warning",
         });
 
         loadingGuardar.value = false;
@@ -958,11 +1513,25 @@ async function guardarRegistro() {
     }
 
     try {
+        const cleanEmail =
+            registro.value.email_reportar &&
+            registro.value.email_reportar !== "null" &&
+            registro.value.email_reportar !== "undefined" &&
+            String(registro.value.email_reportar).trim() !== ""
+                ? String(registro.value.email_reportar).trim()
+                : null;
+        const registroPayload = {
+            ...registro.value,
+            email_reportar: cleanEmail,
+        };
+
         const formData = new FormData();
-        formData.append("registro", JSON.stringify(registro.value));
+        formData.append("registro", JSON.stringify(registroPayload));
         if (soportesHC.value.archivo1) formData.append("archivo1", soportesHC.value.archivo1);
         if (soportesHC.value.archivo2) formData.append("archivo2", soportesHC.value.archivo2);
         if (soportesHC.value.archivo3) formData.append("archivo3", soportesHC.value.archivo3);
+
+        detenerHeartbeatLockAsignacion();
 
         const res = await axios.post("/api/estudios", formData, {
             headers: { "Content-Type": "multipart/form-data" },
@@ -971,106 +1540,224 @@ async function guardarRegistro() {
             },
         });
 
-        if (res.status == 200) {
-            $.toast({
+        if (res.status === 200 || res.status === 201) {
+            const studyPk = registro.value.study_pk;
+            const rowIdx = idRow.value;
+
+            // El backend ya liberó el lock dentro de la transacción de EstudioService::create
+            lockAsignParams.value = null;
+            cerrarModal({ skipRelease: true });
+
+            toastMessage({
                 heading: "Completado",
                 text: res.data.message,
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "success",
-                hideAfter: 3500,
-                stack: 6,
             });
 
-            // Actualiza el valor de `agendado` para que se refleje el cambio de clase
-            registros.value[idRow.value].agendado = 1; // O el valor que necesites asignar
-            selectedRows.value[idRow.value] = !selectedRows.value[idRow.value];
+            requestAnimationFrame(() => {
+                if (studyPk) {
+                    const targetItem = registros.value.find(
+                        (r) => String(r.study_pk) === String(studyPk)
+                    );
+                    if (targetItem) {
+                        targetItem.agendado = 1;
+                    }
+                }
+
+                if (rowIdx !== null && rowIdx >= 0 && rowIdx < registros.value.length) {
+                    registros.value[rowIdx].agendado = 1;
+                }
+
+                nextTick(() => {
+                    if (studyPk) {
+                        const rowEl = document.getElementById(String(studyPk));
+                        if (rowEl) {
+                            rowEl.classList.add("text-info");
+                            const dtInstance = safeGetDataTable(dt.value || "#tablaAsignarEstudio");
+                            if (dtInstance) {
+                                try {
+                                    const dtRow = dtInstance.row(rowEl);
+                                    if (dtRow && dtRow.node()) {
+                                        dtRow.node().classList.add("text-info");
+                                    }
+                                } catch (_) {}
+                            }
+                        }
+                    }
+                });
+            });
+            return;
         }
 
-        btnCerralModalForm();
-        btnLimpiar();
+        cerrarModal();
     } catch (error) {
+        if (lockAsignParams.value && sidebarVisible.value) {
+            iniciarHeartbeatLockAsignacion();
+        }
         errores.value =
             error?.response?.data?.errors && typeof error.response.data.errors === "object"
                 ? error.response.data.errors
                 : {};
         const status = error?.response?.status;
         if (status == 400) {
-            $.toast({
+            toastMessage({
                 heading: "Upsss!!!",
                 text: error.response.data.message,
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "warning",
                 hideAfter: 5500,
-                stack: 6,
             });
         } else {
-            handleAxiosErrorToast(error, "No fue posible guardar el estudio.");
+            toastMessage({
+                heading: "Error",
+                text: error.response?.data?.message || "No fue posible guardar el registro.",
+                icon: "error",
+            });
         }
     } finally {
         loadingGuardar.value = false;
         progresoUpload.value = null;
     }
 }
-function obtenerArchivo1(e) {
+
+/**
+ * Obtener el archivo seleccionado y verificar su tamaño.
+ * @param {Event} e - El evento de cambio del input de archivo.
+ * @param {number} index - Índice del archivo (1, 2 o 3).
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
+function obtenerArchivo(e, index) {
     const file = e.target.files[0];
     if (file && file.size > 10 * 1024 * 1024) {
-        $.toast({
+        toastMessage({
             heading: "Archivo muy grande",
             text: "El archivo no debe superar los 10MB.",
-            position: "top-right",
-            loaderBg: "#ff6849",
             icon: "warning",
-            hideAfter: 3500,
-            stack: 6,
         });
         e.target.value = "";
         return;
     }
-    soportesHC.value.archivo1 = file || null;
+    soportesHC.value[`archivo${index}`] = file || null;
 }
-function obtenerArchivo2(e) {
-    const file = e.target.files[0];
-    if (file && file.size > 10 * 1024 * 1024) {
-        $.toast({
-            heading: "Archivo muy grande",
-            text: "El archivo no debe superar los 10MB.",
-            position: "top-right",
-            loaderBg: "#ff6849",
-            icon: "warning",
-            hideAfter: 3500,
-            stack: 6,
-        });
-        e.target.value = "";
-        return;
+
+/**
+ * Toma la reserva (lock) del estudio DICOM antes de abrir el formulario.
+ * Si otro usuario lo tiene reservado, muestra el aviso y devuelve false.
+ * @param {Object} data - Datos del estudio DICOM seleccionado.
+ * @returns {Promise<boolean>} true si la reserva fue adquirida.
+ * @author: Jhon Javer Lozano Arce
+ */
+async function tomarLockAsignacion(data) {
+    const params = {
+        tipo: "asignacion",
+        study_iuid: data.study_iuid || "",
+        study_pk: data.study_pk || null,
+        sede_id: sedeActual.value,
+    };
+
+    try {
+        await liberarLockAsignacion();
+        await axios.post("/api/estudio-lock/tomar", params);
+        lockAsignParams.value = params;
+        iniciarHeartbeatLockAsignacion();
+        return true;
+    } catch (error) {
+        if (error.response?.status === 409) {
+            toastMessage({
+                heading: "Estudio en uso",
+                text: error.response.data.message,
+                icon: "warning",
+                hideAfter: 5500,
+            });
+        } else {
+            toastMessage({
+                heading: "Error",
+                text: getUserSafeError(error, "No fue posible reservar el estudio."),
+                icon: "error",
+            });
+        }
+        return false;
     }
-    soportesHC.value.archivo2 = file || null;
 }
-function obtenerArchivo3(e) {
-    const file = e.target.files[0];
-    if (file && file.size > 10 * 1024 * 1024) {
-        $.toast({
-            heading: "Archivo muy grande",
-            text: "El archivo no debe superar los 10MB.",
-            position: "top-right",
-            loaderBg: "#ff6849",
-            icon: "warning",
-            hideAfter: 3500,
-            stack: 6,
-        });
-        e.target.value = "";
-        return;
+
+/**
+ * Renueva la reserva cada 45 segundos mientras el formulario esté abierto.
+ * Si la reserva la tomó otro usuario, cierra el formulario.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
+function iniciarHeartbeatLockAsignacion() {
+    detenerHeartbeatLockAsignacion();
+    lockHeartbeatTimer = setInterval(async () => {
+        if (!lockAsignParams.value) return;
+        try {
+            await axios.post("/api/estudio-lock/tomar", lockAsignParams.value);
+        } catch (error) {
+            if (error.response?.status === 409) {
+                detenerHeartbeatLockAsignacion();
+                lockAsignParams.value = null;
+                toastMessage({
+                    heading: "Reserva perdida",
+                    text: "Otro usuario tomó la reserva de este estudio. El formulario se cerrará.",
+                    icon: "warning",
+                    hideAfter: 5500,
+                });
+                cerrarModal();
+            }
+        }
+    }, 45000);
+}
+
+/**
+ * Detiene el timer de renovación de la reserva.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
+function detenerHeartbeatLockAsignacion() {
+    if (lockHeartbeatTimer) {
+        clearInterval(lockHeartbeatTimer);
+        lockHeartbeatTimer = null;
     }
-    soportesHC.value.archivo3 = file || null;
 }
+
+/**
+ * Libera la reserva activa del formulario (idempotente, best-effort).
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
+async function liberarLockAsignacion() {
+    if (!lockAsignParams.value) return;
+    const params = lockAsignParams.value;
+    lockAsignParams.value = null;
+    detenerHeartbeatLockAsignacion();
+    try {
+        await axios.post("/api/estudio-lock/liberar", params);
+    } catch {
+        /* la reserva expira sola si falla la liberación */
+    }
+}
+
+/**
+ * Mostrar el registro del estudio en el modal para agendar al paciente.
+ * @param {Object} data - Objeto que contiene los datos del estudio a mostrar.
+ * @param {number} index - Índice del registro en la lista de estudios.
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa la carga del registro.
+ * @author: Jhon Javer Lozano Arce
+ */
 async function mostrarRegistro(data = {}, index) {
     if (loadingAbrirRegistroIndex.value !== null) return;
     loadingAbrirRegistroIndex.value = index;
-    btnLimpiar();
 
-    tituloModal.value = "Agendar al paciente: " + data.pat_name;
-    id.value = data.study_pk;
+    const reservado = await tomarLockAsignacion(data);
+    if (!reservado) {
+        loadingAbrirRegistroIndex.value = null;
+        return;
+    }
+
+    limpiarFormulario();
+    //registro.value.medico_id = "";
+
+    tituloModal.value = `Agendar al paciente: ${data.pat_name} ${data.pat_id ? `(${data.pat_id})` : ""}`;
     registro.value.study_pk = data.study_pk;
     registro.value.study_iuid = data.study_iuid;
     registro.value.study_id = data.study_id;
@@ -1079,7 +1766,9 @@ async function mostrarRegistro(data = {}, index) {
     registro.value.study_desc = data.study_desc;
     registro.value.mods_in_study = data.mods_in_study;
     registro.value.email = "";
-    registro.value.email_reportar = sessionStorage.getItem("ST-email_repor");
+    const emailRepor =
+        sessionStorage.getItem("ST-email_repor") || localStorage.getItem("ST-email_repor") || "";
+    registro.value.email_reportar = emailRepor;
     registro.value.num_docu = data.pat_id;
     registro.value.nombres = data.pat_name;
     registro.value.sexo = data.pat_sex;
@@ -1103,21 +1792,32 @@ async function mostrarRegistro(data = {}, index) {
             interfaceAtenciones.value = resAtenciones.data.data;
         }
     } catch (error) {
-        handleAxiosErrorToast(
-            error,
-            "No fue posible cargar la configuración/atenciones de la sede."
-        );
+        toastMessage({
+            heading: "Error",
+            text:
+                error.response?.data?.message ||
+                "No fue posible cargar la configuración de la sede.",
+            icon: "error",
+        });
     } finally {
         loadingAbrirRegistroIndex.value = null;
     }
 }
+
+/**
+ * Listar los productos y diagnosticos de la atencion seleccionada en la interface.
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa la carga de productos y diagnosticos.
+ * @author: Jhon Javer Lozano Arce
+ */
 async function interfaceListarProductosDiagnosticos() {
     const resProuctos = await axios.get(
-        "/api/interface-sahi-listar-listarProductosDiagnosticos/" +
-            interfaceAtencionSeleccionada.value
+        "/api/interface-sahi-listar-productos-diagnosticos/" + interfaceAtencionSeleccionada.value
     );
 
     const data = resProuctos.data.data;
+
+    contratoInfoResumen.value = data.contrato_info || null;
+
     registro.value.productosEstudio = [];
     if (data.productos.length > 0) {
         data.productos.forEach((element) => {
@@ -1126,8 +1826,20 @@ async function interfaceListarProductosDiagnosticos() {
                 id: element.IdProducto,
                 cod_cups: element.cod_cups,
                 nom_produc: element.nom_produc,
+                medico_ordena:
+                    element.quien_ordeno ||
+                    (data.contrato_info ? data.contrato_info.quien_ordeno : null) ||
+                    null,
             });
         });
+    }
+
+    if (data.contrato_info) {
+        registro.value.eps = data.contrato_info.NomTercero || "";
+        registro.value.contrato = data.contrato_info.DesContrato || "";
+        registro.value.plan = data.contrato_info.DesPlan || "";
+        registro.value.servicio = data.contrato_info.NomUbicacion || "";
+        registro.value.medico_ordena = data.contrato_info.quien_ordeno || "";
     }
 
     let EnfermedadActualDiagnosticos = "";
@@ -1136,7 +1848,14 @@ async function interfaceListarProductosDiagnosticos() {
     EnfermedadActualDiagnosticos = "Enfermedad Actual: ";
     if (consultas.length > 0) {
         consultas.forEach((c) => {
-            EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos}\n ${c.DesEnfermedadActual} \n`;
+            const enfermedad =
+                c.DesEnfermedadActual ||
+                c.des_enfermedad_actual ||
+                c.EnfermedadActual ||
+                c.enfermedad_actual;
+            if (enfermedad) {
+                EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos}\n ${enfermedad} \n`;
+            }
         });
     }
 
@@ -1144,7 +1863,11 @@ async function interfaceListarProductosDiagnosticos() {
     EnfermedadActualDiagnosticos += `\nDiagnosticos:`;
     if (diagnosticos.length > 0) {
         diagnosticos.forEach((d) => {
-            EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos} \n ${d.cod_diagnos} - ${d.nom_diagnos}`;
+            const codigo = d.cod_diagnos || d.CodCie9 || d.cod_cie9 || "";
+            const nombre = d.nom_diagnos || d.NomDiagnostico || d.nom_diagnostico || "";
+            if (codigo || nombre) {
+                EnfermedadActualDiagnosticos = `${EnfermedadActualDiagnosticos} \n ${codigo} - ${nombre}`;
+            }
         });
     }
 
@@ -1157,40 +1880,129 @@ async function interfaceListarProductosDiagnosticos() {
 
     registro.value.atencion_id = interfaceAtencionSeleccionada.value;
 }
-function cargarDatosSede() {
-    listarMedicos();
+/**
+ * Carga los catálogos que dependen de la sede: médicos, prioridades, productos y diagnósticos.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
+function cargarDatosSede(sedeId = null) {
+    listarMedicos(sedeId);
     listarPrioridades();
     listarProductos();
     listarDiagnosticos();
 }
+
+/**
+ * Toma la sede activa de sessionStorage o localStorage, la aplica al registro y a la búsqueda,
+ * recarga los catálogos y vacía la tabla de estudios.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function establecerSede() {
-    registro.value.sede_id = sessionStorage.getItem("ST-sede");
-    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
-    sedeActual.value = sessionStorage.getItem("ST-sede");
-    cargarDatosSede();
+    const sede = sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || null;
+    registro.value.sede_id = sede;
+    busqueda.value.sede_id = sede;
+    sedeActual.value = sede;
+    cargarDatosSede(sede);
     registros.value = [];
+
+    if (!sede && emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
 }
-function btnCerralModalForm() {
-    $(".right-sidebar").slideUp(50);
-    $(".right-sidebar").removeClass("shw-rside");
-}
+
+/**
+ * Abre el panel lateral de asignación. El panel nace oculto (`display:none`) y
+ * Select2 no se inicializa dentro de contenedores ocultos, así que en el siguiente
+ * tick se reconstruyen los tres selectores (médico, producto y diagnóstico).
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
 function abrirModal() {
-    $(".right-sidebar").addClass("shw-rside");
+    sidebarQuemarMultiplesVisible.value = false;
+    quemadorModalVisible.value = false;
+    sidebarVisible.value = true;
+    if (!medicos.value || medicos.value.length === 0) {
+        listarMedicos();
+    }
     nextTick(() => {
         primerInput.value?.focus();
+        selMedico.value?.rebuild();
+        selProducto.value?.rebuild();
+        selDiagnostico.value?.rebuild();
     });
 }
-function cerrarModal() {
-    $(".right-sidebar").removeClass("shw-rside");
+
+/**
+ * Prepara el panel para crear un estudio nuevo: limpia el formulario, deja el
+ * médico configurado en el usuario y abre el panel.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
+function nuevoRegistro() {
+    limpiarFormulario();
+    //registro.value.medico_id = "";
+    tituloModal.value = "Nuevo registro de estudio";
+    abrirModal();
 }
-function btnLimpiar() {
-    busqueda.value.bus_nom_num_docu = "";
-    busqueda.value.bus_fech_ini = "";
-    busqueda.value.bus_fecha_fin = "";
 
-    registros.value = [];
-    destroyDataTable();
+/**
+ * Cierra el panel lateral inmediatamente y difiere la limpieza del formulario
+ * al siguiente frame para no bloquear la transición de cierre del drawer.
+ *
+ * @param {Object} [options={}] Opciones de cierre.
+ * @param {boolean} [options.skipRelease=false] Si es true, omite la petición de liberar lock (ya liberado en backend).
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-10-30
+ */
+function cerrarModal({ skipRelease = false } = {}) {
+    sidebarVisible.value = false;
+    errores.value = {};
+    if (skipRelease) {
+        detenerHeartbeatLockAsignacion();
+        lockAsignParams.value = null;
+    } else {
+        liberarLockAsignacion();
+    }
+    requestAnimationFrame(() => {
+        if (!sidebarVisible.value) {
+            limpiarFormulario();
+        }
+    });
+}
 
+/**
+ * Vacía el formulario de asignación. Además de los datos del estudio, reinicia
+ * médico, prioridad y atención, la lista de atenciones del interface y los
+ * soportes, para que al agendar el siguiente estudio no herede nada del anterior.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
+function limpiarFormulario() {
+    resetTouched();
     registro.value.study_pk = "";
     registro.value.study_iuid = "";
     registro.value.study_id = "";
@@ -1207,7 +2019,17 @@ function btnLimpiar() {
     registro.value.diagnosticosEstudio.splice(0, registro.value.diagnosticosEstudio.length);
     registro.value.productosEstudio.splice(0, registro.value.productosEstudio.length);
 
+    //registro.value.medico_id = "";
+    //registro.value.prioridad_id = "";
+    registro.value.atencion_id = null;
+    registro.value.eps = "";
+    registro.value.contrato = "";
+    registro.value.plan = "";
+    registro.value.servicio = "";
+    registro.value.medico_ordena = "";
+    interfaceAtenciones.value = [];
     interfaceAtencionSeleccionada.value = null;
+    contratoInfoResumen.value = null;
 
     productoSelecciondo.value = "";
     diagnosticoSelecciondo.value = "";
@@ -1215,43 +2037,124 @@ function btnLimpiar() {
     soportesHC.value.archivo1 = null;
     soportesHC.value.archivo2 = null;
     soportesHC.value.archivo3 = null;
+}
+
+/**
+ * Limpia la búsqueda y vacía la tabla de estudios. Se usa desde el botón
+ * "Limpiar" del formulario de búsqueda; el guardado de un estudio NO lo invoca
+ * para no perder los resultados que el usuario está revisando.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
+function btnLimpiar() {
+    busqueda.value.bus_nom_num_docu = "";
+    busqueda.value.bus_fech_ini = "";
+    busqueda.value.bus_fecha_fin = "";
+
+    registros.value = [];
+    destroyDataTable();
+
+    limpiarFormulario();
 
     cerrarModal();
-    idRow.value = null;
 }
-async function listarMedicos() {
+
+/**
+ * Listar los médicos activos disponibles para la sede actual.
+ * @param {string|number|null} [sedeId=null] - ID opcional de la sede a filtrar.
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa la carga de médicos.
+ * @author: Jhon Javer Lozano Arce
+ */
+async function listarMedicos(sedeId = null) {
     try {
-        const moduloId = sessionStorage.getItem("ST-modulo") || "1";
-        const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
-        medicos.value = res.data.data || [];
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar médicos.");
+        const moduloId = getModuloIdActual();
+        const targetSede =
+            sedeId ??
+            registro.value.sede_id ??
+            busqueda.value.sede_id ??
+            sessionStorage.getItem("ST-sede") ??
+            localStorage.getItem("ST-sede");
+        const sedeParam = targetSede ? `&sede_id=${encodeURIComponent(targetSede)}` : "";
+        const res = await axios.get(
+            `/api/user.listarUsuarios/Medico/${moduloId}?solo_activos=1${sedeParam}`
+        );
+        medicos.value = Array.isArray(res?.data?.data) ? res.data.data : [];
+        nextTick(() => {
+            selMedico.value?.rebuild();
+        });
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar los médicos.",
+            icon: "error",
+        });
     }
 }
+
+/**
+ * Listar las prioridades disponibles para la sede actual.
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa la carga de prioridades.
+ * @author: Jhon Javer Lozano Arce
+ */
 async function listarPrioridades() {
     try {
         const res = await axios.get("/api/config-prioridades");
         prioridades.value = res.data.data || [];
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar prioridades.");
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar las prioridades.",
+            icon: "error",
+        });
     }
 }
+
+/**
+ * Listar los productos disponibles para la sede actual.
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa la carga de productos.
+ * @author: Jhon Javer Lozano Arce
+ */
 async function listarProductos() {
     try {
         const res = await axios.get("/api/config-productos");
         productos.value = res.data.data || [];
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar productos.");
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar los productos.",
+            icon: "error",
+        });
     }
 }
+
+/**
+ * Listar los diagnósticos disponibles para la sede actual.
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa la carga de diagnósticos.
+ * @author: Jhon Javer Lozano Arce
+ */
 async function listarDiagnosticos() {
     try {
         const res = await axios.get("/api/config-diagnosticos");
         diagnosticos.value = res.data.data || [];
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar diagnósticos.");
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar los diagnósticos.",
+            icon: "error",
+        });
     }
 }
+
+/**
+ * Manejar la selección de un médico en el formulario.
+ * @param {any} value - El valor seleccionado del médico.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
 function onMedicoSelect(value) {
     let selectedId = null;
     if (Array.isArray(value) && value.length > 0) {
@@ -1264,6 +2167,14 @@ function onMedicoSelect(value) {
     }
     registro.value.medico_id = selectedId || "";
 }
+
+/**
+ * Manejar la selección de un producto en el formulario:
+ * al seleccionar una opción, se agrega automáticamente al estudio.
+ * @param {any} value - El valor seleccionado del producto.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
 function onProductoSelect(value) {
     let selectedId = null;
     if (Array.isArray(value) && value.length > 0) {
@@ -1274,11 +2185,19 @@ function onProductoSelect(value) {
     } else if (value != null) {
         selectedId = String(value);
     }
-    if (selectedId != null) {
-        productoSelecciondo.value = selectedId;
-        guardarProductosEstudio();
+    productoSelecciondo.value = selectedId || "";
+    if (selectedId && selectedId !== "0" && selectedId !== "") {
+        guardarProductosEstudio(selectedId);
     }
 }
+
+/**
+ * Manejar la selección de un diagnóstico en el formulario:
+ * al seleccionar una opción, se agrega automáticamente al estudio.
+ * @param {any} value - El valor seleccionado del diagnóstico.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
 function onDiagnosticoSelect(value) {
     let selectedId = null;
     if (Array.isArray(value) && value.length > 0) {
@@ -1289,14 +2208,24 @@ function onDiagnosticoSelect(value) {
     } else if (value != null) {
         selectedId = String(value);
     }
-    if (selectedId != null) {
-        diagnosticoSelecciondo.value = selectedId;
-        guardarDiagnosticosEstudio();
+    diagnosticoSelecciondo.value = selectedId || "";
+    if (selectedId && selectedId !== "0" && selectedId !== "") {
+        guardarDiagnosticosEstudio(selectedId);
     }
 }
-function guardarProductosEstudio() {
+
+/**
+ * Guardar un producto seleccionado en el estudio.
+ * @param {string|number|null} idProd - Identificador opcional del producto a guardar.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
+function guardarProductosEstudio(idProd = null) {
+    const targetId = idProd ?? productoSelecciondo.value;
+    if (!targetId || targetId === "" || targetId === "0" || targetId === 0) return;
+
     const indexProductoEstudio = productos.value.findIndex(
-        (x) => x.id == productoSelecciondo.value
+        (x) => String(x.id) === String(targetId)
     );
 
     if (indexProductoEstudio >= 0) {
@@ -1304,36 +2233,52 @@ function guardarProductosEstudio() {
         const productoEstudioCod_Cubs = productos.value[indexProductoEstudio].cod_cups;
         const productoEstudioNomProduc = productos.value[indexProductoEstudio].nom_produc;
 
-        const yaExiste = registro.value.productosEstudio.some((p) => p.id == productoEstudioId);
+        const yaExiste = registro.value.productosEstudio.some(
+            (p) => String(p.id) === String(productoEstudioId)
+        );
         if (!yaExiste) {
             registro.value.productosEstudio.push({
                 id: productoEstudioId,
                 cod_cups: productoEstudioCod_Cubs,
                 nom_produc: productoEstudioNomProduc,
+                medico_ordena: registro.value.medico_ordena || null,
                 checked: true,
             });
         }
 
-        // Limpiar selección
+        // Limpiar selección para permitir seleccionar el siguiente producto inmediatamente
         productoSelecciondo.value = "";
     }
 }
-function quitarProductoEstudio(indexEliminar) {
-    if (!confirm("¿Está seguro de eliminar este producto?")) return;
-    confirmAction({
+
+/**
+ * Quitar un producto del estudio según el índice proporcionado.
+ * Pide confirmación al usuario antes de eliminarlo del arreglo local.
+ * @param {number} indexEliminar - Índice del producto a eliminar en el arreglo productosEstudio.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
+async function quitarProductoEstudio(indexEliminar) {
+    const ok = await confirmAction({
         title: "¿Está seguro?",
         text: "¿Desea eliminar este producto del estudio?",
         icon: "warning",
-        confirmButtonText: "Sí, eliminar",
-        onConfirm: () => {
-            registro.value.productosEstudio.splice(indexEliminar, 1);
-        },
     });
+    if (!ok) return;
+    registro.value.productosEstudio.splice(indexEliminar, 1);
 }
-function guardarDiagnosticosEstudio() {
-    const idx = diagnosticos.value.findIndex(
-        (x) => String(x.id) === String(diagnosticoSelecciondo.value)
-    );
+
+/**
+ * Guardar un diagnóstico seleccionado en el estudio.
+ * @param {string|number|null} idDiag - Identificador opcional del diagnóstico a guardar.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
+function guardarDiagnosticosEstudio(idDiag = null) {
+    const targetId = idDiag ?? diagnosticoSelecciondo.value;
+    if (!targetId || targetId === "" || targetId === "0" || targetId === 0) return;
+
+    const idx = diagnosticos.value.findIndex((x) => String(x.id) === String(targetId));
     if (idx >= 0) {
         const diag = diagnosticos.value[idx];
         const yaExiste = registro.value.diagnosticosEstudio.some(
@@ -1346,83 +2291,315 @@ function guardarDiagnosticosEstudio() {
                 nom_diagnos: diag.nom_diagnos,
             });
         }
-        // Limpiar selección
+        // Limpiar selección para permitir seleccionar el siguiente diagnóstico inmediatamente
         diagnosticoSelecciondo.value = "";
     }
 }
-function quitarDiagnosticoEstudio(indexEliminar) {
-    if (!confirm("¿Está seguro de eliminar este diagnóstico?")) return;
-    confirmAction({
+
+/**
+ * Quitar un diagnóstico del estudio según el índice proporcionado.
+ * Pide confirmación al usuario antes de eliminarlo del arreglo local.
+ * @param {number} indexEliminar - Índice del diagnóstico a eliminar en el arreglo diagnosticosEstudio.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
+async function quitarDiagnosticoEstudio(indexEliminar) {
+    const ok = await confirmAction({
         title: "¿Está seguro?",
         text: "¿Desea eliminar este diagnóstico del estudio?",
         icon: "warning",
-        confirmButtonText: "Sí, eliminar",
-        onConfirm: () => {
-            registro.value.diagnosticosEstudio.splice(indexEliminar, 1);
-        },
     });
+    if (!ok) return;
+    registro.value.diagnosticosEstudio.splice(indexEliminar, 1);
 }
-function verImagen(pat_id, study_iuid, estudio_producto_id = null) {
-    if (estudio_producto_id !== null) {
-        if (loadingImagenId.value) return;
-        loadingImagenId.value = estudio_producto_id;
+
+/**
+ * Abre el modal de quema de disco para un estudio.
+ *
+ * @param {Object} estudio Estudio seleccionado en la tabla.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
+function abrirQuemador(estudio) {
+    if (sidebarVisible.value) {
+        cerrarModal();
     }
-    try {
-        const base = sessionStorage.getItem("ST-urlsede") || "";
-        const params = new URLSearchParams({
-            patientID: String(pat_id ?? ""),
-            studyUID: String(study_iuid ?? ""),
-            serverName: String(sessionStorage.getItem("ST-servername") || ""),
-        });
-        window.open(`${base}?${params.toString()}`, "_blank", "noopener,noreferrer");
-    } finally {
-        setTimeout(() => {
-            loadingImagenId.value = null;
-        }, 500);
+    if (sidebarQuemarMultiplesVisible.value) {
+        cerrarSidebarQuemarMultiples();
+    }
+    estudioParaQuemar.value = estudio;
+    quemadorModalVisible.value = true;
+}
+
+function cerrarCualquierSidebar() {
+    if (sidebarVisible.value) {
+        cerrarModal();
+    }
+    if (sidebarQuemarMultiplesVisible.value) {
+        cerrarSidebarQuemarMultiples();
+    }
+    if (quemadorModalVisible.value) {
+        cerrarQuemador();
+    }
+}
+
+/**
+ * Cierra el modal de quema y descarta el estudio pendiente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
+function cerrarQuemador() {
+    quemadorModalVisible.value = false;
+    estudioParaQuemar.value = null;
+}
+
+/**
+ * Confirma que el disco se quemó correctamente y cierra el modal.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
+function onQuemadoCompletado() {
+    cerrarQuemador();
+    swalSuccess("¡Disco Quemado!", "El disco ha sido quemado exitosamente en la unidad de CD/DVD.");
+}
+
+/**
+ * Abre el modal de descarga en ZIP para un estudio.
+ *
+ * @param {Object} estudio Estudio seleccionado en la tabla.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
+function abrirDescargaZip(estudio) {
+    estudioParaDescargar.value = estudio;
+    descargaModalVisible.value = true;
+}
+
+/**
+ * Cierra el modal de descarga y descarta el estudio pendiente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
+function cerrarDescargaZip() {
+    descargaModalVisible.value = false;
+    estudioParaDescargar.value = null;
+}
+
+/**
+ * Confirma que el ZIP se descargó correctamente y cierra el modal.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
+function onDescargaZipCompletado() {
+    toastMessage({
+        heading: "Completado",
+        text: "El archivo ZIP ha sido descargado exitosamente.",
+        icon: "success",
+    });
+    cerrarDescargaZip();
+}
+
+/**
+ * Abre el panel lateral para quemar en lote los estudios seleccionados.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
+function abrirSidebarQuemarMultiples() {
+    if (sidebarVisible.value) {
+        cerrarModal();
+    }
+    if (quemadorModalVisible.value) {
+        cerrarQuemador();
+    }
+    sidebarQuemarMultiplesVisible.value = true;
+}
+
+/**
+ * Cierra el panel de quema en lote.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
+function cerrarSidebarQuemarMultiples() {
+    sidebarQuemarMultiplesVisible.value = false;
+}
+
+/**
+ * Confirma que se quemaron los estudios en lote, cierra el panel y vacía la
+ * selección múltiple.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
+function onQuemadoMultiplesCompletado() {
+    cerrarSidebarQuemarMultiples();
+    estudiosSeleccionados.value = [];
+    swalSuccess(
+        "¡Discos Quemados!",
+        "Los estudios han sido quemados exitosamente en la unidad de CD/DVD."
+    );
+}
+
+/**
+ * Handler del evento global de sede seleccionada: actualiza la sede activa,
+ * recarga los catálogos y limpia la tabla de resultados solo si la sede cambió.
+ *
+ * @param {Object} data          Payload emitido con { idSede }.
+ * @param {number} data.idSede   Id de la sede elegida.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
+function onSedeSeleccionada(data) {
+    const nuevaSede =
+        data?.idSede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede");
+    if (!nuevaSede) return;
+
+    const sedeCambio = String(sedeActual.value || "") !== String(nuevaSede);
+
+    registro.value.sede_id = nuevaSede;
+    busqueda.value.sede_id = nuevaSede;
+    sedeActual.value = nuevaSede;
+
+    if (sedeCambio || !medicos.value || medicos.value.length === 0) {
+        registro.value.medico_id = "";
+        cargarDatosSede(nuevaSede);
+        if (sedeCambio) {
+            registros.value = [];
+            destroyDataTable();
+        }
+    }
+}
+
+/**
+ * Inicializa el campo médico en el formulario de asignación (vacío por defecto,
+ * requiriendo selección explícita del radiólogo para cada estudio).
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-10-28
+ */
+function establecerMedico() {
+    registro.value.medico_id = "";
+}
+
+/**
+ * Handler del evento global de médico seleccionado: prellena el médico de la
+ * asignación con el elegido en la cabecera.
+ *
+ * @param {Object} data           Payload emitido con { idMedico, nomMedico }.
+ * @param {number} data.idMedico  Id del médico elegido.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-09-29
+ */
+function onMedicoSeleccionado(data) {
+    if (data && data.idMedico) {
+        registro.value.medico_id = String(data.idMedico);
     }
 }
 
 onMounted(() => {
     registro.value.email_reportar = "";
-    listarMedicos();
-    listarPrioridades();
-    listarProductos();
-    listarDiagnosticos();
+    // Los catálogos se cargan una sola vez vía establecerSede() → cargarDatosSede()
     establecerSede();
+    establecerMedico();
     btnLimpiar();
 
-    emitter.on("sedeSeleccionada", (data) => {
-        console.log("data", data);
-        registro.value.sede_id = data.idSede;
-        busqueda.value.sede_id = data.idSede;
-        establecerSede();
-        destroyDataTable();
-    });
+    emitter.on("sedeSeleccionada", onSedeSeleccionada);
+    emitter.on("medicoSeleccionado", onMedicoSeleccionado);
 });
 
 onBeforeUnmount(() => {
+    emitter.off("sedeSeleccionada", onSedeSeleccionada);
+    emitter.off("medicoSeleccionado", onMedicoSeleccionado);
+    liberarLockAsignacion();
     destroyDataTable();
     registros.value = [];
     registro.value = { productosEstudio: [], diagnosticosEstudio: [] };
     soportesHC.value = { archivo1: null, archivo2: null, archivo3: null };
 });
 </script>
+
 <style scoped>
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1090;
+    cursor: pointer;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.25s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
 .right-sidebar {
     position: fixed;
     right: -80%;
     width: 80%;
-    display: none;
-    z-index: 180;
+    z-index: 1100;
     background: #ffffff;
     top: 0px;
     padding-bottom: 20px;
-    height: 80%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
+    height: 100%;
+    box-shadow: -5px 0 35px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 @media (max-width: 767px) {
@@ -1433,9 +2610,10 @@ onBeforeUnmount(() => {
 }
 
 .shw-rside {
-    right: 0px;
+    right: 0px !important;
     width: 80%;
-    display: block;
+    visibility: visible;
+    pointer-events: auto;
 }
 
 @media (max-width: 767px) {
@@ -1462,5 +2640,17 @@ onBeforeUnmount(() => {
 .audio {
     width: 50px;
     height: 5px;
+}
+
+.selected-row {
+    background-color: #e3f2fd !important;
+}
+
+.selected-row:hover {
+    background-color: #bbdefb !important;
+}
+
+:deep(.select2-dropdown) {
+    z-index: 9999 !important;
 }
 </style>

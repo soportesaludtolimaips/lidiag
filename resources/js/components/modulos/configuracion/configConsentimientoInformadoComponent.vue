@@ -1,17 +1,26 @@
 <template>
     <div>
-        <!-- ============================================================== -->
-        <!-- Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Configuración</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Configuración</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Configuración
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Consentimiento informado</li>
                 </ol>
@@ -19,23 +28,24 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
+                    class="btn btn-outline-secondary m-r-5"
+                    @click="ListarDatos"
+                    :disabled="loadingListar"
+                    title="Actualizar listado"
+                >
+                    <i class="fa" :class="loadingListar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                    Refrescar
+                </button>
+                <button
+                    type="button"
                     class="btn btn-info btnDesplegarRigthSidebar"
-                    @click="
-                        actualizar = false;
-                        mostrarRegistro();
-                    "
+                    @click="prepararNuevo"
                 >
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Start Page Content -->
-        <!-- ============================================================== -->
         <div class="row">
             <div class="col-12">
                 <div class="card">
@@ -44,9 +54,22 @@
                         <h6 class="card-subtitle">
                             Administración de los consentimiento informado.
                         </h6>
-                        <div class="table-responsive m-t-40">
+                        <table-skeleton-loader :visible="loadingListar" :rows="6" :columns="8" />
+                        <empty-state-component
+                            v-if="!loadingListar && registros.length === 0"
+                            icon="fa fa-file-pdf-o"
+                            title="No hay consentimientos registrados"
+                            description="No se encontraron consentimientos informados en el sistema."
+                            action-text="Nuevo registro"
+                            action-icon="fa fa-plus"
+                            @action="prepararNuevo"
+                        />
+                        <div
+                            v-show="!loadingListar && registros.length > 0"
+                            class="table-responsive m-t-40"
+                        >
                             <table
-                                id="example23"
+                                id="tablaConsentimientos"
                                 ref="dt"
                                 class="display nowrap table table-hover table-striped table-bordered"
                                 cellspacing="0"
@@ -92,19 +115,24 @@
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                @click="
-                                                    actualizar = true;
-                                                    mostrarRegistro(item);
-                                                "
+                                                @click="prepararEdicion(item)"
                                             >
                                                 <i class="fa fa-pencil"></i>
                                             </button>
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                @click="elimnarRegistro(item.id, item.nombre)"
+                                                @click="eliminarRegistro(item.id, item.nombre)"
+                                                :disabled="loadingEliminarId === item.id"
                                             >
-                                                <i class="fa fa-trash"></i>
+                                                <i
+                                                    class="fa"
+                                                    :class="
+                                                        loadingEliminarId === item.id
+                                                            ? 'fa-spinner fa-spin'
+                                                            : 'fa-trash'
+                                                    "
+                                                ></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -115,34 +143,33 @@
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End PAge Content -->
-        <!-- ============================================================== -->
+        <!-- Backdrop overlay para cerrar al hacer clic afuera -->
+        <div v-if="sidebarVisible" class="sidebar-backdrop" @click="cerrarSidebar"></div>
 
-        <!-- ============================================================== -->
-        <!-- Right sidebar -->
-        <!-- ============================================================== -->
-        <!-- .right-sidebar -->
-        <div class="right-sidebar">
+        <div class="right-sidebar" ref="sidebarRef" :class="{ 'shw-rside': sidebarVisible }">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
-                    <span>
-                        <i class="ti-close right-side-toggle" id="btnCerralModalForm"></i>
-                    </span>
+                    <button
+                        type="button"
+                        class="right-side-toggle"
+                        @click="cerrarSidebar"
+                        aria-label="Cerrar panel"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
                 </div>
                 <div class="r-panel-body">
-                    <!-- ============================================================== -->
-                    <!-- Aqui va el contenido de los formularios -->
-                    <!-- ============================================================== -->
-                    <form action="#">
+                    <form action="#" @submit.prevent="guardarRegistro()">
                         <div class="form-body">
                             <div class="row p-t-20">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Producto</label>
+                                        <label class="control-label font-weight-bold"
+                                            >Producto</label
+                                        >
                                         <Select2
-                                            :value="productoSelecciondo"
+                                            :value="productoSeleccionado"
                                             :options="productoOptions"
                                             width="100%"
                                             :allow-clear="true"
@@ -155,7 +182,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label class="control-label"
+                                        <label class="control-label" for="nombre"
                                             >Nombre de consentimiento informado</label
                                         >
                                         <input
@@ -164,20 +191,35 @@
                                             name="nombre"
                                             v-model="registro.nombre"
                                             class="form-control"
+                                            :class="{ 'is-invalid': errores.nombre }"
+                                            placeholder="Ingrese el nombre del consentimiento"
                                         />
-                                        <span class="text-danger" v-if="errores.nombre">
-                                            {{ errores.nombre[0] }}
-                                        </span>
+                                        <span class="text-danger" v-if="errores.nombre">{{
+                                            errores.nombre[0]
+                                        }}</span>
                                     </div>
                                 </div>
-                                <div class="form-group">
-                                    <input
-                                        type="file"
-                                        class="form-control"
-                                        id="exampleInputFile1"
-                                        aria-describedby="fileHelp"
-                                        @change="obtenerArchivo"
-                                    />
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="archivo"
+                                            >Archivo PDF</label
+                                        >
+                                        <input
+                                            type="file"
+                                            class="form-control"
+                                            id="archivo"
+                                            accept=".pdf"
+                                            @change="obtenerArchivo"
+                                        />
+                                        <span
+                                            class="text-danger"
+                                            v-if="errores.hasError('archivo')"
+                                            >{{ errores.getError("archivo") }}</span
+                                        >
+                                    </div>
                                 </div>
                             </div>
 
@@ -203,27 +245,37 @@
                                 <button
                                     type="button"
                                     class="btn btn-success m-r-5"
-                                    @click="guardarRegistro()"
+                                    @click="guardarRegistro"
                                     v-if="!actualizar"
+                                    :disabled="loadingGuardar"
                                 >
-                                    <i class="fa fa-check"></i> Guardar
+                                    <i
+                                        class="fa"
+                                        :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-check'"
+                                    ></i>
+                                    Guardar
                                 </button>
 
                                 <button
                                     type="button"
                                     class="btn btn-warning m-r-5"
                                     v-if="actualizar"
-                                    @click="guardarRegistro()"
+                                    @click="guardarRegistro"
+                                    :disabled="loadingGuardar"
                                 >
-                                    <i class="fa fa-pencil"></i> Actualizar
+                                    <i
+                                        class="fa"
+                                        :class="loadingGuardar ? 'fa-spinner fa-spin' : 'fa-pencil'"
+                                    ></i>
+                                    Actualizar
                                 </button>
 
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    @click="btnCerralModalForm()"
+                                    @click="cerrarSidebar"
                                 >
-                                    Cancel
+                                    Cancelar
                                 </button>
                             </div>
                         </div>
@@ -231,45 +283,71 @@
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Right sidebar -->
-        <!-- ============================================================== -->
     </div>
 </template>
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
+
+const { proxy } = getCurrentInstance();
+
+function obtenerSedeActiva() {
+    return sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "";
+}
 
 const dt = ref(null);
+const sidebarRef = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import {
-    handleAxiosErrorToast,
-    confirmAction,
-    alertSuccess,
-    alertError,
-} from "@/helpers/alerts.js";
+import { confirmAction, toastMessage } from "@/helpers/alerts.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
+import Select2 from "@/components/shared/Select2.vue";
 import axios from "axios";
 
 const id = ref(0);
 const registros = ref([]);
 const registro = ref({
     producto_id: null,
-    sede_id: sessionStorage.getItem("ST-sede"),
+    sede_id: obtenerSedeActiva(),
     nombre: "",
     estado: true,
 });
-const productoSelecciondo = ref(null);
+const productoSeleccionado = ref(null);
 const archivoFile = ref(null);
 const tituloModal = ref("Nuevo registro");
 const actualizar = ref(false);
-const errores = ref({});
-const productos = ref([]);
 const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
+const productos = ref([]);
+const sidebarVisible = ref(false);
+
+useKeyboardShortcuts({
+    onSearch: () => {
+        if (!sidebarVisible.value) {
+            ListarDatos();
+        }
+    },
+    onSave: () => {
+        if (sidebarVisible.value) {
+            guardarRegistro();
+        }
+    },
+    onEscape: cerrarSidebar,
+    isActive: () => true,
+    isLoading: loadingGuardar,
+});
+
+const errores = ref({});
+
+function clearErrors() {
+    errores.value = {};
+}
+
+function setErrors(newErrors) {
+    errores.value = newErrors || {};
+}
 
 const productoOptions = computed(() => {
-    // Opciones para el Select2 local de productos.
     return (productos.value || []).map((p) => ({
         id: String(p.id),
         cod_cups: p.cod_cups,
@@ -280,31 +358,38 @@ const productoOptions = computed(() => {
 async function ListarDatos() {
     if (loadingListar.value) return;
     loadingListar.value = true;
+    clearErrors();
     try {
         const res = await axios.get("/api/config-consentimiento-informado");
-        safeDestroyDataTable(dt.value || "#example23");
+        safeDestroyDataTable(dt.value || "#tablaConsentimientos");
         registros.value = res?.data?.data || res?.data || [];
         nextTick(() => {
-            safeInitDataTable(dt.value || "#example23", {
+            safeInitDataTable(dt.value || "#tablaConsentimientos", {
                 dom: "Bfrtip",
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
         });
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar consentimientos informados.");
+    } catch {
         registros.value = [];
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar los consentimientos informados.",
+            icon: "error",
+        });
     } finally {
         loadingListar.value = false;
     }
 }
+
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
+    clearErrors();
     try {
-        const sedeId = sessionStorage.getItem("ST-sede");
+        const sedeId = obtenerSedeActiva();
         const formData = new FormData();
         formData.append("producto_id", String(registro.value.producto_id ?? ""));
-        formData.append("sede_id", String(registro.value.sede_id ?? sedeId ?? ""));
+        formData.append("sede_id", String(registro.value.sede_id || sedeId || ""));
         formData.append("nombre", String(registro.value.nombre ?? ""));
         formData.append("estado", registro.value.estado ? "1" : "0");
         if (archivoFile.value) formData.append("archivo", archivoFile.value);
@@ -322,58 +407,75 @@ async function guardarRegistro() {
         }
 
         if (res.status === 200 || res.status === 201) {
-            $.toast({
-                heading: "Ok!!!",
-                text: res.data.data.message || "Guardado correctamente.",
-                position: "top-right",
-                loaderBg: "#ff6849",
+            toastMessage({
+                heading: "Completado",
+                text: res.data.data?.message || "Guardado correctamente.",
                 icon: "success",
-                hideAfter: 3500,
-                stack: 6,
             });
             ListarDatos();
             limpiarFormulario();
-            btnCerralModalForm();
+            cerrarSidebar();
         }
     } catch (error) {
-        errores.value = error?.response?.data?.errors || {};
-        handleAxiosErrorToast(error, "No fue posible guardar el consentimiento informado.");
+        if (error.response?.status === 422) {
+            setErrors(error.response.data.errors || {});
+        } else {
+            toastMessage({
+                heading: "Error",
+                text: error.response?.data?.message || "No fue posible guardar el consentimiento.",
+                icon: "error",
+            });
+        }
     } finally {
         loadingGuardar.value = false;
     }
 }
-async function elimnarRegistro(id, nom) {
+
+async function eliminarRegistro(idEliminar, nom) {
     const ok = await confirmAction({
-        title: `Estas seguro de eliminar el consentimiento informado ${nom}?`,
+        title: `¿Estás seguro de eliminar el consentimiento "${nom}"?`,
         text: "No podrás recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;
-
+    if (loadingEliminarId.value) return;
+    loadingEliminarId.value = idEliminar;
     try {
-        if (loadingEliminarId.value) return;
-        loadingEliminarId.value = id;
-        const response = await axios.delete("/api/config-consentimiento-informado/" + id);
-        alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
+        const response = await axios.delete("/api/config-consentimiento-informado/" + idEliminar);
+        toastMessage({
+            heading: "Ok!",
+            text: response?.data?.message || "Registro eliminado.",
+            icon: "success",
+        });
         ListarDatos();
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible eliminar el registro.");
-        alertError("Error", "No fue posible eliminar el registro.", "error");
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible eliminar el registro.",
+            icon: "error",
+        });
     } finally {
         loadingEliminarId.value = null;
     }
 }
+
 async function listarProductos() {
     try {
         const res = await axios.get("/api/config-productos");
-        productos.value = res.data.data;
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar productos.");
+        productos.value = res?.data?.data || res?.data || [];
+    } catch {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudieron cargar los productos.",
+            icon: "error",
+        });
     }
 }
+
 function obtenerArchivo(e) {
     archivoFile.value = e.target.files?.[0] || null;
 }
+
 function onProductoSelect(value) {
     let selectedId = null;
     if (Array.isArray(value) && value.length > 0) {
@@ -385,78 +487,125 @@ function onProductoSelect(value) {
         selectedId = String(value);
     }
     registro.value.producto_id = selectedId ? Number(selectedId) : null;
-    productoSelecciondo.value = selectedId;
+    productoSeleccionado.value = selectedId;
 }
+
 function archivoUrl(item) {
     if (!item?.archivo) return null;
     return `/storage/${item.archivo}`;
 }
-function mostrarRegistro(data = {}) {
-    if (actualizar.value == true) {
+
+function prepararEdicion(data) {
+    if (data && data.id) {
+        actualizar.value = true;
         tituloModal.value = "Actualizar el registro: " + (data.nombre || "");
         id.value = data.id;
         registro.value.producto_id = data.producto_id;
-        productoSelecciondo.value = String(data.producto_id ?? "");
+        productoSeleccionado.value = String(data.producto_id ?? "");
         registro.value.sede_id = data.sede_id;
         registro.value.nombre = data.nombre;
         registro.value.estado = !!data.estado;
         archivoFile.value = null;
+        clearErrors();
     } else {
-        actualizar.value = false;
-        tituloModal.value = "Nuevo registro";
-        id.value = 0;
-        limpiarFormulario();
+        prepararNuevo();
     }
-
-    btnCerralModalForm();
+    abrirSidebar();
 }
+
+function prepararNuevo() {
+    actualizar.value = false;
+    tituloModal.value = "Nuevo registro";
+    id.value = 0;
+    limpiarFormulario();
+    abrirSidebar();
+}
+
 function limpiarFormulario() {
     actualizar.value = false;
     tituloModal.value = "Nuevo registro";
     id.value = 0;
-    errores.value = {};
+    clearErrors();
     registro.value.producto_id = null;
-    registro.value.sede_id = sessionStorage.getItem("ST-sede");
+    registro.value.sede_id = obtenerSedeActiva();
     registro.value.nombre = "";
     registro.value.estado = true;
-    productoSelecciondo.value = null;
+    productoSeleccionado.value = null;
     archivoFile.value = null;
 }
-function btnCerralModalForm() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").toggleClass("shw-rside");
+
+function abrirSidebar() {
+    sidebarVisible.value = true;
+    nextTick(() => {
+        document.getElementById("nombre")?.focus();
+    });
+}
+
+function cerrarSidebar() {
+    sidebarVisible.value = false;
+}
+
+function onSedeSeleccionada(event) {
+    const rawSede =
+        event?.sede ??
+        (typeof event === "object" ? event.idSede || event.id : event) ??
+        obtenerSedeActiva();
+    if (!rawSede) return;
+    registro.value.sede_id = String(rawSede);
 }
 
 onMounted(() => {
+    proxy?.emitter?.on("sedeSeleccionada", onSedeSeleccionada);
+    if (!obtenerSedeActiva()) {
+        proxy?.emitter?.emit("solicitarSedeActiva");
+    }
     ListarDatos();
     listarProductos();
 });
 
 onBeforeUnmount(() => {
-    safeDestroyDataTable(dt.value || "#example23");
+    proxy?.emitter?.off("sedeSeleccionada", onSedeSeleccionada);
+    safeDestroyDataTable(dt.value || "#tablaConsentimientos");
 });
 </script>
 <style scoped>
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1090;
+}
+
 .right-sidebar {
     position: fixed;
-    right: -25%;
-    width: 25%;
-    display: none;
+    right: -450px;
+    width: 450px;
     z-index: 1100;
     background: #ffffff;
     top: 0px;
     padding-bottom: 20px;
     height: 100%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .shw-rside {
-    right: 0px;
-    width: 25%;
-    display: block;
+    right: 0px !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+@media (max-width: 767px) {
+    .right-sidebar {
+        width: 100% !important;
+        right: -100% !important;
+    }
 }
 </style>

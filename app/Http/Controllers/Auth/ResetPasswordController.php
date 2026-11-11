@@ -12,6 +12,13 @@ class ResetPasswordController extends Controller
 
     protected $redirectTo = '/dashboard';
 
+    /**
+     * Inyecta el servicio de autenticación y restringe el acceso a invitados.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function __construct(
         private readonly AuthService $authService,
     ) {

@@ -3,29 +3,15 @@
         <!-- BREADCRUMB -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
-                <h3 class="text-themecolor">Contrataci&oacute;n</h3>
+                <h3 class="text-themecolor">Contratación</h3>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
+                    <li class="breadcrumb-item">
+                        <router-link to="/">Inicio</router-link>
+                    </li>
                     <li class="breadcrumb-item active">Contratos</li>
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
-                <button
-                    type="button"
-                    class="btn btn-success btn-sm m-r-5"
-                    @click="descargarPlantillaGeneral()"
-                    title="Descargar plantilla general de productos activos"
-                >
-                    <i class="fa fa-file-excel-o m-r-5"></i> Plantilla General
-                </button>
-                <button
-                    type="button"
-                    class="btn btn-warning btn-sm m-r-5"
-                    @click="abrirModalImportarProductos()"
-                    title="Importar productos al contrato desde Excel"
-                >
-                    <i class="fa fa-upload m-r-5"></i> Importar productos
-                </button>
                 <button
                     type="button"
                     class="btn btn-info btnDesplegarRigthSidebar"
@@ -45,12 +31,20 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Listado de contratos</h4>
-                        <h6 class="card-subtitle">
-                            Gesti&oacute;n de contrataci&oacute;n por sedes.
-                        </h6>
-                        <div class="table-responsive m-t-40">
+                        <h6 class="card-subtitle">Gestión de contratación por sedes.</h6>
+                        <table-skeleton-loader :visible="loadingListar" :rows="5" :columns="6" />
+                        <empty-state-component
+                            v-if="!loadingListar && registros.length === 0"
+                            title="No hay contratos registrados"
+                            description="No se encontraron contratos para la sede seleccionada."
+                            icon="fa-file-text-o"
+                        />
+                        <div
+                            v-show="!loadingListar && registros.length > 0"
+                            class="table-responsive m-t-40"
+                        >
                             <table
-                                id="example23"
+                                id="tablaContratos"
                                 ref="dt"
                                 class="display nowrap table table-hover table-striped table-bordered"
                                 cellspacing="0"
@@ -96,27 +90,27 @@
                                             </button>
                                             <button
                                                 type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
-                                                @click="abrirDetalle(item)"
-                                                title="Configurar detalle"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
+                                                @click="abrirModalTarifasEntidad(item)"
+                                                title="Plantilla 1: Tarifas Entidad (Hospital/Aseguradora) - Descarga e Importación"
                                             >
-                                                <i class="fa fa-cogs"></i> Detalle
+                                                <i class="fa fa-hospital-o"></i> Tarifas Entidad
                                             </button>
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-success btn-sm m-r-5"
-                                                @click="descargarPlantilla(item)"
-                                                title="Descargar plantilla de detalle del contrato (m&eacute;dicos-producto)"
+                                                @click="abrirModalTarifasMedico(item)"
+                                                title="Plantilla 2: Tarifas Médico Lector - Descarga e Importación con Validación Estricta"
                                             >
-                                                <i class="fa fa-file-excel-o"></i>
+                                                <i class="fa fa-user-md"></i> Tarifas Médico
                                             </button>
                                             <button
                                                 type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
-                                                @click="abrirModalImportar(item)"
-                                                title="Importar m&eacute;dicos-producto desde Excel"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
+                                                @click="abrirDetalle(item)"
+                                                title="Configurar detalle médicos-producto"
                                             >
-                                                <i class="fa fa-upload"></i>
+                                                <i class="fa fa-cogs"></i> Detalle
                                             </button>
                                             <button
                                                 type="button"
@@ -145,28 +139,31 @@
         </div>
 
         <!-- SIDEBAR: CREAR/EDITAR CONTRATO -->
-        <div class="right-sidebar" style="width: 450px">
+        <div class="right-sidebar" :class="{ 'shw-rside': sidebarVisible }">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <button
                         type="button"
                         class="right-side-toggle"
-                        @click="btnCerralModalForm()"
+                        @click="btnCerrarModalForm()"
                         aria-label="Cerrar panel"
                     >
                         <i class="ti-close"></i>
                     </button>
                 </div>
                 <div class="r-panel-body">
-                    <form action="#" @submit.prevent>
+                    <form @submit.prevent="guardarRegistro()">
                         <div class="form-body">
                             <div class="row p-t-20">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Sede</label>
+                                        <label class="control-label" for="contrato-sede"
+                                            >Sede</label
+                                        >
                                         <input type="hidden" v-model="registro.sede_id" />
                                         <input
+                                            id="contrato-sede"
                                             type="text"
                                             class="form-control"
                                             :value="sedeNombreActual"
@@ -179,11 +176,15 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="control-label">Fecha Inicio *</label>
+                                        <label class="control-label" for="contrato-fecha-inicio"
+                                            >Fecha Inicio <span class="text-danger">*</span></label
+                                        >
                                         <input
+                                            id="contrato-fecha-inicio"
                                             type="date"
                                             v-model="registro.fecha_inicio"
                                             class="form-control"
+                                            @keyup.enter="guardarRegistro()"
                                         />
                                         <span class="text-danger" v-if="errores.fecha_inicio">
                                             {{ errores.fecha_inicio[0] }}
@@ -192,11 +193,15 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="control-label">Fecha Fin *</label>
+                                        <label class="control-label" for="contrato-fecha-fin"
+                                            >Fecha Fin <span class="text-danger">*</span></label
+                                        >
                                         <input
+                                            id="contrato-fecha-fin"
                                             type="date"
                                             v-model="registro.fecha_fin"
                                             class="form-control"
+                                            @keyup.enter="guardarRegistro()"
                                         />
                                         <span class="text-danger" v-if="errores.fecha_fin">
                                             {{ errores.fecha_fin[0] }}
@@ -207,8 +212,11 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Observaciones</label>
+                                        <label class="control-label" for="contrato-observaciones"
+                                            >Observaciones</label
+                                        >
                                         <textarea
+                                            id="contrato-observaciones"
                                             v-model="registro.observaciones"
                                             class="form-control"
                                             rows="3"
@@ -247,7 +255,7 @@
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    @click="btnCerralModalForm()"
+                                    @click="btnCerrarModalForm()"
                                 >
                                     Cancelar
                                 </button>
@@ -259,10 +267,13 @@
         </div>
 
         <!-- SIDEBAR: DETALLE (MÉDICOS + PRODUCTOS) -->
-        <div class="right-sidebar sidebar-scroll" v-show="contratoSeleccionado">
+        <div class="right-sidebar sidebar-scroll" :class="{ 'shw-rside': detalleVisible }">
             <div class="slimscrollright">
                 <div class="rpanel-title">
-                    Detalle: {{ contratoSeleccionado?.sede?.nom_sede }}
+                    Detalle: {{ contratoSeleccionado?.sede?.nom_sede || sedeNombreActual }}
+                    <small v-if="contratoSeleccionado?.id" class="text-white-50 m-l-5 font-12">
+                        (Contrato #{{ contratoSeleccionado.id }})
+                    </small>
                     <button
                         type="button"
                         class="right-side-toggle"
@@ -273,286 +284,975 @@
                     </button>
                 </div>
                 <div class="r-panel-body">
-                    <!-- Acción: importar médicos-producto -->
-                    <h5 class="card-title text-info">
-                        <i class="fa fa-users"></i> M&Eacute;DICOS-PRODUCTO DEL CONTRATO
-                    </h5>
-                    <hr />
-                    <div class="row">
-                        <div class="col-md-12">
+                    <!-- Cabecera de acciones del drawer -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="card-title text-info mb-0">
+                                <i class="fa fa-cubes m-r-5"></i> Tarifas y Productos del Contrato
+                            </h5>
+                            <small class="text-muted" v-if="contratoSeleccionado">
+                                Vigencia: {{ formatDate(contratoSeleccionado.fecha_inicio) }} al
+                                {{ formatDate(contratoSeleccionado.fecha_fin) }}
+                            </small>
+                        </div>
+                        <div>
                             <button
                                 type="button"
-                                class="btn btn-primary btn-sm"
-                                @click="abrirModalImportar(contratoSeleccionado)"
-                                :disabled="loadingImportar"
+                                class="btn btn-outline-success btn-sm"
+                                @click="abrirModalTarifasMedico(contratoSeleccionado)"
+                                title="Importar tarifas específicas de un médico lector"
                             >
-                                <i v-if="loadingImportar" class="fa fa-spinner fa-spin"></i>
-                                <i v-else class="fa fa-upload"></i>
-                                Importar m&eacute;dicos (Excel)
+                                <i class="fa fa-user-md m-r-5"></i>
+                                Importar tarifas médico (Plantilla 2)
                             </button>
                         </div>
                     </div>
 
-                    <!-- Tabla de médicos-producto -->
-                    <div class="col-md-12 table-responsive table-scroll mt-3">
-                        <table class="table table-bordered table-striped">
-                            <thead>
+                    <!-- Resumen KPI Badges -->
+                    <div class="d-flex flex-wrap align-items-center mb-3">
+                        <span class="badge badge-info badge-pill p-2 m-r-10 font-12">
+                            <i class="fa fa-list m-r-5"></i> Productos Contratados:
+                            {{ totalProductosContratados }}
+                        </span>
+                        <span class="badge badge-primary badge-pill p-2 m-r-10 font-12">
+                            <i class="fa fa-user-md m-r-5"></i> Médicos Vinculados:
+                            {{ medicosRelacionados.length }}
+                        </span>
+                        <span
+                            v-if="cobertura"
+                            class="badge badge-pill p-2 font-12 ml-auto"
+                            :class="
+                                cobertura.faltantes?.length
+                                    ? 'badge-warning text-dark'
+                                    : 'badge-success'
+                            "
+                        >
+                            <i class="fa fa-shield m-r-5"></i> Cobertura:
+                            {{ cobertura.tarifados }} /
+                            {{ cobertura.total }}
+                        </span>
+                    </div>
+
+                    <!-- Estado informativo: contrato con productos pero sin médicos aún -->
+                    <div
+                        v-if="!loadingDetalleDrawer && medicosRelacionados.length === 0"
+                        class="alert alert-warning py-2 mb-3"
+                    >
+                        <i class="fa fa-info-circle m-r-5"></i>
+                        Este contrato cuenta con
+                        <strong>{{ totalProductosContratados }} productos contratados</strong>
+                        institucionalmente, pero
+                        <strong>aún no tiene médicos lectores relacionados</strong>. Se listan las
+                        tarifas contratadas (Val Contratado). Puede vincular médicos mediante el
+                        botón <strong>"Importar tarifas médico"</strong>.
+                    </div>
+
+                    <!-- Filtros: Selector de Médicos y Buscador de Productos -->
+                    <div class="row mb-3">
+                        <div class="col-md-7">
+                            <div class="form-group mb-0">
+                                <label
+                                    class="control-label font-weight-bold"
+                                    for="select-medico-drawer"
+                                >
+                                    <i class="fa fa-user-md m-r-5 text-success"></i> Médico Lector:
+                                </label>
+                                <select
+                                    id="select-medico-drawer"
+                                    v-model="filtroMedicoId"
+                                    class="form-control custom-select"
+                                    :disabled="
+                                        loadingDetalleDrawer || medicosRelacionados.length === 0
+                                    "
+                                    @change="alCambiarMedicoDrawer"
+                                >
+                                    <option v-if="medicosRelacionados.length === 0" value="">
+                                        ...::: Sin médicos vinculados a este contrato :::...
+                                    </option>
+                                    <option v-else value="">
+                                        ...::: Todos los productos contratados ({{
+                                            totalProductosContratados
+                                        }}) :::...
+                                    </option>
+                                    <option
+                                        v-for="med in medicosRelacionados"
+                                        :key="med.id"
+                                        :value="med.id"
+                                    >
+                                        {{ med.name }}
+                                        {{ med.reg_med ? "(" + med.reg_med + ")" : "" }}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="form-group mb-0">
+                                <label
+                                    class="control-label font-weight-bold"
+                                    for="buscar-cups-drawer"
+                                >
+                                    <i class="fa fa-search m-r-5 text-muted"></i> Buscar Producto:
+                                </label>
+                                <input
+                                    id="buscar-cups-drawer"
+                                    type="text"
+                                    v-model="filtroBusquedaCups"
+                                    placeholder="Filtrar por CUPS o nombre..."
+                                    class="form-control"
+                                    :disabled="loadingDetalleDrawer"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Indicador de Carga -->
+                    <div v-if="loadingDetalleDrawer" class="text-center py-5">
+                        <i class="fa fa-spinner fa-spin fa-2x text-primary m-b-10"></i>
+                        <p class="text-muted">Cargando tarifas y productos del contrato...</p>
+                    </div>
+
+                    <!-- Tabla de Productos y Tarifas (5 columnas estrictas) -->
+                    <div
+                        v-else
+                        class="col-md-12 table-responsive table-scroll mt-2"
+                        style="max-height: 520px; overflow-y: auto"
+                    >
+                        <table class="table table-bordered table-striped table-hover table-sm">
+                            <thead class="thead-light">
                                 <tr>
-                                    <th>M&eacute;dico</th>
-                                    <th>C&oacute;digo</th>
+                                    <th style="width: 110px">CUPS</th>
                                     <th>Producto</th>
-                                    <th>Val Consulta</th>
-                                    <th>Val Urgencias</th>
-                                    <th></th>
+                                    <th style="width: 140px" class="text-right">Val Contratado</th>
+                                    <th style="width: 130px" class="text-right">Consulta</th>
+                                    <th style="width: 160px" class="text-right">
+                                        Hospitalización/Urg
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="(item, index) in detallesLocales" :key="index">
-                                    <td>{{ item.medico_name }}</td>
-                                    <td>{{ item.cod_cups }}</td>
+                                <tr
+                                    v-for="item in productosFiltrados"
+                                    :key="
+                                        item.producto_id + '_' + (item.contrato_medico_id || 'base')
+                                    "
+                                >
+                                    <td class="font-weight-bold text-nowrap">
+                                        {{ item.cod_cups }}
+                                    </td>
                                     <td>{{ item.nom_produc }}</td>
-                                    <td>
-                                        <input
-                                            type="number"
-                                            v-model.number="item.valor_consulta"
-                                            class="form-control"
-                                            step="0.01"
-                                            min="0"
-                                        />
+                                    <td class="text-right text-dark font-weight-bold">
+                                        {{ formatMoney(item.valor_contrato) }}
                                     </td>
-                                    <td>
-                                        <input
-                                            type="number"
-                                            v-model.number="item.valor_consulta"
-                                            class="form-control"
-                                            step="0.01"
-                                            min="0"
-                                        />
+                                    <td
+                                        class="text-right font-weight-bold"
+                                        :class="
+                                            item.valor_consulta !== null
+                                                ? 'text-success'
+                                                : 'text-muted'
+                                        "
+                                    >
+                                        {{
+                                            item.valor_consulta !== null
+                                                ? formatMoney(item.valor_consulta)
+                                                : "—"
+                                        }}
                                     </td>
-                                    <td>
-                                        <input
-                                            type="number"
-                                            v-model.number="item.valor_urgencias"
-                                            class="form-control"
-                                            step="0.01"
-                                            min="0"
-                                        />
-                                    </td>
-                                    <td>
-                                        <button
-                                            type="button"
-                                            class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                            @click="quitarProductoDetalle(index)"
-                                            title="Quitar producto"
-                                        >
-                                            <i class="fa fa-trash"></i>
-                                        </button>
+                                    <td
+                                        class="text-right font-weight-bold"
+                                        :class="
+                                            item.valor_urgencias !== null
+                                                ? 'text-primary'
+                                                : 'text-muted'
+                                        "
+                                    >
+                                        {{
+                                            item.valor_urgencias !== null
+                                                ? formatMoney(item.valor_urgencias)
+                                                : "—"
+                                        }}
                                     </td>
                                 </tr>
-                                <tr v-if="!detallesLocales.length">
-                                    <td colspan="6" class="text-center text-muted">
-                                        No hay m&eacute;dicos-producto agregados. Use el
-                                        bot&oacute;n "Importar m&eacute;dicos" o el bot&oacute;n de
-                                        importaci&oacute;n del listado.
+                                <tr v-if="!productosFiltrados.length">
+                                    <td colspan="5" class="text-center text-muted py-4">
+                                        <i class="fa fa-info-circle fa-2x m-b-10 text-muted"></i>
+                                        <p v-if="filtroBusquedaCups" class="mb-0">
+                                            No se encontraron productos que coincidan con "{{
+                                                filtroBusquedaCups
+                                            }}".
+                                        </p>
+                                        <p v-else-if="filtroMedicoId" class="mb-0">
+                                            El médico seleccionado no tiene productos tarifados en
+                                            este contrato.
+                                        </p>
+                                        <p v-else class="mb-0">
+                                            No hay productos configurados para este contrato.
+                                        </p>
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <!-- Botones -->
-                    <div class="form-actions mt-3">
+                    <!-- Footer del Drawer -->
+                    <div
+                        class="form-actions mt-3 d-flex justify-content-between align-items-center"
+                    >
+                        <small class="text-muted">
+                            Mostrando {{ productosFiltrados.length }} registro(s)
+                        </small>
                         <button
                             type="button"
-                            class="btn btn-success m-r-5"
-                            @click="guardarDetalles()"
-                            :disabled="loadingGuardarDetalle"
+                            class="btn btn-default waves-effect"
+                            @click="cerrarDetalle()"
                         >
-                            <i v-if="loadingGuardarDetalle" class="fa fa-spinner fa-spin"></i>
-                            <i v-else class="fa fa-check"></i>
-                            Guardar
-                        </button>
-                        <button type="button" class="btn btn-inverse" @click="cerrarDetalle()">
-                            Cancelar
+                            Cerrar
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- MODAL: IMPORTAR DETALLES DESDE EXCEL -->
+        <!-- MODAL: TARIFAS DE ENTIDAD / HOSPITAL -->
         <div
             class="modal fade"
-            id="modalImportar"
+            :class="{ show: modalTarifasEntidadVisible }"
+            :style="{ display: modalTarifasEntidadVisible ? 'block' : 'none' }"
             tabindex="-1"
             role="dialog"
-            aria-labelledby="modalImportarLabel"
             aria-hidden="true"
+            @click.self="cerrarModalTarifasEntidad()"
         >
-            <div class="modal-dialog" role="document">
+            <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title" id="modalImportarLabel">
-                            Importar Detalles de Contrato
-                        </h4>
+                        <h4 class="modal-title">Tarifas de Entidad / Hospital</h4>
                         <button
                             type="button"
                             class="close"
-                            @click="cerrarModalImportar()"
-                            aria-label="Cerrar"
-                            aria-hidden="true"
+                            aria-label="Cerrar modal"
+                            @click="cerrarModalTarifasEntidad()"
                         >
-                            &times;
+                            ×
                         </button>
                     </div>
                     <div class="modal-body">
-                        <div class="form-group">
-                            <label class="control-label">Contrato</label>
-                            <input
-                                type="text"
-                                class="form-control"
-                                :value="importarForm.contratoLabel"
-                                readonly
-                                disabled
-                            />
-                        </div>
-                        <div class="form-group">
-                            <label class="control-label">
-                                M&eacute;dico <span class="text-danger">*</span>
-                            </label>
-                            <Select2
-                                :value="importarForm.medico_id"
-                                :options="medicoOptions"
-                                :label-fields="['name']"
-                                width="100%"
-                                :allow-clear="true"
-                                dropdown-parent-selector="#modalImportar .modal-body"
-                                @input="onMedicoSelectDetalleImport"
-                            />
-                        </div>
-                        <div class="form-group">
-                            <label class="control-label">
-                                Archivo Excel <span class="text-danger">*</span>
-                            </label>
-                            <input
-                                type="file"
-                                ref="archivoImportarRef"
-                                accept=".xlsx,.xls"
-                                class="form-control"
-                            />
-                            <small class="text-muted">
-                                Formato: C&oacute;digo CUPS | Producto | Valor Consulta | Valor
-                                Urgencias (plantilla del contrato)
-                            </small>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button
-                            type="button"
-                            class="btn btn-default waves-effect"
-                            @click="cerrarModalImportar()"
-                        >
-                            Cancelar
-                        </button>
-                        <button
-                            type="button"
-                            class="btn btn-primary waves-effect waves-light"
-                            @click="procesarImportacion()"
-                            :disabled="loadingImportar"
-                        >
-                            <i v-if="loadingImportar" class="fa fa-spinner fa-spin"></i>
-                            Importar
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+                        <form @submit.prevent="procesarPreviewEntidad()">
+                            <div class="form-group">
+                                <label
+                                    class="control-label font-weight-bold"
+                                    for="entidad-contrato-info"
+                                    >Contrato y Sede</label
+                                >
+                                <input
+                                    id="entidad-contrato-info"
+                                    type="text"
+                                    class="form-control"
+                                    :value="
+                                        'Contrato #' +
+                                        modalEntidadForm.contratoId +
+                                        ' — ' +
+                                        modalEntidadForm.sedeNombre
+                                    "
+                                    readonly
+                                    disabled
+                                />
+                            </div>
 
-        <!-- MODAL: IMPORTAR PRODUCTOS AL CONTRATO DESDE EXCEL -->
+                            <div class="form-group">
+                                <label class="control-label font-weight-bold"
+                                    >1. Descargar Plantilla Oficial</label
+                                >
+                                <div>
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-success btn-sm"
+                                        @click="
+                                            descargarPlantillaEntidad(modalEntidadForm.contratoId)
+                                        "
+                                    >
+                                        <i class="fa fa-download mr-1"></i> Descargar Plantilla en
+                                        Excel
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted">
+                                    Descargue el formato oficial con los metadatos institucionales y
+                                    el catálogo de productos exigibles.
+                                </small>
+                            </div>
+
+                            <div class="form-group mb-0">
+                                <label
+                                    class="control-label font-weight-bold"
+                                    for="archivo-entidad-input"
+                                >
+                                    2. Subir Archivo Diligenciado <span class="text-danger">*</span>
+                                </label>
+                                <input
+                                    id="archivo-entidad-input"
+                                    type="file"
+                                    ref="archivoEntidadRef"
+                                    accept=".xlsx,.xls"
+                                    class="form-control"
+                                />
+                                <small class="form-text text-muted">
+                                    El sistema analizará el archivo y mostrará una vista previa con
+                                    altas, cambios y cobertura antes de guardar.
+                                </small>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-default waves-effect"
+                            @click="cerrarModalTarifasEntidad()"
+                        >
+                            Cerrar
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-info waves-effect waves-light"
+                            @click="procesarPreviewEntidad()"
+                            :disabled="loadingPreviewEntidad"
+                        >
+                            <i v-if="loadingPreviewEntidad" class="fa fa-spinner fa-spin mr-1"></i>
+                            <i v-else class="fa fa-upload mr-1"></i>
+                            Analizar y Ver Vista Previa
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-if="modalTarifasEntidadVisible" class="modal-backdrop fade show"></div>
+
+        <!-- MODAL: TARIFAS DE MÉDICO LECTOR -->
         <div
             class="modal fade"
-            id="modalImportarProductos"
+            :class="{ show: modalTarifasMedicoVisible }"
+            :style="{ display: modalTarifasMedicoVisible ? 'block' : 'none' }"
             tabindex="-1"
             role="dialog"
-            aria-labelledby="modalImportarProductosLabel"
             aria-hidden="true"
+            @click.self="cerrarModalTarifasMedico()"
         >
-            <div class="modal-dialog" role="document">
+            <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title" id="modalImportarProductosLabel">
-                            <i class="fa fa-upload"></i> Importar Productos al Contrato
+                        <h4 class="modal-title">Tarifas de Médicos Lectores</h4>
+                        <button
+                            type="button"
+                            class="close"
+                            aria-label="Cerrar modal"
+                            @click="cerrarModalTarifasMedico()"
+                        >
+                            ×
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form @submit.prevent="procesarPreviewMedico()">
+                            <div class="form-group">
+                                <label
+                                    class="control-label font-weight-bold"
+                                    for="medico-contrato-info"
+                                    >Contrato y Sede</label
+                                >
+                                <input
+                                    id="medico-contrato-info"
+                                    type="text"
+                                    class="form-control"
+                                    :value="
+                                        'Contrato #' +
+                                        modalMedicoForm.contratoId +
+                                        ' — ' +
+                                        modalMedicoForm.sedeNombre
+                                    "
+                                    readonly
+                                    disabled
+                                />
+                            </div>
+
+                            <div class="form-group">
+                                <label
+                                    class="control-label font-weight-bold"
+                                    for="sel-medico-tarifas"
+                                >
+                                    Médico Lector <span class="text-danger">*</span>
+                                </label>
+                                <Select2
+                                    id="sel-medico-tarifas"
+                                    :value="modalMedicoForm.medico_id"
+                                    :options="medicoOptions"
+                                    :label-fields="['name']"
+                                    width="100%"
+                                    :allow-clear="true"
+                                    placeholder="...::: Seleccione el médico lector :::..."
+                                    dropdown-parent-selector="#modalTarifasMedico .modal-body"
+                                    @input="(val) => (modalMedicoForm.medico_id = val)"
+                                />
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label font-weight-bold"
+                                    >1. Descargar Plantilla del Médico</label
+                                >
+                                <div>
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-success btn-sm"
+                                        :disabled="!modalMedicoForm.medico_id"
+                                        @click="
+                                            descargarPlantillaMedico(
+                                                modalMedicoForm.contratoId,
+                                                modalMedicoForm.medico_id
+                                            )
+                                        "
+                                    >
+                                        <i class="fa fa-download mr-1"></i> Descargar Plantilla en
+                                        Excel
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted">
+                                    Genera el formato personalizado con el ID y nombre del médico
+                                    lector seleccionado.
+                                </small>
+                            </div>
+
+                            <div class="form-group mb-0">
+                                <label
+                                    class="control-label font-weight-bold"
+                                    for="archivo-medico-input"
+                                >
+                                    2. Subir Archivo Diligenciado <span class="text-danger">*</span>
+                                </label>
+                                <input
+                                    id="archivo-medico-input"
+                                    type="file"
+                                    ref="archivoMedicoRef"
+                                    accept=".xlsx,.xls"
+                                    class="form-control"
+                                />
+                                <small class="form-text text-muted">
+                                    Se validará la celda A4 para garantizar que corresponda al
+                                    médico seleccionado.
+                                </small>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-default waves-effect"
+                            @click="cerrarModalTarifasMedico()"
+                        >
+                            Cerrar
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-info waves-effect waves-light"
+                            @click="procesarPreviewMedico()"
+                            :disabled="loadingPreviewMedico || !modalMedicoForm.medico_id"
+                        >
+                            <i v-if="loadingPreviewMedico" class="fa fa-spinner fa-spin mr-1"></i>
+                            <i v-else class="fa fa-upload mr-1"></i>
+                            Analizar y Ver Vista Previa
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-if="modalTarifasMedicoVisible" class="modal-backdrop fade show"></div>
+
+        <!-- MODAL: VISTA PREVIA (DIFF NO DESTRUCTIVO Y COBERTURA) -->
+        <div
+            class="modal fade"
+            :class="{ show: modalPreviewVisible }"
+            :style="{ display: modalPreviewVisible ? 'block' : 'none' }"
+            tabindex="-1"
+            role="dialog"
+            aria-hidden="true"
+            @click.self="cerrarModalPreview()"
+        >
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">
+                            Vista Previa:
+                            {{
+                                previewData.tipo === "medico"
+                                    ? "Tarifas Médico — " + (previewData.medico?.name || "")
+                                    : "Tarifas Entidad / Hospital"
+                            }}
                         </h4>
                         <button
                             type="button"
                             class="close"
-                            @click="cerrarModalImportarProductos()"
-                            aria-label="Cerrar"
-                            aria-hidden="true"
+                            aria-label="Cerrar modal"
+                            @click="cerrarModalPreview()"
                         >
-                            &times;
+                            ×
                         </button>
                     </div>
                     <div class="modal-body">
-                        <div class="form-group">
-                            <label class="control-label">
-                                Contrato <span class="text-danger">*</span>
-                            </label>
-                            <Select2
-                                :value="importarProductosForm.contrato_id"
-                                :options="contratoOptions"
-                                :label-fields="['label']"
-                                width="100%"
-                                :allow-clear="true"
-                                dropdown-parent-selector="#modalImportarProductos .modal-body"
-                                @input="onContratoSelectImportProductos"
-                            />
+                        <!-- Tarjetas Semáforo / Resumen (Estilo reporteProduccion) -->
+                        <div class="row text-center mb-3">
+                            <div class="col-3">
+                                <div class="card card-body border-success p-2 mb-0">
+                                    <h3 class="mb-0 text-success">
+                                        {{ previewData.resumen?.altas || 0 }}
+                                    </h3>
+                                    <small class="text-muted">Altas Nuevas</small>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="card card-body border-warning p-2 mb-0">
+                                    <h3 class="mb-0 text-warning">
+                                        {{ previewData.resumen?.cambios || 0 }}
+                                    </h3>
+                                    <small class="text-muted">Tarifas Actualizadas</small>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="card card-body border-danger p-2 mb-0">
+                                    <h3 class="mb-0 text-danger">
+                                        {{ previewData.resumen?.retiros || 0 }}
+                                    </h3>
+                                    <small class="text-muted">Bajas Lógicas</small>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="card card-body border-info p-2 mb-0">
+                                    <h3 class="mb-0 text-info">
+                                        {{ previewData.cobertura?.tarifados || 0 }} /
+                                        {{ previewData.cobertura?.total_catalogo || 0 }}
+                                    </h3>
+                                    <small class="text-muted">Cobertura Catálogo</small>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label class="control-label">
-                                Archivo Excel <span class="text-danger">*</span>
-                            </label>
-                            <input
-                                type="file"
-                                ref="archivoProductosRef"
-                                accept=".xlsx,.xls"
-                                class="form-control"
-                            />
-                            <small class="text-muted">
-                                Formato: CODIGO | ACTIVIDAD | Tarifa Actividad
-                            </small>
+
+                        <!-- Pestañas de Navegación (Estilo customtab AdminWrap) -->
+                        <ul class="nav nav-tabs customtab mb-3" role="tablist">
+                            <li class="nav-item">
+                                <a
+                                    class="nav-link"
+                                    :class="{ active: previewTabActiva === 'altas' }"
+                                    href="javascript:void(0)"
+                                    @click="previewTabActiva = 'altas'"
+                                >
+                                    Altas
+                                    <span class="badge badge-success ml-1">{{
+                                        previewData.altas?.length || 0
+                                    }}</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a
+                                    class="nav-link"
+                                    :class="{ active: previewTabActiva === 'cambios' }"
+                                    href="javascript:void(0)"
+                                    @click="previewTabActiva = 'cambios'"
+                                >
+                                    Tarifas Actualizadas
+                                    <span class="badge badge-warning text-dark ml-1">{{
+                                        previewData.cambios?.length || 0
+                                    }}</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a
+                                    class="nav-link"
+                                    :class="{ active: previewTabActiva === 'retiros' }"
+                                    href="javascript:void(0)"
+                                    @click="previewTabActiva = 'retiros'"
+                                >
+                                    Bajas Lógicas (Retiros)
+                                    <span class="badge badge-danger ml-1">{{
+                                        previewData.retiros?.length || 0
+                                    }}</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a
+                                    class="nav-link"
+                                    :class="{ active: previewTabActiva === 'cobertura' }"
+                                    href="javascript:void(0)"
+                                    @click="previewTabActiva = 'cobertura'"
+                                >
+                                    Cobertura Faltante
+                                    <span
+                                        class="badge ml-1"
+                                        :class="
+                                            previewData.cobertura?.faltantes?.length
+                                                ? 'badge-warning text-dark'
+                                                : 'badge-success'
+                                        "
+                                    >
+                                        {{ previewData.cobertura?.faltantes?.length || 0 }}
+                                    </span>
+                                </a>
+                            </li>
+                        </ul>
+
+                        <!-- Contenido de las pestañas -->
+                        <div class="tab-content" style="max-height: 380px; overflow-y: auto">
+                            <!-- TAB 1: ALTAS -->
+                            <div v-show="previewTabActiva === 'altas'">
+                                <div
+                                    v-if="!previewData.altas?.length"
+                                    class="text-center text-muted py-4"
+                                >
+                                    <i class="fa fa-info-circle fa-2x m-b-10 text-muted"></i>
+                                    <p>No se encontraron productos nuevos para agregar.</p>
+                                </div>
+                                <div v-else class="table-responsive">
+                                    <table class="table table-sm table-striped table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 120px">CUPS</th>
+                                                <th>Producto</th>
+                                                <th
+                                                    v-if="previewData.tipo === 'entidad'"
+                                                    class="text-right"
+                                                    style="width: 160px"
+                                                >
+                                                    Valor Tarifa
+                                                </th>
+                                                <th
+                                                    v-if="previewData.tipo === 'medico'"
+                                                    class="text-right"
+                                                    style="width: 160px"
+                                                >
+                                                    Consulta Externa
+                                                </th>
+                                                <th
+                                                    v-if="previewData.tipo === 'medico'"
+                                                    class="text-right"
+                                                    style="width: 160px"
+                                                >
+                                                    Urgencias / Hosp
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr
+                                                v-for="(item, idx) in previewData.altas"
+                                                :key="'alta_' + idx"
+                                            >
+                                                <td class="font-weight-bold">
+                                                    {{ item.cod_cups }}
+                                                </td>
+                                                <td>{{ item.nom_produc }}</td>
+                                                <td
+                                                    v-if="previewData.tipo === 'entidad'"
+                                                    class="text-right text-success font-weight-bold"
+                                                >
+                                                    {{ formatMoney(item.valor_contrato) }}
+                                                </td>
+                                                <td
+                                                    v-if="previewData.tipo === 'medico'"
+                                                    class="text-right text-success font-weight-bold"
+                                                >
+                                                    {{ formatMoney(item.valor_consulta) }}
+                                                </td>
+                                                <td
+                                                    v-if="previewData.tipo === 'medico'"
+                                                    class="text-right text-success font-weight-bold"
+                                                >
+                                                    {{ formatMoney(item.valor_urgencias) }}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- TAB 2: CAMBIOS -->
+                            <div v-show="previewTabActiva === 'cambios'">
+                                <div
+                                    v-if="!previewData.cambios?.length"
+                                    class="text-center text-muted py-4"
+                                >
+                                    <i class="fa fa-info-circle fa-2x m-b-10 text-muted"></i>
+                                    <p>No hay tarifas existentes modificadas en este archivo.</p>
+                                </div>
+                                <div v-else class="table-responsive">
+                                    <table class="table table-sm table-striped table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 120px">CUPS</th>
+                                                <th>Producto</th>
+                                                <th
+                                                    v-if="previewData.tipo === 'entidad'"
+                                                    class="text-right"
+                                                    style="width: 160px"
+                                                >
+                                                    Tarifa Anterior
+                                                </th>
+                                                <th
+                                                    v-if="previewData.tipo === 'entidad'"
+                                                    class="text-right"
+                                                    style="width: 160px"
+                                                >
+                                                    Nueva Tarifa
+                                                </th>
+                                                <th
+                                                    v-if="previewData.tipo === 'medico'"
+                                                    class="text-right"
+                                                    style="width: 220px"
+                                                >
+                                                    Consulta (Ant &rarr; Nueva)
+                                                </th>
+                                                <th
+                                                    v-if="previewData.tipo === 'medico'"
+                                                    class="text-right"
+                                                    style="width: 220px"
+                                                >
+                                                    Urgencias (Ant &rarr; Nueva)
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr
+                                                v-for="(item, idx) in previewData.cambios"
+                                                :key="'cambio_' + idx"
+                                            >
+                                                <td class="font-weight-bold">
+                                                    {{ item.cod_cups }}
+                                                </td>
+                                                <td>{{ item.nom_produc }}</td>
+                                                <td
+                                                    v-if="previewData.tipo === 'entidad'"
+                                                    class="text-right text-muted"
+                                                >
+                                                    {{ formatMoney(item.valor_anterior) }}
+                                                </td>
+                                                <td
+                                                    v-if="previewData.tipo === 'entidad'"
+                                                    class="text-right text-themecolor font-weight-bold"
+                                                >
+                                                    {{ formatMoney(item.valor_contrato) }}
+                                                    <span
+                                                        v-if="item.reactiva"
+                                                        class="badge badge-info m-l-5 font-11"
+                                                        >Reactivado</span
+                                                    >
+                                                </td>
+                                                <td
+                                                    v-if="previewData.tipo === 'medico'"
+                                                    class="text-right"
+                                                >
+                                                    <span class="text-muted">{{
+                                                        formatMoney(item.valor_consulta_anterior)
+                                                    }}</span>
+                                                    &rarr;
+                                                    <span
+                                                        class="text-themecolor font-weight-bold"
+                                                        >{{
+                                                            formatMoney(item.valor_consulta)
+                                                        }}</span
+                                                    >
+                                                </td>
+                                                <td
+                                                    v-if="previewData.tipo === 'medico'"
+                                                    class="text-right"
+                                                >
+                                                    <span class="text-muted">{{
+                                                        formatMoney(item.valor_urgencias_anterior)
+                                                    }}</span>
+                                                    &rarr;
+                                                    <span
+                                                        class="text-themecolor font-weight-bold"
+                                                        >{{
+                                                            formatMoney(item.valor_urgencias)
+                                                        }}</span
+                                                    >
+                                                    <span
+                                                        v-if="item.reactiva"
+                                                        class="badge badge-info m-l-5 font-11"
+                                                        >Reactivado</span
+                                                    >
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- TAB 3: RETIROS -->
+                            <div v-show="previewTabActiva === 'retiros'">
+                                <div class="alert alert-warning py-2 m-b-10">
+                                    <i class="fa fa-info-circle m-r-5"></i>
+                                    <strong>Baja lógica garantizada:</strong> Los siguientes
+                                    registros pasarán a estado inactivo (<code>estado = 0</code
+                                    >{{
+                                        previewData.tipo === "medico"
+                                            ? " y fecha_retiro = hoy"
+                                            : ""
+                                    }}).
+                                    <strong>Ningún registro se eliminará físicamente</strong> de la
+                                    base de datos para preservar la trazabilidad asistencial y
+                                    contable.
+                                </div>
+                                <div
+                                    v-if="!previewData.retiros?.length"
+                                    class="text-center text-muted py-4"
+                                >
+                                    <i class="fa fa-check-circle fa-2x m-b-10 text-success"></i>
+                                    <p>
+                                        No hay productos para retirar; todas las tarifas existentes
+                                        se mantienen.
+                                    </p>
+                                </div>
+                                <div v-else class="table-responsive">
+                                    <table class="table table-sm table-striped table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 120px">CUPS</th>
+                                                <th>Producto</th>
+                                                <th class="text-right" style="width: 160px">
+                                                    Tarifa Anterior
+                                                </th>
+                                                <th>Motivo</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr
+                                                v-for="(item, idx) in previewData.retiros"
+                                                :key="'retiro_' + idx"
+                                            >
+                                                <td class="font-weight-bold text-danger">
+                                                    {{ item.cod_cups }}
+                                                </td>
+                                                <td>{{ item.nom_produc }}</td>
+                                                <td class="text-right">
+                                                    {{
+                                                        formatMoney(
+                                                            item.valor_contrato ||
+                                                                item.valor_consulta
+                                                        )
+                                                    }}
+                                                </td>
+                                                <td class="small">
+                                                    <span class="badge badge-danger m-r-5"
+                                                        >Baja Lógica</span
+                                                    >
+                                                    <span class="text-muted">{{
+                                                        item.motivo
+                                                    }}</span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- TAB 4: COBERTURA -->
+                            <div v-show="previewTabActiva === 'cobertura'">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <p class="text-muted mb-0 small">
+                                        Productos exigibles del catálogo institucional (requieren
+                                        lectura) que
+                                        <strong>NO tendrán tarifa configurada</strong> tras aplicar
+                                        este documento.
+                                    </p>
+                                    <div class="input-group input-group-sm w-auto">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"
+                                                ><i class="fa fa-search text-muted"></i
+                                            ></span>
+                                        </div>
+                                        <input
+                                            type="text"
+                                            v-model="busquedaCobertura"
+                                            placeholder="Buscar CUPS o producto..."
+                                            class="form-control"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div
+                                    v-if="!coberturaFiltrada.length"
+                                    class="alert alert-success py-3 text-center mb-0"
+                                >
+                                    <i class="fa fa-check-circle fa-2x m-b-5"></i>
+                                    <h5>¡Cobertura Completa!</h5>
+                                    <p class="mb-0">
+                                        Todos los productos exigibles del catálogo cuentan con
+                                        tarifa asignada.
+                                    </p>
+                                </div>
+                                <div v-else class="table-responsive">
+                                    <table class="table table-sm table-striped table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 120px">CUPS</th>
+                                                <th>Producto Exigible Sin Tarifa</th>
+                                                <th class="text-center" style="width: 160px">
+                                                    Estado
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr
+                                                v-for="(prod, idx) in coberturaFiltrada"
+                                                :key="'falt_' + idx"
+                                            >
+                                                <td class="font-weight-bold text-warning">
+                                                    {{ prod.cod_cups }}
+                                                </td>
+                                                <td>{{ prod.nom_produc }}</td>
+                                                <td class="text-center">
+                                                    <span
+                                                        class="badge badge-warning text-dark font-12"
+                                                    >
+                                                        <i class="fa fa-clock-o m-r-5"></i> Sin
+                                                        Tarifa
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button
                             type="button"
                             class="btn btn-default waves-effect"
-                            @click="cerrarModalImportarProductos()"
+                            @click="cerrarModalPreview()"
                         >
                             Cancelar
                         </button>
                         <button
                             type="button"
-                            class="btn btn-primary waves-effect waves-light"
-                            @click="procesarImportacionProductos()"
-                            :disabled="loadingImportarProductos"
+                            class="btn btn-info waves-effect waves-light"
+                            @click="ejecutarConfirmacionImportacion()"
+                            :disabled="loadingConfirmarImportacion"
                         >
-                            <i v-if="loadingImportarProductos" class="fa fa-spinner fa-spin"></i>
-                            Importar
+                            <i
+                                v-if="loadingConfirmarImportacion"
+                                class="fa fa-spinner fa-spin mr-1"
+                            ></i>
+                            <i v-else class="fa fa-check mr-1"></i>
+                            Confirmar e Importar Tarifas
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+        <div v-if="modalPreviewVisible" class="modal-backdrop fade show"></div>
     </div>
 </template>
 
 <script setup>
-import { nextTick, onBeforeUnmount, onMounted, ref, computed } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, ref, computed, getCurrentInstance } from "vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { toastMessage, confirmAction } from "@/helpers/alerts.js";
 import axios from "axios";
 import Select2 from "@/components/shared/Select2.vue";
+
+const { proxy } = getCurrentInstance();
 
 // ─── REFERENCIAS ──────────────────────────────────────────────────────────────
 
@@ -619,11 +1319,25 @@ const loadingGuardar = ref(false);
  */
 const loadingEliminarId = ref(null);
 
-// ─── SEDE ACTUAL DESDE SESSION STORAGE ────────────────────────────────────────
+// ─── VISIBILIDAD DE SIDEBARS ──────────────────────────────────────────────────
 
 /**
- * Obtiene la sede actual desde sessionStorage (key: ST-sede).
- * Parsea el JSON almacenado y retorna un objeto con id y nombre.
+ * Visibilidad del sidebar de crear/editar contrato
+ * @type {import('vue').Ref<boolean>}
+ */
+const sidebarVisible = ref(false);
+
+/**
+ * Visibilidad del sidebar de detalle (médicos-producto)
+ * @type {import('vue').Ref<boolean>}
+ */
+const detalleVisible = ref(false);
+
+// ─── SEDE ACTUAL DESDE SESSION / LOCAL STORAGE ────────────────────────────────
+
+/**
+ * Obtiene la sede actual desde sessionStorage o localStorage (key: ST-sede).
+ * Soporta formato numérico directo o JSON almacenado.
  *
  * @returns {{ id: number, nom_sede: string } | null}
  *
@@ -632,12 +1346,25 @@ const loadingEliminarId = ref(null);
  */
 function getSedeActual() {
     try {
-        const raw = window.sessionStorage.getItem("ST-sede");
+        const raw =
+            window.sessionStorage.getItem("ST-sede") || window.localStorage.getItem("ST-sede");
         if (!raw) return null;
+        const nomSede =
+            window.sessionStorage.getItem("ST-nomsede") ||
+            window.localStorage.getItem("ST-nomsede") ||
+            "Sede";
+
+        if (!Number.isNaN(Number(raw))) {
+            return {
+                id: Number(raw),
+                nom_sede: nomSede,
+            };
+        }
+
         const parsed = JSON.parse(raw);
         return {
             id: parsed.id ?? parsed.sede_id ?? null,
-            nom_sede: parsed.nom_sede ?? parsed.nombre ?? "Sede",
+            nom_sede: parsed.nom_sede ?? parsed.nombre ?? nomSede,
         };
     } catch {
         return null;
@@ -645,10 +1372,26 @@ function getSedeActual() {
 }
 
 /**
- * Sede actual del usuario logueado, obtenida de sessionStorage
+ * Sede actual del usuario logueado, obtenida de sessionStorage o localStorage
  * @type {import('vue').Ref<{ id: number, nom_sede: string }|null>}
  */
 const sedeActual = ref(getSedeActual());
+
+/**
+ * Listener reactivo ante cambio de sede en el navbar.
+ *
+ * @param {Object} event
+ * @returns {void}
+ */
+function onSedeSeleccionada(event) {
+    const rawSede =
+        event?.sede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede");
+    const nuevaSedeId = rawSede ? Number(rawSede) : null;
+    if (!nuevaSedeId || Number(sedeActual.value?.id) === nuevaSedeId) return;
+
+    sedeActual.value = getSedeActual();
+    listar();
+}
 
 /**
  * Nombre legible de la sede actual para mostrar en el formulario (readonly)
@@ -665,11 +1408,17 @@ const sedeNombreActual = computed(() => sedeActual.value?.nom_sede ?? "No dispon
 const contratoSeleccionado = ref(null);
 
 /**
- * Lista local de médicos-producto del contrato en edición.
- * Cada elemento: { id, medico_id, medico_name, producto_id, cod_cups, nom_produc, valor_consulta, valor_urgencias }
- * @type {import('vue').Ref<Array>}
+ * Cobertura de productos del contrato abierto en el detalle.
+ * Estructura: { total, tarifados, faltantes: [{ id, cod_cups, nom_produc }] } o null si no se ha cargado.
+ * @type {import('vue').Ref<Object|null>}
  */
-const detallesLocales = ref([]);
+const cobertura = ref(null);
+
+/**
+ * Flag de carga al consultar la cobertura de productos del contrato
+ * @type {import('vue').Ref<boolean>}
+ */
+const loadingCobertura = ref(false);
 
 /**
  * Catálogo de usuarios médicos (con reg_med no nulo)
@@ -678,10 +1427,58 @@ const detallesLocales = ref([]);
 const medicos = ref([]);
 
 /**
- * Flag de carga al guardar detalles
+ * Flag de carga al consultar productos/tarifas del drawer de detalle
  * @type {import('vue').Ref<boolean>}
  */
-const loadingGuardarDetalle = ref(false);
+const loadingDetalleDrawer = ref(false);
+
+/**
+ * Lista de médicos lectores que están relacionados a este contrato específico
+ * @type {import('vue').Ref<Array<{id: number, name: string, reg_med: string|null}>>}
+ */
+const medicosRelacionados = ref([]);
+
+/**
+ * Lista de productos/tarifas cargados en el drawer de detalle
+ * @type {import('vue').Ref<Array<{contrato_producto_id: number, producto_id: number, cod_cups: string, nom_produc: string, valor_contrato: number, valor_consulta: number|null, valor_urgencias: number|null}>>}
+ */
+const productosDetalle = ref([]);
+
+/**
+ * Total de productos contratados institucionalmente
+ * @type {import('vue').Ref<number>}
+ */
+const totalProductosContratados = ref(0);
+
+/**
+ * ID del médico seleccionado en el combo de filtrado del drawer ("" = todos)
+ * @type {import('vue').Ref<string|number>}
+ */
+const filtroMedicoId = ref("");
+
+/**
+ * Término de búsqueda por CUPS o nombre de producto en el drawer
+ * @type {import('vue').Ref<string>}
+ */
+const filtroBusquedaCups = ref("");
+
+/**
+ * Lista filtrada en tiempo real de productos según el buscador del drawer
+ */
+const productosFiltrados = computed(() => {
+    const list = productosDetalle.value || [];
+    const q = filtroBusquedaCups.value.trim().toLowerCase();
+    if (!q) return list;
+    return list.filter(
+        (p) =>
+            String(p.cod_cups || "")
+                .toLowerCase()
+                .includes(q) ||
+            String(p.nom_produc || "")
+                .toLowerCase()
+                .includes(q)
+    );
+});
 
 // ─── COMPUTED: OPTIONS PARA SELECT2 ──────────────────────────────────────────
 
@@ -689,7 +1486,7 @@ const loadingGuardarDetalle = ref(false);
  * Opciones formateadas para Select2 de médicos.
  * Convierte IDs a String para compatibilidad con Select2.
  *
- * @returns {Array<{id: string, name: string, reg_med: string}>}
+ * @returns {Array<{id: string, name: string}>}
  *
  * @author Jhon Javer Lozano Arce
  * @date 2026-08-20
@@ -697,24 +1494,7 @@ const loadingGuardarDetalle = ref(false);
 const medicoOptions = computed(() =>
     medicos.value.map((m) => ({
         id: String(m.id),
-        name: m.name,
-        reg_med: m.reg_med || "",
-    }))
-);
-
-/**
- * Opciones formateadas para Select2 de contratos (modal importar productos).
- * Convierte IDs a String para compatibilidad con Select2.
- *
- * @returns {Array<{id: string, label: string}>}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
- */
-const contratoOptions = computed(() =>
-    registros.value.map((r) => ({
-        id: String(r.id),
-        label: `#${r.id} - ${r.sede?.nom_sede || "N/A"} (${formatDate(r.fecha_inicio)} - ${formatDate(r.fecha_fin)})`,
+        name: m.reg_med ? `${m.reg_med} - ${m.name}` : m.name,
     }))
 );
 
@@ -731,21 +1511,14 @@ const contratoOptions = computed(() =>
  */
 function formatDate(dateStr) {
     if (!dateStr) return "";
-    return new Date(dateStr).toLocaleDateString("es-CO");
-}
-
-/**
- * Formatea un número a moneda colombiana (COP)
- *
- * @param {number|null} value - Valor numérico a formatear
- * @returns {string} Cadena con formato de moneda o "$0"
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
- */
-function formatMoney(value) {
-    if (!value) return "$0";
-    return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP" }).format(value);
+    const cleanDate = String(dateStr).split(/[ T]/)[0];
+    const parts = cleanDate.split("-");
+    if (parts.length === 3) {
+        const [year, month, day] = parts;
+        return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+    }
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? "" : d.toLocaleDateString("es-CO");
 }
 
 /**
@@ -779,18 +1552,33 @@ async function listar() {
     if (loadingListar.value) return;
     loadingListar.value = true;
     try {
-        safeDestroyDataTable(dt.value || "#example23");
+        safeDestroyDataTable(dt.value || "#tablaContratos");
         const res = await axios.get("/api/contratos");
-        registros.value = res.data.data.data || [];
-        await nextTick();
-        safeInitDataTable(dt.value || "#example23", {
-            dom: "Bfrtip",
-            buttons: ["copy", "csv", "excel", "pdf", "print"],
-        });
-    } catch (e) {
-        console.error(e);
+        let data = res.data?.data?.data ?? res.data?.data;
+        if (typeof data === "string") {
+            try {
+                data = JSON.parse(data);
+            } catch (_e) {
+                data = [];
+            }
+        }
+        registros.value = Array.isArray(data) ? data : [];
+    } catch (error) {
+        console.error(error);
+        toastMessage({ heading: "Error", text: "Error al cargar los contratos", icon: "error" });
+        registros.value = [];
     } finally {
         loadingListar.value = false;
+        await nextTick();
+        if (registros.value.length > 0) {
+            safeDestroyDataTable(dt.value || "#tablaContratos");
+            safeInitDataTable(dt.value || "#tablaContratos", {
+                dom: "Bfrtip",
+                buttons: ["copy", "csv", "excel", "pdf", "print"],
+                autoWidth: false,
+                columnDefs: [{ targets: [5], orderable: false }],
+            });
+        }
     }
 }
 
@@ -807,6 +1595,9 @@ async function listar() {
  * @date 2026-08-20
  */
 function mostrarRegistro(item = null) {
+    if (detalleVisible.value) {
+        detalleVisible.value = false;
+    }
     errores.value = {};
     const sedeId = sedeActual.value?.id ?? "";
     if (item) {
@@ -830,8 +1621,10 @@ function mostrarRegistro(item = null) {
             estado: 1,
         };
     }
-    $(".right-sidebar:not(.sidebar-scroll)").slideDown(50);
-    $(".right-sidebar:not(.sidebar-scroll)").addClass("shw-rside");
+    sidebarVisible.value = true;
+    nextTick(() => {
+        document.getElementById("sede_id")?.focus();
+    });
 }
 
 /**
@@ -842,8 +1635,8 @@ function mostrarRegistro(item = null) {
  * @author Jhon Javer Lozano Arce
  * @date 2026-08-20
  */
-function btnCerralModalForm() {
-    $(".right-sidebar:not(.sidebar-scroll)").removeClass("shw-rside");
+function btnCerrarModalForm() {
+    sidebarVisible.value = false;
 }
 
 /**
@@ -880,11 +1673,14 @@ async function guardarRegistro() {
             await axios.post("/api/contratos", payload);
             toastMessage({ heading: "Ok", text: "Contrato creado correctamente", icon: "success" });
         }
-        btnCerralModalForm();
+        btnCerrarModalForm();
         await listar();
-    } catch (e) {
-        if (e.response?.status === 422) {
-            errores.value = e.response.data.errors || {};
+    } catch (error) {
+        if (error.response?.status === 422) {
+            errores.value = error.response.data.errors || {};
+        } else {
+            const msg = error.response?.data?.message || "Error al guardar el contrato";
+            toastMessage({ heading: "Error", text: msg, icon: "error" });
         }
     } finally {
         loadingGuardar.value = false;
@@ -913,8 +1709,10 @@ async function desactivarRegistro(item) {
         await axios.delete(`/api/contratos/${item.id}`);
         toastMessage({ heading: "Ok", text: "Contrato eliminado correctamente", icon: "success" });
         await listar();
-    } catch (e) {
-        console.error(e);
+    } catch (error) {
+        console.error(error);
+        const msg = error.response?.data?.message || "Error al eliminar el contrato";
+        toastMessage({ heading: "Error", text: msg, icon: "error" });
     } finally {
         loadingEliminarId.value = null;
     }
@@ -934,501 +1732,592 @@ async function desactivarRegistro(item) {
  */
 async function cargarCatalogos() {
     try {
-        const moduloId = sessionStorage.getItem("ST-modulo") || "1";
+        const moduloId =
+            sessionStorage.getItem("ST-modulo") || localStorage.getItem("ST-modulo") || "1";
         const medRes = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
         medicos.value = medRes.data.data || [];
-    } catch (e) {
-        console.error("Error cargando catálogos:", e);
-        const msg = e.response?.data?.message || e.message || "Error desconocido";
+    } catch (error) {
+        console.error("Error cargando catálogos:", error);
+        const msg = error.response?.data?.message || error.message || "Error desconocido";
         toastMessage({ heading: "Error", text: "Error cargando médicos: " + msg, icon: "error" });
     }
 }
 
-// ─── DETALLE: SIDEBAR ─────────────────────────────────────────────────────────
+// ─── DETALLE: SIDEBAR (PRODUCTOS Y MÉDICOS) ─────────────────────────────────
+
+/**
+ * Consulta las tarifas y productos vinculados al contrato, aplicando opcionalmente
+ * el filtro por un médico lector específico.
+ *
+ * @param {number} contratoId - Identificador del contrato
+ * @param {number|null} [medicoId=null] - Identificador opcional del médico lector
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-10
+ */
+async function cargarDetalleProductos(contratoId, medicoId = null) {
+    loadingDetalleDrawer.value = true;
+    try {
+        const params = {};
+        if (medicoId) {
+            params.medico_id = medicoId;
+        }
+        const res = await axios.get(`/api/contratos/${contratoId}/medicos-productos`, { params });
+        const data = res.data?.data || {};
+        medicosRelacionados.value = data.medicos || [];
+        productosDetalle.value = data.productos || [];
+        totalProductosContratados.value = data.total_productos || 0;
+    } catch (error) {
+        console.error("Error cargando detalle de productos del contrato:", error);
+        const msg =
+            error.response?.data?.message ||
+            error.message ||
+            "Error al consultar las tarifas y productos del contrato";
+        toastMessage({ heading: "Error", text: msg, icon: "error" });
+        productosDetalle.value = [];
+        medicosRelacionados.value = [];
+        totalProductosContratados.value = 0;
+    } finally {
+        loadingDetalleDrawer.value = false;
+    }
+}
+
+/**
+ * Maneja el cambio reactivo en el selector de médicos del drawer.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-10
+ */
+async function alCambiarMedicoDrawer() {
+    if (!contratoSeleccionado.value?.id) return;
+    const medId = filtroMedicoId.value ? Number(filtroMedicoId.value) : null;
+    await cargarDetalleProductos(contratoSeleccionado.value.id, medId);
+}
 
 /**
  * Abre el sidebar de detalle de un contrato.
- * Puebla detallesLocales desde los médicos vinculados del contrato y muestra el sidebar.
- * Los catálogos ya se cargaron en onMounted.
+ * Inicializa los filtros, consulta la cobertura institucional y carga las tarifas.
  *
- * @param {Object} contrato - Contrato con su sede y médicos vinculados
+ * @param {Object} contrato - Contrato seleccionado con sede
  * @returns {Promise<void>}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
+ * @date 2026-11-10
  */
 async function abrirDetalle(contrato) {
+    if (sidebarVisible.value) {
+        sidebarVisible.value = false;
+    }
     contratoSeleccionado.value = contrato;
-    detallesLocales.value = mapearMedicosDetalle(contrato.medicos || []);
-    await nextTick();
-    $(".right-sidebar.sidebar-scroll").addClass("shw-rside");
+    filtroMedicoId.value = "";
+    filtroBusquedaCups.value = "";
+    detalleVisible.value = true;
+
+    cargarCobertura(contrato.id);
+    await cargarDetalleProductos(contrato.id, null);
 }
 
 /**
- * Mapea la colección de contratos_medicos (con relaciones cargadas) a la
- * estructura plana que usa la tabla local del sidebar de detalle.
+ * Consulta qué productos del catálogo exigibles no tienen tarifa en el contrato.
  *
- * @param {Array} medicosContrato - Registros con medico y contratoProducto.producto incluidos
- * @returns {Array<{id: number, medico_id: number, medico_name: string, producto_id: number|null, cod_cups: string, nom_produc: string, valor_consulta: number, valor_urgencias: number}>}
+ * @param {number} contratoId - Identificador del contrato abierto en el detalle.
+ * @returns {Promise<void>}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
+ * @date 2026-09-30
  */
-function mapearMedicosDetalle(medicosContrato) {
-    return (medicosContrato || []).map((m) => ({
-        id: m.id,
-        medico_id: m.medico_id,
-        medico_name: m.medico?.name || "",
-        producto_id: m.contratoProducto?.producto?.id ?? null,
-        cod_cups: m.contratoProducto?.producto?.cod_cups || "",
-        nom_produc: m.contratoProducto?.producto?.nom_produc || "",
-        valor_consulta: m.valor_consulta ?? 0,
-        valor_urgencias: m.valor_urgencias ?? 0,
-    }));
+async function cargarCobertura(contratoId) {
+    loadingCobertura.value = true;
+    try {
+        const res = await axios.get(`/api/contratos/${contratoId}/cobertura`);
+        cobertura.value = res.data.data;
+    } catch (_error) {
+        cobertura.value = null;
+    } finally {
+        loadingCobertura.value = false;
+    }
 }
 
 /**
- * Cierra el sidebar de detalle y limpia todo el estado relacionado.
+ * Cierra el sidebar de detalle y limpia todo el estado asociado al drawer.
  *
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
+ * @date 2026-11-10
  */
 function cerrarDetalle() {
     contratoSeleccionado.value = null;
-    detallesLocales.value = [];
-    $(".right-sidebar.sidebar-scroll").removeClass("shw-rside");
+    cobertura.value = null;
+    filtroMedicoId.value = "";
+    filtroBusquedaCups.value = "";
+    productosDetalle.value = [];
+    medicosRelacionados.value = [];
+    totalProductosContratados.value = 0;
+    detalleVisible.value = false;
 }
 
-/**
- * Elimina un médico-producto de la tabla local de detalles por índice.
- *
- * @param {number} index - Índice del elemento a eliminar en detallesLocales
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
- */
-function quitarProductoDetalle(index) {
-    detallesLocales.value.splice(index, 1);
-}
+// ─── TARIFAS ENTIDAD Y MÉDICOS (PLANTILLAS Y PREVIEW DIFF) ─────────────────
 
 /**
- * Guarda todos los médicos-producto del contrato (sync completo) hacia el backend.
- * Reemplaza todos los registros existentes por la lista local actual.
- * Después de guardar, recarga el contrato y el listado principal.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
+ * Formulario del modal de tarifas de entidad (Plantilla 1)
+ * @type {import('vue').Ref<{ contratoId: number|null, sedeNombre: string, fechaInicio: string, fechaFin: string }>}
  */
-async function guardarDetalles() {
-    if (loadingGuardarDetalle.value) return;
-    if (!detallesLocales.value.length) {
-        toastMessage({
-            heading: "Atención",
-            text: "Agregue al menos un médico-producto",
-            icon: "warning",
-        });
-        return;
-    }
-    loadingGuardarDetalle.value = true;
-    try {
-        const payload = {
-            medicos: detallesLocales.value.map((d) => ({
-                medico_id: d.medico_id,
-                producto_id: d.producto_id,
-                valor_consulta: d.valor_consulta ?? 0,
-                valor_urgencias: d.valor_urgencias ?? 0,
-            })),
-        };
-        await axios.put(`/api/contratos/${contratoSeleccionado.value.id}/medicos`, payload);
-        toastMessage({
-            heading: "Ok",
-            text: "Médicos-producto guardados correctamente",
-            icon: "success",
-        });
-        const res = await axios.get(`/api/contratos/${contratoSeleccionado.value.id}`);
-        contratoSeleccionado.value = res.data.data;
-        detallesLocales.value = mapearMedicosDetalle(res.data.data.medicos || []);
-        await listar();
-    } catch (e) {
-        const msg =
-            e.response?.data?.message ||
-            Object.values(e.response?.data?.errors || {})
-                .flat()
-                .join(", ");
-        toastMessage({ heading: "Error", text: msg || "Error de validación", icon: "error" });
-    } finally {
-        loadingGuardarDetalle.value = false;
-    }
-}
-
-// ─── IMPORTAR DESDE EXCEL ────────────────────────────────────────────────────
-
-/**
- * Referencia al input de archivo del modal de importación
- * @type {import('vue').Ref<HTMLInputElement|null>}
- */
-const archivoImportarRef = ref(null);
-
-/**
- * Formulario del modal de importación
- * @type {import('vue').Ref<Object>}
- */
-const importarForm = ref({
+const modalEntidadForm = ref({
     contratoId: null,
-    contratoLabel: "",
+    sedeNombre: "",
+    fechaInicio: "",
+    fechaFin: "",
+});
+
+/**
+ * Formulario del modal de tarifas de médicos lectores (Plantilla 2)
+ * @type {import('vue').Ref<{ contratoId: number|null, sedeNombre: string, fechaInicio: string, fechaFin: string, medico_id: string|null }>}
+ */
+const modalMedicoForm = ref({
+    contratoId: null,
+    sedeNombre: "",
+    fechaInicio: "",
+    fechaFin: "",
     medico_id: null,
 });
 
 /**
- * Flag de carga al procesar importación
- * @type {import('vue').Ref<boolean>}
- */
-const loadingImportar = ref(false);
-
-/**
- * Descarga la plantilla de detalle del contrato para cargar médicos-producto.
- * Incluye los productos configurados en el contrato con las columnas de
- * valores vacías, y el Contrato ID en la celda C2 para validación.
- *
- * @param {Object} item - Contrato con id y sede
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
- */
-function descargarPlantilla(item) {
-    window.open(`/api/contratos/${item.id}/plantilla-detalle`, "_blank");
-}
-
-/**
- * Descarga la plantilla general de productos activos (sin contrato específico).
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
- */
-function descargarPlantillaGeneral() {
-    window.open("/api/contratos/plantilla-general", "_blank");
-}
-
-/**
- * Abre el modal de importación de médicos-producto para un contrato específico.
- * Puebla el formulario con la información del contrato.
- *
- * @param {Object} item - Contrato con id, sede y otros datos
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
- */
-function abrirModalImportar(item) {
-    importarForm.value = {
-        contratoId: item.id,
-        contratoLabel: `Contrato #${item.id} - ${item.sede?.nom_sede || "N/A"} (${formatDate(item.fecha_inicio)} - ${formatDate(item.fecha_fin)})`,
-        medico_id: null,
-    };
-    if (archivoImportarRef.value) {
-        archivoImportarRef.value.value = "";
-    }
-    $("#modalImportar").modal("show");
-}
-
-/**
- * Cierra el modal de importación de médicos-producto.
- * Usa el API jQuery de Bootstrap para garantizar el cierre sin depender de data-dismiss.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
- */
-function cerrarModalImportar() {
-    $("#modalImportar").modal("hide");
-}
-
-/**
- * Handler: se ejecuta cuando el usuario selecciona un médico en el Select2 del modal.
- *
- * @param {string|null} id - ID del médico seleccionado
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
- */
-function onMedicoSelectDetalleImport(id) {
-    importarForm.value.medico_id = id;
-}
-
-/**
- * Construye el texto de confirmación para los CUPS faltantes detectados.
- * Muestra máximo 10 códigos y agrega un resumen del resto.
- *
- * @param {Array<{codigo: string, actividad: string}>} faltantes - Productos CUPS no encontrados en el catálogo
- * @returns {string} Texto formateado para el diálogo de confirmación
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
- */
-function construirTextoFaltantes(faltantes) {
-    const MAX = 10;
-    const visibles = faltantes.slice(0, MAX);
-    const lista = visibles
-        .map((f) => `${f.codigo}${f.actividad ? " - " + f.actividad : ""}`)
-        .join("\n");
-    const restantes = faltantes.length - visibles.length;
-    const sufijo = restantes > 0 ? `\n... y ${restantes} más` : "";
-    return `${faltantes.length} código(s) CUPS no existen en el catálogo:\n\n${lista}${sufijo}\n\n¿Desea crearlos automáticamente en el catálogo y continuar con la importación?`;
-}
-
-/**
- * Procesa la importación de médicos-producto desde un archivo Excel.
- * Envía el archivo y el medico_id al backend. Si el backend detecta CUPS
- * inexistentes en el catálogo, pregunta al usuario si desea crearlos y reintenta
- * con crear_faltantes=1. Tras éxito refresca el sidebar de detalle si está abierto.
- *
- * @returns {Promise<void>}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
- */
-async function procesarImportacion() {
-    if (loadingImportar.value) return;
-
-    if (!importarForm.value.medico_id) {
-        toastMessage({ heading: "Atención", text: "Seleccione un médico", icon: "warning" });
-        return;
-    }
-
-    const file = archivoImportarRef.value?.files?.[0];
-    if (!file) {
-        toastMessage({ heading: "Atención", text: "Seleccione un archivo Excel", icon: "warning" });
-        return;
-    }
-
-    loadingImportar.value = true;
-    try {
-        let crearFaltantes = false;
-
-        while (true) {
-            const formData = new FormData();
-            formData.append("archivo", file);
-            formData.append("medico_id", importarForm.value.medico_id);
-            if (crearFaltantes) {
-                formData.append("crear_faltantes", "1");
-            }
-
-            const res = await axios.post(
-                `/api/contratos/${importarForm.value.contratoId}/importar-medicos`,
-                formData,
-                {
-                    headers: { "Content-Type": "multipart/form-data" },
-                }
-            );
-
-            // Pre-validación: preguntar al usuario sobre los CUPS faltantes
-            if (res.data?.requiere_confirmacion) {
-                const ok = await confirmAction({
-                    title: "Productos no encontrados",
-                    text: construirTextoFaltantes(res.data.data?.faltantes || []),
-                    icon: "warning",
-                });
-                if (!ok) {
-                    toastMessage({
-                        heading: "Información",
-                        text: "Importación cancelada. Ningún dato fue modificado.",
-                        icon: "info",
-                    });
-                    return;
-                }
-                crearFaltantes = true;
-                continue;
-            }
-
-            toastMessage({
-                heading: "Ok",
-                text: "Detalle importado correctamente",
-                icon: "success",
-            });
-            $("#modalImportar").modal("hide");
-
-            // Refrescar sidebar de detalle si está abierto para este contrato
-            if (contratoSeleccionado.value?.id === importarForm.value.contratoId) {
-                const detalle = await axios.get(`/api/contratos/${importarForm.value.contratoId}`);
-                contratoSeleccionado.value = detalle.data.data;
-                detallesLocales.value = mapearMedicosDetalle(detalle.data.data.medicos || []);
-            }
-            await listar();
-            break;
-        }
-    } catch (e) {
-        const msg = e.response?.data?.message || "Error al importar el archivo";
-        toastMessage({ heading: "Error", text: msg, icon: "error" });
-    } finally {
-        loadingImportar.value = false;
-    }
-}
-
-// ─── IMPORTAR PRODUCTOS AL CONTRATO ──────────────────────────────────────────
-
-/**
- * Referencia al input de archivo del modal de importación de productos
+ * Referencia al input de archivo para tarifas de entidad
  * @type {import('vue').Ref<HTMLInputElement|null>}
  */
-const archivoProductosRef = ref(null);
+const archivoEntidadRef = ref(null);
 
 /**
- * Formulario del modal de importación de productos al contrato
+ * Referencia al input de archivo para tarifas de médico
+ * @type {import('vue').Ref<HTMLInputElement|null>}
+ */
+const archivoMedicoRef = ref(null);
+
+/**
+ * Visibilidad reactiva de los modales de plantillas y vista previa
+ */
+const modalTarifasEntidadVisible = ref(false);
+const modalTarifasMedicoVisible = ref(false);
+const modalPreviewVisible = ref(false);
+
+/**
+ * Flag de carga para vista previa de entidad
+ * @type {import('vue').Ref<boolean>}
+ */
+const loadingPreviewEntidad = ref(false);
+
+/**
+ * Flag de carga para vista previa de médico
+ * @type {import('vue').Ref<boolean>}
+ */
+const loadingPreviewMedico = ref(false);
+
+/**
+ * Flag de carga al confirmar e importar tarifas
+ * @type {import('vue').Ref<boolean>}
+ */
+const loadingConfirmarImportacion = ref(false);
+
+/**
+ * Datos del preview (diff y cobertura) devueltos por el backend
  * @type {import('vue').Ref<Object>}
  */
-const importarProductosForm = ref({
-    contrato_id: null,
+const previewData = ref({});
+
+/**
+ * Pestaña activa en el modal de vista previa: 'altas' | 'cambios' | 'retiros' | 'cobertura'
+ * @type {import('vue').Ref<string>}
+ */
+const previewTabActiva = ref("altas");
+
+/**
+ * Búsqueda reactiva para filtrar productos faltantes en la pestaña de cobertura
+ * @type {import('vue').Ref<string>}
+ */
+const busquedaCobertura = ref("");
+
+/**
+ * Lista filtrada de productos exigibles que carecen de tarifa
+ * @type {import('vue').ComputedRef<Array>}
+ */
+const coberturaFiltrada = computed(() => {
+    const list = previewData.value?.cobertura?.faltantes || [];
+    const q = busquedaCobertura.value.trim().toLowerCase();
+    if (!q) return list;
+    return list.filter(
+        (p) =>
+            String(p.cod_cups || "")
+                .toLowerCase()
+                .includes(q) ||
+            String(p.nom_produc || "")
+                .toLowerCase()
+                .includes(q)
+    );
 });
 
 /**
- * Flag de carga al procesar importación de productos
- * @type {import('vue').Ref<boolean>}
+ * Formatea un número como valor monetario en pesos colombianos ($COP).
+ *
+ * @param {number|string|null} valor
+ * @returns {string}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-10
  */
-const loadingImportarProductos = ref(false);
+function formatMoney(valor) {
+    const num = Number(valor);
+    if (isNaN(num)) return "$ 0";
+    return new Intl.NumberFormat("es-CO", {
+        style: "currency",
+        currency: "COP",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(num);
+}
 
 /**
- * Abre el modal de importación de productos al contrato.
+ * Abre el modal para descargar o importar la plantilla de tarifas de entidad (Plantilla 1).
  *
+ * @param {Object} item
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
+ * @date 2026-11-10
  */
-function abrirModalImportarProductos() {
-    importarProductosForm.value = { contrato_id: null };
-    if (archivoProductosRef.value) {
-        archivoProductosRef.value.value = "";
+function abrirModalTarifasEntidad(item) {
+    modalEntidadForm.value = {
+        contratoId: item.id,
+        sedeNombre: item.sede?.nom_sede || sedeNombreActual.value,
+        fechaInicio: item.fecha_inicio || "",
+        fechaFin: item.fecha_fin || "",
+    };
+    if (archivoEntidadRef.value) {
+        archivoEntidadRef.value.value = "";
     }
-    $("#modalImportarProductos").modal("show");
+    modalTarifasEntidadVisible.value = true;
 }
 
 /**
- * Cierra el modal de importación de productos al contrato.
- * Usa el API jQuery de Bootstrap para garantizar el cierre sin depender de data-dismiss.
+ * Cierra el modal de tarifas de entidad.
  *
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
+ * @date 2026-11-10
  */
-function cerrarModalImportarProductos() {
-    $("#modalImportarProductos").modal("hide");
+function cerrarModalTarifasEntidad() {
+    modalTarifasEntidadVisible.value = false;
 }
 
 /**
- * Handler: se ejecuta cuando el usuario selecciona un contrato en el
- * Select2 del modal de importación de productos.
+ * Descarga el archivo Excel con las tarifas de entidad (Plantilla 1).
  *
- * @param {string|null} id - ID del contrato seleccionado (String por Select2)
+ * @param {number} contratoId
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
+ * @date 2026-11-10
  */
-function onContratoSelectImportProductos(id) {
-    importarProductosForm.value.contrato_id = id;
+function descargarPlantillaEntidad(contratoId) {
+    if (!contratoId) return;
+    window.open(`/api/contratos/${contratoId}/plantilla-entidad`, "_blank");
 }
 
 /**
- * Procesa la importación de productos al contrato seleccionado.
- * Envía el archivo Excel (CODIGO | ACTIVIDAD | Tarifa Actividad) al backend,
- * que hace upsert de los registros en contratos_productos. Si el backend detecta
- * CUPS inexistentes en el catálogo, pregunta al usuario si desea crearlos y
- * reintenta con crear_faltantes=1.
+ * Envía el archivo Excel de la entidad para generar la vista previa (diff no destructivo y cobertura).
  *
  * @returns {Promise<void>}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-08-20
+ * @date 2026-11-10
  */
-async function procesarImportacionProductos() {
-    if (loadingImportarProductos.value) return;
-
-    if (!importarProductosForm.value.contrato_id) {
-        toastMessage({ heading: "Atención", text: "Seleccione un contrato", icon: "warning" });
-        return;
-    }
-
-    const file = archivoProductosRef.value?.files?.[0];
+async function procesarPreviewEntidad() {
+    if (loadingPreviewEntidad.value) return;
+    const file = archivoEntidadRef.value?.files?.[0];
     if (!file) {
-        toastMessage({ heading: "Atención", text: "Seleccione un archivo Excel", icon: "warning" });
+        toastMessage({
+            heading: "Atención",
+            text: "Seleccione un archivo Excel de tarifas de la entidad",
+            icon: "warning",
+        });
         return;
     }
 
-    loadingImportarProductos.value = true;
+    loadingPreviewEntidad.value = true;
     try {
-        let crearFaltantes = false;
+        const formData = new FormData();
+        formData.append("archivo", file);
 
-        while (true) {
-            const formData = new FormData();
-            formData.append("archivo", file);
-            if (crearFaltantes) {
-                formData.append("crear_faltantes", "1");
-            }
+        const res = await axios.post(
+            `/api/contratos/${modalEntidadForm.value.contratoId}/preview-importar-entidad`,
+            formData,
+            { headers: { "Content-Type": "multipart/form-data" } }
+        );
 
-            const res = await axios.post(
-                `/api/contratos/${importarProductosForm.value.contrato_id}/importar-productos`,
-                formData,
-                { headers: { "Content-Type": "multipart/form-data" } }
-            );
-
-            // Pre-validación: preguntar al usuario sobre los CUPS faltantes
-            if (res.data?.requiere_confirmacion) {
-                const ok = await confirmAction({
-                    title: "Productos no encontrados",
-                    text: construirTextoFaltantes(res.data.data?.faltantes || []),
-                    icon: "warning",
-                });
-                if (!ok) {
-                    toastMessage({
-                        heading: "Información",
-                        text: "Importación cancelada. Ningún dato fue modificado.",
-                        icon: "info",
-                    });
-                    return;
-                }
-                crearFaltantes = true;
-                continue;
-            }
-
-            toastMessage({
-                heading: "Ok",
-                text: res.data?.message || "Productos importados correctamente",
-                icon: "success",
-            });
-            $("#modalImportarProductos").modal("hide");
-
-            // Refrescar sidebar de detalle si está abierto para este contrato
-            if (
-                contratoSeleccionado.value?.id === Number(importarProductosForm.value.contrato_id)
-            ) {
-                const detalle = await axios.get(
-                    `/api/contratos/${importarProductosForm.value.contrato_id}`
-                );
-                contratoSeleccionado.value = detalle.data.data;
-            }
-            await listar();
-            break;
-        }
-    } catch (e) {
-        const msg = e.response?.data?.message || "Error al importar el archivo";
+        previewData.value = res.data.data || {};
+        previewData.value.contrato_id = modalEntidadForm.value.contratoId;
+        previewTabActiva.value = "altas";
+        busquedaCobertura.value = "";
+        cerrarModalTarifasEntidad();
+        await nextTick();
+        modalPreviewVisible.value = true;
+    } catch (error) {
+        const msg = error.response?.data?.message || "Error al analizar el archivo de entidad";
         toastMessage({ heading: "Error", text: msg, icon: "error" });
     } finally {
-        loadingImportarProductos.value = false;
+        loadingPreviewEntidad.value = false;
+    }
+}
+
+/**
+ * Abre el modal interactivo para descargar o importar la plantilla de tarifas de médico (Plantilla 2).
+ *
+ * @param {Object} item
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-10
+ */
+function abrirModalTarifasMedico(item) {
+    modalMedicoForm.value = {
+        contratoId: item.id,
+        sedeNombre: item.sede?.nom_sede || sedeNombreActual.value,
+        fechaInicio: item.fecha_inicio || "",
+        fechaFin: item.fecha_fin || "",
+        medico_id: null,
+    };
+    if (archivoMedicoRef.value) {
+        archivoMedicoRef.value.value = "";
+    }
+    modalTarifasMedicoVisible.value = true;
+}
+
+/**
+ * Cierra el modal de tarifas de médico lector.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-10
+ */
+function cerrarModalTarifasMedico() {
+    modalTarifasMedicoVisible.value = false;
+}
+
+/**
+ * Descarga el archivo Excel con las tarifas del médico seleccionado (Plantilla 2).
+ *
+ * @param {number} contratoId
+ * @param {number|string|null} medicoId
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-10
+ */
+function descargarPlantillaMedico(contratoId, medicoId) {
+    if (!contratoId) return;
+    if (!medicoId) {
+        toastMessage({
+            heading: "Atención",
+            text: "Seleccione un médico lector para descargar su plantilla",
+            icon: "warning",
+        });
+        return;
+    }
+    window.open(`/api/contratos/${contratoId}/medicos/${medicoId}/plantilla`, "_blank");
+}
+
+/**
+ * Envía el archivo Excel del médico con validación estricta de celda A4 para generar vista previa.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-10
+ */
+async function procesarPreviewMedico() {
+    if (loadingPreviewMedico.value) return;
+    if (!modalMedicoForm.value.medico_id) {
+        toastMessage({
+            heading: "Atención",
+            text: "Seleccione un médico lector",
+            icon: "warning",
+        });
+        return;
+    }
+
+    const file = archivoMedicoRef.value?.files?.[0];
+    if (!file) {
+        toastMessage({
+            heading: "Atención",
+            text: "Seleccione un archivo Excel de tarifas de médico",
+            icon: "warning",
+        });
+        return;
+    }
+
+    loadingPreviewMedico.value = true;
+    try {
+        const formData = new FormData();
+        formData.append("archivo", file);
+        formData.append("medico_id", modalMedicoForm.value.medico_id);
+
+        const res = await axios.post(
+            `/api/contratos/${modalMedicoForm.value.contratoId}/preview-importar-medicos`,
+            formData,
+            { headers: { "Content-Type": "multipart/form-data" } }
+        );
+
+        previewData.value = res.data.data || {};
+        previewData.value.contrato_id = modalMedicoForm.value.contratoId;
+        previewData.value.medico_id = modalMedicoForm.value.medico_id;
+        previewTabActiva.value = "altas";
+        busquedaCobertura.value = "";
+        cerrarModalTarifasMedico();
+        await nextTick();
+        modalPreviewVisible.value = true;
+    } catch (error) {
+        const msg =
+            error.response?.data?.message || "Error al analizar el archivo de tarifas de médico";
+        toastMessage({ heading: "Error", text: msg, icon: "error" });
+    } finally {
+        loadingPreviewMedico.value = false;
+    }
+}
+
+/**
+ * Cierra el modal de vista previa (diff no destructivo y cobertura).
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-10
+ */
+function cerrarModalPreview() {
+    modalPreviewVisible.value = false;
+}
+
+/**
+ * Confirma y persiste las tarifas analizadas en la base de datos de forma no destructiva.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-10
+ */
+async function ejecutarConfirmacionImportacion() {
+    if (loadingConfirmarImportacion.value) return;
+    const tipo = previewData.value?.tipo;
+    const contratoId =
+        previewData.value?.contrato_id ||
+        previewData.value?.contrato?.id ||
+        modalEntidadForm.value?.contratoId ||
+        modalMedicoForm.value?.contratoId;
+
+    if (!tipo || !contratoId) {
+        toastMessage({
+            heading: "Error",
+            text: "No se identificó el identificador del contrato a importar",
+            icon: "error",
+        });
+        return;
+    }
+
+    const altasCount = previewData.value.resumen?.altas ?? previewData.value.altas?.length ?? 0;
+    const cambiosCount =
+        previewData.value.resumen?.cambios ?? previewData.value.cambios?.length ?? 0;
+    const retirosCount =
+        previewData.value.resumen?.retiros ?? previewData.value.retiros?.length ?? 0;
+
+    const confirmed = await confirmAction({
+        title: "¿Confirmar importación?",
+        text: `Se aplicarán ${altasCount} altas, ${cambiosCount} cambios y ${retirosCount} bajas lógicas.`,
+        icon: "question",
+    });
+    if (!confirmed) return;
+
+    loadingConfirmarImportacion.value = true;
+    try {
+        if (tipo === "entidad") {
+            const payload = {
+                altas: previewData.value.altas || [],
+                cambios: previewData.value.cambios || [],
+                retiros: previewData.value.retiros || [],
+            };
+            await axios.post(`/api/contratos/${contratoId}/confirmar-importar-entidad`, payload);
+            toastMessage({
+                heading: "Ok",
+                text: "Tarifas de la entidad importadas exitosamente",
+                icon: "success",
+            });
+        } else if (tipo === "medico") {
+            const medicoId =
+                previewData.value?.medico_id ||
+                previewData.value?.medico?.id ||
+                modalMedicoForm.value?.medico_id;
+            if (!medicoId) {
+                toastMessage({
+                    heading: "Error",
+                    text: "No se identificó el médico lector para la importación",
+                    icon: "error",
+                });
+                return;
+            }
+            const payload = {
+                medico_id: medicoId,
+                altas: previewData.value.altas || [],
+                cambios: previewData.value.cambios || [],
+                retiros: previewData.value.retiros || [],
+            };
+            await axios.post(`/api/contratos/${contratoId}/confirmar-importar-medicos`, payload);
+            toastMessage({
+                heading: "Ok",
+                text: "Tarifas del médico lector importadas exitosamente",
+                icon: "success",
+            });
+        }
+        cerrarModalPreview();
+
+        // Refrescar sidebar de detalle si está abierto para este contrato
+        if (contratoSeleccionado.value?.id === contratoId) {
+            const detalle = await axios.get(`/api/contratos/${contratoId}`);
+            contratoSeleccionado.value = detalle.data.data;
+            await cargarDetalleProductos(
+                contratoId,
+                filtroMedicoId.value ? Number(filtroMedicoId.value) : null
+            );
+            await cargarCobertura(contratoId);
+        }
+        await listar();
+    } catch (error) {
+        const msg = error.response?.data?.message || "Error al confirmar e importar tarifas";
+        toastMessage({ heading: "Error", text: msg, icon: "error" });
+    } finally {
+        loadingConfirmarImportacion.value = false;
     }
 }
 
 // ─── LIFECYCLE ────────────────────────────────────────────────────────────────
+
+function handleKeydown(e) {
+    if (e.key === "Escape") {
+        if (modalPreviewVisible.value) {
+            cerrarModalPreview();
+        } else if (modalTarifasMedicoVisible.value) {
+            cerrarModalTarifasMedico();
+        } else if (modalTarifasEntidadVisible.value) {
+            cerrarModalTarifasEntidad();
+        } else if (detalleVisible.value) {
+            cerrarDetalle();
+        } else if (sidebarVisible.value) {
+            btnCerrarModalForm();
+        }
+    }
+}
 
 /**
  * Lifecycle onMounted: inicializa la sede, carga catálogos y listado.
@@ -1439,7 +2328,12 @@ async function procesarImportacionProductos() {
  * @date 2026-08-20
  */
 onMounted(() => {
+    window.addEventListener("keydown", handleKeydown);
+    proxy?.emitter?.on("sedeSeleccionada", onSedeSeleccionada);
     sedeActual.value = getSedeActual();
+    if (!sedeActual.value?.id) {
+        proxy?.emitter?.emit("solicitarSedeActiva");
+    }
     cargarCatalogos();
     listar();
 });
@@ -1451,17 +2345,23 @@ onMounted(() => {
  * @date 2026-08-20
  */
 onBeforeUnmount(() => {
-    safeDestroyDataTable(dt.value || "#example23");
+    window.removeEventListener("keydown", handleKeydown);
+    proxy?.emitter?.off("sedeSeleccionada", onSedeSeleccionada);
+    safeDestroyDataTable(dt.value || "#tablaContratos");
 });
 </script>
 <style scoped>
+.modal.show {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
 .right-sidebar {
     position: fixed;
-    right: -70%;
-    width: 70%;
+    right: -80%;
+    width: 80%;
     display: none;
     z-index: 1100;
-    background: #ffffff;
     top: 0px;
     padding-bottom: 20px;
     height: 100%;
@@ -1474,7 +2374,7 @@ onBeforeUnmount(() => {
 
 .shw-rside {
     right: 0px;
-    width: 70%;
+    width: 80%;
     display: block;
 }
 
@@ -1482,5 +2382,16 @@ onBeforeUnmount(() => {
     overflow-x: hidden;
     overflow-y: scroll;
     height: 100%;
+}
+
+@media (max-width: 767px) {
+    .right-sidebar {
+        width: 100% !important;
+        right: -100%;
+    }
+    .shw-rside {
+        right: 0px !important;
+        width: 100% !important;
+    }
 }
 </style>

@@ -20,8 +20,8 @@ return new class extends Migration
             $table->unsignedBigInteger('sede_id');
             $table->foreign('sede_id')->references('id')->on('config_sedes');
 
-            $table->unsignedBigInteger('servicio_cita_id');
-            $table->foreign('servicio_cita_id')->references('id')->on('config_servicio_citas');
+            $table->unsignedBigInteger('servicio_id');
+            $table->foreign('servicio_id')->references('id')->on('config_servicios');
 
             $table->text('title');
             $table->text('description')->nullable();

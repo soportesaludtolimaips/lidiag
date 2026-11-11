@@ -1,22 +1,41 @@
 <template>
     <div>
-        <!-- ============================================================== -->
-        <!-- Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Configuración</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Configuración</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Configuración
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Administradores de Salud</li>
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary m-r-5"
+                    @click="ListarDatos"
+                    :disabled="loadingListar"
+                    title="Actualizar listado"
+                >
+                    <i class="fa" :class="loadingListar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                    Refrescar
+                </button>
                 <button
                     type="button"
                     class="btn btn-info btnDesplegarRigthSidebar"
@@ -28,19 +47,8 @@
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
             </div>
-            <!-- <div class="">
-                    <button class="right-side-toggle btn-info btn btn-circle btn-sm">
-                        <i class="fa fa-plus-circle m-r-5"></i>
-                    </button>
-                </div> -->
         </div>
-        <!-- ============================================================== -->
-        <!-- End Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Start Page Content -->
-        <!-- ============================================================== -->
         <div class="row">
             <div class="col-12">
                 <div class="card">
@@ -49,9 +57,28 @@
                         <h6 class="card-subtitle">
                             Administración de las administradoras de salud "EPS".
                         </h6>
-                        <div class="table-responsive m-t-40">
+
+                        <table-skeleton-loader :visible="loadingListar" :rows="5" :columns="4" />
+
+                        <empty-state-component
+                            v-if="!loadingListar && registros.length === 0"
+                            icon="fa fa-hospital-o"
+                            title="No hay administradoras registradas"
+                            description="No se encontraron registros de administradoras de salud."
+                            action-text="Nuevo registro"
+                            action-icon="fa fa-plus"
+                            @action="
+                                actualizar = false;
+                                mostrarRegistro();
+                            "
+                        />
+
+                        <div
+                            v-show="!loadingListar && registros.length > 0"
+                            class="table-responsive m-t-40"
+                        >
                             <table
-                                id="example23"
+                                id="tablaAdminSalud"
                                 ref="dt"
                                 class="display nowrap table table-hover table-striped table-bordered"
                                 cellspacing="0"
@@ -93,7 +120,7 @@
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
                                                 :disabled="loadingEliminarId === item.id"
                                                 @click="
-                                                    elimnarRegistro(item.id, item.nom_admin_salud)
+                                                    eliminarRegistro(item.id, item.nom_admin_salud)
                                                 "
                                             >
                                                 <i
@@ -111,32 +138,31 @@
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End PAge Content -->
-        <!-- ============================================================== -->
+        <!-- Backdrop overlay para cerrar al hacer clic afuera -->
+        <div v-if="sidebarVisible" class="sidebar-backdrop" @click="btnCerrarModalForm()"></div>
 
-        <!-- ============================================================== -->
-        <!-- Right sidebar -->
-        <!-- ============================================================== -->
-        <!-- .right-sidebar -->
-        <div class="right-sidebar">
+        <div class="right-sidebar" :class="{ 'shw-rside': sidebarVisible }" ref="sidebarRef">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
-                    <span>
-                        <i class="ti-close right-side-toggle" id="btnCerralModalForm"></i>
-                    </span>
+                    <button
+                        type="button"
+                        class="right-side-toggle"
+                        @click="btnCerrarModalForm()"
+                        aria-label="Cerrar panel"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
                 </div>
                 <div class="r-panel-body">
-                    <!-- ============================================================== -->
-                    <!-- Aqui va el contenido de los formularios -->
-                    <!-- ============================================================== -->
-                    <form action="#">
+                    <form action="#" @submit.prevent="guardarRegistro()">
                         <div class="form-body">
                             <div class="row p-t-20">
                                 <div class="col-md-3">
                                     <div class="form-group">
-                                        <label class="control-label">Código</label>
+                                        <label class="control-label" for="cod_admin_salud"
+                                            >Código</label
+                                        >
                                         <input
                                             type="text"
                                             id="cod_admin_salud"
@@ -153,7 +179,9 @@
 
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label class="control-label">Nit</label>
+                                        <label class="control-label" for="nit_admin_salud"
+                                            >Nit</label
+                                        >
                                         <input
                                             type="text"
                                             id="nit_admin_salud"
@@ -172,14 +200,16 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Razón Social</label>
+                                        <label class="control-label" for="nom_admin_salud"
+                                            >Razón Social</label
+                                        >
                                         <input
                                             type="text"
                                             id="nom_admin_salud"
                                             name="nom_admin_salud"
                                             v-model="registro.nom_admin_salud"
                                             class="form-control"
-                                            placeholder="Ingrese aquí el la razón sicual de la administradora de salud"
+                                            placeholder="Ingrese la razón social de la administradora de salud"
                                         />
                                         <span class="text-danger" v-if="errores.nom_admin_salud">{{
                                             errores.nom_admin_salud[0]
@@ -232,9 +262,9 @@
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    @click="btnCerralModalForm()"
+                                    @click="btnCerrarModalForm()"
                                 >
-                                    Cancel
+                                    Cancelar
                                 </button>
                             </div>
                         </div>
@@ -242,23 +272,17 @@
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Right sidebar -->
-        <!-- ============================================================== -->
     </div>
 </template>
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
+const sidebarVisible = ref(false);
 const dt = ref(null);
-
+const sidebarRef = ref(null);
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import {
-    alertError,
-    alertSuccess,
-    confirmAction,
-    handleAxiosErrorToast,
-} from "@/helpers/alerts.js";
+import { confirmAction, toastMessage } from "@/helpers/alerts.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import axios from "axios";
 
 const id = ref(0);
@@ -276,113 +300,146 @@ const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
 
+useKeyboardShortcuts({
+    onSearch: () => {
+        if (!sidebarVisible.value) {
+            ListarDatos();
+        }
+    },
+    onSave: () => {
+        if (sidebarVisible.value) {
+            guardarRegistro();
+        }
+    },
+    onEscape: btnCerrarModalForm,
+    isActive: () => true,
+    isLoading: loadingGuardar,
+});
+
 async function ListarDatos() {
     if (loadingListar.value) return;
     loadingListar.value = true;
     try {
         const res = await axios.get("/api/config-admin-salud");
 
-        safeDestroyDataTable(dt.value || "#example23");
-        registros.value = res.data.data;
+        safeDestroyDataTable(dt.value || "#tablaAdminSalud");
+        registros.value = res.data?.data || res.data || [];
         nextTick(() => {
-            safeInitDataTable(dt.value || "#example23", {
+            safeInitDataTable(dt.value || "#tablaAdminSalud", {
                 dom: "Bfrtip",
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
         });
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar las administradoras de salud.");
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible cargar los datos.",
+            icon: "error",
+        });
     } finally {
         loadingListar.value = false;
     }
 }
+
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
+    errores.value = {};
     try {
+        let res;
         if (actualizar.value === false) {
-            const res = await axios.post("/api/config-admin-salud", registro.value);
-
-            if (res.status == 200) {
-                ListarDatos();
-
-                $.toast({
-                    heading: "Ok!!!",
-                    text: res.data.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
-            }
+            res = await axios.post("/api/config-admin-salud", registro.value);
         } else {
-            const res = await axios.put("/api/config-admin-salud/" + id.value, registro.value);
-            if (res.status == 200) {
-                ListarDatos();
+            res = await axios.put("/api/config-admin-salud/" + id.value, registro.value);
+        }
 
-                $.toast({
-                    heading: "Ok!!!",
-                    text: res.data.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
-            }
+        if (res.status >= 200 && res.status < 300) {
+            toastMessage({
+                heading: "Completado",
+                text: res.data?.data?.message || res.data?.message || "Operación exitosa.",
+                icon: "success",
+            });
+            btnCerrarModalForm();
+            ListarDatos();
         }
     } catch (error) {
-        errores.value = error?.response?.data?.errors || {};
-        handleAxiosErrorToast(error, "No fue posible guardar el registro.");
+        if (error.response?.status === 422) {
+            errores.value = error.response.data.errors || {};
+        } else {
+            toastMessage({
+                heading: "Error",
+                text: error.response?.data?.message || "No fue posible guardar el registro.",
+                icon: "error",
+            });
+        }
     } finally {
         loadingGuardar.value = false;
     }
 }
-async function elimnarRegistro(id, nom) {
+
+async function eliminarRegistro(idRegistro, nom) {
     const ok = await confirmAction({
-        title: `Estas seguro de eliminar la admninistradora de salud ${nom}?`,
+        title: `¿Estás seguro de eliminar la administradora de salud ${nom}?`,
         text: "No podrás recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;
 
+    if (loadingEliminarId.value) return;
+    loadingEliminarId.value = idRegistro;
     try {
-        if (loadingEliminarId.value) return;
-        loadingEliminarId.value = id;
-        const response = await axios.delete("/api/config-admin-salud/" + id);
-        alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
+        const response = await axios.delete("/api/config-admin-salud/" + idRegistro);
+        toastMessage({
+            heading: "Ok!",
+            text: response?.data?.message || "Registro eliminado.",
+            icon: "success",
+        });
         ListarDatos();
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible eliminar el registro.");
-        alertError("Error", "No fue posible eliminar el registro.", "error");
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible eliminar el registro.",
+            icon: "error",
+        });
     } finally {
         loadingEliminarId.value = null;
     }
 }
+
 function mostrarRegistro(data = {}) {
+    errores.value = {};
+
     if (actualizar.value) {
         tituloModal.value = "Actualizar el registro: " + data.nom_admin_salud;
         id.value = data.id;
         registro.value.cod_admin_salud = data.cod_admin_salud;
         registro.value.nit_admin_salud = data.nit_admin_salud;
         registro.value.nom_admin_salud = data.nom_admin_salud;
-        registro.value.estado = Boolean(data.estado);
+        registro.value.estado = data.estado;
     } else {
         actualizar.value = false;
         tituloModal.value = "Nuevo registro";
         id.value = 0;
-        registro.value.cod_admin_salud = "";
-        registro.value.nit_admin_salud = "";
-        registro.value.nom_admin_salud = "";
-        registro.value.estado = true;
+        registro.value = {
+            cod_admin_salud: "",
+            nit_admin_salud: "",
+            nom_admin_salud: "",
+            estado: true,
+        };
     }
 
-    btnCerralModalForm();
+    btnAbrirModalForm();
 }
-function btnCerralModalForm() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").toggleClass("shw-rside");
+
+function btnAbrirModalForm() {
+    sidebarVisible.value = true;
+    nextTick(() => {
+        document.getElementById("cod_admin_salud")?.focus();
+    });
+}
+
+function btnCerrarModalForm() {
+    sidebarVisible.value = false;
 }
 
 onMounted(() => {
@@ -390,30 +447,47 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-    safeDestroyDataTable(dt.value || "#example23");
+    safeDestroyDataTable(dt.value || "#tablaAdminSalud");
 });
 </script>
 <style scoped>
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1090;
+}
+
 .right-sidebar {
     position: fixed;
-    right: -25%;
-    width: 25%;
-    display: none;
+    right: -50%;
+    width: 50%;
     z-index: 1100;
     background: #ffffff;
     top: 0px;
     padding-bottom: 20px;
     height: 100%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .shw-rside {
-    right: 0px;
-    width: 25%;
-    display: block;
+    right: 0px !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+@media (max-width: 767px) {
+    .right-sidebar {
+        width: 100% !important;
+        right: -100% !important;
+    }
 }
 </style>

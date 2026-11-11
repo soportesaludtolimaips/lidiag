@@ -12,9 +12,18 @@ class PermisionConfigTipoDocumentoSeeder extends Seeder
      */
     public function run(): void
     {
-        Permission::create(['name' => 'config.tipo.documento.index']);
-        Permission::create(['name' => 'config.tipo.documento.create']);
-        Permission::create(['name' => 'config.tipo.documento.edit']);
-        Permission::create(['name' => 'config.tipo.documento.destroy']);
+        $permisos = [
+            'config.tipo.documento.index',
+            'config.tipo.documento.create',
+            'config.tipo.documento.edit',
+            'config.tipo.documento.destroy',
+        ];
+
+        foreach ($permisos as $nombre) {
+            Permission::firstOrCreate([
+                'name' => $nombre,
+                'guard_name' => 'web',
+            ]);
+        }
     }
 }

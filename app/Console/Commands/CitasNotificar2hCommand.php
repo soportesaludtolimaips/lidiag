@@ -6,6 +6,17 @@ use App\Models\Agenda\AgendaCita;
 use App\Services\WhatsAppService;
 use Illuminate\Console\Command;
 
+/**
+ * Comando Artisan que envía recordatorios de citas por WhatsApp 2 horas antes de su inicio.
+ *
+ * Consulta las citas asignadas o confirmadas cuya fecha de inicio esté dentro de las
+ * próximas 2 horas y que no hayan recibido el recordatorio. Utiliza WhatsAppService
+ * para enviar el mensaje y actualiza el estado de la cita según el resultado.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 class CitasNotificar2hCommand extends Command
 {
     protected $signature = 'citas:notificar-2h';
@@ -14,12 +25,35 @@ class CitasNotificar2hCommand extends Command
 
     protected $whatsAppService;
 
+    /**
+     * Constructor del comando.
+     *
+     * @param  WhatsAppService  $whatsAppService  Servicio para envío de mensajes por WhatsApp.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function __construct(WhatsAppService $whatsAppService)
     {
         parent::__construct();
         $this->whatsAppService = $whatsAppService;
     }
 
+    /**
+     * Ejecuta el comando para enviar recordatorios de citas 2 horas antes.
+     *
+     * Consulta las citas con estado 'asignada' o 'confirmada' cuya fecha de inicio
+     * esté entre ahora y las próximas 2 horas, y que no hayan enviado el recordatorio
+     * de 2 horas. Para cada cita, envía el recordatorio vía WhatsApp y actualiza
+     * el estado de envío en la base de datos.
+     *
+     * @return int 0 si todas las notificaciones se enviaron correctamente, 1 si hubo fallos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function handle()
     {
         $this->info('Iniciando envío de recordatorios 2 horas antes...');

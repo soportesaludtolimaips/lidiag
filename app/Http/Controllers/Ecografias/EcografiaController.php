@@ -3,47 +3,78 @@
 namespace App\Http\Controllers\Ecografias;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Ecografias\EcografiaAnularRequest;
+use App\Http\Requests\Ecografias\EcografiaFiltroRequest;
+use App\Http\Requests\Ecografias\EcografiaGenerarReporteRequest;
 use App\Http\Requests\Ecografias\EcografiaStoreRequest;
+use App\Http\Requests\Ecografias\EcografiaUpdateRequest;
 use App\Services\Ecografias\EcografiaService;
 use App\Services\Ecografias\PlantillaEcografiaService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class EcografiaController extends Controller
 {
+    /**
+     * Inyecta los servicios de ecografías y plantillas, y configura los middlewares.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function __construct(
         private readonly EcografiaService $ecografiaService,
         private readonly PlantillaEcografiaService $plantillaEcografiaService,
     ) {
-        $this->middleware('auth:sanctum');
+        $this->middleware('auth');
         $this->middleware('permission:ecografias.index,web')->only(['index', 'show', 'filtarEcografias']);
         $this->middleware('permission:ecografias.admision,web')->only(['store', 'update', 'destroy']);
         $this->middleware('permission:ecografias.anular,web')->only(['anularEcografia']);
         $this->middleware('permission:ecografias.reporte,web')->only(['generarReporte']);
     }
 
-    public function index(Request $request): JsonResponse
+    /**
+     * Lista todas las ecografías aplicando los filtros de búsqueda recibidos.
+     *
+     * @param  EcografiaFiltroRequest  $request  Solicitud validada con los filtros de búsqueda.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2025-05-14
+     */
+    public function index(EcografiaFiltroRequest $request): JsonResponse
     {
-        $result = $this->ecografiaService->all([
-            'bus_nom_num_docu' => $request->input('bus_nom_num_docu'),
-            'bus_fech_ini' => $request->input('bus_fech_ini'),
-            'bus_fehc_fin' => $request->input('bus_fehc_fin'),
-        ]);
+        $result = $this->ecografiaService->all($request->validated());
 
         return response()->json($result, $result['status']);
     }
 
-    public function filtarEcografias(Request $request): JsonResponse
+    /**
+     * Filtra las ecografías según los criterios de búsqueda recibidos.
+     *
+     * @param  EcografiaFiltroRequest  $request  Solicitud validada con los filtros de búsqueda.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2025-05-14
+     */
+    public function filtarEcografias(EcografiaFiltroRequest $request): JsonResponse
     {
-        $result = $this->ecografiaService->filtarEcografias([
-            'bus_nom_num_docu' => $request->input('bus_nom_num_docu'),
-            'bus_fech_ini' => $request->input('bus_fech_ini'),
-            'bus_fehc_fin' => $request->input('bus_fehc_fin'),
-        ]);
+        $result = $this->ecografiaService->filtarEcografias($request->validated());
 
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Almacena una nueva ecografía validando los datos de entrada.
+     *
+     * @param  EcografiaStoreRequest  $request  Solicitud validada con los datos de la ecografía.
+     *
+     * @returns {JsonResponse}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2025-05-14
+     */
     public function store(EcografiaStoreRequest $request): JsonResponse
     {
         $result = $this->ecografiaService->create($request->validated());
@@ -51,6 +82,17 @@ class EcografiaController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Muestra los detalles de una ecografía específica.
+     *
+     * @param  int  $id  Identificador de la ecografía.
+     *
+     * @returns {JsonResponse}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2025-05-14
+     */
     public function show(int $id): JsonResponse
     {
         $result = $this->ecografiaService->find($id);
@@ -58,20 +100,36 @@ class EcografiaController extends Controller
         return response()->json($result, $result['status']);
     }
 
-    public function update(Request $request, int $id): JsonResponse
+    /**
+     * Actualiza los datos de una ecografía específica.
+     *
+     * @param  EcografiaUpdateRequest  $request  Solicitud validada con los datos a actualizar.
+     * @param  int  $id  Identificador de la ecografía.
+     *
+     * @returns {JsonResponse}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2025-05-14
+     */
+    public function update(EcografiaUpdateRequest $request, int $id): JsonResponse
     {
-        $data = $request->validate([
-            'medico_id' => 'nullable|integer',
-            'sede_id' => 'nullable|integer',
-            'prioridad_id' => 'nullable|integer',
-            'observaciones' => 'nullable|string',
-        ]);
-
-        $result = $this->ecografiaService->update($id, $data);
+        $result = $this->ecografiaService->update($id, $request->validated());
 
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Elimina una ecografía específica.
+     *
+     * @param  int  $id  Identificador de la ecografía a eliminar.
+     *
+     * @returns {JsonResponse}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2025-05-14
+     */
     public function destroy(int $id): JsonResponse
     {
         $result = $this->ecografiaService->delete($id);
@@ -79,39 +137,40 @@ class EcografiaController extends Controller
         return response()->json($result, $result['status']);
     }
 
-    public function anularEcografia(int $id): JsonResponse
+    /**
+     * Anula una ecografía registrando el motivo de anulación.
+     *
+     * @param  EcografiaAnularRequest  $request  Solicitud validada con el motivo de anulación.
+     * @param  int  $id  Identificador de la ecografía a anular.
+     *
+     * @returns {JsonResponse}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2025-05-14
+     */
+    public function anularEcografia(EcografiaAnularRequest $request, int $id): JsonResponse
     {
-        $result = $this->ecografiaService->anular($id, request()->input('motivo_anula'));
+        $result = $this->ecografiaService->anular($id, $request->validated('motivo_anula'));
 
         return response()->json($result, $result['status']);
     }
 
-    public function generarReporte(Request $request, int $ecografia_id): JsonResponse
+    /**
+     * Genera el reporte Word de una ecografía.
+     *
+     * @param  EcografiaGenerarReporteRequest  $request  Solicitud validada con los parámetros del reporte.
+     * @param  int  $ecografia_id  Identificador de la ecografía.
+     *
+     * @returns {JsonResponse}
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2025-05-14
+     */
+    public function generarReporte(EcografiaGenerarReporteRequest $request, int $ecografia_id): JsonResponse
     {
-        $data = $request->validate([
-            'sede_id' => 'required|integer|exists:config_sedes,id',
-            'medico_id' => 'required|integer',
-            'num_docu' => 'required|string',
-            'nom_pacien' => 'required|string',
-            'tipo_estudio' => 'nullable|string',
-            'lectura' => 'nullable|string',
-            'opinion' => 'nullable|string',
-            'fec_estudio' => 'nullable|date',
-            'fechor_lectura' => 'nullable|date',
-            'fechor_trascrito' => 'nullable|date',
-            'cod_cups' => 'nullable|string',
-            'nom_produc' => 'nullable|string',
-            'nom_sede' => 'nullable|string',
-            'fec_naci' => 'nullable|date',
-            'sexo' => 'nullable|string|max:1',
-            'edad' => 'nullable|string',
-            'dir' => 'nullable|string',
-            'tel' => 'nullable|string',
-            'cel' => 'nullable|string',
-            'atencion' => 'nullable|string',
-            'admin_salud' => 'nullable|string',
-            'contrato' => 'nullable|string',
-        ]);
+        $data = $request->validated();
         $data['ecografia_id'] = $ecografia_id;
 
         $result = $this->plantillaEcografiaService->editWord($data);

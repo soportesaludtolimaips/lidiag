@@ -8,6 +8,7 @@ use App\Http\Requests\Configuracion\StoreConfigSedeRequest;
 use App\Http\Requests\Configuracion\UpdateConfigSedeRequest;
 use App\Services\Configuracion\ConfigSedeService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 class ConfigSedeController extends Controller
 {
@@ -27,8 +28,8 @@ class ConfigSedeController extends Controller
     public function __construct(
         private readonly ConfigSedeService $configSedeService,
     ) {
-        $this->middleware('auth:sanctum')->except(['index']);
-        $this->middleware('permission:config.sedes.index')->only(['index']);
+        $this->middleware('auth:sanctum')->except(['index', 'listarSedesActivas', 'buscarPorId']);
+        // $this->middleware('permission:config.sedes.index')->only(['index']);
         $this->middleware('permission:config.sedes.create')->only(['store']);
         $this->middleware('permission:config.sedes.edit')->only(['update', 'actualizarBranding']);
         $this->middleware('permission:config.sedes.destroy')->only(['destroy']);
@@ -47,7 +48,7 @@ class ConfigSedeController extends Controller
     {
         $result = $this->configSedeService->all();
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -55,7 +56,7 @@ class ConfigSedeController extends Controller
      *
      * @param  mixed  $id  Identificador de la sede a buscar.
      *
-     * @returns Illuminate\Http\JsonResponse Respuesta JSON con los datos de la sede.
+     * @returns JsonResponse Respuesta JSON con los datos de la sede.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -65,13 +66,29 @@ class ConfigSedeController extends Controller
     {
         $result = $this->configSedeService->buscarPorId((int) $id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
+    }
+
+    /**
+     * Muestra una sede específica por su identificador (delegado a buscarPorId).
+     *
+     * @param  mixed  $id  Identificador de la sede a buscar.
+     *
+     * @returns JsonResponse
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-27
+     */
+    public function show($id): JsonResponse
+    {
+        return $this->buscarPorId($id);
     }
 
     /**
      * Lista únicamente las sedes que se encuentran activas.
      *
-     * @returns Illuminate\Http\JsonResponse Respuesta JSON con la lista de sedes activas.
+     * @returns JsonResponse Respuesta JSON con la lista de sedes activas.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -79,9 +96,22 @@ class ConfigSedeController extends Controller
      */
     public function listarSedesActivas(): JsonResponse
     {
-        $result = $this->configSedeService->listarActivas();
+        try {
+            $result = $this->configSedeService->listarActivas();
 
-        return response()->json($result, $result['status']);
+            return response()->json($result, (int) ($result["status"] ?? 200));
+        } catch (\Throwable $e) {
+            Log::error("Error en ConfigSedeController::listarSedesActivas: ".$e->getMessage(), [
+                "exception" => $e,
+            ]);
+
+            return response()->json([
+                "success" => false,
+                "data" => [],
+                "message" => "Error al obtener sedes activas: ".$e->getMessage(),
+                "status" => 500,
+            ], 500);
+        }
     }
 
     /**
@@ -89,7 +119,7 @@ class ConfigSedeController extends Controller
      *
      * @param  StoreConfigSedeRequest  $request  Solicitud con los datos y archivos validados de la sede.
      *
-     * @returns Illuminate\Http\JsonResponse Respuesta JSON con la sede creada.
+     * @returns JsonResponse Respuesta JSON con la sede creada.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -99,11 +129,11 @@ class ConfigSedeController extends Controller
     {
         $result = $this->configSedeService->create(
             $request->decoded(),
-            $request->file('plantilla_rx'),
-            $request->file('plantilla_rx_ecografia'),
+            $request->file("plantilla_rx"),
+            $request->file("plantilla_rx_ecografia"),
         );
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
@@ -111,7 +141,7 @@ class ConfigSedeController extends Controller
      *
      * @param  UpdateConfigSedeRequest  $request  Solicitud con los datos y archivos validados de la sede.
      *
-     * @returns Illuminate\Http\JsonResponse Respuesta JSON con la sede actualizada.
+     * @returns JsonResponse Respuesta JSON con la sede actualizada.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -121,24 +151,13 @@ class ConfigSedeController extends Controller
     {
         $result = $this->configSedeService->update(
             $request->decoded(),
-            $request->file('plantilla_rx'),
-            $request->file('plantilla_rx_ecografia'),
+            $request->file("plantilla_rx"),
+            $request->file("plantilla_rx_ecografia"),
         );
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 
-    /**
-     * Elimina una sede existente según su identificador.
-     *
-     * @param  int  $id  Identificador único de la sede a eliminar.
-     *
-     * @returns Illuminate\Http\JsonResponse Respuesta JSON con el resultado de la eliminación.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2024-04-04
-     */
     /**
      * Actualiza la marca institucional (encabezado, pie de página y logo) de una sede.
      *
@@ -162,10 +181,21 @@ class ConfigSedeController extends Controller
         return response()->json($result, $result['status']);
     }
 
+    /**
+     * Elimina una sede existente según su identificador.
+     *
+     * @param  int  $id  Identificador único de la sede a eliminar.
+     *
+     * @returns JsonResponse Respuesta JSON con el resultado de la eliminación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function destroy(int $id): JsonResponse
     {
         $result = $this->configSedeService->delete($id);
 
-        return response()->json($result, $result['status']);
+        return response()->json($result, (int) $result["status"]);
     }
 }

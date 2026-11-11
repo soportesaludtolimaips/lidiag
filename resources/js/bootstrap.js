@@ -1,6 +1,15 @@
 import _ from "lodash";
 window._ = _;
 
+// Polyfill defensivo para SweetAlert 1 (evita "ReferenceError: logStr is not defined")
+if (typeof window !== "undefined" && typeof window.logStr === "undefined") {
+    window.logStr = function (msg) {
+        if (typeof console !== "undefined" && console.warn) {
+            console.warn("SweetAlert:", msg);
+        }
+    };
+}
+
 import "bootstrap";
 
 import axios from "axios";
@@ -9,6 +18,15 @@ window.axios = axios;
 window.axios.defaults.headers.common["X-Requested-With"] = "XMLHttpRequest";
 window.axios.defaults.withCredentials = true;
 
+/**
+ * Actualiza el token XSRF-TOKEN desde la cookie del navegador.
+ * Se ejecuta al recibir cada respuesta exitosa y al iniciar la app.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 function refreshCsrfToken() {
     const name = "XSRF-TOKEN";
     const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
@@ -25,26 +43,51 @@ if (metaToken && metaToken.content) {
 refreshCsrfToken();
 
 let _redirectingToLogin = false;
-let _verifyingSession = false;
+let _verifyingPromise = null;
 
+/**
+ * Verifica si la sesión del usuario ha expirado.
+ * Consulta el endpoint /api/debug-session para confirmar autenticación.
+ *
+ * @returns {Promise<boolean>} true si la sesión expiró, false si es válida
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 async function confirmSessionExpired() {
-    if (_verifyingSession) return false;
-    _verifyingSession = true;
-    try {
-        const check = await axios.get("/api/debug-session", {
-            headers: { "X-Verify-Session": "1" },
-        });
-        return check.data?.auth_check === false;
-    } catch {
-        return true;
-    } finally {
-        _verifyingSession = false;
-    }
+    if (_verifyingPromise) return _verifyingPromise;
+
+    _verifyingPromise = (async () => {
+        try {
+            const check = await axios.get("/api/debug-session", {
+                headers: { "X-Verify-Session": "1" },
+            });
+            return check.data?.auth_check === false;
+        } catch {
+            return true;
+        } finally {
+            _verifyingPromise = null;
+        }
+    })();
+
+    return _verifyingPromise;
 }
 
+/**
+ * Redirige al usuario a la página de login tras expiración de sesión.
+ * Muestra un toast informativo antes de redirigir.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2024-04-04
+ */
 function redirectToLogin() {
     if (_redirectingToLogin) return;
     _redirectingToLogin = true;
+    import("@/composables/useToast.js").then(({ useToast }) => {
+        useToast().warning("Tu sesión expiró. Redirigiendo al login...", "Sesión expirada");
+    });
     const toast = window.$?.toast;
     if (toast) {
         toast({
@@ -59,24 +102,12 @@ function redirectToLogin() {
     }
     setTimeout(function () {
         window.location.href = "/login";
-    }, 3000);
+    }, 1500);
 }
 
 window.axios.interceptors.response.use(
     function (response) {
         refreshCsrfToken();
-
-        const method = response.config?.method?.toLowerCase();
-        const message = response.data?.message;
-
-        if (message && method && method !== "get" && method !== "head" && method !== "options") {
-            const icon = response.status === 201 ? "success" : "info";
-            // Dynamic import to avoid circular deps
-            import("@/composables/useToast.js").then(({ useToast }) => {
-                const toast = useToast();
-                if (toast[icon]) toast[icon](message);
-            });
-        }
 
         return response;
     },

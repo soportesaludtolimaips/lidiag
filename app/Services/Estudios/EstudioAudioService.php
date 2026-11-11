@@ -2,7 +2,9 @@
 
 namespace App\Services\Estudios;
 
+use App\Models\Estudio\Estudio;
 use App\Models\Estudio\EstudioAudio;
+use App\Models\Estudio\EstudioProducto;
 use App\Services\BaseService;
 use App\Services\TranscripcionService;
 use FFMpeg\FFMpeg;
@@ -16,12 +18,39 @@ use Illuminate\Support\Str;
 
 class EstudioAudioService extends BaseService
 {
+    /**
+     * Constructor del servicio de audios de estudio
+     *
+     * @param  TranscripcionService  $transcripcionService  Servicio de transcripción con Whisper
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function __construct(
         private readonly TranscripcionService $transcripcionService,
     ) {}
 
+    /**
+     * Sube un archivo de audio, lo convierte a MP3 con FFmpeg y transcribe con Whisper
+     *
+     * @param  UploadedFile  $file  Archivo de audio a subir
+     * @param  int  $estudioId  ID del estudio al que pertenece
+     * @param  int  $estudioProductoId  ID del producto de estudio
+     *
+     * @returns array Respuesta con audio_id, audio_file, transcripción y duración
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function uploadAudio(UploadedFile $file, int $estudioId, int $estudioProductoId): array
     {
+        $acceso = $this->validarAccesoEstudioProducto($estudioId, $estudioProductoId);
+        if ($acceso !== null) {
+            return $acceso;
+        }
+
         $baseName = 'audio_'.Str::ulid()->toBase32();
         $guessedExt = $file->guessExtension() ?: 'dat';
 
@@ -36,10 +65,10 @@ class EstudioAudioService extends BaseService
 
         try {
             $ffmpeg = FFMpeg::create([
-                'ffmpeg.binaries' => env('FFMPEG_BINARIES', 'C:/ffmpeg/bin/ffmpeg.exe'),
-                'ffprobe.binaries' => env('FFPROBE_BINARIES', 'C:/ffmpeg/bin/ffprobe.exe'),
-                'timeout' => (int) env('FFMPEG_TIMEOUT', 3600),
-                'ffmpeg.threads' => (int) env('FFMPEG_THREADS', 12),
+                'ffmpeg.binaries' => config('app.FFMPEG_BINARIES'),
+                'ffprobe.binaries' => config('app.FFPROBE_BINARIES'),
+                'timeout' => (int) config('app.FFMPEG_TIMEOUT'),
+                'ffmpeg.threads' => (int) config('app.FFMPEG_THREADS'),
             ]);
 
             $streams = $ffmpeg->getFFProbe()->streams($tmpFullPath);
@@ -50,7 +79,7 @@ class EstudioAudioService extends BaseService
 
             $format = new Mp3;
             $format->setAudioCodec('libmp3lame');
-            $format->setAudioKiloBitrate((int) env('AUDIO_MP3_KBPS', 64));
+            $format->setAudioKiloBitrate((int) config('app.AUDIO_MP3_KBPS'));
 
             $audio = $ffmpeg->open($tmpFullPath);
             $audio->save($format, $mp3FullPath);
@@ -59,14 +88,36 @@ class EstudioAudioService extends BaseService
                 return $this->error('Error al convertir el audio.', 500);
             }
 
+            $transcripcionTexto = '';
+            $duracion = 0;
+
+            try {
+                $resultado = $this->transcripcionService->transcribir($mp3FullPath);
+                $transcripcionTexto = $resultado['texto'];
+                $duracion = (int) $resultado['duracion'];
+                Log::info('Transcripcion completada (grabacion)', [
+                    'audio' => $mp3RelativePath,
+                    'caracteres' => strlen($transcripcionTexto),
+                ]);
+            } catch (\Exception $e) {
+                Log::warning('Transcripcion Whisper fallo en grabacion: '.$e->getMessage());
+            }
+
             $estudioAudio = EstudioAudio::create([
                 'estudio_id' => $estudioId,
                 'estudio_producto_id' => $estudioProductoId,
                 'audio' => $mp3RelativePath,
-                'tipo' => 'audio',
+                'tipo' => 'grabado',
+                'duracion' => $duracion,
+                'transcripcion' => $transcripcionTexto,
             ]);
 
-            return $this->created($estudioAudio, 'Audio subido con éxito');
+            return $this->created([
+                'audio_id' => $estudioAudio->id,
+                'audio_file' => $mp3RelativePath,
+                'transcripcion' => $transcripcionTexto,
+                'duracion' => $duracion,
+            ], 'Audio grabado y transcrito con éxito');
         } catch (\Exception $e) {
             Log::error('Error al convertir audio: '.$e->getMessage());
 
@@ -74,20 +125,62 @@ class EstudioAudioService extends BaseService
         } finally {
             try {
                 $disk->delete($tmpRelativePath);
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
+                Log::warning('No se pudo eliminar archivo temporal de audio: '.$tmpRelativePath);
             }
         }
     }
 
+    /**
+     * Lista todos los audios asociados a un producto de estudio
+     *
+     * @param  int  $estudioProductoId  ID del producto de estudio
+     *
+     * @returns array Respuesta con la colección de audios encontrados
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function listarPorProducto(int $estudioProductoId): array
     {
+        $producto = EstudioProducto::find($estudioProductoId);
+        if (! $producto) {
+            return $this->notFound('Producto de estudio no encontrado');
+        }
+
+        $acceso = $this->validarAccesoEstudioProducto((int) $producto->estudio_id, $estudioProductoId);
+        if ($acceso !== null) {
+            return $acceso;
+        }
+
         return $this->success(
             EstudioAudio::where('estudio_producto_id', $estudioProductoId)->get()
         );
     }
 
+    /**
+     * Envía un archivo de audio en streaming con soporte para rangos HTTP (206)
+     *
+     * @param  string  $filename  Nombre del archivo de audio a reproducir
+     *
+     * @returns mixed Respuesta de streaming con headers de audio/mpeg o error 404/416
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function stream(string $filename)
     {
+        $audio = EstudioAudio::where('audio', $filename)->first();
+        if (! $audio) {
+            abort(404);
+        }
+
+        if (! $this->tieneAccesoAEstudio($audio->estudio_id)) {
+            abort(403);
+        }
+
         $disk = Storage::disk('audios');
         if (! $disk->exists($filename)) {
             abort(404);
@@ -166,8 +259,26 @@ class EstudioAudioService extends BaseService
         ]);
     }
 
+    /**
+     * Carga un archivo de audio preexistente, lo convierte a MP3 y transcribe
+     *
+     * @param  UploadedFile  $file  Archivo de audio a cargar (mp3, wav, m4a, webm, ogg, flac)
+     * @param  int  $estudioId  ID del estudio al que pertenece
+     * @param  int  $estudioProductoId  ID del producto de estudio
+     *
+     * @returns array Respuesta con audio_id, audio_file, transcripción y duración
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function cargarYTranscribir(UploadedFile $file, int $estudioId, int $estudioProductoId): array
     {
+        $acceso = $this->validarAccesoEstudioProducto($estudioId, $estudioProductoId);
+        if ($acceso !== null) {
+            return $acceso;
+        }
+
         $originalName = $file->getClientOriginalName();
         $extension = strtolower($file->getClientOriginalExtension());
         $allowedExtensions = ['mp3', 'wav', 'm4a', 'webm', 'ogg', 'flac'];
@@ -193,10 +304,10 @@ class EstudioAudioService extends BaseService
 
         try {
             $ffmpeg = FFMpeg::create([
-                'ffmpeg.binaries' => env('FFMPEG_BINARIES', 'C:/ffmpeg/bin/ffmpeg.exe'),
-                'ffprobe.binaries' => env('FFPROBE_BINARIES', 'C:/ffmpeg/bin/ffprobe.exe'),
-                'timeout' => (int) env('FFMPEG_TIMEOUT', 3600),
-                'ffmpeg.threads' => (int) env('FFMPEG_THREADS', 12),
+                'ffmpeg.binaries' => config('app.FFMPEG_BINARIES'),
+                'ffprobe.binaries' => config('app.FFPROBE_BINARIES'),
+                'timeout' => (int) config('app.FFMPEG_TIMEOUT'),
+                'ffmpeg.threads' => (int) config('app.FFMPEG_THREADS'),
             ]);
 
             $streams = $ffmpeg->getFFProbe()->streams($tmpFullPath);
@@ -210,7 +321,7 @@ class EstudioAudioService extends BaseService
 
             $format = new Mp3;
             $format->setAudioCodec('libmp3lame');
-            $format->setAudioKiloBitrate((int) env('AUDIO_MP3_KBPS', 64));
+            $format->setAudioKiloBitrate((int) config('app.AUDIO_MP3_KBPS'));
 
             $audio = $ffmpeg->open($tmpFullPath);
             $audio->save($format, $mp3FullPath);
@@ -228,8 +339,12 @@ class EstudioAudioService extends BaseService
                 $resultado = $this->transcripcionService->transcribir($mp3FullPath);
                 $transcripcionTexto = $resultado['texto'];
                 $duracion = (int) $resultado['duracion'];
+                Log::info('Transcripcion completada (carga)', [
+                    'archivo' => $originalName,
+                    'caracteres' => strlen($transcripcionTexto),
+                ]);
             } catch (\Exception $e) {
-                Log::warning('Transcripcion Whisper fallo, se guarda sin transcripcion: '.$e->getMessage());
+                Log::error('Transcripcion Whisper fallo: '.$e->getMessage());
                 $transcripcionTexto = '';
             }
 
@@ -246,31 +361,122 @@ class EstudioAudioService extends BaseService
                 'transcripcion' => $transcripcionTexto,
             ]);
 
+            $mensaje = $transcripcionTexto !== ''
+                ? 'Audio cargado y transcrito exitosamente'
+                : 'Audio cargado correctamente (la transcripción no está disponible)';
+
             return $this->success([
                 'audio_id' => $estudioAudio->id,
                 'audio_file' => $mp3RelativePath,
                 'transcripcion' => $transcripcionTexto,
                 'duracion' => $duracion,
-            ], 'Audio cargado y transcrito exitosamente');
+                'transcripcion_estado' => $transcripcionTexto !== '' ? 'transcrito' : 'pendiente',
+            ], $mensaje);
 
         } catch (\Exception $e) {
             Log::error('Error en carga/transcripcion de audio', [
                 'error' => $e->getMessage(),
             ]);
 
-            return $this->error('Error procesando el audio: '.$e->getMessage(), 500);
+            return $this->error('Error procesando el audio. Intente nuevamente.', 500);
         } finally {
             try {
                 $disk->delete($tmpRelativePath);
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
+                Log::warning('No se pudo eliminar archivo temporal de audio: '.$tmpRelativePath);
             }
         }
     }
 
+    /**
+     * Verifica si el usuario autenticado tiene acceso a los audios de un estudio.
+     *
+     * Solo se restringe cuando el usuario tiene sedes asignadas: si no tiene
+     * ninguna el acceso es libre (caso de los administradores). Misma
+     * convención usada en AgendaDisponibilidaService.
+     *
+     * @param  int|null  $estudioId  ID del estudio
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-09-29
+     */
+    private function tieneAccesoAEstudio(?int $estudioId): bool
+    {
+        $user = Auth::user();
+
+        if (! $user) {
+            return false;
+        }
+
+        if ($estudioId === null || $estudioId <= 0) {
+            return false;
+        }
+
+        $sedesUsuario = $user->sedes()->pluck('config_sedes.id')->toArray();
+        if (empty($sedesUsuario)) {
+            return true;
+        }
+
+        $sedeId = Estudio::where('id', $estudioId)->value('sede_id');
+        if ($sedeId === null) {
+            return false;
+        }
+
+        return in_array((int) $sedeId, $sedesUsuario, true);
+    }
+
+    /**
+     * Valida que el usuario pueda operar sobre los audios del producto: la sede
+     * del estudio debe estar entre las asignadas al usuario y el producto debe
+     * pertenecer realmente a ese estudio.
+     *
+     * @param  int  $estudioId  ID del estudio
+     * @param  int  $estudioProductoId  ID del producto de estudio
+     * @return array|null Respuesta de error o null si el acceso es válido
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-09-29
+     */
+    private function validarAccesoEstudioProducto(int $estudioId, int $estudioProductoId): ?array
+    {
+        if (! $this->tieneAccesoAEstudio($estudioId)) {
+            return $this->unauthorized('No tiene permisos para gestionar los audios de este estudio.');
+        }
+
+        $pertenece = EstudioProducto::where('id', $estudioProductoId)
+            ->where('estudio_id', $estudioId)
+            ->exists();
+
+        if (! $pertenece) {
+            return $this->validationError([
+                'estudio_producto_id' => ['El producto de estudio no corresponde al estudio indicado.'],
+            ]);
+        }
+
+        return null;
+    }
+
+    /**
+     * Elimina un audio que fue cargado (no grabado) del sistema y storage
+     *
+     * @param  int  $id  ID del audio a eliminar
+     *
+     * @returns array Respuesta de confirmación de eliminación
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function eliminarCargado(int $id): array
     {
         try {
             $item = EstudioAudio::findOrFail($id);
+
+            if (! $this->tieneAccesoAEstudio($item->estudio_id)) {
+                return $this->unauthorized('No tiene permisos para eliminar audios de este estudio.');
+            }
 
             if ($item->tipo !== 'cargado') {
                 return $this->validationError(['audio' => ['Solo se pueden eliminar audios cargados, no grabados']]);
@@ -286,7 +492,7 @@ class EstudioAudioService extends BaseService
             return $this->deleted();
         } catch (ModelNotFoundException $e) {
             return $this->notFound('Audio no encontrado');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Error eliminando audio cargado: '.$e->getMessage());
 
             return $this->error('Error eliminando el audio', 500);

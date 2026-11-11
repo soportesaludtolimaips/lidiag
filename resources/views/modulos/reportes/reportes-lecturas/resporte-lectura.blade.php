@@ -117,8 +117,12 @@
         <br>
         <br>
 
-        @if ($reporteLectura->estudio->medico->firma != '')
-            <img class="firma-medico" src="{{ url('firmas_medicos/' . $reporteLectura->estudio->medico->firma) }}" width="100px" height="80px" />
+        @if ($reporteLectura->estudio->medico->firma != '' && \Illuminate\Support\Facades\Storage::disk('firmas_medicos')->exists($reporteLectura->estudio->medico->firma))
+            <img class="firma-medico" src="{{ url('files/' . $reporteLectura->estudio->medico->firma) }}" width="100px" height="80px" />
+        @elseif ($reporteLectura->estudio->medico->firma != '')
+            <p class="firma-medico" style="color: #e0a800; font-size: 10px;">
+                ⚠ Firma no disponible
+            </p>
         @endif
         <p class="titulo-negrita">DR. {{ $reporteLectura->estudio->medico->name }}</p>
         <p class="titulo-negrita">MEDICO RADIOLOGO</p>

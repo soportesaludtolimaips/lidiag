@@ -2,68 +2,74 @@
 
 namespace App\Services\Agenda;
 
+use App\Helpers\AuditLogger;
 use App\Models\Agenda\AgendaCita;
 use App\Models\Agenda\AgendaDisponibilidaDetalle;
 use App\Models\Citas\ConfigCitaRechazoMotivo;
 use App\Models\Citas\WhatsAppConversation;
 use App\Models\Configuracion\ConfigRecomendacionProducto;
-use App\Models\Configuracion\ConfigServicioCita;
 use App\Models\General\Paciente;
 use App\Models\Interface\Sahi\Paciente as SahiPaciente;
 use App\Services\BaseService;
 use App\Services\WhatsAppFlowService;
 use App\Services\WhatsAppService;
+use App\Services\Worklist\WorklistService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class AgendaCitaService extends BaseService
 {
+    /**
+     * Constructor del servicio de citas de agenda.
+     *
+     * @param  WhatsAppService  $whatsAppService  servicio de mensajería WhatsApp.
+     * @param  WhatsAppFlowService  $whatsAppFlowService  servicio de flujos de WhatsApp.
+     * @param  AgendaCitaQueryService  $queryService  servicio de consultas y lecturas de citas.
+     * @param  WorklistService  $worklistService  envío de la cita a la lista de trabajo del PACS (HL7).
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function __construct(
         private readonly WhatsAppService $whatsAppService,
         private readonly WhatsAppFlowService $whatsAppFlowService,
+        private readonly AgendaCitaQueryService $queryService,
+        private readonly WorklistService $worklistService,
     ) {}
 
-    public function all(Request $request): array
+    /**
+     * Obtiene todas las citas con filtros opcionales y paginación.
+     *
+     * @param  Request|array  $request  parámetros de búsqueda: estado, fechas, servicio, sede, búsqueda de paciente.
+     *
+     * @returns array resultado con las citas paginadas.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
+    public function all(Request|array $request): array
     {
-        $query = AgendaCita::with(['paciente', 'servicio', 'producto', 'sede', 'quienRegistra']);
+        $filters = $request instanceof Request ? $request->all() : $request;
 
-        if ($request->has('estado')) {
-            $query->where('estado', $request->estado);
-        }
-
-        if ($request->has('fecha_inicio') && $request->has('fecha_fin')) {
-            $query->whereBetween('fecha_hora_inicio', [
-                $request->fecha_inicio.' 00:00:00',
-                $request->fecha_fin.' 23:59:59',
-            ]);
-        }
-
-        if ($request->has('servicio_cita_id')) {
-            $query->where('servicio_cita_id', $request->servicio_cita_id);
-        }
-
-        if ($request->has('sede_id')) {
-            $query->where('sede_id', $request->sede_id);
-        }
-
-        if ($request->has('busqueda')) {
-            $busqueda = $request->busqueda;
-            $query->whereHas('paciente', function ($q) use ($busqueda) {
-                $q->where('num_docu', 'like', "%{$busqueda}%")
-                    ->orWhere('nombres', 'like', "%{$busqueda}%")
-                    ->orWhere('pri_ape', 'like', "%{$busqueda}%");
-            });
-        }
-
-        $citas = $query->orderBy('created_at', 'desc')->paginate($request->per_page ?? 20);
-
-        return $this->success($citas);
+        return $this->queryService->all($filters);
     }
 
+    /**
+     * Busca una cita por su modelo con relaciones cargadas.
+     *
+     * @param  AgendaCita  $cita  modelo de la cita a consultar.
+     *
+     * @returns array resultado con la cita y sus relaciones.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function find(AgendaCita $cita): array
     {
         $cita->load(['paciente', 'servicio', 'producto', 'sede', 'quienRegistra', 'quienConfirma']);
@@ -71,6 +77,17 @@ class AgendaCitaService extends BaseService
         return $this->success($cita);
     }
 
+    /**
+     * Crea una nueva solicitud de cita buscando o creando el paciente asociado.
+     *
+     * @param  array  $data  datos de la cita incluyendo información del paciente.
+     *
+     * @returns array resultado con la cita creada o error si no se pudo crear el paciente.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function create(array $data): array
     {
         $paciente = $this->buscarOCrearPaciente($data);
@@ -81,7 +98,7 @@ class AgendaCitaService extends BaseService
 
         $cita = AgendaCita::create([
             'paciente_id' => $paciente->id,
-            'servicio_cita_id' => $data['servicio_cita_id'],
+            'servicio_id' => $data['servicio_id'],
             'quien_registro_id' => Auth::id(),
             'numero_orden' => $data['numero_orden'] ?? null,
             'numero_autorizacion' => $data['numero_autorizacion'] ?? null,
@@ -92,12 +109,29 @@ class AgendaCitaService extends BaseService
 
         $this->whatsAppService->enviarSolicitudRecibida($cita);
 
+        AuditLogger::crear(
+            $cita,
+            "Solicitud de cita #{$cita->id} registrada para paciente ID: {$paciente->id} por usuario: ".(Auth::user()?->name ?? ('ID: '.Auth::id()))
+        );
+
         return $this->created([
             'message' => 'Solicitud de cita creada exitosamente',
             'cita' => $cita->fresh(['paciente', 'servicio']),
         ]);
     }
 
+    /**
+     * Actualiza los datos de una cita existente.
+     *
+     * @param  AgendaCita  $cita  modelo de la cita a actualizar.
+     * @param  array  $data  datos a actualizar.
+     *
+     * @returns array resultado con la cita actualizada.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function update(AgendaCita $cita, array $data): array
     {
         $cita->update($data);
@@ -108,24 +142,56 @@ class AgendaCitaService extends BaseService
         ]);
     }
 
+    /**
+     * Elimina una cita solo si está en estado solicitada o cancelada.
+     *
+     * @param  AgendaCita  $cita  modelo de la cita a eliminar.
+     *
+     * @returns array resultado de la eliminación o error si tiene estado asignada/confirmada.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function delete(AgendaCita $cita): array
     {
         if (! in_array($cita->estado, ['solicitada', 'cancelada'])) {
             return $this->error('No se puede eliminar una cita asignada o confirmada', 422);
         }
 
+        AuditLogger::eliminar(
+            $cita,
+            "Cita #{$cita->id} eliminada por usuario: ".(Auth::user()?->name ?? ('ID: '.Auth::id()))
+        );
+
         $cita->delete();
 
         return $this->deleted('Cita eliminada');
     }
 
+    /**
+     * Asigna producto, sede, horario y duración a una cita solicitada, marcándola como asignada.
+     *
+     * @param  AgendaCita  $cita  modelo de la cita a asignar.
+     * @param  array  $data  datos de asignación (producto_id, sede_id, fecha, duración).
+     *
+     * @returns array resultado con la cita asignada y notificación WhatsApp enviada.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function asignar(AgendaCita $cita, array $data): array
     {
         $fechaInicio = Carbon::parse($data['fecha_hora_inicio']);
         $duracion = $data['duracion_minutos'] ?? 30;
         $fechaFin = $fechaInicio->copy()->addMinutes($duracion);
+        $yaEnWorklist = in_array($cita->estado, ['asignada', 'confirmada'], true);
+        $citaAnterior = clone $cita;
+        // Cupo que la cita tenía reservado (solo si seguía vigente); al reasignar se libera.
+        $cupoAnterior = $yaEnWorklist ? $cita->agenda_disponibilidad_detalle_id : null;
 
-        DB::transaction(function () use ($cita, $data, $fechaInicio, $fechaFin, $duracion) {
+        $resultado = $this->transaction(function () use ($cita, $data, $fechaInicio, $fechaFin, $duracion, $cupoAnterior) {
             $cita->update([
                 'producto_id' => $data['producto_id'],
                 'sede_id' => $data['sede_id'],
@@ -143,7 +209,18 @@ class AgendaCitaService extends BaseService
                     ->where('estado', 'Disponible')
                     ->update(['estado' => 'Reservado']);
             }
+
+            if ($cupoAnterior && (int) $cupoAnterior !== (int) ($data['agenda_disponibilidad_detalle_id'] ?? 0)) {
+                $this->liberarCupo((int) $cupoAnterior);
+            }
+
+            return $this->success();
         });
+
+        // Si la transacción falló no se avisa al paciente ni al PACS.
+        if (! $resultado['success']) {
+            return $resultado;
+        }
 
         $cita->refresh()->load(['paciente', 'servicio', 'producto', 'sede']);
 
@@ -155,7 +232,15 @@ class AgendaCitaService extends BaseService
             }
         }
 
+        $this->worklistService->asignar($cita, $yaEnWorklist ? $citaAnterior->unsetRelations() : null);
+
         $this->whatsAppService->enviarConfirmacion($cita);
+
+        AuditLogger::log(
+            'asignar_cita',
+            $cita,
+            "Cita #{$cita->id} asignada a sede ID: {$data['sede_id']}, fecha: ".($data['fecha_cita'] ?? 'N/A').' por usuario: '.(Auth::user()?->name ?? ('ID: '.Auth::id()))
+        );
 
         return $this->success([
             'message' => 'Cita asignada y notificación enviada',
@@ -163,6 +248,17 @@ class AgendaCitaService extends BaseService
         ]);
     }
 
+    /**
+     * Confirma una cita que está en estado asignada.
+     *
+     * @param  AgendaCita  $cita  modelo de la cita a confirmar.
+     *
+     * @returns array resultado con la cita confirmada o error si no está asignada.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function confirmar(AgendaCita $cita): array
     {
         if (! in_array($cita->estado, ['asignada'])) {
@@ -174,31 +270,74 @@ class AgendaCitaService extends BaseService
             'quien_confirma_id' => Auth::id(),
         ]);
 
+        AuditLogger::log(
+            'confirmar_cita',
+            $cita,
+            "Cita #{$cita->id} confirmada por usuario: ".(Auth::user()?->name ?? ('ID: '.Auth::id()))
+        );
+
         return $this->success([
             'message' => 'Cita confirmada',
             'cita' => $cita->fresh(['paciente', 'servicio', 'producto', 'sede']),
         ]);
     }
 
+    /**
+     * Cancela una cita con un motivo y envía notificación por WhatsApp.
+     *
+     * @param  AgendaCita  $cita  modelo de la cita a cancelar.
+     * @param  string  $motivo  motivo de la cancelación.
+     *
+     * @returns array resultado con la cita cancelada o error si está cumplida/no_asistio.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function cancelar(AgendaCita $cita, string $motivo = ''): array
     {
-        if (in_array($cita->estado, ['cumplida', 'no_asistio'])) {
-            return $this->error('No se puede cancelar una cita cumplida o con inasistencia', 422);
+        if (in_array($cita->estado, ['cumplida', 'no_asistio', 'cancelada'])) {
+            return $this->error('No se puede cancelar una cita cumplida, cancelada o con inasistencia', 422);
         }
+
+        $estabaEnWorklist = in_array($cita->estado, ['asignada', 'confirmada'], true);
 
         $cita->update([
             'estado' => 'cancelada',
             'observaciones' => $cita->observaciones."\nMotivo cancelación: ".$motivo,
         ]);
 
+        // El cupo vuelve a quedar disponible para otro paciente.
+        $this->liberarCupo($cita->agenda_disponibilidad_detalle_id);
+
+        $avisoWorklist = $estabaEnWorklist ? $this->quitarDeWorklist($cita) : null;
+
         $this->whatsAppService->enviarCancelacion($cita, $motivo);
+
+        AuditLogger::log(
+            'cancelar_cita',
+            $cita,
+            "Cita #{$cita->id} cancelada. Motivo: {$motivo} por usuario: ".(Auth::user()?->name ?? ('ID: '.Auth::id()))
+        );
 
         return $this->success([
             'message' => 'Cita cancelada',
             'cita' => $cita->fresh(),
+            'aviso_worklist' => $avisoWorklist,
         ]);
     }
 
+    /**
+     * Marca una cita confirmada como cumplida.
+     *
+     * @param  AgendaCita  $cita  modelo de la cita a marcar como cumplida.
+     *
+     * @returns array resultado con la cita cumplida o error si no está confirmada.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function cumplir(AgendaCita $cita): array
     {
         if ($cita->estado !== 'confirmada') {
@@ -207,53 +346,124 @@ class AgendaCitaService extends BaseService
 
         $cita->update(['estado' => 'cumplida']);
 
+        AuditLogger::log(
+            'cumplir_cita',
+            $cita,
+            "Cita #{$cita->id} marcada como cumplida por usuario: ".(Auth::user()?->name ?? ('ID: '.Auth::id()))
+        );
+
         return $this->success([
             'message' => 'Cita marcada como cumplida',
             'cita' => $cita->fresh(),
         ]);
     }
 
+    /**
+     * Registra inasistencia del paciente a una cita asignada o confirmada.
+     *
+     * @param  AgendaCita  $cita  modelo de la cita a marcar como inasistencia.
+     *
+     * @returns array resultado con la inasistencia registrada o error si no está asignada/confirmada.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function noAsistio(AgendaCita $cita): array
     {
-        if ($cita->estado !== 'confirmada') {
-            return $this->error('Solo se puede marcar inasistencia en citas confirmadas', 422);
+        if (! in_array($cita->estado, ['asignada', 'confirmada'], true)) {
+            return $this->error('Solo se puede marcar inasistencia en citas asignadas o confirmadas', 422);
         }
 
         $cita->update(['estado' => 'no_asistio']);
 
+        AuditLogger::log(
+            'inasistencia_cita',
+            $cita,
+            "Inasistencia registrada para cita #{$cita->id} por usuario: ".(Auth::user()?->name ?? ('ID: '.Auth::id()))
+        );
+
         return $this->success([
             'message' => 'Inasistencia registrada',
             'cita' => $cita->fresh(),
+            'aviso_worklist' => $this->quitarDeWorklist($cita),
         ]);
     }
 
-    public function pendientes(Request $request): array
+    /**
+     * Quita la cita de la lista de trabajo del PACS.
+     *
+     * @param  AgendaCita  $cita  cita cancelada o con inasistencia.
+     *
+     * @returns string|null aviso para el usuario si el PACS no la quitó; null si salió bien o la sede no usa worklist.
+     *
+     * @author Davide
+     *
+     * @date 2026-10-25
+     */
+    private function quitarDeWorklist(AgendaCita $cita): ?string
     {
-        $query = AgendaCita::with(['paciente', 'servicio', 'producto', 'sede', 'quienRegistra', 'rechazoMotivo'])
-            ->where('estado', 'solicitada');
-
-        if ($request->servicio_cita_id) {
-            $query->where('servicio_cita_id', $request->servicio_cita_id);
+        if (! $this->worklistService->aplica($cita)) {
+            return null;
         }
 
-        if ($request->sede_id) {
-            $query->where('sede_id', $request->sede_id);
-        }
+        $resultado = $this->worklistService->cancelar($cita);
 
-        if ($request->busqueda) {
-            $busqueda = $request->busqueda;
-            $query->whereHas('paciente', function ($q) use ($busqueda) {
-                $q->where('num_docu', 'like', "%{$busqueda}%")
-                    ->orWhere('nombres', 'like', "%{$busqueda}%")
-                    ->orWhere('pri_ape', 'like', "%{$busqueda}%");
-            });
-        }
-
-        $citas = $query->orderBy('created_at', 'desc')->get();
-
-        return $this->success($citas);
+        return $resultado['enviado']
+            ? null
+            : 'No se pudo quitar de la lista de trabajo del PACS ('.$resultado['motivo'].'). Avise al técnico para retirarla en el equipo.';
     }
 
+    /**
+     * Devuelve a "Disponible" el cupo de agenda que tenía reservado la cita.
+     *
+     * @param  int|null  $detalleId  id del cupo (agenda_disponibilidad_detalle).
+     *
+     * @author Davide
+     *
+     * @date 2026-10-25
+     */
+    private function liberarCupo(?int $detalleId): void
+    {
+        if (empty($detalleId)) {
+            return;
+        }
+
+        AgendaDisponibilidaDetalle::where('id', $detalleId)
+            ->where('estado', 'Reservado')
+            ->update(['estado' => 'Disponible']);
+    }
+
+    /**
+     * Obtiene las citas solicitadas pendientes de revisión con filtros opcionales.
+     *
+     * @param  Request|array  $request  parámetros de filtrado: servicio, sede, búsqueda de paciente.
+     *
+     * @returns array resultado con las citas pendientes.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
+    public function pendientes(Request|array $request): array
+    {
+        $filters = $request instanceof Request ? $request->all() : $request;
+
+        return $this->queryService->pendientes($filters);
+    }
+
+    /**
+     * Rechaza una cita solicitada con un motivo de rechazo configurado y envía notificación.
+     *
+     * @param  AgendaCita  $cita  modelo de la cita a rechazar.
+     * @param  array  $data  datos del rechazo: rechazo_motivo_id, rechazo_observacion.
+     *
+     * @returns array resultado con la cita rechazada o error si no está solicitada.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function rechazar(AgendaCita $cita, array $data): array
     {
         if ($cita->estado !== 'solicitada') {
@@ -275,60 +485,78 @@ class AgendaCitaService extends BaseService
             $data['rechazo_observacion'] ?? ''
         );
 
+        AuditLogger::log(
+            'rechazar_cita',
+            $cita,
+            "Cita #{$cita->id} rechazada. Motivo: ".($motivo?->motivo ?? 'No especificado').' por usuario: '.(Auth::user()?->name ?? ('ID: '.Auth::id()))
+        );
+
         return $this->success([
             'message' => 'Cita rechazada',
             'cita' => $cita->fresh(['paciente', 'servicio', 'rechazoMotivo']),
         ]);
     }
 
+    /**
+     * Consulta los slots disponibles para una fecha, sede y servicio específicos.
+     *
+     * @param  array  $data  parámetros de consulta: fecha, sede_id, servicio_id.
+     *
+     * @returns array resultado con los horarios disponibles y su estado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function disponibilidad(array $data): array
     {
-        $fecha = Carbon::parse($data['fecha']);
-
-        $detalles = AgendaDisponibilidaDetalle::query()
-            ->whereHas('agendaDisponibilida', function ($q) use ($data) {
-                $q->where('sede_id', $data['sede_id'])
-                    ->where('servicio_cita_id', $data['servicio_cita_id'])
-                    ->where('estado', 'Activo');
-            })
-            ->whereDate('fecha_hora_inicio', $fecha)
-            ->where('estado', 'Disponible')
-            ->orderBy('fecha_hora_inicio')
-            ->get(['id', 'fecha_hora_inicio', 'fecha_hora_fin', 'estado']);
-
-        return $this->success([
-            'fecha' => $data['fecha'],
-            'detalles' => $detalles->map(function ($detalle) {
-                return [
-                    'id' => $detalle->id,
-                    'inicio' => $detalle->fecha_hora_inicio->format('Y-m-d H:i'),
-                    'fin' => $detalle->fecha_hora_fin->format('Y-m-d H:i'),
-                    'disponible' => $detalle->estado === 'Disponible',
-                ];
-            }),
-        ]);
+        return $this->queryService->disponibilidad($data);
     }
 
+    /**
+     * Obtiene la lista de servicios de cita activos.
+     *
+     * @returns array resultado con los servicios activos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function servicios(): array
     {
-        $servicios = ConfigServicioCita::where('estado', true)->get();
-
-        return $this->success($servicios);
+        return $this->queryService->servicios();
     }
 
+    /**
+     * Obtiene los productos activos asociados a un servicio de cita, con filtro opcional por sede.
+     *
+     * @param  int  $servicioCitaId  identificador del servicio de cita.
+     * @param  string|null  $sedeId  identificador de la sede para filtrar (opcional).
+     *
+     * @returns array resultado con los productos del servicio.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function productosPorServicio(int $servicioCitaId, ?string $sedeId = null): array
     {
-        $servicio = ConfigServicioCita::with(['productos' => function ($query) {
-            $query->where('config_productos.estado', true);
-        }])->findOrFail($servicioCitaId);
-
-        if ($sedeId && $servicio->sede_id != $sedeId) {
-            return $this->success([]);
-        }
-
-        return $this->success($servicio->productos);
+        return $this->queryService->productosPorServicio($servicioCitaId, $sedeId);
     }
 
+    /**
+     * Maneja la verificación del webhook de WhatsApp (challenge response).
+     *
+     * @param  string  $mode  modo de suscripción.
+     * @param  string  $token  token de verificación.
+     * @param  string  $challenge  valor challenge a retornar.
+     *
+     * @returns array resultado con el challenge o error de token inválido.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function webhookGet(string $mode, string $token, string $challenge): array
     {
         if ($mode === 'subscribe' && $token === config('services.whatsapp.verify_token')) {
@@ -338,11 +566,30 @@ class AgendaCitaService extends BaseService
         return $this->error('Token inválido', 403);
     }
 
+    /**
+     * Procesa los mensajes entrantes del webhook de WhatsApp, descarga media y ejecuta el flujo conversacional.
+     *
+     * @param  string  $payload  cuerpo raw de la petición.
+     * @param  string  $signature  firma HMAC del webhook.
+     * @param  array  $data  datos parseados del webhook.
+     *
+     * @returns array resultado del procesamiento.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function webhookPost(string $payload, string $signature, array $data): array
     {
         $secret = config('services.whatsapp.app_secret');
 
-        if ($secret && (! $signature || ! $this->whatsAppService->verificarWebhook($payload, $signature))) {
+        if (! $secret) {
+            Log::critical('WhatsApp webhook: app_secret no configurado - rechazando solicitudes');
+
+            return $this->error('Webhook no configurado', 500);
+        }
+
+        if (! $signature || ! $this->whatsAppService->verificarWebhook($payload, $signature)) {
             Log::warning('WhatsApp webhook: firma inválida', [
                 'signature' => $signature,
             ]);
@@ -429,6 +676,16 @@ class AgendaCitaService extends BaseService
         return $this->success(['message' => 'OK']);
     }
 
+    /**
+     * Envía una respuesta por WhatsApp según el tipo (texto, lista o botones).
+     *
+     * @param  string  $telefono  número de teléfono del destinatario.
+     * @param  array  $respuesta  datos de la respuesta a enviar (type, text/body, buttons/sections).
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function enviarRespuesta(string $telefono, array $respuesta): void
     {
         $tipo = $respuesta['type'] ?? 'text';
@@ -461,6 +718,15 @@ class AgendaCitaService extends BaseService
         $this->whatsAppService->enviarMensaje($telefono, $respuesta['text'] ?? '');
     }
 
+    /**
+     * Envía recomendaciones preoperatorias al paciente por WhatsApp según el producto de la cita.
+     *
+     * @param  AgendaCita  $cita  modelo de la cita con producto y paciente asociados.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function enviarRecomendacionesWhatsApp(AgendaCita $cita): void
     {
         if (! $cita->producto_id) {
@@ -508,6 +774,18 @@ class AgendaCitaService extends BaseService
         $this->whatsAppService->enviarMensaje($telefono, $mensaje);
     }
 
+    /**
+     * Envía un mensaje de prueba por WhatsApp a un número específico.
+     *
+     * @param  string  $telefono  número de teléfono destino.
+     * @param  string  $mensaje  contenido del mensaje a enviar.
+     *
+     * @returns array resultado con los datos del envío.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function testEnviar(string $telefono, string $mensaje): array
     {
         $resultado = $this->whatsAppService->enviarMensaje($telefono, $mensaje);
@@ -519,69 +797,146 @@ class AgendaCitaService extends BaseService
         ]);
     }
 
+    /**
+     * Obtiene el conteo y las últimas notificaciones no leídas de citas del usuario autenticado.
+     *
+     * @returns array resultado con el conteo y la lista de notificaciones.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function notificacionesNoLeidas(): array
     {
         $user = Auth::user();
-        $count = $user->unreadNotifications()
-            ->where('type', 'App\Notifications\Citas\CitaSolicitadaNotification')
-            ->count();
+        if (! $user) {
+            return $this->success([
+                'count' => 0,
+                'notifications' => [],
+            ]);
+        }
 
-        $notifications = $user->unreadNotifications()
-            ->where('type', 'App\Notifications\Citas\CitaSolicitadaNotification')
-            ->latest()
-            ->take(5)
-            ->get()
-            ->map(fn ($n) => [
-                'id' => $n->id,
-                'mensaje' => $n->data['mensaje'] ?? '',
-                'url' => $n->data['url'] ?? '/citas/revision',
-                'created_at' => $n->created_at->diffForHumans(),
+        try {
+            $count = $user->unreadNotifications()
+                ->where('type', 'App\Notifications\Citas\CitaSolicitadaNotification')
+                ->count();
+
+            $notifications = $user->unreadNotifications()
+                ->where('type', 'App\Notifications\Citas\CitaSolicitadaNotification')
+                ->latest()
+                ->take(5)
+                ->get()
+                ->map(function ($n) {
+                    $data = is_array($n->data) ? $n->data : (json_decode((string) ($n->data ?? ''), true) ?: []);
+
+                    return [
+                        'id' => (string) $n->id,
+                        'mensaje' => $data['mensaje'] ?? '',
+                        'url' => $data['url'] ?? '/citas/revision',
+                        'created_at' => $n->created_at ? $n->created_at->diffForHumans() : '',
+                    ];
+                });
+
+            return $this->success([
+                'count' => $count,
+                'notifications' => $notifications,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Error en AgendaCitaService::notificacionesNoLeidas: '.$e->getMessage(), [
+                'exception' => $e,
             ]);
 
-        return $this->success([
-            'count' => $count,
-            'notifications' => $notifications,
-        ]);
+            return $this->success([
+                'count' => 0,
+                'notifications' => [],
+            ]);
+        }
     }
 
+    /**
+     * Marca una notificación específica como leída para el usuario autenticado.
+     *
+     * @param  string  $id  identificador de la notificación.
+     *
+     * @returns array resultado de la operación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function marcarNotificacionLeida(string $id): array
     {
         $user = Auth::user();
-        $notification = $user->notifications()->where('id', $id)->first();
-        if ($notification) {
-            $notification->markAsRead();
+        if (! $user) {
+            return $this->success(['success' => true]);
+        }
+
+        try {
+            $notification = $user->notifications()->where('id', $id)->first();
+            if ($notification) {
+                $notification->markAsRead();
+            }
+        } catch (\Throwable $e) {
+            Log::error('Error en AgendaCitaService::marcarNotificacionLeida: '.$e->getMessage());
         }
 
         return $this->success(['success' => true]);
     }
 
+    /**
+     * Marca todas las notificaciones de tipo CitaSolicitadaNotification como leídas.
+     *
+     * @returns array resultado de la operación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function marcarTodasLeidas(): array
     {
-        Auth::user()->unreadNotifications()
-            ->where('type', 'App\Notifications\Citas\CitaSolicitadaNotification')
-            ->update(['read_at' => now()]);
+        $user = Auth::user();
+        if (! $user) {
+            return $this->success(['success' => true]);
+        }
+
+        try {
+            $user->unreadNotifications()
+                ->where('type', 'App\Notifications\Citas\CitaSolicitadaNotification')
+                ->update(['read_at' => now()]);
+        } catch (\Throwable $e) {
+            Log::error('Error en AgendaCitaService::marcarTodasLeidas: '.$e->getMessage());
+        }
 
         return $this->success(['success' => true]);
     }
 
+    /**
+     * Obtiene la cita con su conversación de WhatsApp asociada.
+     *
+     * @param  AgendaCita  $cita  modelo de la cuyos datos y conversación se desean consultar.
+     *
+     * @returns array resultado con la cita y la conversación encontrada.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function verConversacion(AgendaCita $cita): array
     {
-        $conversacion = null;
-
-        if ($cita->paciente && $cita->paciente->cel) {
-            $cel = preg_replace('/[^0-9]/', '', $cita->paciente->cel);
-            $conversacion = WhatsAppConversation::whereRaw(
-                "REPLACE(REPLACE(REPLACE(telefono, ' ', ''), '-', ''), '+', '') LIKE ?",
-                ["%{$cel}"]
-            )->first();
-        }
-
-        return $this->success([
-            'cita' => $cita->load(['paciente', 'servicio', 'producto', 'sede']),
-            'conversacion' => $conversacion,
-        ]);
+        return $this->queryService->verConversacion($cita);
     }
 
+    /**
+     * Descarga un archivo multimedia de soporte de citas desde el disco local.
+     *
+     * @param  string  $filename  nombre del archivo a descargar.
+     *
+     * @returns string|null ruta completa del archivo o null si no existe.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function descargarMedia(string $filename): ?string
     {
         $filename = basename($filename);
@@ -594,6 +949,15 @@ class AgendaCitaService extends BaseService
         return Storage::disk('local')->path($path);
     }
 
+    /**
+     * Busca un paciente por documento o lo crea sincronizando desde SAHI o con los datos enviados.
+     *
+     * @param  array  $data  Datos del paciente: num_docu, telefono, nombres, apellidos, email
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function buscarOCrearPaciente(array $data): ?Paciente
     {
         if (! empty($data['num_docu'])) {
@@ -640,6 +1004,19 @@ class AgendaCitaService extends BaseService
         return null;
     }
 
+    /**
+     * Genera una lista de horarios en intervalos de una duración dada para una fecha específica.
+     *
+     * @param  string  $fecha  fecha para la cual se generan los horarios (Y-m-d).
+     * @param  int  $duracion  duración de cada slot en minutos.
+     * @param  Collection  $citasExistentes  colección de citas existentes para verificar disponibilidad.
+     *
+     * @returns array lista de horarios con inicio, fin y estado de disponibilidad.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function generarHorarios(string $fecha, int $duracion, $citasExistentes): array
     {
         $inicioDia = Carbon::parse($fecha.' 07:00:00');

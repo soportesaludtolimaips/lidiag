@@ -17,8 +17,21 @@ class HelpDeskAdjuntoService extends BaseService
 {
     use TicketAuthorization;
 
+    /**
+     * Sube uno o más archivos adjuntos a un ticket y registra la acción en el historial.
+     *
+     * @param  HelpDeskTickets  $ticket  Ticket al que se agregan los adjuntos
+     * @param  array  $data  Datos: files (archivos) y comentario opcional
+     * @param  User  $user  Usuario autenticado que sube los adjuntos
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function upload(HelpDeskTickets $ticket, array $data, User $user): array
     {
+        $this->assertCanSeeTicket($ticket, $user);
+
         $comentario = (! empty($data['comentario'])) ? $this->sanitizeHtml($data['comentario']) : null;
 
         $hist = HelpDeskTicketHistorial::create([
@@ -64,6 +77,18 @@ class HelpDeskAdjuntoService extends BaseService
         ]);
     }
 
+    /**
+     * Descarga un adjunto verificando que el usuario tenga permiso para ver el ticket.
+     *
+     * @param  HelpDeskAdjunto  $adjunto  adjunto que se desea descargar.
+     * @param  User  $user  usuario autenticado que solicita la descarga.
+     *
+     * @returns mixed respuesta de descarga del archivo o null si el archivo físico no existe.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     public function download(HelpDeskAdjunto $adjunto, User $user)
     {
         $ticket = HelpDeskTickets::query()->findOrFail($adjunto->ticket_id);
@@ -79,6 +104,18 @@ class HelpDeskAdjuntoService extends BaseService
         return $disk->download($adjunto->path, $adjunto->original_name);
     }
 
+    /**
+     * Elimina un adjunto, su archivo físico y registra la acción en el historial del ticket.
+     *
+     * @param  HelpDeskAdjunto  $adjunto  adjunto que se desea eliminar.
+     * @param  User  $user  usuario autenticado que solicita la eliminación.
+     *
+     * @returns array respuesta de eliminación con el estado de la operación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     public function delete(HelpDeskAdjunto $adjunto, User $user): array
     {
         $ticket = HelpDeskTickets::query()->findOrFail($adjunto->ticket_id);

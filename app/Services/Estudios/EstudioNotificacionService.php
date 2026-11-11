@@ -2,20 +2,28 @@
 
 namespace App\Services\Estudios;
 
+use App\Helpers\DicomHelper;
 use App\Mail\NotificacionDeLectura;
 use App\Mail\ReportarLectura;
-use App\Models\Configuracion\ConfigSede;
-use App\Models\Dcm4chee\Instance;
 use App\Models\Estudio\Estudio;
 use App\Services\BaseService;
+use App\Services\Entrega\ClientePortalReportes;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage;
 
 class EstudioNotificacionService extends BaseService
 {
+    /**
+     * Lista estudios para notificación con información completa de paciente, médico y sede
+     *
+     * @param  array  $filters  Filtros de búsqueda: num_docu, nombre, fechas
+     *
+     * @returns array Respuesta con la lista de estudios para notificar (máx 1000)
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function listarEstudios(array $filters): array
     {
         $query = Estudio::query()->select(
@@ -60,6 +68,18 @@ class EstudioNotificacionService extends BaseService
         return $this->success($registros);
     }
 
+    /**
+     * Envía notificación por email con el reporte PDF del estudio y descarga imágenes DICOM
+     *
+     * @param  object  $estudio  Objeto con datos del estudio incluyendo email
+     * @param  string  $archivoReporte  Nombre del archivo PDF de reporte
+     *
+     * @returns array Respuesta de confirmación del envío
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function notificarEmail($estudio, string $archivoReporte): array
     {
         $reportePath = storage_path('app/reporte_lecturas/'.$archivoReporte);
@@ -78,27 +98,28 @@ class EstudioNotificacionService extends BaseService
             Mail::to($estudio->email_reportar)->send($mailable);
         }
 
-        @unlink($archivoReporte);
+        @unlink($reportePath);
 
-        $imagenesAdjuntos = Storage::exists('img_dicom/'.$estudio->study_iuid)
-            ? Storage::files('img_dicom/'.$estudio->study_iuid) : [];
-
-        foreach ($imagenesAdjuntos as $imagen) {
-            Storage::delete($imagen);
-        }
-        Storage::deleteDirectory('img_dicom/'.$estudio->study_iuid);
+        DicomHelper::cleanupTempImages("img_dicom/{$estudio->study_iuid}");
 
         return $this->success(null, 'La notificación se generó correctamente.');
     }
 
+    /**
+     * Envía el reporte del estudio al portal de pacientes vía API con firma HMAC
+     *
+     * @param  object  $estudio  Objeto con datos del estudio, paciente y sede
+     *
+     * @returns array Respuesta de confirmación del envío al portal
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function enviarPortalPacientes($estudio): array
     {
         $nombrePaciente = str_replace(['^^^', ' ^', '^'], ['', '', ' '], $estudio->nom_pacien ?? '');
         $nomArchivoReporte = ($estudio->estudio_producto_id ?? '0').'-'.($estudio->num_docu ?? '0').'-'.$nombrePaciente.'.pdf';
-
-        $urlApiReportes = rtrim(config('app.URL_API_REPORTES'), '/').'/api/almacenarLectura';
-        $secret = env('API_HMAC_SECRET');
-        $ts = time();
 
         $payload = [
             'num_docu' => $estudio->num_docu ?? '',
@@ -118,98 +139,83 @@ class EstudioNotificacionService extends BaseService
         }
 
         $fileBytes = file_get_contents($reportePath);
-        $method = 'POST';
-        $path = parse_url($urlApiReportes, PHP_URL_PATH) ?: '/api/almacenarLectura';
-
-        ksort($payload);
-        $payloadCanonical = http_build_query($payload, '', '&', PHP_QUERY_RFC3986);
-        $payloadSha = hash('sha256', $payloadCanonical);
-        $fileSha = hash('sha256', $fileBytes ?: '');
-        $stringToSign = implode("\n", [$method, $path, (string) $ts, $payloadSha, $fileSha]);
-        $signature = base64_encode(hash_hmac('sha256', $stringToSign, $secret, true));
 
         try {
-            $response = Http::withoutVerifying()
-                ->acceptJson()
-                ->withHeaders([
-                    'X-Timestamp' => (string) $ts,
-                    'X-Signature' => $signature,
-                ])
-                ->timeout(60)
-                ->attach('file_reporte', $fileBytes, $nomArchivoReporte)
-                ->post($urlApiReportes, $payload);
+            // El cliente firma con HMAC y normaliza los campos igual que el portal (ver ClientePortalReportes).
+            $response = app(ClientePortalReportes::class)->almacenarLectura($payload, (string) $fileBytes, $nomArchivoReporte);
 
             if ($response->successful()) {
                 return $this->success([
                     'reportePath' => $nomArchivoReporte,
+                    'lectura_id' => $response->json('lectura_id'),
                 ], 'El estudio se ha enviado al portal de pacientes correctamente.');
             }
 
+            $detalleError = $response->json('message') ?: ('HTTP '.$response->status().' - '.$response->body());
+
             return $this->error(
-                'Error al enviar el reporte al portal de pacientes.',
-                400
+                'Error al enviar el reporte al portal de pacientes: '.$detalleError,
+                $response->status() ?: 400
             );
         } catch (\Exception $e) {
             return $this->error('Error al enviar el reporte al portal de pacientes: '.$e->getMessage(), 400);
         } finally {
             try {
                 @unlink($reportePath);
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
+                // Reporte ya eliminado o inaccesible
             }
         }
     }
 
+    /**
+     * Descarga imágenes DICOM de un estudio desde el servidor PACS de la sede
+     *
+     * @param  int  $sedeId  ID de la sede con configuración PACS
+     * @param  string  $study_iuid  UID del estudio DICOM
+     *
+     * @returns array Respuesta con el resultado de la descarga de imágenes
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public static function descargaImagenesDicom($sedeId, $study_iuid): array
     {
-        $sedeActual = ConfigSede::find($sedeId);
-        if (! $sedeActual) {
-            return (new self)->notFound('Sede no encontrada');
+        $result = DicomHelper::downloadStudyImages(
+            $sedeId,
+            $study_iuid,
+            'image/jpeg',
+            "img_dicom/{$study_iuid}",
+            20
+        );
+
+        if (isset($result['error'])) {
+            return (new self)->error($result['error'], 404);
         }
 
-        Config::set('database.connections.mysql_sucursal', [
-            'driver' => 'mysql',
-            'host' => env('DB_SUCURSAL_HOST', $sedeActual->ip_dcm),
-            'port' => env('DB_SUCURSAL_PUERTO', $sedeActual->puerto_dcm),
-            'database' => env('DB_SUCURSAL_DATABASE', $sedeActual->bd_dcm),
-            'username' => env('DB_SUCURSAL_USERNAME', $sedeActual->usuario_dcm),
-            'password' => env('DB_SUCURSAL_PASSWORD', $sedeActual->password_dcm),
-            'charset' => env('DB_SUCURSAL_charset', 'latin1'),
-            'collation' => env('DB_SUCURSAL_collation', 'latin1_swedish_ci'),
-        ]);
-
-        $originalDefault = Config::get('database.default');
-        Config::set('database.default', 'mysql_sucursal');
-
-        try {
-            $imagenes = Instance::join('series', 'instance.series_fk', '=', 'series.pk')
-                ->join('study', 'series.study_fk', '=', 'study.pk')
-                ->where('study.study_iuid', $study_iuid)
-                ->select('series.series_iuid', 'instance.sop_iuid')
-                ->limit(20)
-                ->get();
-
-            if ($imagenes->isEmpty()) {
-                return (new self)->notFound('No se encontraron imágenes para el estudio especificado');
-            }
-
-            foreach ($imagenes as $imagen) {
-                $wadoUrl = "http://{$sedeActual->ip_dcm}:8080/wado?requestType=WADO&studyUID={$study_iuid}&seriesUID={$imagen->series_iuid}&objectUID={$imagen->sop_iuid}&contentType=image/jpeg";
-
-                $response = Http::get($wadoUrl);
-                if ($response->successful()) {
-                    $filename = "imagen_{$study_iuid}_{$imagen->series_iuid}_{$imagen->sop_iuid}.jpg";
-                    Storage::put("img_dicom/{$study_iuid}/{$filename}", $response->body());
-                } else {
-                    return (new self)->error('Error al descargar una de las imágenes', 500);
-                }
-            }
-
-            return (new self)->success(null, 'Todas las imágenes se han descargado y guardado correctamente');
-        } finally {
-            Config::set('database.default', $originalDefault);
+        if ($result['success'] === 0) {
+            return (new self)->error('No se encontraron imágenes para el estudio especificado', 404);
         }
+
+        if ($result['failed'] > 0) {
+            return (new self)->error('Error al descargar algunas imágenes', 500);
+        }
+
+        return (new self)->success(null, 'Todas las imágenes se han descargado y guardado correctamente');
     }
 
+    /**
+     * Elimina un archivo de reporte PDF del sistema
+     *
+     * @param  string  $reportePath  Ruta completa del archivo a eliminar
+     *
+     * @returns void
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function eliminarReporte($reportePath): void
     {
         @unlink($reportePath);

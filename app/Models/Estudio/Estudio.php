@@ -47,36 +47,99 @@ class Estudio extends Model
         'updated_at' => 'datetime',
     ];
 
+    /**
+     * Paciente al que pertenece el estudio.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     public function paciente()
     {
         return $this->belongsTo(Paciente::class);
     }
 
+    /**
+     * Médico asignado para la lectura.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     public function medico()
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Usuario que registró el estudio.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     public function quienRegistro()
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Sede donde se realizó el estudio.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     public function sede()
     {
         return $this->belongsTo(ConfigSede::class);
     }
 
+    /**
+     * Prioridad del estudio.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     public function prioridad()
     {
         return $this->belongsTo(ConfigPrioridad::class);
     }
 
+    /**
+     * Productos (partes) del estudio.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\HasMany
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     public function productos()
     {
         return $this->hasMany(EstudioProducto::class);
     }
 
+    /**
+     * Diagnósticos asociados al estudio.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\HasMany
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-08
+     */
     public function diagnosticos()
     {
         return $this->hasMany(EstudioDiagnostico::class);

@@ -25,6 +25,13 @@ const emit = defineEmits(["select"]);
 const emojis = ref(EMOJIS);
 const abierto = ref(false);
 
+/**
+ * Alterna la visibilidad del panel de emojis.
+ * Registra o remueve el listener de click fuera para cerrar al hacer clic externo.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-07-08
+ */
 function toggle() {
     abierto.value = !abierto.value;
     if (abierto.value) {
@@ -35,20 +42,49 @@ function toggle() {
         document.removeEventListener("click", clickFuera);
     }
 }
+/**
+ * Cierra el panel de emojis y remueve el listener de click fuera del DOM.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-07-08
+ */
 function cerrar() {
     abierto.value = false;
     document.removeEventListener("click", clickFuera);
 }
+/**
+ * Handler de click global que cierra el picker si el clic fue fuera del wrapper.
+ *
+ * @param {MouseEvent} e - Evento de clic del documento.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-07-08
+ */
 function clickFuera(e) {
     const wrapper = wrapper.value;
     if (wrapper && !wrapper.contains(e.target)) {
         cerrar();
     }
 }
+/**
+ * Emite el evento select con el emoji elegido y cierra el panel.
+ *
+ * @param {string} emoji - Emoji seleccionado por el usuario.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-07-08
+ */
 function seleccionar(emoji) {
     emit("select", emoji);
 }
 
+/**
+ * Lifecycle hook que remueve el listener de click fuera del DOM
+ * al desmontar el componente para evitar fugas de memoria.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-07-08
+ */
 onBeforeUnmount(() => {
     document.removeEventListener("click", clickFuera);
 });

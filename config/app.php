@@ -51,6 +51,12 @@ return [
     */
     'URL_API_REPORTES' => env('URL_API_REPORTES'),
     'PASSWORD_API_REPORTES' => env('PASSWORD_API_REPORTES'),
+    'API_HMAC_SECRET' => env('API_HMAC_SECRET', ''),
+    'FFMPEG_BINARIES' => env('FFMPEG_BINARIES', 'C:/ffmpeg/bin/ffmpeg.exe'),
+    'FFPROBE_BINARIES' => env('FFPROBE_BINARIES', 'C:/ffmpeg/bin/ffprobe.exe'),
+    'FFMPEG_TIMEOUT' => env('FFMPEG_TIMEOUT', 3600),
+    'FFMPEG_THREADS' => env('FFMPEG_THREADS', 12),
+    'AUDIO_MP3_KBPS' => env('AUDIO_MP3_KBPS', 64),
 
     /*
     |--------------------------------------------------------------------------
@@ -63,7 +69,7 @@ return [
     |
     */
 
-    'env' => env('APP_ENV', 'production'),
+    'env' => env('APP_ENV', 'local'),
 
     /*
     |--------------------------------------------------------------------------
@@ -156,7 +162,7 @@ return [
     |
     */
 
-    'key' => env('APP_KEY'),
+    'key' => env('APP_KEY', 'base64:EJ6AQ0Bxj+GZ2ZDVubbAjsCncgCWQD7Y33qL801zadY='),
 
     'cipher' => 'AES-256-CBC',
 

@@ -29,6 +29,15 @@ class loginRequest extends FormRequest
         ];
     }
 
+    /**
+     * Mensajes en español para las reglas de validación.
+     *
+     * @return array
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function messages()
     {
         return [

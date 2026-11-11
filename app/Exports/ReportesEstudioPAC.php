@@ -2,174 +2,150 @@
 
 namespace App\Exports;
 
+use App\Exports\Sheets\ReportesEstudioPACDetalleSheet;
+use App\Exports\Sheets\ReportesEstudioPACEstadisticasSheet;
 use App\Models\Configuracion\ConfigSede;
-use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithColumnWidths;
-use Maatwebsite\Excel\Concerns\WithCustomStartCell;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class ReportesEstudioPAC implements FromCollection, WithColumnWidths, WithCustomStartCell, WithHeadings, WithMapping, WithStyles
+/**
+ * Libro Excel Multi-Hoja de Estudios Adquiridos en el PACS (Dcm4chee / MySQL Sucursal).
+ *
+ * Flujo del proceso:
+ * 1. Recibe los parámetros de consulta: rango de fechas ($fechaInicio, $fechaFin) y $sedeId.
+ * 2. Conecta de forma dinámica a la base de datos MySQL de la sede seleccionada ('mysql_sucursal').
+ * 3. Ejecuta la consulta unificada de estudios y pacientes (`study` JOIN `patient`) una sola vez.
+ * 4. Compone un libro multi-hoja profesional con:
+ *    - Hoja 1: Estadísticas y Gráficas (KPIs ejecutivos, tabla de modalidades, top 10 procedimientos y gráficos nativos).
+ *    - Hoja 2: Detalle de Estudios (Trazabilidad registro por registro de los estudios adquiridos).
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-11-04
+ */
+class ReportesEstudioPAC implements WithMultipleSheets
 {
-    protected $fechaInicio;
+    protected string $fechaInicio;
 
-    protected $fechaFin;
+    protected string $fechaFin;
 
-    protected $sedeId;
+    protected mixed $sedeId;
 
-    protected $sedeNombre;
+    protected string $sedeNombre;
 
-    protected $conexionOriginal;
+    protected string $conexionOriginal;
 
-    public function __construct($fechaInicio, $fechaFin, $sedeId, $sedeNombre, $conexionOriginal)
+    protected Collection $estudios;
+
+    /**
+     * Constructor de la exportación de estudios PACS.
+     *
+     * @param  string  $fechaInicio  Fecha de inicio del rango (YYYY-MM-DD).
+     * @param  string  $fechaFin  Fecha de fin del rango (YYYY-MM-DD).
+     * @param  mixed  $sedeId  Identificador de la sede hospitalaria.
+     * @param  string  $sedeNombre  Nombre descriptivo opcional de la sede.
+     * @param  string  $conexionOriginal  Nombre de la conexión de BD original.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-04
+     */
+    public function __construct($fechaInicio, $fechaFin, $sedeId, $sedeNombre = "", $conexionOriginal = "")
     {
-        $this->fechaInicio = $fechaInicio;
-        $this->fechaFin = $fechaFin;
+        $this->fechaInicio = (string) $fechaInicio;
+        $this->fechaFin = (string) $fechaFin;
         $this->sedeId = $sedeId;
-        $this->sedeNombre = $sedeNombre;
-        $this->conexionOriginal = $conexionOriginal;
+        $this->sedeNombre = (string) $sedeNombre;
+        $this->conexionOriginal = (string) $conexionOriginal;
+        $this->estudios = $this->consultarEstudiosPac();
     }
 
-    public function collection()
+    /**
+     * Consulta los estudios desde la base de datos PACS de la sede configurada.
+     *
+     * @returns Collection Colección de estudios adquiridos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-04
+     */
+    protected function consultarEstudiosPac(): Collection
     {
         $sedeActual = ConfigSede::find($this->sedeId);
 
-        config(['database.connections.mysql_sucursal' => [
-            'driver' => 'mysql',
-            'host' => env('DB_SUCURSAL_HOST', $sedeActual->ip_dcm),
-            'port' => env('DB_SUCURSAL_PUERTO', $sedeActual->puerto_dcm),
-            'database' => env('DB_SUCURSAL_DATABASE', $sedeActual->bd_dcm),
-            'username' => env('DB_SUCURSAL_USERNAME', $sedeActual->usuario_dcm),
-            'password' => env('DB_SUCURSAL_PASSWORD', $sedeActual->password_dcm),
-            'charset' => env('DB_SUCURSAL_charset', 'latin1'),
-            'collation' => env('DB_SUCURSAL_collation', 'latin1_swedish_ci'),
-        ]]);
+        if (! $sedeActual) {
+            return collect();
+        }
 
-        $this->sedeNombre = $sedeActual->nom_sede;
+        if ($this->sedeNombre === "") {
+            $this->sedeNombre = (string) ($sedeActual->nom_sede ?? "");
+        }
 
-        $conexionOriginal = config('database.default');
+        config([
+            "database.connections.mysql_sucursal" => [
+                "driver" => "mysql",
+                "host" => config("database.connections.mysql_sucursal.host") ?: $sedeActual->ip_dcm,
+                "port" => config("database.connections.mysql_sucursal.port") ?: $sedeActual->puerto_dcm,
+                "database" => config("database.connections.mysql_sucursal.database") ?: $sedeActual->bd_dcm,
+                "username" => config("database.connections.mysql_sucursal.username") ?: $sedeActual->usuario_dcm,
+                "password" => config("database.connections.mysql_sucursal.password") ?: $sedeActual->password_dcm,
+                "charset" => "latin1",
+                "collation" => "latin1_swedish_ci",
+            ],
+        ]);
+        DB::purge("mysql_sucursal");
 
         try {
-
-            Config::set('database.default', 'mysql_sucursal');
-            $estudios = DB::table('study')
+            return DB::connection("mysql_sucursal")
+                ->table("study")
                 ->select(
-                    'patient.pat_id',
-                    'patient.pat_name',
-                    'study.study_datetime',
-                    'study.study_desc',
-                    'study.mods_in_study'
+                    "patient.pat_id",
+                    "patient.pat_name",
+                    "study.study_datetime",
+                    "study.study_desc",
+                    "study.mods_in_study"
                 )
-                ->join('patient', 'patient.pk', '=', 'study.patient_fk')
-                ->whereBetween('study.study_datetime', [
-                    $this->fechaInicio.' 00:00:00',
-                    $this->fechaFin.' 23:59:59',
+                ->join("patient", "patient.pk", "=", "study.patient_fk")
+                ->whereBetween("study.study_datetime", [
+                    $this->fechaInicio." 00:00:00",
+                    $this->fechaFin." 23:59:59",
                 ])
+                ->orderBy("study.study_datetime", "desc")
                 ->get();
+        } catch (\Throwable $e) {
+            Log::error(
+                "ReportesEstudioPAC: Error querying remote PAC DB",
+                ["sede_id" => $this->sedeId, "error" => $e->getMessage()]
+            );
 
-            return $estudios;
-        } finally {
-            Config::set('database.default', $conexionOriginal);
+            return collect();
         }
     }
 
-    public function headings(): array
+    /**
+     * Define las hojas que conforman el libro Excel.
+     *
+     * @returns array<int, object> Lista de hojas del libro.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-04
+     */
+    public function sheets(): array
     {
         return [
-            'Sede',
-            'Fecha de Estudio',
-            'Documento del Paciente',
-            'Paciente',
-            'Descripción del Estudio',
-            'Modalidad',
+            new ReportesEstudioPACEstadisticasSheet(
+                $this->estudios,
+                $this->sedeNombre,
+                $this->fechaInicio,
+                $this->fechaFin
+            ),
+            new ReportesEstudioPACDetalleSheet(
+                $this->estudios,
+                $this->sedeNombre
+            ),
         ];
-    }
-
-    public function map($estudio): array
-    {
-        return [
-            $this->sedeNombre ?? 'N/A',
-            $estudio->study_datetime ?? 'N/A',
-            $estudio->pat_id ?? 'N/A',
-            $estudio->pat_name ?? 'N/A',
-            $estudio->study_desc ?? 'N/A',
-            $estudio->mods_in_study ?? 'N/A',
-        ];
-    }
-
-    public function styles(Worksheet $sheet)
-    {
-        // Agrega el encabezado personalizado
-        $sheet->setCellValue('A1', 'Salud Tolima - Reporte de Estudios Tomados en PAC');
-        $sheet->mergeCells('A1:F1'); // A1 to F1 to include the new column
-
-        $sheet->getStyle('A1')->applyFromArray([
-            'font' => [
-                'bold' => true,
-                'color' => ['rgb' => 'FFFFFF'],
-                'size' => 14,
-            ],
-            'fill' => [
-                'fillType' => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '1A2274'],
-            ],
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-            ],
-        ]);
-
-        // Establece el estilo para el encabezado de los datos
-        $sheet->getStyle('A3:F3')->applyFromArray([
-            'font' => [
-                'bold' => true,
-                'color' => ['rgb' => 'FFFFFF'],
-            ],
-            'fill' => [
-                'fillType' => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => '1A2274'],
-            ],
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-            ],
-        ]);
-
-        // Establece bordes para todas las celdas de datos
-        $sheet->getStyle('A4:F'.($sheet->getHighestRow()))->applyFromArray([
-            'borders' => [
-                'allBorders' => [
-                    'borderStyle' => Border::BORDER_THIN,
-                    'color' => ['rgb' => '000000'],
-                ],
-            ],
-        ]);
-
-        return [
-            1 => ['font' => ['bold' => true]],
-            3 => ['font' => ['bold' => true]], // Estilo para el encabezado de los datos
-        ];
-    }
-
-    public function columnWidths(): array
-    {
-        return [
-            'A' => 30,
-            'B' => 19, // Ancho para la columna de Sede
-            'C' => 15,
-            'D' => 50,
-            'E' => 30,
-            'F' => 9,
-        ];
-    }
-
-    public function startCell(): string
-    {
-        return 'A3'; // Los datos comenzarán desde la celda A4
     }
 }

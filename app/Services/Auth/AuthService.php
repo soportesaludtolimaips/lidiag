@@ -2,6 +2,7 @@
 
 namespace App\Services\Auth;
 
+use App\Models\User;
 use App\Services\BaseService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -15,6 +16,18 @@ class AuthService extends BaseService
 
     private const LOCKOUT_DECAY_MINUTES = 15;
 
+    /**
+     * Autentica al usuario con bloqueo temporal por intentos fallidos consecutivos.
+     *
+     * @param  string  $email  Correo electrónico del usuario
+     * @param  string  $password  Contraseña en texto plano a verificar
+     * @param  bool  $wantsJson  Indica si la respuesta debe ser JSON o de redirección web
+     * @param  string|null  $ip  Dirección IP del cliente para el bloqueo por intentos
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function login(string $email, string $password, bool $wantsJson, ?string $ip = null): array
     {
         $key = 'login-lockout:'.md5(mb_strtolower($email).'|'.($ip ?? 'unknown'));
@@ -29,9 +42,7 @@ class AuthService extends BaseService
             }
 
             return $this->error($msg, 302, [
-                'redirect' => route('login'),
-                'errors' => ['email' => $msg],
-                'old' => ['email' => $email],
+                'email' => $msg,
             ]);
         }
 
@@ -57,9 +68,7 @@ class AuthService extends BaseService
             }
 
             return $this->error('Credenciales inválidas', 302, [
-                'redirect' => route('login'),
-                'errors' => ['email' => 'Credenciales inválidas'],
-                'old' => ['email' => $email],
+                'email' => 'Estas credenciales no coinciden con nuestros registros.',
             ]);
         }
 
@@ -82,6 +91,15 @@ class AuthService extends BaseService
         ]);
     }
 
+    /**
+     * Cierra la sesión del usuario, invalida la sesión y revoca los tokens de API.
+     *
+     * @param  mixed  $request  Petición HTTP con la sesión a invalidar
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function logout($request): array
     {
         Log::info('SESION_LOGOUT', [
@@ -90,6 +108,9 @@ class AuthService extends BaseService
             'logout_at' => now()->toDateTimeString(),
         ]);
 
+        // Revocar tokens personales de Sanctum del usuario (defensa en profundidad)
+        optional(Auth::user())->tokens()->delete();
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
@@ -97,6 +118,20 @@ class AuthService extends BaseService
         return $this->success(null, 'Sesión cerrada correctamente', 204);
     }
 
+    /**
+     * Cambia la contraseña del usuario e invalida sus demás sesiones activas
+     * y tokens de API, manteniendo únicamente la sesión actual.
+     *
+     * @param  User  $user  Usuario autenticado.
+     * @param  string  $currentPassword  Contraseña actual para verificación.
+     * @param  string  $newPassword  Nueva contraseña (ya validada y confirmada).
+     *
+     * @returns array Respuesta estándar del BaseService.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2024-04-04
+     */
     public function changePassword($user, string $currentPassword, string $newPassword): array
     {
         if (! Hash::check($currentPassword, $user->password)) {
@@ -108,9 +143,25 @@ class AuthService extends BaseService
             'password_changed_at' => now(),
         ]);
 
+        // Invalidar sesiones distintas a la actual tras un cambio de contraseña
+        DB::table('sessions')
+            ->where('user_id', $user->id)
+            ->where('id', '!=', session()->getId())
+            ->delete();
+
+        // Revocar tokens de API existentes
+        $user->tokens()->delete();
+
         return $this->success(null, 'Contraseña actualizada correctamente');
     }
 
+    /**
+     * Detecta y registra si existen sesiones anteriores abruptas del usuario autenticado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function detectPreviousSession(): void
     {
         try {

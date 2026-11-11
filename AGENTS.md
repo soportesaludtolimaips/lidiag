@@ -36,12 +36,15 @@ composer run lint:fix # pint only
 - **Auth**: Sanctum (stateful SPA) + Spatie permissions
 - **API routes**: `routes/api_*.php` modules under `auth:sanctum`
 
-## Vue Components (Options API)
+## Vue Components (dos estilos conviven)
 
-This project uses **Options API only** (no Composition API, no TypeScript):
-- `data()`, `methods`, `mounted()`, `computed`, `watch`
-- No arrow functions in methods/lifecycle hooks (`this` binding)
-- Run `npm run prepare` after `npm install` to enable pre-commit lint hooks
+- Los componentes del equipo (versión de octubre en adelante) usan **Composition API** (`<script setup>`, `ref`, `onMounted`)
+  y se comunican con el bus global `mitt`.
+- Los componentes propios más antiguos (Consentimientos, firma por token, logo por sede) usan **Options API**
+  (`data()`, `methods`, `mounted()`, `computed`, `watch`; sin funciones flecha en `methods` por el `this`).
+- Sin TypeScript. Respeta el estilo del archivo que edites; no conviertas uno al otro sin que lo pidan.
+- Ejecuta `npm run prepare` tras `npm install` para activar los hooks de lint previos al commit.
+- `npm run build` tras cualquier cambio en un `.vue` (`public/build/` está ignorado por git).
 
 ### Key Components
 

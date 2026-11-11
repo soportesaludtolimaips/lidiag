@@ -4,19 +4,42 @@
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Configuración</h3>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
-                    <li class="breadcrumb-item"><a href="javascript:void(0)">Configuración</a></li>
+                    <li class="breadcrumb-item">
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Configuración
+                        </button>
+                    </li>
                     <li class="breadcrumb-item active">Helpdesk - Prioridades</li>
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
+                    class="btn btn-outline-secondary m-r-5"
+                    @click="listar"
+                    :disabled="loadingListar"
+                    title="Actualizar listado"
+                >
+                    <i class="fa" :class="loadingListar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                    Refrescar
+                </button>
+                <button
+                    type="button"
                     class="btn btn-info btnDesplegarRigthSidebar"
-                    @click="
-                        actualizar = false;
-                        mostrarRegistro();
-                    "
+                    @click="prepararNuevo"
                 >
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
@@ -29,9 +52,19 @@
                     <div class="card-body">
                         <h4 class="card-title">Listado de prioridades</h4>
                         <h6 class="card-subtitle">Catálogo de Helpdesk.</h6>
-                        <div class="table-responsive m-t-40">
+                        <table-skeleton-loader :visible="loadingListar" :rows="5" :columns="4" />
+                        <empty-state-component
+                            v-if="!loadingListar && registros.length === 0"
+                            title="No hay prioridades registradas"
+                            description="No se encontraron registros de prioridades de Helpdesk."
+                            icon="fa-flag"
+                        />
+                        <div
+                            v-show="!loadingListar && registros.length > 0"
+                            class="table-responsive m-t-40"
+                        >
                             <table
-                                id="example23"
+                                id="tablaHelpdeskPrioridades"
                                 ref="dt"
                                 class="display nowrap table table-hover table-striped table-bordered"
                                 cellspacing="0"
@@ -59,10 +92,7 @@
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                @click="
-                                                    actualizar = true;
-                                                    mostrarRegistro(item);
-                                                "
+                                                @click="prepararEdicion(item)"
                                             >
                                                 <i class="fa fa-pencil"></i>
                                             </button>
@@ -91,11 +121,29 @@
             </div>
         </div>
 
-        <div class="right-sidebar" style="width: 400px">
+        <!-- Backdrop overlay para cerrar al hacer clic afuera -->
+        <div v-if="sidebarVisible" class="sidebar-backdrop" @click="cerrarSidebar"></div>
+
+        <div
+            class="right-sidebar"
+            ref="sidebarRef"
+            :class="{ 'shw-rside': sidebarVisible }"
+            style="width: 450px"
+        >
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
-                    <span><i class="ti-close right-side-toggle" id="btnCerralModalForm"></i></span>
+                    <span>
+                        <button
+                            type="button"
+                            class="close right-side-toggle"
+                            aria-label="Cerrar panel"
+                            title="Cerrar (Esc)"
+                            @click="cerrarSidebar"
+                        >
+                            &times;
+                        </button>
+                    </span>
                 </div>
                 <div class="r-panel-body">
                     <form action="#" @submit.prevent>
@@ -103,15 +151,21 @@
                             <div class="row p-t-20">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Nombre</label>
+                                        <label for="prioridad_nombre" class="control-label"
+                                            >Nombre</label
+                                        >
                                         <input
+                                            id="prioridad_nombre"
                                             type="text"
                                             v-model="registro.nombre"
                                             class="form-control"
+                                            :class="{ 'is-invalid': errores.nombre }"
                                             maxlength="100"
                                         />
                                         <span class="text-danger" v-if="errores.nombre">{{
-                                            errores.nombre[0]
+                                            Array.isArray(errores.nombre)
+                                                ? errores.nombre[0]
+                                                : errores.nombre
                                         }}</span>
                                     </div>
                                 </div>
@@ -119,14 +173,20 @@
                             <div class="row">
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label class="control-label">Orden</label>
+                                        <label for="prioridad_orden" class="control-label"
+                                            >Orden</label
+                                        >
                                         <input
+                                            id="prioridad_orden"
                                             type="number"
                                             v-model="registro.orden"
                                             class="form-control"
+                                            :class="{ 'is-invalid': errores.orden }"
                                         />
                                         <span class="text-danger" v-if="errores.orden">{{
-                                            errores.orden[0]
+                                            Array.isArray(errores.orden)
+                                                ? errores.orden[0]
+                                                : errores.orden
                                         }}</span>
                                     </div>
                                 </div>
@@ -153,7 +213,7 @@
                                     type="button"
                                     class="btn btn-success m-r-5"
                                     v-if="!actualizar"
-                                    @click="guardarRegistro()"
+                                    @click="guardarRegistro"
                                     :disabled="loadingGuardar"
                                 >
                                     <i
@@ -167,7 +227,7 @@
                                     type="button"
                                     class="btn btn-warning m-r-5"
                                     v-if="actualizar"
-                                    @click="guardarRegistro()"
+                                    @click="guardarRegistro"
                                     :disabled="loadingGuardar"
                                 >
                                     <i
@@ -180,9 +240,9 @@
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    @click="btnCerralModalForm()"
+                                    @click="cerrarSidebar"
                                 >
-                                    Cancel
+                                    Cancelar
                                 </button>
                             </div>
                         </div>
@@ -195,62 +255,115 @@
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
+const dt = ref(null);
+const sidebarRef = ref(null);
+
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { toastMessage, confirmAction, handleAxiosErrorToast } from "@/helpers/alerts.js";
+import { toastMessage, confirmAction } from "@/helpers/alerts.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 import axios from "axios";
 
-const dt = ref(null);
 const registros = ref([]);
 const registro = ref({ id: 0, nombre: "", orden: 0, activo: true });
 const tituloModal = ref("Nuevo registro");
 const actualizar = ref(false);
-const errores = ref({});
 const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
+const sidebarVisible = ref(false);
+
+const errores = ref({});
+
+function clearErrors() {
+    errores.value = {};
+}
+
+function setErrors(newErrors) {
+    errores.value = newErrors || {};
+}
 
 async function listar() {
     if (loadingListar.value) return;
     loadingListar.value = true;
+    clearErrors();
+    safeDestroyDataTable(dt.value || "#tablaHelpdeskPrioridades");
     try {
         const res = await axios.get("/api/helpdesk-prioridades");
-        safeDestroyDataTable(dt.value || "#example23");
-        registros.value = res.data.data || [];
-        nextTick(() => {
-            safeInitDataTable(dt.value || "#example23", {
-                dom: "Bfrtip",
-                buttons: ["copy", "csv", "excel", "pdf", "print"],
-            });
+        let data = res?.data?.data || res?.data || [];
+        if (typeof data === "string") {
+            try {
+                data = JSON.parse(data);
+            } catch (_e) {
+                data = [];
+            }
+        }
+        registros.value = Array.isArray(data) ? data : [];
+    } catch {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible listar las prioridades.",
+            icon: "error",
         });
-    } catch (error) {
-        handleAxiosErrorToast(error, "No se pudo listar.");
+        registros.value = [];
     } finally {
         loadingListar.value = false;
+        await nextTick();
+        if (registros.value.length > 0) {
+            safeDestroyDataTable(dt.value || "#tablaHelpdeskPrioridades");
+            safeInitDataTable(dt.value || "#tablaHelpdeskPrioridades", {
+                dom: "Bfrtip",
+                buttons: ["copy", "csv", "excel", "pdf", "print"],
+                autoWidth: false,
+                columnDefs: [{ targets: [3], orderable: false }],
+            });
+        }
     }
 }
-function mostrarRegistro(item = null) {
-    errores.value = {};
-    if (item) {
-        tituloModal.value = "Actualizar registro";
-        registro.value = {
-            id: item.id,
-            nombre: item.nombre,
-            orden: item.orden,
-            activo: !!item.activo,
-        };
-    } else {
-        tituloModal.value = "Nuevo registro";
-        registro.value = { id: 0, nombre: "", orden: 0, activo: true };
-    }
-    document.body.classList.add("right-side-toggled");
+
+function prepararEdicion(item) {
+    actualizar.value = true;
+    tituloModal.value = "Actualizar registro";
+    registro.value = {
+        id: item.id,
+        nombre: item.nombre,
+        orden: item.orden,
+        activo: !!item.activo,
+    };
+    clearErrors();
+    abrirSidebar();
 }
-function btnCerralModalForm() {
-    document.body.classList.remove("right-side-toggled");
+
+function prepararNuevo() {
+    actualizar.value = false;
+    tituloModal.value = "Nuevo registro";
+    registro.value = { id: 0, nombre: "", orden: 0, activo: true };
+    clearErrors();
+    abrirSidebar();
 }
+
+function abrirSidebar() {
+    sidebarVisible.value = true;
+    nextTick(() => {
+        document.getElementById("prioridad_nombre")?.focus();
+    });
+}
+
+function cerrarSidebar() {
+    sidebarVisible.value = false;
+}
+
+useKeyboardShortcuts({
+    onSearch: listar,
+    onSave: guardarRegistro,
+    onEscape: cerrarSidebar,
+    isActive: sidebarVisible,
+    isLoading: loadingGuardar,
+});
+
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
-    errores.value = {};
+    clearErrors();
     try {
         const payload = {
             nombre: registro.value.nombre,
@@ -268,18 +381,23 @@ async function guardarRegistro() {
                 icon: "success",
             });
         }
-        btnCerralModalForm();
+        cerrarSidebar();
         await listar();
     } catch (error) {
         if (error?.response?.status === 422) {
-            errores.value = error.response.data.errors || {};
+            setErrors(error.response.data.errors || {});
         } else {
-            handleAxiosErrorToast(error, "No se pudo guardar.");
+            toastMessage({
+                heading: "Error",
+                text: "No fue posible guardar la prioridad.",
+                icon: "error",
+            });
         }
     } finally {
         loadingGuardar.value = false;
     }
 }
+
 async function desactivarRegistro(item) {
     const ok = await confirmAction({
         title: "¿Desactivar?",
@@ -291,8 +409,12 @@ async function desactivarRegistro(item) {
         await axios.delete(`/api/helpdesk-prioridades/${item.id}`);
         toastMessage({ heading: "Ok", text: "Prioridad desactivada.", icon: "success" });
         await listar();
-    } catch (error) {
-        handleAxiosErrorToast(error, "No se pudo desactivar.");
+    } catch {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible desactivar la prioridad.",
+            icon: "error",
+        });
     } finally {
         loadingEliminarId.value = null;
     }
@@ -303,6 +425,47 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-    safeDestroyDataTable(dt.value || "#example23");
+    safeDestroyDataTable(dt.value || "#tablaHelpdeskPrioridades");
 });
 </script>
+<style scoped>
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1090;
+}
+
+.right-sidebar {
+    position: fixed;
+    right: -450px;
+    width: 450px;
+    z-index: 1100;
+    background: #ffffff;
+    top: 0px;
+    padding-bottom: 20px;
+    height: 100%;
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.shw-rside {
+    right: 0px !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+@media (max-width: 767px) {
+    .right-sidebar {
+        width: 100% !important;
+        right: -100% !important;
+    }
+}
+</style>

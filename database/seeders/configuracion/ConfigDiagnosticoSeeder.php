@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Seeders\configuracion;
+namespace Database\Seeders\Configuracion;
 
 use App\Models\Configuracion\ConfigDiagnostico;
 use Illuminate\Database\Seeder;

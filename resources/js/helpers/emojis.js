@@ -1,3 +1,12 @@
+/**
+ * Lista de emojis disponibles para seleccion en la interfaz.
+ *
+ * @returns {Array<string>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-07-08
+ */
 export const EMOJIS = [
     "😊",
     "😄",

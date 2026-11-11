@@ -6,10 +6,20 @@ use App\Models\Configuracion\ConfigSede;
 use App\Models\Dcm4chee\Study;
 use App\Models\Estudio\Estudio;
 use App\Services\BaseService;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 
 class StudyService extends BaseService
 {
+    /**
+     * Lista los estudios DICOM de la sede consultando la base dcm4chee remota con filtros.
+     *
+     * @param  array  $data  Filtros: sede_id, bus_nom_num_docu, bus_fech_ini, bus_fecha_fin
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function listarEstudios(array $data): array
     {
         $sedeId = (int) $data['sede_id'];
@@ -29,16 +39,19 @@ class StudyService extends BaseService
         }
 
         $sedeActual = ConfigSede::find($sedeId);
+        if (! $sedeActual) {
+            return $this->error('Sede no encontrada.', 404);
+        }
 
         config(['database.connections.mysql_sucursal' => [
             'driver' => 'mysql',
-            'host' => env('DB_SUCURSAL_HOST', $sedeActual->ip_dcm),
-            'port' => env('DB_SUCURSAL_PUERTO', $sedeActual->puerto_dcm),
-            'database' => env('DB_SUCURSAL_DATABASE', $sedeActual->bd_dcm),
-            'username' => env('DB_SUCURSAL_USERNAME', $sedeActual->usuario_dcm),
-            'password' => env('DB_SUCURSAL_PASSWORD', $sedeActual->password_dcm),
-            'charset' => env('DB_SUCURSAL_charset', 'latin1'),
-            'collation' => env('DB_SUCURSAL_collation', 'latin1_swedish_ci'),
+            'host' => $sedeActual->ip_dcm,
+            'port' => $sedeActual->puerto_dcm,
+            'database' => $sedeActual->bd_dcm,
+            'username' => $sedeActual->usuario_dcm,
+            'password' => $sedeActual->password_dcm,
+            'charset' => 'latin1',
+            'collation' => 'latin1_swedish_ci',
         ]]);
 
         $conexionOriginal = config('database.default');
@@ -64,9 +77,10 @@ class StudyService extends BaseService
                 ->join('patient', 'study.patient_fk', 'patient.pk');
 
             if ($tieneBusqueda) {
-                $query->where(function ($q) use ($busqueda) {
-                    $q->where('patient.pat_id', 'like', "%{$busqueda}%")
-                        ->orWhere('patient.pat_name', 'like', "%{$busqueda}%");
+                $safeBusqueda = str_replace(['%', '_'], ['\\%', '\\_'], $busqueda);
+                $query->where(function ($q) use ($safeBusqueda) {
+                    $q->where('patient.pat_id', 'like', "%{$safeBusqueda}%")
+                        ->orWhere('patient.pat_name', 'like', "%{$safeBusqueda}%");
                 });
             }
 
@@ -92,8 +106,13 @@ class StudyService extends BaseService
             ->pluck('estudios.study_pk')
             ->flip();
 
+        // «Reportado» = el estudio ya tiene una lectura hecha (fechor_lectura). Sirve para que el tablero de
+        // Asignar marque en azul solo lo ya leído y no lo pendiente.
+        $reportados = $this->studyPksReportados($sedeId, $studyPks);
+
         foreach ($resultados as $row) {
             $row->agendado = isset($agendados[$row->study_pk]) ? 1 : 0;
+            $row->reportado = isset($reportados[$row->study_pk]) ? 1 : 0;
             foreach (['study_desc', 'mods_in_study', 'pat_name'] as $field) {
                 if (isset($row->$field) && is_string($row->$field)) {
                     $row->$field = @iconv('ISO-8859-1', 'UTF-8//TRANSLIT//IGNORE', $row->$field) ?: $row->$field;
@@ -102,5 +121,26 @@ class StudyService extends BaseService
         }
 
         return $this->success($resultados);
+    }
+
+    /**
+     * study_pk de los estudios de la sede que ya tienen una lectura hecha.
+     *
+     * «Reportado» = el estudio tiene un producto activo con fechor_lectura. El resultado se consulta con isset().
+     *
+     * @param  int  $sedeId  Sede de los estudios.
+     * @param  array<int, int|string>  $studyPks  study_pk de los estudios que se están listando.
+     * @return Collection<int|string, int> study_pk => posición.
+     */
+    protected function studyPksReportados(int $sedeId, array $studyPks): Collection
+    {
+        return Estudio::query()
+            ->join('estudios_productos', 'estudios_productos.estudio_id', '=', 'estudios.id')
+            ->where('estudios.sede_id', $sedeId)
+            ->where('estudios_productos.activo', 1)
+            ->whereNotNull('estudios_productos.fechor_lectura')
+            ->whereIn('estudios.study_pk', $studyPks)
+            ->pluck('estudios.study_pk')
+            ->flip();
     }
 }

@@ -40,127 +40,167 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> Filtros para busqueda de estudios asignados
-                        </h4>
-                        <form action="#">
-                            <div class="form-body">
-                                <div class="row p-t-2">
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label for="quien_asigno_id">Quien asigno</label>
-                                            <select
-                                                v-model="busqueda.quien_asigno_id"
-                                                name="quien_asigno_id"
-                                                id="quien_asigno_id"
-                                                class="form-control custom-select"
-                                            >
-                                                <option value="">
-                                                    ...::: Todos los usuarios :::...
-                                                </option>
-                                                <option
-                                                    v-for="(
-                                                        ItemUsuario, index
-                                                    ) in quienes_asignaron"
-                                                    :key="index"
-                                                    :value="ItemUsuario.id"
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h4 class="card-title text-themecolor mb-0">
+                                <i class="fa fa-filter"></i> Filtros para búsqueda de estudios
+                                asignados
+                                <span
+                                    v-if="filtrosActivosCount > 0"
+                                    class="badge badge-pill badge-info ml-2"
+                                >
+                                    {{ filtrosActivosCount }}
+                                    {{
+                                        filtrosActivosCount === 1
+                                            ? "filtro activo"
+                                            : "filtros activos"
+                                    }}
+                                </span>
+                            </h4>
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-secondary"
+                                @click="toggleFiltros()"
+                                :title="filtrosVisible ? 'Ocultar filtros' : 'Mostrar filtros'"
+                            >
+                                <i
+                                    :class="
+                                        filtrosVisible ? 'fa fa-chevron-up' : 'fa fa-chevron-down'
+                                    "
+                                ></i>
+                                {{ filtrosVisible ? "Ocultar filtros" : "Mostrar filtros" }}
+                            </button>
+                        </div>
+                        <transition name="fade-collapse">
+                            <form v-show="filtrosVisible" action="#">
+                                <div class="form-body">
+                                    <div class="row p-t-2">
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label for="quien_asigno_id">Quien asigno</label>
+                                                <select
+                                                    v-model="busqueda.quien_asigno_id"
+                                                    name="quien_asigno_id"
+                                                    id="quien_asigno_id"
+                                                    class="form-control custom-select"
+                                                    @change="listarEstudiosAsignados()"
                                                 >
-                                                    {{ ItemUsuario.name }}
-                                                </option>
-                                            </select>
+                                                    <option value="">
+                                                        ...::: Todos los usuarios :::...
+                                                    </option>
+                                                    <option
+                                                        v-for="ItemUsuario in quienesAsignaronActivos"
+                                                        :key="ItemUsuario.id"
+                                                        :value="ItemUsuario.id"
+                                                    >
+                                                        {{ ItemUsuario.name }}
+                                                    </option>
+                                                </select>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label for="medico_id">Medicos</label>
-                                            <select
-                                                v-model="busqueda.medico_id"
-                                                name="medico_id"
-                                                id="medico_id"
-                                                class="form-control custom-select"
-                                            >
-                                                <option value="" selected>
-                                                    ...::: Todos los medicos :::...
-                                                </option>
-                                                <option
-                                                    v-for="(ItemUsuario, index) in medicos"
-                                                    :key="index"
-                                                    :value="ItemUsuario.id"
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label for="medico_id">Medicos</label>
+                                                <select
+                                                    v-model="busqueda.medico_id"
+                                                    name="medico_id"
+                                                    id="medico_id"
+                                                    class="form-control custom-select"
+                                                    @change="listarEstudiosAsignados()"
                                                 >
-                                                    {{ ItemUsuario.name }}
-                                                </option>
-                                            </select>
+                                                    <option value="" selected>
+                                                        ...::: Todos los medicos :::...
+                                                    </option>
+                                                    <option
+                                                        v-for="ItemUsuario in medicosActivos"
+                                                        :key="ItemUsuario.id"
+                                                        :value="ItemUsuario.id"
+                                                    >
+                                                        {{ ItemUsuario.name }}
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label class="control-label" for="bus_nom_num_docu"
+                                                    >Nombres o # documento</label
+                                                >
+                                                <input
+                                                    type="text"
+                                                    id="bus_nom_num_docu"
+                                                    name="bus_nom_num_docu"
+                                                    v-model="busqueda.bus_nom_num_docu"
+                                                    class="form-control"
+                                                    placeholder="Nombres de paciente o # de documento"
+                                                    @keyup.enter="listarEstudiosAsignados()"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label class="control-label" for="bus_fech_ini"
+                                                    >Fecha Inicio</label
+                                                >
+                                                <input
+                                                    type="date"
+                                                    id="bus_fech_ini"
+                                                    name="bus_fech_ini"
+                                                    v-model="busqueda.bus_fech_ini"
+                                                    class="form-control"
+                                                    @keyup.enter="listarEstudiosAsignados()"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label class="control-label" for="bus_fecha_fin"
+                                                    >Fecha Fin</label
+                                                >
+                                                <input
+                                                    type="date"
+                                                    id="bus_fecha_fin"
+                                                    name="bus_fecha_fin"
+                                                    v-model="busqueda.bus_fecha_fin"
+                                                    class="form-control"
+                                                    @keyup.enter="listarEstudiosAsignados()"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label class="control-label" for="bus_nom_num_docu"
-                                                >Nombres o # documento</label
-                                            >
-                                            <input
-                                                type="text"
-                                                id="bus_nom_num_docu"
-                                                name="bus_nom_num_docu"
-                                                v-model="busqueda.bus_nom_num_docu"
-                                                class="form-control"
-                                                placeholder="Nombres de paciente o # de documento"
-                                                @keyup.enter="listarEstudiosAsignados()"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label class="control-label" for="bus_fech_ini"
-                                                >Fecha Inicio</label
-                                            >
-                                            <input
-                                                type="date"
-                                                id="bus_fech_ini"
-                                                name="bus_fech_ini"
-                                                v-model="busqueda.bus_fech_ini"
-                                                class="form-control"
-                                                @keyup.enter="listarEstudiosAsignados()"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label class="control-label" for="bus_fecha_fin"
-                                                >Fecha Fin</label
-                                            >
-                                            <input
-                                                type="date"
-                                                id="bus_fecha_fin"
-                                                name="bus_fecha_fin"
-                                                v-model="busqueda.bus_fecha_fin"
-                                                class="form-control"
-                                                @keyup.enter="listarEstudiosAsignados()"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
 
-                                <div class="form-actions mt-3">
-                                    <button
-                                        type="button"
-                                        class="btn btn-success m-r-5"
-                                        :disabled="loadingBuscar"
-                                        @click="listarEstudiosAsignados()"
-                                    >
-                                        <i v-if="loadingBuscar" class="fa fa-spinner fa-spin"></i>
-                                        <i v-else class="fa fa-search"></i>
-                                        Buscar
-                                    </button>
-                                    <button
-                                        type="button"
-                                        class="btn btn-inverse"
-                                        @click="btnLimpiar()"
-                                    >
-                                        <i class="fa fa-refresh"></i> Limpiar
-                                    </button>
+                                    <div class="form-actions mt-3">
+                                        <button
+                                            type="button"
+                                            class="btn btn-success m-r-5"
+                                            :disabled="loadingBuscar"
+                                            @click="listarEstudiosAsignados()"
+                                        >
+                                            <i
+                                                v-if="loadingBuscar"
+                                                class="fa fa-spinner fa-spin"
+                                            ></i>
+                                            <i v-else class="fa fa-search"></i>
+                                            Buscar
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="btn btn-inverse"
+                                            @click="btnLimpiar()"
+                                        >
+                                            <i class="fa fa-refresh"></i> Limpiar
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-primary ml-2"
+                                            @click="listarEstudiosAsignados()"
+                                            :disabled="loadingBuscar"
+                                        >
+                                            <i class="fa fa-sync"></i> Actualizar
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                        </form>
+                            </form>
+                        </transition>
                     </div>
                 </div>
             </div>
@@ -184,10 +224,22 @@
                                 <span class="badge badge-secondary" v-else>Sin resultados</span>
                             </div>
                         </div>
-                        <loading-spinner :visible="loadingBuscar" />
-                        <div class="table-responsive" :class="{ 'd-none': loadingBuscar }">
+                        <table-skeleton-loader :visible="loadingBuscar" :rows="6" :columns="8" />
+                        <empty-state-component
+                            v-if="!loadingBuscar && registros.length === 0"
+                            icon="fa fa-folder-open-o"
+                            title="No hay estudios asignados para mostrar"
+                            description="No se encontraron estudios que coincidan con los filtros seleccionados o aún no ha realizado una búsqueda."
+                            action-text="Limpiar filtros"
+                            action-icon="fa fa-refresh"
+                            @action="btnLimpiar()"
+                        />
+                        <div
+                            v-show="!loadingBuscar && registros.length > 0"
+                            class="table-responsive"
+                        >
                             <table
-                                id="example23"
+                                id="tablaEstudiosAsignados"
                                 ref="dt"
                                 class="table table-bordered table-striped"
                                 cellspacing="0"
@@ -195,18 +247,26 @@
                             >
                                 <thead>
                                     <tr>
-                                        <th></th>
-                                        <th>Sede</th>
-                                        <th>Fecha de la Toma</th>
-                                        <th>Quien Asigno</th>
-                                        <th>Medico</th>
-                                        <th>Paciente</th>
-                                        <th>Detalle</th>
-                                        <th>Producto</th>
-                                        <th>Leido</th>
-                                        <th>Transcrito</th>
-                                        <th>Activo</th>
-                                        <th></th>
+                                        <th
+                                            style="width: 35px"
+                                            class="text-center"
+                                            title="Prioridad"
+                                        >
+                                            P
+                                        </th>
+                                        <th style="width: 130px">Sede</th>
+                                        <th style="width: 105px" class="text-nowrap">Toma</th>
+                                        <th style="width: 120px">Quien Asignó</th>
+                                        <th style="width: 140px">Médico</th>
+                                        <th style="width: 160px">Paciente</th>
+                                        <th style="width: 160px">Detalle</th>
+                                        <th style="width: 150px">Producto</th>
+                                        <th style="width: 60px" class="text-center">Leído</th>
+                                        <th style="width: 75px" class="text-center">Transcrito</th>
+                                        <th style="width: 60px" class="text-center">Activo</th>
+                                        <th style="width: 100px" class="text-center text-nowrap">
+                                            Acciones
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -215,11 +275,12 @@
                                         :key="item.estudio_producto_id"
                                         :id="'row-' + item.estudio_producto_id"
                                     >
-                                        <td>
+                                        <td class="text-center align-middle">
                                             <button
                                                 type="button"
                                                 v-if="item.priori_id == 1"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-danger"
+                                                title="Alta"
                                             >
                                                 A
                                             </button>
@@ -227,6 +288,7 @@
                                                 type="button"
                                                 v-else-if="item.priori_id == 2"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-warning"
+                                                title="Media"
                                             >
                                                 M
                                             </button>
@@ -234,6 +296,7 @@
                                                 type="button"
                                                 v-else-if="item.priori_id == 3"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-info"
+                                                title="Baja"
                                             >
                                                 B
                                             </button>
@@ -241,61 +304,203 @@
                                                 type="button"
                                                 v-else-if="item.priori_id == 4"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm"
+                                                title="Sin prioridad"
                                             >
                                                 S
                                             </button>
                                         </td>
-                                        <td>{{ item.nom_sede }}</td>
-                                        <td>{{ item.fec_estudio }}</td>
-                                        <td>{{ item.quien_registro }}</td>
-                                        <td>{{ item.medico }}</td>
-                                        <td>
-                                            # Docu: {{ item.num_docu }} <br />
-                                            Nombres: {{ item.nom_pacien }}
+                                        <td class="align-middle font-weight-bold">
+                                            {{ item.nom_sede }}
                                         </td>
-                                        <td>
-                                            Atención: {{ item.atencion }} <br />
-                                            Descrip: {{ item.study_desc }} <br />
-                                            {{ item.accession_no }}
+                                        <td class="align-middle text-nowrap">
+                                            {{ item.fec_estudio }}
                                         </td>
-                                        <td>{{ item.nom_produc }}</td>
-                                        <td>
+                                        <td class="align-middle">{{ item.quien_registro }}</td>
+                                        <td class="align-middle">{{ item.medico }}</td>
+                                        <td class="align-middle">
+                                            <div class="font-weight-bold text-dark">
+                                                {{ item.nom_pacien }}
+                                            </div>
+                                            <div
+                                                class="text-primary font-weight-bold"
+                                                style="font-size: 15px"
+                                            >
+                                                <i class="fa fa-id-card-o mr-1"></i>
+                                                {{ item.num_docu }}
+                                            </div>
+                                        </td>
+                                        <td class="align-middle">
+                                            <div v-if="item.atencion">
+                                                <small
+                                                    ><strong>Atención:</strong>
+                                                    {{ item.atencion }}</small
+                                                >
+                                            </div>
+                                            <div v-if="item.accession_no">
+                                                <small class="text-muted"
+                                                    ><strong>Acc:</strong>
+                                                    {{ item.accession_no }}</small
+                                                >
+                                            </div>
+                                            <div v-if="item.study_desc">
+                                                <small class="text-info">{{
+                                                    item.study_desc
+                                                }}</small>
+                                            </div>
+                                            <div v-if="item.eps">
+                                                <small class="text-secondary"
+                                                    ><strong>EPS:</strong> {{ item.eps }}</small
+                                                >
+                                            </div>
+                                            <div
+                                                v-if="item.interface_software === 'SAHI'"
+                                                class="mt-1"
+                                            >
+                                                <span
+                                                    v-if="item.estado_envio_sahi === 'ENVIADO'"
+                                                    class="badge badge-success"
+                                                    :title="
+                                                        'Sincronizado con SAHI | Esquema 149: ' +
+                                                        (item.sahi_esquema_149 || 'N/A') +
+                                                        ' | Esquema 150: ' +
+                                                        (item.sahi_esquema_150 || 'N/A')
+                                                    "
+                                                >
+                                                    <i class="fa fa-check"></i> SAHI
+                                                </span>
+                                                <span
+                                                    v-else-if="item.estado_envio_sahi === 'ERROR'"
+                                                    class="badge badge-danger"
+                                                    :title="
+                                                        item.error_envio_sahi ||
+                                                        'Error de sincronización con SAHI'
+                                                    "
+                                                >
+                                                    <i class="fa fa-times"></i> SAHI Error
+                                                </span>
+                                                <span
+                                                    v-else-if="
+                                                        item.transcriptor_id != null ||
+                                                        item.lectura != null
+                                                    "
+                                                    class="badge badge-warning"
+                                                    title="Transcrito pero pendiente de enviar a SAHI"
+                                                >
+                                                    <i class="fa fa-clock-o"></i> SAHI Pendiente
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td class="align-middle font-weight-bold">
+                                            {{ item.nom_produc }}
+                                            <div
+                                                v-if="item.medico_ordena"
+                                                class="font-weight-normal mt-1"
+                                            >
+                                                <small class="text-muted" title="Médico que ordenó">
+                                                    <i class="fa fa-user-md"></i>
+                                                    {{ item.medico_ordena }}
+                                                </small>
+                                            </div>
+                                        </td>
+                                        <td class="text-center align-middle">
                                             <span
                                                 class="label label-success"
                                                 v-if="item.fechor_lectura != null"
                                                 >Si</span
                                             >
-                                            <span
-                                                class="label label-danger"
-                                                v-if="item.fechor_lectura === null"
-                                                >No</span
-                                            >
+                                            <span class="label label-danger" v-else>No</span>
                                         </td>
-                                        <td>
+                                        <td class="text-center align-middle">
                                             <span
                                                 class="label label-success"
                                                 v-if="item.transcriptor_id != null"
                                                 >Si</span
                                             >
-                                            <span
-                                                class="label label-danger"
-                                                v-if="item.transcriptor_id === null"
-                                                >No</span
-                                            >
+                                            <span class="label label-danger" v-else>No</span>
                                         </td>
-                                        <td>
+                                        <td class="text-center align-middle">
                                             <span
                                                 class="label label-success"
                                                 v-if="item.activo === 1"
                                                 >Si</span
                                             >
-                                            <span
-                                                class="label label-danger"
-                                                v-if="item.activo === 0"
-                                                >No</span
-                                            >
+                                            <span class="label label-danger" v-else>No</span>
                                         </td>
-                                        <td class="text-nowrap">
+                                        <td class="text-nowrap text-center align-middle">
+                                            <button
+                                                type="button"
+                                                v-if="item.interface_software === 'SAHI'"
+                                                class="btn waves-effect waves-light btn-rounded btn-sm m-r-5"
+                                                :class="{
+                                                    'btn-outline-success':
+                                                        item.estado_envio_sahi === 'ENVIADO',
+                                                    'btn-outline-danger':
+                                                        item.estado_envio_sahi === 'ERROR',
+                                                    'btn-outline-info':
+                                                        !item.estado_envio_sahi ||
+                                                        item.estado_envio_sahi === 'PENDIENTE',
+                                                }"
+                                                :disabled="
+                                                    loadingSahiId === item.estudio_producto_id ||
+                                                    (!item.transcriptor_id && !item.lectura)
+                                                "
+                                                @click="enviarASahi(item)"
+                                                :title="
+                                                    !item.transcriptor_id && !item.lectura
+                                                        ? 'Debe transcribir el estudio antes de enviarlo a SAHI'
+                                                        : item.estado_envio_sahi === 'ENVIADO'
+                                                          ? 'Enviado a SAHI (Clic para reenviar)'
+                                                          : item.estado_envio_sahi === 'ERROR'
+                                                            ? 'Error en SAHI: ' +
+                                                              (item.error_envio_sahi || '') +
+                                                              ' (Clic para reintentar)'
+                                                            : 'Enviar a SAHI'
+                                                "
+                                                aria-label="Enviar a SAHI"
+                                            >
+                                                <i
+                                                    v-if="
+                                                        loadingSahiId === item.estudio_producto_id
+                                                    "
+                                                    class="fa fa-spinner fa-spin"
+                                                ></i>
+                                                <i
+                                                    v-else-if="item.estado_envio_sahi === 'ENVIADO'"
+                                                    class="fa fa-check-circle"
+                                                ></i>
+                                                <i
+                                                    v-else-if="item.estado_envio_sahi === 'ERROR'"
+                                                    class="fa fa-exclamation-triangle"
+                                                ></i>
+                                                <i v-else class="fa fa-cloud-upload"></i>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
+                                                :disabled="
+                                                    loadingVerImagen === item.estudio_producto_id
+                                                "
+                                                @click="
+                                                    verImagen(
+                                                        item.url_oviyam,
+                                                        item.num_docu,
+                                                        item.study_iuid,
+                                                        item.tap_oviyam,
+                                                        item.estudio_producto_id
+                                                    )
+                                                "
+                                                title="Ver imágenes en visor PACS/DICOM"
+                                                aria-label="Ver imágenes en visor PACS/DICOM"
+                                            >
+                                                <i
+                                                    v-if="
+                                                        loadingVerImagen ===
+                                                        item.estudio_producto_id
+                                                    "
+                                                    class="fa fa-spinner fa-spin"
+                                                ></i>
+                                                <i v-else class="fa fa-desktop"></i>
+                                            </button>
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
@@ -304,6 +509,8 @@
                                                     item.estudio_producto_id
                                                 "
                                                 @click="mostrarRegistro(item)"
+                                                title="Editar asignación"
+                                                aria-label="Editar asignación"
                                             >
                                                 <i
                                                     v-if="
@@ -327,6 +534,8 @@
                                                         item.nom_produc
                                                     )
                                                 "
+                                                title="Anular asignación"
+                                                aria-label="Anular asignación"
                                             >
                                                 <i
                                                     v-if="
@@ -360,14 +569,14 @@
         <!-- Right sidebar -->
         <!-- ============================================================== -->
         <!-- .right-sidebar -->
-        <div class="right-sidebar sidebar-scroll">
+        <div class="right-sidebar sidebar-scroll" :class="{ 'shw-rside': sidebarVisible }">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <button
                         type="button"
                         class="right-side-toggle"
-                        @click="btnCerralModalForm()"
+                        @click="btnCerrarModalForm()"
                         aria-label="Cerrar panel"
                     >
                         <i class="ti-close"></i>
@@ -570,7 +779,14 @@
                                                     type="button"
                                                     class="btn btn-secondary btn-xs"
                                                     :disabled="loadingVerImagen"
-                                                    @click="verImagen()"
+                                                    @click="
+                                                        verImagen(
+                                                            datosImagen.urlOviyam,
+                                                            datosImagen.patientId,
+                                                            datosImagen.studyUID,
+                                                            datosImagen.serverName
+                                                        )
+                                                    "
                                                 >
                                                     <i
                                                         v-if="loadingVerImagen"
@@ -640,20 +856,20 @@
                                                 >
                                                     <div
                                                         class="col-md-8 col-lg-9"
-                                                        v-for="(itemArchivo, index) in soportesHC"
-                                                        :key="index"
+                                                        v-for="itemArchivo in soportesHC"
+                                                        :key="itemArchivo.archivo_encrip"
                                                     >
                                                         <a
                                                             href="javascript:void(0)"
                                                             :style="{
                                                                 pointerEvents:
-                                                                    loadingDescargaSoporte ===
+                                                                    loadingDescarga ===
                                                                     itemArchivo.archivo_encrip
                                                                         ? 'none'
                                                                         : 'auto',
                                                             }"
                                                             @click="
-                                                                descargaSoportte(
+                                                                descargaSoporte(
                                                                     itemArchivo.archivo_original,
                                                                     itemArchivo.archivo_encrip
                                                                 )
@@ -661,7 +877,7 @@
                                                         >
                                                             <i
                                                                 v-if="
-                                                                    loadingDescargaSoporte ===
+                                                                    loadingDescarga ===
                                                                     itemArchivo.archivo_encrip
                                                                 "
                                                                 class="fa fa-spinner fa-spin"
@@ -675,15 +891,102 @@
                                                     id="profile8"
                                                     role="tabpanel"
                                                 >
-                                                    <template
-                                                        v-for="(item, index) in audiosDeEstudio"
-                                                        :key="index"
+                                                    <div
+                                                        v-if="loadingAudios"
+                                                        class="text-muted mb-2"
                                                     >
-                                                        <audio
-                                                            :src="item.url || item.audio"
-                                                            controls
-                                                            style="height: 15px; width: 100%"
-                                                        ></audio>
+                                                        <i class="fa fa-spinner fa-spin"></i>
+                                                        Cargando audios...
+                                                    </div>
+
+                                                    <template v-else>
+                                                        <div
+                                                            v-for="(item, index) in audiosDeEstudio"
+                                                            :key="item.id || item.audio || index"
+                                                            class="card mb-2 p-2"
+                                                            style="border-left: 3px solid #007bff"
+                                                        >
+                                                            <div
+                                                                class="d-flex justify-content-between align-items-center mb-1"
+                                                            >
+                                                                <div>
+                                                                    <small
+                                                                        class="font-weight-bold text-dark"
+                                                                    >
+                                                                        {{
+                                                                            item.nombre_original ||
+                                                                            "Audio #" + (index + 1)
+                                                                        }}
+                                                                    </small>
+                                                                    <span
+                                                                        class="badge ml-2"
+                                                                        :class="
+                                                                            item.tipo === 'cargado'
+                                                                                ? 'badge-info'
+                                                                                : 'badge-success'
+                                                                        "
+                                                                    >
+                                                                        <i
+                                                                            :class="
+                                                                                item.tipo ===
+                                                                                'cargado'
+                                                                                    ? 'fa fa-upload'
+                                                                                    : 'fa fa-microphone'
+                                                                            "
+                                                                        ></i>
+                                                                        {{
+                                                                            item.tipo === "cargado"
+                                                                                ? "Cargado"
+                                                                                : "Grabado"
+                                                                        }}
+                                                                    </span>
+                                                                    <small
+                                                                        v-if="item.duracion"
+                                                                        class="text-muted ml-2"
+                                                                    >
+                                                                        <i
+                                                                            class="fa fa-clock-o"
+                                                                        ></i>
+                                                                        {{
+                                                                            formatDuracion(
+                                                                                item.duracion
+                                                                            )
+                                                                        }}
+                                                                    </small>
+                                                                </div>
+                                                            </div>
+                                                            <audio
+                                                                v-if="audioUrl(item)"
+                                                                :src="audioUrl(item)"
+                                                                controls
+                                                                style="height: 30px; width: 100%"
+                                                            ></audio>
+                                                            <div
+                                                                v-if="item.transcripcion"
+                                                                class="mt-1 p-1 bg-light rounded"
+                                                                style="
+                                                                    font-size: 12px;
+                                                                    max-height: 60px;
+                                                                    overflow-y: auto;
+                                                                "
+                                                            >
+                                                                <strong class="text-muted"
+                                                                    >Transcripción:</strong
+                                                                >
+                                                                {{
+                                                                    previewTranscripcion(
+                                                                        item.transcripcion
+                                                                    )
+                                                                }}
+                                                            </div>
+                                                        </div>
+
+                                                        <div
+                                                            v-if="audiosDeEstudio.length === 0"
+                                                            class="text-muted"
+                                                        >
+                                                            No hay audios para este estudio.
+                                                        </div>
                                                     </template>
                                                 </div>
                                             </div>
@@ -706,7 +1009,7 @@
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    @click="btnCerralModalForm()"
+                                    @click="btnCerrarModalForm()"
                                 >
                                     Cancel
                                 </button>
@@ -722,34 +1025,37 @@
     </div>
 </template>
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
-import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
 import { listarUsuariosYSedes } from "@/helpers/usuarios";
-import {
-    safeDestroyDataTable,
-    safeInitDataTable,
-    safeRemoveDataTableRow,
-} from "@/helpers/datatables.js";
-import {
-    confirmAction,
-    alertSuccess,
-    alertError,
-    handleAxiosErrorToast,
-    getUserSafeError,
-} from "@/helpers/alerts";
+import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import { confirmAction, getUserSafeError, toastMessage } from "@/helpers/alerts";
 import axios from "axios";
+import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
+import { useFilterPersistence } from "@/composables/useFilterPersistence";
 
-const props = defineProps({ usuarioactual: Object });
+defineProps({ usuarioactual: { type: Object, default: () => ({}) } });
+
+const { appContext } = getCurrentInstance();
+const emitter = appContext.config.globalProperties.emitter;
+
+const {
+    loadingDescarga,
+    loadingAudios,
+    loadingVerImagen,
+    audiosDeEstudio,
+    descargaSoporte,
+    listarAudios,
+    verImagen,
+} = useEstudioHelpers();
 
 const dt = ref(null);
 const primerInput = ref(null);
 
 const id = ref(0);
-const diagnosticosEstudio = ref([]);
 const soportesHC = ref([]);
 const registros = ref([]);
-const tituloModal = ref("Transcirbir estudio");
+const tituloModal = ref("Estudio asignado");
 const registro = ref({
     id_estudio: 0,
     estudio_producto_id: 0,
@@ -767,7 +1073,6 @@ const registro = ref({
     email: "",
     tel: "",
     direccion: "",
-    diagnosticosEstudio: [],
     sede_id: "",
     atencion: null,
     servicio: null,
@@ -781,74 +1086,152 @@ const registro = ref({
     medico: "",
     firma: "",
 });
-const busqueda = ref({
+const defaultBusqueda = {
     estudioParaTranscibir: "si",
     quien_asigno_id: "",
     medico_id: "",
-    sede_id: sessionStorage.getItem("ST-sede"),
+    sede_id: sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "",
     bus_nom_num_docu: "",
     bus_fech_ini: "",
     bus_fecha_fin: "",
-});
+};
+
+const {
+    filtros: busqueda,
+    filtrosVisible,
+    filtrosActivosCount,
+    hasRestoredFilters,
+    guardarFiltros,
+    toggleFiltros,
+    limpiarFiltrosStorage,
+} = useFilterPersistence("lidiag_filters_estudios_asignados", defaultBusqueda, [
+    "estudioParaTranscibir",
+    "sede_id",
+]);
 const datosImagen = ref({ urlOviyam: "", patientId: "", studyUID: "", serverName: "" });
-const audiosDeEstudio = ref([]);
 const quienes_asignaron = ref([]);
+const quienesAsignaronActivos = computed(() => {
+    return (quienes_asignaron.value || [])
+        .filter(
+            (u) =>
+                u &&
+                (u.estado === undefined || u.estado === 1 || u.estado === true || u.estado === "1")
+        )
+        .map((u) => ({
+            ...u,
+            name: (u.name || "").trim(),
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
+});
 const medicos = ref([]);
+const medicosActivos = computed(() => {
+    return (medicos.value || [])
+        .filter(
+            (u) =>
+                u &&
+                (u.estado === undefined || u.estado === 1 || u.estado === true || u.estado === "1")
+        )
+        .map((u) => ({
+            ...u,
+            name: (u.name || "").trim(),
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
+});
 const errores = ref({});
 const idRow = ref(null);
 const loadingBuscar = ref(false);
 const loadingAnularId = ref(null);
+const loadingSahiId = ref(null);
 const loadingAbrirRegistroId = ref(null);
 const loadingGuardar = ref(false);
-const loadingDescargaSoporte = ref(null);
-const loadingAudios = ref(false);
-const loadingVerImagen = ref(false);
+const sidebarVisible = ref(false);
 
 const contadorRegistros = computed(() => {
     return registros.value.length;
 });
 
 function initDataTable() {
-    safeInitDataTable(dt.value || "#example23", {
+    if (registros.value.length === 0) return;
+    safeInitDataTable(dt.value || "#tablaEstudiosAsignados", {
         dom: "Bfrtip",
         buttons: ["copy", "csv", "excel", "pdf", "print"],
         retrieve: true,
+        autoWidth: false,
+        columnDefs: [
+            { targets: [0, 11], orderable: false },
+            { targets: 0, width: "35px", className: "text-center align-middle" },
+            { targets: 1, width: "130px", className: "align-middle font-weight-bold" },
+            { targets: 2, width: "105px", className: "text-nowrap align-middle" },
+            { targets: 3, width: "120px", className: "align-middle" },
+            { targets: 4, width: "140px", className: "align-middle" },
+            { targets: 5, width: "160px", className: "align-middle" },
+            { targets: 6, width: "160px", className: "align-middle" },
+            { targets: 7, width: "150px", className: "align-middle font-weight-bold" },
+            { targets: 8, width: "60px", className: "text-center align-middle" },
+            { targets: 9, width: "75px", className: "text-center align-middle" },
+            { targets: 10, width: "60px", className: "text-center align-middle" },
+            { targets: 11, width: "100px", className: "text-center text-nowrap align-middle" },
+        ],
     });
 }
 function destroyDataTable() {
-    safeDestroyDataTable(dt.value || "#example23");
+    safeDestroyDataTable(dt.value || "#tablaEstudiosAsignados");
+}
+
+function formatDuracion(segundos) {
+    if (!segundos) return "0:00";
+    const mins = Math.floor(segundos / 60);
+    const secs = segundos % 60;
+    return mins + ":" + (secs < 10 ? "0" : "") + secs;
+}
+
+function audioUrl(item) {
+    if (!item || !item.audio) return null;
+    return "/audios/" + item.audio;
+}
+
+function previewTranscripcion(texto, maxLen = 120) {
+    if (!texto || typeof texto !== "string") return "";
+    if (texto.length <= maxLen) return texto;
+    return texto.substring(0, maxLen) + "...";
 }
 function btnLimpiar() {
-    busqueda.value.quien_asigno_id = "";
-    busqueda.value.medico_id = "";
-    busqueda.value.bus_nom_num_docu = "";
-    busqueda.value.bus_fech_ini = "";
-    busqueda.value.bus_fecha_fin = "";
+    limpiarFiltrosStorage();
     errores.value = {};
     destroyDataTable();
     registros.value = [];
     // limpiar sidebar (best-effort)
     id.value = 0;
     idRow.value = null;
-    diagnosticosEstudio.value = [];
     soportesHC.value = [];
     audiosDeEstudio.value = [];
     limpiar();
 }
+
+/**
+ * Listar los estudios asignados según los criterios de búsqueda.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
 async function listarEstudiosAsignados() {
     if (loadingBuscar.value) return;
 
-    if (sessionStorage.getItem("ST-sede") == null) {
-        $.toast({
+    const sedeActual =
+        sessionStorage.getItem("ST-sede") ||
+        localStorage.getItem("ST-sede") ||
+        busqueda.value.sede_id;
+
+    if (!sedeActual) {
+        toastMessage({
             heading: "Upsss!!!",
-            text: "Debes establece la sede en la cual vas a trabajar.",
-            position: "top-right",
-            loaderBg: "#ff6849",
+            text: "Debes establecer la sede en la cual vas a trabajar.",
             icon: "warning",
-            hideAfter: 3500,
-            stack: 6,
         });
         return;
+    }
+    busqueda.value.sede_id = sedeActual;
+    if (!sessionStorage.getItem("ST-sede")) {
+        sessionStorage.setItem("ST-sede", String(sedeActual));
     }
 
     const q = busqueda.value;
@@ -858,153 +1241,132 @@ async function listarEstudiosAsignados() {
     const medSelected = q.medico_id != "";
 
     if (!nameDocEntered && !datesEntered && !userSelected && !medSelected) {
-        $.toast({
+        toastMessage({
             heading: "Upsss!!!",
             text: "Debes ingresar al menos un criterio de búsqueda.",
-            position: "top-right",
-            loaderBg: "#ff6849",
             icon: "warning",
-            hideAfter: 3500,
-            stack: 6,
         });
         return;
     }
 
     if (datesEntered && (q.bus_fech_ini == "" || q.bus_fecha_fin == "")) {
-        $.toast({
+        toastMessage({
             heading: "Upsss!!!",
             text: "Para buscar por fecha debes seleccionar fecha inicio y fecha fin.",
-            position: "top-right",
-            loaderBg: "#ff6849",
             icon: "warning",
-            hideAfter: 3500,
-            stack: 6,
         });
         return;
     }
 
     if (q.bus_fech_ini && q.bus_fecha_fin && q.bus_fech_ini > q.bus_fecha_fin) {
-        $.toast({
+        toastMessage({
             heading: "Upsss!!!",
             text: "La fecha inicio no puede ser mayor a la fecha fin.",
-            position: "top-right",
-            loaderBg: "#ff6849",
             icon: "warning",
-            hideAfter: 3500,
-            stack: 6,
         });
         return;
     }
 
     loadingBuscar.value = true;
     try {
+        const sedeActual = sessionStorage.getItem("ST-sede") || busqueda.value.sede_id;
+        busqueda.value.sede_id = sedeActual;
+        const payload = {
+            ...busqueda.value,
+            sede_id: sedeActual,
+            quien_asigno_id: busqueda.value.quien_asigno_id || null,
+            medico_id: busqueda.value.medico_id || null,
+        };
+        const res = await axios.post("/api/estudio-listarEstudiosAsignados", payload);
+
         destroyDataTable();
-        registros.value = [];
-
-        const res = await axios.post("/api/estudio-listarEstudiosAsignados", busqueda.value);
-
-        registros.value = res.data.data;
+        registros.value = Array.isArray(res?.data?.data) ? res.data.data : [];
+        guardarFiltros();
 
         nextTick(() => {
             initDataTable();
         });
     } catch (error) {
         const status = error?.response?.status;
-        const message = error?.response?.data?.message;
         if (status === 400 && error?.response?.data && typeof error.response.data === "object") {
-            $.toast({
+            toastMessage({
                 heading: "Upss!!!",
                 text: "Revisa los filtros de búsqueda.",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "warning",
-                hideAfter: 3500,
-                stack: 6,
             });
         } else {
-            handleAxiosErrorToast(
-                error,
-                message || "No fue posible listar los estudios asignados."
-            );
+            toastMessage({
+                heading: "Error",
+                text: getUserSafeError(error, "No fue posible listar los estudios asignados."),
+                icon: "error",
+            });
         }
     } finally {
         loadingBuscar.value = false;
     }
 }
-async function listarAudios() {
-    loadingAudios.value = true;
-    try {
-        const res = await axios.get("/api/listar-audios-estudio/" + idRow.value);
-        audiosDeEstudio.value = res.data.data || [];
-    } catch (e) {
-        handleAxiosErrorToast(e, "No fue posible listar audios.");
-        audiosDeEstudio.value = [];
-    } finally {
-        loadingAudios.value = false;
-    }
-}
-function descargaSoportte(nomArchivoOriginal, nomArchivoEncriptado) {
-    if (loadingDescargaSoporte.value) return;
-    loadingDescargaSoporte.value = nomArchivoEncriptado;
-    const url = `/api/descarga-soportes-hc/${nomArchivoEncriptado}`;
-    axios
-        .get(url, { responseType: "blob" })
-        .then((response) => {
-            const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement("a");
-            link.href = blobUrl;
-            link.setAttribute("download", nomArchivoOriginal || nomArchivoEncriptado);
-            document.body.appendChild(link);
-            link.click();
-            setTimeout(() => window.URL.revokeObjectURL(blobUrl), 2000);
-        })
-        .catch(() => {})
-        .finally(() => {
-            loadingDescargaSoporte.value = null;
-        });
-}
+
+/**
+ * Guardar la transcripción del estudio en el servidor.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
     try {
         const payload = {
-            ...registro.value,
-            id_estudio: id.value,
             estudio_producto_id: registro.value.estudio_producto_id,
+            id_estudio: id.value,
+            lectura: registro.value.lectura,
+            sede_id: registro.value.sede_id,
+            nom_sede: registro.value.nom_sede,
+            medico_id: registro.value.medico_id,
+            cod_cups: registro.value.cod_cups,
+            nom_produc: registro.value.nom_produc,
+            num_docu: registro.value.num_docu,
+            nom_pacien: registro.value.nom_pacien,
+            email: registro.value.email,
+            fec_naci: registro.value.fec_naci,
+            fec_estudio: registro.value.fec_estudio,
+            fec_lectura: registro.value.fec_lectura,
+            url_oviyam: registro.value.url_oviyam,
+            study_iuid: registro.value.study_iuid,
+            tap_oviyam: registro.value.tap_oviyam,
+            // Mapeo explícito: esta query usa aliases distintos a los que
+            // espera PlantillaEstudioService para generar el PDF con firma.
+            nombres_medico: registro.value.medico ?? null,
+            reg_medico: registro.value.reg_med ?? null,
+            num_docu_medico: registro.value.num_docu_medi ?? null,
+            firma_medico: registro.value.firma ?? null,
         };
         const res = await axios.post("/api/estudio-guardarTranscripcion", payload);
 
         if (res.status === 200) {
-            $.toast({
+            toastMessage({
                 heading: "Completado",
                 text: res.data.message || "Guardado correctamente.",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "success",
-                hideAfter: 3500,
-                stack: 6,
             });
 
-            const idx = registros.value.findIndex((x) => x.estudio_producto_id == idRow.value);
-            if (idx >= 0) {
-                // En guardado NO destruimos/reinicializamos la tabla: removemos solo la fila guardada.
-                try {
-                    safeRemoveDataTableRow(dt.value || "#example23", "#row-" + idRow.value);
-                } catch (e) {}
-                registros.value.splice(idx, 1);
+            if (idRow.value != null) {
+                const idx = registros.value.findIndex((x) => x.estudio_producto_id == idRow.value);
+                if (idx >= 0) {
+                    destroyDataTable();
+                    registros.value.splice(idx, 1);
+                    nextTick(() => {
+                        initDataTable();
+                    });
+                }
             }
 
-            btnCerralModalForm();
+            btnCerrarModalForm();
             limpiar();
         } else {
-            $.toast({
+            toastMessage({
                 heading: "Upss!!!",
                 text: res.data.message || "No fue posible guardar.",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "danger",
-                hideAfter: 3500,
-                stack: 6,
             });
         }
     } catch (error) {
@@ -1013,19 +1375,23 @@ async function guardarRegistro() {
             const data = error.response.data;
             errores.value = data.errors && typeof data.errors === "object" ? data.errors : data;
         }
-        $.toast({
+        toastMessage({
             heading: "Upss!!!",
             text: getUserSafeError(error, "No fue posible guardar la transcripción."),
-            position: "top-right",
-            loaderBg: "#ff6849",
             icon: "error",
-            hideAfter: 3500,
-            stack: 6,
         });
     } finally {
         loadingGuardar.value = false;
     }
 }
+
+/**
+ * Anular la asignación de un estudio a un paciente.
+ * @param {number} idProductoEstudio - ID del producto estudio a anular.
+ * @param {string} paciente - Nombre del paciente.
+ * @param {string} producto - Nombre del producto.
+ * @returns {Promise<void>}
+ */
 async function anularAsignacion(idProductoEstudio, paciente, producto) {
     const ok = await confirmAction({
         title: `Estas seguro de anular la lectura del paciente ${paciente} con el producto ${producto} ?`,
@@ -1045,51 +1411,131 @@ async function anularAsignacion(idProductoEstudio, paciente, producto) {
                 (x) => x.estudio_producto_id == idProductoEstudio
             );
             if (idx >= 0) {
-                // Al anular, remover solo la fila afectada.
-                try {
-                    safeRemoveDataTableRow(dt.value || "#example23", "#row-" + idProductoEstudio);
-                } catch (e) {}
+                destroyDataTable();
                 registros.value.splice(idx, 1);
+                nextTick(() => {
+                    initDataTable();
+                });
             }
-            alertSuccess("Anulado!", "El producto se anulo correctamente.", "success");
+            toastMessage({
+                heading: "Anulado!",
+                text: "El producto se anulo correctamente.",
+                icon: "success",
+            });
         } else {
-            alertError("Ups!", "No fue posible anular el producto.", "error");
+            toastMessage({
+                heading: "Ups!",
+                text: "No fue posible anular el producto.",
+                icon: "error",
+            });
         }
-    } catch (err) {
-        handleAxiosErrorToast(err, "No fue posible anular el producto.");
-        alertError("Error", "No fue posible anular el producto.", "error");
+    } catch (_err) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible anular el producto.",
+            icon: "error",
+        });
     } finally {
         loadingAnularId.value = null;
     }
 }
-function verImagen() {
-    if (loadingVerImagen.value) return;
-    loadingVerImagen.value = true;
-    const base = datosImagen.value.urlOviyam || "";
-    const params = new URLSearchParams({
-        patientID: String(datosImagen.value.patientId ?? ""),
-        studyUID: String(datosImagen.value.studyUID ?? ""),
-        serverName: String(datosImagen.value.serverName ?? ""),
+
+/**
+ * Envía manualmente un estudio transcrito al sistema SAHI (SQL Server).
+ *
+ * @param {Object} item - Registro del estudio/producto asignado.
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-10-30
+ */
+async function enviarASahi(item) {
+    if (!item?.estudio_producto_id) return;
+    if (loadingSahiId.value !== null) return;
+
+    if (!item.lectura && !item.transcriptor_id) {
+        toastMessage({
+            heading: "Aviso",
+            text: "El estudio debe contar con transcripción guardada antes de enviarse a SAHI.",
+            icon: "warning",
+        });
+        return;
+    }
+
+    const pacienteNombre = item.nom_pacien ? item.nom_pacien.trim() : "este paciente";
+    const productoNombre = item.nom_produc ? item.nom_produc.trim() : "el estudio";
+    const atencionNum = item.atencion ? item.atencion : "N/A";
+
+    const ok = await confirmAction({
+        title: `¿Deseas enviar a SAHI la lectura de ${pacienteNombre}?`,
+        text: `Se transmitirá ${productoNombre} con atención ${atencionNum} al servidor SAHI.`,
+        icon: "question",
     });
+    if (!ok) return;
+
+    loadingSahiId.value = item.estudio_producto_id;
     try {
-        window.open(`${base}?${params.toString()}`, "_blank", "noopener,noreferrer");
+        const res = await axios.post("/api/estudio-enviar-sahi", {
+            estudio_producto_id: item.estudio_producto_id,
+        });
+
+        if (res.data?.success) {
+            item.estado_envio_sahi = "ENVIADO";
+            item.error_envio_sahi = null;
+            const dataSahi = res.data.data || {};
+            if (dataSahi.conseEsquemaEncavezado) {
+                item.sahi_esquema_149 = dataSahi.conseEsquemaEncavezado;
+                item.sahi_esquema_150 = dataSahi.conseEsquemaEncavezado2;
+            }
+            toastMessage({
+                heading: "¡Éxito en SAHI!",
+                text: res.data.message || "Estudio sincronizado con SAHI correctamente.",
+                icon: "success",
+            });
+        } else {
+            item.estado_envio_sahi = "ERROR";
+            item.error_envio_sahi =
+                res.data?.message || "Error desconocido al sincronizar con SAHI.";
+            toastMessage({
+                heading: "Error SAHI",
+                text: item.error_envio_sahi,
+                icon: "error",
+            });
+        }
+    } catch (error) {
+        item.estado_envio_sahi = "ERROR";
+        const errMsg =
+            error.response?.data?.message ||
+            error.message ||
+            "Error de comunicación con el servidor.";
+        item.error_envio_sahi = errMsg;
+        toastMessage({
+            heading: "Error al enviar",
+            text: errMsg,
+            icon: "error",
+        });
     } finally {
-        setTimeout(() => {
-            loadingVerImagen.value = false;
-        }, 500);
+        loadingSahiId.value = null;
     }
 }
+
+/**
+ * Mostrar el registro del estudio seleccionado en el panel lateral.
+ * @param {Object} data - Datos del estudio seleccionado.
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ */
 async function mostrarRegistro(data = {}) {
     if (loadingAbrirRegistroId.value !== null) return;
     loadingAbrirRegistroId.value = data.estudio_producto_id;
     try {
         // reset panel data
         errores.value = {};
-        diagnosticosEstudio.value = [];
         soportesHC.value = [];
         audiosDeEstudio.value = [];
 
-        tituloModal.value = "Paciente: " + data.nom_pacien;
+        tituloModal.value = `Paciente: ${data.nom_pacien} ${data.num_docu ? `(${data.num_docu})` : ""}`;
         id.value = data.id;
         idRow.value = data.estudio_producto_id;
 
@@ -1125,24 +1571,28 @@ async function mostrarRegistro(data = {}) {
         registro.value.sede_id = data.sede_id;
         registro.value.nom_sede = data.nom_sede;
 
-        const res = await axios.get("/api/study-listar-diagnostico-por-estudio?id=" + id.value);
-        diagnosticosEstudio.value = res.data.data;
-
         const resSoportesHC = await axios.get("/api/listar-soportes-hc-estudio?id=" + id.value);
         soportesHC.value = resSoportesHC.data.data;
 
         audiosDeEstudio.value = [];
         abrirModal();
 
-        await listarAudios();
+        await listarAudios(idRow.value);
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible cargar el estudio seleccionado.");
+        toastMessage({
+            heading: "Atención",
+            text: getUserSafeError(
+                error,
+                "No fue posible cargar diagnósticos/soportes del estudio."
+            ),
+            icon: "warning",
+        });
     } finally {
         loadingAbrirRegistroId.value = null;
     }
 }
 function limpiar() {
-    tituloModal.value = "Nuevo registro";
+    tituloModal.value = "Estudio asignado";
     registro.value.email_reportar = "";
     registro.value.email = "";
     registro.value.tel = "";
@@ -1150,39 +1600,109 @@ function limpiar() {
     registro.value.lectura = "";
     registro.value.estudio_producto_id = 0;
     registro.value.id_estudio = 0;
-
-    btnCerralModalForm();
     errores.value = {};
 }
 function abrirModal() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").addClass("shw-rside");
+    sidebarVisible.value = true;
     nextTick(() => {
         primerInput.value?.focus();
     });
 }
-function btnCerralModalForm() {
-    $(".right-sidebar").slideUp(50);
-    $(".right-sidebar").removeClass("shw-rside");
+function btnCerrarModalForm() {
+    sidebarVisible.value = false;
+}
+
+/**
+ * Carga o recarga los usuarios asignadores y médicos filtrando por la sede activa.
+ *
+ * Flujo del proceso:
+ * 1. Resuelve el ID de la sede objetivo a partir del argumento, de busqueda.sede_id o de sessionStorage.
+ * 2. Invoca listarUsuariosYSedes pasando options.sedeId para restringir el listado de asignadores y médicos.
+ * 3. Captura cualquier fallo de red de forma silenciosa para no interrumpir el montaje.
+ *
+ * @param {string|number|null} [sedeId=null] - ID opcional de la sede a filtrar.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-10-30
+ */
+const cargarAsignadoresYSedes = async (sedeId = null) => {
+    const targetSede =
+        sedeId ??
+        busqueda.value.sede_id ??
+        sessionStorage.getItem("ST-sede") ??
+        localStorage.getItem("ST-sede");
+    try {
+        await listarUsuariosYSedes(
+            {
+                get quienes_asignaron() {
+                    return quienes_asignaron.value;
+                },
+                set quienes_asignaron(v) {
+                    quienes_asignaron.value = Array.isArray(v) ? v : [];
+                },
+                get medicos() {
+                    return medicos.value;
+                },
+                set medicos(v) {
+                    medicos.value = Array.isArray(v) ? v : [];
+                },
+            },
+            { moduloId: "1", sedeId: targetSede }
+        );
+    } catch (e) {
+        console.error("Error al inicializar usuarios y médicos:", e);
+    }
+};
+
+function onSedeSeleccionada(data) {
+    const nuevaSede =
+        data?.idSede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede");
+    if (!nuevaSede) return;
+    const cambioSede = String(busqueda.value.sede_id || "") !== String(nuevaSede);
+    busqueda.value.sede_id = nuevaSede;
+
+    if (cambioSede || !quienes_asignaron.value?.length || !medicos.value?.length) {
+        busqueda.value.quien_asigno_id = "";
+        busqueda.value.medico_id = "";
+        cargarAsignadoresYSedes(nuevaSede);
+        if (cambioSede) {
+            destroyDataTable();
+            registros.value = [];
+        }
+    }
+}
+
+function handleKeydown(e) {
+    if (e.key === "Escape" && sidebarVisible.value) {
+        btnCerrarModalForm();
+    }
 }
 
 onMounted(async () => {
-    await listarUsuariosYSedes({
-        set quienes_asignaron(v) {
-            quienes_asignaron.value = v;
-        },
-        set medicos(v) {
-            medicos.value = v;
-        },
-    });
+    window.addEventListener("keydown", handleKeydown);
+    busqueda.value.sede_id =
+        sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "";
+    await cargarAsignadoresYSedes(busqueda.value.sede_id);
+    emitter.on("sedeSeleccionada", onSedeSeleccionada);
+    if (!busqueda.value.sede_id && emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
+    if (hasRestoredFilters && busqueda.value.sede_id) {
+        listarEstudiosAsignados();
+    }
 });
 
 onBeforeUnmount(() => {
+    window.removeEventListener("keydown", handleKeydown);
+    emitter.off("sedeSeleccionada", onSedeSeleccionada);
     destroyDataTable();
     registros.value = [];
     soportesHC.value = [];
     audiosDeEstudio.value = [];
-    registro.value = { productosEstudio: [], diagnosticosEstudio: [], soportesHC: [] };
+    registro.value = { productosEstudio: [], soportesHC: [] };
 });
 </script>
 <style scoped>
@@ -1221,6 +1741,7 @@ onBeforeUnmount(() => {
         width: 100%;
     }
 }
+
 .sidebar-scroll {
     overflow-x: hidden;
     overflow-y: scroll;

@@ -7,6 +7,13 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class RoleResource extends JsonResource
 {
+    /**
+     * Datos del rol en formato array.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function toArray(Request $request): array
     {
         return [

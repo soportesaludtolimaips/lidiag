@@ -66,6 +66,7 @@
                     <div class="form-group">
                         <div class="col-xs-12">
                             <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required minlength="8" placeholder="Nueva contraseña">
+                            <small class="text-muted d-block mt-1">Mínimo 8 caracteres, con mayúscula, minúscula, número y símbolo.</small>
                             @error('password')
                                 <span class="invalid-feedback" role="alert">
                                     <strong>{{ $message }}</strong>

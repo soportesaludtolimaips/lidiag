@@ -18,11 +18,29 @@ class UserModulo extends Model
         'modulo_id',
     ];
 
+    /**
+     * Usuario asociado al módulo.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Módulo asignado al usuario.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function modulo()
     {
         return $this->belongsTo(ConfigModulo::class);

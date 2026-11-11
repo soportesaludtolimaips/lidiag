@@ -5,10 +5,22 @@
                 <h3 class="text-themecolor">Configuración</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Configuración</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Configuración
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Motivos de Rechazo (Citas)</li>
                 </ol>
@@ -16,11 +28,18 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
+                    class="btn btn-outline-secondary m-r-5"
+                    @click="listarMotivos"
+                    :disabled="loadingListar"
+                    title="Actualizar listado"
+                >
+                    <i class="fa" :class="loadingListar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                    Refrescar
+                </button>
+                <button
+                    type="button"
                     class="btn btn-info btnDesplegarRigthSidebar"
-                    @click="
-                        actualizar = false;
-                        mostrarRegistro();
-                    "
+                    @click="prepararNuevo"
                 >
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
@@ -36,24 +55,26 @@
                             Administración de motivos de rechazo para las citas agendadas.
                         </h6>
 
-                        <div v-if="loadingListar" class="text-center m-t-40">
-                            <i class="fa fa-spinner fa-spin fa-2x"></i>
-                            <p class="text-muted m-t-10">Cargando motivos...</p>
-                        </div>
-
-                        <div v-else-if="errorMotivos" class="alert alert-danger m-t-20">
+                        <div v-if="errorMotivos" class="alert alert-danger m-t-20">
                             <i class="fa fa-exclamation-triangle"></i>
                             {{ errorMotivos }}
                         </div>
 
-                        <div v-else-if="registros.length === 0" class="text-center m-t-40">
-                            <p class="text-muted">
-                                No hay motivos de rechazo configurados. Cree un nuevo registro para
-                                comenzar.
-                            </p>
-                        </div>
+                        <table-skeleton-loader :visible="loadingListar" :rows="5" :columns="3" />
+                        <empty-state-component
+                            v-if="!loadingListar && !errorMotivos && registros.length === 0"
+                            icon="fa fa-ban"
+                            title="No hay motivos de rechazo"
+                            description="No se encontraron motivos de rechazo configurados."
+                            action-text="Nuevo registro"
+                            action-icon="fa fa-plus"
+                            @action="prepararNuevo"
+                        />
 
-                        <div class="table-responsive m-t-40" v-else>
+                        <div
+                            v-show="!loadingListar && registros.length > 0"
+                            class="table-responsive m-t-40"
+                        >
                             <table
                                 id="tblRechazoMotivos"
                                 ref="dt"
@@ -83,17 +104,14 @@
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                @click="
-                                                    actualizar = true;
-                                                    mostrarRegistro(item);
-                                                "
+                                                @click="prepararEdicion(item)"
                                             >
                                                 <i class="fa fa-pencil"></i>
                                             </button>
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                @click="eliminarRegistro(item.id)"
+                                                @click="eliminarRegistro(item.id, item.motivo)"
                                                 :disabled="loadingEliminarId === item.id"
                                             >
                                                 <i
@@ -114,33 +132,48 @@
                 </div>
             </div>
         </div>
+        <!-- Backdrop overlay para cerrar al hacer clic afuera -->
+        <div v-if="sidebarVisible" class="sidebar-backdrop" @click="cerrarSidebar"></div>
 
-        <div class="right-sidebar" style="overflow-x: hidden; overflow-y: scroll; height: 100%">
+        <div
+            class="right-sidebar"
+            ref="sidebarRef"
+            :class="{ 'shw-rside': sidebarVisible }"
+            style="overflow-x: hidden; overflow-y: scroll; height: 100%"
+        >
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
-                    <span>
-                        <i class="ti-close right-side-toggle" id="btnCerrarModalForm"></i>
-                    </span>
+                    <button
+                        type="button"
+                        class="right-side-toggle"
+                        @click="cerrarSidebar"
+                        aria-label="Cerrar panel"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
                 </div>
                 <div class="r-panel-body">
-                    <form action="#">
+                    <form action="#" @submit.prevent="guardarRegistro()">
                         <div class="form-body">
                             <div class="row p-t-20">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label"
+                                        <label class="control-label" for="motivo_rechazo"
                                             >Motivo <span class="text-danger">*</span></label
                                         >
                                         <input
                                             type="text"
+                                            id="motivo_rechazo"
                                             v-model="registro.motivo"
                                             class="form-control"
                                             :class="{ 'is-invalid': errores.motivo }"
                                             placeholder="Ingrese el motivo de rechazo"
                                         />
                                         <span class="text-danger" v-if="errores.motivo">{{
-                                            errores.motivo[0]
+                                            Array.isArray(errores.motivo)
+                                                ? errores.motivo[0]
+                                                : errores.motivo
                                         }}</span>
                                     </div>
                                 </div>
@@ -165,7 +198,7 @@
                                 <button
                                     type="button"
                                     class="btn btn-success m-r-5"
-                                    @click="guardarRegistro()"
+                                    @click="guardarRegistro"
                                     v-if="!actualizar"
                                     :disabled="loadingGuardar"
                                 >
@@ -179,7 +212,7 @@
                                     type="button"
                                     class="btn btn-warning m-r-5"
                                     v-if="actualizar"
-                                    @click="guardarRegistro()"
+                                    @click="guardarRegistro"
                                     :disabled="loadingGuardar"
                                 >
                                     <i
@@ -191,9 +224,9 @@
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    @click="cerrarFormSidebar()"
+                                    @click="cerrarSidebar"
                                 >
-                                    Cancel
+                                    Cancelar
                                 </button>
                             </div>
                         </div>
@@ -207,14 +240,11 @@
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 const dt = ref(null);
+const sidebarRef = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import {
-    alertError,
-    alertSuccess,
-    confirmAction,
-    handleAxiosErrorToast,
-} from "@/helpers/alerts.js";
+import { confirmAction, toastMessage } from "@/helpers/alerts.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import axios from "axios";
 
 const id = ref(0);
@@ -222,20 +252,47 @@ const registros = ref([]);
 const registro = ref({ motivo: "", activo: 1 });
 const tituloModal = ref("Nuevo registro");
 const actualizar = ref(false);
-const errores = ref({});
 const loadingListar = ref(false);
 const errorMotivos = ref("");
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
+const sidebarVisible = ref(false);
+
+useKeyboardShortcuts({
+    onSearch: () => {
+        if (!sidebarVisible.value) {
+            listarMotivos();
+        }
+    },
+    onSave: () => {
+        if (sidebarVisible.value) {
+            guardarRegistro();
+        }
+    },
+    onEscape: cerrarSidebar,
+    isActive: () => true,
+    isLoading: loadingGuardar,
+});
+
+const errores = ref({});
+
+function clearErrors() {
+    errores.value = {};
+}
+
+function setErrors(newErrors) {
+    errores.value = newErrors || {};
+}
 
 async function listarMotivos() {
     if (loadingListar.value) return;
     loadingListar.value = true;
     errorMotivos.value = "";
+    clearErrors();
     try {
         const res = await axios.get("/api/citas-rechazo-motivos");
         safeDestroyDataTable(dt.value || "#tblRechazoMotivos");
-        registros.value = res.data.data;
+        registros.value = res?.data?.data || res?.data || [];
         nextTick(() => {
             safeInitDataTable(dt.value || "#tblRechazoMotivos", {
                 dom: "Bfrtip",
@@ -245,17 +302,17 @@ async function listarMotivos() {
     } catch (error) {
         errorMotivos.value =
             error?.response?.data?.message || "No fue posible cargar los motivos de rechazo.";
-        handleAxiosErrorToast(error, "No fue posible listar motivos.");
         registros.value = [];
     } finally {
         loadingListar.value = false;
     }
 }
+
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
-    errores.value = {};
+    clearErrors();
     if (!registro.value.motivo || !registro.value.motivo.trim()) {
-        errores.value = { motivo: ["El motivo es obligatorio."] };
+        setErrors({ motivo: ["El motivo es obligatorio."] });
         return;
     }
     loadingGuardar.value = true;
@@ -264,94 +321,106 @@ async function guardarRegistro() {
             motivo: registro.value.motivo,
             activo: registro.value.activo === 1 || registro.value.activo === true,
         };
+        let res;
         if (actualizar.value === false) {
-            const res = await axios.post("/api/citas-rechazo-motivos", payload);
-            if (res.status == 201 || res.status == 200) {
-                listarMotivos();
-                $.toast({
-                    heading: "Ok!!!",
-                    text: "Motivo guardado correctamente.",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
-                cerrarFormSidebar();
-                limpiar();
-            }
+            res = await axios.post("/api/citas-rechazo-motivos", payload);
         } else {
-            const res = await axios.put("/api/citas-rechazo-motivos/" + id.value, payload);
-            if (res.status == 200) {
-                listarMotivos();
-                $.toast({
-                    heading: "Ok!!!",
-                    text: "Motivo actualizado correctamente.",
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
-                cerrarFormSidebar();
-                limpiar();
-            }
+            res = await axios.put("/api/citas-rechazo-motivos/" + id.value, payload);
+        }
+
+        if (res.status >= 200 && res.status < 300) {
+            listarMotivos();
+            toastMessage({
+                heading: "Completado",
+                text: actualizar.value
+                    ? "Motivo actualizado correctamente."
+                    : "Motivo guardado correctamente.",
+                icon: "success",
+            });
+            cerrarSidebar();
+            limpiar();
         }
     } catch (error) {
-        errores.value = error?.response?.data?.errors || {};
-        handleAxiosErrorToast(error, "No fue posible guardar el motivo.");
+        if (error.response?.status === 422) {
+            setErrors(error.response.data.errors || {});
+        } else {
+            toastMessage({
+                heading: "Error",
+                text: error.response?.data?.message || "No fue posible guardar el motivo.",
+                icon: "error",
+            });
+        }
     } finally {
         loadingGuardar.value = false;
     }
 }
-async function eliminarRegistro(id) {
+
+async function eliminarRegistro(idEliminar, nom) {
     const ok = await confirmAction({
-        title: "¿Estas seguro?",
+        title: `¿Estás seguro de eliminar el motivo "${nom}"?`,
         text: "No podrás recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;
+    if (loadingEliminarId.value) return;
+    loadingEliminarId.value = idEliminar;
     try {
-        if (loadingEliminarId.value) return;
-        loadingEliminarId.value = id;
-        const response = await axios.delete("/api/citas-rechazo-motivos/" + id);
-        alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
+        const response = await axios.delete("/api/citas-rechazo-motivos/" + idEliminar);
+        toastMessage({
+            heading: "Ok!",
+            text: response?.data?.message || "Registro eliminado.",
+            icon: "success",
+        });
         listarMotivos();
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible eliminar el registro.");
-        alertError("Error", "No fue posible eliminar el registro.", "error");
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible eliminar el registro.",
+            icon: "error",
+        });
     } finally {
         loadingEliminarId.value = null;
     }
 }
-function mostrarRegistro(data = {}) {
-    if (actualizar.value) {
-        tituloModal.value = "Actualizar motivo: " + data.motivo;
-        id.value = data.id;
-        registro.value.motivo = data.motivo;
-        registro.value.activo = data.activo ? 1 : 0;
-    } else {
-        tituloModal.value = "Nuevo motivo de rechazo";
-        id.value = 0;
-        registro.value.motivo = "";
-        registro.value.activo = 1;
-    }
-    btnCerrarModalForm();
+
+function prepararEdicion(item) {
+    actualizar.value = true;
+    tituloModal.value = "Actualizar motivo: " + item.motivo;
+    id.value = item.id;
+    registro.value.motivo = item.motivo;
+    registro.value.activo = item.activo ? 1 : 0;
+    clearErrors();
+    abrirSidebar();
 }
+
+function prepararNuevo() {
+    actualizar.value = false;
+    tituloModal.value = "Nuevo motivo de rechazo";
+    id.value = 0;
+    registro.value.motivo = "";
+    registro.value.activo = 1;
+    clearErrors();
+    abrirSidebar();
+}
+
 function limpiar() {
     actualizar.value = false;
     tituloModal.value = "Nuevo motivo de rechazo";
     id.value = 0;
     registro.value.motivo = "";
     registro.value.activo = 1;
+    clearErrors();
 }
-function btnCerrarModalForm() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").addClass("shw-rside");
+
+function abrirSidebar() {
+    sidebarVisible.value = true;
+    nextTick(() => {
+        document.getElementById("motivo_rechazo")?.focus();
+    });
 }
-function cerrarFormSidebar() {
-    $(".right-sidebar").slideUp(50);
-    $(".right-sidebar").removeClass("shw-rside");
+
+function cerrarSidebar() {
+    sidebarVisible.value = false;
 }
 
 onMounted(() => {
@@ -363,26 +432,43 @@ onBeforeUnmount(() => {
 });
 </script>
 <style scoped>
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1090;
+}
+
 .right-sidebar {
     position: fixed;
     right: -50%;
     width: 50%;
-    display: none;
     z-index: 1100;
     background: #ffffff;
     top: 0px;
     padding-bottom: 20px;
     height: 100%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .shw-rside {
-    right: 0px;
-    width: 50%;
-    display: block;
+    right: 0px !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+@media (max-width: 767px) {
+    .right-sidebar {
+        width: 100% !important;
+        right: -100% !important;
+    }
 }
 </style>

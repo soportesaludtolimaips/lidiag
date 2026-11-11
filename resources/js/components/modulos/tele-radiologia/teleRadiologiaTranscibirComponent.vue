@@ -8,13 +8,37 @@
                 <h3 class="text-themecolor">Estudios</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Estudios</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Estudios
+                        </button>
                     </li>
-                    <li class="breadcrumb-item active">Trascribir Estudios Tele radiologia</li>
+                    <li class="breadcrumb-item active">Transcribir Estudios Tele radiología</li>
                 </ol>
+            </div>
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    :disabled="loadingBuscar"
+                    title="Actualizar listado de estudios"
+                    @click="listarPendientesTrascribir()"
+                >
+                    <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loadingBuscar }"></i>
+                    Refrescar
+                </button>
             </div>
         </div>
         <!-- ============================================================== -->
@@ -29,114 +53,166 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title text-themecolor">
-                            <i class="fa fa-filter"></i> Filtros para busqueda de mis pendientes por
+                            <i class="fa fa-filter"></i> Filtros para búsqueda de mis pendientes por
                             transcribir
                         </h4>
-                        <form action="#">
-                            <div class="form-body">
-                                <div class="row p-t-2">
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label>Quien asigno</label>
-                                            <select
-                                                v-model="busqueda.quien_asigno_id"
-                                                name="quien_asigno_id"
-                                                id="quien_asigno_id"
-                                                class="form-control custom-select"
+                        <div class="form-body">
+                            <div class="row p-t-2">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="quien_asigno_id">Quien asignó</label>
+                                        <select
+                                            v-model="busqueda.quien_asigno_id"
+                                            name="quien_asigno_id"
+                                            id="quien_asigno_id"
+                                            class="form-control custom-select"
+                                            @change="listarPendientesTrascribir()"
+                                        >
+                                            <option value="">
+                                                ...::: Todos los usuarios :::...
+                                            </option>
+                                            <option
+                                                v-for="item in quienes_asignaron"
+                                                :key="item.id"
+                                                :value="item.id"
                                             >
-                                                <option value="">
-                                                    ...::: Todos los usuarios :::...
-                                                </option>
-                                                <option
-                                                    v-for="(
-                                                        ItemUsuario, index
-                                                    ) in quienes_asignaron"
-                                                    :key="index"
-                                                    :value="ItemUsuario.id"
-                                                >
-                                                    {{ ItemUsuario.name }}
-                                                </option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label class="control-label"
-                                                >Nombres o # documento</label
-                                            >
-                                            <input
-                                                type="text"
-                                                id="bus_nom_num_docu"
-                                                name="bus_nom_num_docu"
-                                                v-model="busqueda.bus_nom_num_docu"
-                                                class="form-control"
-                                                placeholder="Nombres de paciente o # de documento"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label class="control-label">Fecha Inicio</label>
-                                            <input
-                                                type="date"
-                                                id="nom_diagnos"
-                                                name="nom_diagnos"
-                                                v-model="busqueda.bus_fech_ini"
-                                                class="form-control"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group">
-                                            <label class="control-label">Fecha Fin</label>
-                                            <input
-                                                type="date"
-                                                id="fecha_fin"
-                                                name="fecha_fin"
-                                                v-model="busqueda.bus_fecha_fin"
-                                                class="form-control"
-                                            />
-                                        </div>
+                                                {{ item.name }}
+                                            </option>
+                                        </select>
                                     </div>
                                 </div>
-
-                                <div class="form-actions mt-3">
-                                    <button
-                                        type="button"
-                                        class="btn btn-success m-r-5"
-                                        :disabled="loadingBuscar"
-                                        @click="listarPendientesTrascribir()"
-                                    >
-                                        <i v-if="loadingBuscar" class="fa fa-spinner fa-spin"></i>
-                                        <i v-else class="fa fa-search"></i>
-                                        Buscar
-                                    </button>
-                                    <button
-                                        type="button"
-                                        class="btn btn-inverse"
-                                        @click="btnLimpiar()"
-                                    >
-                                        <i class="fa fa-refresh"></i> Limpiar
-                                    </button>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="control-label" for="bus_nom_num_docu"
+                                            >Nombres o # documento</label
+                                        >
+                                        <input
+                                            type="text"
+                                            id="bus_nom_num_docu"
+                                            name="bus_nom_num_docu"
+                                            v-model="busqueda.bus_nom_num_docu"
+                                            class="form-control"
+                                            placeholder="Nombres de paciente o # de documento"
+                                            @keyup.enter="listarPendientesTrascribir()"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="control-label" for="bus_fech_ini"
+                                            >Fecha Inicio</label
+                                        >
+                                        <input
+                                            type="date"
+                                            id="bus_fech_ini"
+                                            name="bus_fech_ini"
+                                            v-model="busqueda.bus_fech_ini"
+                                            class="form-control"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label class="control-label" for="bus_fecha_fin"
+                                            >Fecha Fin</label
+                                        >
+                                        <input
+                                            type="date"
+                                            id="bus_fecha_fin"
+                                            name="bus_fecha_fin"
+                                            v-model="busqueda.bus_fecha_fin"
+                                            class="form-control"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label for="filtro_estado">Estado Lectura</label>
+                                        <select
+                                            v-model="filtroEstado"
+                                            id="filtro_estado"
+                                            class="form-control custom-select"
+                                            @change="aplicarFiltroEstado()"
+                                        >
+                                            <option value="todos">...::: Todos :::...</option>
+                                            <option value="con_lectura">Con Lectura</option>
+                                            <option value="sin_lectura">Sin Lectura</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
-                        </form>
+
+                            <div class="form-actions mt-3">
+                                <button
+                                    type="button"
+                                    class="btn btn-success m-r-5"
+                                    :disabled="loadingBuscar"
+                                    @click="listarPendientesTrascribir()"
+                                >
+                                    <i v-if="loadingBuscar" class="fa fa-spinner fa-spin"></i>
+                                    <i v-else class="fa fa-search"></i>
+                                    Buscar
+                                </button>
+                                <button type="button" class="btn btn-inverse" @click="btnLimpiar()">
+                                    <i class="fa fa-eraser"></i> Limpiar
+                                </button>
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-primary ml-2"
+                                    @click="listarPendientesTrascribir()"
+                                    :disabled="loadingBuscar"
+                                >
+                                    <i
+                                        class="fa fa-refresh mr-1"
+                                        :class="{ 'fa-spin': loadingBuscar }"
+                                    ></i>
+                                    Actualizar
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="row">
-            <div class="col-12 table-responsive">
+            <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title">Listado de estudios disponibles</h4>
-                        <h6 class="card-subtitle text-info">
-                            Asigne los estudios a los médicos para su respectiva lectura.
-                        </h6>
-                        <div class="table-responsive">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <h4 class="card-title mb-0">Listado de estudios disponibles</h4>
+                                <h6 class="card-subtitle text-info mt-1">
+                                    Transcriba las lecturas de tele-radiología para su respectiva
+                                    finalización.
+                                </h6>
+                            </div>
+                            <div class="text-right">
+                                <span class="badge badge-primary mr-1" v-if="registros.length > 0">
+                                    {{ registros.length }} pendientes
+                                </span>
+                                <span class="badge badge-success mr-1" v-if="conteoConLectura > 0">
+                                    {{ conteoConLectura }} con lectura
+                                </span>
+                                <span class="badge badge-danger mr-2" v-if="conteoSinLectura > 0">
+                                    {{ conteoSinLectura }} sin lectura
+                                </span>
+                            </div>
+                        </div>
+
+                        <table-skeleton-loader :visible="loadingBuscar" :rows="6" :columns="11" />
+                        <empty-state-component
+                            v-if="!loadingBuscar && registros.length === 0"
+                            title="No hay estudios para mostrar"
+                            description="No se encontraron estudios pendientes con los filtros seleccionados."
+                            icon="fa-file-text-o"
+                        />
+                        <div
+                            v-show="!loadingBuscar && registros.length > 0"
+                            class="table-responsive m-t-20"
+                        >
                             <table
-                                id="example23"
+                                id="tablaTeleRadiologiaTranscribir"
                                 ref="dt"
                                 class="table table-bordered table-striped"
                                 cellspacing="0"
@@ -144,17 +220,17 @@
                             >
                                 <thead>
                                     <tr>
-                                        <th></th>
+                                        <th style="width: 35px" class="text-center">P</th>
                                         <th>Sede</th>
                                         <th>Toma</th>
-                                        <th with="50%">Lectura</th>
-                                        <th>Asignación</th>
-                                        <th>Quien Asigno</th>
-                                        <th with="50%">Medico</th>
-                                        <th with="50%">Paciente</th>
+                                        <th>Lectura</th>
+                                        <th>Fecha de Envío</th>
+                                        <th>Quien Asignó</th>
+                                        <th>Médico</th>
+                                        <th>Paciente</th>
                                         <th>Detalle</th>
                                         <th>Producto</th>
-                                        <th></th>
+                                        <th class="text-center" style="width: 110px">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -163,11 +239,12 @@
                                         :key="item.estudio_producto_id"
                                         :id="'row-' + item.estudio_producto_id"
                                     >
-                                        <td>
+                                        <td class="text-center align-middle">
                                             <button
                                                 type="button"
                                                 v-if="item.priori_id == 1"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-danger"
+                                                title="Alta"
                                             >
                                                 A
                                             </button>
@@ -175,6 +252,7 @@
                                                 type="button"
                                                 v-else-if="item.priori_id == 2"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-warning"
+                                                title="Media"
                                             >
                                                 M
                                             </button>
@@ -182,20 +260,24 @@
                                                 type="button"
                                                 v-else-if="item.priori_id == 3"
                                                 class="btn waves-effect waves-light btn-rounded btn-sm btn-info"
+                                                title="Baja"
                                             >
                                                 B
                                             </button>
                                             <button
                                                 type="button"
-                                                v-else-if="item.priori_id == 4"
+                                                v-else
                                                 class="btn waves-effect waves-light btn-rounded btn-sm"
+                                                title="Sin prioridad"
                                             >
                                                 S
                                             </button>
                                         </td>
-                                        <td>{{ item.nom_sede }}</td>
-                                        <td>{{ item.fec_estudio }}</td>
-                                        <td>
+                                        <td class="align-middle">{{ item.nom_sede }}</td>
+                                        <td class="align-middle text-nowrap">
+                                            {{ item.fec_estudio }}
+                                        </td>
+                                        <td class="align-middle text-nowrap">
                                             <span
                                                 class="label label-success"
                                                 v-if="item.fechor_lectura != null"
@@ -206,27 +288,68 @@
                                                 v-if="item.fechor_lectura === null"
                                                 >Sin Lectura</span
                                             >
+                                            <div
+                                                v-if="item.fechor_lectura"
+                                                class="text-muted small mt-1"
+                                                title="Fecha y hora de emisión de la lectura"
+                                            >
+                                                <i class="fa fa-stethoscope mr-1"></i
+                                                >{{ formatDate(item.fechor_lectura) }}
+                                            </div>
+                                            <div
+                                                v-if="item.fechor_recepcion_tele"
+                                                class="text-info small mt-1"
+                                                title="Fecha y hora de recepción en LIDiag"
+                                            >
+                                                <i class="fa fa-download mr-1"></i>Recibido:
+                                                {{ formatDate(item.fechor_recepcion_tele) }}
+                                            </div>
                                         </td>
-                                        <td>{{ formatDate(item.created_at) }}</td>
-                                        <td>{{ item.quien_registro }}</td>
-                                        <td>{{ item.nombres_medico }}</td>
-                                        <td>
-                                            # Docu: {{ item.num_docu }} <br />
-                                            Nombres: {{ item.nom_pacien }}
+                                        <td class="align-middle text-nowrap">
+                                            {{ formatDate(item.fecha_envio || item.created_at) }}
                                         </td>
-                                        <td>
-                                            Atención: {{ item.atencion }} <br />
-                                            Descrip: {{ item.study_desc }} <br />
-                                            {{ item.accession_no }}
+                                        <td class="align-middle">{{ item.quien_registro }}</td>
+                                        <td class="align-middle">
+                                            {{ item.nombres_medico || "Sin médico asignado" }}
                                         </td>
-                                        <td>{{ item.nom_produc }}</td>
-                                        <td class="text-nowrap">
+                                        <td class="align-middle">
+                                            <div class="font-weight-bold text-dark">
+                                                {{ item.nom_pacien }}
+                                            </div>
+                                            <div
+                                                class="text-primary font-weight-bold"
+                                                style="font-size: 15px"
+                                            >
+                                                <i class="fa fa-id-card-o mr-1"></i>
+                                                {{ item.num_docu }}
+                                            </div>
+                                        </td>
+                                        <td class="align-middle">
+                                            <div v-if="item.atencion">
+                                                <small
+                                                    ><strong>Atención:</strong>
+                                                    {{ item.atencion }}</small
+                                                >
+                                            </div>
+                                            <div v-if="item.study_desc">
+                                                <small
+                                                    ><strong>Descrip:</strong>
+                                                    {{ item.study_desc }}</small
+                                                >
+                                            </div>
+                                            <div v-if="item.accession_no">
+                                                <small>{{ item.accession_no }}</small>
+                                            </div>
+                                        </td>
+                                        <td class="align-middle">{{ item.nom_produc }}</td>
+                                        <td class="text-nowrap text-center align-middle">
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
                                                 :disabled="
                                                     loadingAbrirId === item.estudio_producto_id
                                                 "
+                                                title="Transcribir"
                                                 @click="
                                                     actualizar = true;
                                                     mostrarRegistro(item);
@@ -242,10 +365,19 @@
                                             </button>
                                             <button
                                                 type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
+                                                title="Ver imágenes DICOM"
+                                                @click="verImagenDirecta(item)"
+                                            >
+                                                <i class="fa fa-file-image-o"></i>
+                                            </button>
+                                            <button
+                                                type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
                                                 :disabled="
                                                     loadingAnularId === item.estudio_producto_id
                                                 "
+                                                title="Anular"
                                                 @click="
                                                     anularAsignacion(
                                                         item.estudio_producto_id,
@@ -272,33 +404,59 @@
             </div>
         </div>
         <!-- ============================================================== -->
-        <!-- End PAge Content -->
+        <!-- End Page Content -->
         <!-- ============================================================== -->
 
         <!-- ============================================================== -->
-        <!-- Right sidebar -->
+        <!-- Backdrop para cerrar al hacer clic y atenuar fondo -->
         <!-- ============================================================== -->
+        <transition name="fade">
+            <div
+                v-if="sidebarVisible"
+                class="sidebar-backdrop"
+                @click="btnCerrarModal()"
+                aria-hidden="true"
+            ></div>
+        </transition>
+
+        <!-- Right sidebar -->
         <!-- .right-sidebar -->
         <div
             class="right-sidebar"
-            style="overflow-x: hidden; overflow-y: scroll; overflow-x: hidden; height: 100%"
+            :class="{ 'shw-rside': sidebarVisible, 'dark-mode': isDarkMode, 'zen-mode': isZenMode }"
+            style="overflow-x: hidden; overflow-y: scroll; height: 100%"
         >
             <div class="slimscrollright">
-                <div class="rpanel-title">
-                    {{ tituloModal }}
-                    <span @click="btnCerralModalForm()">
-                        <i
-                            class="ti-close right-side-toggle"
-                            id="btnCerralModalForm"
-                            @click="btnCerralModalForm()"
-                        ></i>
-                    </span>
+                <div class="rpanel-title d-flex justify-content-between align-items-center">
+                    <span>{{ tituloModal }}</span>
+                    <div class="d-flex align-items-center">
+                        <button
+                            type="button"
+                            class="btn btn-xs btn-outline-light m-r-10"
+                            @click="toggleZenMode"
+                            :title="
+                                isZenMode
+                                    ? 'Salir de Pantalla Completa / Modo Zen'
+                                    : 'Modo Pantalla Completa / Modo Zen (100% Pantalla)'
+                            "
+                            style="padding: 2px 8px; font-size: 11px; border-radius: 12px"
+                        >
+                            <i :class="isZenMode ? 'fa fa-compress' : 'fa fa-expand'"></i>
+                            {{ isZenMode ? "Normal" : "Zen" }}
+                        </button>
+                        <button
+                            type="button"
+                            class="right-side-toggle text-white border-0 bg-transparent p-0 cursor-pointer"
+                            @click="btnCerrarModal()"
+                            aria-label="Cerrar panel"
+                            title="Cerrar panel (Esc)"
+                        >
+                            <i class="ti-close"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="r-panel-body">
-                    <!-- ============================================================== -->
-                    <!-- Aqui va el contenido de los formularios -->
-                    <!-- ============================================================== -->
-                    <form action="#">
+                    <form @submit.prevent>
                         <div class="form-body">
                             <div class="row">
                                 <div class="col-md-6">
@@ -362,7 +520,7 @@
                                                     name="email_reportar"
                                                     v-model="registro.email_reportar"
                                                     class="form-control"
-                                                    placeholder="Ingrese aqi el email a reportar"
+                                                    placeholder="Ingrese aquí el email a reportar"
                                                 />
                                             </div>
 
@@ -380,7 +538,7 @@
                                     </h5>
                                     <hr />
 
-                                    <div class="row table-responsive">
+                                    <div class="row">
                                         <div class="col-md-12">
                                             <dl>
                                                 <dd>{{ registro.nom_produc }}</dd>
@@ -406,6 +564,7 @@
                                                     class="btn btn-secondary btn-xs"
                                                     :disabled="loadingVerImagen"
                                                     @click="verImagen()"
+                                                    title="Ver imágenes DICOM"
                                                 >
                                                     <i
                                                         v-if="loadingVerImagen"
@@ -441,90 +600,52 @@
 
                                     <div class="row">
                                         <div class="col-md-12">
-                                            <!-- Nav tabs -->
-                                            <ul class="nav nav-tabs" role="tablist">
-                                                <li class="nav-item">
-                                                    <a
-                                                        class="nav-link active"
-                                                        data-toggle="tab"
-                                                        href="#home8"
-                                                        role="tab"
-                                                    >
-                                                        <h5 class="card-title text-info">
-                                                            <i class="fa fa-paperclip"></i> Adjuntos
-                                                        </h5>
-                                                    </a>
-                                                </li>
-                                                <li class="nav-item">
-                                                    <a
-                                                        class="nav-link"
-                                                        data-toggle="tab"
-                                                        href="#profile8"
-                                                        role="tab"
-                                                    >
-                                                        <span>
-                                                            <h5 class="card-title text-info">
-                                                                <i class="fa fa-file-audio-o"></i>
-                                                                Audios
-                                                            </h5>
-                                                        </span>
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                            <!-- Tab panes -->
-                                            <div class="tab-content tabcontent-border">
+                                            <h5 class="card-title text-info mb-2">
+                                                <i class="fa fa-paperclip"></i> Adjuntos ({{
+                                                    soportesHC.length
+                                                }})
+                                            </h5>
+                                            <div class="p-20 border rounded">
                                                 <div
-                                                    class="tab-pane active p-20"
-                                                    id="home8"
-                                                    role="tabpanel"
+                                                    class="col-md-8 col-lg-9 mb-1"
+                                                    v-for="itemArchivo in soportesHC"
+                                                    :key="itemArchivo.archivo_encrip"
                                                 >
-                                                    <div
-                                                        class="col-md-8 col-lg-9"
-                                                        v-for="(itemArchivo, index) in soportesHC"
-                                                        :key="index"
+                                                    <a
+                                                        href="javascript:void(0)"
+                                                        :style="{
+                                                            pointerEvents:
+                                                                loadingDescargaSoporte ===
+                                                                itemArchivo.archivo_encrip
+                                                                    ? 'none'
+                                                                    : 'auto',
+                                                        }"
+                                                        @click="
+                                                            descargaSoportte(
+                                                                itemArchivo.archivo_original,
+                                                                itemArchivo.archivo_encrip
+                                                            )
+                                                        "
                                                     >
-                                                        <a
-                                                            href="javascript:void(0)"
-                                                            :style="{
-                                                                pointerEvents:
-                                                                    loadingDescargaSoporte ===
-                                                                    itemArchivo.archivo_encrip
-                                                                        ? 'none'
-                                                                        : 'auto',
-                                                            }"
-                                                            @click="
-                                                                descargaSoportte(
-                                                                    itemArchivo.archivo_original,
-                                                                    itemArchivo.archivo_encrip
-                                                                )
+                                                        <i
+                                                            v-if="
+                                                                loadingDescargaSoporte ===
+                                                                itemArchivo.archivo_encrip
                                                             "
-                                                        >
-                                                            <i
-                                                                v-if="
-                                                                    loadingDescargaSoporte ===
-                                                                    itemArchivo.archivo_encrip
-                                                                "
-                                                                class="fa fa-spinner fa-spin"
-                                                            ></i>
-                                                            {{ itemArchivo.archivo_original }}
-                                                        </a>
-                                                    </div>
+                                                            class="fa fa-spinner fa-spin mr-1"
+                                                        ></i>
+                                                        <i
+                                                            v-else
+                                                            class="fa fa-file-text-o mr-1"
+                                                        ></i>
+                                                        {{ itemArchivo.archivo_original }}
+                                                    </a>
                                                 </div>
                                                 <div
-                                                    class="tab-pane p-20"
-                                                    id="profile8"
-                                                    role="tabpanel"
+                                                    v-if="soportesHC.length === 0"
+                                                    class="text-muted"
                                                 >
-                                                    <template
-                                                        v-for="(item, index) in audiosDeEstudio"
-                                                        :key="index"
-                                                    >
-                                                        <audio
-                                                            :src="item.url"
-                                                            controls
-                                                            style="height: 15px; width: 100%"
-                                                        ></audio>
-                                                    </template>
+                                                    No hay adjuntos para este estudio.
                                                 </div>
                                             </div>
                                         </div>
@@ -538,18 +659,22 @@
                                     class="btn btn-success m-r-5"
                                     @click="guardarRegistro()"
                                     :disabled="loadingGuardar"
+                                    :title="
+                                        (actualizar ? 'Actualizar' : 'Guardar') + ' transcripción'
+                                    "
                                 >
                                     <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
-                                    <i v-else class="fa fa-check"></i> Guardar
+                                    <i v-else class="fa fa-check"></i>
+                                    {{ actualizar ? "Actualizar" : "Guardar" }}
                                 </button>
 
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    ref="btnCerrarForm"
-                                    @click="btnCerralModalForm()"
+                                    @click="btnCerrarModal()"
+                                    title="Cerrar panel"
                                 >
-                                    Cancel
+                                    Cancelar
                                 </button>
                             </div>
                         </div>
@@ -563,27 +688,49 @@
     </div>
 </template>
 <script setup>
-const { proxy } = getCurrentInstance();
-const emitter = proxy.emitter;
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
+import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { listarUsuariosYSedes } from "../../../helpers/usuarios";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+dayjs.extend(utc);
+dayjs.extend(timezone);
 import axios from "axios";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables";
+import { confirmAction, getUserSafeError, toastMessage } from "@/helpers/alerts";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 
-const props = defineProps({ usuarioactual: Object });
+const { appContext } = getCurrentInstance();
+const emitter = appContext.config.globalProperties.emitter;
+
+const DESTINO_TELE_RADIOLOGIA = "Tele Radiologia";
+
+defineProps({
+    usuarioactual: { type: Object, default: () => ({}) },
+});
 
 const dt = ref(null);
 const actualizar = ref(false);
+const sidebarVisible = ref(false);
 
-const diagnosticosEstudio = ref([]);
+const isDarkMode = ref(localStorage.getItem("lidiag_dark_mode") === "true");
+const onThemeChanged = (val) => {
+    isDarkMode.value = !!val;
+};
+
+const isZenMode = ref(false);
+
+function toggleZenMode() {
+    isZenMode.value = !isZenMode.value;
+}
+
 const soportesHC = ref([]);
+const todosLosRegistros = ref([]);
 const registros = ref([]);
-const tituloModal = ref("Transcirbir estudio");
+const filtroEstado = ref("todos");
+const tituloModal = ref("Transcribir estudio");
 const registro = ref({
     id_estudio: 0,
     estudio_producto_id: 0,
@@ -601,7 +748,6 @@ const registro = ref({
     email: "",
     tel: "",
     direccion: "",
-    diagnosticosEstudio: [],
     sede_id: "",
     atencion: null,
     servicio: null,
@@ -617,7 +763,7 @@ const registro = ref({
     url_oviyam: null,
     tap_oviyam: null,
     study_iuid: null,
-    destino_estudio: "Tele Radiologia",
+    destino_estudio: DESTINO_TELE_RADIOLOGIA,
 });
 const busqueda = ref({
     estudioParaTranscibir: "si",
@@ -627,128 +773,217 @@ const busqueda = ref({
     bus_nom_num_docu: "",
     bus_fech_ini: "",
     bus_fecha_fin: "",
-    destino_estudio: "Tele Radiologia",
+    destino_estudio: DESTINO_TELE_RADIOLOGIA,
 });
 const datosImagen = ref({ urlOviyam: "", patientId: "", studyUID: "", serverName: "" });
-const audiosDeEstudio = ref([]);
 const quienes_asignaron = ref([]);
 const medicos = ref([]);
 const errores = ref({});
+const id = ref(null);
 const idRow = ref(null);
+
 const loadingBuscar = ref(false);
 const loadingGuardar = ref(false);
 const loadingAbrirId = ref(null);
 const loadingAnularId = ref(null);
 const loadingDescargaSoporte = ref(null);
-const loadingAudios = ref(false);
 const loadingVerImagen = ref(false);
 
-const medicoOptions = computed(() => {
-    // Opciones para el Select2 local de medicos.
-    return (medicos.value || []).map((p) => ({ id: p.id, name: p.name }));
-});
+const conteoConLectura = computed(
+    () => todosLosRegistros.value.filter((x) => x.fechor_lectura != null).length
+);
+const conteoSinLectura = computed(
+    () => todosLosRegistros.value.filter((x) => x.fechor_lectura === null).length
+);
 
 function initDataTable() {
-    safeInitDataTable(dt.value || "#example23", {
+    if (registros.value.length === 0) return;
+    safeInitDataTable(dt.value || "#tablaTeleRadiologiaTranscribir", {
         dom: "Bfrtip",
         buttons: ["copy", "csv", "excel", "pdf", "print"],
-        retrieve: true,
+        autoWidth: false,
+        columnDefs: [{ targets: [0, 10], orderable: false }],
     });
 }
+
 function destroyDataTable() {
-    safeDestroyDataTable(dt.value || "#example23");
+    safeDestroyDataTable(dt.value || "#tablaTeleRadiologiaTranscribir");
 }
+
+async function aplicarFiltroEstado() {
+    destroyDataTable();
+    if (filtroEstado.value === "con_lectura") {
+        registros.value = todosLosRegistros.value.filter((x) => x.fechor_lectura != null);
+    } else if (filtroEstado.value === "sin_lectura") {
+        registros.value = todosLosRegistros.value.filter((x) => x.fechor_lectura === null);
+    } else {
+        registros.value = [...todosLosRegistros.value];
+    }
+    await nextTick();
+    if (registros.value.length > 0) {
+        destroyDataTable();
+        initDataTable();
+    }
+}
+
 function btnLimpiar() {
     busqueda.value.quien_asigno_id = "";
     busqueda.value.medico_id = "";
     busqueda.value.bus_nom_num_docu = "";
     busqueda.value.bus_fech_ini = "";
     busqueda.value.bus_fecha_fin = "";
+    filtroEstado.value = "todos";
     errores.value = {};
     destroyDataTable();
+    todosLosRegistros.value = [];
     registros.value = [];
-    limpiar();
+    btnCerrarModal();
 }
+
 async function listarPendientesTrascribir() {
     if (loadingBuscar.value) return;
+
+    const sedeActual =
+        sessionStorage.getItem("ST-sede") ||
+        localStorage.getItem("ST-sede") ||
+        busqueda.value.sede_id;
+
+    if (!sedeActual) {
+        toastMessage({
+            heading: "Upsss!!!",
+            text: "Debes establecer la sede en la cual vas a trabajar.",
+            icon: "warning",
+        });
+        return;
+    }
+
+    busqueda.value.sede_id = sedeActual;
+    if (!sessionStorage.getItem("ST-sede")) {
+        sessionStorage.setItem("ST-sede", String(sedeActual));
+    }
+
     loadingBuscar.value = true;
+    destroyDataTable();
+
     try {
-        if (sessionStorage.getItem("ST-sede") == null) {
-            $.toast({
-                heading: "Upsss!!!",
-                text: "Debes establece la sede en la cual vas a trabajar.",
-                position: "top-right",
-                loaderBg: "#ff6849",
-                icon: "warning",
-                hideAfter: 3500,
-                stack: 6,
-            });
-        } else {
-            destroyDataTable();
+        const res = await axios.post("/api/estudio-listarPendientesTrascribir", {
+            sede_id: sedeActual,
+            quien_asigno_id: busqueda.value.quien_asigno_id || undefined,
+            medico_id: busqueda.value.medico_id || undefined,
+            bus_nom_num_docu: busqueda.value.bus_nom_num_docu || undefined,
+            bus_fech_ini: busqueda.value.bus_fech_ini || undefined,
+            bus_fecha_fin: busqueda.value.bus_fecha_fin || undefined,
+            destino_estudio: DESTINO_TELE_RADIOLOGIA,
+            estudioParaTranscibir: busqueda.value.estudioParaTranscibir,
+        });
 
-            const res = await axios.post("/api/estudio-listarPendientesTrascribir", busqueda.value);
-
-            registros.value = res.data.data;
-
-            nextTick(() => {
-                initDataTable();
-            });
+        let data = res.data.data;
+        if (typeof data === "string") {
+            try {
+                data = JSON.parse(data);
+            } catch (_e) {
+                data = [];
+            }
         }
+        todosLosRegistros.value = Array.isArray(data) ? data : [];
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar los pendientes.");
+        toastMessage({
+            heading: "Error",
+            text: getUserSafeError(error, "No fue posible listar los pendientes."),
+            icon: "error",
+        });
+        todosLosRegistros.value = [];
     } finally {
         loadingBuscar.value = false;
+        await aplicarFiltroEstado();
     }
 }
+
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
     try {
-        $.toast({
-            heading: "Ok!!!",
+        toastMessage({
+            heading: "Procesando...",
             text: "Enviando lectura, por favor espere",
-            position: "top-right",
-            loaderBg: "#ff6849",
             icon: "info",
-            hideAfter: 3500,
-            stack: 6,
         });
 
-        const res = await axios.post("/api/estudio-guardarTranscripcion", registro.value);
+        const payload = {
+            estudio_producto_id: registro.value.estudio_producto_id,
+            id_estudio: registro.value.id_estudio,
+            lectura: registro.value.lectura,
+            num_docu: registro.value.num_docu,
+            nom_pacien: registro.value.nom_pacien,
+            email: registro.value.email || undefined,
+            tel: registro.value.tel || undefined,
+            fec_naci: registro.value.fec_naci || undefined,
+            fec_estudio: registro.value.fec_estudio || undefined,
+            fec_lectura: registro.value.fec_lectura || undefined,
+            nombres_medico: registro.value.nombres_medico || undefined,
+            reg_medico: registro.value.reg_medico || undefined,
+            num_docu_medico: registro.value.num_docu_medico || undefined,
+            firma_medico: registro.value.firma_medico || undefined,
+            sede_id: registro.value.sede_id,
+            nom_sede: registro.value.nom_sede || undefined,
+            cod_cups: registro.value.cod_cups,
+            nom_produc: registro.value.nom_produc,
+            medico_id: registro.value.medico_id || undefined,
+            url_oviyam: registro.value.url_oviyam || undefined,
+            study_iuid: registro.value.study_iuid || undefined,
+            tap_oviyam: registro.value.tap_oviyam || undefined,
+            destino_estudio: DESTINO_TELE_RADIOLOGIA,
+            email_reportar: registro.value.email_reportar || undefined,
+            sexo: registro.value.sexo || undefined,
+            direccion: registro.value.direccion || undefined,
+        };
+
+        const res = await axios.post("/api/estudio-guardarTranscripcion", payload);
 
         if (res.status == 200) {
-            const estudioEliminar = registros.value.findIndex(
-                (x) => x.estudio_producto_id == idRow.value
-            );
-            if (estudioEliminar >= 0) {
-                try {
-                    safeRemoveDataTableRow(dt.value || "#example23", "#row-" + idRow.value);
-                } catch (e) {}
-                registros.value.splice(estudioEliminar, 1);
-            }
+            const rowTargetId = idRow.value;
 
-            $.toast({
-                heading: "Ok!!!",
-                text: res.data.data.message,
-                position: "top-right",
-                loaderBg: "#ff6849",
+            // Cerrar drawer de inmediato
+            btnCerrarModal();
+
+            toastMessage({
+                heading: "Completado",
+                text:
+                    res.data?.message ||
+                    res.data?.data?.message ||
+                    "La transcripción se guardó correctamente.",
                 icon: "success",
-                hideAfter: 3500,
-                stack: 6,
             });
-            /* btnCerrarForm.value.click();
 
-                    btnCerralModalForm();
-                    limpiar(); */
+            requestAnimationFrame(() => {
+                if (rowTargetId != null) {
+                    const idxTodos = todosLosRegistros.value.findIndex(
+                        (x) => x.estudio_producto_id == rowTargetId
+                    );
+                    if (idxTodos >= 0) {
+                        todosLosRegistros.value.splice(idxTodos, 1);
+                    }
+
+                    const estudioEliminar = registros.value.findIndex(
+                        (x) => x.estudio_producto_id == rowTargetId
+                    );
+                    if (estudioEliminar >= 0) {
+                        registros.value.splice(estudioEliminar, 1);
+                        nextTick(() => {
+                            destroyDataTable();
+                            initDataTable();
+                        });
+                    }
+                }
+            });
         } else {
-            $.toast({
-                heading: "Upss!!!",
-                text: res.data.data.message,
-                position: "top-right",
-                loaderBg: "#ff6849",
-                icon: "danger",
-                hideAfter: 3500,
-                stack: 6,
+            toastMessage({
+                heading: "Error",
+                text:
+                    res.data?.message ||
+                    res.data?.data?.message ||
+                    "Ocurrió un error al guardar la transcripción.",
+                icon: "error",
             });
         }
     } catch (error) {
@@ -757,57 +992,62 @@ async function guardarRegistro() {
             errores.value = error.response.data;
         }
         if (status == 402) {
-            $.toast({
+            toastMessage({
                 heading: "Upss!!!",
                 text:
                     error?.response?.data?.message ||
                     "La plantilla no está configurada para esta sede.",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "error",
-                hideAfter: 3500,
-                stack: 6,
             });
-        } else {
-            $.toast({
+        } else if (status !== 400) {
+            toastMessage({
                 heading: "Upss!!!",
-                text: error?.response?.data?.message || "No fue posible guardar la transcripción.",
-                position: "top-right",
-                loaderBg: "#ff6849",
+                text: getUserSafeError(error, "No fue posible guardar la transcripción."),
                 icon: "error",
-                hideAfter: 3500,
-                stack: 6,
             });
         }
     } finally {
         loadingGuardar.value = false;
     }
 }
+
 function descargaSoportte(nomArchivoOriginal, nomArchivoEncriptado) {
     if (loadingDescargaSoporte.value) return;
     loadingDescargaSoporte.value = nomArchivoEncriptado;
     const url = `/api/descarga-soportes-hc/${nomArchivoEncriptado}`;
+    let blobUrl = null;
+    let link = null;
     axios
         .get(url, { responseType: "blob" })
         .then((response) => {
-            const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement("a");
+            blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+            link = document.createElement("a");
             link.href = blobUrl;
             link.setAttribute("download", nomArchivoOriginal || nomArchivoEncriptado);
             document.body.appendChild(link);
             link.click();
-            setTimeout(() => window.URL.revokeObjectURL(blobUrl), 2000);
         })
         .catch((error) => {
-            console.error(error);
+            toastMessage({
+                heading: "Error",
+                text: getUserSafeError(error, "No fue posible descargar el archivo."),
+                icon: "error",
+            });
         })
         .finally(() => {
+            if (link && document.body.contains(link)) {
+                document.body.removeChild(link);
+            }
+            if (blobUrl) {
+                setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
+            }
             loadingDescargaSoporte.value = null;
         });
 }
+
 async function anularAsignacion(idProductoEstudio, paciente, producto) {
     const ok = await confirmAction({
-        title: `Estas seguro de anular la lectura del paciente ${paciente} con el producto ${producto} ?`,
+        title: `¿Estás seguro de anular la lectura del paciente ${paciente} con el producto ${producto}?`,
         text: "No podrás recuperar este registro!",
         icon: "warning",
     });
@@ -820,78 +1060,144 @@ async function anularAsignacion(idProductoEstudio, paciente, producto) {
             id: idProductoEstudio,
         });
         if (res.status === 200) {
+            const idxTodos = todosLosRegistros.value.findIndex(
+                (x) => x.estudio_producto_id == idProductoEstudio
+            );
+            if (idxTodos >= 0) {
+                todosLosRegistros.value.splice(idxTodos, 1);
+            }
+
             const idx = registros.value.findIndex(
                 (x) => x.estudio_producto_id == idProductoEstudio
             );
             if (idx >= 0) {
-                try {
-                    safeRemoveDataTableRow(dt.value || "#example23", "#row-" + idProductoEstudio);
-                } catch (e) {}
                 registros.value.splice(idx, 1);
+                nextTick(() => {
+                    destroyDataTable();
+                    initDataTable();
+                });
             }
-            alertSuccess("Anulado!", "El producto se anulo correctamente.", "success");
+            toastMessage({
+                heading: "Anulado!",
+                text: "El producto se anuló correctamente.",
+                icon: "success",
+            });
         } else {
-            alertError("Ups!", "No fue posible anular el producto.", "error");
+            toastMessage({
+                heading: "Ups!",
+                text: "No fue posible anular el producto.",
+                icon: "error",
+            });
         }
-    } catch (err) {
-        handleAxiosErrorToast(err, "No fue posible anular el producto.");
-        alertError("Error", "No fue posible anular el producto.", "error");
+    } catch (error) {
+        toastMessage({
+            heading: "Error",
+            text: getUserSafeError(error, "No fue posible anular el producto."),
+            icon: "error",
+        });
     } finally {
         loadingAnularId.value = null;
     }
 }
+
 function verImagen() {
     if (loadingVerImagen.value) return;
+    const base = String(datosImagen.value.urlOviyam ?? "").trim();
+    if (!base || base === "undefined" || base === "null") {
+        toastMessage({
+            heading: "Upsss!!!",
+            text: "No hay visor configurado para esta sede.",
+            icon: "warning",
+        });
+        return;
+    }
     loadingVerImagen.value = true;
-    const base = datosImagen.value.urlOviyam || "";
-    const params = new URLSearchParams({
-        patientID: String(datosImagen.value.patientId ?? ""),
-        studyUID: String(datosImagen.value.studyUID ?? ""),
-        serverName: String(datosImagen.value.serverName ?? ""),
-    });
+    const rawServer = datosImagen.value.serverName;
+    const cleanServer =
+        !rawServer || rawServer === "undefined" || rawServer === "null"
+            ? ""
+            : String(rawServer).trim();
+
+    const queryObj = {
+        patientID: String(datosImagen.value.patientId ?? "").trim(),
+        studyUID: String(datosImagen.value.studyUID ?? "").trim(),
+    };
+    if (cleanServer) {
+        queryObj.serverName = cleanServer;
+    }
+
+    const params = new URLSearchParams(queryObj);
+    const separator = base.includes("?") ? "&" : "?";
     try {
-        window.open(`${base}?${params.toString()}`, "_blank", "noopener,noreferrer");
+        window.open(`${base}${separator}${params.toString()}`, "_blank", "noopener,noreferrer");
+    } catch {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible abrir el visor de imágenes.",
+            icon: "error",
+        });
     } finally {
         setTimeout(() => {
             loadingVerImagen.value = false;
         }, 500);
     }
 }
-async function listarAudios() {
-    loadingAudios.value = true;
-    try {
-        const res = await axios.get("/api/listar-audios-estudio/" + id);
-        audiosDeEstudio.value = res.data.data;
-    } catch (e) {
-        handleAxiosErrorToast(e, "No fue posible listar audios.");
-        audiosDeEstudio.value = [];
-    } finally {
-        loadingAudios.value = false;
-    }
+
+function verImagenDirecta(item) {
+    datosImagen.value.urlOviyam = item.url_oviyam;
+    datosImagen.value.patientId = item.num_docu;
+    datosImagen.value.studyUID = item.study_iuid;
+    datosImagen.value.serverName = item.tap_oviyam;
+    verImagen();
 }
+
 async function listarMedicos() {
     try {
-        const pathname = String(window?.location?.pathname || "").toLowerCase();
-        const moduloId =
-            sessionStorage.getItem("ST-modulo") || (pathname.includes("ecografia") ? "2" : "1");
+        const moduloId = sessionStorage.getItem("ST-modulo") || "1";
         const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
         medicos.value = res.data.data;
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar médicos.");
+    } catch {
         medicos.value = [];
     }
 }
-function onMedicoSelect(value) {
-    registro.value.medico_id = value ? String(value) : null;
-}
+
 function establecerSede() {
-    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
+    const sede = sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || null;
+    busqueda.value.sede_id = sede;
     registros.value = [];
+    todosLosRegistros.value = [];
+    if (!sede && emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
 }
+
+/**
+ * Maneja el evento global sedeSeleccionada actualizando la sede activa
+ * y limpiando resultados previos para evitar discrepancias de datos.
+ *
+ * @param {Object} data - Datos del evento con idSede y nomSede.
+ * @returns {void}
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-10-16
+ */
+function onSedeSeleccionada(data) {
+    const idSede =
+        data?.idSede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede");
+    if (!idSede) return;
+    const cambioSede = String(busqueda.value.sede_id || "") !== String(idSede);
+    busqueda.value.sede_id = idSede;
+    if (cambioSede) {
+        destroyDataTable();
+        todosLosRegistros.value = [];
+        registros.value = [];
+        btnCerrarModal();
+    }
+}
+
 function formatDate(timestamp) {
-    // Convertir el timestamp UTC a la zona horaria local y formatear
     return dayjs.utc(timestamp).local().format("YYYY-MM-DD HH:mm:ss");
 }
+
 async function mostrarRegistro(data = {}) {
     if (loadingAbrirId.value !== null) return;
     loadingAbrirId.value = data.estudio_producto_id;
@@ -909,8 +1215,11 @@ async function mostrarRegistro(data = {}) {
         ":" +
         ("0" + date.getSeconds()).slice(-2);
 
-    tituloModal.value = "Transcribir la lectura del paciente: " + data.nom_pacien;
-    id = data.id;
+    tituloModal.value =
+        "Transcribir la lectura del paciente: " +
+        data.nom_pacien +
+        (data.num_docu ? " (" + data.num_docu + ")" : "");
+    id.value = data.id;
     registro.value.id_estudio = data.id;
     idRow.value = data.estudio_producto_id;
     registro.value.estudio_producto_id = data.estudio_producto_id;
@@ -932,9 +1241,9 @@ async function mostrarRegistro(data = {}) {
     registro.value.nom_produc = data.nom_produc;
     registro.value.num_docu_medico = data.num_docu_medico;
     registro.value.reg_medico = data.reg_medico;
-    registro.value.nombres_medico = `Médico: ${data.nombres_medico}`;
+    registro.value.nombres_medico = `Médico: ${data.nombres_medico || "Sin asignar"}`;
     registro.value.firma_medico = data.firma_medico;
-    registro.value.lectura = `Atención: ${data.atencion}nFecha y Hora del estudio: ${data.fec_estudio}nFecha y Hora de transcripción: ${fechaActual}nn${data.nom_produc}nn${data.lectura}`;
+    registro.value.lectura = `Atención: ${data.atencion || ""}\nFecha y Hora del estudio: ${data.fec_estudio || ""}\nFecha y Hora de transcripción: ${fechaActual}\n\n${data.nom_produc || ""}\n\n${data.lectura || ""}`;
 
     datosImagen.value.urlOviyam = data.url_oviyam;
     datosImagen.value.patientId = data.num_docu;
@@ -948,38 +1257,50 @@ async function mostrarRegistro(data = {}) {
     registro.value.study_iuid = data.study_iuid;
     registro.value.tap_oviyam = data.tap_oviyam;
 
-    const res = await axios.get("/api/study-listar-diagnostico-por-estudio?id=" + id);
-    diagnosticosEstudio.value = res.data.data;
+    try {
+        const resSoportesHC = await axios.get("/api/listar-soportes-hc-estudio?id=" + id.value);
+        soportesHC.value = resSoportesHC.data.data || [];
+    } catch {
+        soportesHC.value = [];
+    }
 
-    const resSoportesHC = await axios.get("/api/listar-soportes-hc-estudio?id=" + id);
-    soportesHC.value = resSoportesHC.data.data;
-
-    audiosDeEstudio.value = [];
-    listarAudios();
-    btnCerralModalForm();
     errores.value = {};
+
+    sidebarVisible.value = true;
     loadingAbrirId.value = null;
 }
-function limpiar() {
-    actualizar.value = false;
-    tituloModal.value = "Nuevo registro";
-    registro.value.email_reportar = "";
-    registro.value.email = "";
 
-    $("#btnCerralModalForm").click();
+function btnCerrarModal() {
+    sidebarVisible.value = false;
     errores.value = {};
 }
-function btnCerralModalForm() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").toggleClass("shw-rside");
 
-    audiosDeEstudio.value = [];
-}
+useKeyboardShortcuts({
+    onSave: () => {
+        if (sidebarVisible.value && !loadingGuardar.value) {
+            guardarRegistro();
+        }
+    },
+    onEscape: () => {
+        if (sidebarVisible.value) {
+            btnCerrarModal();
+        }
+    },
+    onSearch: () => {
+        if (!sidebarVisible.value) {
+            listarPendientesTrascribir();
+        }
+    },
+});
 
 onMounted(async () => {
     listarMedicos();
     establecerSede();
-    busqueda.value.sede_id = sessionStorage.getItem("ST-sede");
+    emitter.on("sedeSeleccionada", onSedeSeleccionada);
+    emitter.on("lidiagThemeChanged", onThemeChanged);
+    if (!busqueda.value.sede_id && emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
     await listarUsuariosYSedes({
         set quienes_asignaron(v) {
             quienes_asignaron.value = v;
@@ -988,15 +1309,11 @@ onMounted(async () => {
             medicos.value = v;
         },
     });
-
-    emitter.on("sedeSeleccionada", (data) => {
-        busqueda.value.sede_id = data.idSede;
-        destroyDataTable();
-        listarPendientesTrascribir();
-    });
 });
 
 onBeforeUnmount(() => {
+    emitter.off("sedeSeleccionada", onSedeSeleccionada);
+    emitter.off("lidiagThemeChanged", onThemeChanged);
     destroyDataTable();
 });
 </script>
@@ -1005,22 +1322,138 @@ onBeforeUnmount(() => {
     position: fixed;
     right: -95%;
     width: 95%;
-    display: none;
     z-index: 1100;
     background: #ffffff;
     top: 0px;
     padding-bottom: 20px;
     height: 100%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
+    box-shadow: -5px 0 35px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .shw-rside {
-    right: 0px;
+    right: 0px !important;
     width: 95%;
-    display: block;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1050;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
+/* ============================================================== */
+/* Modo Zen / Pantalla Completa (100% viewport)                   */
+/* ============================================================== */
+.right-sidebar.zen-mode {
+    width: 100% !important;
+    right: 0 !important;
+    height: 100% !important;
+    z-index: 2500 !important;
+}
+
+/* ============================================================== */
+/* Modo Oscuro / Radiología (Dark Mode para entorno PACS)         */
+/* ============================================================== */
+.right-sidebar.dark-mode {
+    background: #181a20 !important;
+    color: #e2e8f0 !important;
+}
+
+.right-sidebar.dark-mode .rpanel-title {
+    background: #12141a !important;
+    color: #f1f5f9 !important;
+    border-bottom: 1px solid #2d3343 !important;
+}
+
+.right-sidebar.dark-mode .r-panel-body {
+    background: #181a20 !important;
+}
+
+.right-sidebar.dark-mode hr {
+    border-top-color: #2d3343 !important;
+}
+
+.right-sidebar.dark-mode dt,
+.right-sidebar.dark-mode label {
+    color: #cbd5e1 !important;
+}
+
+.right-sidebar.dark-mode dd,
+.right-sidebar.dark-mode p,
+.right-sidebar.dark-mode span,
+.right-sidebar.dark-mode li {
+    color: #e2e8f0;
+}
+
+.right-sidebar.dark-mode .form-control {
+    background-color: #222632 !important;
+    color: #f8fafc !important;
+    border-color: #3b4254 !important;
+}
+
+.right-sidebar.dark-mode .form-control:focus {
+    background-color: #262b38 !important;
+    border-color: #00bcd4 !important;
+    color: #ffffff !important;
+}
+
+.right-sidebar.dark-mode .list-group-item {
+    background-color: #222632 !important;
+    border-color: #2d3343 !important;
+    color: #e2e8f0 !important;
+}
+
+.right-sidebar.dark-mode .table {
+    color: #e2e8f0 !important;
+}
+
+.right-sidebar.dark-mode .table-bordered,
+.right-sidebar.dark-mode .table-bordered th,
+.right-sidebar.dark-mode .table-bordered td {
+    border-color: #2d3343 !important;
+}
+
+.right-sidebar.dark-mode :deep(.wysihtml5-toolbar) {
+    background: #222632 !important;
+    border-color: #3b4254 !important;
+    padding: 6px !important;
+    border-radius: 4px 4px 0 0 !important;
+}
+
+.right-sidebar.dark-mode :deep(.wysihtml5-toolbar .btn) {
+    background-color: #2d3343 !important;
+    border-color: #3b4254 !important;
+    color: #f1f5f9 !important;
+}
+
+.right-sidebar.dark-mode :deep(.wysihtml5-toolbar .btn:hover) {
+    background-color: #3b4254 !important;
+    color: #38bdf8 !important;
+}
+
+.right-sidebar.dark-mode :deep(.wysihtml5-sandbox) {
+    border-color: #3b4254 !important;
+    background-color: #1e222b !important;
 }
 </style>

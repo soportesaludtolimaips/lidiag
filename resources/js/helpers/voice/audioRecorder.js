@@ -1,7 +1,6 @@
 /**
  * Audio recorder helper (sin librerías externas).
  * Reutilizable en cualquier componente Vue.
- *
  * Uso:
  *   const session = await createAudioRecorderSession();
  *   session.start();
@@ -11,17 +10,37 @@
 
 import { createAudioRecorderWorkerSession, isWorkerSupported } from "./audioRecorderWorkerSession";
 
+/**
+ * Crea una sesion de grabacion de audio usando un Web Worker si es soportado, con fallback al hilo principal.
+ *
+ * @param object $opts Opciones de la grabacion (constraints, mimeType, audioBitsPerSecond).
+ *
+ * @returns {Promise<object>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 export async function createAudioRecorderSessionSmart(opts = {}) {
     if (isWorkerSupported()) {
         try {
             return await createAudioRecorderWorkerSession(opts);
-        } catch (e) {
+        } catch {
             // fallback a main thread
         }
     }
     return createAudioRecorderSession(opts);
 }
 
+/**
+ * Devuelve las restricciones de audio recomendadas (cancelacion de eco, supresion de ruido y auto-gain).
+ *
+ * @returns {object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 export function getVoiceAudioConstraints() {
     return {
         audio: {
@@ -32,6 +51,15 @@ export function getVoiceAudioConstraints() {
     };
 }
 
+/**
+ * Indica si el navegador soporta navigator.mediaDevices.getUserMedia.
+ *
+ * @returns {boolean}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 export function isGetUserMediaSupported() {
     return !!(
         navigator &&
@@ -40,6 +68,17 @@ export function isGetUserMediaSupported() {
     );
 }
 
+/**
+ * Crea una sesion de grabacion de audio en el hilo principal con controles de inicio, pausa, reanudacion, detencion y limpieza.
+ *
+ * @param object $opts Opciones (constraints, mimeType, audioBitsPerSecond).
+ *
+ * @returns {object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 export async function createAudioRecorderSession({
     constraints = getVoiceAudioConstraints(),
     mimeType = "audio/wav",
@@ -54,7 +93,7 @@ export async function createAudioRecorderSession({
     let mediaRecorder;
     try {
         mediaRecorder = new MediaRecorder(stream, { mimeType, audioBitsPerSecond });
-    } catch (e) {
+    } catch {
         // Fallback (por compatibilidad de mimeType)
         mediaRecorder = new MediaRecorder(stream);
     }
@@ -64,7 +103,19 @@ export async function createAudioRecorderSession({
         if (event && event.data && event.data.size) chunks.push(event.data);
     };
 
+    let autoResumeTimer = null;
+    let isRecording = false;
+    mediaRecorder.onpause = () => {
+        clearTimeout(autoResumeTimer);
+        autoResumeTimer = setTimeout(() => {
+            if (mediaRecorder && mediaRecorder.state === "paused" && isRecording) {
+                mediaRecorder.resume();
+            }
+        }, 500);
+    };
+
     const start = () => {
+        isRecording = true;
         mediaRecorder.start();
     };
 
@@ -80,6 +131,8 @@ export async function createAudioRecorderSession({
 
     const stop = () =>
         new Promise((resolve) => {
+            isRecording = false;
+            clearTimeout(autoResumeTimer);
             if (!mediaRecorder || mediaRecorder.state === "inactive") {
                 resolve({ blob: null, url: null, chunks, revoke: () => {} });
                 return;
@@ -88,16 +141,31 @@ export async function createAudioRecorderSession({
                 const blob = new Blob(chunks, { type: "audio/webm" });
                 const url = URL.createObjectURL(blob);
                 lastUrl = url;
-                resolve({ blob, url, chunks, revoke: () => { if (lastUrl) { URL.revokeObjectURL(lastUrl); lastUrl = null; } } });
+                resolve({
+                    blob,
+                    url,
+                    chunks,
+                    revoke: () => {
+                        if (lastUrl) {
+                            URL.revokeObjectURL(lastUrl);
+                            lastUrl = null;
+                        }
+                    },
+                });
             };
             mediaRecorder.stop();
         });
 
     const cleanup = () => {
+        isRecording = false;
+        clearTimeout(autoResumeTimer);
         try {
             if (stream && stream.getTracks) stream.getTracks().forEach((t) => t.stop());
-        } catch (e) {}
-        if (lastUrl) { URL.revokeObjectURL(lastUrl); lastUrl = null; }
+        } catch {}
+        if (lastUrl) {
+            URL.revokeObjectURL(lastUrl);
+            lastUrl = null;
+        }
     };
 
     return { stream, mediaRecorder, chunks, start, pause, resume, stop, cleanup };

@@ -1,9 +1,7 @@
 /**
  * Audio Recording Web Worker - Lidiag Dragon
- *
  * Web Worker dedicado para grabación de audio continua
  * Funciona en hilo separado para evitar pausas al cambiar de pestaña
- *
  * Uso:
  *   const worker = new AudioRecordingWorker();
  *   worker.start();
@@ -18,11 +16,19 @@ let stream = null;
 let chunks = [];
 let isRecording = false;
 let isPaused = false;
-let intervalId = null;
 let chunkCounter = 0;
 let sessionId = null;
 let resumeTimeoutId = null;
 
+/**
+ * Devuelve el tipo MIME de audio soportado por MediaRecorder, en orden de preferencia.
+ *
+ * @returns {string}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-06
+ */
 function getMimeType() {
     const types = [
         "audio/wav",
@@ -41,6 +47,15 @@ function getMimeType() {
     return "audio/webm";
 }
 
+/**
+ * Inicia la grabacion de audio en el Worker solicitando el microfono y configurando MediaRecorder.
+ *
+ * @returns {object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-06
+ */
 async function iniciarGrabacion() {
     if (isRecording) return { success: false, error: "ya_esta_grabando" };
 
@@ -64,7 +79,7 @@ async function iniciarGrabacion() {
                 mimeType: mimeType,
                 audioBitsPerSecond: 64000,
             });
-        } catch (e) {
+        } catch {
             mediaRecorder = new MediaRecorder(stream);
         }
 
@@ -133,6 +148,15 @@ async function iniciarGrabacion() {
     }
 }
 
+/**
+ * Pausa la grabacion de audio en curso y notifica el cambio de estado.
+ *
+ * @returns {object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-06
+ */
 function pausarGrabacion() {
     if (!isRecording || isPaused) return { success: false };
 
@@ -143,6 +167,15 @@ function pausarGrabacion() {
     return { success: true };
 }
 
+/**
+ * Reanuda la grabacion de audio previamente pausada y notifica el cambio de estado.
+ *
+ * @returns {object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-06
+ */
 function reanudarGrabacion() {
     if (!isRecording || !isPaused) return { success: false };
 
@@ -153,6 +186,15 @@ function reanudarGrabacion() {
     return { success: true };
 }
 
+/**
+ * Detiene la grabacion, libera las pistas del microfono y devuelve el blob de audio resultante.
+ *
+ * @returns {Promise<object>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-06
+ */
 async function detenerGrabacion() {
     if (!isRecording) return { success: false };
 
@@ -188,6 +230,15 @@ async function detenerGrabacion() {
     });
 }
 
+/**
+ * Devuelve el estado actual de la grabacion (grabando, pausado, sesion y conteo de fragmentos).
+ *
+ * @returns {object}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-06
+ */
 function obtenerEstado() {
     return {
         isRecording: isRecording,
@@ -197,8 +248,19 @@ function obtenerEstado() {
     };
 }
 
+/**
+ * Maneja los mensajes entrantes del hilo principal y ejecuta la accion de grabacion correspondiente.
+ *
+ * @param object $event Evento del mensaje con la accion y los datos.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-06
+ */
 ctx.onmessage = async (event) => {
-    const { action, data } = event.data;
+    const { action } = event.data;
 
     let result;
 

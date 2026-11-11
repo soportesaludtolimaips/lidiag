@@ -21,6 +21,15 @@ class ConfigTipoDocumento extends Model
         'estado' => 'boolean',
     ];
 
+    /**
+     * Pacientes con este tipo de documento.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\HasMany
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function pacientes()
     {
         return $this->hasMany(Paciente::class);

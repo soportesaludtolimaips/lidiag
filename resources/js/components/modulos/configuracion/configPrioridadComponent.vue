@@ -1,17 +1,26 @@
 <template>
     <div>
-        <!-- ============================================================== -->
-        <!-- Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Configuración</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Configuración</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Configuración
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Prioridades</li>
                 </ol>
@@ -19,28 +28,24 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
+                    class="btn btn-outline-secondary m-r-5"
+                    @click="ListarDatos"
+                    :disabled="loadingListar"
+                    title="Actualizar listado"
+                >
+                    <i class="fa" :class="loadingListar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                    Refrescar
+                </button>
+                <button
+                    type="button"
                     class="btn btn-info btnDesplegarRigthSidebar"
-                    @click="
-                        actualizar = false;
-                        mostrarRegistro();
-                    "
+                    @click="prepararNuevo"
                 >
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
             </div>
-            <!-- <div class="">
-                    <button class="right-side-toggle btn-info btn btn-circle btn-sm">
-                        <i class="fa fa-plus-circle m-r-5"></i>
-                    </button>
-                </div> -->
         </div>
-        <!-- ============================================================== -->
-        <!-- End Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Start Page Content -->
-        <!-- ============================================================== -->
         <div class="row">
             <div class="col-12">
                 <div class="card">
@@ -48,11 +53,24 @@
                         <h4 class="card-title">Listado de prioridades</h4>
                         <h6 class="card-subtitle">
                             Administración para la priorización de las lecturas de los estudios
-                            radiologicos.
+                            radiológicos.
                         </h6>
-                        <div class="table-responsive m-t-40">
+                        <table-skeleton-loader :visible="loadingListar" :rows="5" :columns="5" />
+                        <empty-state-component
+                            v-if="!loadingListar && registros.length === 0"
+                            icon="fa fa-flag-o"
+                            title="No hay prioridades registradas"
+                            description="No se encontraron prioridades en el sistema."
+                            action-text="Nuevo registro"
+                            action-icon="fa fa-plus"
+                            @action="prepararNuevo"
+                        />
+                        <div
+                            v-show="!loadingListar && registros.length > 0"
+                            class="table-responsive m-t-40"
+                        >
                             <table
-                                id="example23"
+                                id="tablaPrioridades"
                                 ref="dt"
                                 class="display nowrap table table-hover table-striped table-bordered"
                                 cellspacing="0"
@@ -60,7 +78,7 @@
                             >
                                 <thead>
                                     <tr>
-                                        <th width="150px">Prioridas</th>
+                                        <th width="150px">Prioridad</th>
                                         <th>Nivel</th>
                                         <th>Tiempo en segundos</th>
                                         <th>Estado</th>
@@ -84,17 +102,14 @@
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                @click="
-                                                    actualizar = true;
-                                                    mostrarRegistro(item);
-                                                "
+                                                @click="prepararEdicion(item)"
                                             >
                                                 <i class="fa fa-pencil"></i>
                                             </button>
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                @click="elimnarRegistro(item.id)"
+                                                @click="eliminarRegistro(item.id, item.nom_priori)"
                                                 :disabled="loadingEliminarId === item.id"
                                             >
                                                 <i
@@ -115,38 +130,41 @@
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End PAge Content -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Right sidebar -->
-        <!-- ============================================================== -->
-        <!-- .right-sidebar -->
-        <div class="right-sidebar" style="width: 400px">
+        <!-- Backdrop overlay para cerrar al hacer clic afuera -->
+        <div v-if="sidebarVisible" class="sidebar-backdrop" @click="cerrarSidebar"></div>
+
+        <div class="right-sidebar" :class="{ 'shw-rside': sidebarVisible }" ref="sidebarRef">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
-                    <span>
-                        <i class="ti-close right-side-toggle" id="btnCerralModalForm"></i>
-                    </span>
+                    <button
+                        type="button"
+                        class="right-side-toggle"
+                        @click="cerrarSidebar"
+                        aria-label="Cerrar panel"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
                 </div>
                 <div class="r-panel-body">
-                    <!-- ============================================================== -->
-                    <!-- Aqui va el contenido de los formularios -->
-                    <!-- ============================================================== -->
-                    <form action="#">
+                    <form action="#" @submit.prevent="guardarRegistro()">
                         <div class="form-body">
                             <div class="row p-t-20">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Prioridad</label>
+                                        <label class="control-label" for="nom_priori"
+                                            >Prioridad</label
+                                        >
                                         <input
                                             type="text"
                                             id="nom_priori"
                                             name="nom_priori"
                                             v-model="registro.nom_priori"
                                             class="form-control"
+                                            :class="{
+                                                'is-invalid': errores.nom_priori,
+                                            }"
                                             placeholder="Prioridad"
                                         />
                                         <span class="text-danger" v-if="errores.nom_priori">{{
@@ -157,30 +175,32 @@
                             </div>
 
                             <div class="row">
-                                <div class="col-md-3">
+                                <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="control-label">Nivel</label>
+                                        <label class="control-label" for="nivel">Nivel</label>
                                         <input
                                             type="number"
                                             id="nivel"
                                             name="nivel"
                                             v-model="registro.nivel"
                                             class="form-control"
+                                            :class="{ 'is-invalid': errores.nivel }"
                                         />
                                         <span class="text-danger" v-if="errores.nivel">{{
                                             errores.nivel[0]
                                         }}</span>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="control-label">Tiempo</label>
+                                        <label class="control-label" for="tiempo">Tiempo</label>
                                         <input
                                             type="number"
                                             id="tiempo"
                                             name="tiempo"
                                             v-model="registro.tiempo"
                                             class="form-control"
+                                            :class="{ 'is-invalid': errores.tiempo }"
                                         />
                                         <span class="text-danger" v-if="errores.tiempo">{{
                                             errores.tiempo[0]
@@ -211,7 +231,7 @@
                                 <button
                                     type="button"
                                     class="btn btn-success m-r-5"
-                                    @click="guardarRegistro()"
+                                    @click="guardarRegistro"
                                     v-if="!actualizar"
                                     :disabled="loadingGuardar"
                                 >
@@ -226,7 +246,7 @@
                                     type="button"
                                     class="btn btn-warning m-r-5"
                                     v-if="actualizar"
-                                    @click="guardarRegistro()"
+                                    @click="guardarRegistro"
                                     :disabled="loadingGuardar"
                                 >
                                     <i
@@ -239,9 +259,9 @@
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    @click="btnCerralModalForm()"
+                                    @click="cerrarSidebar"
                                 >
-                                    Cancel
+                                    Cancelar
                                 </button>
                             </div>
                         </div>
@@ -249,23 +269,18 @@
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Right sidebar -->
-        <!-- ============================================================== -->
     </div>
 </template>
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 const dt = ref(null);
+const sidebarRef = ref(null);
+const sidebarVisible = ref(false);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import {
-    alertError,
-    alertSuccess,
-    confirmAction,
-    handleAxiosErrorToast,
-} from "@/helpers/alerts.js";
+import { confirmAction, toastMessage } from "@/helpers/alerts.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import axios from "axios";
 
 const id = ref(0);
@@ -273,117 +288,173 @@ const registros = ref([]);
 const registro = ref({ nom_priori: "", nivel: 0, tiempo: 0, estado: true });
 const tituloModal = ref("Nuevo registro");
 const actualizar = ref(false);
-const errores = ref({});
 const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
 
+useKeyboardShortcuts({
+    onSearch: () => {
+        if (!sidebarVisible.value) {
+            ListarDatos();
+        }
+    },
+    onSave: () => {
+        if (sidebarVisible.value) {
+            guardarRegistro();
+        }
+    },
+    onEscape: cerrarSidebar,
+    isActive: () => true,
+    isLoading: loadingGuardar,
+});
+
+const errores = ref({});
+
+function clearErrors() {
+    errores.value = {};
+}
+
+function setErrors(newErrors) {
+    errores.value = newErrors || {};
+}
+
 async function ListarDatos() {
     if (loadingListar.value) return;
     loadingListar.value = true;
+    clearErrors();
     try {
         const res = await axios.get("/api/config-prioridades");
-        safeDestroyDataTable(dt.value || "#example23");
-        registros.value = res.data.data;
+        safeDestroyDataTable(dt.value || "#tablaPrioridades");
+        registros.value = res.data?.data || res.data || [];
         nextTick(() => {
-            safeInitDataTable(dt.value || "#example23", {
+            safeInitDataTable(dt.value || "#tablaPrioridades", {
                 dom: "Bfrtip",
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
         });
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar prioridades.");
         registros.value = [];
+        toastMessage({
+            heading: "Error",
+            text: error?.response?.data?.message || "No fue posible cargar las prioridades.",
+            icon: "error",
+        });
     } finally {
         loadingListar.value = false;
     }
 }
+
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
+    clearErrors();
     loadingGuardar.value = true;
     try {
+        let res;
         if (actualizar.value === false) {
-            const res = await axios.post("/api/config-prioridades", registro.value);
-
-            if (res.status == 200) {
-                ListarDatos();
-
-                $.toast({
-                    heading: "Ok!!!",
-                    text: res.data.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
-            }
+            res = await axios.post("/api/config-prioridades", registro.value);
         } else {
-            const res = await axios.put("/api/config-prioridades/" + id.value, registro.value);
-            if (res.status == 200) {
-                ListarDatos();
+            res = await axios.put("/api/config-prioridades/" + id.value, registro.value);
+        }
 
-                $.toast({
-                    heading: "Ok!!!",
-                    text: res.data.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
-            }
+        if (res.status >= 200 && res.status < 300) {
+            ListarDatos();
+            toastMessage({
+                heading: "Completado",
+                text: actualizar.value
+                    ? "Prioridad actualizada correctamente."
+                    : "Prioridad guardada correctamente.",
+                icon: "success",
+            });
+            cerrarSidebar();
+            limpiar();
         }
     } catch (error) {
-        errores.value = error?.response?.data?.errors || {};
-        handleAxiosErrorToast(error, "No fue posible guardar la prioridad.");
+        if (error.response?.status === 422) {
+            setErrors(error.response.data.errors || {});
+        } else {
+            toastMessage({
+                heading: "Error",
+                text: error.response?.data?.message || "No fue posible guardar la prioridad.",
+                icon: "error",
+            });
+        }
     } finally {
         loadingGuardar.value = false;
     }
 }
-async function elimnarRegistro(id) {
+
+async function eliminarRegistro(idEliminar, nom) {
     const ok = await confirmAction({
-        title: "¿Estas seguro?",
+        title: `¿Estás seguro de eliminar la prioridad "${nom}"?`,
         text: "No podrás recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;
-
+    if (loadingEliminarId.value) return;
+    loadingEliminarId.value = idEliminar;
     try {
-        if (loadingEliminarId.value) return;
-        loadingEliminarId.value = id;
-        const response = await axios.delete("/api/config-prioridades/" + id);
-        alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
+        const response = await axios.delete("/api/config-prioridades/" + idEliminar);
+        toastMessage({
+            heading: "Ok!",
+            text: response?.data?.message || "Registro eliminado.",
+            icon: "success",
+        });
         ListarDatos();
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible eliminar el registro.");
-        alertError("Error", "No fue posible eliminar el registro.", "error");
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible eliminar el registro.",
+            icon: "error",
+        });
     } finally {
         loadingEliminarId.value = null;
     }
 }
-function mostrarRegistro(data = {}) {
-    if (actualizar.value) {
-        tituloModal.value = "Actualizar el registro: " + data.nivel;
-        id.value = data.id;
-        registro.value.nom_priori = data.nom_priori;
-        registro.value.nivel = data.nivel;
-        registro.value.tiempo = data.tiempo || 0;
-        registro.value.estado = Boolean(data.estado);
-        $("#btnCerralModalForm").click();
-    } else {
-        actualizar.value = false;
-        tituloModal.value = "Nuevo registro";
-        id.value = 0;
-        registro.value.nom_priori = "";
-        registro.value.nivel = 0;
-        registro.value.tiempo = 0;
-        registro.value.estado = true;
-        $("#btnCerralModalForm").click();
-    }
+
+function prepararEdicion(item) {
+    actualizar.value = true;
+    tituloModal.value = "Actualizar el registro: " + item.nom_priori;
+    id.value = item.id;
+    registro.value.nom_priori = item.nom_priori;
+    registro.value.nivel = item.nivel;
+    registro.value.tiempo = item.tiempo || 0;
+    registro.value.estado = Boolean(item.estado);
+    clearErrors();
+    abrirSidebar();
 }
-function btnCerralModalForm() {
-    $("#btnCerralModalForm").click();
+
+function prepararNuevo() {
+    actualizar.value = false;
+    tituloModal.value = "Nuevo registro";
+    id.value = 0;
+    registro.value.nom_priori = "";
+    registro.value.nivel = 0;
+    registro.value.tiempo = 0;
+    registro.value.estado = true;
+    clearErrors();
+    abrirSidebar();
+}
+
+function limpiar() {
+    actualizar.value = false;
+    tituloModal.value = "Nuevo registro";
+    id.value = 0;
+    registro.value.nom_priori = "";
+    registro.value.nivel = 0;
+    registro.value.tiempo = 0;
+    registro.value.estado = true;
+    clearErrors();
+}
+
+function abrirSidebar() {
+    sidebarVisible.value = true;
+    nextTick(() => {
+        document.getElementById("nom_priori")?.focus();
+    });
+}
+
+function cerrarSidebar() {
+    sidebarVisible.value = false;
 }
 
 onMounted(() => {
@@ -391,6 +462,47 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-    safeDestroyDataTable(dt.value || "#example23");
+    safeDestroyDataTable(dt.value || "#tablaPrioridades");
 });
 </script>
+<style scoped>
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1090;
+}
+
+.right-sidebar {
+    position: fixed;
+    right: -450px;
+    width: 450px;
+    z-index: 1100;
+    background: #ffffff;
+    top: 0px;
+    padding-bottom: 20px;
+    height: 100%;
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.shw-rside {
+    right: 0px !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+@media (max-width: 767px) {
+    .right-sidebar {
+        width: 100% !important;
+        right: -100% !important;
+    }
+}
+</style>

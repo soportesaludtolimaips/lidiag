@@ -4,8 +4,23 @@
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Helpdesk</h3>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
-                    <li class="breadcrumb-item"><a href="/helpdesk-tickets">Tickets</a></li>
+                    <li class="breadcrumb-item">
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <router-link
+                            to="/helpdesk-tickets"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Tickets
+                        </router-link>
+                    </li>
                     <li class="breadcrumb-item active">Crear</li>
                 </ol>
             </div>
@@ -117,34 +132,31 @@
                                     <div class="col-md-12">
                                         <div class="form-group">
                                             <label for="crearDescripcion">Descripción</label>
-                                            <textarea
-                                                id="crearDescripcion"
-                                                v-model="form.descripcion"
-                                                class="form-control textarea_editor"
-                                                rows="6"
-                                            ></textarea>
+                                            <WysiwygEditor v-model="form.descripcion" :rows="6" />
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="form-actions">
+                                <div class="form-actions mt-3">
                                     <button
                                         type="submit"
-                                        class="btn btn-success"
+                                        class="btn btn-success m-r-5"
                                         :disabled="loading"
+                                        title="Guardar ticket"
                                     >
                                         <i v-if="loading" class="fa fa-spinner fa-spin"></i>
                                         <i v-else class="fa fa-check"></i>
                                         Guardar
                                     </button>
-                                    <a
-                                        href="/helpdesk-tickets"
-                                        class="btn btn-inverse m-l-5"
+                                    <router-link
+                                        to="/helpdesk-tickets"
+                                        class="btn btn-inverse"
                                         :class="{ disabled: loading }"
                                         tabindex="0"
+                                        title="Cancelar y volver"
                                     >
                                         Cancelar
-                                    </a>
+                                    </router-link>
                                 </div>
                             </div>
                         </form>
@@ -155,13 +167,22 @@
     </div>
 </template>
 <script setup>
-import { getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { nextTick, onMounted, onBeforeUnmount, ref, getCurrentInstance } from "vue";
+import { useRouter } from "vue-router";
 
-import { toastMessage, handleAxiosErrorToast } from "@/helpers/alerts.js";
-import { initWysiwyg, getWysiwygValue, isHtmlEffectivelyEmpty } from "@/helpers/wysiwyg.js";
+import { toastMessage } from "@/helpers/alerts.js";
+import { isHtmlEffectivelyEmpty } from "@/helpers/wysiwyg.js";
+import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import { helpdesk } from "@/helpers/api.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 
 const { proxy } = getCurrentInstance();
+const router = useRouter();
+
+function obtenerSedeActiva() {
+    return sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "";
+}
+
 const loading = ref(false);
 const categorias = ref([]);
 const prioridades = ref([]);
@@ -174,26 +195,34 @@ const form = ref({
     categoria_id: "",
     prioridad_id: "",
     asignado_id: "",
-    sede_id: "",
+    sede_id: obtenerSedeActiva(),
 });
 
-function getDescripcionFromEditor() {
-    return getWysiwygValue(proxy.$el) || form.value.descripcion || "";
-}
 async function cargar() {
     try {
-        const [cats, prios, asignables] = await Promise.all([
+        const [cats, prios, asignablesRes] = await Promise.all([
             helpdesk.categorias(),
             helpdesk.prioridades(),
             helpdesk.asignables(),
         ]);
-        categorias.value = (cats.data || []).filter((x) => x.activo);
-        prioridades.value = (prios.data || []).filter((x) => x.activo);
-        asignables.value = asignables.data || [];
-    } catch (error) {
-        handleAxiosErrorToast(error, "No se pudieron cargar datos para el formulario.");
+        const extractArray = (res) =>
+            Array.isArray(res?.data?.data)
+                ? res.data.data
+                : Array.isArray(res?.data)
+                  ? res.data
+                  : [];
+        categorias.value = extractArray(cats).filter((x) => x.activo);
+        prioridades.value = extractArray(prios).filter((x) => x.activo);
+        asignables.value = extractArray(asignablesRes);
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudieron cargar los catálogos.",
+            icon: "error",
+        });
     }
 }
+
 async function guardar() {
     if (!form.value.sede_id) {
         toastMessage({
@@ -239,8 +268,6 @@ async function guardar() {
         nextTick(() => document.getElementById("crearAsignado")?.focus());
         return;
     }
-    // Importante: WYSIHTML5 usa iframe; sincronizamos el valor real antes de validar.
-    form.value.descripcion = getDescripcionFromEditor();
     if (isHtmlEffectivelyEmpty(form.value.descripcion)) {
         toastMessage({
             heading: "Upss!!!",
@@ -262,7 +289,7 @@ async function guardar() {
             asignado_id: form.value.asignado_id,
         });
 
-        const ticket = res.data.data;
+        const ticket = res.data?.data ?? res.data;
 
         // Adjuntos iniciales (si hay)
         const input = files.value;
@@ -275,39 +302,71 @@ async function guardar() {
         }
 
         toastMessage({
-            heading: "Ok",
+            heading: "Listo",
             text: `Se creó el ticket ${ticket.folio || "#" + ticket.id}.`,
             icon: "success",
         });
-        window.location.href = `/helpdesk-tickets/${ticket.id}`;
-    } catch (error) {
-        handleAxiosErrorToast(error, "No se pudo crear el ticket.");
+        if (router) {
+            router.push(`/helpdesk-tickets/${ticket.id}`);
+        } else {
+            window.location.href = `/helpdesk-tickets/${ticket.id}`;
+        }
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudo crear el ticket.",
+            icon: "error",
+        });
     } finally {
         loading.value = false;
     }
 }
 
-onMounted(async () => {
-    nextTick(() => initWysiwyg());
+function volver() {
+    if (router) {
+        router.push("/helpdesk-tickets");
+    } else {
+        window.location.href = "/helpdesk-tickets";
+    }
+}
 
+useKeyboardShortcuts({
+    onSave: () => {
+        if (!loading.value) {
+            guardar();
+        }
+    },
+    onEscape: () => {
+        volver();
+    },
+});
+
+function onSedeSeleccionada(event) {
+    const rawSede =
+        event?.sede ??
+        (typeof event === "object" ? event.idSede || event.id : event) ??
+        obtenerSedeActiva();
+    if (!rawSede) return;
+    form.value.sede_id = String(rawSede);
+}
+
+onMounted(async () => {
+    proxy?.emitter?.on("sedeSeleccionada", onSedeSeleccionada);
     try {
-        const sedeActiva = sessionStorage.getItem("ST-sede");
-        if (sedeActiva) form.value.sede_id = sedeActiva;
+        const sedeActiva = obtenerSedeActiva();
+        if (sedeActiva) {
+            form.value.sede_id = sedeActiva;
+        } else {
+            proxy?.emitter?.emit("solicitarSedeActiva");
+        }
     } catch (e) {
-        console.warn("No se pudo leer sede activa de sessionStorage", e);
+        console.warn("No se pudo leer sede activa de storage", e);
     }
 
     await cargar();
 });
 
 onBeforeUnmount(() => {
-    try {
-        const $root = $(proxy.$el);
-        $root.find(".textarea_editor").each((_, el) => {
-            const $el = $(el);
-            const inst = $el.data("wysihtml5");
-            if (inst && inst.editor) inst.editor.destroy();
-        });
-    } catch (_) {}
+    proxy?.emitter?.off("sedeSeleccionada", onSedeSeleccionada);
 });
 </script>

@@ -26,6 +26,9 @@ class ConsentimientoDocumentoService extends BaseService
     /** Vida por defecto del enlace de firma del paciente. */
     private const TOKEN_TTL_MINUTOS = 10;
 
+    /** Lado máximo, en píxeles, de la imagen de la firma. */
+    private const FIRMA_MAX_LADO_PX = 2048;
+
     private const FIRMAS_DISK = 'firmas_consntimientos';
 
     private const PDF_DISK = 'files_consentimientos';
@@ -278,6 +281,19 @@ class ConsentimientoDocumentoService extends BaseService
         }
 
         return $this->transaction(function () use ($doc, $tokenRow, $filename, $ip) {
+            // La comprobación del enlace de arriba y esta escritura no son atómicas: si otra petición con el mismo
+            // enlace llegó en medio, aquí se detecta (con las filas bloqueadas) y esta ya no firma.
+            $tokenRow = ConsentimientoDocumentoToken::query()->whereKey($tokenRow->getKey())->lockForUpdate()->first();
+            $doc = ConsentimientoDocumento::query()->whereKey($doc->getKey())->lockForUpdate()->first();
+
+            if (! $tokenRow || ! $doc || ! $tokenRow->activo
+                || $tokenRow->usos_actuales >= $tokenRow->usos_maximos
+                || $doc->estado !== 'PENDIENTE_PACIENTE') {
+                Storage::disk(self::FIRMAS_DISK)->delete($filename);
+
+                return $this->error('Este enlace ya fue usado', 410);
+            }
+
             $doc->firma_paciente_path = self::FIRMAS_DISK.'/'.$filename;
             $doc->firma_paciente_at = now();
             $doc->ip_firma_paciente = $ip;
@@ -537,13 +553,19 @@ class ConsentimientoDocumentoService extends BaseService
             return $this->validationError(null, 'Firma inválida o demasiado grande.');
         }
 
-        $img = @imagecreatefromstring($decoded);
-        if (! $img || imagesx($img) > 2048 || imagesy($img) > 2048) {
-            if ($img) {
-                imagedestroy($img);
-            }
-
+        // El tamaño se lee de la CABECERA antes de decodificar: un PNG de unos pocos bytes puede declarar un tamaño
+        // enorme y decodificarlo (imagecreatefromstring) reservaría memoria hasta agotar la de la petición.
+        $info = @getimagesizefromstring($decoded);
+        if ($info === false || $info[2] !== IMAGETYPE_PNG) {
+            return $this->validationError(null, 'Formato inválido. Solo PNG.');
+        }
+        if ($info[0] > self::FIRMA_MAX_LADO_PX || $info[1] > self::FIRMA_MAX_LADO_PX) {
             return $this->validationError(null, 'Dimensiones excedidas (max 2048x2048).');
+        }
+
+        $img = @imagecreatefromstring($decoded);
+        if (! $img) {
+            return $this->validationError(null, 'Firma inválida o demasiado grande.');
         }
         imagedestroy($img);
 
@@ -613,7 +635,14 @@ class ConsentimientoDocumentoService extends BaseService
             '${observaciones}' => '',
         ];
 
-        $html = str_replace(array_keys($repl), array_values($repl), $html);
+        // Los valores son TEXTO, no HTML: se escapan para que ninguno (p. ej. un nombre con «<img onerror=…>»
+        // o con comillas dentro de un atributo) altere el documento legal ni la página pública de firma.
+        // El «$» se codifica para que lo escrito por una persona nunca se lea como un placeholder
+        // (${firma_paciente}, ${sede}…): solo la plantilla decide dónde va cada campo.
+        $repl = array_map(static fn (string $valor): string => str_replace('$', '&#36;', e($valor)), $repl);
+
+        // strtr sustituye en una sola pasada y no vuelve a leer el texto ya insertado.
+        $html = strtr($html, $repl);
 
         // Red de seguridad: placeholders sin dato -> línea en blanco (no literal).
         // Se excluyen los de firma (${firma_*}), que se incrustan luego como imagen.

@@ -1,176 +1,267 @@
 <template>
     <div>
+        <!-- ============================================================== -->
+        <!-- Bread crumb and right sidebar toggle -->
+        <!-- ============================================================== -->
         <div class="row page-titles">
-            <div class="col-md-6 align-self-center">
+            <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Ecografías</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <button type="button" class="btn btn-link p-0 breadcrumb-btn">
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
                             Inicio
                         </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <button type="button" class="btn btn-link p-0 breadcrumb-btn">
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
                             Ecografías
                         </button>
                     </li>
                     <li class="breadcrumb-item active">Plantillas Consentimientos</li>
                 </ol>
             </div>
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-info waves-effect waves-light"
+                    @click="listar"
+                    :disabled="loading"
+                    title="Actualizar listado de plantillas"
+                >
+                    <i class="fa" :class="loading ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                    Refrescar
+                </button>
+            </div>
         </div>
+        <!-- ============================================================== -->
+        <!-- End Bread crumb and right sidebar toggle -->
+        <!-- ============================================================== -->
 
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title">Plantillas (WYSIWYG)</h4>
-
-                <div class="row">
-                    <div class="col-md-4">
-                        <label for="config_modulo_id">Módulo</label>
-                        <select
-                            class="form-control"
-                            id="config_modulo_id"
-                            v-model="filtros.config_modulo_id"
-                        >
-                            <option value="">—</option>
-                            <option v-for="m in modulos" :key="m.id" :value="m.id">
-                                {{ m.modulo }}
-                            </option>
-                        </select>
+        <!-- ============================================================== -->
+        <!-- Start Page Content -->
+        <!-- ============================================================== -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h4 class="card-title text-themecolor mb-0">
+                                <i class="fa fa-filter"></i> Filtros para búsqueda de plantillas
+                            </h4>
+                            <button
+                                v-if="can('ecografias.consentimientos.plantillas.create')"
+                                class="btn btn-info waves-effect waves-light"
+                                type="button"
+                                @click="nuevo()"
+                            >
+                                <i class="fa fa-plus"></i> Nueva plantilla
+                            </button>
+                        </div>
+                        <form action="#" @submit.prevent="listar">
+                            <div class="form-body">
+                                <div class="row p-t-2">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="control-label" for="config_modulo_id">
+                                                Módulo
+                                            </label>
+                                            <select
+                                                class="form-control"
+                                                id="config_modulo_id"
+                                                v-model="filtros.config_modulo_id"
+                                            >
+                                                <option value="">—</option>
+                                                <option
+                                                    v-for="m in modulos"
+                                                    :key="m.id"
+                                                    :value="m.id"
+                                                >
+                                                    {{ m.modulo }}
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="control-label" for="busqueda_q">
+                                                Buscar
+                                            </label>
+                                            <input
+                                                id="busqueda_q"
+                                                class="form-control"
+                                                v-model="q"
+                                                placeholder="CUPS / Producto / Nombre"
+                                                @keyup.enter="listar"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button
+                                        class="btn btn-success waves-effect waves-light m-r-5"
+                                        type="button"
+                                        @click="listar"
+                                        :disabled="loading"
+                                    >
+                                        <i
+                                            class="fa mr-1"
+                                            :class="loading ? 'fa-spinner fa-spin' : 'fa-search'"
+                                        ></i>
+                                        {{ loading ? "Buscando..." : "Buscar" }}
+                                    </button>
+                                    <button
+                                        class="btn btn-inverse waves-effect waves-light"
+                                        type="button"
+                                        @click="btnLimpiar"
+                                        :disabled="loading"
+                                    >
+                                        <i class="fa fa-refresh mr-1"></i> Limpiar
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
                     </div>
-                    <div class="col-md-4">
-                        <label for="busqueda_q">Buscar</label>
-                        <input
-                            id="busqueda_q"
-                            class="form-control"
-                            v-model="q"
-                            placeholder="CUPS / Producto / Nombre"
-                        />
-                    </div>
-                    <div class="col-md-4 text-right">
-                        <button
-                            v-if="can('ecografias.consentimientos.plantillas.create')"
-                            class="btn btn-info mt-4"
-                            type="button"
-                            data-toggle="modal"
-                            data-target="#modal-plantilla"
-                            @click="nuevo()"
-                        >
-                            <i class="fa fa-plus"></i> Nueva plantilla
-                        </button>
-                    </div>
-                </div>
-
-                <div class="mt-3">
-                    <button
-                        class="btn btn-success"
-                        type="button"
-                        @click="listar"
-                        :disabled="loading"
-                    >
-                        <i class="fa" :class="loading ? 'fa-spinner fa-spin' : 'fa-search'"></i>
-                        Listar
-                    </button>
                 </div>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered table-striped">
-                        <thead>
-                            <tr>
-                                <th>Producto</th>
-                                <th>CUPS</th>
-                                <th>Nombre</th>
-                                <th>Versión</th>
-                                <th>Vigente</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="p in registros" :key="p.id">
-                                <td>{{ p.producto?.nom_produc || "—" }}</td>
-                                <td>{{ p.producto?.cod_cups || "—" }}</td>
-                                <td>{{ p.nombre }}</td>
-                                <td>{{ p.version }}</td>
-                                <td>
-                                    <span v-if="p.vigente" class="text-success">Sí</span>
-                                    <span v-else class="text-muted">No</span>
-                                </td>
-                                <td class="text-nowrap">
-                                    <button
-                                        class="btn btn-sm btn-info m-r-5"
-                                        type="button"
-                                        @click="previewPdf(p)"
-                                        :disabled="loadingPreviewId === p.id"
-                                        title="Vista previa PDF"
-                                        aria-label="Vista previa PDF"
-                                    >
-                                        <i
-                                            class="fa"
-                                            :class="
-                                                loadingPreviewId === p.id
-                                                    ? 'fa-spinner fa-spin'
-                                                    : 'fa-file-pdf-o'
-                                            "
-                                        ></i>
-                                    </button>
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">Listado de plantillas</h4>
+                        <h6 class="card-subtitle text-info">
+                            Gestión y versionado de plantillas de consentimientos.
+                        </h6>
+                        <table-skeleton-loader :visible="loading" :rows="5" :columns="6" />
+                        <empty-state-component
+                            v-if="!loading && registros.length === 0"
+                            icon="fa fa-file-code-o"
+                            title="No hay plantillas para mostrar"
+                            description="No se encontraron plantillas de consentimientos con los criterios de búsqueda seleccionados."
+                            action-text="Nueva plantilla"
+                            action-icon="fa fa-plus"
+                            @action="nuevo()"
+                        />
+                        <div class="table-responsive" v-show="!loading && registros.length > 0">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>CUPS</th>
+                                        <th>Nombre</th>
+                                        <th>Versión</th>
+                                        <th>Vigente</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="p in registros" :key="p.id">
+                                        <td>{{ p.producto?.nom_produc || "—" }}</td>
+                                        <td>{{ p.producto?.cod_cups || "—" }}</td>
+                                        <td>{{ p.nombre }}</td>
+                                        <td>{{ p.version }}</td>
+                                        <td>
+                                            <span v-if="p.vigente" class="text-success">Sí</span>
+                                            <span v-else class="text-muted">No</span>
+                                        </td>
+                                        <td class="text-nowrap">
+                                            <button
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
+                                                type="button"
+                                                @click="previewPdf(p)"
+                                                :disabled="loadingPreviewId === p.id"
+                                                title="Vista previa PDF"
+                                                aria-label="Vista previa PDF"
+                                            >
+                                                <i
+                                                    class="fa"
+                                                    :class="
+                                                        loadingPreviewId === p.id
+                                                            ? 'fa-spinner fa-spin'
+                                                            : 'fa-file-pdf-o'
+                                                    "
+                                                ></i>
+                                            </button>
 
-                                    <button
-                                        v-if="can('ecografias.consentimientos.plantillas.edit')"
-                                        class="btn btn-sm btn-warning m-r-5"
-                                        type="button"
-                                        data-toggle="modal"
-                                        data-target="#modal-plantilla"
-                                        @click="editar(p)"
-                                        title="Editar plantilla"
-                                        aria-label="Editar plantilla"
-                                    >
-                                        <i class="fa fa-pencil"></i>
-                                    </button>
+                                            <button
+                                                v-if="
+                                                    can(
+                                                        'ecografias.consentimientos.plantillas.edit'
+                                                    )
+                                                "
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
+                                                type="button"
+                                                @click="editar(p)"
+                                                title="Editar plantilla"
+                                                aria-label="Editar plantilla"
+                                            >
+                                                <i class="fa fa-pencil"></i>
+                                            </button>
 
-                                    <button
-                                        v-if="can('ecografias.consentimientos.plantillas.index')"
-                                        class="btn btn-sm btn-secondary m-r-5"
-                                        type="button"
-                                        @click="verVersiones(p)"
-                                        title="Histórico de versiones"
-                                        aria-label="Histórico de versiones"
-                                    >
-                                        <i class="fa fa-history"></i>
-                                    </button>
+                                            <button
+                                                v-if="
+                                                    can(
+                                                        'ecografias.consentimientos.plantillas.index'
+                                                    )
+                                                "
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-secondary btn-sm m-r-5"
+                                                type="button"
+                                                @click="verVersiones(p)"
+                                                title="Histórico de versiones"
+                                                aria-label="Histórico de versiones"
+                                            >
+                                                <i class="fa fa-history"></i>
+                                            </button>
 
-                                    <button
-                                        v-if="can('ecografias.consentimientos.plantillas.destroy')"
-                                        class="btn btn-sm btn-danger"
-                                        type="button"
-                                        @click="desactivar(p)"
-                                        title="Desactivar plantilla"
-                                        aria-label="Desactivar plantilla"
-                                    >
-                                        <i class="fa fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr v-if="registros.length === 0">
-                                <td colspan="6" class="text-center text-muted">Sin registros.</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                                            <button
+                                                v-if="
+                                                    can(
+                                                        'ecografias.consentimientos.plantillas.destroy'
+                                                    )
+                                                "
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
+                                                type="button"
+                                                @click="desactivar(p)"
+                                                title="Desactivar plantilla"
+                                                aria-label="Desactivar plantilla"
+                                            >
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr v-if="registros.length === 0">
+                                        <td colspan="6" class="text-center text-muted">
+                                            Sin registros.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Modal Plantilla -->
         <div
-            id="modal-plantilla"
             class="modal fade"
+            :class="{ show: modalPlantillaVisible }"
+            :style="{ display: modalPlantillaVisible ? 'block' : 'none' }"
+            id="modal-plantilla"
             tabindex="-1"
             role="dialog"
             aria-labelledby="modal-plantilla-title"
             aria-hidden="true"
-            style="display: none"
+            @click.self="cerrarModalPlantilla()"
         >
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -178,52 +269,65 @@
                         <h4 class="modal-title" id="modal-plantilla-title">
                             {{ form.id ? "Actualizar (nueva versión)" : "Nueva plantilla" }}
                         </h4>
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <button
+                            type="button"
+                            class="close"
+                            aria-label="Cerrar modal"
+                            @click="cerrarModalPlantilla()"
+                        >
                             ×
                         </button>
                     </div>
                     <div class="modal-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <label for="form_producto_id">Producto</label>
-                                <select
-                                    class="form-control"
-                                    id="form_producto_id"
-                                    v-model="form.producto_id"
-                                    :disabled="!!form.id"
-                                >
-                                    <option value="">—</option>
-                                    <option v-for="p in productos" :key="p.id" :value="p.id">
-                                        {{ p.cod_cups }} - {{ p.nom_produc }}
-                                    </option>
-                                </select>
+                                <div class="form-group">
+                                    <label class="control-label" for="form_producto_id">
+                                        Producto
+                                    </label>
+                                    <select
+                                        class="form-control"
+                                        id="form_producto_id"
+                                        v-model="form.producto_id"
+                                        :disabled="!!form.id"
+                                    >
+                                        <option value="">—</option>
+                                        <option v-for="p in productos" :key="p.id" :value="p.id">
+                                            {{ p.cod_cups }} - {{ p.nom_produc }}
+                                        </option>
+                                    </select>
+                                </div>
                             </div>
                             <div class="col-md-6">
-                                <label for="form_nombre">Nombre</label>
-                                <input
-                                    id="form_nombre"
-                                    class="form-control"
-                                    v-model="form.nombre"
-                                />
+                                <div class="form-group">
+                                    <label class="control-label" for="form_nombre">Nombre</label>
+                                    <input
+                                        id="form_nombre"
+                                        class="form-control"
+                                        v-model="form.nombre"
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        <div class="mt-3">
-                            <label for="form_html">Contenido</label>
-                            <textarea
-                                id="form_html"
-                                class="textarea_editor form-control"
-                                rows="10"
-                                v-model="form.html"
-                            ></textarea>
+                        <div class="form-group m-t-10">
+                            <label class="control-label" for="form_html">Contenido</label>
+                            <WysiwygEditor v-model="form.html" :rows="10" />
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button
-                            class="btn btn-success"
+                            class="btn btn-default waves-effect"
+                            type="button"
+                            @click="cerrarModalPlantilla()"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            class="btn btn-success waves-effect waves-light"
                             type="button"
                             @click="guardar"
-                            :disabled="loadingGuardar"
+                            :disabled="loadingGuardar || !form.producto_id"
                         >
                             <i
                                 class="fa"
@@ -231,23 +335,23 @@
                             ></i>
                             {{ loadingGuardar ? "Guardando…" : "Guardar" }}
                         </button>
-                        <button class="btn btn-default" type="button" data-dismiss="modal">
-                            Cerrar
-                        </button>
                     </div>
                 </div>
             </div>
         </div>
+        <div v-if="modalPlantillaVisible" class="modal-backdrop fade show"></div>
 
         <!-- Modal Versiones -->
         <div
-            id="modal-versiones"
             class="modal fade"
+            :class="{ show: modalVersionesVisible }"
+            :style="{ display: modalVersionesVisible ? 'block' : 'none' }"
+            id="modal-versiones"
             tabindex="-1"
             role="dialog"
             aria-labelledby="modal-versiones-title"
             aria-hidden="true"
-            style="display: none"
+            @click.self="cerrarModalVersiones()"
         >
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
@@ -255,12 +359,20 @@
                         <h4 class="modal-title" id="modal-versiones-title">
                             Histórico de versiones
                         </h4>
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <button
+                            type="button"
+                            class="close"
+                            aria-label="Cerrar modal"
+                            @click="cerrarModalVersiones()"
+                        >
                             ×
                         </button>
                     </div>
                     <div class="modal-body">
-                        <div v-if="loadingVersions" class="text-muted">Cargando…</div>
+                        <div v-if="loadingVersions" class="text-muted text-center py-3">
+                            <i class="fa fa-spinner fa-spin fa-2x"></i>
+                            <span class="d-block mt-2">Cargando versiones...</span>
+                        </div>
                         <div v-else class="table-responsive">
                             <table class="table table-bordered table-striped">
                                 <thead>
@@ -275,13 +387,15 @@
                                     <tr v-for="v in versions" :key="v.id">
                                         <td>{{ v.version }}</td>
                                         <td>
-                                            <span v-if="v.vigente" class="text-success">Sí</span>
-                                            <span v-else class="text-muted">No</span>
+                                            <span v-if="v.vigente" class="badge badge-success"
+                                                >Sí</span
+                                            >
+                                            <span v-else class="badge badge-secondary">No</span>
                                         </td>
                                         <td>{{ v.created_at }}</td>
                                         <td class="text-nowrap">
                                             <button
-                                                class="btn btn-sm btn-info m-r-5"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
                                                 type="button"
                                                 @click="previewPdf(v)"
                                                 title="Vista previa PDF"
@@ -296,9 +410,10 @@
                                                         'ecografias.consentimientos.plantillas.edit'
                                                     )
                                                 "
-                                                class="btn btn-sm btn-success"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-success btn-sm"
                                                 type="button"
                                                 @click="activarVersion(v)"
+                                                title="Activar como versión vigente"
                                             >
                                                 <i class="fa fa-check"></i> Activar
                                             </button>
@@ -314,24 +429,34 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn btn-default" type="button" data-dismiss="modal">
+                        <button
+                            class="btn btn-default waves-effect"
+                            type="button"
+                            @click="cerrarModalVersiones()"
+                        >
                             Cerrar
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+        <div v-if="modalVersionesVisible" class="modal-backdrop fade show"></div>
     </div>
 </template>
 <script setup>
-import { nextTick, onMounted, ref, getCurrentInstance } from "vue";
+import { nextTick, onMounted, ref } from "vue";
 
 import usePermissions from "@/helpers/permissions.js";
-import { handleAxiosErrorToast, confirmAction } from "@/helpers/alerts";
+import { confirmAction, toastMessage } from "@/helpers/alerts";
+import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 import axios from "axios";
 
-const props = defineProps({ usuarioactual: Object, permisos: Array });
-const { proxy } = getCurrentInstance();
+const props = defineProps({
+    usuarioactual: { type: Object, default: () => ({}) },
+    permisos: { type: Array, default: () => [] },
+});
+const { can } = usePermissions(props.permisos);
 
 const q = ref("");
 const loading = ref(false);
@@ -345,39 +470,69 @@ const form = ref({ id: null, producto_id: "", nombre: "", html: "" });
 const versions = ref([]);
 const loadingVersions = ref(false);
 const productoVersionsId = ref(null);
+const modalPlantillaVisible = ref(false);
+const modalVersionesVisible = ref(false);
 
-function initWysiwyg() {
-    try {
-        const $root = $(proxy.$el);
-        $root.find(".textarea_editor").each((_, el) => {
-            const $el = $(el);
-            if ($el.data("wysihtml5")) return;
-            if ($el.prevAll(".wysihtml5-toolbar").length) return;
-            $el.wysihtml5({ stylesheets: ["/lib/css/wysiwyg-color.css"] });
-        });
-    } catch (e) {}
+function cerrarModalPlantilla() {
+    modalPlantillaVisible.value = false;
 }
-function getHtmlFromEditor() {
-    try {
-        const $editor = $(proxy.$el).find("textarea.textarea_editor").first();
-        if (!$editor.length) return form.value.html || "";
-        const inst = $editor.data("wysihtml5");
-        if (inst && inst.editor && typeof inst.editor.getValue === "function") {
-            return inst.editor.getValue();
+
+function btnLimpiar() {
+    q.value = "";
+    filtros.value.config_modulo_id = "";
+    listar();
+}
+
+function cerrarModalVersiones() {
+    modalVersionesVisible.value = false;
+}
+
+useKeyboardShortcuts({
+    onSave: () => {
+        if (modalPlantillaVisible.value) {
+            guardar();
         }
-        return $editor.val() || form.value.html || "";
-    } catch (_) {
-        return form.value.html || "";
-    }
-}
+    },
+    onEscape: () => {
+        if (modalPlantillaVisible.value) {
+            cerrarModalPlantilla();
+        } else if (modalVersionesVisible.value) {
+            cerrarModalVersiones();
+        }
+    },
+    isActive: () => modalPlantillaVisible.value || modalVersionesVisible.value,
+    isLoading: loadingGuardar,
+});
+/**
+ * Carga la lista de productos de configuración disponibles para asociar a las plantillas.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function listarProductos() {
     try {
         const res = await axios.get("/api/config-productos");
         productos.value = Array.isArray(res.data?.data) ? res.data.data : [];
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar productos.");
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible cargar los productos.",
+            icon: "error",
+        });
     }
 }
+/**
+ * Carga la lista de módulos de configuración y selecciona por defecto el módulo de Ecografías si existe.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function listarModulos() {
     try {
         const res = await axios.get("/api/config-modulos-listar");
@@ -388,15 +543,24 @@ async function listarModulos() {
             if (eco) filtros.value.config_modulo_id = eco.id;
         }
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar módulos.");
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible cargar los módulos.",
+            icon: "error",
+        });
     }
 }
+/**
+ * Consulta las plantillas de consentimiento vigentes según módulo y texto de búsqueda.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function listar() {
     if (!filtros.value.config_modulo_id) {
-        handleAxiosErrorToast(
-            { response: { data: { message: "Seleccione un módulo." } } },
-            "Seleccione un módulo."
-        );
         return;
     }
     loading.value = true;
@@ -409,21 +573,61 @@ async function listar() {
             },
         });
         registros.value = Array.isArray(res.data?.data) ? res.data.data : [];
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar plantillas.");
+    } catch {
         registros.value = [];
     } finally {
         loading.value = false;
     }
 }
+/**
+ * Reinicia el formulario para registrar una nueva plantilla de consentimiento.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 function nuevo() {
     form.value = { id: null, producto_id: "", nombre: "", html: "" };
-    nextTick(() => initWysiwyg());
+    modalPlantillaVisible.value = true;
+    nextTick(() => {
+        const select = document.getElementById("form_producto_id");
+        if (select && typeof select.focus === "function") {
+            select.focus();
+        }
+    });
 }
+/**
+ * Carga los datos de una plantilla existente en el formulario para editarla (nueva versión).
+ *
+ * @param {Object} p Registro de la plantilla que se desea editar.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-10-19
+ */
 function editar(p) {
     form.value = { id: p.id, producto_id: p.producto_id, nombre: p.nombre, html: p.html };
-    nextTick(() => initWysiwyg());
+    modalPlantillaVisible.value = true;
+    nextTick(() => {
+        const input = document.getElementById("form_nombre");
+        if (input && typeof input.focus === "function") {
+            input.focus();
+        }
+    });
 }
+/**
+ * Crea o actualiza una plantilla de consentimiento y cierra el modal tras guardar.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function guardar() {
     if (!form.value.producto_id) return;
     if (!filtros.value.config_modulo_id) return;
@@ -433,7 +637,7 @@ async function guardar() {
             config_modulo_id: filtros.value.config_modulo_id,
             producto_id: form.value.producto_id,
             nombre: form.value.nombre,
-            html: getHtmlFromEditor(),
+            html: form.value.html,
         };
         if (!form.value.id) {
             await axios.post("/api/consentimientos-plantillas", payload);
@@ -441,13 +645,28 @@ async function guardar() {
             await axios.put(`/api/consentimientos-plantillas/${form.value.id}`, payload);
         }
         await listar();
-        $("#modal-plantilla").modal("hide");
+        modalPlantillaVisible.value = false;
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible guardar la plantilla.");
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible guardar la plantilla.",
+            icon: "error",
+        });
     } finally {
         loadingGuardar.value = false;
     }
 }
+/**
+ * Abre en una nueva pestaña la vista previa en PDF de la plantilla de consentimiento indicada.
+ *
+ * @param {Object} p Registro de la plantilla cuya vista previa se desea mostrar.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function previewPdf(p) {
     try {
         loadingPreviewId.value = p.id;
@@ -460,6 +679,17 @@ async function previewPdf(p) {
         loadingPreviewId.value = null;
     }
 }
+/**
+ * Carga el histórico de versiones de una plantilla y muestra el modal correspondiente.
+ *
+ * @param {Object} p Registro de la plantilla de la cual se consultan las versiones.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function verVersiones(p) {
     if (!filtros.value.config_modulo_id) return;
     loadingVersions.value = true;
@@ -473,13 +703,28 @@ async function verVersiones(p) {
             }
         );
         versions.value = Array.isArray(res.data?.data) ? res.data.data : [];
-        $("#modal-versiones").modal("show");
+        modalVersionesVisible.value = true;
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible cargar versiones.");
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible cargar las versiones.",
+            icon: "error",
+        });
     } finally {
         loadingVersions.value = false;
     }
 }
+/**
+ * Marca una versión específica de plantilla como vigente y actualiza el listado e histórico.
+ *
+ * @param {Object} v Registro de la versión de plantilla que se desea activar.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function activarVersion(v) {
     try {
         await axios.post(`/api/consentimientos-plantillas/${v.id}/vigente`);
@@ -495,9 +740,24 @@ async function activarVersion(v) {
         }
         await listar();
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible activar la versión.");
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible activar la versión.",
+            icon: "error",
+        });
     }
 }
+/**
+ * Solicita confirmación y elimina (desactiva) la plantilla de consentimiento indicada.
+ *
+ * @param {Object} p Registro de la plantilla que se desea desactivar.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
 async function desactivar(p) {
     const ok = await confirmAction({
         title: "¿Desactivar plantilla?",
@@ -509,19 +769,26 @@ async function desactivar(p) {
         await axios.delete(`/api/consentimientos-plantillas/${p.id}`);
         await listar();
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible desactivar la plantilla.");
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible desactivar la plantilla.",
+            icon: "error",
+        });
     }
 }
 
-onMounted(() => {
+/**
+ * Hook de ciclo de vida que carga productos, módulos y la lista inicial de plantillas al montar el componente.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-02-13
+ */
+onMounted(async () => {
     listarProductos();
-    listarModulos();
-    listar();
-    nextTick(() => initWysiwyg());
+    await listarModulos();
+    await listar();
 });
 </script>
-<style scoped>
-.breadcrumb-btn {
-    vertical-align: baseline;
-}
-</style>

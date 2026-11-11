@@ -4,19 +4,44 @@
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Helpdesk</h3>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
+                    <li class="breadcrumb-item">
+                        <router-link
+                            to="/helpdesk-tickets"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Tickets
+                        </router-link>
+                    </li>
                     <li class="breadcrumb-item active">Notificaciones</li>
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right">
                 <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary m-r-5"
+                    :disabled="loading"
+                    title="Actualizar notificaciones"
+                    @click="cargar()"
+                >
+                    <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loading }"></i>
+                    Refrescar
+                </button>
+                <button
                     class="btn btn-info btn-sm"
                     type="button"
                     :disabled="loading"
+                    title="Marcar todas como leídas"
                     @click="marcarTodas()"
                 >
-                    <i class="fa fa-check"></i> Marcar todas como leídas
+                    <i class="fa fa-check mr-1"></i> Marcar todas como leídas
                 </button>
+                <router-link
+                    to="/helpdesk-tickets"
+                    class="btn btn-inverse btn-sm m-l-5"
+                    title="Volver a tickets"
+                >
+                    <i class="fa fa-arrow-left mr-1"></i> Volver
+                </router-link>
             </div>
         </div>
 
@@ -37,11 +62,15 @@
                             </label>
                         </div>
 
-                        <div v-if="loading"><i class="fa fa-spinner fa-spin"></i> Cargando...</div>
+                        <table-skeleton-loader v-if="loading" :rows="4" :columns="3" />
 
                         <div v-else>
-                            <div v-if="items.length === 0" class="text-muted">
-                                Sin notificaciones.
+                            <div v-if="items.length === 0" class="m-t-20">
+                                <empty-state-component
+                                    title="Sin notificaciones"
+                                    description="No hay notificaciones pendientes o recibidas."
+                                    icon="fa-bell-slash"
+                                />
                             </div>
                             <template v-else>
                                 <div
@@ -108,10 +137,14 @@
 </template>
 <script setup>
 import { onMounted, ref, watch } from "vue";
+import { useRouter } from "vue-router";
 
-import { toastMessage, handleAxiosErrorToast } from "@/helpers/alerts.js";
+import { toastMessage } from "@/helpers/alerts.js";
 import { formatDateTime } from "@/helpers/dateUtils.js";
 import { helpdesk } from "@/helpers/api.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
+
+const router = useRouter();
 
 const loading = ref(false);
 const soloNoLeidas = ref(false);
@@ -131,16 +164,22 @@ async function cargar(pagina) {
         });
         items.value = res.data?.data?.items || [];
         totalPaginas.value = res.data?.data?.last_page || 1;
-    } catch (error) {
-        handleAxiosErrorToast(error, "No se pudieron cargar notificaciones.");
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudieron cargar las notificaciones.",
+            icon: "error",
+        });
     } finally {
         loading.value = false;
     }
 }
+
 function irPagina(pagina) {
     if (pagina < 1 || pagina > totalPaginas.value) return;
     cargar(pagina);
 }
+
 async function marcarLeida(n) {
     try {
         await helpdesk.marcarLeida(n.id);
@@ -149,25 +188,41 @@ async function marcarLeida(n) {
             items.value[idx] = { ...items.value[idx], read_at: new Date().toISOString() };
         }
         toastMessage({
-            heading: "Ok",
+            heading: "Listo",
             text: "Notificación marcada como leída.",
             icon: "success",
         });
-    } catch (error) {
-        handleAxiosErrorToast(error, "No se pudo marcar como leída.");
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudo marcar la notificación.",
+            icon: "error",
+        });
     }
 }
+
 async function marcarTodas() {
     try {
         await helpdesk.marcarTodasLeidas();
         await cargar();
-    } catch (error) {
-        handleAxiosErrorToast(error, "No se pudieron marcar todas.");
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudieron marcar todas como leídas.",
+            icon: "error",
+        });
     }
 }
+
 async function abrir(n) {
     if (!n.read_at) await marcarLeida(n);
-    if (n.data?.ticket_id) window.location.href = `/helpdesk-tickets/${n.data.ticket_id}`;
+    if (n.data?.ticket_id) {
+        if (router) {
+            router.push(`/helpdesk-tickets/${n.data.ticket_id}`);
+        } else {
+            window.location.href = `/helpdesk-tickets/${n.data.ticket_id}`;
+        }
+    }
 }
 
 watch(soloNoLeidas, () => {
@@ -177,5 +232,20 @@ watch(soloNoLeidas, () => {
 
 onMounted(async () => {
     await cargar();
+});
+
+useKeyboardShortcuts({
+    onSearch: () => {
+        if (!loading.value) {
+            cargar();
+        }
+    },
+    onEscape: () => {
+        if (router) {
+            router.push("/helpdesk-tickets");
+        } else {
+            window.location.href = "/helpdesk-tickets";
+        }
+    },
 });
 </script>

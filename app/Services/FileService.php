@@ -9,6 +9,17 @@ use Illuminate\Support\Str;
 
 class FileService implements FileServiceInterface
 {
+    /**
+     * Almacena un archivo subido en el disco y ruta indicados, generando nombre aleatorio.
+     *
+     * @param  UploadedFile  $file  Archivo subido por el usuario
+     * @param  string  $disk  Disco de almacenamiento configurado en el sistema
+     * @param  string|null  $directory  Subdirectorio destino dentro del disco
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function store(UploadedFile $file, string $disk, ?string $directory = null): array
     {
         $originalName = $file->getClientOriginalName();
@@ -24,14 +35,21 @@ class FileService implements FileServiceInterface
             'mime' => $file->getMimeType(),
         ];
 
-        activity()
-            ->withProperties(['disk' => $disk, 'hash' => $info['hash'], 'original_name' => $originalName])
-            ->event('archivo_subido')
-            ->log("Archivo subido: {$originalName}");
-
         return $info;
     }
 
+    /**
+     * Reemplaza un archivo existente por uno nuevo, eliminando el anterior si existe.
+     *
+     * @param  string  $disk  Disco de almacenamiento configurado en el sistema
+     * @param  string|null  $existingPath  Ruta del archivo existente a reemplazar
+     * @param  UploadedFile  $newFile  Archivo nuevo a almacenar
+     * @param  string|null  $directory  Subdirectorio destino dentro del disco
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function replace(string $disk, ?string $existingPath, UploadedFile $newFile, ?string $directory = null): array
     {
         if ($existingPath) {
@@ -41,6 +59,16 @@ class FileService implements FileServiceInterface
         return $this->store($newFile, $disk, $directory);
     }
 
+    /**
+     * Elimina un archivo del disco indicado.
+     *
+     * @param  string  $path  Ruta relativa del archivo a eliminar
+     * @param  string  $disk  Disco de almacenamiento configurado en el sistema
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function delete(string $path, string $disk): bool
     {
         if (! Storage::disk($disk)->exists($path)) {
@@ -49,16 +77,20 @@ class FileService implements FileServiceInterface
 
         $deleted = Storage::disk($disk)->delete($path);
 
-        if ($deleted) {
-            activity()
-                ->withProperties(['disk' => $disk, 'path' => $path])
-                ->event('archivo_eliminado')
-                ->log("Archivo eliminado: {$path}");
-        }
-
         return $deleted;
     }
 
+    /**
+     * Verifica la integridad de un archivo comparando su hash con el hash esperado.
+     *
+     * @param  string  $path  Ruta relativa del archivo a verificar
+     * @param  string  $disk  Disco de almacenamiento configurado en el sistema
+     * @param  string  $expectedHash  Hash SHA-256 esperado del archivo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function verifyIntegrity(string $path, string $disk, string $expectedHash): bool
     {
         $actual = $this->hash($path, $disk);
@@ -70,6 +102,16 @@ class FileService implements FileServiceInterface
         return hash_equals($expectedHash, $actual);
     }
 
+    /**
+     * Calcula el hash SHA-256 de un archivo almacenado en el disco indicado.
+     *
+     * @param  string  $path  Ruta relativa del archivo
+     * @param  string  $disk  Disco de almacenamiento configurado en el sistema
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function hash(string $path, string $disk): ?string
     {
         $fullPath = Storage::disk($disk)->path($path);

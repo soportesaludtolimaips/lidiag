@@ -13,6 +13,15 @@ class Paciente extends Model
 
     protected $table = 'admCliente';
 
+    /**
+     * Atención relacionada con el paciente.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function atenciones()
     {
         return $this->belongsTo(Atencion::class, 'IdCliente', 'IdCliente');

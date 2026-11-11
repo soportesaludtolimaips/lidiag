@@ -9,10 +9,26 @@ use Illuminate\Http\Request;
 
 class DashBoardController extends Controller
 {
+    /**
+     * Inyecta el servicio del tablero.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function __construct(
         private readonly DashBoardService $service,
     ) {}
 
+    /**
+     * Devuelve las métricas del tablero filtradas por rango de días, sede y médico.
+     *
+     * @param  Request  $request  Solicitud HTTP con los filtros days, sede_id y medico_id.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function dashboard(Request $request): JsonResponse
     {
         $filters = [

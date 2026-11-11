@@ -13,6 +13,15 @@ class Patient extends Model
 
     protected $table = 'patient';
 
+    /**
+     * Estudios del paciente.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\HasMany
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function Study()
     {
         return $this->hasMany(Study::class);

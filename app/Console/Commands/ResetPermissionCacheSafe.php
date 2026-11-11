@@ -23,6 +23,13 @@ class ResetPermissionCacheSafe extends Command
      */
     protected $description = 'Limpia el cache de permisos (Spatie) sin fallar si el key no existe.';
 
+    /**
+     * Limpia el cache de permisos de Spatie sin fallar si la clave no existe.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function handle(): int
     {
         // Limpieza interna de Spatie (siempre segura)

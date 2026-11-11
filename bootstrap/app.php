@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\Authenticate;
+use App\Http\Middleware\BloqueoLecturasConsentimientos;
 use App\Http\Middleware\EncryptCookies;
 use App\Http\Middleware\ForcePasswordChange;
 use App\Http\Middleware\PreventRequestsDuringMaintenance;
@@ -27,6 +28,7 @@ use Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull;
 use Illuminate\Foundation\Http\Middleware\ValidatePostSize;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Middleware\HandleCors;
 use Illuminate\Http\Middleware\SetCacheHeaders;
 use Illuminate\Http\Request;
@@ -37,6 +39,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Spatie\Permission\Exceptions\UnauthorizedException as SpatieUnauthorizedException;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
@@ -62,12 +65,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 'api_OHIF_visor.php',
                 'api_burn.php',
                 'api_contratacion.php',
-<<<<<<< HEAD
-=======
                 'api_liquidacion.php',
                 'api_telegram.php',
                 'api_pacientes.php',
->>>>>>> 01b98816 (feat(worklist): modulo de admision y modality worklist (MWL DICOM) multisede dinamico)
+                'api_dosimetria.php',
             ];
             foreach ($apiFiles as $file) {
                 Route::middleware('api')
@@ -76,6 +77,9 @@ return Application::configure(basePath: dirname(__DIR__))
             }
         },
     )
+    ->withCommands([
+        __DIR__.'/../app/Console/Commands',
+    ])
     ->withMiddleware(function (Middleware $middleware) {
         // Global middleware stack
         $middleware->append([
@@ -110,6 +114,7 @@ return Application::configure(basePath: dirname(__DIR__))
             SubstituteBindings::class,
             HandleCors::class,
             SecurityHeaders::class,
+            ForcePasswordChange::class,
         ]);
 
         // Route middleware aliases
@@ -129,7 +134,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
             'force-password-change' => ForcePasswordChange::class,
-            'consent.bloqueo' => \App\Http\Middleware\BloqueoLecturasConsentimientos::class,
+            'consent.bloqueo' => BloqueoLecturasConsentimientos::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
@@ -147,7 +152,7 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->expectsJson()) {
                 $status = match (true) {
                     $e instanceof AuthenticationException => 401,
-                    $e instanceof AuthorizationException => 403,
+                    $e instanceof AuthorizationException, $e instanceof SpatieUnauthorizedException => 403,
                     $e instanceof ModelNotFoundException => 404,
                     $e instanceof NotFoundHttpException => 404,
                     $e instanceof ValidationException => 422,
@@ -158,7 +163,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 $message = match (true) {
                     $e instanceof ValidationException => $e->getMessage(),
                     $e instanceof AuthenticationException => 'No autenticado.',
-                    $e instanceof AuthorizationException => 'No autorizado.',
+                    $e instanceof AuthorizationException, $e instanceof SpatieUnauthorizedException => 'No autorizado.',
                     $e instanceof ModelNotFoundException => 'Recurso no encontrado.',
                     $e instanceof ThrottleRequestsException => 'Demasiadas solicitudes.',
                     $e instanceof NotFoundHttpException => 'Ruta no encontrada.',
@@ -169,7 +174,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
                 $data = $e instanceof ValidationException ? $e->errors() : null;
 
-                return response()->json([
+                return new JsonResponse([
                     'success' => false,
                     'data' => $data,
                     'message' => $message,
@@ -177,6 +182,6 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], $status);
             }
 
-             // Let default handler process non-JSON requests
+            // Let default handler process non-JSON requests
         });
     })->create();

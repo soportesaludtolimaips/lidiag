@@ -45,6 +45,8 @@ class WorklistEnviarRequest extends FormRequest
             'modality' => 'nullable|string|in:CR,DX',
             'station_aet' => 'nullable|string|max:50',
             'observaciones' => 'nullable|string|max:500',
+            // Crear la orden aunque la cita de hoy ya esté en la lista de trabajo (enviada desde la agenda).
+            'forzar' => 'sometimes|boolean',
         ];
     }
 

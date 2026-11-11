@@ -1,7 +1,18 @@
 import { ref, onBeforeUnmount } from "vue";
 import axios from "axios";
-import { handleAxiosErrorToast } from "@/helpers/alerts";
-
+import { confirmAction } from "../helpers/alerts";
+/**
+ * Gestiona el flujo de carga, transcripcion y eliminacion de audios asociados a un estudio, incluyendo la seleccion de archivos, el envio al servidor y el seguimiento del progreso.
+ *
+ * @param {Object} [options] Opciones de configuracion del composable.
+ * @param {Function} [options.showToast] Funcion para mostrar notificaciones (toast) al usuario.
+ *
+ * @returns {Object} Conjunto de referencias reactivas (Ref) y funciones para gestionar la carga y transcripcion de audios.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-12
+ */
 export function useAudioUploadFlow({ showToast } = {}) {
     const audiosCargadosPendientes = ref([]);
     const audioSeleccionados = ref([]);
@@ -35,11 +46,11 @@ export function useAudioUploadFlow({ showToast } = {}) {
 
     function badgeClaseEstado(estado) {
         const map = {
-            "Transcrito": "badge-success",
-            "Completado": "badge-success",
+            Transcrito: "badge-success",
+            Completado: "badge-success",
             "Procesando...": "badge-warning",
-            "Pendiente": "badge-secondary",
-            "Error": "badge-danger",
+            Pendiente: "badge-secondary",
+            Error: "badge-danger",
         };
         return map[estado] || "badge-secondary";
     }
@@ -66,7 +77,7 @@ export function useAudioUploadFlow({ showToast } = {}) {
         if (typeof showToast === "function") {
             showToast({
                 heading: "Ok!!!",
-                text: `Transcripcion de "${audio.nombre_original || 'Audio'}" insertada en la lectura`,
+                text: `Transcripcion de "${audio.nombre_original || "Audio"}" insertada en la lectura`,
                 position: "top-right",
                 loaderBg: "#ff6849",
                 icon: "success",
@@ -81,10 +92,14 @@ export function useAudioUploadFlow({ showToast } = {}) {
         if (audioSeleccionados.value.length === 0) return null;
         insertandoAudios.value = true;
         let procesados = 0;
+        let omitidos = 0;
         let textoCompleto = "";
         for (const audioId of audioSeleccionados.value) {
             const audio = audiosCargadosPendientes.value.find((a) => a.id === audioId);
-            if (!audio || !audio.transcripcion) continue;
+            if (!audio || !audio.transcripcion) {
+                omitidos++;
+                continue;
+            }
             if (textoCompleto.length > 0) {
                 textoCompleto += "\n\n--- " + (audio.nombre_original || "Audio") + " ---\n\n";
             }
@@ -94,11 +109,13 @@ export function useAudioUploadFlow({ showToast } = {}) {
         if (typeof showToast === "function") {
             showToast({
                 heading: "Ok!!!",
-                text: `${procesados} audio(s) insertados en la lectura`,
+                text:
+                    `${procesados} audio(s) insertados en la lectura` +
+                    (omitidos > 0 ? `. ${omitidos} omitido(s) (transcripción pendiente)` : ""),
                 position: "top-right",
                 loaderBg: "#ff6849",
-                icon: "success",
-                hideAfter: 3500,
+                icon: procesados > 0 ? "success" : "warning",
+                hideAfter: 4500,
                 stack: 6,
             });
         }
@@ -110,7 +127,9 @@ export function useAudioUploadFlow({ showToast } = {}) {
     function limpiarAudiosCargados() {
         for (const audio of audiosCargadosPendientes.value) {
             if (audio._blobUrl) {
-                try { URL.revokeObjectURL(audio._blobUrl); } catch (e) { }
+                try {
+                    URL.revokeObjectURL(audio._blobUrl);
+                } catch {}
             }
         }
         audiosCargadosPendientes.value = [];
@@ -120,7 +139,13 @@ export function useAudioUploadFlow({ showToast } = {}) {
         insertandoAudios.value = false;
     }
 
-    async function uploadAudioFile(file, blobUrl, estudioId, estudioProductoId) {
+    async function uploadAudioFile(
+        file,
+        blobUrl,
+        estudioId,
+        estudioProductoId,
+        onTranscriptionReady
+    ) {
         if (!estudioProductoId) {
             if (typeof showToast === "function") {
                 showToast({
@@ -146,20 +171,26 @@ export function useAudioUploadFlow({ showToast } = {}) {
                 timeout: 300000,
             });
             if (res.data && res.data.success) {
+                const d = res.data.data || {};
                 audiosCargadosPendientes.value.push({
-                    id: res.data.audio_id,
+                    id: d.audio_id,
                     nombre_original: file.name,
                     _blobUrl: blobUrl || null,
-                    serverUrl: res.data.audio_file ? '/audios/' + res.data.audio_file : null,
-                    transcripcion_estado: "Transcrito",
-                    transcripcion: res.data.transcripcion,
-                    duracion: res.data.duracion,
+                    serverUrl: d.audio_file ? "/audios/" + d.audio_file : null,
+                    transcripcion_estado:
+                        d.transcripcion_estado === "transcrito" ? "Transcrito" : "Pendiente",
+                    transcripcion: d.transcripcion,
+                    duracion: d.duracion,
                     tamano: file.size,
                 });
                 if (typeof showToast === "function") {
+                    const toastMsg =
+                        d.transcripcion_estado === "transcrito"
+                            ? `Audio "${file.name}" cargado y transcrito exitosamente`
+                            : `Audio "${file.name}" cargado correctamente (transcripción pendiente)`;
                     showToast({
                         heading: "Ok!!!",
-                        text: `Audio "${file.name}" cargado y transcrito exitosamente`,
+                        text: toastMsg,
                         position: "top-right",
                         loaderBg: "#ff6849",
                         icon: "success",
@@ -167,15 +198,19 @@ export function useAudioUploadFlow({ showToast } = {}) {
                         stack: 6,
                     });
                 }
+                if (typeof onTranscriptionReady === "function" && d.transcripcion) {
+                    onTranscriptionReady(d.transcripcion);
+                }
                 return true;
             } else {
                 throw new Error(res.data.message || "Error al cargar el audio");
             }
         } catch (error) {
             if (blobUrl) URL.revokeObjectURL(blobUrl);
-            const msg = error.response && error.response.data && error.response.data.message
-                ? error.response.data.message
-                : "Error al cargar y transcribir el audio";
+            const msg =
+                error.response && error.response.data && error.response.data.message
+                    ? error.response.data.message
+                    : "Error al cargar y transcribir el audio";
             if (typeof showToast === "function") {
                 showToast({
                     heading: "Upsss!!!",
@@ -194,15 +229,26 @@ export function useAudioUploadFlow({ showToast } = {}) {
         }
     }
 
-    async function handleAudioFileSelect(event, estudioId, estudioProductoId) {
+    async function handleAudioFileSelect(
+        event,
+        estudioId,
+        estudioProductoId,
+        onTranscriptionReady
+    ) {
         const files = event.target.files;
         if (!files || files.length === 0) {
             return;
         }
         const maxSize = 100 * 1024 * 1024;
         const allowedTypes = [
-            "audio/mpeg", "audio/wav", "audio/x-wav", "audio/mp4",
-            "audio/webm", "audio/ogg", "audio/x-flac", "audio/flac",
+            "audio/mpeg",
+            "audio/wav",
+            "audio/x-wav",
+            "audio/mp4",
+            "audio/webm",
+            "audio/ogg",
+            "audio/x-flac",
+            "audio/flac",
         ];
         const validFiles = [];
         for (let i = 0; i < files.length; i++) {
@@ -247,9 +293,14 @@ export function useAudioUploadFlow({ showToast } = {}) {
                 const file = validFiles[idx++];
                 const blobUrl = URL.createObjectURL(file);
                 try {
-                    await uploadAudioFile(file, blobUrl, estudioId, estudioProductoId);
-                } catch (e) {
-                }
+                    await uploadAudioFile(
+                        file,
+                        blobUrl,
+                        estudioId,
+                        estudioProductoId,
+                        onTranscriptionReady
+                    );
+                } catch {}
             }
         };
         await Promise.all(Array.from({ length: 3 }, () => worker()));
@@ -257,7 +308,12 @@ export function useAudioUploadFlow({ showToast } = {}) {
     }
 
     async function eliminarAudioCargado(audioId, onSuccess) {
-        if (!confirm("¿Estas seguro de eliminar este audio?")) return;
+        const confirmado = await confirmAction({
+            title: "Eliminar audio",
+            text: "¿Estás seguro de eliminar este audio?",
+            icon: "warning",
+        });
+        if (!confirmado) return;
         eliminandoAudioId.value = audioId;
         try {
             const res = await axios.delete("/api/eliminar-audio-cargado/" + audioId);
@@ -266,7 +322,9 @@ export function useAudioUploadFlow({ showToast } = {}) {
                 if (audioEliminado && audioEliminado._blobUrl) {
                     URL.revokeObjectURL(audioEliminado._blobUrl);
                 }
-                audiosCargadosPendientes.value = audiosCargadosPendientes.value.filter((a) => a.id !== audioId);
+                audiosCargadosPendientes.value = audiosCargadosPendientes.value.filter(
+                    (a) => a.id !== audioId
+                );
                 audioSeleccionados.value = audioSeleccionados.value.filter((id) => id !== audioId);
                 if (typeof showToast === "function") {
                     showToast({
@@ -284,9 +342,10 @@ export function useAudioUploadFlow({ showToast } = {}) {
                 throw new Error(res.data.message || "Error al eliminar");
             }
         } catch (error) {
-            const msg = error.response && error.response.data && error.response.data.message
-                ? error.response.data.message
-                : "Error al eliminar el audio";
+            const msg =
+                error.response && error.response.data && error.response.data.message
+                    ? error.response.data.message
+                    : "Error al eliminar el audio";
             if (typeof showToast === "function") {
                 showToast({
                     heading: "Upsss!!!",

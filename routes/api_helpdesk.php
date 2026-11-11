@@ -26,11 +26,25 @@ Route::middleware(['auth'])->group(function () {
         ->middleware(['permission:helpdesk.tickets.create,web']);
 
     // Tickets
-    Route::resource('/helpdesk-tickets', HelpDeskTicketsController::class)
-        ->names('api.helpdesk.tickets')
-        ->parameters(['helpdesk-tickets' => 'ticket'])
-        ->except(['create', 'edit'])
-        ->middleware(['permission:helpdesk.tickets.index|helpdesk.tickets.create|helpdesk.tickets.show|helpdesk.tickets.edit|helpdesk.tickets.delete,web']);
+    Route::get('/helpdesk-tickets', [HelpDeskTicketsController::class, 'index'])
+        ->name('api.helpdesk.tickets.index')
+        ->middleware(['permission:helpdesk.tickets.index,web']);
+
+    Route::post('/helpdesk-tickets', [HelpDeskTicketsController::class, 'store'])
+        ->name('api.helpdesk.tickets.store')
+        ->middleware(['permission:helpdesk.tickets.create,web']);
+
+    Route::get('/helpdesk-tickets/{ticket}', [HelpDeskTicketsController::class, 'show'])
+        ->name('api.helpdesk.tickets.show')
+        ->middleware(['permission:helpdesk.tickets.show,web']);
+
+    Route::put('/helpdesk-tickets/{ticket}', [HelpDeskTicketsController::class, 'update'])
+        ->name('api.helpdesk.tickets.update')
+        ->middleware(['permission:helpdesk.tickets.edit,web']);
+
+    Route::delete('/helpdesk-tickets/{ticket}', [HelpDeskTicketsController::class, 'destroy'])
+        ->name('api.helpdesk.tickets.destroy')
+        ->middleware(['permission:helpdesk.tickets.delete,web']);
 
     Route::post('/helpdesk-tickets/{ticket}/comment', [HelpDeskTicketsController::class, 'comment'])
         ->name('api.helpdesk.tickets.comment')

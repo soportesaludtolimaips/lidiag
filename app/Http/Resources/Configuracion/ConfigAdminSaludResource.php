@@ -6,6 +6,13 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class ConfigAdminSaludResource extends JsonResource
 {
+    /**
+     * Datos de la administradora de salud en formato array.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function toArray($request): array
     {
         return [

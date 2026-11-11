@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,30 +20,67 @@ class AppServiceProvider extends ServiceProvider
         'password', 'remember_token', 'firma', 'token_hash',
     ];
 
+    /**
+     * Registra los bindings del contenedor de servicios.
+     *
+     * @returns void
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function register()
     {
         //
     }
 
+    /**
+     * Ejecuta la configuración de arranque de la aplicación.
+     *
+     * Define el permiso global del Super Admin, la política de User,
+     * el rate limiting y el log global de actividad.
+     *
+     * @returns void
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function boot()
     {
-        // TEMPORAL (php artisan serve en http://localhost:8000): reactivar en producción/https.
-        if (! app()->runningInConsole() && str_starts_with((string) config('app.url'), 'https')) {
-            \URL::forceScheme('https');
-        }
+        //         \URL::forceScheme('https');
 
         Gate::before(function ($user, $ability) {
             return $user->hasRole('Super Admin') ? true : null;
         });
         Gate::policy(User::class, UserPolicy::class);
 
+        Sanctum::getAccessTokenFromRequestUsing(function (Request $request) {
+            return $request->bearerToken()
+                ?? $request->header('X-API-TOKEN')
+                ?? $request->header('x-api-token')
+                ?? $request->query('api_token')
+                ?? $request->input('api_token');
+        });
+
         $this->configureRateLimiting();
         $this->registerGlobalActivityLog();
     }
 
+    /**
+     * Configura los límites de velocidad (rate limiting) de la aplicación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     protected function configureRateLimiting(): void
     {
         RateLimiter::for('api', function (Request $request) {
+            if ($request->is('api/dosimetria/*') || $request->is('api/dosis/*') || $request->is('api/seguridad-backups/*')) {
+                return Limit::perMinute(1200)->by($request->user()?->id ?: $request->ip());
+            }
+
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
 
@@ -59,6 +97,15 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 
+    /**
+     * Registra en activity_log las altas, bajas y cambios de los modelos.
+     *
+     * Excluye los campos sensibles y no registra la propia activity_log.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function registerGlobalActivityLog(): void
     {
         $events = ['created', 'updated', 'deleted'];

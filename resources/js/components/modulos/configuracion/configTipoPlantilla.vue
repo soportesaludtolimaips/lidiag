@@ -1,17 +1,26 @@
 <template>
     <div>
-        <!-- ============================================================== -->
-        <!-- Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Configuración</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Configuración</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Configuración
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Tipos de plantillas</li>
                 </ol>
@@ -19,32 +28,46 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
+                    class="btn btn-outline-secondary m-r-5"
+                    @click="ListarDatos"
+                    :disabled="loadingListar"
+                    title="Actualizar listado"
+                >
+                    <i class="fa" :class="loadingListar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                    Refrescar
+                </button>
+                <button
+                    type="button"
                     class="btn btn-info btnDesplegarRigthSidebar"
-                    @click="
-                        actualizar = false;
-                        mostrarRegistro();
-                    "
+                    @click="prepararNuevo"
                 >
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Start Page Content -->
-        <!-- ============================================================== -->
         <div class="row">
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Listado de tipos de plantillas</h4>
                         <h6 class="card-subtitle">Administración de las tipos de plantillas.</h6>
-                        <div class="table-responsive m-t-40">
+                        <table-skeleton-loader :visible="loadingListar" :rows="5" :columns="3" />
+                        <empty-state-component
+                            v-if="!loadingListar && registros.length === 0"
+                            icon="fa fa-folder-o"
+                            title="No hay tipos de plantillas"
+                            description="No se encontraron tipos de plantillas registrados."
+                            action-text="Nuevo registro"
+                            action-icon="fa fa-plus"
+                            @action="prepararNuevo"
+                        />
+                        <div
+                            v-show="!loadingListar && registros.length > 0"
+                            class="table-responsive m-t-40"
+                        >
                             <table
-                                id="example23"
+                                id="tablaTiposPlantillas"
                                 ref="dt"
                                 class="display nowrap table table-hover table-striped table-bordered"
                                 cellspacing="0"
@@ -72,17 +95,14 @@
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                                @click="
-                                                    actualizar = true;
-                                                    mostrarRegistro(item);
-                                                "
+                                                @click="prepararEdicion(item)"
                                             >
                                                 <i class="fa fa-pencil"></i>
                                             </button>
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
-                                                @click="elimnarRegistro(item.id, item.nom_tipo)"
+                                                @click="eliminarRegistro(item.id, item.nom_tipo)"
                                                 :disabled="loadingEliminarId === item.id"
                                             >
                                                 <i
@@ -103,38 +123,39 @@
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End PAge Content -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Right sidebar -->
-        <!-- ============================================================== -->
-        <!-- .right-sidebar -->
-        <div class="right-sidebar">
+        <!-- Backdrop overlay para cerrar al hacer clic afuera -->
+        <div v-if="sidebarVisible" class="sidebar-backdrop" @click="cerrarSidebar"></div>
+
+        <div class="right-sidebar" ref="sidebarRef" :class="{ 'shw-rside': sidebarVisible }">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
-                    <span>
-                        <i class="ti-close right-side-toggle" id="btnCerralModalForm"></i>
-                    </span>
+                    <button
+                        type="button"
+                        class="right-side-toggle"
+                        @click="cerrarSidebar"
+                        aria-label="Cerrar panel"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
                 </div>
                 <div class="r-panel-body">
-                    <!-- ============================================================== -->
-                    <!-- Aqui va el contenido de los formularios -->
-                    <!-- ============================================================== -->
-                    <form action="#">
+                    <form action="#" @submit.prevent="guardarRegistro()">
                         <div class="form-body">
                             <div class="row p-t-20">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Tipo de plantillas</label>
+                                        <label class="control-label" for="nom_tipo"
+                                            >Tipo de plantillas</label
+                                        >
                                         <input
                                             type="text"
                                             id="nom_tipo"
                                             name="nom_tipo"
                                             v-model="registro.nom_tipo"
                                             class="form-control"
+                                            :class="{ 'is-invalid': errores.nom_tipo }"
                                             placeholder="Nombre del tipo de plantilla"
                                         />
                                         <span class="text-danger" v-if="errores.nom_tipo">{{
@@ -166,7 +187,7 @@
                                 <button
                                     type="button"
                                     class="btn btn-success m-r-5"
-                                    @click="guardarRegistro()"
+                                    @click="guardarRegistro"
                                     v-if="!actualizar"
                                     :disabled="loadingGuardar"
                                 >
@@ -181,7 +202,7 @@
                                     type="button"
                                     class="btn btn-warning m-r-5"
                                     v-if="actualizar"
-                                    @click="guardarRegistro()"
+                                    @click="guardarRegistro"
                                     :disabled="loadingGuardar"
                                 >
                                     <i
@@ -194,9 +215,9 @@
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    @click="btnCerralModalForm()"
+                                    @click="cerrarSidebar"
                                 >
-                                    Cancel
+                                    Cancelar
                                 </button>
                             </div>
                         </div>
@@ -204,23 +225,17 @@
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Right sidebar -->
-        <!-- ============================================================== -->
     </div>
 </template>
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 const dt = ref(null);
+const sidebarRef = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import {
-    alertError,
-    alertSuccess,
-    confirmAction,
-    handleAxiosErrorToast,
-} from "@/helpers/alerts.js";
+import { confirmAction, toastMessage } from "@/helpers/alerts.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import axios from "axios";
 
 const id = ref(0);
@@ -228,147 +243,217 @@ const registros = ref([]);
 const registro = ref({ nom_tipo: "", estado: true });
 const tituloModal = ref("Nuevo registro");
 const actualizar = ref(false);
-const errores = ref({});
-const productos = ref([]);
 const loadingListar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
+const sidebarVisible = ref(false);
+
+useKeyboardShortcuts({
+    onSearch: () => {
+        if (!sidebarVisible.value) {
+            ListarDatos();
+        }
+    },
+    onSave: () => {
+        if (sidebarVisible.value) {
+            guardarRegistro();
+        }
+    },
+    onEscape: cerrarSidebar,
+    isActive: () => true,
+    isLoading: loadingGuardar,
+});
+
+const errores = ref({});
+
+function clearErrors() {
+    errores.value = {};
+}
+
+function setErrors(newErrors) {
+    errores.value = newErrors || {};
+}
 
 async function ListarDatos() {
     if (loadingListar.value) return;
     loadingListar.value = true;
+    clearErrors();
     try {
         const res = await axios.get("/api/config-tipos-plantillas");
-        safeDestroyDataTable(dt.value || "#example23");
-        registros.value = res.data.data;
+        safeDestroyDataTable(dt.value || "#tablaTiposPlantillas");
+        registros.value = res?.data?.data || res?.data || [];
         nextTick(() => {
-            safeInitDataTable(dt.value || "#example23", {
+            safeInitDataTable(dt.value || "#tablaTiposPlantillas", {
                 dom: "Bfrtip",
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
         });
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar tipos de plantilla.");
+    } catch {
         registros.value = [];
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible cargar los tipos de plantillas.",
+            icon: "error",
+        });
     } finally {
         loadingListar.value = false;
     }
 }
+
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
+    clearErrors();
     loadingGuardar.value = true;
     try {
+        let res;
         if (actualizar.value === false) {
-            const res = await axios.post("/api/config-tipos-plantillas", registro.value);
-
-            if (res.status == 200) {
-                ListarDatos();
-
-                $.toast({
-                    heading: "Ok!!!",
-                    text: res.data.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
-            }
+            res = await axios.post("/api/config-tipos-plantillas", registro.value);
         } else {
-            const res = await axios.put("/api/config-tipos-plantillas/" + id.value, registro.value);
-            if (res.status == 200) {
-                ListarDatos();
+            res = await axios.put("/api/config-tipos-plantillas/" + id.value, registro.value);
+        }
 
-                $.toast({
-                    heading: "Ok!!!",
-                    text: res.data.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "success",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
-            }
+        if (res.status >= 200 && res.status < 300) {
+            ListarDatos();
+            toastMessage({
+                heading: "Completado",
+                text: actualizar.value
+                    ? "Tipo de plantilla actualizado correctamente."
+                    : "Tipo de plantilla guardado correctamente.",
+                icon: "success",
+            });
+            cerrarSidebar();
+            limpiar();
         }
     } catch (error) {
-        errores.value = error?.response?.data?.errors || {};
-        handleAxiosErrorToast(error, "No fue posible guardar el tipo de plantilla.");
+        if (error.response?.status === 422) {
+            setErrors(error.response.data.errors || {});
+        } else {
+            toastMessage({
+                heading: "Error",
+                text:
+                    error.response?.data?.message || "No fue posible guardar el tipo de plantilla.",
+                icon: "error",
+            });
+        }
     } finally {
         loadingGuardar.value = false;
     }
 }
-async function elimnarRegistro(id, nom) {
+
+async function eliminarRegistro(idEliminar, nom) {
     const ok = await confirmAction({
-        title: `Estas seguro de eliminar el tipo de plantillas ${nom}?`,
+        title: `¿Estás seguro de eliminar el tipo de plantilla "${nom}"?`,
         text: "No podrás recuperar este registro!",
         icon: "warning",
     });
     if (!ok) return;
-
+    if (loadingEliminarId.value) return;
+    loadingEliminarId.value = idEliminar;
     try {
-        if (loadingEliminarId.value) return;
-        loadingEliminarId.value = id;
-        const response = await axios.delete("/api/config-tipos-plantillas/" + id);
-        alertSuccess("Ok!", response?.data?.message || "Registro eliminado.", "success");
+        const response = await axios.delete("/api/config-tipos-plantillas/" + idEliminar);
+        toastMessage({
+            heading: "Ok!",
+            text: response?.data?.message || "Registro eliminado.",
+            icon: "success",
+        });
         ListarDatos();
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible eliminar el registro.");
-        alertError("Error", "No fue posible eliminar el registro.", "error");
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "No fue posible eliminar el registro.",
+            icon: "error",
+        });
     } finally {
         loadingEliminarId.value = null;
     }
 }
-function mostrarRegistro(data = {}) {
-    if (actualizar.value) {
-        tituloModal.value = "Actualizar el registro: " + data.nom_tipo;
-        id.value = data.id;
-        registro.value.nom_tipo = data.nom_tipo;
-        registro.value.estado = Boolean(data.estado);
-    } else {
-        actualizar.value = false;
-        tituloModal.value = "Nuevo registro";
-        id.value = 0;
-        registro.value.nom_tipo = "";
-        registro.value.estado = true;
-    }
 
-    btnCerralModalForm();
+function prepararEdicion(item) {
+    actualizar.value = true;
+    tituloModal.value = "Actualizar el registro: " + item.nom_tipo;
+    id.value = item.id;
+    registro.value.nom_tipo = item.nom_tipo;
+    registro.value.estado = Boolean(item.estado);
+    clearErrors();
+    abrirSidebar();
 }
-function btnCerralModalForm() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").toggleClass("shw-rside");
+
+function prepararNuevo() {
+    actualizar.value = false;
+    tituloModal.value = "Nuevo registro";
+    id.value = 0;
+    registro.value.nom_tipo = "";
+    registro.value.estado = true;
+    clearErrors();
+    abrirSidebar();
+}
+
+function limpiar() {
+    actualizar.value = false;
+    tituloModal.value = "Nuevo registro";
+    id.value = 0;
+    registro.value.nom_tipo = "";
+    registro.value.estado = true;
+    clearErrors();
+}
+
+function abrirSidebar() {
+    sidebarVisible.value = true;
+    nextTick(() => {
+        document.getElementById("nom_tipo")?.focus();
+    });
+}
+
+function cerrarSidebar() {
+    sidebarVisible.value = false;
 }
 
 onMounted(() => {
     ListarDatos();
-    //listarProductos();
 });
 
 onBeforeUnmount(() => {
-    safeDestroyDataTable(dt.value || "#example23");
+    safeDestroyDataTable(dt.value || "#tablaTiposPlantillas");
 });
 </script>
 <style scoped>
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1090;
+}
+
 .right-sidebar {
     position: fixed;
-    right: -25%;
-    width: 25%;
-    display: none;
+    right: -450px;
+    width: 450px;
     z-index: 1100;
     background: #ffffff;
     top: 0px;
     padding-bottom: 20px;
     height: 100%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .shw-rside {
-    right: 0px;
-    width: 25%;
-    display: block;
+    right: 0px !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+@media (max-width: 767px) {
+    .right-sidebar {
+        width: 100% !important;
+        right: -100% !important;
+    }
 }
 </style>

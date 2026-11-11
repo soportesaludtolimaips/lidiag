@@ -10,7 +10,7 @@ use App\Http\Controllers\Configuracion\ConfigProductoController;
 use App\Http\Controllers\Configuracion\ConfigRecomendacionProductoController;
 use App\Http\Controllers\Configuracion\ConfigSedeController;
 use App\Http\Controllers\Configuracion\ConfigSedeWhatsappNumberController;
-use App\Http\Controllers\Configuracion\ConfigServicioCitasController;
+use App\Http\Controllers\Configuracion\ConfigServicioController;
 use App\Http\Controllers\Configuracion\ConfigTipoDocumentoController;
 use App\Http\Controllers\Configuracion\ConfigWhatsappController;
 use App\Http\Controllers\Configuracion\ConsentimientoInformadoController;
@@ -31,11 +31,6 @@ use Illuminate\Support\Facades\Route;
 // Rutas protegidas (requieren autenticación)
 // Nota: en API usamos Sanctum (stateful) para que funcione con sesión/cookies.
 Route::middleware(['auth'])->group(function () {
-
-    // Sedes - buscarPorId (requiere permiso config.sedes.index)
-    Route::get('/config-sedes/{configsede}/buscarPorId', [ConfigSedeController::class, 'buscarPorId'])
-        ->name('api.config.sedes.buscarPorId');
-
     // Diagnosticos
     Route::resource('/config-diagnosticos', ConfigDiagnosticoController::class)
         ->names('api.config.diagnosticos')
@@ -77,6 +72,12 @@ Route::middleware(['auth'])->group(function () {
         ->except(['create', 'show']);
 
     // Sedes
+    Route::get('/config-sedes/listar/sedes/activas', [ConfigSedeController::class, 'listarSedesActivas'])
+        ->name('api.config.sedes.listarSedesActivas');
+
+    Route::get('/config-sedes/{configsede}/buscarPorId', [ConfigSedeController::class, 'buscarPorId'])
+        ->name('api.config.sedes.buscarPorId');
+
     Route::post('/config-sedes/{id}/branding', [ConfigSedeController::class, 'actualizarBranding'])
         ->whereNumber('id')
         ->name('api.config.sedes.branding');
@@ -84,9 +85,6 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('/config-sedes', ConfigSedeController::class)
         ->names('api.config.sedes')
         ->except(['create', 'edit']);
-
-    Route::get('/config-sedes/listar/sedes/activas', [ConfigSedeController::class, 'listarSedesActivas'])
-        ->name('api.config.sedes.listarSedesActivas');
 
     // Plantillas
     Route::resource('/config-plantillas', ConfigPlantillaController::class)
@@ -136,10 +134,10 @@ Route::middleware(['auth'])->group(function () {
         ->name('api.consentimientos.plantillas.formato');
 
     // Servicio de Citas
-    Route::get('/config-servicio-citas/mis-servicios', [ConfigServicioCitasController::class, 'misServicios'])
+    Route::get('/config-servicio-citas/mis-servicios', [ConfigServicioController::class, 'misServicios'])
         ->name('api.config.servicio.citas.mis_servicios');
 
-    Route::resource('/config-servicio-citas', ConfigServicioCitasController::class)
+    Route::resource('/config-servicio-citas', ConfigServicioController::class)
         ->names('api.config.servicio.citas')
         ->except(['create', 'edit']);
 
@@ -186,12 +184,10 @@ Route::middleware(['auth'])->group(function () {
         ->name('api.config.whatsapp.destroy')
         ->middleware('permission:config.whatsapp.saludo.destroy');
 
-    // Index y show son de lectura (permiso index)
+    // Index y show son de lectura (abierto a usuarios autenticados)
     Route::get('/config-whatsapp', [ConfigWhatsappController::class, 'index'])
-        ->name('api.config.whatsapp.index')
-        ->middleware('permission:config.whatsapp.saludo.index');
+        ->name('api.config.whatsapp.index');
 
     Route::get('/config-whatsapp/{id}', [ConfigWhatsappController::class, 'show'])
-        ->name('api.config.whatsapp.show')
-        ->middleware('permission:config.whatsapp.saludo.index');
+        ->name('api.config.whatsapp.show');
 });

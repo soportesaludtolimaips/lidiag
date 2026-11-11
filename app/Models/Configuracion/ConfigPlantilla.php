@@ -21,11 +21,29 @@ class ConfigPlantilla extends Model
         'estado',
     ];
 
+    /**
+     * Tipo de plantilla asociada.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function plantillaTipo()
     {
         return $this->belongsTo(ConfigPlantillaTipo::class, 'plantilla_tipo_id');
     }
 
+    /**
+     * Médico propietario de la plantilla.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function medico()
     {
         return $this->belongsTo(User::class, 'medico_id');

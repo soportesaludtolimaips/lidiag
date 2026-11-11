@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Seguridad\AuditLogController;
+use App\Http\Controllers\Seguridad\BackupMonitorController;
 use App\Http\Controllers\Seguridad\RolController;
+use App\Http\Controllers\Seguridad\TokenSedeController;
 use App\Http\Controllers\Seguridad\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,50 +18,111 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware(['auth'])->group(function () {
-    /*
-     * Seguridad API Endpoints
-     */
-    Route::resource('/seguridad-usuarios', UserController::class)
-        ->names('api.seguridad.usuarios')
-        ->except('update')
-        ->middleware(['permission:seguridad.usuarios.index|seguridad.usuarios.create|seguridad.usuarios.edit|seguridad.usuarios.show|seguridad.usuarios.destroy,web']);
+    // Usuarios — rutas por método con permisos individuales
+    Route::get('/seguridad-usuarios', [UserController::class, 'index'])
+        ->name('api.seguridad.usuarios.index')
+        ->middleware(['permission:seguridad.usuarios.index']);
+
+    Route::post('/seguridad-usuarios', [UserController::class, 'store'])
+        ->name('api.seguridad.usuarios.store')
+        ->middleware(['permission:seguridad.usuarios.create']);
+
+    Route::get('/seguridad-usuarios/{id}', [UserController::class, 'show'])
+        ->name('api.seguridad.usuarios.show');
+
+    Route::delete('/seguridad-usuarios/{id}', [UserController::class, 'destroy'])
+        ->name('api.seguridad.usuarios.destroy')
+        ->middleware(['permission:seguridad.usuarios.destroy']);
 
     Route::post('/seguridad/usuarios/update', [UserController::class, 'update'])
         ->name('api.seguridad.update')
-        ->middleware(['permission:seguridad.usuarios.edit,web']);
+        ->middleware(['permission:seguridad.usuarios.edit']);
 
     Route::post('/seguridad-actualizar-perfil/{idUsua}', [UserController::class, 'actualizarPerfil'])
         ->name('api.seguridad.actualizar.perfil');
 
+    Route::post('/seguridad-cambiar-password', [UserController::class, 'cambiarPassword'])
+        ->name('api.seguridad.cambiar-password');
+
     Route::put('/seguridad-usuarios/estado/{idUsua}', [UserController::class, 'estadoUsuario'])
         ->name('api.seguridad.usuario.estado')
-        ->middleware(['permission:seguridad.usuarios.edit,web']);
+        ->middleware(['permission:seguridad.usuarios.edit']);
+
+    Route::post('/seguridad-usuarios/{id}/restablecer-password', [UserController::class, 'restablecerPassword'])
+        ->name('api.seguridad.usuarios.restablecer-password')
+        ->middleware(['permission:seguridad.usuarios.edit']);
 
     Route::get('/user.listarUsuarios/{tipo_user}/{modulo}', [UserController::class, 'listarUsuarios'])
-        ->name('api.user.listarUsuarios')
-        // Este endpoint se consume desde vistas Blade + Vue (misma app). En algunos entornos
-        // `auth:sanctum` puede dar 401 si el dominio no se reconoce como "stateful" (cookies/sesión).
-        // Forzamos sesión web para evitar 401 al usuario logueado.
-        ->withoutMiddleware(['auth:sanctum'])
-        ->middleware(['web', 'auth']);
+        ->name('api.user.listarUsuarios');
 
-    Route::resource('/seguridad-roles', RolController::class)
-        ->names('api.seguridad.roles')
-        ->middleware(['permission:seguridad.roles.index|seguridad.roles.create|seguridad.roles.edit|seguridad.roles.show|seguridad.roles.destroy,web']);
+    // Roles — rutas por método con permisos individuales
+    Route::get('/seguridad-roles', [RolController::class, 'index'])
+        ->name('api.seguridad.roles.index')
+        ->middleware(['permission:seguridad.roles.index']);
+
+    Route::post('/seguridad-roles', [RolController::class, 'store'])
+        ->name('api.seguridad.roles.store')
+        ->middleware(['permission:seguridad.roles.create']);
+
+    Route::get('/seguridad-roles/{id}', [RolController::class, 'show'])
+        ->name('api.seguridad.roles.show')
+        ->middleware(['permission:seguridad.roles.show']);
+
+    Route::put('/seguridad-roles/{id}', [RolController::class, 'update'])
+        ->name('api.seguridad.roles.update')
+        ->middleware(['permission:seguridad.roles.edit']);
+
+    Route::delete('/seguridad-roles/{id}', [RolController::class, 'destroy'])
+        ->name('api.seguridad.roles.destroy')
+        ->middleware(['permission:seguridad.roles.destroy']);
+
+    Route::put('/seguridad-roles/estado/{id}', [RolController::class, 'estadoRol'])
+        ->name('api.seguridad.roles.estado')
+        ->middleware(['permission:seguridad.roles.edit']);
 
     Route::get('/usuario-por-modulo/{modulo_id}', [UserController::class, 'usuariosPorModulo'])
-        ->name('api.usuarios.por.modulo')
-        ->middleware(['permission:seguridad.usuarios.index,web']);
+        ->name('api.usuarios.por.modulo');
 
     Route::get('/seguridad-listarPermisosUsuario/{id}', [UserController::class, 'listarPermisosUsuario'])
         ->name('api.seguridad.listarPermisosUsuario')
-        ->middleware(['permission:seguridad.usuarios.show,web']);
+        ->middleware(['permission:seguridad.usuarios.show']);
 
+    // Auditoría
     Route::get('/seguridad-auditoria', [AuditLogController::class, 'index'])
         ->name('api.seguridad.auditoria.index')
-        ->middleware(['permission:seguridad.auditoria.index,web']);
+        ->middleware(['permission:seguridad.auditoria.index']);
 
     Route::get('/seguridad-auditoria/eventos', [AuditLogController::class, 'eventos'])
         ->name('api.seguridad.auditoria.eventos')
-        ->middleware(['permission:seguridad.auditoria.index,web']);
+        ->middleware(['permission:seguridad.auditoria.index']);
+
+    // Monitoreo de Backups
+    Route::get('/seguridad-backups/estado', [BackupMonitorController::class, 'estado'])
+        ->name('api.seguridad.backups.estado')
+        ->middleware(['permission:seguridad.backups.index']);
+
+    Route::get('/seguridad-backups/descargar-agentes-dcm', [BackupMonitorController::class, 'descargarAgentesDcm'])
+        ->name('api.seguridad.backups.descargar-agentes-dcm')
+        ->middleware(['permission:seguridad.backups.index']);
+
+    Route::post('/seguridad-backups/ejecutar-db', [BackupMonitorController::class, 'ejecutarBackupDb'])
+        ->name('api.seguridad.backups.ejecutar-db')
+        ->middleware(['permission:seguridad.backups.ejecutar']);
+
+    // Generador y Gestión de Tokens por Sede (Agentes Edge)
+    Route::get('/seguridad-tokens', [TokenSedeController::class, 'index'])
+        ->name('api.seguridad.tokens.index')
+        ->middleware(['permission:seguridad.tokens.index']);
+
+    Route::post('/seguridad-tokens', [TokenSedeController::class, 'store'])
+        ->name('api.seguridad.tokens.store')
+        ->middleware(['permission:seguridad.tokens.create']);
+
+    Route::delete('/seguridad-tokens/{id}', [TokenSedeController::class, 'destroy'])
+        ->name('api.seguridad.tokens.destroy')
+        ->middleware(['permission:seguridad.tokens.revoke']);
+
+    Route::get('/seguridad-tokens/{sedeId}/config-json', [TokenSedeController::class, 'descargarConfigJson'])
+        ->name('api.seguridad.tokens.config-json')
+        ->middleware(['permission:seguridad.tokens.index']);
 });

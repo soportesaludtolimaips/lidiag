@@ -19,6 +19,7 @@
                     </div>
 
                     <div class="border p-2 mb-3" style="max-height: 45vh; overflow: auto">
+                        <!-- eslint-disable-next-line vue/no-v-html -- html sanitizado con DOMPurify al cargar -->
                         <div v-html="html"></div>
                     </div>
 

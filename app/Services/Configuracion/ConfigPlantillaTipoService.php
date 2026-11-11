@@ -8,11 +8,31 @@ use App\Services\BaseService;
 
 class ConfigPlantillaTipoService extends BaseService
 {
+    /**
+     * Obtiene todos los tipos de plantilla registrados.
+     *
+     * @returns array Arreglo con la lista de tipos de plantilla.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function all(): array
     {
         return $this->success(ConfigPlantillaTipo::all());
     }
 
+    /**
+     * Busca un tipo de plantilla por su id.
+     *
+     * @param  int  $id  Identificador del tipo de plantilla a buscar.
+     *
+     * @returns array Arreglo con los datos del tipo de plantilla o un error de no encontrado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function find(int $id): array
     {
         $item = ConfigPlantillaTipo::find($id);
@@ -24,11 +44,31 @@ class ConfigPlantillaTipoService extends BaseService
         return $this->success($item);
     }
 
+    /**
+     * Obtiene los tipos de plantilla activos registrados.
+     *
+     * @returns array Arreglo con la lista de tipos de plantilla activos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function listarActivos(): array
     {
         return $this->success(ConfigPlantillaTipo::where('estado', true)->get());
     }
 
+    /**
+     * Crea un nuevo tipo de plantilla y registra la auditoría correspondiente.
+     *
+     * @param  array  $data  Datos del tipo de plantilla a crear.
+     *
+     * @returns array Arreglo con el tipo de plantilla creado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function create(array $data): array
     {
         $item = ConfigPlantillaTipo::create($data);
@@ -37,6 +77,18 @@ class ConfigPlantillaTipoService extends BaseService
         return $this->created($item);
     }
 
+    /**
+     * Actualiza un tipo de plantilla existente y registra la auditoría correspondiente.
+     *
+     * @param  int  $id  Identificador del tipo de plantilla a actualizar.
+     * @param  array  $data  Datos del tipo de plantilla a actualizar.
+     *
+     * @returns array Arreglo con el tipo de plantilla actualizado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function update(int $id, array $data): array
     {
         $item = ConfigPlantillaTipo::findOrFail($id);
@@ -58,6 +110,17 @@ class ConfigPlantillaTipoService extends BaseService
         return $this->updated($item);
     }
 
+    /**
+     * Elimina un tipo de plantilla existente y registra la auditoría correspondiente.
+     *
+     * @param  int  $id  Identificador del tipo de plantilla a eliminar.
+     *
+     * @returns array Arreglo con el resultado de la eliminación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function delete(int $id): array
     {
         $item = ConfigPlantillaTipo::findOrFail($id);

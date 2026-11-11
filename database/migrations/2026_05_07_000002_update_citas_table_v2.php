@@ -18,16 +18,16 @@ return new class extends Migration
             });
         }
 
-        if (! in_array('servicio_cita_id', $columns)) {
+        if (! in_array('servicio_id', $columns)) {
             Schema::table('citas', function (Blueprint $table) {
-                $table->unsignedBigInteger('servicio_cita_id')->nullable()->after('paciente_id');
-                $table->foreign('servicio_cita_id')->references('id')->on('config_servicio_citas')->onDelete('set null');
+                $table->unsignedBigInteger('servicio_id')->nullable()->after('paciente_id');
+                $table->foreign('servicio_id')->references('id')->on('config_servicios')->onDelete('set null');
             });
         }
 
         if (! in_array('producto_id', $columns)) {
             Schema::table('citas', function (Blueprint $table) {
-                $table->unsignedBigInteger('producto_id')->nullable()->after('servicio_cita_id');
+                $table->unsignedBigInteger('producto_id')->nullable()->after('servicio_id');
                 $table->foreign('producto_id')->references('id')->on('config_productos')->onDelete('set null');
             });
         }
@@ -83,14 +83,14 @@ return new class extends Migration
     {
         Schema::table('citas', function (Blueprint $table) {
             $table->dropForeign(['paciente_id']);
-            $table->dropForeign(['servicio_cita_id']);
+            $table->dropForeign(['servicio_id']);
             $table->dropForeign(['producto_id']);
             $table->dropForeign(['sede_id']);
             $table->dropForeign(['quien_confirma_id']);
 
             $table->dropColumn([
                 'paciente_id',
-                'servicio_cita_id',
+                'servicio_id',
                 'producto_id',
                 'sede_id',
                 'fecha_hora_inicio',

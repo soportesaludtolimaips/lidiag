@@ -7,6 +7,13 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class UserResource extends JsonResource
 {
+    /**
+     * Datos del usuario en formato array.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function toArray(Request $request): array
     {
         return [
@@ -21,6 +28,7 @@ class UserResource extends JsonResource
             'transcrip_remoto' => $this->transcrip_remoto,
             'firma' => $this->firma,
             'imagen_perfil' => $this->imagen_perfil,
+            'sexo' => $this->sexo,
             'roles' => RoleResource::collection($this->whenLoaded('roles')),
             'modulos' => ModuleResource::collection($this->whenLoaded('modulos')),
             'sedes' => SedeResource::collection($this->whenLoaded('sedes')),

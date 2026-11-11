@@ -6,6 +6,13 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class ConfigProductoResource extends JsonResource
 {
+    /**
+     * Datos del producto de configuración en formato array.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function toArray($request): array
     {
         return [

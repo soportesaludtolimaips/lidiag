@@ -2,6 +2,8 @@
 
 namespace App\Exports;
 
+use App\Models\Configuracion\ConfigProducto;
+use App\Models\Configuracion\ConfigSede;
 use App\Models\Contratacion\Contrato;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -22,8 +24,8 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
  * Genera un Excel con la estructura de Plantilla_Cotrato_Detalle.xlsx:
  * - Fila 1: Título
  * - Fila 2: Sede: {nom_sede} | Inicio: {fecha} | Contrato ID: {id}  (celda C2 con el ID)
- * - Fila 3: Encabezados (Código CUPS | Producto | Valor Consulta | Valor Urgencias)
- * - Filas 4+: Productos configurados en el contrato, valores vacíos para diligenciar
+ * - Fila 3: Encabezados (Código CUPS | Producto | Valor Consulta | Valor Urgencias | Fecha Ingreso)
+ * - Filas 4+: Productos del catálogo que requieren lectura, valores vacíos para diligenciar
  *
  * El médico destino se selecciona en el modal al momento de importar.
  *
@@ -46,9 +48,15 @@ class ContratoDetallePlantillaExport implements FromCollection, WithColumnWidths
     public function __construct(protected int $contratoId) {}
 
     /**
-     * Consulta los productos configurados en el contrato con su nombre y código CUPS.
+     * Consulta el catálogo de productos que requieren lectura.
      *
-     * @returns \Illuminate\Support\Collection<int, mixed> Productos del contrato ordenados por código CUPS.
+     * La plantilla de detalle es la única vía de carga del módulo, por lo
+     * que lista el catálogo completo (y no solo los productos del contrato)
+     * para que un contrato recién creado también descargue filas. Las
+     * columnas de valor se dejan vacías y las filas sin diligenciar se
+     * ignoran al importar.
+     *
+     * @returns \Illuminate\Support\Collection<int, mixed> Productos exigibles ordenados por código CUPS.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -56,12 +64,10 @@ class ContratoDetallePlantillaExport implements FromCollection, WithColumnWidths
      */
     public function collection()
     {
-        return Contrato::findOrFail($this->contratoId)
-            ->productos()
-            ->with('producto:id,cod_cups,nom_produc')
-            ->get()
-            ->sortBy(fn ($cp) => $cp->producto->cod_cups ?? '')
-            ->values();
+        return ConfigProducto::where('requi_lectura', 1)
+            ->where('estado', 1)
+            ->orderBy('cod_cups')
+            ->get(['id', 'cod_cups', 'nom_produc']);
     }
 
     /**
@@ -80,26 +86,29 @@ class ContratoDetallePlantillaExport implements FromCollection, WithColumnWidths
             'Producto',
             'Valor Consulta',
             'Valor Urgencias',
+            'Fecha Ingreso',
         ];
     }
 
     /**
-     * Mapea cada producto del contrato a una fila del Excel.
+     * Mapea cada producto del catálogo a una fila del Excel.
      * Las columnas de valores quedan vacías para que el usuario las diligencie
-     * para el médico seleccionado.
+     * para el médico seleccionado; las filas sin diligenciar se ignoran al
+     * importar.
      *
-     * @param  object  $contratoProducto  Registro de contratos_productos con relación producto.
-     * @return array<int, mixed> Fila con [codigo_cups, nombre, '', ''].
+     * @param  object  $producto  Registro de config_productos.
+     * @return array<int, mixed> Fila con [codigo_cups, nombre, '', '', ''].
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-08-24
      */
-    public function map($contratoProducto): array
+    public function map($producto): array
     {
         return [
-            $contratoProducto->producto->cod_cups ?? '',
-            $contratoProducto->producto->nom_produc ?? '',
+            $producto->cod_cups ?? '',
+            $producto->nom_produc ?? '',
+            '',
             '',
             '',
         ];
@@ -109,7 +118,7 @@ class ContratoDetallePlantillaExport implements FromCollection, WithColumnWidths
      * Estilos del Excel: encabezados en negrita con fondo.
      *
      * @param  Worksheet  $sheet  Hoja de cálculo.
-     * @return array<string, array<string, mixed>> Estilos aplicados por fila.
+     * @return array<int|string, mixed> Estilos aplicados por fila.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -118,10 +127,10 @@ class ContratoDetallePlantillaExport implements FromCollection, WithColumnWidths
     public function styles(Worksheet $sheet): array
     {
         return [
-            3 => [
-                'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
-                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1A2274']],
-                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+            "3" => [
+                "font" => ["bold" => true, "color" => ["rgb" => "FFFFFF"]],
+                "fill" => ["fillType" => Fill::FILL_SOLID, "startColor" => ["rgb" => "1A2274"]],
+                "alignment" => ["horizontal" => Alignment::HORIZONTAL_CENTER],
             ],
         ];
     }
@@ -145,7 +154,7 @@ class ContratoDetallePlantillaExport implements FromCollection, WithColumnWidths
 
                 // ── FILA 1: TÍTULO ─────────────────────────────────────
                 $sheet->setCellValue('A1', 'Plantilla Importación de Detalle de Médico - Contrato');
-                $sheet->mergeCells('A1:D1');
+                $sheet->mergeCells('A1:E1');
                 $sheet->getStyle('A1')->applyFromArray([
                     'font' => [
                         'bold' => true,
@@ -163,7 +172,9 @@ class ContratoDetallePlantillaExport implements FromCollection, WithColumnWidths
 
                 // ── FILA 2: INFO DEL CONTRATO (C2 = Contrato ID, validado al importar) ──
                 $contrato = Contrato::with('sede:id,nom_sede')->find($this->contratoId);
-                $nomSede = $contrato?->sede?->nom_sede ?? 'N/A';
+                /** @var ConfigSede|null $sede */
+                $sede = $contrato?->sede;
+                $nomSede = $sede ? $sede->nom_sede : 'N/A';
                 $inicio = $contrato?->fecha_inicio instanceof Carbon
                     ? $contrato->fecha_inicio->format('d/m/Y')
                     : 'N/A';
@@ -172,7 +183,7 @@ class ContratoDetallePlantillaExport implements FromCollection, WithColumnWidths
                 $sheet->setCellValue('B2', "Inicio: {$inicio}");
                 $sheet->setCellValue('C2', "Contrato ID: {$this->contratoId}");
 
-                $sheet->getStyle('A2:D2')->applyFromArray([
+                $sheet->getStyle('A2:E2')->applyFromArray([
                     'font' => [
                         'bold' => true,
                         'size' => 11,
@@ -186,7 +197,7 @@ class ContratoDetallePlantillaExport implements FromCollection, WithColumnWidths
                 // ── BORDES DE DATOS ────────────────────────────────────
                 $highestRow = $sheet->getHighestRow();
                 if ($highestRow > 3) {
-                    $sheet->getStyle('A4:D'.$highestRow)->applyFromArray([
+                    $sheet->getStyle('A4:E'.$highestRow)->applyFromArray([
                         'borders' => [
                             'allBorders' => [
                                 'borderStyle' => Border::BORDER_THIN,
@@ -215,6 +226,7 @@ class ContratoDetallePlantillaExport implements FromCollection, WithColumnWidths
             'B' => 65,
             'C' => 18,
             'D' => 18,
+            'E' => 18,
         ];
     }
 

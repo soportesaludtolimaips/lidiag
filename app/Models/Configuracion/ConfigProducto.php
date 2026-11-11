@@ -20,16 +20,43 @@ class ConfigProducto extends Model
         'estado' => 'boolean',
     ];
 
+    /**
+     * Consentimientos informados del producto.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\HasMany
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function consentimientoInformado()
     {
         return $this->hasMany(ConsentimientoInformado::class);
     }
 
+    /**
+     * Registros de estudio asociados al producto.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\HasMany
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function estudioProductos()
     {
         return $this->hasMany(EstudioProducto::class, 'producto_id');
     }
 
+    /**
+     * Recomendación asociada al producto.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\HasOne
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function recomendacionProducto()
     {
         return $this->hasOne(ConfigRecomendacionProducto::class, 'producto_id');

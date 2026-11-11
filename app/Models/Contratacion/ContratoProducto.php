@@ -15,6 +15,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * del catálogo (`config_productos`) con un contrato y define el valor
  * contratado global para ese producto en la sede del contrato.
  *
+ * @property int $id
+ * @property int $contrato_id
+ * @property int $producto_id
+ * @property float|string $valor_contrato
+ * @property int $estado
+ * @property-read ConfigProducto|null $producto
  *
  * @author Jhon Javer Lozano Arce
  *

@@ -4,21 +4,47 @@
             <div class="col-md-7 align-self-center">
                 <h3 class="text-themecolor">Helpdesk</h3>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="/helpdesk-tickets">Tickets</a></li>
-                    <li class="breadcrumb-item active">{{ ticket?.folio || "#" + ticketId }}</li>
+                    <li class="breadcrumb-item">
+                        <router-link
+                            to="/helpdesk-tickets"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Tickets
+                        </router-link>
+                    </li>
+                    <li class="breadcrumb-item active">
+                        {{ ticket?.folio || "#" + (activeTicketId || "") }}
+                    </li>
                 </ol>
             </div>
-            <div class="col-md-5 align-self-center text-right">
-                <a href="/helpdesk-tickets" class="btn btn-inverse btn-sm" tabindex="0">
+            <div class="col-md-5 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary m-r-5"
+                    :disabled="loading"
+                    title="Actualizar datos del ticket"
+                    @click="cargar()"
+                >
+                    <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loading }"></i>
+                    Refrescar
+                </button>
+                <router-link
+                    to="/helpdesk-tickets"
+                    class="btn btn-inverse btn-sm"
+                    tabindex="0"
+                    title="Volver al listado de tickets"
+                >
                     <i class="fa fa-arrow-left"></i> Volver
-                </a>
+                </router-link>
             </div>
         </div>
 
         <div class="row" v-if="loading">
             <div class="col-12">
                 <div class="card">
-                    <div class="card-body"><i class="fa fa-spinner fa-spin"></i> Cargando...</div>
+                    <div class="card-body">
+                        <table-skeleton-loader :rows="4" :columns="2" />
+                    </div>
                 </div>
             </div>
         </div>
@@ -86,28 +112,18 @@
                                 class="form-control custom-select"
                             >
                                 <option value="">Seleccione...</option>
-                                <option v-for="e in estados" :key="e.id" :value="e.id">
+                                <option v-for="e in estadosDisponibles" :key="e.id" :value="e.id">
                                     {{ e.nombre }}
                                 </option>
                             </select>
                         </div>
                         <div class="form-group" v-if="accion.estado_id">
                             <label for="detalleComentarioEstado">Comentario (opcional)</label>
-                            <textarea
-                                id="detalleComentarioEstado"
-                                v-model="accion.comentario"
-                                class="form-control textarea_editor"
-                                rows="4"
-                            ></textarea>
+                            <WysiwygEditor v-model="accion.comentario" :rows="4" />
                         </div>
                         <div class="form-group" v-if="estadoSeleccionadoNombre === 'Resuelto'">
                             <label for="detalleSolucion">Descripción solución (obligatoria)</label>
-                            <textarea
-                                id="detalleSolucion"
-                                v-model="accion.descripcion_solucion"
-                                class="form-control textarea_editor"
-                                rows="4"
-                            ></textarea>
+                            <WysiwygEditor v-model="accion.descripcion_solucion" :rows="4" />
                         </div>
                         <button
                             class="btn btn-info btn-sm"
@@ -162,10 +178,12 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Descripción</h4>
+                        <!-- eslint-disable-next-line vue/no-v-html -- contenido sanitizado con sanitize() -->
                         <div v-html="sanitize(ticket.descripcion)"></div>
 
                         <div v-if="ticket.descripcion_solucion" class="m-t-20">
                             <h5 class="text-success">Solución</h5>
+                            <!-- eslint-disable-next-line vue/no-v-html -- contenido sanitizado con sanitize() -->
                             <div v-html="sanitize(ticket.descripcion_solucion)"></div>
                         </div>
                     </div>
@@ -174,21 +192,17 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Agregar comentario</h4>
-                        <textarea
-                            id="detalleNuevoComentario"
-                            v-model="nuevoComentario"
-                            class="form-control textarea_editor"
-                            rows="4"
-                        ></textarea>
+                        <WysiwygEditor v-model="nuevoComentario" :rows="4" />
                         <button
                             class="btn btn-success btn-sm m-t-10"
                             type="button"
                             :disabled="savingComentario"
+                            title="Enviar comentario"
                             @click="comentar()"
                         >
                             <i v-if="savingComentario" class="fa fa-spinner fa-spin"></i>
                             <i v-else class="fa fa-comment"></i>
-                            Enviar
+                            Enviar comentario
                         </button>
                     </div>
                 </div>
@@ -241,11 +255,13 @@
                                         }}</span>
                                     </div>
                                     <div class="text-muted">{{ h.user?.name }}</div>
+                                    <!-- eslint-disable vue/no-v-html -- contenido sanitizado con sanitize() -->
                                     <div
                                         v-if="h.comentario"
                                         class="m-t-5"
                                         v-html="sanitize(h.comentario)"
                                     ></div>
+                                    <!-- eslint-enable vue/no-v-html -->
 
                                     <div v-if="h.adjuntos && h.adjuntos.length" class="m-t-10">
                                         <div v-for="a in h.adjuntos" :key="a.id">
@@ -270,18 +286,25 @@
     </div>
 </template>
 <script setup>
-import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
 import DOMPurify from "dompurify";
-import { toastMessage, handleAxiosErrorToast, confirmAction } from "@/helpers/alerts.js";
+import { toastMessage, confirmAction } from "@/helpers/alerts.js";
 import { formatDateTime } from "@/helpers/dateUtils.js";
-import { initWysiwyg } from "@/helpers/wysiwyg.js";
+import { isHtmlEffectivelyEmpty } from "@/helpers/wysiwyg.js";
+import WysiwygEditor from "@/components/shared/WysiwygEditor.vue";
 import { helpdesk } from "@/helpers/api.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 
 const props = defineProps({
-    ticketId: { type: [Number, String], required: true },
+    ticketId: { type: [Number, String], default: null },
 });
-const { proxy } = getCurrentInstance();
+
+const route = useRoute();
+const router = useRouter();
+
+const activeTicketId = computed(() => props.ticketId || route?.params?.ticket_id);
 
 const loading = ref(false);
 const savingComentario = ref(false);
@@ -308,27 +331,47 @@ const estadoSeleccionadoNombre = computed(() => {
     return e ? e.nombre : "";
 });
 
+const estadosDisponibles = computed(() => {
+    const currentId = ticket.value?.estado_id ?? ticket.value?.estado?.id;
+    return (estados.value || []).filter(
+        (e) => e.activo && (!currentId || String(e.id) !== String(currentId))
+    );
+});
+
 function sanitize(dirty) {
     return DOMPurify.sanitize(dirty || "");
 }
+
 async function recargarTicket() {
     try {
-        const ticketRes = await helpdesk.ticket(props.ticketId);
-        ticket.value = ticketRes.data;
-    } catch (error) {
-        handleAxiosErrorToast(error, "No se pudo actualizar el ticket.");
+        const ticketRes = await helpdesk.ticket(activeTicketId.value);
+        ticket.value = ticketRes.data?.data ?? ticketRes.data;
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudo recargar el ticket.",
+            icon: "error",
+        });
     }
 }
+
 async function cargar() {
     loading.value = true;
     try {
-        const ticketRes = await helpdesk.ticket(props.ticketId);
-        ticket.value = ticketRes.data;
+        const ticketRes = await helpdesk.ticket(activeTicketId.value);
+        ticket.value = ticketRes.data?.data ?? ticketRes.data;
+
+        const extractArray = (res) =>
+            Array.isArray(res?.data?.data)
+                ? res.data.data
+                : Array.isArray(res?.data)
+                  ? res.data
+                  : [];
 
         // Estados (puede fallar por permisos; no bloquea el detalle)
         try {
             const estadosRes = await helpdesk.estados();
-            estados.value = (estadosRes.data || []).filter((x) => x.activo);
+            estados.value = extractArray(estadosRes).filter((x) => x.activo);
         } catch (e) {
             console.warn("No se pudieron cargar estados", e);
             estados.value = [];
@@ -337,34 +380,54 @@ async function cargar() {
         // Asignables (solo necesario para reasignación; no bloquea el detalle)
         try {
             const asignablesRes = await helpdesk.asignables();
-            asignables.value = asignablesRes.data || [];
+            asignables.value = extractArray(asignablesRes);
         } catch (e) {
             console.warn("No se pudieron cargar usuarios asignables", e);
             asignables.value = [];
         }
-        nextTick(() => initWysiwyg());
-    } catch (error) {
-        handleAxiosErrorToast(error, "No se pudo cargar el ticket.");
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudo cargar el ticket.",
+            icon: "error",
+        });
     } finally {
         loading.value = false;
     }
 }
+
 async function comentar() {
     if (!nuevoComentario.value) return;
     savingComentario.value = true;
     try {
-        await helpdesk.comentar(props.ticketId, { comentario: nuevoComentario.value });
+        await helpdesk.comentar(activeTicketId.value, { comentario: nuevoComentario.value });
         nuevoComentario.value = "";
-        toastMessage({ heading: "Ok", text: "Comentario agregado.", icon: "success" });
+        toastMessage({ heading: "Listo", text: "Comentario agregado.", icon: "success" });
         await recargarTicket();
-    } catch (error) {
-        handleAxiosErrorToast(error, "No se pudo guardar el comentario.");
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudo agregar el comentario.",
+            icon: "error",
+        });
     } finally {
         savingComentario.value = false;
     }
 }
 async function cambiarEstado() {
     if (!accion.value.estado_id) return;
+    if (
+        estadoSeleccionadoNombre.value === "Resuelto" &&
+        isHtmlEffectivelyEmpty(accion.value.descripcion_solucion)
+    ) {
+        toastMessage({
+            heading: "Upss!!!",
+            text: "La descripción de la solución es obligatoria para marcar el ticket como Resuelto.",
+            icon: "warning",
+        });
+        return;
+    }
+
     const ok = await confirmAction({
         title: "Cambiar estado",
         text: "¿Estás seguro de aplicar este cambio de estado?",
@@ -373,20 +436,26 @@ async function cambiarEstado() {
     if (!ok) return;
     savingEstado.value = true;
     try {
-        await helpdesk.cambiarEstado(props.ticketId, {
+        await helpdesk.cambiarEstado(activeTicketId.value, {
             estado_id: accion.value.estado_id,
             comentario: accion.value.comentario || null,
             descripcion_solucion: accion.value.descripcion_solucion || null,
         });
         accion.value = { estado_id: "", comentario: "", descripcion_solucion: "" };
-        toastMessage({ heading: "Ok", text: "Estado actualizado.", icon: "success" });
+        toastMessage({ heading: "Listo", text: "Estado actualizado.", icon: "success" });
         await recargarTicket();
     } catch (error) {
-        handleAxiosErrorToast(error, "No se pudo cambiar el estado.");
+        const msg = error?.response?.data?.message || "No se pudo cambiar el estado.";
+        toastMessage({
+            heading: "Error",
+            text: msg,
+            icon: "error",
+        });
     } finally {
         savingEstado.value = false;
     }
 }
+
 async function reasignar() {
     if (!reasignacion.value.asignado_id || !reasignacion.value.comentario) return;
     const ok = await confirmAction({
@@ -397,19 +466,24 @@ async function reasignar() {
     if (!ok) return;
     savingReasignar.value = true;
     try {
-        await helpdesk.reasignar(props.ticketId, {
+        await helpdesk.reasignar(activeTicketId.value, {
             asignado_id: reasignacion.value.asignado_id,
             comentario: reasignacion.value.comentario,
         });
         reasignacion.value = { asignado_id: "", comentario: "" };
-        toastMessage({ heading: "Ok", text: "Ticket reasignado.", icon: "success" });
+        toastMessage({ heading: "Listo", text: "Ticket reasignado.", icon: "success" });
         await recargarTicket();
-    } catch (error) {
-        handleAxiosErrorToast(error, "No se pudo reasignar.");
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudo reasignar el ticket.",
+            icon: "error",
+        });
     } finally {
         savingReasignar.value = false;
     }
 }
+
 async function subirAdjuntos() {
     const input = files.value;
     const rawFiles = input && input.files ? Array.from(input.files) : [];
@@ -420,30 +494,41 @@ async function subirAdjuntos() {
         const fd = new FormData();
         rawFiles.forEach((f) => fd.append("files[]", f));
         fd.append("comentario", "Adjuntos agregados.");
-        await helpdesk.subirAdjuntos(props.ticketId, fd);
+        await helpdesk.subirAdjuntos(activeTicketId.value, fd);
         if (input) input.value = "";
-        toastMessage({ heading: "Ok", text: "Adjuntos subidos.", icon: "success" });
+        toastMessage({ heading: "Listo", text: "Adjuntos subidos.", icon: "success" });
         await recargarTicket();
-    } catch (error) {
-        handleAxiosErrorToast(error, "No se pudieron subir adjuntos.");
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudieron subir los adjuntos.",
+            icon: "error",
+        });
     } finally {
         savingAdjuntos.value = false;
     }
 }
 
+function volver() {
+    if (router) {
+        router.push("/helpdesk-tickets");
+    } else {
+        window.location.href = "/helpdesk-tickets";
+    }
+}
+
 onMounted(async () => {
-    nextTick(() => initWysiwyg());
     await cargar();
 });
 
-onBeforeUnmount(() => {
-    try {
-        const $root = $(proxy.$el);
-        $root.find(".textarea_editor").each((_, el) => {
-            const $el = $(el);
-            const inst = $el.data("wysihtml5");
-            if (inst && inst.editor) inst.editor.destroy();
-        });
-    } catch (_) {}
+useKeyboardShortcuts({
+    onSearch: () => {
+        if (!loading.value) {
+            cargar();
+        }
+    },
+    onEscape: () => {
+        volver();
+    },
 });
 </script>

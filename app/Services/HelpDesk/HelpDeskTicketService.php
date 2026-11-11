@@ -2,6 +2,7 @@
 
 namespace App\Services\HelpDesk;
 
+use App\Helpers\AuditLogger;
 use App\Models\Configuracion\ConfigSede;
 use App\Models\HelpDesk\HelpDeskEstado;
 use App\Models\HelpDesk\HelpDeskFolioCounter;
@@ -11,12 +12,23 @@ use App\Models\User;
 use App\Notifications\HelpDesk\HelpDeskTicketNotification;
 use App\Services\BaseService;
 use App\Services\HelpDesk\Traits\TicketAuthorization;
-use Illuminate\Support\Facades\DB;
 
 class HelpDeskTicketService extends BaseService
 {
     use TicketAuthorization;
 
+    /**
+     * Lista los tickets aplicando filtros, ordenamiento por prioridad y paginación.
+     *
+     * @param  array  $filters  Filtros de consulta (scope, estado_id, categoria_id, prioridad_id, sede_id, desde, hasta, q, per_page, page).
+     * @param  User  $user  Usuario autenticado que realiza la consulta.
+     *
+     * @returns array Respuesta con los items paginados y metadatos de paginación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     public function list(array $filters, User $user): array
     {
         $scope = $filters['scope'] ?? 'mine';
@@ -88,6 +100,18 @@ class HelpDeskTicketService extends BaseService
         ]);
     }
 
+    /**
+     * Obtiene el detalle de un ticket con todas sus relaciones y marca como visto si aplica.
+     *
+     * @param  HelpDeskTickets  $ticket  Ticket a consultar.
+     * @param  User  $user  Usuario autenticado que realiza la consulta.
+     *
+     * @returns array Respuesta con el ticket y sus relaciones cargadas.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     public function find(HelpDeskTickets $ticket, User $user): array
     {
         $this->assertCanSeeTicket($ticket, $user);
@@ -111,6 +135,18 @@ class HelpDeskTicketService extends BaseService
         );
     }
 
+    /**
+     * Crea un nuevo ticket generando su folio, estado inicial y notificando a las partes.
+     *
+     * @param  array  $data  Datos validados del ticket (titulo, descripcion, categoria_id, prioridad_id, sede_id, asignado_id).
+     * @param  User  $user  Usuario autenticado que registra el ticket.
+     *
+     * @returns array Respuesta con el ticket creado o error de validación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     public function create(array $data, User $user): array
     {
         $asignado = User::query()->where('id', (int) $data['asignado_id'])->where('estado', 1)->first();
@@ -123,12 +159,10 @@ class HelpDeskTicketService extends BaseService
             return $this->error('Catálogo de estados no inicializado', 500);
         }
 
-        $sede = ConfigSede::query()->select(['id', 'cod_sede'])->findOrFail((int) $data['sede_id']);
-        if (! $sede->cod_sede) {
-            return $this->error('La sede no tiene cod_sede configurado', 422);
-        }
+        $sede = ConfigSede::query()->select(['id', 'cod_sede', 'nom_sede'])->findOrFail((int) $data['sede_id']);
+        $codigoSede = $this->resolveCodSede($sede);
 
-        $ticket = DB::transaction(function () use ($data, $user, $estadoAbierto, $sede, $asignado) {
+        return $this->transaction(function () use ($data, $user, $estadoAbierto, $sede, $asignado, $codigoSede) {
             $now = now();
             $anio = (int) $now->format('Y');
 
@@ -145,7 +179,7 @@ class HelpDeskTicketService extends BaseService
 
             $seq = str_pad((string) $counter->last_number, 5, '0', STR_PAD_LEFT);
             $fecha = $now->format('Ymd');
-            $folio = "{$sede->cod_sede}-{$fecha}-{$seq}";
+            $folio = "{$codigoSede}-{$fecha}-{$seq}";
 
             $ticket = HelpDeskTickets::create([
                 'folio' => $folio,
@@ -174,12 +208,28 @@ class HelpDeskTicketService extends BaseService
                 $asignado->notify($notif);
             }
 
-            return $ticket;
-        });
+            AuditLogger::crear(
+                $ticket,
+                "Ticket HelpDesk {$ticket->folio} creado: '{$ticket->titulo}' por {$user->name}"
+            );
 
-        return $this->created($ticket->load(['categoria', 'prioridad', 'estado']));
+            return $this->created($ticket->load(['categoria', 'prioridad', 'estado']));
+        });
     }
 
+    /**
+     * Actualiza campos editables de un ticket y registra cambios de categoría o prioridad en el historial.
+     *
+     * @param  HelpDeskTickets  $ticket  Ticket a actualizar.
+     * @param  array  $data  Datos validados a modificar.
+     * @param  User  $user  Usuario autenticado que realiza la actualización.
+     *
+     * @returns array Respuesta con el ticket actualizado o error de permisos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     public function update(HelpDeskTickets $ticket, array $data, User $user): array
     {
         $this->assertCanSeeTicket($ticket, $user);
@@ -223,6 +273,18 @@ class HelpDeskTicketService extends BaseService
         return $this->success($ticket);
     }
 
+    /**
+     * Elimina un ticket (solo administradores y siempre que esté en estado Abierto o Cerrado).
+     *
+     * @param  HelpDeskTickets  $ticket  Ticket a eliminar.
+     * @param  User  $user  Usuario autenticado que realiza la eliminación.
+     *
+     * @returns array Respuesta de eliminación o error de validación/permisos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     public function delete(HelpDeskTickets $ticket, User $user): array
     {
         if (! $user->hasRole('Administrador')) {
@@ -234,11 +296,29 @@ class HelpDeskTicketService extends BaseService
             return $this->error('Solo se pueden eliminar tickets en estado Abierto o Cerrado.', 422);
         }
 
+        AuditLogger::eliminar(
+            $ticket,
+            "Ticket HelpDesk {$ticket->folio} eliminado por {$user->name}"
+        );
+
         $ticket->delete();
 
         return $this->deleted();
     }
 
+    /**
+     * Registra un comentario en el historial del ticket y ajusta el campo pendiente_de.
+     *
+     * @param  HelpDeskTickets  $ticket  Ticket comentado.
+     * @param  array  $data  Datos validados que incluyen el comentario.
+     * @param  User  $user  Usuario autenticado que comenta.
+     *
+     * @returns array Respuesta con resultado de la operación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     public function comment(HelpDeskTickets $ticket, array $data, User $user): array
     {
         $this->assertCanSeeTicket($ticket, $user);
@@ -263,6 +343,19 @@ class HelpDeskTicketService extends BaseService
         return $this->success(['ok' => true]);
     }
 
+    /**
+     * Reasigna el ticket a otro usuario de soporte y notifica a las partes.
+     *
+     * @param  HelpDeskTickets  $ticket  Ticket a reasignar.
+     * @param  array  $data  Datos validados con el asignado_id y comentario.
+     * @param  User  $user  Usuario autenticado con permisos de reasignación.
+     *
+     * @returns array Respuesta con resultado de la operación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     public function reassign(HelpDeskTickets $ticket, array $data, User $user): array
     {
         $this->assertCanSeeTicket($ticket, $user);
@@ -291,9 +384,28 @@ class HelpDeskTicketService extends BaseService
 
         $this->notifyPartes($ticket, 'REASIGNADO', 'Ticket reasignado', null);
 
+        AuditLogger::log(
+            'reasignar_ticket',
+            $ticket,
+            "Ticket {$ticket->folio} reasignado a técnico ID: {$asignado->id} ({$asignado->name}) por {$user->name}"
+        );
+
         return $this->success(['ok' => true]);
     }
 
+    /**
+     * Cambia el estado del ticket validando la transición, solución o cierre y notificando.
+     *
+     * @param  HelpDeskTickets  $ticket  Ticket a cambiar de estado.
+     * @param  array  $data  Datos validados con estado_id y comentario/solución.
+     * @param  User  $user  Usuario autenticado con permisos de soporte.
+     *
+     * @returns array Respuesta con resultado de la operación o error de transición.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     public function changeStatus(HelpDeskTickets $ticket, array $data, User $user): array
     {
         $this->assertCanSeeTicket($ticket, $user);
@@ -308,36 +420,43 @@ class HelpDeskTicketService extends BaseService
             return $this->error('Estado actual inválido', 500);
         }
 
-        $comentario = ! empty($data['comentario']) ? $this->sanitizeHtml($data['comentario']) : null;
+        if ((int) $actual->id === (int) $nuevo->id) {
+            return $this->error("El ticket ya se encuentra en estado '{$actual->nombre}'", 422);
+        }
 
         $transitionOk = $this->isValidTransition($actual->nombre, $nuevo->nombre);
         if (! $transitionOk) {
-            return $this->error('Transición de estado no permitida', 422);
+            return $this->error("Transición de estado no permitida de '{$actual->nombre}' a '{$nuevo->nombre}'", 422);
         }
 
-        if (in_array($nuevo->nombre, ['Resuelto', 'Cerrado'], true) && ! $comentario) {
-            return $this->error('Comentario obligatorio para este cambio de estado', 422);
-        }
+        $comentario = ! empty($data['comentario']) ? $this->sanitizeHtml($data['comentario']) : null;
+
         if ($nuevo->nombre === 'Resuelto') {
             $descSol = ! empty($data['descripcion_solucion']) ? $this->sanitizeHtml($data['descripcion_solucion']) : null;
             if (! $descSol) {
-                return $this->error('Descripción solución obligatoria al marcar Resuelto', 422);
+                return $this->error('La descripción de la solución es obligatoria al marcar Resuelto', 422);
             }
             $ticket->descripcion_solucion = $descSol;
             $ticket->quien_soluciona_id = $user->id;
             $ticket->resolved_at = now();
             $ticket->fechor_sol_quien_soluciona = now();
+            if (! $comentario) {
+                $comentario = $descSol;
+            }
         }
+
         if ($nuevo->nombre === 'Cerrado') {
             $ticket->closed_at = now();
+            if (! $comentario) {
+                $comentario = 'Ticket cerrado.';
+            }
         }
 
-        $ticket->estado_id = $nuevo->id;
-
-        if ($actual->nombre === 'Cerrado' && $nuevo->nombre === 'Abierto') {
+        if (in_array($nuevo->nombre, ['Abierto', 'En Progreso'], true)) {
             $ticket->closed_at = null;
         }
 
+        $ticket->estado_id = $nuevo->id;
         $ticket->save();
 
         HelpDeskTicketHistorial::create([
@@ -351,9 +470,27 @@ class HelpDeskTicketService extends BaseService
 
         $this->notifyPartes($ticket, 'CAMBIO_ESTADO', "Estado: {$nuevo->nombre}", null);
 
+        AuditLogger::log(
+            'cambio_estado_ticket',
+            $ticket,
+            "Ticket {$ticket->folio} cambió de estado a '{$nuevo->nombre}' por {$user->name}"
+        );
+
         return $this->success(['ok' => true]);
     }
 
+    /**
+     * Notifica al solicitante y al técnico asignado del ticket sobre un evento.
+     *
+     * @param  HelpDeskTickets  $ticket  Ticket relacionado con el evento
+     * @param  string  $evento  Identificador del tipo de evento
+     * @param  string  $mensaje  Mensaje descriptivo de la notificación
+     * @param  int|null  $exceptUserId  Identificador del usuario a excluir de la notificación
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function notifyPartes(HelpDeskTickets $ticket, string $evento, string $mensaje, ?int $exceptUserId): void
     {
         $titulo = (string) $ticket->titulo;
@@ -373,21 +510,55 @@ class HelpDeskTicketService extends BaseService
         }
     }
 
+    /**
+     * Valida si la transición de estado del ticket es permitida según el flujo institucional.
+     *
+     * Flujo del proceso:
+     * 1. Normaliza los nombres de estado actual y nuevo a minúsculas sin espacios laterales.
+     * 2. Si ambos estados son idénticos, la transición no procede.
+     * 3. Evalúa si el estado destino está contemplado en el mapa de transiciones válidas:
+     *    - Abierto: puede pasar a 'En Progreso', 'Resuelto' o 'Cerrado'.
+     *    - En Progreso: puede pasar a 'Resuelto', 'Abierto' o 'Cerrado'.
+     *    - Resuelto: puede pasar a 'Cerrado', 'En Progreso' o 'Abierto'.
+     *    - Cerrado: puede reabrirse a 'Abierto' o 'En Progreso'.
+     *
+     * @param  string  $actual  Estado actual del ticket
+     * @param  string  $nuevo  Estado al que se desea transicionar
+     *
+     * @returns bool Verdadero si la transición es permitida
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-29
+     */
     private function isValidTransition(string $actual, string $nuevo): bool
     {
-        $actual = mb_strtolower($actual);
-        $nuevo = mb_strtolower($nuevo);
+        $actual = mb_strtolower(trim($actual));
+        $nuevo = mb_strtolower(trim($nuevo));
+
+        if ($actual === $nuevo) {
+            return false;
+        }
 
         $map = [
-            'abierto' => ['en progreso'],
-            'en progreso' => ['resuelto'],
-            'resuelto' => ['cerrado'],
-            'cerrado' => ['abierto'],
+            'abierto' => ['en progreso', 'resuelto', 'cerrado'],
+            'en progreso' => ['abierto', 'resuelto', 'cerrado'],
+            'resuelto' => ['en progreso', 'abierto', 'cerrado'],
+            'cerrado' => ['abierto', 'en progreso'],
         ];
 
         return in_array($nuevo, $map[$actual] ?? [], true);
     }
 
+    /**
+     * Determina si el ticket aplica para ser marcado como pendiente según su estado.
+     *
+     * @param  HelpDeskTickets  $ticket  Ticket a evaluar
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function isPendienteAplica(HelpDeskTickets $ticket): bool
     {
         $estado = HelpDeskEstado::query()->find($ticket->estado_id);
@@ -396,5 +567,65 @@ class HelpDeskTicketService extends BaseService
         }
 
         return in_array($estado->nombre, ['Abierto', 'En Progreso'], true);
+    }
+
+    /**
+     * Resuelve el código de sede para la generación del folio de tickets.
+     *
+     * Flujo del proceso:
+     * 1. Verifica si la sede ya tiene asignado un `cod_sede` válido.
+     * 2. Si no lo tiene, busca en el mapeo de sedes institucionales conocidas.
+     * 3. Si no existe en el mapa, deriva un código de 3 letras a partir del nombre de la sede.
+     * 4. Persiste el código generado de manera silenciosa en `config_sedes` para futuras consultas.
+     *
+     * @param  ConfigSede  $sede  Instancia de la sede a evaluar
+     *
+     * @returns string Código alfanumérico en mayúsculas de la sede
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-29
+     */
+    private function resolveCodSede(ConfigSede $sede): string
+    {
+        $code = trim((string) ($sede->cod_sede ?? ''));
+        if ($code !== '') {
+            return strtoupper($code);
+        }
+
+        $defaultMap = [
+            1 => 'ESP',
+            2 => 'LAD',
+            3 => 'CHA',
+            4 => 'IBA',
+            5 => 'LIB',
+            6 => 'HON',
+            7 => 'ROV',
+        ];
+
+        $code = $defaultMap[(int) $sede->id] ?? null;
+
+        if (! $code) {
+            $parts = explode('-', (string) ($sede->nom_sede ?? ''));
+            $firstPart = trim($parts[0] ?? '');
+            $clean = preg_replace('/[^A-Za-z0-9]/', '', $firstPart);
+            $code = strtoupper(substr($clean, 0, 3));
+            if (strlen($code) < 3) {
+                $code = 'SED'.str_pad((string) $sede->id, 2, '0', STR_PAD_LEFT);
+            }
+        }
+
+        try {
+            ConfigSede::where('id', $sede->id)
+                ->where(function ($q) {
+                    $q->whereNull('cod_sede')->orWhere('cod_sede', '');
+                })
+                ->update(['cod_sede' => $code]);
+            $sede->cod_sede = $code;
+        } catch (\Throwable $e) {
+            Log::warning('No se pudo persistir cod_sede automáticamente para sede '.$sede->id.': '.$e->getMessage());
+        }
+
+        return $code;
     }
 }

@@ -12,19 +12,21 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::post('/dicom/generate-iso', [DicomBurnerController::class, 'generateIso'])->middleware('auth:sanctum')
-    ->name('dicom.generate-iso');
-Route::get('/dicom/burn-status/{id}', [DicomBurnerController::class, 'status'])->middleware('auth:sanctum')
-    ->name('dicom.burn-status');
-Route::get('/dicom/list-drives', [DicomBurnerController::class, 'listDrives'])->middleware('auth:sanctum')
-    ->name('dicom.list-drives');
-Route::post('/dicom/burn', [DicomBurnerController::class, 'burn'])->middleware('auth:sanctum')
-    ->name('dicom.burn');
-Route::post('/dicom/cleanup', [DicomBurnerController::class, 'cleanup'])->middleware('auth:sanctum')
-    ->name('dicom.cleanup');
-Route::post('/dicom/generate-zip', [DicomBurnerController::class, 'generateZip'])->middleware('auth:sanctum')
-    ->name('dicom.generate-zip');
-Route::get('/dicom/zip-status/{id}', [DicomBurnerController::class, 'zipStatus'])->middleware('auth:sanctum')
-    ->name('dicom.zip-status');
-Route::get('/dicom/download-zip/{filename}', [DicomBurnerController::class, 'downloadZip'])->middleware('auth:sanctum')
-    ->name('dicom.download-zip');
+Route::middleware(['auth'])->group(function () {
+    Route::post('/dicom/generate-iso', [DicomBurnerController::class, 'generateIso'])
+        ->name('dicom.generate-iso');
+    Route::get('/dicom/burn-status/{id}', [DicomBurnerController::class, 'status'])
+        ->name('dicom.burn-status');
+    Route::get('/dicom/list-drives', [DicomBurnerController::class, 'listDrives'])
+        ->name('dicom.list-drives');
+    Route::post('/dicom/burn', [DicomBurnerController::class, 'burn'])
+        ->name('dicom.burn');
+    Route::post('/dicom/cleanup', [DicomBurnerController::class, 'cleanup'])
+        ->name('dicom.cleanup');
+    Route::post('/dicom/generate-zip', [DicomBurnerController::class, 'generateZip'])
+        ->name('dicom.generate-zip');
+    Route::get('/dicom/zip-status/{id}', [DicomBurnerController::class, 'zipStatus'])
+        ->name('dicom.zip-status');
+    Route::get('/dicom/download-zip/{filename}', [DicomBurnerController::class, 'downloadZip'])
+        ->name('dicom.download-zip');
+});

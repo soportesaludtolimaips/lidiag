@@ -11,6 +11,18 @@ class VerifyTeleRadiologiaHmac
     /** Máxima antigüedad del timestamp en segundos (replay protection). */
     private const MAX_AGE = 300;
 
+    /**
+     * Valida la firma HMAC del request de tele-radiología para autenticar el origen.
+     *
+     * @param  Request  $request  Solicitud HTTP a validar.
+     * @param  Closure  $next  Siguiente middleware o controlador.
+     *
+     * @returns Response Respuesta HTTP con resultado de la validación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-02-13
+     */
     public function handle(Request $request, Closure $next): Response
     {
         $secret = config('services.teleradiologia.hmac_secret');
@@ -31,7 +43,7 @@ class VerifyTeleRadiologiaHmac
         }
 
         $method = $request->method();
-        $path = '/' . $request->path();
+        $path = '/'.$request->path();
         $body = $request->getContent();
         $utf8Body = mb_convert_encoding($body ?: '', 'UTF-8', 'ISO-8859-1');
         $bodySha = hash('sha256', $utf8Body);

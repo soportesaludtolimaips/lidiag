@@ -4,6 +4,7 @@ use App\Http\Controllers\Dcm4chee\StudyController;
 use App\Http\Controllers\Estudios\EstudioAudioController;
 use App\Http\Controllers\Estudios\EstudioController;
 use App\Http\Controllers\Estudios\EstudioDiagnosticoController;
+use App\Http\Controllers\Estudios\EstudioLockController;
 use App\Http\Controllers\Estudios\EstudioNotificacionController;
 use App\Http\Controllers\Estudios\EstudioProductoController;
 use App\Http\Controllers\Estudios\EstudioSoporteHCController;
@@ -20,7 +21,15 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware(['auth'])->group(function () {
+/*
+ * Grupo de rutas de estudios.
+ *
+ * Requiere autenticación y al menos uno de los permisos del módulo (Spatie: "a|b" = cualquiera):
+ * - estudio.index | estudio.asignar   → administradores/asignación
+ * - estudio.leer | estudio.leerEstudio → lectura (el rol Medico solo posee estudio.leerEstudio)
+ * - estudio.transcribir | estudio.productos → transcripción y productos
+ */
+Route::middleware(['auth', 'permission:estudio.index|estudio.asignar|estudio.leer|estudio.leerEstudio|estudio.transcribir|estudio.productos'])->group(function () {
     /*
      * Estudios API Endpoints
      */
@@ -62,7 +71,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/edit-word', [PlantillaEstudioController::class, 'editWord']);
 
     Route::post('/estudio-leerEstudio', [EstudioController::class, 'leerEstudio'])
-        ->middleware('consent.bloqueo')
         ->name('api.estudio.leerEstudio');
 
     Route::post('/upload-audio', [EstudioAudioController::class, 'uploadAudio']);
@@ -88,6 +96,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/estudio-guardarTranscripcion', [EstudioController::class, 'guardarTranscripcion'])
         ->name('api.estudio.guardarTranscripcion');
 
+    Route::post('/estudio-enviar-sahi', [EstudioController::class, 'enviarSahiEstudioProducto'])
+        ->name('api.estudio.enviarSahi');
+
     Route::post('/estudio-anular-asignacion', [EstudioController::class, 'anularAsignacion'])
         ->name('api.estudio.anularAsignacion');
 
@@ -99,4 +110,14 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/estudio-buscar-por-numdocu/{numDocu}', [EstudioController::class, 'buscarEstudioPorNumDocu'])
         ->name('api.estudio.buscarEstudioPorNumDocu');
+
+    /*
+     * Reserva (lock) de lectura y asignación: evita que dos usuarios abran
+     * el mismo registro a la vez (expira sola a los 2 min o lock_min de la sede).
+     */
+    Route::post('/estudio-lock/tomar', [EstudioLockController::class, 'tomar'])
+        ->name('api.estudio.lock.tomar');
+
+    Route::post('/estudio-lock/liberar', [EstudioLockController::class, 'liberar'])
+        ->name('api.estudio.lock.liberar');
 });

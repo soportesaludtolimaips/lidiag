@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Helpers\DicomHelper;
 use App\Services\DicomBurnerService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -13,13 +15,28 @@ class DicomBurnerController extends Controller
 {
     protected $burnerService;
 
+    /**
+     * Inyecta el servicio de quemado de discos DICOM.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function __construct(DicomBurnerService $burnerService)
     {
         $this->burnerService = $burnerService;
     }
 
     /**
-     * Generate DICOM package for burning (download from PACS + ZIP).
+     * Prepara el paquete DICOM de uno o más estudios para su grabación en disco.
+     *
+     * @param  Request  $request  Solicitud con study_instance_uids, user_id, device_letter y sede_id.
+     *
+     * @returns JsonResponse Respuesta JSON con el burn_id y la URL de descarga del paquete.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
      */
     public function generateIso(Request $request)
     {
@@ -57,7 +74,15 @@ class DicomBurnerController extends Controller
     }
 
     /**
-     * Get burn job status with real progress.
+     * Consulta el estado y el progreso de una tarea de quemado de disco.
+     *
+     * @param  mixed  $id  Identificador de la tarea en cd_burn_logs.
+     *
+     * @returns JsonResponse Respuesta JSON con el estado, progreso y mensaje de error.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
      */
     public function status($id)
     {
@@ -82,43 +107,192 @@ class DicomBurnerController extends Controller
     }
 
     /**
-     * List available CD/DVD drives on the server.
+     * Detecta las unidades de grabación de discos disponibles en el servidor.
+     *
+     * Flujo del proceso:
+     * 1. Consulta el parámetro 'refresh' para limpiar la caché de unidades si es requerido.
+     * 2. Ejecuta la detección multi-nivel en Windows: IMAPI2 COM -> .NET DriveInfo -> Fallback WMI.
+     * 3. Normaliza las letras de unidad, estado de bandeja/disco y nombre del dispositivo.
+     * 4. Retorna la colección formateada en JSON con tolerancia a fallos para no emitir error 500.
+     *
+     * @param  Request  $request  Solicitud HTTP con parámetro opcional 'refresh'.
+     * @return JsonResponse Respuesta JSON con la lista de unidades, tipo de disco y estado del medio.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-28
      */
-    public function listDrives()
+    public function listDrives(Request $request): JsonResponse
+    {
+        try {
+            if ($request->boolean("refresh")) {
+                try {
+                    Cache::forget("dicom.drives");
+                } catch (\Throwable $ce) {
+                    Log::warning("DicomBurnerController.listDrives Cache forget failed", ["error" => $ce->getMessage()]);
+                }
+            }
+
+            $drives = Cache::remember("dicom.drives", 5, function () {
+                return $this->detectSystemDrives();
+            });
+
+            return response()->json([
+                "status" => "success",
+                "data" => $drives,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error("DicomBurnerController.listDrives error", [
+                "error" => $e->getMessage(),
+                "trace" => $e->getTraceAsString(),
+            ]);
+
+            try {
+                $drives = $this->detectSystemDrives();
+            } catch (\Throwable) {
+                $drives = [];
+            }
+
+            return response()->json([
+                "status" => "success",
+                "data" => $drives,
+                "warning" => "Consulta de unidades con fallback: ".$e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Detecta las unidades físicas o lógicas de CD/DVD en el sistema operativo.
+     *
+     * @return array Lista de unidades detectadas.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-28
+     */
+    private function detectSystemDrives(): array
     {
         $drives = [];
 
-        if (PHP_OS_FAMILY === 'Windows') {
-            $output = [];
-            $exitCode = 0;
-            exec('powershell -Command "Get-CimInstance Win32_CDROMDrive | Select-Object -ExpandProperty Drive" 2>&1', $output, $exitCode);
+        if (PHP_OS_FAMILY === "Windows") {
+            $powerShellBin = file_exists("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe")
+                ? "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+                : "powershell";
 
-            if ($exitCode === 0 && ! empty($output)) {
-                foreach ($output as $line) {
-                    $drive = trim(trim($line), ':');
-                    if (! empty($drive)) {
-                        $drives[] = strtoupper($drive);
+            $scriptPath = base_path("resources/burner/detect_drives.ps1");
+            if (file_exists($scriptPath)) {
+                $cmd = '"'.$powerShellBin.'" -NoProfile -ExecutionPolicy Bypass -File '.escapeshellarg($scriptPath)." 2>&1";
+            } else {
+                $cmd = '"'.$powerShellBin.'" -NoProfile -Command "[System.IO.DriveInfo]::GetDrives() | Where-Object { $_.DriveType -eq [System.IO.DriveType]::CDRom } | ForEach-Object { [PSCustomObject]@{ drive = $_.Name.Substring(0, 1).ToUpper(); disc_type = \"CD\"; media_loaded = $_.IsReady; recorder_name = (\"Unidad de CD/DVD (\" + $_.Name + \")\") } } | ConvertTo-Json -Compress" 2>&1';
+            }
+
+            $output = $this->executeProcessWithTimeout($cmd, 8);
+            $trimmed = trim((string) preg_replace('/^\xEF\xBB\xBF/', "", (string) $output));
+
+            if ($trimmed !== "") {
+                $decoded = json_decode($trimmed, true);
+                if (is_array($decoded)) {
+                    if (isset($decoded["drive"])) {
+                        $decoded = [$decoded];
+                    }
+                    foreach ($decoded as $item) {
+                        if (is_array($item) && ! empty($item["drive"])) {
+                            $drives[] = [
+                                "drive" => strtoupper(trim(trim($item["drive"]), ":")),
+                                "disc_type" => $item["disc_type"] ?? null,
+                                "media_loaded" => (bool) ($item["media_loaded"] ?? false),
+                                "recorder_name" => $item["recorder_name"] ?? null,
+                            ];
+                        }
+                    }
+                }
+            }
+
+            // Fallback secundario si el script devolvió vacío pero existen unidades lógicas CDRom
+            if (empty($drives)) {
+                $fallbackCmd = '"'.$powerShellBin.'" -NoProfile -Command "[System.IO.DriveInfo]::GetDrives() | Where-Object { $_.DriveType -eq [System.IO.DriveType]::CDRom } | ForEach-Object { [PSCustomObject]@{ drive = $_.Name.Substring(0, 1).ToUpper(); disc_type = \"CD\"; media_loaded = $_.IsReady; recorder_name = (\"Unidad de CD/DVD (\" + $_.Name + \")\") } } | ConvertTo-Json -Compress" 2>&1';
+                $fallbackOutput = $this->executeProcessWithTimeout($fallbackCmd, 5);
+                $fallbackTrimmed = trim((string) preg_replace('/^\xEF\xBB\xBF/', "", (string) $fallbackOutput));
+                if ($fallbackTrimmed !== "") {
+                    $fbDecoded = json_decode($fallbackTrimmed, true);
+                    if (is_array($fbDecoded)) {
+                        if (isset($fbDecoded["drive"])) {
+                            $fbDecoded = [$fbDecoded];
+                        }
+                        foreach ($fbDecoded as $item) {
+                            if (is_array($item) && ! empty($item["drive"])) {
+                                $drives[] = [
+                                    "drive" => strtoupper(trim(trim($item["drive"]), ":")),
+                                    "disc_type" => $item["disc_type"] ?? null,
+                                    "media_loaded" => (bool) ($item["media_loaded"] ?? false),
+                                    "recorder_name" => $item["recorder_name"] ?? null,
+                                ];
+                            }
+                        }
                     }
                 }
             }
         } else {
-            $possibleDevices = ['/dev/cdrom', '/dev/dvd', '/dev/sr0', '/dev/sr1'];
+            $possibleDevices = ["/dev/cdrom", "/dev/dvd", "/dev/sr0", "/dev/sr1"];
             foreach ($possibleDevices as $device) {
                 if (file_exists($device)) {
-                    $drives[] = $device;
+                    $drives[] = [
+                        "drive" => $device,
+                        "disc_type" => null,
+                        "media_loaded" => false,
+                        "recorder_name" => null,
+                    ];
                 }
             }
         }
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $drives,
-        ]);
+        return $drives;
     }
 
     /**
-     * Burn DICOM files directly to CD/DVD (no intermediate ISO file).
-     * CD contains: MicroDicom viewer + DICOM images in DICOM/ subfolder.
+     * Ejecuta un comando en el sistema operativo con timeout y control de descriptores.
+     *
+     * @param  string  $cmd  Comando a ejecutar.
+     * @param  int  $timeoutSeconds  Tiempo límite de espera en segundos.
+     * @return string Salida capturada del proceso.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-28
+     */
+    private function executeProcessWithTimeout(string $cmd, int $timeoutSeconds = 8): string
+    {
+        $descriptors = [
+            0 => ["pipe", "r"],
+            1 => ["pipe", "w"],
+            2 => ["pipe", "w"],
+        ];
+        $process = proc_open($cmd, $descriptors, $pipes);
+
+        if (! is_resource($process)) {
+            return "";
+        }
+
+        fclose($pipes[0]);
+        stream_set_timeout($pipes[1], $timeoutSeconds);
+        $output = stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        proc_close($process);
+
+        return (string) $output;
+    }
+
+    /**
+     * Graba el paquete DICOM preparado en la unidad de disco indicada.
+     *
+     * @param  Request  $request  Solicitud con burn_id y device_letter.
+     *
+     * @returns JsonResponse Respuesta JSON con el resultado de la operación de quemado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
      */
     public function burn(Request $request)
     {
@@ -153,6 +327,20 @@ class DicomBurnerController extends Controller
             $this->updateProgress($burnId, 5, 'Preparando visor DICOM...');
             $cdFolder = $this->prepareCdFolder($burnId, $dicomFolder);
 
+            // Validar espacio suficiente en el disco del servidor para staging (mínimo 1 GB)
+            $burnStaging = storage_path("app/burns");
+            $freeSpaceBytes = @disk_free_space($burnStaging);
+            $minRequired = 1024 * 1024 * 1024; // 1 GB mínimo en disco de almacenamiento
+
+            if ($freeSpaceBytes !== false && $freeSpaceBytes < $minRequired) {
+                $this->removeDirectory($cdFolder);
+                throw new \RuntimeException(
+                    "Espacio insuficiente en el disco del servidor para preparar el paquete DICOM. ".
+                    "Disponible: ".number_format($freeSpaceBytes / 1024 / 1024, 1)." MB, ".
+                    "mínimo requerido: 1024 MB."
+                );
+            }
+
             $this->updateProgress($burnId, 15, 'Preparando unidad de disco...');
             $this->burnDicomFolder($cdFolder, $deviceLetter, $burnId);
 
@@ -180,6 +368,12 @@ class DicomBurnerController extends Controller
                 'updated_at' => now(),
             ]);
 
+            // Cleanup temp folders on failure
+            $cdFolder = storage_path("app/burns/{$burnId}/cd");
+            if (is_dir($cdFolder)) {
+                $this->removeDirectory($cdFolder);
+            }
+
             return response()->json([
                 'status' => 'error',
                 'message' => $msg,
@@ -188,7 +382,14 @@ class DicomBurnerController extends Controller
     }
 
     /**
-     * Prepare CD folder: copy MicroDicom viewer + DICOM files.
+     * Prepara la carpeta temporal del CD con el visor MicroDicom y los archivos DICOM.
+     *
+     * @param  int  $burnId  Identificador de la tarea de quemado.
+     * @param  string  $dicomFolder  Ruta de la carpeta con los archivos DICOM.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
      */
     private function prepareCdFolder(int $burnId, string $dicomFolder): string
     {
@@ -228,7 +429,14 @@ class DicomBurnerController extends Controller
     }
 
     /**
-     * Recursively copy a directory.
+     * Copia de forma recursiva una carpeta y su contenido a un destino.
+     *
+     * @param  string  $source  Ruta de origen.
+     * @param  string  $dest  Ruta de destino.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
      */
     private function copyDirectory(string $source, string $dest): void
     {
@@ -254,7 +462,13 @@ class DicomBurnerController extends Controller
     }
 
     /**
-     * Recursively remove a directory.
+     * Elimina de forma recursiva una carpeta y todo su contenido.
+     *
+     * @param  string  $dir  Ruta de la carpeta a eliminar.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
      */
     private function removeDirectory(string $dir): void
     {
@@ -279,7 +493,44 @@ class DicomBurnerController extends Controller
     }
 
     /**
-     * Burn DICOM folder directly to disc using C# burner.exe (IMAPI2).
+     * Calcula el tamaño total en bytes de una carpeta y su contenido.
+     *
+     * @param  string  $dir  Ruta de la carpeta.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
+    private function getDirectorySize(string $dir): int
+    {
+        $size = 0;
+        if (! is_dir($dir)) {
+            return $size;
+        }
+
+        $items = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS)
+        );
+
+        foreach ($items as $item) {
+            if ($item->isFile()) {
+                $size += $item->getSize();
+            }
+        }
+
+        return $size;
+    }
+
+    /**
+     * Ejecuta burner.exe para grabar la carpeta preparada en la unidad de disco indicada.
+     *
+     * @param  string  $dicomFolder  Ruta de la carpeta con el paquete a grabar.
+     * @param  string  $deviceLetter  Letra de la unidad de destino.
+     * @param  int  $burnId  Identificador de la tarea de quemado.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
      */
     private function burnDicomFolder(string $dicomFolder, string $deviceLetter, int $burnId): void
     {
@@ -352,7 +603,15 @@ class DicomBurnerController extends Controller
     }
 
     /**
-     * Generate ZIP file with MicroDicom viewer + DICOM images.
+     * Genera un ZIP descargable con el visor MicroDicom y las imágenes DICOM de un estudio.
+     *
+     * @param  Request  $request  Solicitud con study_instance_uid, sede_id y patient_name.
+     *
+     * @returns JsonResponse Respuesta JSON con el nombre del archivo y el total de archivos incluidos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
      */
     public function generateZip(Request $request)
     {
@@ -464,7 +723,15 @@ class DicomBurnerController extends Controller
     }
 
     /**
-     * Get ZIP generation status.
+     * Consulta el progreso de la generación de un archivo ZIP.
+     *
+     * @param  mixed  $id  Identificador único de la tarea de compresión.
+     *
+     * @returns JsonResponse Respuesta JSON con el progreso y estado de la tarea.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
      */
     public function zipStatus($id)
     {
@@ -486,11 +753,22 @@ class DicomBurnerController extends Controller
     }
 
     /**
-     * Download a generated ZIP file.
+     * Descarga un archivo ZIP generado y lo elimina después del envío.
+     *
+     * @param  mixed  $filename  Nombre del archivo ZIP a descargar.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
      */
     public function downloadZip($filename)
     {
-        $filePath = storage_path("app/zips/{$filename}");
+        $safe = basename($filename);
+        if ($safe !== $filename) {
+            abort(400, 'Nombre de archivo inválido');
+        }
+
+        $filePath = storage_path("app/zips/{$safe}");
 
         if (! file_exists($filePath)) {
             return response()->json([
@@ -506,7 +784,13 @@ class DicomBurnerController extends Controller
     }
 
     /**
-     * Clean up old burn folders (older than 7 days).
+     * Elimina los registros de quemado antiguos (mayores a 7 días).
+     *
+     * @returns JsonResponse Respuesta JSON con la cantidad de registros limpiados.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
      */
     public function cleanup()
     {
@@ -518,6 +802,17 @@ class DicomBurnerController extends Controller
         ]);
     }
 
+    /**
+     * Actualiza el progreso y el estado de una tarea de quemado en cd_burn_logs.
+     *
+     * @param  int  $burnId  Identificador de la tarea de quemado.
+     * @param  int  $progress  Porcentaje de avance (0-100).
+     * @param  string|null  $status  Mensaje de estado opcional.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function updateProgress(int $burnId, int $progress, ?string $status = null): void
     {
         $update = ['progress' => $progress, 'updated_at' => now()];

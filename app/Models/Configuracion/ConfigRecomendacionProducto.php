@@ -21,6 +21,15 @@ class ConfigRecomendacionProducto extends Model
         'estado' => 'boolean',
     ];
 
+    /**
+     * Producto de la recomendación.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function producto()
     {
         return $this->belongsTo(ConfigProducto::class, 'producto_id');

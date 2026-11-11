@@ -3,37 +3,61 @@
 namespace App\Http\Requests\Configuracion;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class ConfigPrioridadRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Autoriza la petición únicamente a usuarios autenticados.
      *
-     * @return bool
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
      */
-    public function authorize()
+    public function authorize(): bool
     {
-        return true;
+        return Auth::check();
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Reglas de validación de prioridades (nombre).
      *
-     * @return array<string, mixed>
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
      */
-    public function rules()
+    public function rules(): array
     {
+        $prioridadId = $this->route('config.prioridad')?->id ?? $this->route('id');
+        $uniqueRule = Rule::unique('config_prioridad', 'nom_priori');
+
+        if ($prioridadId) {
+            $uniqueRule->ignore($prioridadId);
+        }
+
         return [
-            'nom_priori' => 'required|min:2|max:50',
+            "nom_priori" => ["required", "string", "min:2", "max:50", $uniqueRule],
+            "nivel" => ["nullable", "integer"],
+            "tiempo" => ["nullable", "integer"],
+            "estado" => ["nullable", "boolean"],
         ];
     }
 
-    public function messages()
+    /**
+     * Mensajes en español para las reglas de validación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
+    public function messages(): array
     {
         return [
-            'nom_priori.required' => 'Te hizo falta la prioridad',
-            'nom_priori.min' => 'La prioridad debe tener mínimo 2 caracteres',
-            'nom_priori.max' => 'La prioridad debe tener máximo 50 caracteres',
+            'nom_priori.required' => 'El nombre de la prioridad es obligatorio.',
+            'nom_priori.unique' => 'Ya existe una prioridad con este nombre.',
+            'nom_priori.min' => 'La prioridad debe tener mínimo 2 caracteres.',
+            'nom_priori.max' => 'La prioridad debe tener máximo 50 caracteres.',
         ];
     }
 }

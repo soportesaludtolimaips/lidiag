@@ -3,17 +3,31 @@
 namespace App\Models\Citas;
 
 use App\Models\Configuracion\ConfigProducto;
+use App\Models\Configuracion\ConfigSede;
+use App\Models\Configuracion\ConfigServicio;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * Modelo que representa la tabla pivote entre servicios de cita y productos.
+ *
+ * Almacena la relación N:N entre los servicios de cita configurados y los productos
+ * asociados, incluyendo el estado (activo/inactivo) de cada vinculación.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-05-26
+ */
 class CitaPivot extends Model
 {
     use HasFactory;
 
-    protected $table = 'config_servicio_cita_producto';
+    protected $table = 'config_whatsapp_producto_servicio';
 
     protected $fillable = [
-        'servicio_cita_id',
+        'sede_id',
+        'servicio_id',
         'producto_id',
         'estado',
     ];
@@ -22,11 +36,43 @@ class CitaPivot extends Model
         'estado' => 'boolean',
     ];
 
-    public function servicio()
+    /**
+     * Sede a la que pertenece el registro pivote.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
+    public function sede()
     {
-        return $this->belongsTo(ConfigServicioCita::class, 'servicio_cita_id');
+        return $this->belongsTo(ConfigSede::class, 'sede_id');
     }
 
+    /**
+     * Relación inversa con el servicio de cita al que pertenece este registro pivote.
+     *
+     * @return BelongsTo Relación con ConfigServicio.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
+    public function servicio()
+    {
+        return $this->belongsTo(ConfigServicio::class, 'servicio_id');
+    }
+
+    /**
+     * Relación inversa con el producto asociado a este registro pivote.
+     *
+     * @return BelongsTo Relación con ConfigProducto.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-05-26
+     */
     public function producto()
     {
         return $this->belongsTo(ConfigProducto::class, 'producto_id');

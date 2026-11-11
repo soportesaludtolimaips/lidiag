@@ -13,6 +13,15 @@ class PruneNotifications extends Command
 
     protected $description = 'Limpia notificaciones leídas antiguas de la tabla notifications';
 
+    /**
+     * Elimina las notificaciones leídas con más de N días de antigüedad.
+     *
+     * @returns int Código de salida del comando.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function handle()
     {
         $days = (int) $this->option('days');

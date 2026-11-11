@@ -5,15 +5,37 @@
                 <h3 class="text-themecolor">Configuración</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Configuración</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Configuración
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Servicios de Citas</li>
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary m-r-5"
+                    @click="ListarDatos"
+                    :disabled="loadingListar"
+                    title="Actualizar listado"
+                >
+                    <i class="fa" :class="loadingListar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                    Refrescar
+                </button>
                 <button
                     type="button"
                     class="btn btn-info btnDesplegarRigthSidebar"
@@ -36,8 +58,9 @@
                         <div class="row m-t-20 m-b-20">
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label>Filtrar por sede</label>
+                                    <label for="filtroSedeServicios">Filtrar por sede</label>
                                     <select
+                                        id="filtroSedeServicios"
                                         class="form-control"
                                         v-model="filtroSede"
                                         @change="ListarDatos"
@@ -51,7 +74,20 @@
                             </div>
                         </div>
 
-                        <div class="table-responsive m-t-40">
+                        <table-skeleton-loader :visible="loadingListar" :rows="5" :columns="4" />
+                        <empty-state-component
+                            v-if="!loadingListar && registros.length === 0"
+                            icon="fa fa-calendar-check-o"
+                            title="No hay servicios de citas registrados"
+                            description="No se encontraron servicios configurados."
+                            action-text="Nuevo registro"
+                            action-icon="fa fa-plus"
+                            @action="abrirFormularioNuevo()"
+                        />
+                        <div
+                            v-show="!loadingListar && registros.length > 0"
+                            class="table-responsive m-t-40"
+                        >
                             <table
                                 id="tablaServicios"
                                 ref="dt"
@@ -111,14 +147,21 @@
                 </div>
             </div>
         </div>
+        <!-- Backdrop overlay para cerrar al hacer clic afuera -->
+        <div v-if="sidebarVisible" class="sidebar-backdrop" @click="cerrarSidebar"></div>
 
-        <div class="right-sidebar">
+        <div class="right-sidebar" :class="{ 'shw-rside': sidebarVisible }" ref="sidebarRef">
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
-                    <span>
-                        <i class="ti-close right-side-toggle" id="btnCerrarModal"></i>
-                    </span>
+                    <button
+                        type="button"
+                        class="right-side-toggle"
+                        @click="cerrarSidebar"
+                        aria-label="Cerrar panel"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
                 </div>
                 <div class="r-panel-body">
                     <form @submit.prevent="guardarRegistro">
@@ -126,9 +169,12 @@
                             <div class="row p-t-20">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Servicio</label>
+                                        <label class="control-label" for="nombre_servicio"
+                                            >Servicio</label
+                                        >
                                         <input
                                             type="text"
+                                            id="nombre_servicio"
                                             v-model="form.nombre"
                                             class="form-control"
                                             placeholder="Ingrese el nombre del servicio"
@@ -142,8 +188,14 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="control-label">Sede</label>
-                                        <select class="form-control" v-model="form.sede_id">
+                                        <label class="control-label" for="servicio_sede_id"
+                                            >Sede</label
+                                        >
+                                        <select
+                                            id="servicio_sede_id"
+                                            class="form-control"
+                                            v-model="form.sede_id"
+                                        >
                                             <option value="">Seleccione una sede</option>
                                             <option v-for="s in sedes" :key="s.id" :value="s.id">
                                                 {{ s.nom_sede }}
@@ -195,7 +247,11 @@
                                     ></i>
                                     Actualizar
                                 </button>
-                                <button type="button" class="btn btn-inverse" @click="cerrarModal">
+                                <button
+                                    type="button"
+                                    class="btn btn-inverse"
+                                    @click="cerrarSidebar"
+                                >
                                     Cancelar
                                 </button>
                             </div>
@@ -210,14 +266,12 @@
 import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 const dt = ref(null);
+const sidebarRef = ref(null);
+const sidebarVisible = ref(false);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import {
-    alertError,
-    alertSuccess,
-    confirmAction,
-    handleAxiosErrorToast,
-} from "@/helpers/alerts.js";
+import { alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import axios from "axios";
 
 const registros = ref([]);
@@ -227,24 +281,53 @@ const form = ref({ nombre: "", sede_id: "", estado: 1 });
 const tituloModal = ref("Nuevo registro");
 const editando = ref(false);
 const errores = ref({});
+const loadingListar = ref(false);
+const loadingSedes = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
 
+useKeyboardShortcuts({
+    onSearch: () => {
+        if (!sidebarVisible.value) {
+            ListarDatos();
+        }
+    },
+    onSave: () => {
+        if (sidebarVisible.value) {
+            guardarRegistro();
+        }
+    },
+    onEscape: cerrarSidebar,
+    isActive: () => true,
+    isLoading: loadingGuardar,
+});
+
 async function cargarSedes() {
+    if (loadingSedes.value) return;
+    loadingSedes.value = true;
     try {
         const res = await axios.get("/api/config-sedes");
-        sedes.value = res.data.data;
-    } catch (e) {
-        handleAxiosErrorToast(e, "No fue posible cargar sedes.");
+        sedes.value = res.data?.data || res.data || [];
+    } catch {
+        toastMessage({
+            heading: "Error",
+            text: "Error al cargar las sedes.",
+            icon: "error",
+        });
+    } finally {
+        loadingSedes.value = false;
     }
 }
+
 async function ListarDatos() {
+    if (loadingListar.value) return;
+    loadingListar.value = true;
     try {
         const params = {};
         if (filtroSede.value) params.sede_id = filtroSede.value;
         const res = await axios.get("/api/config-servicio-citas", { params });
         safeDestroyDataTable(dt.value || "#tablaServicios");
-        registros.value = res.data.data;
+        registros.value = res.data?.data || res.data || [];
         nextTick(() => {
             safeInitDataTable(dt.value || "#tablaServicios", {
                 dom: "Bfrtip",
@@ -252,17 +335,25 @@ async function ListarDatos() {
             });
         });
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar servicios.");
         registros.value = [];
+        toastMessage({
+            heading: "Error",
+            text: error?.response?.data?.message || "No fue posible cargar los servicios de citas.",
+            icon: "error",
+        });
+    } finally {
+        loadingListar.value = false;
     }
 }
+
 function abrirFormularioNuevo() {
     editando.value = false;
     tituloModal.value = "Nuevo registro";
     form.value = { nombre: "", sede_id: "", estado: 1 };
     errores.value = {};
-    $("#btnCerrarModal").click();
+    abrirSidebar();
 }
+
 function abrirFormularioEditar(item) {
     editando.value = true;
     tituloModal.value = "Actualizar: " + item.nombre;
@@ -273,28 +364,36 @@ function abrirFormularioEditar(item) {
         estado: item.estado ? 1 : 0,
     };
     errores.value = {};
-    $("#btnCerrarModal").click();
+    abrirSidebar();
 }
+
 async function guardarRegistro() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
     try {
         if (editando.value) {
-            const res = await axios.put("/api/config-servicio-citas/" + form.value.id, form.value);
+            await axios.put("/api/config-servicio-citas/" + form.value.id, form.value);
             alertSuccess("Ok!", "Servicio actualizado correctamente.");
         } else {
-            const res = await axios.post("/api/config-servicio-citas", form.value);
+            await axios.post("/api/config-servicio-citas", form.value);
             alertSuccess("Ok!", "Servicio creado correctamente.");
         }
         ListarDatos();
-        cerrarModal();
+        cerrarSidebar();
     } catch (error) {
         errores.value = error?.response?.data?.errors || {};
-        handleAxiosErrorToast(error, "No fue posible guardar el servicio.");
+        if (error?.response?.status !== 422) {
+            toastMessage({
+                heading: "Error",
+                text: error?.response?.data?.message || "No fue posible guardar el servicio.",
+                icon: "error",
+            });
+        }
     } finally {
         loadingGuardar.value = false;
     }
 }
+
 async function eliminarRegistro(id) {
     const ok = await confirmAction({
         title: "¿Estas seguro?",
@@ -308,14 +407,25 @@ async function eliminarRegistro(id) {
         alertSuccess("Ok!", response?.data?.message || "Registro eliminado.");
         ListarDatos();
     } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible eliminar el registro.");
+        toastMessage({
+            heading: "Error",
+            text: error.response?.data?.message || "Error al eliminar el registro.",
+            icon: "error",
+        });
     } finally {
         loadingEliminarId.value = null;
     }
 }
-function cerrarModal() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").toggleClass("shw-rside");
+
+function abrirSidebar() {
+    sidebarVisible.value = true;
+    nextTick(() => {
+        document.getElementById("nombre_servicio")?.focus();
+    });
+}
+
+function cerrarSidebar() {
+    sidebarVisible.value = false;
 }
 
 onMounted(() => {
@@ -328,25 +438,43 @@ onBeforeUnmount(() => {
 });
 </script>
 <style scoped>
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1090;
+}
+
 .right-sidebar {
     position: fixed;
     right: -50%;
     width: 50%;
-    display: none;
     z-index: 1100;
     background: #ffffff;
     top: 0px;
     padding-bottom: 20px;
     height: 100%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
+    visibility: hidden;
+    pointer-events: none;
 }
+
 .shw-rside {
-    right: 0px;
-    width: 50%;
-    display: block;
+    right: 0px !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+@media (max-width: 767px) {
+    .right-sidebar {
+        width: 100% !important;
+        right: -100% !important;
+    }
 }
 </style>

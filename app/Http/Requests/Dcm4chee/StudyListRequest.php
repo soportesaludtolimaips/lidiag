@@ -6,11 +6,25 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StudyListRequest extends FormRequest
 {
+    /**
+     * Autoriza la petición (sin restricciones adicionales).
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function authorize(): bool
     {
         return true;
     }
 
+    /**
+     * Reglas de validación para la lista de estudios de Dcm4chee.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function rules(): array
     {
         return [
@@ -21,6 +35,13 @@ class StudyListRequest extends FormRequest
         ];
     }
 
+    /**
+     * Mensajes en español para las reglas de validación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function messages(): array
     {
         return [
@@ -37,6 +58,13 @@ class StudyListRequest extends FormRequest
         ];
     }
 
+    /**
+     * Atributos en español para los campos validados.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function attributes(): array
     {
         return [

@@ -25,6 +25,15 @@ class SeguUsuario extends Model
         'id_sahi',
     ];
 
+    /**
+     * Personal al que pertenece el usuario.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function personal()
     {
         return $this->belongsTo(GenePersonal::class, 'id_personal', 'id_personal');

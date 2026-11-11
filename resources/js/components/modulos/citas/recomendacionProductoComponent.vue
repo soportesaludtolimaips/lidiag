@@ -1,29 +1,52 @@
 <template>
     <div>
-        <!-- ============================================================== -->
-        <!-- Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
         <div class="row page-titles">
             <div class="col-md-5 align-self-center">
                 <h3 class="text-themecolor">Producto</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a href="javascript:void(0)">Citas</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Citas
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Recomendaciones por Producto</li>
                 </ol>
             </div>
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary m-r-5"
+                    @click="buscar()"
+                    :disabled="loadingBuscar"
+                    title="Actualizar listado"
+                >
+                    <i class="fa" :class="loadingBuscar ? 'fa-spinner fa-spin' : 'fa-refresh'"></i>
+                    Refrescar
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-info"
+                    @click="mostrarRegistro(null)"
+                    title="Nueva recomendación"
+                >
+                    <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
+                </button>
+            </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Bread crumb and right sidebar toggle -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Start Page Content -->
-        <!-- ============================================================== -->
         <div class="row">
             <div class="col-12">
                 <div class="card">
@@ -31,17 +54,22 @@
                         <h4 class="card-title text-themecolor">
                             <i class="fa fa-filter"></i> Filtros de búsqueda
                         </h4>
-                        <form action="#">
+                        <form action="#" @submit.prevent="buscar()">
                             <div class="form-body">
                                 <div class="row p-t-2">
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label class="control-label">Sede</label>
+                                            <label
+                                                for="filtroSedeRecomendacion"
+                                                class="control-label"
+                                                >Sede</label
+                                            >
                                             <select
+                                                id="filtroSedeRecomendacion"
                                                 v-model="filtro.sede_id"
                                                 class="form-control"
                                                 @change="
-                                                    filtro.servicio_cita_id = '';
+                                                    filtro.servicio_id = '';
                                                     filtrarServicios();
                                                     cargarProductos();
                                                     buscar();
@@ -60,9 +88,14 @@
                                     </div>
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <label class="control-label">Servicio</label>
+                                            <label
+                                                for="filtroServicioRecomendacion"
+                                                class="control-label"
+                                                >Servicio</label
+                                            >
                                             <select
-                                                v-model="filtro.servicio_cita_id"
+                                                id="filtroServicioRecomendacion"
+                                                v-model="filtro.servicio_id"
                                                 class="form-control"
                                                 @change="
                                                     cargarProductos();
@@ -82,8 +115,13 @@
                                     </div>
                                     <div class="col-md-3">
                                         <div class="form-group" id="filter-producto-parent">
-                                            <label class="control-label">Producto</label>
+                                            <label
+                                                class="control-label"
+                                                for="filtro_producto_select"
+                                                >Producto</label
+                                            >
                                             <Select2
+                                                id="filtro_producto_select"
                                                 :value="filtro.producto_id"
                                                 :options="filterProductoOptions"
                                                 width="100%"
@@ -141,12 +179,22 @@
                             Texto enviado al paciente junto con la confirmación de su cita.
                         </h6>
 
-                        <loading-spinner :visible="loadingBuscar" />
+                        <table-skeleton-loader :visible="loadingBuscar" :rows="5" :columns="4" />
 
-                        <div :class="{ 'd-none': loadingBuscar }">
+                        <empty-state-component
+                            v-if="!loadingBuscar && registros.length === 0"
+                            icon="fa fa-commenting-o"
+                            title="No hay recomendaciones registradas"
+                            description="No se encontraron recomendaciones con los filtros aplicados."
+                            action-text="Limpiar filtros"
+                            action-icon="fa fa-refresh"
+                            @action="btnLimpiar()"
+                        />
+
+                        <div v-show="!loadingBuscar && registros.length > 0">
                             <div class="table-responsive">
                                 <table
-                                    id="tabla-recomendaciones"
+                                    id="tablaRecomendaciones"
                                     ref="dt"
                                     class="table table-bordered table-striped"
                                     cellspacing="0"
@@ -217,11 +265,6 @@
                                                 </button>
                                             </td>
                                         </tr>
-                                        <tr v-if="registros.length === 0">
-                                            <td colspan="4" class="text-center text-muted">
-                                                No hay recomendaciones registradas
-                                            </td>
-                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -230,35 +273,39 @@
                 </div>
             </div>
         </div>
-        <!-- ============================================================== -->
-        <!-- End Page Content -->
-        <!-- ============================================================== -->
 
-        <!-- ============================================================== -->
-        <!-- Right sidebar -->
-        <!-- ============================================================== -->
+        <!-- Backdrop overlay para cerrar al hacer clic afuera -->
+        <div v-if="showSidebar" class="sidebar-backdrop" @click="cerrarModal()"></div>
+
         <div
             class="right-sidebar"
             id="right-sidebar"
-            style="overflow-x: hidden; overflow-y: scroll; height: 100%"
+            :class="{ 'shw-rside': showSidebar }"
+            style="overflow-x: hidden; overflow-y: auto; height: 100%"
         >
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ editando ? "Editar recomendación" : "Nueva recomendación" }}
-                    <span>
-                        <i
-                            class="ti-close right-side-toggle"
-                            id="btnCerralModalForm"
-                            @click="cerrarModal()"
-                        ></i>
-                    </span>
+                    <button
+                        type="button"
+                        class="close right-side-toggle"
+                        id="btnCerrarModalForm"
+                        @click="cerrarModal()"
+                        aria-label="Cerrar panel"
+                        title="Cerrar"
+                    >
+                        <i class="ti-close"></i>
+                    </button>
                 </div>
                 <div class="r-panel-body">
                     <form action="#">
                         <div class="form-body">
                             <div class="form-group" id="form-producto-parent">
-                                <label class="control-label">Producto *</label>
+                                <label class="control-label" for="form_producto_select">
+                                    Producto <span class="text-danger">*</span>
+                                </label>
                                 <Select2
+                                    id="form_producto_select"
                                     :value="form.producto_id"
                                     :options="formProductoOptions"
                                     width="100%"
@@ -271,8 +318,11 @@
                                 }}</span>
                             </div>
                             <div class="form-group">
-                                <label class="control-label">Recomendación</label>
+                                <label class="control-label" for="form_recomendacion_editor"
+                                    >Recomendación</label
+                                >
                                 <FormattedTextEditor
+                                    id="form_recomendacion_editor"
                                     v-model="form.recomendacion"
                                     rows="8"
                                     placeholder="Texto de recomendación para el paciente. Use saltos de línea si es necesario."
@@ -284,14 +334,22 @@
                                 >
                             </div>
                             <div class="form-group">
-                                <label class="control-label">Estado</label>
-                                <select v-model="form.estado" class="form-control">
+                                <label for="form_estado_recomendacion" class="control-label"
+                                    >Estado</label
+                                >
+                                <select
+                                    id="form_estado_recomendacion"
+                                    v-model="form.estado"
+                                    class="form-control"
+                                >
                                     <option :value="true">Activo</option>
                                     <option :value="false">Inactivo</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="form-actions mt-3">
+                        <div
+                            class="form-actions mt-3 d-flex justify-content-end align-items-center"
+                        >
                             <button type="button" class="btn btn-inverse" @click="cerrarModal()">
                                 Cancelar
                             </button>
@@ -320,9 +378,9 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 const dt = ref(null);
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { handleAxiosErrorToast, alertSuccess, alertError, confirmAction } from "@/helpers/alerts";
+import { alertSuccess, alertError, confirmAction } from "@/helpers/alerts";
 import FormattedTextEditor from "@/components/shared/FormattedTextEditor.vue";
-import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import axios from "axios";
 
 const registros = ref([]);
@@ -332,7 +390,7 @@ const servicios = ref([]);
 const serviciosFiltrados = ref([]);
 const filtro = ref({
     sede_id: "",
-    servicio_cita_id: "",
+    servicio_id: "",
     producto_id: "",
 });
 const form = ref({
@@ -346,6 +404,19 @@ const editando = ref(false);
 const loadingBuscar = ref(false);
 const loadingGuardar = ref(false);
 const loadingEliminarId = ref(null);
+const showSidebar = ref(false);
+
+useKeyboardShortcuts({
+    onSearch: () => {
+        if (!showSidebar.value) {
+            buscar();
+        }
+    },
+    onSave: guardar,
+    onEscape: cerrarModal,
+    isActive: () => true,
+    isLoading: loadingGuardar,
+});
 
 const filterProductoOptions = computed(() => {
     return (productos.value || []).map((p) => ({
@@ -366,19 +437,21 @@ async function cargarSedes() {
     try {
         const res = await axios.get("/api/config-sedes/listar/sedes/activas");
         sedes.value = res.data?.data || [];
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible cargar las sedes.");
+    } catch {
+        alertError("Error", "No se pudieron cargar las sedes");
     }
 }
+
 async function cargarServicios() {
     try {
         const res = await axios.get("/api/citas/servicios");
         servicios.value = res.data?.data || [];
         filtrarServicios();
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible cargar los servicios.");
+    } catch {
+        alertError("Error", "No se pudieron cargar los servicios");
     }
 }
+
 function filtrarServicios() {
     if (filtro.value.sede_id) {
         serviciosFiltrados.value = servicios.value.filter((s) => s.sede_id == filtro.value.sede_id);
@@ -386,9 +459,10 @@ function filtrarServicios() {
         serviciosFiltrados.value = servicios.value;
     }
 }
+
 async function cargarProductos() {
     try {
-        const servicioId = filtro.value.servicio_cita_id;
+        const servicioId = filtro.value.servicio_id;
         const sedeId = filtro.value.sede_id;
 
         if (!servicioId) {
@@ -401,18 +475,20 @@ async function cargarProductos() {
 
         const res = await axios.get(url);
         productos.value = res.data?.data || [];
-    } catch (error) {
+    } catch {
         productos.value = [];
-        handleAxiosErrorToast(error, "No fue posible cargar los productos.");
     }
 }
+
 function onFilterProductoSelect(value) {
     filtro.value.producto_id = value || "";
     buscar();
 }
+
 function onFormProductoSelect(value) {
     form.value.producto_id = value || "";
 }
+
 async function buscar() {
     if (loadingBuscar.value) return;
     loadingBuscar.value = true;
@@ -420,21 +496,21 @@ async function buscar() {
         const params = {};
         if (filtro.value.producto_id) params.producto_id = filtro.value.producto_id;
         const res = await axios.get("/api/config-recomendacion-productos", { params });
-        safeDestroyDataTable(dt.value || "#tabla-recomendaciones");
+        safeDestroyDataTable(dt.value || "#tablaRecomendaciones");
         registros.value = res.data?.data || [];
         nextTick(() => {
-            safeInitDataTable(dt.value || "#tabla-recomendaciones", {
+            safeInitDataTable(dt.value || "#tablaRecomendaciones", {
                 dom: "Bfrtip",
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
         });
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible listar las recomendaciones.");
+    } catch {
         registros.value = [];
     } finally {
         loadingBuscar.value = false;
     }
 }
+
 async function guardar() {
     if (loadingGuardar.value) return;
     loadingGuardar.value = true;
@@ -462,11 +538,11 @@ async function guardar() {
         await buscar();
     } catch (error) {
         errores.value = error?.response?.data?.errors || {};
-        handleAxiosErrorToast(error, "No fue posible guardar la recomendación.");
     } finally {
         loadingGuardar.value = false;
     }
 }
+
 async function eliminarRegistro(id) {
     const ok = await confirmAction({
         title: "¿Está seguro?",
@@ -480,12 +556,13 @@ async function eliminarRegistro(id) {
         const res = await axios.delete("/api/config-recomendacion-productos/" + id);
         alertSuccess("Éxito", res?.data?.message || "Recomendación eliminada.");
         await buscar();
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible eliminar la recomendación.");
+    } catch {
+        alertError("Error", "No se pudo eliminar la recomendación");
     } finally {
         loadingEliminarId.value = null;
     }
 }
+
 function mostrarRegistro(item) {
     errores.value = {};
     if (item) {
@@ -507,14 +584,26 @@ function mostrarRegistro(item) {
     }
     abrirModal();
 }
+
 function abrirModal() {
-    $(".right-sidebar").addClass("shw-rside");
+    showSidebar.value = true;
+    nextTick(() => {
+        const target =
+            document.querySelector("#form-producto-parent .select2-selection") ||
+            document.querySelector("#form-producto-parent select") ||
+            document.querySelector(".r-panel-body textarea");
+        if (target && typeof target.focus === "function") {
+            target.focus();
+        }
+    });
 }
+
 function cerrarModal() {
-    $(".right-sidebar").removeClass("shw-rside");
+    showSidebar.value = false;
 }
+
 function btnLimpiar() {
-    filtro.value = { sede_id: "", servicio_cita_id: "", producto_id: "" };
+    filtro.value = { sede_id: "", servicio_id: "", producto_id: "" };
     serviciosFiltrados.value = servicios.value;
     cargarProductos();
     buscar();
@@ -528,30 +617,46 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-    safeDestroyDataTable(dt.value || "#tabla-recomendaciones");
+    safeDestroyDataTable(dt.value || "#tablaRecomendaciones");
 });
 </script>
 <style scoped>
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1090;
+}
+
 .right-sidebar {
     position: fixed;
     right: -80%;
     width: 80%;
-    display: none;
-    z-index: 180;
+    visibility: hidden;
+    z-index: 1100;
     background: #ffffff;
-    top: 0px;
-    padding-bottom: 20px;
-    height: 80%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
+    top: 0;
+    bottom: 0;
+    height: 100%;
+    overflow-y: auto;
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s ease;
 }
 
 .shw-rside {
-    right: 0px;
-    width: 80%;
-    display: block;
+    right: 0;
+    visibility: visible;
+}
+
+@media (max-width: 767px) {
+    .right-sidebar {
+        width: 100%;
+        right: -100%;
+    }
 }
 </style>

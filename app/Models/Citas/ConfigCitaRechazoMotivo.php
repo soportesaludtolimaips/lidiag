@@ -17,6 +17,13 @@ class ConfigCitaRechazoMotivo extends Model
         'activo' => 'boolean',
     ];
 
+    /**
+     * Limita la consulta a los motivos de rechazo activos.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function scopeActivos($query)
     {
         return $query->where('activo', true);

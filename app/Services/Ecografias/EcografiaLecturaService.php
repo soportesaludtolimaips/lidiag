@@ -10,19 +10,34 @@ use Illuminate\Support\Facades\DB;
 
 class EcografiaLecturaService extends BaseService
 {
+    /**
+     * Procesa la acción de lectura de una ecografía (imprimir lectura o terminar lectura), actualizando la lectura, opinión y estado del producto y de la ecografía dentro de una transacción.
+     *
+     * @param  array  $data  Datos validados de la solicitud que incluyen la acción a realizar y el registro de lectura y opinión.
+     * @param  int  $id  Identificador de la ecografía sobre la cual se ejecuta la acción de lectura.
+     *
+     * @returns array Resultado de la operación con el estado, mensajes y datos relacionados a la lectura de la ecografía.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function leer(array $data, int $id): array
     {
         $accion = (string) ($data['accion'] ?? '');
 
         return DB::transaction(function () use ($data, $id, $accion) {
-            $query = EcografiaProducto::where('ecografia_id', $id);
+            $productoId = (int) ($data["ecografia_producto_id"] ?? $data["registro"]["ecografia_producto_id"] ?? 0);
+            $producto = EcografiaProducto::where("ecografia_id", $id)
+                ->when($productoId > 0, fn ($q) => $q->where("id", $productoId))
+                ->first();
 
-            if (! $query->exists()) {
-                return $this->notFound('El producto de la ecografía no se encontró');
+            if (! $producto) {
+                return $this->notFound("El producto de la ecografía no se encontró");
             }
 
             if ($accion === 'IMPRIMIR_LECTURA') {
-                $query->update([
+                $producto->update([
                     'lectura' => $data['registro']['lectura'] ?? null,
                     'opinion' => $data['registro']['opinion'] ?? null,
                     'usua_regis_id' => auth()->id(),
@@ -33,7 +48,7 @@ class EcografiaLecturaService extends BaseService
             }
 
             if ($accion === 'TERMINAR_LECTURA') {
-                $query->update([
+                $producto->update([
                     'lectura' => $data['registro']['lectura'] ?? null,
                     'opinion' => $data['registro']['opinion'] ?? null,
                     'usua_regis_id' => auth()->id(),
@@ -52,6 +67,17 @@ class EcografiaLecturaService extends BaseService
         });
     }
 
+    /**
+     * Lista las ecografías en estado "EN PROCESO" asociadas a un médico, incluyendo la información del producto, consentimientos y datos enmascarados del paciente.
+     *
+     * @param  int  $idMedico  Identificador del médico cuyas ecografías pendientes de lectura se desean consultar.
+     *
+     * @returns array Resultado con la lista de ecografías pendientes de lectura y el estado de la operación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-07-14
+     */
     public function listarPendientesPorLectura(int $idMedico): array
     {
         $medico = User::find($idMedico);
@@ -74,6 +100,7 @@ class EcografiaLecturaService extends BaseService
             'ep.error_envio_sahi',
             'p.id as producto_id',
             'p.nom_produc',
+            'p.cod_cups',
             'c.id as consentimiento_id',
             'c.estado as consentimiento_estado',
             'c.firma_paciente_at as consentimiento_firma_paciente_at',

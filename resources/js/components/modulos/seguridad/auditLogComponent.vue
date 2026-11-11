@@ -5,17 +5,36 @@
                 <h3 class="text-themecolor">Seguridad</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a role="button" tabindex="0">Inicio</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Inicio
+                        </button>
                     </li>
                     <li class="breadcrumb-item">
-                        <a role="button" tabindex="0">Seguridad</a>
+                        <button
+                            type="button"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
+                        >
+                            Seguridad
+                        </button>
                     </li>
                     <li class="breadcrumb-item active">Auditoría de Eventos</li>
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
-                <button type="button" class="btn btn-info btn-rounded" @click="cargarLogs">
-                    <i class="fa fa-refresh m-r-5"></i> Refrescar
+                <button
+                    type="button"
+                    class="btn btn-info waves-effect waves-light"
+                    :disabled="loading"
+                    title="Actualizar registros de auditoría"
+                    @click="cargarLogs"
+                >
+                    <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loading }"></i>
+                    Refrescar
                 </button>
             </div>
         </div>
@@ -26,8 +45,9 @@
                     <div class="card-body">
                         <div class="row m-b-20">
                             <div class="col-md-3">
-                                <label>Evento</label>
+                                <label for="filtro_evento">Evento</label>
                                 <select
+                                    id="filtro_evento"
                                     class="form-control"
                                     v-model="filtros.evento"
                                     @change="cargarLogs"
@@ -39,8 +59,9 @@
                                 </select>
                             </div>
                             <div class="col-md-2">
-                                <label>Desde</label>
+                                <label for="filtro_desde">Desde</label>
                                 <input
+                                    id="filtro_desde"
                                     type="date"
                                     class="form-control"
                                     v-model="filtros.desde"
@@ -48,8 +69,9 @@
                                 />
                             </div>
                             <div class="col-md-2">
-                                <label>Hasta</label>
+                                <label for="filtro_hasta">Hasta</label>
                                 <input
+                                    id="filtro_hasta"
                                     type="date"
                                     class="form-control"
                                     v-model="filtros.hasta"
@@ -57,8 +79,9 @@
                                 />
                             </div>
                             <div class="col-md-3">
-                                <label>Buscar</label>
+                                <label for="filtro_search">Buscar</label>
                                 <input
+                                    id="filtro_search"
                                     type="text"
                                     class="form-control"
                                     v-model="filtros.search"
@@ -67,8 +90,20 @@
                                 />
                             </div>
                             <div class="col-md-2 d-flex align-items-end">
-                                <button class="btn btn-success btn-block" @click="cargarLogs">
+                                <button
+                                    type="button"
+                                    class="btn btn-success waves-effect waves-light mr-2 flex-grow-1"
+                                    @click="cargarLogs"
+                                >
                                     <i class="fa fa-search"></i> Filtrar
+                                </button>
+                                <button
+                                    type="button"
+                                    class="btn btn-inverse waves-effect waves-light"
+                                    @click="limpiarFiltros"
+                                    title="Limpiar filtros"
+                                >
+                                    <i class="fa fa-refresh"></i>
                                 </button>
                             </div>
                         </div>
@@ -78,14 +113,21 @@
                             {{ totalRegistros }} registro(s) encontrado(s)
                         </span>
 
-                        <div class="table-responsive m-t-20" v-if="loading">
-                            <div class="text-center p-5">
-                                <i class="fa fa-spinner fa-spin fa-3x"></i>
-                                <p class="m-t-10">Cargando registros de auditoría...</p>
-                            </div>
-                        </div>
+                        <table-skeleton-loader :visible="loading" :rows="8" :columns="8" />
+                        <empty-state-component
+                            v-if="!loading && registros.length === 0"
+                            icon="fa fa-history"
+                            title="No hay registros de auditoría"
+                            description="No se encontraron eventos registrados con los filtros seleccionados."
+                            action-text="Limpiar filtros"
+                            action-icon="fa fa-refresh"
+                            @action="limpiarFiltros"
+                        />
 
-                        <div class="table-responsive m-t-20" v-if="!loading">
+                        <div
+                            class="table-responsive m-t-20"
+                            v-show="!loading && registros.length > 0"
+                        >
                             <table
                                 id="tablaAuditoria"
                                 ref="dt"
@@ -175,16 +217,27 @@
 
         <div
             class="modal fade"
+            :class="{ show: mostrarDetalle }"
+            :style="{ display: mostrarDetalle ? 'block' : 'none' }"
             id="modalDetalleAuditoria"
             tabindex="-1"
             role="dialog"
-            aria-hidden="true"
+            aria-labelledby="modalDetalleAuditoriaTitle"
+            :aria-hidden="!mostrarDetalle"
+            @click.self="mostrarDetalle = false"
         >
-            <div class="modal-dialog modal-lg">
+            <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title">Detalle de Auditoría #{{ detalle.id }}</h4>
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <h4 class="modal-title" id="modalDetalleAuditoriaTitle">
+                            Detalle de Auditoría #{{ detalle.id }}
+                        </h4>
+                        <button
+                            type="button"
+                            class="close"
+                            @click="mostrarDetalle = false"
+                            aria-label="Cerrar modal"
+                        >
                             &times;
                         </button>
                     </div>
@@ -254,13 +307,18 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-inverse" data-dismiss="modal">
+                        <button
+                            type="button"
+                            class="btn btn-default waves-effect"
+                            @click="mostrarDetalle = false"
+                        >
                             Cerrar
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+        <div v-if="mostrarDetalle" class="modal-backdrop fade show"></div>
     </div>
 </template>
 <script setup>
@@ -268,8 +326,9 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 const dt = ref(null);
 
-import { handleAxiosErrorToast } from "@/helpers/alerts";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
+import { toastMessage } from "@/helpers/alerts";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 import axios from "axios";
 
 const registros = ref([]);
@@ -299,12 +358,18 @@ const detalle = ref({
     datos_nuevos: null,
 });
 
+const mostrarDetalle = ref(false);
+
 async function cargarEventos() {
     try {
         const res = await axios.get("/api/seguridad-auditoria/eventos");
-        eventosDisponibles.value = res.data;
-    } catch (e) {
-        handleAxiosErrorToast(e, "Error al cargar tipos de evento");
+        eventosDisponibles.value = res.data?.data || res.data || [];
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudieron cargar los eventos.",
+            icon: "error",
+        });
     }
 }
 async function cargarLogs() {
@@ -327,10 +392,15 @@ async function cargarLogs() {
 
         const res = await axios.get("/api/seguridad-auditoria", { params });
 
-        registros.value = res.data.data;
-        totalRegistros.value = res.data.data.total;
-        totalPaginas.value = res.data.data.last_page;
-        paginaActual.value = res.data.data.current_page;
+        const paginador = res.data?.data || res.data || {};
+        registros.value = Array.isArray(paginador.data)
+            ? paginador.data
+            : Array.isArray(paginador)
+              ? paginador
+              : [];
+        totalRegistros.value = paginador.total ?? registros.value.length;
+        totalPaginas.value = paginador.last_page ?? 1;
+        paginaActual.value = paginador.current_page ?? 1;
 
         nextTick(() => {
             safeInitDataTable(dt.value || "#tablaAuditoria", {
@@ -342,11 +412,23 @@ async function cargarLogs() {
                 searching: false,
             });
         });
-    } catch (error) {
-        handleAxiosErrorToast(error, "No fue posible cargar los registros de auditoría.");
+    } catch (_error) {
+        toastMessage({
+            heading: "Error",
+            text: "No se pudieron cargar los registros de auditoría.",
+            icon: "error",
+        });
     } finally {
         loading.value = false;
     }
+}
+function limpiarFiltros() {
+    filtros.value.evento = "";
+    filtros.value.desde = "";
+    filtros.value.hasta = "";
+    filtros.value.search = "";
+    paginaActual.value = 1;
+    cargarLogs();
 }
 function irPagina(pagina) {
     if (pagina < 1 || pagina > totalPaginas.value) return;
@@ -355,16 +437,36 @@ function irPagina(pagina) {
 }
 function verDetalle(item) {
     detalle.value = { ...item };
-    $("#modalDetalleAuditoria").modal("show");
+    mostrarDetalle.value = true;
 }
 function colorEvento(evento) {
     const colores = {
         crear: "success",
+        created: "success",
         actualizar: "warning",
+        updated: "warning",
         eliminar: "danger",
+        deleted: "danger",
         inicio_sesion: "info",
-        cierre_sesion: "default",
+        cierre_sesion: "inverse",
         inicio_sesion_fallido: "danger",
+        cambio_estado: "primary",
+        cambio_password: "warning",
+        asignar_roles: "info",
+        asignar_estudio: "info",
+        lectura_estudio: "success",
+        transcripcion_estudio: "primary",
+        anular_estudio: "danger",
+        asignar_cita: "info",
+        confirmar_cita: "primary",
+        cancelar_cita: "danger",
+        cumplir_cita: "success",
+        inasistencia_cita: "warning",
+        rechazar_cita: "danger",
+        cambio_estado_ticket: "warning",
+        reasignar_ticket: "info",
+        comentario_ticket: "secondary",
+        cambio_estado_rol: "primary",
     };
     return colores[evento] || "primary";
 }
@@ -376,6 +478,19 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     safeDestroyDataTable(dt.value || "#tablaAuditoria");
+});
+
+useKeyboardShortcuts({
+    onSearch: () => {
+        if (!loading.value && !mostrarDetalle.value) {
+            cargarLogs();
+        }
+    },
+    onEscape: () => {
+        if (mostrarDetalle.value) {
+            mostrarDetalle.value = false;
+        }
+    },
 });
 </script>
 <style scoped>

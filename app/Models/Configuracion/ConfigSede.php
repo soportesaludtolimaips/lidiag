@@ -2,6 +2,8 @@
 
 namespace App\Models\Configuracion;
 
+use App\Models\Dosimetria\EquipoEmisor;
+use App\Models\Dosimetria\RegistroDosisRadiacion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -17,6 +19,10 @@ class ConfigSede extends Model
         'ip_dcm',
         'bd_dcm',
         'puerto_dcm',
+        'worklist_activo',
+        'worklist_puerto',
+        'worklist_aet',
+        'worklist_estacion_aet',
         'usuario_dcm',
         'password_dcm',
         'usuario_oviyam',
@@ -41,6 +47,8 @@ class ConfigSede extends Model
 
     protected $casts = [
         'estado' => 'boolean',
+        'worklist_activo' => 'boolean',
+        'worklist_puerto' => 'integer',
     ];
 
     protected $hidden = [
@@ -49,13 +57,59 @@ class ConfigSede extends Model
         'interface_password',
     ];
 
+    /**
+     * Servicios de la sede.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\HasMany
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function servicios()
     {
-        return $this->hasMany(ConfigServicioCita::class, 'sede_id');
+        return $this->hasMany(ConfigServicio::class, 'sede_id');
     }
 
+    /**
+     * Números de WhatsApp de la sede.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\HasMany
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function whatsappNumbers()
     {
         return $this->hasMany(ConfigSedeWhatsappNumber::class, 'sede_id');
+    }
+
+    /**
+     * Equipos emisores de radiación ionizante vinculados a la sede.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\HasMany
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-23
+     */
+    public function equiposEmisores()
+    {
+        return $this->hasMany(EquipoEmisor::class, 'sede_id');
+    }
+
+    /**
+     * Registros de dosis de radiación recibidos desde el agente Edge de la sede.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\HasMany
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-23
+     */
+    public function registrosDosis()
+    {
+        return $this->hasMany(RegistroDosisRadiacion::class, 'sede_id');
     }
 }

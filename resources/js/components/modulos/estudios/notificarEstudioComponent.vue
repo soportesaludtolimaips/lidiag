@@ -42,6 +42,15 @@
                     <div class="card-body">
                         <h4 class="card-title text-themecolor">
                             <i class="fa fa-filter"></i> Filtros para busqueda de estudios
+                            <span
+                                v-if="filtrosActivosCount > 0"
+                                class="badge badge-pill badge-info ml-2"
+                            >
+                                {{ filtrosActivosCount }}
+                                {{
+                                    filtrosActivosCount === 1 ? "filtro activo" : "filtros activos"
+                                }}
+                            </span>
                         </h4>
                         <form action="#">
                             <div class="form-body">
@@ -158,10 +167,22 @@
                                 <span class="badge badge-secondary" v-else>Sin resultados</span>
                             </div>
                         </div>
-                        <loading-spinner :visible="loadingBuscar" />
-                        <div class="table-responsive" :class="{ 'd-none': loadingBuscar }">
+                        <table-skeleton-loader :visible="loadingBuscar" :rows="6" :columns="9" />
+                        <empty-state-component
+                            v-if="!loadingBuscar && registros.length === 0"
+                            icon="fa fa-folder-open-o"
+                            title="No hay estudios disponibles para notificar"
+                            description="No se encontraron estudios informados pendientes de notificación con los filtros seleccionados o use los filtros para buscar."
+                            action-text="Limpiar filtros"
+                            action-icon="fa fa-refresh"
+                            @action="btnLimpiar()"
+                        />
+                        <div
+                            class="table-responsive"
+                            v-show="!loadingBuscar && registros.length > 0"
+                        >
                             <table
-                                id="example23"
+                                id="tablaNotificarEstudio"
                                 ref="dt"
                                 class="table table-bordered table-striped"
                                 cellspacing="0"
@@ -171,10 +192,9 @@
                                     <tr>
                                         <th>Fecha del Estudio</th>
                                         <th>Fecha de lectura</th>
+                                        <th>Sede</th>
                                         <th># Documento</th>
                                         <th>Paciente</th>
-                                        <th>Telefono</th>
-                                        <th>Email</th>
                                         <th>Producto</th>
                                         <th></th>
                                     </tr>
@@ -183,10 +203,22 @@
                                     <tr v-for="item in registros" :key="item.estudio_producto_id">
                                         <td>{{ item.fec_estudio }}</td>
                                         <td>{{ item.fechor_lectura }}</td>
-                                        <td>{{ item.num_docu }}</td>
+                                        <td>
+                                            <span class="badge badge-info font-weight-bold">
+                                                <i class="fa fa-hospital-o mr-1"></i>
+                                                {{ item.nom_sede || "—" }}
+                                            </span>
+                                        </td>
+                                        <td class="text-nowrap align-middle">
+                                            <div
+                                                class="text-primary font-weight-bold"
+                                                style="font-size: 15px"
+                                            >
+                                                <i class="fa fa-id-card-o mr-1"></i>
+                                                {{ item.num_docu }}
+                                            </div>
+                                        </td>
                                         <td>{{ item.nom_pacien }}</td>
-                                        <td>{{ item.tel }}</td>
-                                        <td>{{ item.email }}</td>
                                         <td>{{ item.nom_produc }}</td>
                                         <td class="text-nowrap">
                                             <button
@@ -201,17 +233,43 @@
                                                 title="Imprimir reporte"
                                                 aria-label="Imprimir reporte"
                                                 :disabled="
-                                                    loadingImprimirId === item.estudio_producto_id
+                                                    loadingImprimir === item.estudio_producto_id
                                                 "
                                             >
                                                 <i
                                                     v-if="
-                                                        loadingImprimirId ===
-                                                        item.estudio_producto_id
+                                                        loadingImprimir === item.estudio_producto_id
                                                     "
                                                     class="fa fa-spinner fa-spin"
                                                 ></i>
                                                 <i v-else class="fa fa-file-pdf-o"></i>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
+                                                :disabled="
+                                                    loadingVerImagen === item.estudio_producto_id
+                                                "
+                                                @click="
+                                                    verImagen(
+                                                        item.url_oviyam,
+                                                        item.num_docu,
+                                                        item.study_iuid,
+                                                        item.tap_oviyam,
+                                                        item.estudio_producto_id
+                                                    )
+                                                "
+                                                title="Ver imágenes en visor PACS/DICOM"
+                                                aria-label="Ver imágenes en visor PACS/DICOM"
+                                            >
+                                                <i
+                                                    v-if="
+                                                        loadingVerImagen ===
+                                                        item.estudio_producto_id
+                                                    "
+                                                    class="fa fa-spinner fa-spin"
+                                                ></i>
+                                                <i v-else class="fa fa-desktop"></i>
                                             </button>
                                             <button
                                                 type="button"
@@ -235,7 +293,7 @@
                                             <button
                                                 type="button"
                                                 v-if="permisos.includes('estudios.notificar.index')"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-success btn-sm m-r-5"
                                                 :disabled="
                                                     loadingPortalId === item.estudio_producto_id
                                                 "
@@ -249,19 +307,12 @@
                                                     "
                                                     class="fa fa-spinner fa-spin"
                                                 ></i>
-                                                <i v-else class="fa fa-send"></i>
+                                                <i v-else class="fa fa-cloud-upload"></i>
                                             </button>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
-                            <div
-                                v-if="registros.length === 0 && !loadingBuscar"
-                                class="text-center py-4 text-muted"
-                            >
-                                <i class="fa fa-inbox fa-3x mb-3"></i>
-                                <p>No hay estudios para notificar</p>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -274,15 +325,29 @@
         <!-- ============================================================== -->
         <!-- Right sidebar -->
         <!-- ============================================================== -->
+        <!-- Backdrop para cerrar al hacer clic y atenuar fondo -->
+        <transition name="fade">
+            <div
+                v-if="sidebarVisible"
+                class="sidebar-backdrop"
+                @click="btnCerrarModalForm()"
+                aria-hidden="true"
+            ></div>
+        </transition>
+
         <!-- .right-sidebar -->
-        <div class="right-sidebar" style="overflow-x: hidden; overflow-y: scroll; height: 100%">
+        <div
+            class="right-sidebar"
+            :class="{ 'shw-rside': sidebarVisible }"
+            style="overflow-x: hidden; overflow-y: scroll; height: 100%"
+        >
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
                     <button
                         type="button"
                         class="right-side-toggle"
-                        @click="btnCerralModalForm()"
+                        @click="btnCerrarModalForm()"
                         aria-label="Cerrar panel"
                     >
                         <i class="ti-close"></i>
@@ -302,19 +367,51 @@
                                         <i class="fa fa-edit"></i> Datos del Estudio
                                     </h5>
                                     <hr />
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <dl class="mb-1">
+                                                <dt class="text-muted" style="font-size: 12px">
+                                                    Sede del Estudio:
+                                                </dt>
+                                                <dd class="font-weight-bold text-dark mb-0">
+                                                    <i class="fa fa-hospital-o text-info mr-1"></i>
+                                                    {{ estudio.nom_sede || "—" }}
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <dl class="mb-1">
+                                                <dt class="text-muted" style="font-size: 12px">
+                                                    Producto:
+                                                </dt>
+                                                <dd class="font-weight-bold text-dark mb-0">
+                                                    {{ estudio.nom_produc || "—" }}
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                    </div>
                                     <div class="col-md-12">
                                         <div class="form-group">
                                             <label class="control-label" for="email"
-                                                >Correo electrónico</label
+                                                >Correo electrónico
+                                                <span class="text-danger">*</span></label
                                             >
                                             <input
                                                 type="email"
                                                 id="email"
                                                 name="email"
                                                 class="form-control"
+                                                :class="getInputClass(statusEmail)"
                                                 v-model="registro.email"
                                                 placeholder="Correo electrónico del paciente"
+                                                @blur="touch('email')"
                                             />
+                                            <div
+                                                class="invalid-feedback d-block"
+                                                v-if="statusEmail.isInvalid"
+                                            >
+                                                {{ statusEmail.message }}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -326,6 +423,7 @@
                                     class="btn btn-success m-r-5"
                                     @click="notificar()"
                                     :disabled="loadingNotificar"
+                                    title="Notificar por email"
                                 >
                                     <i v-if="loadingNotificar" class="fa fa-spinner fa-spin"></i>
                                     <i v-else class="fa fa-envelope-o"></i>
@@ -335,9 +433,15 @@
                                 <button
                                     type="button"
                                     class="btn btn-inverse"
-                                    @click="btnCerralModalForm()"
+                                    @click="btnCerrarModalForm()"
+                                    title="Cerrar panel (Esc)"
                                 >
-                                    Cancel
+                                    Cancelar
+                                    <span
+                                        class="badge badge-secondary ml-1 d-none d-md-inline"
+                                        style="font-size: 10px"
+                                        >Esc</span
+                                    >
                                 </button>
                             </div>
                         </div>
@@ -351,19 +455,29 @@
     </div>
 </template>
 <script setup>
-import { computed, nextTick, onBeforeUnmount, ref } from "vue";
-
-import LoadingSpinner from "@/components/comunes/LoadingSpinner.vue";
+import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import DatosPacienteDisplay from "@/components/comunes/datosPacienteDisplayComponent.vue";
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
-import { getUserSafeError, handleAxiosErrorToast } from "@/helpers/alerts.js";
+import { getUserSafeError, toastMessage } from "@/helpers/alerts.js";
+import { useEstudioHelpers } from "@/composables/useEstudioHelpers";
+import { useFormValidation } from "@/composables/useFormValidation";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
+import { useFilterPersistence } from "@/composables/useFilterPersistence";
 import axios from "axios";
 
-const props = defineProps({ usuarioactual: Object, permisos: Array });
+defineProps({
+    usuarioactual: { type: Object, default: () => ({}) },
+    permisos: { type: Array, default: () => [] },
+});
+
+const { loadingImprimir, imprimirReporte, loadingVerImagen, verImagen } = useEstudioHelpers();
+
+const { appContext } = getCurrentInstance();
+const emitter = appContext.config.globalProperties.emitter;
 
 const dt = ref(null);
 const registros = ref([]);
-const tituloModal = ref("Nuevo registro");
+const tituloModal = ref("Notificar estudio");
 const registro = ref({
     num_docu: "",
     nombres: "",
@@ -376,196 +490,197 @@ const registro = ref({
     nom_produc: "",
     id_producto_lectura: null,
 });
-const estudio = ref(null);
-const busqueda = ref({ bus_num_docu: "", bus_nom: "", bus_fech_ini: "", bus_fecha_fin: "" });
-const errores = ref({});
-const erroresBusqueda = ref({});
+const estudio = ref({});
+
+const defaultBusqueda = {
+    bus_num_docu: "",
+    bus_nom: "",
+    bus_fech_ini: "",
+    bus_fecha_fin: "",
+    sede_id: sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "",
+};
+
+const {
+    filtros: busqueda,
+    filtrosActivosCount,
+    guardarFiltros,
+    limpiarFiltrosStorage,
+} = useFilterPersistence("lidiag_filters_notificar_estudios", defaultBusqueda, ["sede_id"]);
 const loadingBuscar = ref(false);
 const loadingNotificar = ref(false);
-const loadingImprimirId = ref(null);
 const loadingAbrirId = ref(null);
 const loadingPortalId = ref(null);
+const sidebarVisible = ref(false);
+
+useKeyboardShortcuts({
+    onSave: notificar,
+    onEscape: () => btnCerrarModalForm(),
+    isActive: () => sidebarVisible.value,
+    isLoading: loadingNotificar,
+});
+
+const { touch, getFieldStatus, getInputClass, validators, resetTouched } = useFormValidation();
+
+const statusEmail = computed(() =>
+    getFieldStatus("email", registro.value.email, [validators.required, validators.email])
+);
 
 const contadorRegistros = computed(() => {
     return registros.value.length;
 });
 
+function initDataTable() {
+    safeInitDataTable(dt.value || "#tablaNotificarEstudio", {
+        dom: "Bfrtip",
+        buttons: ["copy", "csv", "excel", "pdf", "print"],
+        retrieve: true,
+    });
+}
+
 function destroyDataTable() {
-    safeDestroyDataTable(dt.value || "#example23");
+    safeDestroyDataTable(dt.value || "#tablaNotificarEstudio");
 }
 function btnLimpiar() {
-    busqueda.value.bus_num_docu = "";
-    busqueda.value.bus_nom = "";
-    busqueda.value.bus_fech_ini = "";
-    busqueda.value.bus_fecha_fin = "";
-    erroresBusqueda.value = {};
+    limpiarFiltrosStorage();
     destroyDataTable();
     registros.value = [];
     limpiar();
 }
+
+/**
+ * Buscar estudios para notificar
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa la búsqueda de estudios.
+ * @author: Jhon Javer Lozano Arce
+ */
 async function buscarStudy() {
     if (loadingBuscar.value) return;
-    loadingBuscar.value = true;
+
+    if (
+        busqueda.value.bus_num_docu == "" &&
+        busqueda.value.bus_fech_ini == "" &&
+        busqueda.value.bus_fecha_fin == "" &&
+        busqueda.value.bus_nom == ""
+    ) {
+        toastMessage({
+            heading: "Upsss!!!",
+            text: "Debe indicar documento, nombre o un rango de fechas para la búsqueda.",
+            icon: "warning",
+        });
+        return;
+    }
+
     destroyDataTable();
-    registros.value = [];
+    loadingBuscar.value = true;
     try {
-        if (
-            busqueda.value.bus_num_docu == "" &&
-            busqueda.value.bus_fech_ini == "" &&
-            busqueda.value.bus_fecha_fin == "" &&
-            busqueda.value.bus_nom == ""
-        ) {
-            $.toast({
-                heading: "Upsss!!!",
-                text: "Debe indicar documento, nombre o un rango de fechas para la búsqueda.",
-                position: "top-right",
-                loaderBg: "#ff6849",
-                icon: "warning",
-                hideAfter: 3500,
-                stack: 6,
-            });
-        } else {
-            const res = await axios.post("/api/listar.estudios.notificaciones", busqueda.value);
+        const res = await axios.post("/api/listar.estudios.notificaciones", busqueda.value);
 
-            if (res.status == 200) {
-                registros.value = res.data.data || [];
+        registros.value = res.data.data || [];
+        guardarFiltros();
 
-                nextTick(() => {
-                    safeInitDataTable(dt.value || "#example23", {
-                        dom: "Bfrtip",
-                        buttons: ["copy", "csv", "excel", "pdf", "print"],
-                    });
-                });
-            } else if (res.status == 500) {
-                $.toast({
-                    heading: "Upsss!!!",
-                    text: res.data.message,
-                    position: "top-right",
-                    loaderBg: "#ff6849",
-                    icon: "danger",
-                    hideAfter: 3500,
-                    stack: 6,
-                });
-            }
-        }
+        nextTick(() => {
+            destroyDataTable();
+            initDataTable();
+        });
     } catch (error) {
         registros.value = [];
-
-        const status = error?.response?.status;
-        if (status == 500) {
-            $.toast({
-                heading: "Upss!!!",
-                text: getUserSafeError(error, "Error al listar estudios."),
-                position: "top-right",
-                loaderBg: "#ff6849",
-                icon: "error",
-                hideAfter: 3500,
-                stack: 6,
-            });
-        }
-
-        erroresBusqueda.value =
-            error?.response?.data?.errors && typeof error.response.data.errors === "object"
-                ? error.response.data.errors
-                : {};
+        toastMessage({
+            heading: "Error",
+            text: getUserSafeError(error, "Error al listar estudios."),
+            icon: "error",
+        });
     } finally {
         loadingBuscar.value = false;
     }
 }
-async function imprimirReporte(estudio) {
-    if (loadingImprimirId.value) return;
-    loadingImprimirId.value = estudio.estudio_producto_id;
-    try {
-        $.toast({
-            heading: "Procesando...",
-            text: "Generando reportes, por favor espere",
-            position: "top-right",
-            loaderBg: "#ff6849",
-            icon: "info",
-            hideAfter: 3500,
-            stack: 6,
-        });
 
-        const res = await axios.post("/api/edit-word", estudio);
-
-        window.open(
-            `/descargar.pdf.lectura/${res.data.data.plantilla}`,
-            "_blank",
-            "noopener,noreferrer"
-        );
-    } catch (error) {
-        errores.value =
-            error?.response?.data?.errors && typeof error.response.data.errors === "object"
-                ? error.response.data.errors
-                : {};
-        handleAxiosErrorToast(error, "No se pudo imprimir el reporte.");
-    } finally {
-        loadingImprimirId.value = null;
-    }
-}
+/**
+ * Notificar estudio
+ * @param {Object} estudio - Objeto que contiene los datos del estudio a notificar.
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa la notificación del estudio.
+ * @author: Jhon Javer Lozano Arce
+ */
 async function notificar() {
     if (loadingNotificar.value) return;
+
+    touch("email");
+    if (statusEmail.value.isInvalid) {
+        toastMessage({
+            heading: "Atención",
+            text:
+                statusEmail.value.message ||
+                "Ingrese un correo electrónico válido para notificar al paciente.",
+            icon: "warning",
+        });
+        return;
+    }
+
+    const email = (registro.value.email || "").trim();
+
     loadingNotificar.value = true;
     try {
-        $.toast({
+        toastMessage({
             heading: "Procesando...",
             text: "Generando reporte, por favor espere.",
-            position: "top-right",
-            loaderBg: "#ff6849",
             icon: "info",
-            hideAfter: 3500,
-            stack: 6,
         });
 
         const payload = {
             ...estudio.value,
             id_estudio: estudio.value.id,
-            email: registro.value.email,
+            email: email,
             tel: registro.value.tel,
         };
         const res = await axios.post("/api/notificar.email", payload);
 
         if (res.status == 200) {
-            $.toast({
+            toastMessage({
                 heading: "Completado",
                 text: "La notificación se realizó correctamente, estamos enviando el correo electronico, por favor espere..",
-                position: "top-right",
-                loaderBg: "#ff6849",
                 icon: "success",
-                hideAfter: 3500,
-                stack: 6,
             });
+
+            if (estudio.value?.estudio_producto_id != null) {
+                const idx = registros.value.findIndex(
+                    (x) => x.estudio_producto_id == estudio.value.estudio_producto_id
+                );
+                if (idx >= 0) {
+                    registros.value.splice(idx, 1);
+                    nextTick(() => {
+                        destroyDataTable();
+                        initDataTable();
+                    });
+                }
+            }
         }
 
         btnCerralModalForm();
         limpiar();
-    } catch (e) {
-        const status = e?.response?.status;
+    } catch (error) {
+        const status = error?.response?.status;
         if (status == 402) {
-            $.toast({
+            toastMessage({
                 heading: "Error",
-                text: getUserSafeError(e, "Saldo insuficiente."),
-                position: "top-right",
-                loaderBg: "#ff6849",
+                text: getUserSafeError(error, "Saldo insuficiente."),
                 icon: "error",
-                hideAfter: 3500,
-                stack: 6,
             });
         } else {
-            $.toast({
+            toastMessage({
                 heading: "Upss!!!",
-                text: getUserSafeError(e, "No fue posible notificar."),
-                position: "top-right",
-                loaderBg: "#ff6849",
+                text: getUserSafeError(error, "No fue posible notificar."),
                 icon: "error",
-                hideAfter: 3500,
-                stack: 6,
             });
         }
     } finally {
         loadingNotificar.value = false;
     }
 }
+
+/**
+ * Enviar al portal de pacientes
+ * @param {Object} item - Objeto que contiene los datos del estudio a enviar al portal de pacientes.
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa el envío al portal de pacientes.
+ * @author: Jhon Javer Lozano Arce
+ */
 async function enviarPortal(item) {
     if (loadingPortalId.value) return;
     loadingPortalId.value = item.estudio_producto_id;
@@ -576,62 +691,83 @@ async function enviarPortal(item) {
         loadingPortalId.value = null;
     }
 }
+
+/**
+ * Enviar al portal de pacientes
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa el envío al portal de pacientes.
+ * @author: Jhon Javer Lozano Arce
+ */
+/**
+ * Enviar al portal de pacientes
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa el envío al portal de pacientes.
+ * @author: Jhon Javer Lozano Arce
+ */
 async function enviarPortalPacientes() {
     try {
-        $.toast({
-            heading: "Procesando...",
-            text: "Enviando al portal de pacientes, por favor espere.",
-            position: "top-right",
-            loaderBg: "#ff6849",
-            icon: "info",
-            hideAfter: 3500,
-            stack: 6,
-        });
-
         const res = await axios.post("/api/enviar-portal-pacientes", estudio.value);
 
         if (res.status == 200) {
-            $.toast({
+            toastMessage({
                 heading: "Completado",
                 text: "Enviado al portal de pacientes.",
-                position: "top-right",
-                loaderBg: "#39cb14",
                 icon: "success",
-                hideAfter: 3500,
-                stack: 6,
             });
+
+            if (estudio.value?.estudio_producto_id != null) {
+                const idx = registros.value.findIndex(
+                    (x) => x.estudio_producto_id == estudio.value.estudio_producto_id
+                );
+                if (idx >= 0) {
+                    registros.value.splice(idx, 1);
+                    nextTick(() => {
+                        destroyDataTable();
+                        initDataTable();
+                    });
+                }
+            }
 
             limpiar();
         }
-    } catch (e) {
-        if (e.response && e.response.status == 402) {
-            $.toast({
+    } catch (error) {
+        if (error.response && error.response.status == 402) {
+            toastMessage({
                 heading: "Error",
-                text: getUserSafeError(e, "Saldo insuficiente."),
-                position: "top-right",
-                loaderBg: "#ff6849",
+                text: getUserSafeError(error, "Saldo insuficiente."),
                 icon: "error",
-                hideAfter: 3500,
-                stack: 6,
             });
         } else {
-            handleAxiosErrorToast(e, "No se pudo enviar al portal.");
+            toastMessage({
+                heading: "Error",
+                text: getUserSafeError(error, "No fue posible enviar al portal de pacientes."),
+                icon: "error",
+            });
         }
     }
 }
+
 function abrirModal() {
-    $(".right-sidebar").slideDown(50);
-    $(".right-sidebar").addClass("shw-rside");
+    sidebarVisible.value = true;
 }
+
+function btnCerrarModalForm() {
+    sidebarVisible.value = false;
+}
+
 function btnCerralModalForm() {
-    $(".right-sidebar").slideUp(50);
-    $(".right-sidebar").removeClass("shw-rside");
+    btnCerrarModalForm();
 }
+
+/**
+ * Mostrar el registro del estudio en el modal para notificar al paciente.
+ * @param {Object} data - Objeto que contiene los datos del estudio a mostrar.
+ * @returns {Promise<void>} - Una promesa que se resuelve cuando se completa la carga del registro.
+ * @author: Jhon Javer Lozano Arce
+ */
 function mostrarRegistro(data = {}) {
     if (loadingAbrirId.value) return;
     loadingAbrirId.value = data.estudio_producto_id;
     estudio.value = { ...data, id_estudio: data.id };
-    tituloModal.value = "Notificar al paciente: " + data.nom_pacien;
+    tituloModal.value = `Notificar al paciente: ${data.nom_pacien} ${data.num_docu ? `(${data.num_docu})` : ""}`;
 
     registro.value.num_docu = data.num_docu;
     registro.value.nombres = data.nom_pacien;
@@ -642,12 +778,23 @@ function mostrarRegistro(data = {}) {
     registro.value.nom_produc = data.nom_produc;
     registro.value.id_producto_lectura = data.id;
 
+    resetTouched();
     abrirModal();
+    nextTick(() => {
+        document.getElementById("email")?.focus();
+    });
     loadingAbrirId.value = null;
 }
+
+/**
+ * Setear los datos del estudio en el registro para enviar al portal de pacientes.
+ * @param {Object} data - Objeto que contiene los datos del estudio a enviar al portal de pacientes.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
 function setarDatosPortalPacientes(data = {}) {
     estudio.value = { ...data, id_estudio: data.id };
-    tituloModal.value = "Notificar al paciente: " + data.nom_pacien;
+    tituloModal.value = `Notificar al paciente: ${data.nom_pacien} ${data.num_docu ? `(${data.num_docu})` : ""}`;
 
     registro.value.num_docu = data.num_docu;
     registro.value.nombres = data.nom_pacien;
@@ -658,38 +805,115 @@ function setarDatosPortalPacientes(data = {}) {
     registro.value.nom_produc = data.nom_produc;
     registro.value.id_producto_lectura = data.id;
 }
+
+/**
+ * Limpia el formulario de notificación, incluyendo email y dirección del
+ * paciente para evitar el envío accidental de datos (PHI) al paciente
+ * equivocado en una notificación posterior.
+ * @returns {void}
+ * @author: Jhon Javer Lozano Arce
+ */
 function limpiar() {
     registro.value.num_docu = "";
     registro.value.nombres = "";
     registro.value.sexo = "";
     registro.value.fec_naci = "";
     registro.value.tel = "";
+    registro.value.email = "";
+    registro.value.email_reportar = "";
+    registro.value.direccion = "";
     registro.value.nom_produc = "";
     registro.value.id_producto_lectura = "";
 }
 
+/**
+ * Maneja el evento global "sedeSeleccionada": limpia los resultados actuales
+ * y actualiza el filtro de sede para que la próxima búsqueda sea en la sede correcta.
+ *
+ * @param {Object} data - Payload del evento, contiene data.idSede con el ID de la sede elegida.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-10-14
+ */
+function onSedeSeleccionada(data) {
+    const nuevaSede =
+        data?.idSede ?? sessionStorage.getItem("ST-sede") ?? localStorage.getItem("ST-sede");
+    if (!nuevaSede) return;
+    const cambioSede = String(busqueda.value.sede_id || "") !== String(nuevaSede);
+    busqueda.value.sede_id = nuevaSede;
+    if (cambioSede) {
+        destroyDataTable();
+        registros.value = [];
+        limpiar();
+    }
+}
+
+onMounted(() => {
+    if (!busqueda.value.sede_id) {
+        busqueda.value.sede_id =
+            sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "";
+    }
+    emitter.on("sedeSeleccionada", onSedeSeleccionada);
+    if (!busqueda.value.sede_id && emitter) {
+        emitter.emit("solicitarSedeActiva");
+    }
+    if (
+        busqueda.value.bus_num_docu ||
+        busqueda.value.bus_nom ||
+        busqueda.value.bus_fech_ini ||
+        busqueda.value.bus_fecha_fin
+    ) {
+        buscarStudy();
+    }
+});
+
 onBeforeUnmount(() => {
+    emitter.off("sedeSeleccionada", onSedeSeleccionada);
     destroyDataTable();
     registros.value = [];
     registro.value = {};
 });
 </script>
 <style scoped>
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1090;
+    cursor: pointer;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.25s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
 .right-sidebar {
     position: fixed;
     right: -80%;
     width: 80%;
-    display: none;
     z-index: 1100;
     background: #ffffff;
     top: 0px;
     padding-bottom: 20px;
     height: 100%;
-    -webkit-box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    box-shadow: 5px 1px 40px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 0.3s ease;
-    -o-transition: all 0.3s ease;
-    transition: all 0.3s ease;
+    box-shadow: -5px 0 35px rgba(0, 0, 0, 0.15);
+    transition:
+        right 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.35s;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 @media (max-width: 767px) {
@@ -700,9 +924,10 @@ onBeforeUnmount(() => {
 }
 
 .shw-rside {
-    right: 0px;
+    right: 0px !important;
     width: 80%;
-    display: block;
+    visibility: visible;
+    pointer-events: auto;
 }
 
 @media (max-width: 767px) {

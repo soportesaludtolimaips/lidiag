@@ -11,13 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Idempotente: solo agrega la columna si no existe (compatibilidad multi-entorno). @author Davide Rivera (Luis Castaño)
-        if (! Schema::hasColumn('ecografias', 'medico_id')) {
-            Schema::table('ecografias', function (Blueprint $table) {
-                $table->unsignedBigInteger('medico_id')->after('atencion_id');
-                $table->foreign('medico_id')->references('id')->on('users');
-            });
-        }
+        Schema::table('ecografias', function (Blueprint $table) {
+            $table->unsignedBigInteger('medico_id')->after('atencion_id');
+            $table->foreign('medico_id')->references('id')->on('users');
+        });
     }
 
     /**

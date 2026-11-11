@@ -16,6 +16,15 @@ class LimpiarFirmasMedicos extends Command
 
     protected $description = 'Limpia archivos de firma huérfanos en storage/app/firmas_medicos';
 
+    /**
+     * Elimina los archivos de firma huérfanos no referenciados en la base de datos.
+     *
+     * @returns int Código de salida del comando.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     public function handle()
     {
         $dryRun = (bool) $this->option('dry-run');
@@ -36,7 +45,7 @@ class LimpiarFirmasMedicos extends Command
             ->map(fn ($p) => basename($p))
             ->filter()
             ->flip();
-        $this->line('  Referencias en DB: ' . $nombresEnDb->count());
+        $this->line('  Referencias en DB: '.$nombresEnDb->count());
 
         $this->line('Escaneando archivos en disco...');
         $total = 0;
@@ -57,7 +66,7 @@ class LimpiarFirmasMedicos extends Command
 
                 if ($dryRun) {
                     $bytesHuerfanos += $file->getSize();
-                    $this->line("  [{$huerfanos}] {$file->getFilename()} (" . $this->formatBytes($file->getSize()) . ")");
+                    $this->line("  [{$huerfanos}] {$file->getFilename()} (".$this->formatBytes($file->getSize()).")");
                 } else {
                     $this->output->write("  [{$huerfanos}] {$file->getFilename()} ... ");
                     if (@unlink($file->getRealPath())) {
@@ -80,7 +89,7 @@ class LimpiarFirmasMedicos extends Command
         $this->line("  Huérfanos encontrados: {$huerfanos}");
 
         if ($dryRun) {
-            $this->line("  Espacio a liberar: " . $this->formatBytes($bytesHuerfanos));
+            $this->line("  Espacio a liberar: ".$this->formatBytes($bytesHuerfanos));
             $this->newLine();
             $this->warn('--- DRY RUN: no se eliminó ningún archivo ---');
         } else {
@@ -96,18 +105,27 @@ class LimpiarFirmasMedicos extends Command
         return 0;
     }
 
+    /**
+     * Formatea una cantidad de bytes a una representación legible (B, KB, MB o GB).
+     *
+     * @param  int  $bytes  Cantidad de bytes a formatear.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-10-13
+     */
     private function formatBytes(int $bytes): string
     {
         if ($bytes >= 1073741824) {
-            return round($bytes / 1073741824, 2) . ' GB';
+            return round($bytes / 1073741824, 2).' GB';
         }
         if ($bytes >= 1048576) {
-            return round($bytes / 1048576, 2) . ' MB';
+            return round($bytes / 1048576, 2).' MB';
         }
         if ($bytes >= 1024) {
-            return round($bytes / 1024, 2) . ' KB';
+            return round($bytes / 1024, 2).' KB';
         }
 
-        return $bytes . ' B';
+        return $bytes.' B';
     }
 }

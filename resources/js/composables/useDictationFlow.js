@@ -5,8 +5,16 @@ import {
     createAudioRecorderSession,
     getVoiceAudioConstraints,
 } from "@/helpers/voice/audioRecorder";
-import { isSpeechRecognitionSupported } from "@/helpers/voice/speechDictation";
 
+/**
+ * Gestiona el flujo de dictado por voz: grabacion de audio, reconocimiento de voz, comandos de formato y puntuacion, y envio del audio al servidor.
+ *
+ * @returns {Object} Conjunto de referencias reactivas (Ref) y funciones para controlar el dictado por voz.
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-06-12
+ */
 export function useDictationFlow() {
     const recognizing = ref(false);
     const recognitionActive = ref(false);
@@ -16,6 +24,7 @@ export function useDictationFlow() {
     const maxNoSpeechRetries = ref(6);
     const lastRecognitionError = ref(null);
     const recording = ref(false);
+    const startingRecording = ref(false);
     const microfono = ref("admin-wrap/assets/images/mic.gif");
     const dictation = ref(null);
     const voiceSession = ref(null);
@@ -36,6 +45,17 @@ export function useDictationFlow() {
     let _onAudioSaved = null;
     let _audioRevoke = null;
     let onKeydownHandler = null;
+
+    function handleVisibilityChange() {
+        if (
+            !document.hidden &&
+            recording.value &&
+            mediaRecorder.value &&
+            mediaRecorder.value.state === "paused"
+        ) {
+            mediaRecorder.value.resume();
+        }
+    }
 
     function setCallbacks({ onText, showToast, onState, onAudioSaved } = {}) {
         if (typeof onText === "function") _onText = onText;
@@ -156,6 +176,10 @@ export function useDictationFlow() {
             capitalizeNext.value = true;
             return ".\n\n";
         },
+        "punto y a parte": () => {
+            capitalizeNext.value = true;
+            return ".\n\n";
+        },
         "nuevo párrafo": () => {
             capitalizeNext.value = true;
             return "\n\n";
@@ -187,7 +211,14 @@ export function useDictationFlow() {
             return ". ";
         },
         coma: () => ",",
-        "dos puntos": () => ":",
+        "dos puntos": () => {
+            capitalizeNext.value = true;
+            return ":";
+        },
+        "dos puntos aparte": () => {
+            capitalizeNext.value = true;
+            return ":\n\n";
+        },
         "punto y coma": () => ";",
         "dar espacio": () => " ",
         "un espacio": () => " ",
@@ -207,7 +238,10 @@ export function useDictationFlow() {
         "guion bajo": () => "_",
         "barra diagonal": () => "/",
         "barra invertida": () => "\\",
-        "nueva oración": () => ". ",
+        "nueva oración": () => {
+            capitalizeNext.value = true;
+            return ". ";
+        },
         "por ciento": () => "%",
         menos: () => "-",
         más: () => "+",
@@ -236,7 +270,7 @@ export function useDictationFlow() {
             return String(text)
                 .normalize("NFD")
                 .replace(/[\u0300-\u036f]/g, "");
-        } catch (e) {
+        } catch {
             return String(text);
         }
     }
@@ -288,20 +322,122 @@ export function useDictationFlow() {
         text = applyCommandMap(text, punctuationCommands);
         text = applyCommandMap(text, formatCommands);
         text = uppercase.value ? text.toUpperCase() : text;
+        // Si el trozo termina en un párrafo nuevo ("punto y aparte" al final), la mayúscula le toca
+        // a la primera palabra del trozo siguiente, no al inicio de este.
+        const terminaEnParrafo = /\n\n\s*$/.test(text);
         if (capitalizeNext.value) {
-            text = text.replace(/(^|\n)(\s*)([a-záéíóúüñ])/i, (m, start, spaces, first) => {
+            text = text.replace(/\n\n(\s*)([a-záéíóúüñ])/i, (m, spaces, first) => {
                 capitalizeNext.value = false;
-                return `${start}${spaces}${first.toUpperCase()}`;
+                return `\n\n${spaces}${first.toUpperCase()}`;
             });
+            if (capitalizeNext.value && !terminaEnParrafo) {
+                text = text.replace(/(^|\n)(\s*)([a-záéíóúüñ])/i, (m, start, spaces, first) => {
+                    capitalizeNext.value = false;
+                    return `${start}${spaces}${first.toUpperCase()}`;
+                });
+            }
         }
         return text;
+    }
+
+    // Búfer entre fragmentos: Chrome finaliza el dictado en trozos y un comando
+    // de varias palabras ("punto aparte", "dos puntos") casi nunca llega junto
+    // en el mismo trozo. Se retienen las últimas palabras si pueden ser el
+    // inicio de un comando multi-palabra y se evalúan con el trozo siguiente.
+    const MAX_COMANDO_PALABRAS = 4;
+    let palabrasPendientes = [];
+    let prefijosComando = null;
+
+    function normalizarParaComando(texto) {
+        return stripDiacritics(String(texto || "")).toLowerCase();
+    }
+
+    function construirPrefijosComando() {
+        if (prefijosComando) return prefijosComando;
+        prepareVoiceCommands();
+        const mapas = [uppercaseCommands, lineBreakCommands, punctuationCommands, formatCommands];
+        const set = new Set();
+        mapas.forEach((mapa) => {
+            Object.keys(mapa || {}).forEach((clave) => {
+                const partes = normalizarParaComando(clave).split(/\s+/).filter(Boolean);
+                if (partes.length < 2) return;
+                for (let i = 1; i < partes.length; i++) {
+                    set.add(partes.slice(0, i).join(" "));
+                }
+            });
+        });
+        prefijosComando = set;
+        return set;
+    }
+
+    function contarRetencion(palabras) {
+        const prefijos = construirPrefijosComando();
+        const max = Math.min(MAX_COMANDO_PALABRAS, palabras.length);
+        for (let n = max; n >= 1; n--) {
+            const cola = palabras
+                .slice(palabras.length - n)
+                .map(normalizarParaComando)
+                .join(" ");
+            if (prefijos.has(cola)) return n;
+        }
+        return 0;
+    }
+
+    // Chrome es-ES a veces devuelve dígitos ("2 puntos") que jamás igualan la
+    // clave ("dos puntos"). Solo se normaliza junto a palabras de comando.
+    function normalizarDigitosComando(texto) {
+        const mapa = { 1: "un", 2: "dos" };
+        return String(texto || "").replace(
+            /\b(\d{1,2})\s+(puntos?|espacios?)\b/gi,
+            (m, n, resto) => {
+                const palabra = mapa[parseInt(n, 10)];
+                return palabra ? `${palabra} ${resto}` : m;
+            }
+        );
+    }
+
+    function emitirTextoFinal(texto) {
+        const limpio = String(texto || "");
+        if (!limpio.length) return;
+        const sufijo = /[ \n]$/.test(limpio) ? "" : " ";
+        if (typeof _onText === "function") _onText(limpio + sufijo);
+        speechInterim.value = "";
+    }
+
+    function manejarTextoFinal(raw) {
+        const trozo = String(raw || "").trim();
+        const palabras = [...palabrasPendientes, ...trozo.split(/\s+/).filter(Boolean)];
+        palabrasPendientes = [];
+        if (!palabras.length) return;
+        // "espacio" dicho solo (un trozo con esa única palabra) es la orden; dentro de una frase se
+        // respeta, porque "espacio pleural" o "espacio discal" son términos clínicos.
+        const dichaSola = normalizarParaComando(palabras[0]).replace(/[.,;:]+$/, "") === "espacio";
+        if (palabras.length === 1 && dichaSola) {
+            emitirTextoFinal(" ");
+            return;
+        }
+        console.debug("[Voice] final raw:", JSON.stringify(palabras.join(" ")));
+        const retener = contarRetencion(palabras);
+        const cabeza = palabras.slice(0, palabras.length - retener);
+        palabrasPendientes = palabras.slice(palabras.length - retener);
+        if (!cabeza.length) return;
+        const procesado = processCommands(normalizarDigitosComando(cabeza.join(" ")));
+        console.debug("[Voice] final procesado:", JSON.stringify(procesado));
+        emitirTextoFinal(procesado);
+    }
+
+    function vaciarPendientesComando() {
+        if (!palabrasPendientes.length) return;
+        const texto = processCommands(normalizarDigitosComando(palabrasPendientes.join(" ")));
+        palabrasPendientes = [];
+        emitirTextoFinal(texto);
     }
 
     function clearRecognitionRestartTimer() {
         if (recognitionRestartTimer.value) {
             try {
                 clearTimeout(recognitionRestartTimer.value);
-            } catch (e) {}
+            } catch {}
             recognitionRestartTimer.value = null;
         }
     }
@@ -311,7 +447,7 @@ export function useDictationFlow() {
         try {
             recognition.value.start();
             return true;
-        } catch (e) {
+        } catch {
             return false;
         }
     }
@@ -393,11 +529,11 @@ export function useDictationFlow() {
         if (dictation.value) {
             try {
                 dictation.value.pause();
-            } catch (e) {}
+            } catch {}
         } else if (recognition.value) {
             try {
                 recognition.value.stop();
-            } catch (e) {}
+            } catch {}
         }
         recognizing.value = false;
     }
@@ -407,7 +543,7 @@ export function useDictationFlow() {
             try {
                 dictation.value.resume();
                 recognizing.value = true;
-            } catch (e) {
+            } catch {
                 recognizing.value = false;
             }
             return;
@@ -416,7 +552,7 @@ export function useDictationFlow() {
             try {
                 recognizing.value = true;
                 safeStartRecognition();
-            } catch (e) {
+            } catch {
                 recognizing.value = false;
             }
         }
@@ -428,7 +564,7 @@ export function useDictationFlow() {
             if (mediaStream.value && mediaStream.value.getTracks) {
                 try {
                     mediaStream.value.getTracks().forEach((t) => t.stop());
-                } catch (e) {}
+                } catch {}
                 mediaStream.value = null;
             }
             createAudioRecorderSession({
@@ -444,7 +580,7 @@ export function useDictationFlow() {
                     if (_audioRevoke) {
                         try {
                             _audioRevoke();
-                        } catch (e) {}
+                        } catch {}
                         _audioRevoke = null;
                     }
                     audioBlob.value = null;
@@ -476,19 +612,19 @@ export function useDictationFlow() {
             if (voiceSession.value) {
                 try {
                     voiceSession.value.stopDictation();
-                } catch (e) {}
+                } catch {}
             }
             if (dictation.value) {
                 try {
                     dictation.value.stop();
-                } catch (e) {}
+                } catch {}
                 dictation.value = null;
             }
             if (recognition.value) {
                 try {
                     recognition.value.onend = null;
                     recognition.value.onerror = null;
-                } catch (e) {}
+                } catch {}
                 if (mediaRecorder.value && mediaRecorder.value.state === "recording") {
                     try {
                         mediaRecorder.value.pause();
@@ -502,52 +638,58 @@ export function useDictationFlow() {
                 }
                 try {
                     recognition.value.stop();
-                } catch (e) {}
+                } catch {}
             }
             recognizing.value = false;
             recognitionActive.value = false;
             microfono.value = "admin-wrap/assets/images/mic.gif";
             speechInterim.value = "";
-        } catch (e) {
-            console.error("Error al detener reconocimiento:", e);
+        } catch (error) {
+            console.error("Error al detener reconocimiento:", error);
         }
     }
 
     async function stopRecording() {
-        return new Promise(async (resolve) => {
-            try {
-                if (audioSession.value && typeof audioSession.value.stop === "function") {
-                    const { blob, url, revoke } = await audioSession.value.stop();
-                    _audioRevoke = revoke || null;
-                    audioBlob.value = blob instanceof Blob ? blob : null;
-                    audioUrl.value = url || null;
-                } else if (mediaRecorder.value && recording.value) {
-                    const safetyTimer = setTimeout(() => {
-                        resolve();
-                    }, 5000);
-                    mediaRecorder.value.onstop = () => {
-                        clearTimeout(safetyTimer);
-                        audioBlob.value = new Blob(audioChunks.value, { type: "audio/webm" });
-                        audioUrl.value = URL.createObjectURL(audioBlob.value);
-                        resolve();
-                    };
-                    mediaRecorder.value.stop();
-                    recording.value = false;
-                    microfono.value = "admin-wrap/assets/images/mic.gif";
-                    return;
-                }
-            } catch (e) {
-                console.warn("[stopRecording] Error:", e);
-            } finally {
+        try {
+            if (audioSession.value && typeof audioSession.value.stop === "function") {
+                const timeoutPromise = new Promise((r) =>
+                    setTimeout(
+                        () => r({ blob: null, url: null, chunks: [], revoke: () => {} }),
+                        3000
+                    )
+                );
+                const { blob, url, revoke } = await Promise.race([
+                    audioSession.value.stop(),
+                    timeoutPromise,
+                ]);
+                _audioRevoke = revoke || null;
+                audioBlob.value = blob instanceof Blob ? blob : null;
+                audioUrl.value = url || null;
+            } else if (mediaRecorder.value && mediaRecorder.value.state !== "inactive") {
+                mediaRecorder.value.stop();
                 recording.value = false;
                 microfono.value = "admin-wrap/assets/images/mic.gif";
-                resolve();
+                await new Promise((r) => setTimeout(r, 200));
+                if (audioChunks.value && audioChunks.value.length > 0) {
+                    audioBlob.value = new Blob(audioChunks.value, { type: "audio/webm" });
+                    audioUrl.value = URL.createObjectURL(audioBlob.value);
+                }
+                return;
             }
-        });
+        } catch (e) {
+            console.warn("[stopRecording] Error:", e);
+        } finally {
+            recording.value = false;
+            microfono.value = "admin-wrap/assets/images/mic.gif";
+        }
     }
 
     async function stopAll() {
         try {
+            // Vaciar primero: lo retenido del búfer entre fragmentos debe
+            // quedar en el editor antes de desmontar la sesión.
+            vaciarPendientesComando();
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
             clearRecognitionRestartTimer();
             noSpeechCount.value = 0;
             recognitionBackoffMs.value = 500;
@@ -556,36 +698,36 @@ export function useDictationFlow() {
             if (voiceSession.value) {
                 try {
                     voiceSession.value.cleanup();
-                } catch (e) {}
+                } catch {}
                 voiceSession.value = null;
             }
             if (audioSession.value) {
                 try {
                     audioSession.value.cleanup();
-                } catch (e) {}
+                } catch {}
                 audioSession.value = null;
             } else if (mediaStream.value && mediaStream.value.getTracks) {
                 try {
                     mediaStream.value.getTracks().forEach((t) => t.stop());
-                } catch (e) {}
+                } catch {}
             }
             mediaStream.value = null;
             if (_audioRevoke) {
                 try {
                     _audioRevoke();
-                } catch (e) {}
+                } catch {}
                 _audioRevoke = null;
             }
             if (audioUrl.value) {
                 try {
                     URL.revokeObjectURL(audioUrl.value);
-                } catch (e) {}
+                } catch {}
                 audioUrl.value = null;
             }
             recording.value = false;
             microfono.value = "admin-wrap/assets/images/mic.gif";
-        } catch (e) {
-            console.error("Error en stopAll:", e);
+        } catch (error) {
+            console.error("Error en stopAll:", error);
         }
     }
 
@@ -593,13 +735,13 @@ export function useDictationFlow() {
         if (_audioRevoke) {
             try {
                 _audioRevoke();
-            } catch (e) {}
+            } catch {}
             _audioRevoke = null;
         }
         if (audioUrl.value) {
             try {
                 URL.revokeObjectURL(audioUrl.value);
-            } catch (e) {}
+            } catch {}
             audioUrl.value = null;
         }
         audioChunks.value = [];
@@ -607,8 +749,15 @@ export function useDictationFlow() {
     }
 
     function startRecording() {
+        if (startingRecording.value || recording.value) return;
+        startingRecording.value = true;
+        // Sesión nueva: sin arrastre de palabras de una sesión anterior.
+        palabrasPendientes = [];
         ensureMicApiAvailable().then((ok) => {
-            if (!ok) return;
+            if (!ok) {
+                startingRecording.value = false;
+                return;
+            }
             prepareVoiceCommands();
             const allCommands = {
                 ...uppercaseCommands,
@@ -626,14 +775,7 @@ export function useDictationFlow() {
                     grammarCommands,
                     maxNoSpeechRetries: maxNoSpeechRetries.value || 6,
                     onFinalText: (raw) => {
-                        let text = String(raw || "").trim();
-                        if (!text) return;
-                        text = processCommands(text);
-                        if (text && String(text).length) {
-                            const suffix = /[ \n]$/.test(text) ? "" : " ";
-                            if (typeof _onText === "function") _onText(text + suffix);
-                            speechInterim.value = "";
-                        }
+                        manejarTextoFinal(raw);
                     },
                     onInterimText: (raw) => {
                         speechInterim.value = String(raw || "").trim();
@@ -709,7 +851,7 @@ export function useDictationFlow() {
                     if (_audioRevoke) {
                         try {
                             _audioRevoke();
-                        } catch (e) {}
+                        } catch {}
                         _audioRevoke = null;
                     }
                     audioSession.value = as;
@@ -721,9 +863,12 @@ export function useDictationFlow() {
                     audioBlob.value = null;
                     audioUrl.value = null;
                     recording.value = true;
+                    startingRecording.value = false;
+                    document.addEventListener("visibilitychange", handleVisibilityChange);
                 })
                 .catch((error) => {
                     recording.value = false;
+                    startingRecording.value = false;
                     microfono.value = "admin-wrap/assets/images/mic.gif";
                     const cfg = getMicErrorToastConfig(error);
                     showToast({
@@ -750,11 +895,11 @@ export function useDictationFlow() {
             if (voiceSession.value) {
                 try {
                     voiceSession.value.pause();
-                } catch (e) {}
+                } catch {}
             } else {
                 try {
                     mediaRecorder.value.pause();
-                } catch (e) {}
+                } catch {}
                 pauseRecognition();
             }
             microfono.value = "admin-wrap/assets/images/mic.gif";
@@ -762,11 +907,11 @@ export function useDictationFlow() {
             if (voiceSession.value) {
                 try {
                     voiceSession.value.resume();
-                } catch (e) {}
+                } catch {}
             } else {
                 try {
                     mediaRecorder.value.resume();
-                } catch (e) {}
+                } catch {}
                 resumeRecognition();
             }
             microfono.value = "admin-wrap/assets/images/mic-animate.gif";
@@ -776,15 +921,10 @@ export function useDictationFlow() {
     }
 
     async function sendToBackend(estudioId, estudioProductoId) {
-        console.log("[sendToBackend] INICIO", {
-            estudioId,
-            estudioProductoId,
-            tieneBlob: !!audioBlob.value,
-            blobSize: audioBlob.value?.size,
-        });
-        await stopRecording();
         if (!audioBlob.value || !(audioBlob.value instanceof Blob)) {
-            console.warn("[sendToBackend] No hay audioBlob para enviar", { blob: audioBlob.value });
+            await stopRecording();
+        }
+        if (!audioBlob.value || !(audioBlob.value instanceof Blob)) {
             return;
         }
         const formData = new FormData();
@@ -792,17 +932,8 @@ export function useDictationFlow() {
         formData.append("estudio_id", estudioId);
         formData.append("estudio_producto_id", estudioProductoId);
         try {
-            console.log("[sendToBackend] Enviando POST a /api/upload-audio", {
-                blobSize: audioBlob.value.size,
-                estudioId,
-                estudioProductoId,
-            });
             const res = await axios.post("/api/upload-audio", formData);
-            console.log("[sendToBackend] Respuesta del servidor:", {
-                status: res?.status,
-                data: res?.data,
-            });
-            if (res && res.status === 200) {
+            if (res && (res.status === 200 || res.status === 201)) {
                 showToast({
                     heading: "Ok!!!",
                     text: "Audio enviado correctamente",
@@ -820,7 +951,6 @@ export function useDictationFlow() {
                     msg.includes("El audio debe tener contenido") ||
                     msg.includes("No se proporcionó un archivo de audio")
                 ) {
-                    console.warn("[sendToBackend] Audio vacío, limpiando buffer");
                     clearAudioBuffer();
                     return;
                 }
@@ -843,17 +973,11 @@ export function useDictationFlow() {
                 error && error.response && error.response.data && error.response.data.message
                     ? String(error.response.data.message)
                     : "";
-            console.error("[sendToBackend] Error capturado:", {
-                status,
-                message: error.message,
-                responseData: error?.response?.data,
-            });
             if (
                 status === 400 &&
                 (msg.includes("El audio debe tener contenido") ||
                     msg.includes("No se proporcionó un archivo de audio"))
             ) {
-                console.warn("[sendToBackend] Audio vacío, limpiando buffer");
                 clearAudioBuffer();
                 return;
             }
@@ -874,7 +998,7 @@ export function useDictationFlow() {
         onKeydownHandler = (e) => {
             if (e.key === "F2" && !e.repeat) {
                 e.preventDefault();
-                if (recording.value || recognizing.value) stopRecording();
+                if (recording.value || recognizing.value) stopAll();
                 else startRecording();
             }
         };
@@ -885,7 +1009,7 @@ export function useDictationFlow() {
         if (onKeydownHandler) {
             try {
                 window.removeEventListener("keydown", onKeydownHandler);
-            } catch (e) {}
+            } catch {}
             onKeydownHandler = null;
         }
     }
