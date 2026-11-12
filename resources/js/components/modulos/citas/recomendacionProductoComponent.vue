@@ -310,24 +310,19 @@
                                 <label class="control-label" for="form_producto_select">
                                     Producto <span class="text-danger">*</span>
                                 </label>
-                                <select
-                                    id="form_producto_select"
-                                    v-model="form.producto_id"
-                                    class="form-control"
+                                <Select2
+                                    ref="selProductoForm"
+                                    select-id="form_producto_select"
+                                    :value="form.producto_id"
+                                    :options="formProductoOptions"
+                                    :label-fields="['label']"
+                                    width="100%"
+                                    :allow-clear="true"
                                     :disabled="editando"
-                                    :class="{ 'is-invalid': errores.producto_id }"
-                                >
-                                    <option value="">-- Seleccionar Producto --</option>
-                                    <option
-                                        v-for="p in listaProductosForm"
-                                        :key="p.id"
-                                        :value="p.id"
-                                    >
-                                        {{ p.modulo?.modulo ? `[${p.modulo.modulo}] ` : ""
-                                        }}{{ p.cod_cups ? p.cod_cups + " — " : ""
-                                        }}{{ p.nom_produc }}
-                                    </option>
-                                </select>
+                                    placeholder="-- Seleccionar Producto --"
+                                    dropdown-parent-selector="#right-sidebar"
+                                    @input="onFormProductoSelect"
+                                />
                                 <span class="text-danger" v-if="errores.producto_id">{{
                                     errores.producto_id[0]
                                 }}</span>
@@ -349,17 +344,17 @@
                                 >
                             </div>
                             <div class="form-group">
-                                <label for="form_estado_recomendacion" class="control-label"
-                                    >Estado</label
-                                >
-                                <select
-                                    id="form_estado_recomendacion"
-                                    v-model="form.estado"
-                                    class="form-control"
-                                >
-                                    <option :value="true">Activo</option>
-                                    <option :value="false">Inactivo</option>
-                                </select>
+                                <div class="checkbox checkbox-success">
+                                    <input
+                                        type="checkbox"
+                                        id="form_estado_recomendacion"
+                                        name="estado"
+                                        v-model="form.estado"
+                                        :true-value="true"
+                                        :false-value="false"
+                                    />
+                                    <label for="form_estado_recomendacion"> Activo </label>
+                                </div>
                             </div>
                         </div>
                         <div
@@ -418,8 +413,10 @@ import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js
 import { alertSuccess, alertError, confirmAction } from "@/helpers/alerts";
 import FormattedTextEditor from "@/components/shared/FormattedTextEditor.vue";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
+import Select2 from "@/components/shared/Select2.vue";
 import axios from "axios";
 
+const selProductoForm = ref(null);
 const registros = ref([]);
 const productos = ref([]);
 const todosLosProductos = ref([]);
@@ -468,17 +465,34 @@ const filterProductoOptions = computed(() => {
         nom_produc: p.nom_produc,
     }));
 });
-const listaProductosForm = computed(() => {
+const formProductoOptions = computed(() => {
     const list = todosLosProductos.value.length > 0 ? todosLosProductos.value : productos.value;
-    return [...(list || [])].sort((a, b) => {
-        const modA = a.modulo?.modulo || "ZZZ";
-        const modB = b.modulo?.modulo || "ZZZ";
-        if (modA !== modB) {
-            return modA.localeCompare(modB);
-        }
-        return (a.nom_produc || "").localeCompare(b.nom_produc || "");
-    });
+    return [...(list || [])]
+        .sort((a, b) => {
+            const modA = a.modulo?.modulo || "ZZZ";
+            const modB = b.modulo?.modulo || "ZZZ";
+            if (modA !== modB) {
+                return modA.localeCompare(modB);
+            }
+            return (a.nom_produc || "").localeCompare(b.nom_produc || "");
+        })
+        .map((p) => {
+            const moduloTag = p.modulo?.modulo ? `[${p.modulo.modulo}] ` : "";
+            const cupsTag = p.cod_cups ? `${p.cod_cups} — ` : "";
+            return {
+                id: String(p.id),
+                label: `${moduloTag}${cupsTag}${p.nom_produc || ""}`,
+            };
+        });
 });
+
+function onFormProductoSelect(val) {
+    if (val === "0" || !val) {
+        form.value.producto_id = "";
+    } else {
+        form.value.producto_id = String(val);
+    }
+}
 
 async function cargarSedes() {
     try {
@@ -564,7 +578,7 @@ async function guardar() {
     loadingGuardar.value = true;
     errores.value = {};
     try {
-        if (!form.value.producto_id) {
+        if (!form.value.producto_id || form.value.producto_id === "0") {
             alertError("Advertencia", "Debe seleccionar un producto.");
             return;
         }
@@ -617,9 +631,9 @@ function mostrarRegistro(item) {
         editando.value = true;
         form.value = {
             id: item.id,
-            producto_id: item.producto_id,
+            producto_id: String(item.producto_id),
             recomendacion: item.recomendacion || "",
-            estado: item.estado,
+            estado: Boolean(item.estado),
         };
     } else {
         editando.value = false;
@@ -636,6 +650,7 @@ function mostrarRegistro(item) {
 function abrirModal() {
     showSidebar.value = true;
     nextTick(() => {
+        selProductoForm.value?.rebuild();
         const target =
             document.querySelector("#form_producto_select") ||
             document.querySelector(".r-panel-body textarea");
@@ -656,6 +671,14 @@ async function cargarTodosLosProductos() {
 
 function cerrarModal() {
     showSidebar.value = false;
+    editando.value = false;
+    form.value = {
+        id: null,
+        producto_id: "",
+        recomendacion: "",
+        estado: true,
+    };
+    errores.value = {};
 }
 
 function btnLimpiar() {

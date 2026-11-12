@@ -38,7 +38,7 @@ class ConfigRecomendacionProductoService extends BaseService
     ): array {
         $user = auth("sanctum")->user() ?: auth()->user();
 
-        $query = ConfigRecomendacionProducto::with(["producto.modulo", "producto.servicio.sede"]);
+        $query = ConfigRecomendacionProducto::with(["producto.modulo"]);
 
         // Filtrar por sede y servicios habilitados para el usuario logueado
         if ($sedeId || ($user && $user->serviciosCita()->exists())) {
@@ -87,24 +87,12 @@ class ConfigRecomendacionProductoService extends BaseService
                 }
             }
             $moduloIds = array_unique($moduloIds);
-            $servicioIds = $servicios->pluck("id")->toArray();
 
-            $query->whereHas("producto", function ($pq) use ($moduloIds, $servicioIds) {
-                $pq->where(function ($sub) use ($moduloIds, $servicioIds) {
-                    $applied = false;
-                    if (! empty($moduloIds)) {
-                        $sub->whereIn("modulo_id", $moduloIds);
-                        $applied = true;
-                    }
-                    if (! empty($servicioIds)) {
-                        if ($applied) {
-                            $sub->orWhereIn("servicio_id", $servicioIds);
-                        } else {
-                            $sub->whereIn("servicio_id", $servicioIds);
-                        }
-                    }
+            if (! empty($moduloIds)) {
+                $query->whereHas("producto", function ($pq) use ($moduloIds) {
+                    $pq->whereIn("modulo_id", $moduloIds);
                 });
-            });
+            }
         }
 
         if ($productoId) {

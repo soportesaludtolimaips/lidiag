@@ -37,6 +37,61 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-12 — Select2 y Checkbox de Estado en Drawer de Recomendaciones (`recomendacionProductoComponent.vue`, `Select2.vue`):**
+  - **Requerimiento del Usuario:**
+    * El combo de selección de Producto en el drawer de recomendaciones debe ser un componente `Select2`.
+    * El control de Estado de la recomendación debe ser una casilla de verificación (checkbox).
+  - **Ajustes Implementados:**
+    * **Mejora en Componente Global ([`Select2.vue`](file:///c:/laragon/www/lidiag/resources/js/components/shared/Select2.vue)):**
+      - Añadida la prop reactiva `disabled: { type: Boolean, default: false }` sincronizada mediante watcher al elemento select nativo.
+      - Añadido watcher para sincronizar bidireccionalmente cambios en `props.modelValue` y `props.value` emitidos desde componentes padres.
+    * **Drawer de Recomendaciones ([`recomendacionProductoComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/citas/recomendacionProductoComponent.vue)):**
+      - Sustituido el select nativo de Producto por el componente `<Select2>` con búsqueda insensible a acentos, placeholder (`-- Seleccionar Producto --`), opción de limpiar (`:allow-clear="true"`), opciones ordenadas alfabéticamente por modalidad y producto (`[Módulo] CUPS — Nombre`), `:dropdown-parent-selector="'#right-sidebar'"` y deshabilitado automático en modo edición (`:disabled="editando"`).
+      - Reemplazado el `<select>` de Estado por un checkbox estilizado con el diseño estándar de la aplicación (`div.checkbox.checkbox-success` con etiqueta "Activo" y enlace reactivo booleano `v-model="form.estado"`).
+      - Inicialización y reconstrucción reactiva en `mostrarRegistro(item)` y `abrirModal()` mediante `selProductoForm.value?.rebuild()`.
+  - **Verificaciones:**
+    * ESLint en `Select2.vue` y `recomendacionProductoComponent.vue`: 0 errores ✅.
+    * Vite Build (`npm run build`): compilación exitosa en 1.35s ✅.
+- [x] **2026-11-12 — Eliminación del Campo `servicio_id` en `config_productos` y Limpieza de Referencias (`2026_11_12_104500_drop_servicio_id_from_config_productos_table.php`, `ConfigProducto.php`, `ConfigProductoRequest.php`, `ConfigProductoResource.php`, `ConfigProductoService.php`, `AgendaCitaQueryService.php`, `ConfigRecomendacionProductoService.php`, `ConfigServicio.php`):**
+  - **Requerimiento del Usuario:**
+    * En la tabla `config_productos`, el campo `servicio_id` ya no es necesario (los productos ahora se vinculan globalmente por modalidad/módulo en `modulo_id`).
+    * Crear una migración para eliminar el campo `servicio_id`.
+    * Eliminar todas las referencias a `servicio_id` en el modelo `ConfigProducto` y en el resto del backend.
+  - **Ajustes Implementados:**
+    * **Migración de Base de Datos ([`2026_11_12_104500_drop_servicio_id_from_config_productos_table.php`](file:///c:/laragon/www/lidiag/database/migrations/2026_11_12_104500_drop_servicio_id_from_config_productos_table.php)):**
+      - Elimina la llave foránea `config_productos_servicio_id_foreign` y la columna `servicio_id` de `config_productos`.
+      - Soporte de reversión en `down()` reconstituyendo la columna con llave foránea a `config_servicios`.
+      - Migración ejecutada con éxito mediante `php artisan migrate`.
+    * **Modelo [`ConfigProducto.php`](file:///c:/laragon/www/lidiag/app/Models/Configuracion/ConfigProducto.php):**
+      - Removido `'servicio_id'` de `$fillable`.
+      - Removida la relación `public function servicio(): BelongsTo`.
+    * **Validación [`ConfigProductoRequest.php`](file:///c:/laragon/www/lidiag/app/Http/Requests/Configuracion/ConfigProductoRequest.php):**
+      - Removida la regla de validación `'servicio_id' => 'nullable|integer|exists:config_servicios,id'`.
+    * **Resource API [`ConfigProductoResource.php`](file:///c:/laragon/www/lidiag/app/Http/Resources/Configuracion/ConfigProductoResource.php):**
+      - Removidas las propiedades `'servicio_id'` y `'servicio'`.
+    * **Servicio [`ConfigProductoService.php`](file:///c:/laragon/www/lidiag/app/Services/Configuracion/ConfigProductoService.php):**
+      - Actualizada la carga ansiosa de `with(['modulo', 'servicio.sede'])` a `with(['modulo'])` en `all()` y `find()`.
+    * **Servicios Relacionados ([`AgendaCitaQueryService.php`](file:///c:/laragon/www/lidiag/app/Services/Agenda/AgendaCitaQueryService.php), [`ConfigRecomendacionProductoService.php`](file:///c:/laragon/www/lidiag/app/Services/Configuracion/ConfigRecomendacionProductoService.php) y [`ConfigServicio.php`](file:///c:/laragon/www/lidiag/app/Models/Configuracion/ConfigServicio.php)):**
+      - En `AgendaCitaQueryService::productosPorServicio()`, eliminada la consulta directa de productos por `servicio_id` evitando excepciones SQL.
+      - En `ConfigRecomendacionProductoService.php`, removida la carga ansiosa inexistente `producto.servicio.sede` y depurado el filtro de productos para utilizar únicamente los módulos correspondientes.
+      - En `ConfigServicio.php`, tipadas explícitamente las relaciones `sede(): BelongsTo`, `usuarios(): BelongsToMany` y `productos(): BelongsToMany` para cumplimiento estricto con Larastan Nivel 5.
+  - **Verificaciones:**
+    * Migración aplicada en MySQL (verificado con `SHOW CREATE TABLE config_productos`).
+    * Laravel Pint (`vendor\bin\pint.bat --test`): 0 errores ✅.
+    * Larastan / PHPStan Nivel 5: 0 errores ✅.
+    * Vite Build (`npm run build`): compilación exitosa en 1.93s ✅.
+- [x] **2026-11-12 — Refinamiento y Corrección de Colisiones en Asignación de Módulos (`ProductosRelacionarModulosCommand.php` & Migración `2026_11_11_164500`):**
+  - **Diagnóstico del Problema Reportado por el Usuario:**
+    * En la captura de SQLyog compartida por el usuario, productos como `RADIOGRAFIA DE SENOS PARANASALES` (ID 12) figuraban con `modulo_id = 7` (Mamografía) en lugar de Rx, y radiografías con "rotación interna" o estudios portátiles con "habitación" quedaban asociados a Tomografía por colisión de subcadenas (`SENO` en senos paranasales, `TAC` en rotación/habitación).
+  - **Ajustes Implementados:**
+    * **Prioridad Jerárquica e Inequívoca:**
+      1. Se priorizan los términos completos oficiales (`RADIOGRAFIA` / `TELERADIOGRAFIA` -> Rx, `TOMOGRAFIA` / `ESCANOGRAFIA` -> Tomografía, `RESONANCIA` -> Resonancia, `ECOGRAFIA` / `DOPPLER` -> Ecografías, `MAMOGRAFIA` -> Mamografía).
+      2. Prefijos oficiales del manual CUPS en Colombia: `870%-873%` (Rx), `876%` (Mamografía), `879%` (Tomografía), `881%-882%` (Ecografías), `883%` (Resonancia).
+      3. Eliminación de colisiones de palabras cortas (`SENO` ya no intercepta `SENOS PARANASALES`, y `TAC` ya no intercepta palabras con secuencias internas como `ROTACION` o `HABITACION`).
+    * **Re-ejecución:** `php artisan productos:relacionar-modulos --force` corrigió los 216 registros de imagenología médica a sus módulos exactos (Rx: 104, Tomografía: 39, Resonancia: 40, Ecografías: 26, Mamografía: 7).
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`): 0 errores ✅.
+    * Larastan / PHPStan Nivel 5: 0 errores ✅.
 - [x] **2026-11-11 — Comando Artisan para Relacionar Productos con Módulos (`ProductosRelacionarModulosCommand.php`):**
   - **Requerimiento del Usuario:**
     * Crear un comando de consola (`php artisan productos:relacionar-modulos`) para clasificar y vincular automáticamente los productos registrados en `config_productos` con sus modalidades en `config_modulos`.

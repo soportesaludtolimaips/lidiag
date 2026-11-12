@@ -66,45 +66,7 @@ class ProductosRelacionarModulosCommand extends Command
             $modulosMap[$nom] = $mod->id;
         }
 
-        // 2. Definición de reglas clínicas por modalidad
-        $cupsEcografias = [
-            '881332', '881305', '881302', '881301', '881340', '881390', '881312', '881431',
-            '881432', '881435', '881436', '881437', '881438', '881440', '881501', '881601',
-            '881602', '881610', '881620', '881621', '881112', '881118', '881121', '881201',
-        ];
-
-        $keywordsMamografia = [
-            'MAMOGRAF', 'XEROMAMOGRAFIA', 'BIOPSIA DE MAMA', 'AGUJA FINA DE MAMA',
-            'TRUCUT', 'ESTEREOTAXIA', 'SENO', 'MAMARIA', 'MAMARIO',
-        ];
-
-        $keywordsEcografias = [
-            'ECOGRAF', 'ULTRASON', 'DOPPLER', 'ECOCARDIOGRAMA', 'ECOCARDIOGRAFIA',
-            'ECOENDOSCOPIA', 'TIROIDES', 'TORACENTESIS', 'PARACENTESIS', 'BIOPSIA DE PLEURA',
-            'DRENAJE DE COLECCI', 'PUNCION O ASPIRACION',
-        ];
-
-        $keywordsTomografia = [
-            'TOMOGRAF', 'TAC', 'UROTAG', 'ANGIOTAC', 'ESCANOGRAFIA',
-            'IOVERSOL', 'IOPAMIDOL', 'IOBITRIDOL', 'XENETIX', 'OPTIRAY',
-        ];
-
-        $keywordsResonancia = [
-            'RESONANC', 'RMN', 'COLANGIORESONANCIA', 'ANGIORESONANCIA',
-            'GADOTERICO', 'DOTAREM', 'GADOLINIO',
-        ];
-
-        $keywordsRx = [
-            'RADIOGRAF', 'RAYOS', 'FLUOROSCOPIA', 'TELERADIOGRAFIA', 'ORTOPANTOMOGRAFIA',
-            'PORTATILES', 'GASTROVIEW', 'DIATRIZOATO', ' RX ', ' RX', 'RX ',
-        ];
-
-        $keywordsOftalmologia = [
-            'OFTALMO', 'CAMPIMETRIA', 'OCT', 'RETINA', 'PAQUIMETRIA', 'BIOMETRIA OCULAR',
-            'FONDO DE OJO', 'ANGIOGRAFIA FLUORESCEINICA',
-        ];
-
-        // 3. Consultar productos
+        // 2. Consultar productos
         $query = ConfigProducto::query();
         if (! $force) {
             $query->whereNull('modulo_id');
@@ -133,85 +95,10 @@ class ProductosRelacionarModulosCommand extends Command
         $actualizados = 0;
 
         foreach ($productos as $prod) {
-            $nom = mb_strtoupper($prod->nom_produc ?? '');
-            $cups = trim((string) ($prod->cod_cups ?? ''));
-            $moduloDestino = null;
-            $criterio = null;
+            $clasificacion = $this->clasificarProducto($prod);
 
-            // Prioridad 1: CUPS específicos de ecografías y procedimientos
-            if (in_array($cups, $cupsEcografias, true)) {
-                $moduloDestino = 'Ecografias';
-                $criterio = "CUPS exacto ({$cups})";
-            }
-
-            // Prioridad 2: Mamografía
-            if (! $moduloDestino) {
-                foreach ($keywordsMamografia as $kw) {
-                    if (str_contains($nom, $kw) || str_contains($cups, $kw)) {
-                        $moduloDestino = 'Mamografia';
-                        $criterio = "Palabra clave '{$kw}'";
-                        break;
-                    }
-                }
-            }
-
-            // Prioridad 3: Ecografías
-            if (! $moduloDestino) {
-                foreach ($keywordsEcografias as $kw) {
-                    if (str_contains($nom, $kw) || str_contains($cups, $kw)) {
-                        $moduloDestino = 'Ecografias';
-                        $criterio = "Palabra clave '{$kw}'";
-                        break;
-                    }
-                }
-            }
-
-            // Prioridad 4: Tomografía
-            if (! $moduloDestino) {
-                foreach ($keywordsTomografia as $kw) {
-                    if (str_contains($nom, $kw) || str_contains($cups, $kw)) {
-                        $moduloDestino = 'Tomografia';
-                        $criterio = "Palabra clave '{$kw}'";
-                        break;
-                    }
-                }
-            }
-
-            // Prioridad 5: Resonancia
-            if (! $moduloDestino) {
-                foreach ($keywordsResonancia as $kw) {
-                    if (str_contains($nom, $kw) || str_contains($cups, $kw)) {
-                        $moduloDestino = 'Resonancia';
-                        $criterio = "Palabra clave '{$kw}'";
-                        break;
-                    }
-                }
-            }
-
-            // Prioridad 6: Rayos X
-            if (! $moduloDestino) {
-                foreach ($keywordsRx as $kw) {
-                    if (str_contains($nom, $kw) || str_contains($cups, $kw)) {
-                        $moduloDestino = 'Rx';
-                        $criterio = "Palabra clave '{$kw}'";
-                        break;
-                    }
-                }
-            }
-
-            // Prioridad 7: Oftalmología
-            if (! $moduloDestino) {
-                foreach ($keywordsOftalmologia as $kw) {
-                    if (str_contains($nom, $kw) || str_contains($cups, $kw)) {
-                        $moduloDestino = 'Oftalmologia';
-                        $criterio = "Palabra clave '{$kw}'";
-                        break;
-                    }
-                }
-            }
-
-            // Aplicar asignación si se resolvió el módulo
-            if ($moduloDestino !== null) {
+            if ($clasificacion !== null) {
+                $moduloDestino = $clasificacion['modulo'];
                 $moduloId = $modulosMap[$moduloDestino];
                 if (! $dryRun) {
                     $prod->modulo_id = $moduloId;
@@ -222,8 +109,8 @@ class ProductosRelacionarModulosCommand extends Command
             } else {
                 $sinClasificar[] = [
                     'id' => $prod->id,
-                    'cups' => $cups,
-                    'nombre' => mb_substr($nom, 0, 60),
+                    'cups' => $prod->cod_cups,
+                    'nombre' => mb_substr($prod->nom_produc ?? '', 0, 60),
                 ];
             }
         }
@@ -254,5 +141,112 @@ class ProductosRelacionarModulosCommand extends Command
         $this->info("Proceso finalizado con éxito: se {$verbo} {$actualizados} de {$total} productos evaluados.");
 
         return Command::SUCCESS;
+    }
+
+    /**
+     * Evalúa y clasifica un producto en su modalidad asistencial correspondiente.
+     *
+     * Flujo del proceso:
+     * 1. Extrae y normaliza el código CUPS base y la descripción en mayúsculas.
+     * 2. Evalúa CUPS clínicos específicos de ecografías y mamografía/biopsias.
+     * 3. Evalúa términos inequívocos en el nombre (TOMOGRAFIA, RESONANCIA, MAMOGRAFIA, ECOGRAFIA, RADIOGRAFIA).
+     * 4. Evalúa prefijos estándar de codificación CUPS en Colombia (870-873, 876, 879, 881-882, 883).
+     * 5. Evalúa casos especiales por patrones clínicos, medios de contraste y procedimientos.
+     *
+     * @param  ConfigProducto  $prod  Producto a evaluar.
+     * @return array{modulo: 'Rx'|'Ecografias'|'Tomografia'|'Resonancia'|'Mamografia'|'Oftalmologia', motivo: string}|null
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-12
+     */
+    private function clasificarProducto(ConfigProducto $prod): ?array
+    {
+        $cups = trim((string) ($prod->cod_cups ?? ''));
+        $cupsBase = (string) preg_replace('/[^0-9]/', '', substr($cups, 0, 6));
+        $nom = mb_strtoupper($prod->nom_produc ?? '');
+
+        // 1. Reglas explícitas por CUPS clínico oficial
+        $cupsEcoIntervencion = [
+            '061001', '061002', '061302', '345001', '345002', '345401',
+            '542801', '542802', '542901', '861101', '881220',
+        ];
+        if (in_array($cupsBase, $cupsEcoIntervencion, true)) {
+            return ['modulo' => 'Ecografias', 'motivo' => "CUPS intervencionismo ecográfico ({$cups})"];
+        }
+
+        $cupsMamoBiopsias = ['851101', '851102', '851103', '876801', '876802'];
+        if (in_array($cupsBase, $cupsMamoBiopsias, true)) {
+            return ['modulo' => 'Mamografia', 'motivo' => "CUPS mamografía/biopsia ({$cups})"];
+        }
+
+        // 2. Términos principales inequívocos en el nombre
+        if (str_contains($nom, 'TOMOGRAF') || str_contains($nom, 'ESCANOGRAFIA') || str_contains($nom, 'UROTAG') || str_contains($nom, 'ANGIOTAC')) {
+            return ['modulo' => 'Tomografia', 'motivo' => 'Nombre contiene TOMOGRAF/TAC/UROTAG'];
+        }
+
+        if (str_contains($nom, 'RESONANC') || str_contains($nom, 'COLANGIORESONANCIA') || str_contains($nom, 'ANGIORESONANCIA')) {
+            return ['modulo' => 'Resonancia', 'motivo' => 'Nombre contiene RESONANCIA'];
+        }
+
+        if (str_contains($nom, 'MAMOGRAF') || str_contains($nom, 'XEROMAMOGRAF') || str_contains($nom, 'CA DE SENO') || str_contains($nom, 'ESTEREOTAXIA')) {
+            return ['modulo' => 'Mamografia', 'motivo' => 'Nombre contiene MAMOGRAFIA/CA DE SENO'];
+        }
+
+        if (str_contains($nom, 'ECOGRAF') || str_contains($nom, 'ULTRASON') || str_contains($nom, 'DOPPLER') || str_contains($nom, 'DUPLEX SCAN') || str_contains($nom, 'ECOCARDIOG')) {
+            return ['modulo' => 'Ecografias', 'motivo' => 'Nombre contiene ECOGRAFIA/DOPPLER'];
+        }
+
+        if (str_contains($nom, 'RADIOGRAF') || str_contains($nom, 'TELERADIOGRAF') || str_contains($nom, 'ORTOPANTOMOGRAF') || str_contains($nom, 'FLUOROSCOPIA')) {
+            return ['modulo' => 'Rx', 'motivo' => 'Nombre contiene RADIOGRAFIA'];
+        }
+
+        // 3. CUPS por prefijo ministerial
+        if (str_starts_with($cupsBase, '870') || str_starts_with($cupsBase, '871') || str_starts_with($cupsBase, '872') || str_starts_with($cupsBase, '873')) {
+            return ['modulo' => 'Rx', 'motivo' => "Prefijo CUPS Rx ({$cupsBase})"];
+        }
+
+        if (str_starts_with($cupsBase, '879')) {
+            return ['modulo' => 'Tomografia', 'motivo' => "Prefijo CUPS Tomografía ({$cupsBase})"];
+        }
+
+        if (str_starts_with($cupsBase, '881') || str_starts_with($cupsBase, '882')) {
+            return ['modulo' => 'Ecografias', 'motivo' => "Prefijo CUPS Ecografía ({$cupsBase})"];
+        }
+
+        if (str_starts_with($cupsBase, '883')) {
+            return ['modulo' => 'Resonancia', 'motivo' => "Prefijo CUPS Resonancia ({$cupsBase})"];
+        }
+
+        // 4. Casos especiales: Portátiles, medios de contraste y oftalmología
+        if (str_contains($nom, 'PORTATIL') || str_contains($nom, 'PORTATILES')) {
+            return ['modulo' => 'Rx', 'motivo' => 'Estudios portátiles Rx'];
+        }
+
+        if (str_contains($nom, 'IOVERSOL') || str_contains($nom, 'IOPAMIDOL') || str_contains($nom, 'IOBITRIDOL') || str_contains($nom, 'XENETIX') || str_contains($nom, 'OPTIRAY')) {
+            return ['modulo' => 'Tomografia', 'motivo' => 'Medio de contraste Tomografía'];
+        }
+
+        if (str_contains($nom, 'DOTAREM') || str_contains($nom, 'GADOTERICO') || str_contains($nom, 'GADOLINIO')) {
+            return ['modulo' => 'Resonancia', 'motivo' => 'Medio de contraste Resonancia'];
+        }
+
+        if (str_contains($nom, 'GASTROVIEW') || str_contains($nom, 'DIATRIZOATO')) {
+            return ['modulo' => 'Rx', 'motivo' => 'Medio de contraste Rx'];
+        }
+
+        if (preg_match('/\b(OFTALMO|CAMPIMETRIA|OCT|RETINA|FONDO DE OJO)\b/i', $nom)) {
+            return ['modulo' => 'Oftalmologia', 'motivo' => 'Término de Oftalmología'];
+        }
+
+        if (preg_match('/\b(MAMA|MAMARIO|MAMARIA)\b/i', $nom)) {
+            return ['modulo' => 'Mamografia', 'motivo' => 'Procedimiento de mama'];
+        }
+
+        if (preg_match('/\b(TIROIDES|TORACENTESIS|PARACENTESIS|PLEURA)\b/i', $nom)) {
+            return ['modulo' => 'Ecografias', 'motivo' => 'Procedimiento guiado por ecografía'];
+        }
+
+        return null;
     }
 }

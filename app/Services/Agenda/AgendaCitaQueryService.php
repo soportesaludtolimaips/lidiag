@@ -199,10 +199,6 @@ class AgendaCitaQueryService extends BaseService
             return $this->success([]);
         }
 
-        $directos = ConfigProducto::where("servicio_id", $servicioCitaId)
-            ->where("estado", true)
-            ->get();
-
         $modulo = ConfigModulo::whereRaw("LOWER(modulo) = ?", [mb_strtolower($servicio->nombre)])
             ->orWhere(function ($q) use ($servicio) {
                 $nombre = mb_strtolower($servicio->nombre);
@@ -226,7 +222,6 @@ class AgendaCitaQueryService extends BaseService
             : collect();
 
         $todos = $servicio->productos
-            ->merge($directos)
             ->merge($porModulo)
             ->unique("id")
             ->values();

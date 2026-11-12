@@ -11,7 +11,7 @@ class ConfigProducto extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['cod_cups', 'nom_produc', 'requi_lectura', 'tipo_oral', 'tipo_venoso', 'factura', 'estado', 'servicio_id', 'modulo_id'];
+    protected $fillable = ['cod_cups', 'nom_produc', 'requi_lectura', 'tipo_oral', 'tipo_venoso', 'factura', 'estado', 'modulo_id'];
 
     protected $casts = [
         'requi_lectura' => 'boolean',
@@ -73,17 +73,5 @@ class ConfigProducto extends Model
     public function modulo(): BelongsTo
     {
         return $this->belongsTo(ConfigModulo::class, 'modulo_id');
-    }
-
-    /**
-     * Servicio asistencial de citas al que pertenece el producto.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-11-11
-     */
-    public function servicio(): BelongsTo
-    {
-        return $this->belongsTo(ConfigServicio::class, 'servicio_id');
     }
 }

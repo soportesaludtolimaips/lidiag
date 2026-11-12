@@ -43,7 +43,6 @@ class ConfigProductoRequest extends FormRequest
             'cod_cups' => ['required', 'string', 'min:2', 'max:20', $uniqueCode],
             'nom_produc' => ['required', 'string', 'min:2', 'max:200', $uniqueName],
             'modulo_id' => 'nullable|integer|exists:config_modulos,id',
-            'servicio_id' => 'nullable|integer|exists:config_servicios,id',
             'requi_lectura' => 'nullable|boolean',
             'tipo_oral' => 'nullable|boolean',
             'tipo_venoso' => 'nullable|boolean',

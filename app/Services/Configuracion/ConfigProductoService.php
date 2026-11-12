@@ -19,7 +19,7 @@ class ConfigProductoService extends BaseService
      */
     public function all(): array
     {
-        return $this->success(ConfigProducto::with(['modulo', 'servicio.sede'])->orderBy('nom_produc')->get());
+        return $this->success(ConfigProducto::with(['modulo'])->orderBy('nom_produc')->get());
     }
 
     /**
@@ -35,7 +35,7 @@ class ConfigProductoService extends BaseService
      */
     public function find(int $id): array
     {
-        $item = ConfigProducto::with(['modulo', 'servicio.sede'])->find($id);
+        $item = ConfigProducto::with(['modulo'])->find($id);
 
         if (! $item) {
             return $this->notFound('Producto no encontrado');

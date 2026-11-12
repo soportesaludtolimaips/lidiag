@@ -5,6 +5,7 @@
         class="select2 form-control custom-select"
         :style="{ width, height: height + 'px' }"
         :multiple="multiple"
+        :disabled="disabled"
     >
         <option v-if="placeholder" value="0">{{ placeholder }}</option>
         <option v-for="opt in options" :key="opt[optionValue]" :value="opt[optionValue]">
@@ -32,6 +33,7 @@ const props = defineProps({
     accentInsensitive: { type: Boolean, default: true },
     allowClear: { type: Boolean, default: false },
     multiple: { type: Boolean, default: false },
+    disabled: { type: Boolean, default: false },
     returnArray: { type: Boolean, default: false },
     returnObject: { type: Boolean, default: false },
     placeholder: { type: String, default: "" },
@@ -224,6 +226,30 @@ onBeforeUnmount(() => {
  * @author Jhon Javer Lozano Arce
  * @date 2025-11-04
  */
+watch(
+    () => [props.modelValue, props.value],
+    () => {
+        const current = props.modelValue ?? props.value;
+        const $el = $select();
+        if ($el && $el.data("select2")) {
+            const rawVal = $el.val();
+            if (String(rawVal ?? "") !== String(current ?? "")) {
+                $el.val(current != null ? current : props.multiple ? [] : null).trigger("change");
+            }
+        }
+    }
+);
+
+watch(
+    () => props.disabled,
+    (val) => {
+        const $el = $select();
+        if ($el) {
+            $el.prop("disabled", Boolean(val));
+        }
+    }
+);
+
 watch(
     () => props.options,
     (_newOpts) => {

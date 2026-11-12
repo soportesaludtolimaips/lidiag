@@ -47,92 +47,123 @@ return new class extends Migration
         $moduloMamo = DB::table('config_modulos')->where('modulo', 'Mamografia')->value('id');
         $moduloOft = DB::table('config_modulos')->where('modulo', 'Oftalmologia')->value('id');
 
-        // 1. Relacionar productos de ecografías por código CUPS específico
+        // 1. Rayos X (Prioridad alta para términos inequívocos y evitar falsos positivos con palabras como 'senos paranasales' o 'rotación')
+        if ($moduloRx) {
+            DB::table('config_productos')
+                ->where(function ($query) {
+                    $query->where('nom_produc', 'LIKE', '%RADIOGRAF%')
+                        ->orWhere('nom_produc', 'LIKE', '%TELERADIOGRAF%')
+                        ->orWhere('nom_produc', 'LIKE', '%ORTOPANTOMOGRAF%')
+                        ->orWhere('nom_produc', 'LIKE', '%FLUOROSCOPIA%')
+                        ->orWhere('nom_produc', 'LIKE', '%PORTATIL%')
+                        ->orWhere('nom_produc', 'LIKE', '%PORTATILES%')
+                        ->orWhere('nom_produc', 'LIKE', '%GASTROVIEW%')
+                        ->orWhere('nom_produc', 'LIKE', '%DIATRIZOATO%')
+                        ->orWhere('cod_cups', 'LIKE', '870%')
+                        ->orWhere('cod_cups', 'LIKE', '871%')
+                        ->orWhere('cod_cups', 'LIKE', '872%')
+                        ->orWhere('cod_cups', 'LIKE', '873%');
+                })
+                ->update(['modulo_id' => $moduloRx]);
+        }
+
+        // 2. Tomografía
+        if ($moduloTomo) {
+            DB::table('config_productos')
+                ->where(function ($query) {
+                    $query->where('nom_produc', 'LIKE', '%TOMOGRAF%')
+                        ->orWhere('nom_produc', 'LIKE', '%ESCANOGRAFIA%')
+                        ->orWhere('nom_produc', 'LIKE', '%UROTAG%')
+                        ->orWhere('nom_produc', 'LIKE', '%ANGIOTAC%')
+                        ->orWhere('nom_produc', 'LIKE', '%IOVERSOL%')
+                        ->orWhere('nom_produc', 'LIKE', '%IOPAMIDOL%')
+                        ->orWhere('nom_produc', 'LIKE', '%IOBITRIDOL%')
+                        ->orWhere('nom_produc', 'LIKE', '%XENETIX%')
+                        ->orWhere('nom_produc', 'LIKE', '%OPTIRAY%')
+                        ->orWhere('cod_cups', 'LIKE', '879%');
+                })
+                ->update(['modulo_id' => $moduloTomo]);
+        }
+
+        // 3. Resonancia
+        if ($moduloRes) {
+            DB::table('config_productos')
+                ->where(function ($query) {
+                    $query->where('nom_produc', 'LIKE', '%RESONANC%')
+                        ->orWhere('nom_produc', 'LIKE', '%COLANGIORESONANCIA%')
+                        ->orWhere('nom_produc', 'LIKE', '%ANGIORESONANCIA%')
+                        ->orWhere('nom_produc', 'LIKE', '%DOTAREM%')
+                        ->orWhere('nom_produc', 'LIKE', '%GADOTERICO%')
+                        ->orWhere('nom_produc', 'LIKE', '%GADOLINIO%')
+                        ->orWhere('cod_cups', 'LIKE', '883%');
+                })
+                ->update(['modulo_id' => $moduloRes]);
+        }
+
+        // 4. Mamografía (evitando colisión con 'senos paranasales')
+        if ($moduloMamo) {
+            $cupsMamo = ['851101', '851102', '851103', '876801', '876802'];
+            DB::table('config_productos')
+                ->whereIn('cod_cups', $cupsMamo)
+                ->update(['modulo_id' => $moduloMamo]);
+
+            DB::table('config_productos')
+                ->where(function ($query) {
+                    $query->where('nom_produc', 'LIKE', '%MAMOGRAF%')
+                        ->orWhere('nom_produc', 'LIKE', '%XEROMAMOGRAF%')
+                        ->orWhere('nom_produc', 'LIKE', '%CA DE SENO%')
+                        ->orWhere('nom_produc', 'LIKE', '%ESTEREOTAXIA%')
+                        ->orWhere('nom_produc', 'LIKE', '%MAMA CON AGUJA%')
+                        ->orWhere('nom_produc', 'LIKE', '%AGUJA FINA DE MAMA%')
+                        ->orWhere('cod_cups', 'LIKE', '876%');
+                })
+                ->update(['modulo_id' => $moduloMamo]);
+        }
+
+        // 5. Ecografías
         if ($moduloEco) {
-            $cupsEcografias = [
+            $cupsEco = [
                 '881332', '881305', '881302', '881301', '881340', '881390', '881312', '881431',
                 '881432', '881435', '881436', '881437', '881438', '881440', '881501', '881601',
                 '881602', '881610', '881620', '881621', '881112', '881118', '881121', '881201',
+                '061001', '061002', '061302', '345001', '345002', '345401', '542801', '542802',
+                '542901', '861101', '881220',
             ];
 
             DB::table('config_productos')
-                ->whereIn('cod_cups', $cupsEcografias)
+                ->whereIn('cod_cups', $cupsEco)
                 ->update(['modulo_id' => $moduloEco]);
 
-            $keywordsEco = ['ECOGRAF', 'ULTRASON', 'DOPPLER', 'ECOCARDIOGRAMA'];
-            foreach ($keywordsEco as $kw) {
-                DB::table('config_productos')
-                    ->where(function ($query) use ($kw) {
-                        $query->where('nom_produc', 'LIKE', "%{$kw}%")
-                            ->orWhere('cod_cups', 'LIKE', "%{$kw}%");
-                    })
-                    ->update(['modulo_id' => $moduloEco]);
-            }
-        }
-
-        // 2. Mamografía
-        if ($moduloMamo) {
-            $keywordsMamo = ['MAMOGRAF', 'XEROMAMOGRAFIA', 'SENO'];
-            foreach ($keywordsMamo as $kw) {
-                DB::table('config_productos')
-                    ->where(function ($query) use ($kw) {
-                        $query->where('nom_produc', 'LIKE', "%{$kw}%")
-                            ->orWhere('cod_cups', 'LIKE', "%{$kw}%");
-                    })
-                    ->update(['modulo_id' => $moduloMamo]);
-            }
-        }
-
-        // 3. Tomografía
-        if ($moduloTomo) {
-            $keywordsTomo = ['TOMOGRAF', 'TAC', 'UROTAG', 'ANGIOTAC'];
-            foreach ($keywordsTomo as $kw) {
-                DB::table('config_productos')
-                    ->where(function ($query) use ($kw) {
-                        $query->where('nom_produc', 'LIKE', "%{$kw}%")
-                            ->orWhere('cod_cups', 'LIKE', "%{$kw}%");
-                    })
-                    ->update(['modulo_id' => $moduloTomo]);
-            }
-        }
-
-        // 4. Resonancia
-        if ($moduloRes) {
-            $keywordsRes = ['RESONANC', 'RMN', 'COLANGIORESONANCIA'];
-            foreach ($keywordsRes as $kw) {
-                DB::table('config_productos')
-                    ->where(function ($query) use ($kw) {
-                        $query->where('nom_produc', 'LIKE', "%{$kw}%")
-                            ->orWhere('cod_cups', 'LIKE', "%{$kw}%");
-                    })
-                    ->update(['modulo_id' => $moduloRes]);
-            }
-        }
-
-        // 5. Rayos X
-        if ($moduloRx) {
-            $keywordsRx = ['RADIOGRAF', 'RAYOS', 'FLUOROSCOPIA', ' RX ', 'TELERADIOGRAFIA'];
-            foreach ($keywordsRx as $kw) {
-                DB::table('config_productos')
-                    ->where(function ($query) use ($kw) {
-                        $query->where('nom_produc', 'LIKE', "%{$kw}%")
-                            ->orWhere('cod_cups', 'LIKE', "%{$kw}%");
-                    })
-                    ->update(['modulo_id' => $moduloRx]);
-            }
+            DB::table('config_productos')
+                ->where(function ($query) {
+                    $query->where('nom_produc', 'LIKE', '%ECOGRAF%')
+                        ->orWhere('nom_produc', 'LIKE', '%ULTRASON%')
+                        ->orWhere('nom_produc', 'LIKE', '%DOPPLER%')
+                        ->orWhere('nom_produc', 'LIKE', '%DUPLEX SCAN%')
+                        ->orWhere('nom_produc', 'LIKE', '%ECOCARDIOG%')
+                        ->orWhere('nom_produc', 'LIKE', '%TIROIDES%')
+                        ->orWhere('nom_produc', 'LIKE', '%TORACENTESIS%')
+                        ->orWhere('nom_produc', 'LIKE', '%PARACENTESIS%')
+                        ->orWhere('nom_produc', 'LIKE', '%BIOPSIA DE PLEURA%')
+                        ->orWhere('nom_produc', 'LIKE', '%DRENAJE DE COLECCI%')
+                        ->orWhere('cod_cups', 'LIKE', '881%')
+                        ->orWhere('cod_cups', 'LIKE', '882%');
+                })
+                ->update(['modulo_id' => $moduloEco]);
         }
 
         // 6. Oftalmología
         if ($moduloOft) {
-            $keywordsOft = ['OFTALMO', 'CAMPIMETRIA', 'OCT', 'RETINA'];
-            foreach ($keywordsOft as $kw) {
-                DB::table('config_productos')
-                    ->where(function ($query) use ($kw) {
-                        $query->where('nom_produc', 'LIKE', "%{$kw}%")
-                            ->orWhere('cod_cups', 'LIKE', "%{$kw}%");
-                    })
-                    ->update(['modulo_id' => $moduloOft]);
-            }
+            DB::table('config_productos')
+                ->where(function ($query) {
+                    $query->where('nom_produc', 'LIKE', '%OFTALMO%')
+                        ->orWhere('nom_produc', 'LIKE', '%CAMPIMETRIA%')
+                        ->orWhere('nom_produc', 'LIKE', '%OCT%')
+                        ->orWhere('nom_produc', 'LIKE', '%RETINA%')
+                        ->orWhere('nom_produc', 'LIKE', '%FONDO DE OJO%')
+                        ->orWhere('nom_produc', 'LIKE', '%PAQUIMETRIA%');
+                })
+                ->update(['modulo_id' => $moduloOft]);
         }
     }
 

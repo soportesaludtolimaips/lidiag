@@ -5,6 +5,8 @@ namespace App\Models\Configuracion;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class ConfigServicio extends Model
 {
@@ -31,7 +33,7 @@ class ConfigServicio extends Model
      *
      * @date 2026-10-13
      */
-    public function sede()
+    public function sede(): BelongsTo
     {
         return $this->belongsTo(ConfigSede::class, 'sede_id');
     }
@@ -45,7 +47,7 @@ class ConfigServicio extends Model
      *
      * @date 2026-10-13
      */
-    public function usuarios()
+    public function usuarios(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'user_servicios', 'servicio_id', 'user_id');
     }
@@ -59,7 +61,7 @@ class ConfigServicio extends Model
      *
      * @date 2026-10-13
      */
-    public function productos()
+    public function productos(): BelongsToMany
     {
         return $this->belongsToMany(
             ConfigProducto::class,
