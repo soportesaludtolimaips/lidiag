@@ -1,1119 +1,856 @@
 <template>
-    <!-- ============================================================== -->
-    <!-- Bread crumb and right sidebar toggle -->
-    <!-- ============================================================== -->
-    <div class="row page-titles">
-        <div class="col-md-5 align-self-center">
-            <h3 class="text-themecolor">Estudios</h3>
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item">
-                    <button
-                        type="button"
-                        class="btn btn-link p-0"
-                        style="vertical-align: baseline; text-decoration: none; color: inherit"
-                    >
-                        Inicio
-                    </button>
-                </li>
-                <li class="breadcrumb-item">
-                    <button
-                        type="button"
-                        class="btn btn-link p-0"
-                        style="vertical-align: baseline; text-decoration: none; color: inherit"
-                    >
-                        Estudios
-                    </button>
-                </li>
-                <li class="breadcrumb-item active">Leer Estudios</li>
-            </ol>
-        </div>
-        <div class="col-md-7 align-self-center text-right d-none d-md-block">
-            <i
-                class="fa fa-life-ring model_img img-responsive"
-                @click="abrirModalAyuda()"
-                role="button"
-                aria-label="Ayuda: comandos de voz"
-                tabindex="0"
-            ></i>
-        </div>
-
-        <!-- sample modal content -->
-        <div
-            v-if="modalAyudaVisible"
-            class="modal fade bs-example-modal-lg show"
-            style="display: block; background: rgba(0, 0, 0, 0.5)"
-            tabindex="-1"
-            role="dialog"
-            aria-labelledby="myLargeModalLabel"
-            aria-hidden="true"
-            @click.self="cerrarModalAyuda()"
-        >
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title" id="myLargeModalLabel">Comando de voz</h4>
+    <div>
+        <!-- ============================================================== -->
+        <!-- Bread crumb and right sidebar toggle -->
+        <!-- ============================================================== -->
+        <div class="row page-titles">
+            <div class="col-md-5 align-self-center">
+                <h3 class="text-themecolor">Estudios</h3>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
                         <button
                             type="button"
-                            class="close"
-                            @click="cerrarModalAyuda()"
-                            aria-hidden="true"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
                         >
-                            ×
+                            Inicio
                         </button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h5 class="mb-2">Mayúsculas</h5>
-                                <ul>
-                                    <li>iniciar mayúscula sostenida</li>
-                                    <li>iniciar mayúsculas sostenida</li>
-                                    <li>iniciar mayúsculas / mayúscula</li>
-                                    <li>activar mayúsculas / mayúscula</li>
-                                    <li>habilitar mayúsculas / mayúscula</li>
-                                    <li>desactivar mayúsculas / mayúscula</li>
-                                    <li>deshabilitar mayúsculas / mayúscula</li>
-                                    <li>terminar mayúsculas / mayúscula</li>
-                                    <li>fin mayúsculas / mayúscula</li>
-                                    <li>finalizar mayúsculas / mayúscula</li>
-                                </ul>
-                                <h5 class="mb-2 mt-3">Saltos de línea</h5>
-                                <ul>
-                                    <li>punto aparte</li>
-                                    <li>nuevo párrafo</li>
-                                    <li>nueva sección</li>
-                                    <li>separador</li>
-                                    <li>salto de línea</li>
-                                    <li>doble salto de línea</li>
-                                    <li>enter / doble enter</li>
-                                    <li>línea en blanco / doble línea en blanco</li>
-                                </ul>
-                            </div>
-                            <div class="col-md-6">
-                                <h5 class="mb-2">Puntuación</h5>
-                                <ul>
-                                    <li>punto / punto y seguido / punto seguido</li>
-                                    <li>coma</li>
-                                    <li>dos puntos</li>
-                                    <li>punto y coma</li>
-                                    <li>nueva oración</li>
-                                    <li>abrir/cerrar paréntesis</li>
-                                    <li>abrir/cerrar corchetes</li>
-                                    <li>abrir/cerrar llaves</li>
-                                    <li>abrir/cerrar comillas</li>
-                                    <li>abrir/cerrar comillas simples</li>
-                                </ul>
-                                <h5 class="mb-2 mt-3">Símbolos</h5>
-                                <ul>
-                                    <li>guion</li>
-                                    <li>guion bajo</li>
-                                    <li>barra diagonal</li>
-                                    <li>barra invertida</li>
-                                    <li>dar espacio / un espacio / dos espacio / doble espacio</li>
-                                    <li>por ciento (%)</li>
-                                    <li>menos / más / igual</li>
-                                    <li>multiplicar (×) / dividir (÷)</li>
-                                    <li>asterisco / numeral / ampersand / arroba</li>
-                                    <li>dólar / euro</li>
-                                </ul>
-                                <h5 class="mb-2 mt-3">Atajos</h5>
-                                <ul>
-                                    <li><strong>F2</strong> - Iniciar/detener grabación</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
+                    </li>
+                    <li class="breadcrumb-item">
                         <button
                             type="button"
-                            class="btn btn-danger waves-effect text-left"
-                            @click="cerrarModalAyuda()"
+                            class="btn btn-link p-0"
+                            style="vertical-align: baseline; text-decoration: none; color: inherit"
                         >
-                            Close
+                            Estudios
                         </button>
-                    </div>
-                </div>
-                <!-- /.modal-content -->
+                    </li>
+                    <li class="breadcrumb-item active">Leer Estudios</li>
+                </ol>
             </div>
-            <!-- /.modal-dialog -->
-        </div>
-        <!-- /.modal -->
-    </div>
-    <!-- ============================================================== -->
-    <!-- End Bread crumb and right sidebar toggle -->
-    <!-- ============================================================== -->
+            <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <i
+                    class="fa fa-life-ring model_img img-responsive"
+                    @click="abrirModalAyuda()"
+                    role="button"
+                    aria-label="Ayuda: comandos de voz"
+                    tabindex="0"
+                ></i>
+            </div>
 
-    <!-- ============================================================== -->
-    <!-- Start Page Content -->
-    <!-- ============================================================== -->
-    <div class="row">
-        <div class="col-12 table-responsive">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4 class="card-title">Listado de mis pendientes por leer</h4>
-                        <div class="text-right">
-                            <span class="badge badge-danger" v-if="contadorPendientes > 0"
-                                >{{ contadorPendientes }} pendiente(s)</span
-                            >
-                            <span class="badge badge-success" v-else>Sin pendientes</span>
-                            <button
-                                v-if="autoRefreshEnabled"
-                                class="btn btn-sm btn-outline-secondary ml-2"
-                                @click="toggleAutoRefresh"
-                                title="Auto-refresh activo"
-                            >
-                                <i class="fa fa-refresh fa-spin"></i>
-                                {{ autoRefreshInterval / 1000 }}s
-                            </button>
-                            <button
-                                v-else
-                                class="btn btn-sm btn-outline-secondary ml-2"
-                                @click="toggleAutoRefresh"
-                                title="Activar auto-refresh"
-                            >
-                                <i class="fa fa-refresh"></i> {{ autoRefreshInterval / 1000 }}s
-                            </button>
-                            <button
-                                class="btn btn-sm btn-outline-primary ml-2"
-                                @click="listarMisPendientes()"
-                                :disabled="loadingListar"
-                                title="Actualizar lista"
-                            >
-                                <i class="fa fa-sync"></i> Actualizar
-                            </button>
+            <!-- sample modal content -->
+            <div
+                v-if="modalAyudaVisible"
+                class="modal fade bs-example-modal-lg show"
+                style="display: block; background: rgba(0, 0, 0, 0.5)"
+                tabindex="-1"
+                role="dialog"
+                aria-labelledby="myLargeModalLabel"
+                aria-hidden="true"
+                @click.self="cerrarModalAyuda()"
+            >
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title" id="myLargeModalLabel">Comando de voz</h4>
                             <button
                                 type="button"
-                                class="btn btn-sm ml-2"
-                                :class="isDarkMode ? 'btn-warning' : 'btn-outline-dark'"
-                                @click="toggleDarkMode"
-                                :title="
-                                    isDarkMode
-                                        ? 'Cambiar a Modo Claro'
-                                        : 'Cambiar a Modo Oscuro / Radiología'
-                                "
+                                class="close"
+                                @click="cerrarModalAyuda()"
+                                aria-hidden="true"
                             >
-                                <i :class="isDarkMode ? 'fa fa-sun-o' : 'fa fa-moon-o'"></i>
-                                {{ isDarkMode ? "Modo Claro" : "Modo Oscuro" }}
+                                ×
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5 class="mb-2">Mayúsculas</h5>
+                                    <ul>
+                                        <li>iniciar mayúscula sostenida</li>
+                                        <li>iniciar mayúsculas sostenida</li>
+                                        <li>iniciar mayúsculas / mayúscula</li>
+                                        <li>activar mayúsculas / mayúscula</li>
+                                        <li>habilitar mayúsculas / mayúscula</li>
+                                        <li>desactivar mayúsculas / mayúscula</li>
+                                        <li>deshabilitar mayúsculas / mayúscula</li>
+                                        <li>terminar mayúsculas / mayúscula</li>
+                                        <li>fin mayúsculas / mayúscula</li>
+                                        <li>finalizar mayúsculas / mayúscula</li>
+                                    </ul>
+                                    <h5 class="mb-2 mt-3">Saltos de línea</h5>
+                                    <ul>
+                                        <li>punto aparte</li>
+                                        <li>nuevo párrafo</li>
+                                        <li>nueva sección</li>
+                                        <li>separador</li>
+                                        <li>salto de línea</li>
+                                        <li>doble salto de línea</li>
+                                        <li>enter / doble enter</li>
+                                        <li>línea en blanco / doble línea en blanco</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5 class="mb-2">Puntuación</h5>
+                                    <ul>
+                                        <li>punto / punto y seguido / punto seguido</li>
+                                        <li>coma</li>
+                                        <li>dos puntos</li>
+                                        <li>punto y coma</li>
+                                        <li>nueva oración</li>
+                                        <li>abrir/cerrar paréntesis</li>
+                                        <li>abrir/cerrar corchetes</li>
+                                        <li>abrir/cerrar llaves</li>
+                                        <li>abrir/cerrar comillas</li>
+                                        <li>abrir/cerrar comillas simples</li>
+                                    </ul>
+                                    <h5 class="mb-2 mt-3">Símbolos</h5>
+                                    <ul>
+                                        <li>guion</li>
+                                        <li>guion bajo</li>
+                                        <li>barra diagonal</li>
+                                        <li>barra invertida</li>
+                                        <li>
+                                            dar espacio / un espacio / dos espacio / doble espacio
+                                        </li>
+                                        <li>por ciento (%)</li>
+                                        <li>menos / más / igual</li>
+                                        <li>multiplicar (×) / dividir (÷)</li>
+                                        <li>asterisco / numeral / ampersand / arroba</li>
+                                        <li>dólar / euro</li>
+                                    </ul>
+                                    <h5 class="mb-2 mt-3">Atajos</h5>
+                                    <ul>
+                                        <li><strong>F2</strong> - Iniciar/detener grabación</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button
+                                type="button"
+                                class="btn btn-danger waves-effect text-left"
+                                @click="cerrarModalAyuda()"
+                            >
+                                Close
                             </button>
                         </div>
                     </div>
-                    <table-skeleton-loader :visible="!tablaVisible" :rows="6" :columns="9" />
-                    <empty-state-component
-                        v-if="tablaVisible && registros.length === 0"
-                        icon="fa fa-folder-open-o"
-                        title="No hay estudios pendientes por leer"
-                        description="Excelente trabajo. Todos los estudios asignados han sido informados o no hay registros pendientes."
-                        action-text="Actualizar lista"
-                        action-icon="fa fa-refresh"
-                        @action="listarMisPendientes()"
-                    />
-                    <div class="table-responsive" v-show="tablaVisible && registros.length > 0">
-                        <table
-                            id="tablaLeerEstudios"
-                            ref="dt"
-                            class="table table-bordered table-striped"
-                            cellspacing="0"
-                            width="100%"
-                        >
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th>Sede</th>
-                                    <th>Fecha del Toma</th>
-                                    <th>Fecha del Asignación</th>
-                                    <th>Quien Asigno</th>
-                                    <th>Paciente</th>
-                                    <th>Detalle</th>
-                                    <th>Producto</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr
-                                    v-for="item in registros"
-                                    :key="item.estudio_producto_id"
-                                    :class="{ 'text-info': item.visto === 1 }"
-                                    :id="'row-' + item.estudio_producto_id"
+                    <!-- /.modal-content -->
+                </div>
+                <!-- /.modal-dialog -->
+            </div>
+            <!-- /.modal -->
+        </div>
+        <!-- ============================================================== -->
+        <!-- End Bread crumb and right sidebar toggle -->
+        <!-- ============================================================== -->
+
+        <!-- ============================================================== -->
+        <!-- Start Page Content -->
+        <!-- ============================================================== -->
+        <div class="row">
+            <div class="col-12 table-responsive">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4 class="card-title">Listado de mis pendientes por leer</h4>
+                            <div class="text-right">
+                                <span class="badge badge-danger" v-if="contadorPendientes > 0"
+                                    >{{ contadorPendientes }} pendiente(s)</span
                                 >
-                                    <td width="2%">
-                                        <button
-                                            type="button"
-                                            v-if="item.priori_id == 1"
-                                            class="btn waves-effect waves-light btn-rounded btn-sm btn-danger"
-                                            title="Alta"
-                                        >
-                                            A
-                                        </button>
-                                        <button
-                                            type="button"
-                                            v-else-if="item.priori_id == 2"
-                                            class="btn waves-effect waves-light btn-rounded btn-sm btn-warning"
-                                            title="Media"
-                                        >
-                                            M
-                                        </button>
-                                        <button
-                                            type="button"
-                                            v-else-if="item.priori_id == 3"
-                                            class="btn waves-effect waves-light btn-rounded btn-sm btn-info"
-                                            title="Baja"
-                                        >
-                                            B
-                                        </button>
-                                        <button
-                                            type="button"
-                                            v-else-if="item.priori_id == 4"
-                                            class="btn waves-effect waves-light btn-rounded btn-sm"
-                                            title="Sin prioridad"
-                                        >
-                                            S
-                                        </button>
-                                    </td>
-                                    <td>{{ item.nom_sede }}</td>
-                                    <td>{{ item.fec_estudio }}</td>
-                                    <td>{{ formatDate(item.created_at) }}</td>
-                                    <td>{{ item.quien_registro }}</td>
-                                    <td>
-                                        <div class="font-weight-bold text-dark">
-                                            {{ item.nom_pacien }}
-                                        </div>
-                                        <div
-                                            class="text-primary font-weight-bold"
-                                            style="font-size: 15px"
-                                        >
-                                            <i class="fa fa-id-card-o mr-1"></i>
-                                            {{ item.num_docu }}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        {{ item.study_desc }} <br />
-                                        {{ item.accession_no }}
-                                    </td>
-                                    <td>
-                                        {{ item.nom_produc }}
-                                    </td>
-                                    <td class="text-nowrap">
-                                        <button
-                                            type="button"
-                                            class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
-                                            :disabled="loadingAbrirId === item.estudio_producto_id"
-                                            @click="
-                                                actualizar = true;
-                                                mostrarRegistro(item);
-                                            "
-                                            title="Abrir estudio"
-                                            aria-label="Abrir estudio"
-                                        >
-                                            <i
-                                                v-if="loadingAbrirId === item.estudio_producto_id"
-                                                class="fa fa-spinner fa-spin"
-                                            ></i>
-                                            <i v-else class="fa fa-pencil"></i>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm"
-                                            :disabled="
-                                                loadingVerImagen === item.estudio_producto_id
-                                            "
-                                            @click="
-                                                verImagen(
-                                                    item.url_oviyam,
-                                                    item.num_docu,
-                                                    item.study_iuid,
-                                                    item.tap_oviyam,
-                                                    item.estudio_producto_id
-                                                )
-                                            "
-                                            title="Ver imágenes"
-                                            aria-label="Ver imágenes"
-                                        >
-                                            <i
-                                                v-if="loadingVerImagen === item.estudio_producto_id"
-                                                class="fa fa-spinner fa-spin"
-                                            ></i>
-                                            <i v-else class="fa fa-file-photo-o"></i>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
-                                            :disabled="loadingVistoId === item.estudio_producto_id"
-                                            @click="
-                                                actualizar = true;
-                                                visto(item.estudio_producto_id);
-                                            "
-                                            title="Marcar como visto"
-                                            aria-label="Marcar como visto"
-                                        >
-                                            <i
-                                                v-if="loadingVistoId === item.estudio_producto_id"
-                                                class="fa fa-spinner fa-spin"
-                                            ></i>
-                                            <i v-else class="fa fa-eye"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <div v-if="registros.length === 0" class="text-center py-4 text-muted">
-                            <i class="fa fa-inbox fa-3x mb-3"></i>
-                            <p>No hay estudios pendientes</p>
+                                <span class="badge badge-success" v-else>Sin pendientes</span>
+                                <button
+                                    v-if="autoRefreshEnabled"
+                                    class="btn btn-sm btn-outline-secondary ml-2"
+                                    @click="toggleAutoRefresh"
+                                    title="Auto-refresh activo"
+                                >
+                                    <i class="fa fa-refresh fa-spin"></i>
+                                    {{ autoRefreshInterval / 1000 }}s
+                                </button>
+                                <button
+                                    v-else
+                                    class="btn btn-sm btn-outline-secondary ml-2"
+                                    @click="toggleAutoRefresh"
+                                    title="Activar auto-refresh"
+                                >
+                                    <i class="fa fa-refresh"></i> {{ autoRefreshInterval / 1000 }}s
+                                </button>
+                                <button
+                                    class="btn btn-sm btn-outline-primary ml-2"
+                                    @click="listarMisPendientes()"
+                                    :disabled="loadingListar"
+                                    title="Actualizar lista"
+                                >
+                                    <i class="fa fa-sync"></i> Actualizar
+                                </button>
+                                <button
+                                    type="button"
+                                    class="btn btn-sm ml-2"
+                                    :class="isDarkMode ? 'btn-warning' : 'btn-outline-dark'"
+                                    @click="toggleDarkMode"
+                                    :title="
+                                        isDarkMode
+                                            ? 'Cambiar a Modo Claro'
+                                            : 'Cambiar a Modo Oscuro / Radiología'
+                                    "
+                                >
+                                    <i :class="isDarkMode ? 'fa fa-sun-o' : 'fa fa-moon-o'"></i>
+                                    {{ isDarkMode ? "Modo Claro" : "Modo Oscuro" }}
+                                </button>
+                            </div>
+                        </div>
+                        <table-skeleton-loader :visible="!tablaVisible" :rows="6" :columns="9" />
+                        <empty-state-component
+                            v-if="tablaVisible && registros.length === 0"
+                            icon="fa fa-folder-open-o"
+                            title="No hay estudios pendientes por leer"
+                            description="Excelente trabajo. Todos los estudios asignados han sido informados o no hay registros pendientes."
+                            action-text="Actualizar lista"
+                            action-icon="fa fa-refresh"
+                            @action="listarMisPendientes()"
+                        />
+                        <div class="table-responsive" v-show="tablaVisible && registros.length > 0">
+                            <table
+                                id="tablaLeerEstudios"
+                                ref="dt"
+                                class="table table-bordered table-striped"
+                                cellspacing="0"
+                                width="100%"
+                            >
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>Sede</th>
+                                        <th>Fecha del Toma</th>
+                                        <th>Fecha del Asignación</th>
+                                        <th>Quien Asigno</th>
+                                        <th>Paciente</th>
+                                        <th>Detalle</th>
+                                        <th>Producto</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="item in registros"
+                                        :key="item.estudio_producto_id"
+                                        :class="{ 'text-info': item.visto === 1 }"
+                                        :id="'row-' + item.estudio_producto_id"
+                                    >
+                                        <td width="2%">
+                                            <button
+                                                type="button"
+                                                v-if="item.priori_id == 1"
+                                                class="btn waves-effect waves-light btn-rounded btn-sm btn-danger"
+                                                title="Alta"
+                                            >
+                                                A
+                                            </button>
+                                            <button
+                                                type="button"
+                                                v-else-if="item.priori_id == 2"
+                                                class="btn waves-effect waves-light btn-rounded btn-sm btn-warning"
+                                                title="Media"
+                                            >
+                                                M
+                                            </button>
+                                            <button
+                                                type="button"
+                                                v-else-if="item.priori_id == 3"
+                                                class="btn waves-effect waves-light btn-rounded btn-sm btn-info"
+                                                title="Baja"
+                                            >
+                                                B
+                                            </button>
+                                            <button
+                                                type="button"
+                                                v-else-if="item.priori_id == 4"
+                                                class="btn waves-effect waves-light btn-rounded btn-sm"
+                                                title="Sin prioridad"
+                                            >
+                                                S
+                                            </button>
+                                        </td>
+                                        <td>{{ item.nom_sede }}</td>
+                                        <td>{{ item.fec_estudio }}</td>
+                                        <td>{{ formatDate(item.created_at) }}</td>
+                                        <td>{{ item.quien_registro }}</td>
+                                        <td>
+                                            <div class="font-weight-bold text-dark">
+                                                {{ item.nom_pacien }}
+                                            </div>
+                                            <div
+                                                class="text-primary font-weight-bold"
+                                                style="font-size: 15px"
+                                            >
+                                                <i class="fa fa-id-card-o mr-1"></i>
+                                                {{ item.num_docu }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {{ item.study_desc }} <br />
+                                            {{ item.accession_no }}
+                                        </td>
+                                        <td>
+                                            {{ item.nom_produc }}
+                                        </td>
+                                        <td class="text-nowrap">
+                                            <button
+                                                type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
+                                                :disabled="
+                                                    loadingAbrirId === item.estudio_producto_id
+                                                "
+                                                @click="
+                                                    actualizar = true;
+                                                    mostrarRegistro(item);
+                                                "
+                                                title="Abrir estudio"
+                                                aria-label="Abrir estudio"
+                                            >
+                                                <i
+                                                    v-if="
+                                                        loadingAbrirId === item.estudio_producto_id
+                                                    "
+                                                    class="fa fa-spinner fa-spin"
+                                                ></i>
+                                                <i v-else class="fa fa-pencil"></i>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm"
+                                                :disabled="
+                                                    loadingVerImagen === item.estudio_producto_id
+                                                "
+                                                @click="
+                                                    verImagen(
+                                                        item.url_oviyam,
+                                                        item.num_docu,
+                                                        item.study_iuid,
+                                                        item.tap_oviyam,
+                                                        item.estudio_producto_id
+                                                    )
+                                                "
+                                                title="Ver imágenes"
+                                                aria-label="Ver imágenes"
+                                            >
+                                                <i
+                                                    v-if="
+                                                        loadingVerImagen ===
+                                                        item.estudio_producto_id
+                                                    "
+                                                    class="fa fa-spinner fa-spin"
+                                                ></i>
+                                                <i v-else class="fa fa-file-photo-o"></i>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
+                                                :disabled="
+                                                    loadingVistoId === item.estudio_producto_id
+                                                "
+                                                @click="
+                                                    actualizar = true;
+                                                    visto(item.estudio_producto_id);
+                                                "
+                                                title="Marcar como visto"
+                                                aria-label="Marcar como visto"
+                                            >
+                                                <i
+                                                    v-if="
+                                                        loadingVistoId === item.estudio_producto_id
+                                                    "
+                                                    class="fa fa-spinner fa-spin"
+                                                ></i>
+                                                <i v-else class="fa fa-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div v-if="registros.length === 0" class="text-center py-4 text-muted">
+                                <i class="fa fa-inbox fa-3x mb-3"></i>
+                                <p>No hay estudios pendientes</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    <!-- ============================================================== -->
-    <!-- End PAge Content -->
-    <!-- ============================================================== -->
+        <!-- ============================================================== -->
+        <!-- End PAge Content -->
+        <!-- ============================================================== -->
 
-    <!-- ============================================================== -->
-    <!-- Right sidebar -->
-    <!-- ============================================================== -->
-    <!-- Backdrop para cerrar al hacer clic y atenuar fondo -->
-    <transition name="fade">
+        <!-- ============================================================== -->
+        <!-- Right sidebar -->
+        <!-- ============================================================== -->
+        <!-- Backdrop para cerrar al hacer clic y atenuar fondo -->
+        <transition name="fade">
+            <div
+                v-if="sidebarVisible && !isZenMode"
+                class="sidebar-backdrop"
+                @click="cerrarSidebar()"
+                aria-hidden="true"
+            ></div>
+        </transition>
+
+        <!-- .right-sidebar -->
         <div
-            v-if="sidebarVisible && !isZenMode"
-            class="sidebar-backdrop"
-            @click="cerrarSidebar()"
-            aria-hidden="true"
-        ></div>
-    </transition>
-
-    <!-- .right-sidebar -->
-    <div
-        class="right-sidebar sidebar-scroll"
-        :class="{ 'shw-rside': sidebarVisible, 'dark-mode': isDarkMode, 'zen-mode': isZenMode }"
-    >
-        <div class="slimscrollright" style="overflow-x: hidden">
-            <div class="rpanel-title d-flex justify-content-between align-items-center">
-                <span>{{ tituloModal }}</span>
-                <div class="d-flex align-items-center">
-                    <button
-                        type="button"
-                        class="btn btn-sm btn-link p-0 mr-3"
-                        style="color: inherit; text-decoration: none"
-                        @click="toggleZenMode"
-                        :title="
-                            isZenMode
-                                ? 'Salir de Pantalla Completa / Modo Zen'
-                                : 'Modo Pantalla Completa / Modo Zen (100% Pantalla)'
-                        "
-                    >
-                        <i :class="isZenMode ? 'fa fa-compress' : 'fa fa-expand'"></i>
-                        <span class="ml-1 d-none d-sm-inline">{{
-                            isZenMode ? "Normal" : "Zen"
-                        }}</span>
-                    </button>
-                    <button
-                        type="button"
-                        class="btn btn-sm btn-link p-0 mr-3"
-                        style="color: inherit; text-decoration: none"
-                        @click="toggleDarkMode"
-                        :title="
-                            isDarkMode
-                                ? 'Cambiar a Modo Claro'
-                                : 'Cambiar a Modo Oscuro / Radiología'
-                        "
-                    >
-                        <i :class="isDarkMode ? 'fa fa-sun-o' : 'fa fa-moon-o'"></i>
-                        <span class="ml-1 d-none d-sm-inline">{{
-                            isDarkMode ? "Claro" : "Oscuro"
-                        }}</span>
-                    </button>
-                    <button
-                        type="button"
-                        class="right-side-toggle"
-                        @click="cerrarSidebar()"
-                        aria-label="Cerrar panel"
-                    >
-                        <i class="ti-close"></i>
-                    </button>
+            class="right-sidebar sidebar-scroll"
+            :class="{ 'shw-rside': sidebarVisible, 'dark-mode': isDarkMode, 'zen-mode': isZenMode }"
+        >
+            <div class="slimscrollright" style="overflow-x: hidden">
+                <div class="rpanel-title d-flex justify-content-between align-items-center">
+                    <span>{{ tituloModal }}</span>
+                    <div class="d-flex align-items-center">
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-link p-0 mr-3"
+                            style="color: inherit; text-decoration: none"
+                            @click="toggleZenMode"
+                            :title="
+                                isZenMode
+                                    ? 'Salir de Pantalla Completa / Modo Zen'
+                                    : 'Modo Pantalla Completa / Modo Zen (100% Pantalla)'
+                            "
+                        >
+                            <i :class="isZenMode ? 'fa fa-compress' : 'fa fa-expand'"></i>
+                            <span class="ml-1 d-none d-sm-inline">{{
+                                isZenMode ? "Normal" : "Zen"
+                            }}</span>
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-link p-0 mr-3"
+                            style="color: inherit; text-decoration: none"
+                            @click="toggleDarkMode"
+                            :title="
+                                isDarkMode
+                                    ? 'Cambiar a Modo Claro'
+                                    : 'Cambiar a Modo Oscuro / Radiología'
+                            "
+                        >
+                            <i :class="isDarkMode ? 'fa fa-sun-o' : 'fa fa-moon-o'"></i>
+                            <span class="ml-1 d-none d-sm-inline">{{
+                                isDarkMode ? "Claro" : "Oscuro"
+                            }}</span>
+                        </button>
+                        <button
+                            type="button"
+                            class="right-side-toggle"
+                            @click="cerrarSidebar()"
+                            aria-label="Cerrar panel"
+                        >
+                            <i class="ti-close"></i>
+                        </button>
+                    </div>
                 </div>
-            </div>
-            <div class="r-panel-body">
-                <!-- ============================================================== -->
-                <!-- Aqui va el contenido de los formularios -->
-                <!-- ============================================================== -->
-                <form action="#">
-                    <div class="form-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <datos-paciente-display :registro="registro" />
+                <div class="r-panel-body">
+                    <!-- ============================================================== -->
+                    <!-- Aqui va el contenido de los formularios -->
+                    <!-- ============================================================== -->
+                    <form action="#">
+                        <div class="form-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <datos-paciente-display :registro="registro" />
 
-                                <h5 class="card-title text-info">
-                                    <i class="fa fa-user"></i> Datos del Estudio
-                                </h5>
-                                <hr />
+                                    <h5 class="card-title text-info">
+                                        <i class="fa fa-user"></i> Datos del Estudio
+                                    </h5>
+                                    <hr />
 
-                                <input
-                                    type="hidden"
-                                    id="estudio_producto_id"
-                                    name="estudio_producto_id"
-                                    v-model="registro.estudio_producto_id"
-                                />
-                                <input
-                                    type="hidden"
-                                    id="email"
-                                    name="email"
-                                    v-model="registro.email"
-                                />
+                                    <input
+                                        type="hidden"
+                                        id="estudio_producto_id"
+                                        name="estudio_producto_id"
+                                        v-model="registro.estudio_producto_id"
+                                    />
+                                    <input
+                                        type="hidden"
+                                        id="email"
+                                        name="email"
+                                        v-model="registro.email"
+                                    />
 
-                                <div class="row">
-                                    <div class="col-md-5">
-                                        <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-md-5">
+                                            <div class="form-group">
+                                                <dl>
+                                                    <dt>Descripción:</dt>
+                                                    <dd>{{ registro.study_desc }}</dd>
+                                                </dl>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <dl>
+                                                    <dt>Detalle</dt>
+                                                    <dd>{{ registro.accession_no }}</dd>
+                                                </dl>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <dl>
+                                                    <dt>Fecha del estudio</dt>
+                                                    <dd>{{ registro.fec_estudio }}</dd>
+                                                </dl>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <dl>
+                                                    <dt>Observaciones</dt>
+                                                    <dd>{{ registro.observaciones }}</dd>
+                                                </dl>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <h5 class="card-title text-info">
+                                        <i class="fa fa-user"></i> Producto
+                                    </h5>
+                                    <hr />
+
+                                    <div class="row table-responsive">
+                                        <div class="col-md-12">
                                             <dl>
-                                                <dt>Descripción:</dt>
-                                                <dd>{{ registro.study_desc }}</dd>
+                                                <dd>{{ productoEstudio.nom_produc }}</dd>
                                             </dl>
                                         </div>
                                     </div>
+                                    <br />
+                                    <h5 class="card-title text-info">
+                                        <i class="fa fa-user"></i> Diagnosticos
+                                    </h5>
+                                    <hr />
 
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <dl>
-                                                <dt>Detalle</dt>
-                                                <dd>{{ registro.accession_no }}</dd>
-                                            </dl>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-3">
-                                        <div class="form-group">
-                                            <dl>
-                                                <dt>Fecha del estudio</dt>
-                                                <dd>{{ registro.fec_estudio }}</dd>
-                                            </dl>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <div class="form-group">
-                                            <dl>
-                                                <dt>Observaciones</dt>
-                                                <dd>{{ registro.observaciones }}</dd>
-                                            </dl>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <h5 class="card-title text-info">
-                                    <i class="fa fa-user"></i> Producto
-                                </h5>
-                                <hr />
-
-                                <div class="row table-responsive">
-                                    <div class="col-md-12">
-                                        <dl>
-                                            <dd>{{ productoEstudio.nom_produc }}</dd>
-                                        </dl>
-                                    </div>
-                                </div>
-                                <br />
-                                <h5 class="card-title text-info">
-                                    <i class="fa fa-user"></i> Diagnosticos
-                                </h5>
-                                <hr />
-
-                                <div
-                                    class="row table-responsive"
-                                    style="height: 150px; overflow-y: scroll"
-                                >
-                                    <div class="col-md-12">
-                                        <ul
-                                            v-for="(item, index) in diagnosticosEstudio"
-                                            :key="index"
-                                        >
-                                            <li>{{ item.nom_diagnos }}</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="row">
-                                    <div class="col-9">
-                                        <h5 class="card-title text-info">
-                                            <i class="fa fa-edit"></i> Lectura
-                                        </h5>
-                                        <hr />
-                                    </div>
-
-                                    <div class="ml-auto">
-                                        <ul class="list-inline text-center">
-                                            <li>
-                                                <button
-                                                    type="button"
-                                                    class="btn btn-secondary btn-xs"
-                                                    :disabled="loadingVerImagen !== null"
-                                                    @click="
-                                                        verImagen(
-                                                            registro.urlOviyam,
-                                                            registro.patientId,
-                                                            registro.studyUID,
-                                                            registro.serverName,
-                                                            registro.estudio_producto_id
-                                                        )
-                                                    "
-                                                >
-                                                    <i
-                                                        v-if="loadingVerImagen"
-                                                        class="fa fa-spinner fa-spin"
-                                                    ></i>
-                                                    <i v-else class="fa fa-file-image-o"></i>
-                                                </button>
-                                            </li>
-                                            <li>
-                                                <button
-                                                    type="button"
-                                                    @click="toggleSpeechRecognition"
-                                                    :aria-label="
-                                                        recognizing
-                                                            ? 'Detener grabación'
-                                                            : 'Iniciar grabación'
-                                                    "
-                                                    :aria-pressed="String(recognizing)"
-                                                    style="
-                                                        width: 44px;
-                                                        height: 44px;
-                                                        padding: 0;
-                                                        border: none;
-                                                        background: none;
-                                                        cursor: pointer;
-                                                    "
-                                                >
-                                                    <img
-                                                        title="Grabadora"
-                                                        :src="microfono"
-                                                        :class="{
-                                                            'pulse-animation':
-                                                                recording || recognizing,
-                                                        }"
-                                                    />
-                                                </button>
-                                                <span
-                                                    v-if="uppercase"
-                                                    class="badge badge-success ml-2"
-                                                    title="Mayúsculas activada"
-                                                    >MAYÚS</span
-                                                >
-                                                <span
-                                                    v-if="recording"
-                                                    class="badge badge-danger ml-2"
-                                                    >Grabando</span
-                                                >
-                                                <span
-                                                    v-if="recognizing && !recording"
-                                                    class="badge badge-warning ml-2"
-                                                    >Escuchando</span
-                                                >
-                                                <span
-                                                    class="text-muted ml-2"
-                                                    style="font-size: 11px"
-                                                    >F2</span
-                                                >
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-
-                                <div class="invalid-feedback d-block mb-2" v-if="errores.lectura">
-                                    <i class="fa fa-exclamation-circle mr-1"></i>
-                                    {{ errores.lectura[0] }}
-                                </div>
-                                <div class="row">
-                                    <div class="col-12">
-                                        <div class="form-group">
-                                            <WysiwygEditor
-                                                ref="wysiwygEditorRef"
-                                                v-model="registro.lectura"
-                                                :draft-key="
-                                                    registro.estudio_producto_id
-                                                        ? `estudio_prod_${registro.estudio_producto_id}`
-                                                        : ''
-                                                "
-                                                :rows="18"
-                                                placeholder="Ingrese aquí la lectura del estudio ..."
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <!-- Nav tabs -->
-                                        <ul class="nav nav-tabs" role="tablist">
-                                            <li class="nav-item">
-                                                <a
-                                                    class="nav-link active"
-                                                    data-toggle="tab"
-                                                    href="#adjunto_hc"
-                                                    role="tab"
-                                                >
-                                                    <h5 class="card-title text-info">
-                                                        <i class="fa fa-paperclip"></i> Adjuntos
-                                                    </h5>
-                                                </a>
-                                            </li>
-                                            <li class="nav-item">
-                                                <a
-                                                    class="nav-link"
-                                                    data-toggle="tab"
-                                                    href="#audios_hc"
-                                                    role="tab"
-                                                    @click="
-                                                        listarAudios(registro.estudio_producto_id)
-                                                    "
-                                                >
-                                                    <span>
-                                                        <h5 class="card-title text-info">
-                                                            <i class="fa fa-file-audio-o"></i>
-                                                            Audios
-                                                        </h5>
-                                                    </span>
-                                                </a>
-                                            </li>
-                                            <li class="nav-item">
-                                                <a
-                                                    class="nav-link"
-                                                    data-toggle="tab"
-                                                    href="#motivo_examen_hc"
-                                                    role="tab"
-                                                >
-                                                    <span>
-                                                        <h5 class="card-title text-info">
-                                                            <i class="fa fa-history"></i> HC
-                                                        </h5>
-                                                    </span>
-                                                </a>
-                                            </li>
-                                            <li class="nav-item">
-                                                <a
-                                                    class="nav-link"
-                                                    data-toggle="tab"
-                                                    href="#history_estudios"
-                                                    role="tab"
-                                                >
-                                                    <span>
-                                                        <h5 class="card-title text-info">
-                                                            <i class="fa fa-history"></i> Historia
-                                                            del estudios
-                                                        </h5>
-                                                    </span>
-                                                </a>
-                                            </li>
-                                        </ul>
-                                        <!-- Tab panes -->
-                                        <div class="tab-content tabcontent-border">
-                                            <div
-                                                class="tab-pane active p-20"
-                                                id="adjunto_hc"
-                                                role="tabpanel"
+                                    <div
+                                        class="row table-responsive"
+                                        style="height: 150px; overflow-y: scroll"
+                                    >
+                                        <div class="col-md-12">
+                                            <ul
+                                                v-for="(item, index) in diagnosticosEstudio"
+                                                :key="index"
                                             >
-                                                <div
-                                                    class="col-md-8 col-lg-9"
-                                                    v-for="(itemArchivo, index) in soportesHC"
-                                                    :key="index"
-                                                >
-                                                    <a
-                                                        href="javascript:void(0)"
-                                                        :style="{
-                                                            pointerEvents:
-                                                                loadingDescarga ===
-                                                                itemArchivo.archivo_encrip
-                                                                    ? 'none'
-                                                                    : 'auto',
-                                                        }"
+                                                <li>{{ item.nom_diagnos }}</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="row">
+                                        <div class="col-9">
+                                            <h5 class="card-title text-info">
+                                                <i class="fa fa-edit"></i> Lectura
+                                            </h5>
+                                            <hr />
+                                        </div>
+
+                                        <div class="ml-auto">
+                                            <ul class="list-inline text-center">
+                                                <li>
+                                                    <button
+                                                        type="button"
+                                                        class="btn btn-secondary btn-xs"
+                                                        :disabled="loadingVerImagen !== null"
                                                         @click="
-                                                            descargaSoporte(
-                                                                itemArchivo.archivo_original,
-                                                                itemArchivo.archivo_encrip
+                                                            verImagen(
+                                                                registro.urlOviyam,
+                                                                registro.patientId,
+                                                                registro.studyUID,
+                                                                registro.serverName,
+                                                                registro.estudio_producto_id
                                                             )
                                                         "
                                                     >
                                                         <i
-                                                            v-if="
-                                                                loadingDescarga ===
-                                                                itemArchivo.archivo_encrip
-                                                            "
+                                                            v-if="loadingVerImagen"
                                                             class="fa fa-spinner fa-spin"
                                                         ></i>
-                                                        {{ itemArchivo.archivo_original }}
-                                                    </a>
-                                                </div>
-                                            </div>
-                                            <div
-                                                class="tab-pane p-20"
-                                                id="audios_hc"
-                                                role="tabpanel"
-                                            >
-                                                <div v-if="loadingAudios" class="text-muted">
-                                                    <i class="fa fa-spinner fa-spin"></i> Cargando
-                                                    audios...
-                                                </div>
+                                                        <i v-else class="fa fa-file-image-o"></i>
+                                                    </button>
+                                                </li>
+                                                <li>
+                                                    <button
+                                                        type="button"
+                                                        @click="toggleSpeechRecognition"
+                                                        :aria-label="
+                                                            recognizing
+                                                                ? 'Detener grabación'
+                                                                : 'Iniciar grabación'
+                                                        "
+                                                        :aria-pressed="String(recognizing)"
+                                                        style="
+                                                            width: 44px;
+                                                            height: 44px;
+                                                            padding: 0;
+                                                            border: none;
+                                                            background: none;
+                                                            cursor: pointer;
+                                                        "
+                                                    >
+                                                        <img
+                                                            title="Grabadora"
+                                                            :src="microfono"
+                                                            :class="{
+                                                                'pulse-animation':
+                                                                    recording || recognizing,
+                                                            }"
+                                                        />
+                                                    </button>
+                                                    <span
+                                                        v-if="uppercase"
+                                                        class="badge badge-success ml-2"
+                                                        title="Mayúsculas activada"
+                                                        >MAYÚS</span
+                                                    >
+                                                    <span
+                                                        v-if="recording"
+                                                        class="badge badge-danger ml-2"
+                                                        >Grabando</span
+                                                    >
+                                                    <span
+                                                        v-if="recognizing && !recording"
+                                                        class="badge badge-warning ml-2"
+                                                        >Escuchando</span
+                                                    >
+                                                    <span
+                                                        class="text-muted ml-2"
+                                                        style="font-size: 11px"
+                                                        >F2</span
+                                                    >
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
 
-                                                <template v-if="!loadingAudios">
-                                                    <!-- Audios de la Lectura (grabados y cargados) -->
-                                                    <div class="row mb-3">
-                                                        <div class="col-12">
-                                                            <h5 class="text-primary">
-                                                                <i class="fa fa-headphones"></i>
-                                                                Audios de la Lectura
+                                    <div
+                                        class="invalid-feedback d-block mb-2"
+                                        v-if="errores.lectura"
+                                    >
+                                        <i class="fa fa-exclamation-circle mr-1"></i>
+                                        {{ errores.lectura[0] }}
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <div class="form-group">
+                                                <WysiwygEditor
+                                                    ref="wysiwygEditorRef"
+                                                    v-model="registro.lectura"
+                                                    :draft-key="
+                                                        registro.estudio_producto_id
+                                                            ? `estudio_prod_${registro.estudio_producto_id}`
+                                                            : ''
+                                                    "
+                                                    :rows="18"
+                                                    placeholder="Ingrese aquí la lectura del estudio ..."
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <!-- Nav tabs -->
+                                            <ul class="nav nav-tabs" role="tablist">
+                                                <li class="nav-item">
+                                                    <a
+                                                        class="nav-link active"
+                                                        data-toggle="tab"
+                                                        href="#adjunto_hc"
+                                                        role="tab"
+                                                    >
+                                                        <h5 class="card-title text-info">
+                                                            <i class="fa fa-paperclip"></i> Adjuntos
+                                                        </h5>
+                                                    </a>
+                                                </li>
+                                                <li class="nav-item">
+                                                    <a
+                                                        class="nav-link"
+                                                        data-toggle="tab"
+                                                        href="#audios_hc"
+                                                        role="tab"
+                                                        @click="
+                                                            listarAudios(
+                                                                registro.estudio_producto_id
+                                                            )
+                                                        "
+                                                    >
+                                                        <span>
+                                                            <h5 class="card-title text-info">
+                                                                <i class="fa fa-file-audio-o"></i>
+                                                                Audios
                                                             </h5>
-                                                            <hr />
-                                                            <div
+                                                        </span>
+                                                    </a>
+                                                </li>
+                                                <li class="nav-item">
+                                                    <a
+                                                        class="nav-link"
+                                                        data-toggle="tab"
+                                                        href="#motivo_examen_hc"
+                                                        role="tab"
+                                                    >
+                                                        <span>
+                                                            <h5 class="card-title text-info">
+                                                                <i class="fa fa-history"></i> HC
+                                                            </h5>
+                                                        </span>
+                                                    </a>
+                                                </li>
+                                                <li class="nav-item">
+                                                    <a
+                                                        class="nav-link"
+                                                        data-toggle="tab"
+                                                        href="#history_estudios"
+                                                        role="tab"
+                                                    >
+                                                        <span>
+                                                            <h5 class="card-title text-info">
+                                                                <i class="fa fa-history"></i>
+                                                                Historia del estudios
+                                                            </h5>
+                                                        </span>
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                            <!-- Tab panes -->
+                                            <div class="tab-content tabcontent-border">
+                                                <div
+                                                    class="tab-pane active p-20"
+                                                    id="adjunto_hc"
+                                                    role="tabpanel"
+                                                >
+                                                    <div
+                                                        class="col-md-8 col-lg-9"
+                                                        v-for="(itemArchivo, index) in soportesHC"
+                                                        :key="index"
+                                                    >
+                                                        <a
+                                                            href="javascript:void(0)"
+                                                            :style="{
+                                                                pointerEvents:
+                                                                    loadingDescarga ===
+                                                                    itemArchivo.archivo_encrip
+                                                                        ? 'none'
+                                                                        : 'auto',
+                                                            }"
+                                                            @click="
+                                                                descargaSoporte(
+                                                                    itemArchivo.archivo_original,
+                                                                    itemArchivo.archivo_encrip
+                                                                )
+                                                            "
+                                                        >
+                                                            <i
                                                                 v-if="
-                                                                    audiosDeEstudio &&
-                                                                    audiosDeEstudio.length > 0
+                                                                    loadingDescarga ===
+                                                                    itemArchivo.archivo_encrip
                                                                 "
-                                                            >
+                                                                class="fa fa-spinner fa-spin"
+                                                            ></i>
+                                                            {{ itemArchivo.archivo_original }}
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    class="tab-pane p-20"
+                                                    id="audios_hc"
+                                                    role="tabpanel"
+                                                >
+                                                    <div v-if="loadingAudios" class="text-muted">
+                                                        <i class="fa fa-spinner fa-spin"></i>
+                                                        Cargando audios...
+                                                    </div>
+
+                                                    <template v-if="!loadingAudios">
+                                                        <!-- Audios de la Lectura (grabados y cargados) -->
+                                                        <div class="row mb-3">
+                                                            <div class="col-12">
+                                                                <h5 class="text-primary">
+                                                                    <i class="fa fa-headphones"></i>
+                                                                    Audios de la Lectura
+                                                                </h5>
+                                                                <hr />
                                                                 <div
-                                                                    v-for="(
-                                                                        item, index
-                                                                    ) in audiosDeEstudio"
-                                                                    :key="item.id || index"
-                                                                    class="audio-item mb-2 p-2 border rounded"
+                                                                    v-if="
+                                                                        audiosDeEstudio &&
+                                                                        audiosDeEstudio.length > 0
+                                                                    "
                                                                 >
                                                                     <div
-                                                                        class="d-flex align-items-center"
+                                                                        v-for="(
+                                                                            item, index
+                                                                        ) in audiosDeEstudio"
+                                                                        :key="item.id || index"
+                                                                        class="audio-item mb-2 p-2 border rounded"
                                                                     >
-                                                                        <span
-                                                                            class="badge mr-2"
-                                                                            :class="
-                                                                                item.tipo ===
-                                                                                'cargado'
-                                                                                    ? 'badge-info'
-                                                                                    : 'badge-success'
-                                                                            "
-                                                                            style="min-width: 70px"
+                                                                        <div
+                                                                            class="d-flex align-items-center"
                                                                         >
-                                                                            <i
+                                                                            <span
+                                                                                class="badge mr-2"
                                                                                 :class="
                                                                                     item.tipo ===
                                                                                     'cargado'
-                                                                                        ? 'fa fa-upload'
-                                                                                        : 'fa fa-microphone'
+                                                                                        ? 'badge-info'
+                                                                                        : 'badge-success'
                                                                                 "
-                                                                            ></i>
-                                                                            {{
-                                                                                item.tipo ===
-                                                                                "cargado"
-                                                                                    ? "Cargado"
-                                                                                    : "Grabado"
-                                                                            }}
-                                                                        </span>
-                                                                        <audio
-                                                                            :src="
-                                                                                '/audios/' +
-                                                                                item.audio
-                                                                            "
-                                                                            controls
-                                                                            style="
-                                                                                height: 30px;
-                                                                                flex: 1;
-                                                                            "
-                                                                        ></audio>
-                                                                        <button
-                                                                            v-if="
-                                                                                item.tipo ===
-                                                                                'cargado'
-                                                                            "
-                                                                            type="button"
-                                                                            class="btn btn-danger btn-sm ml-2"
-                                                                            @click="
-                                                                                eliminarAudioCargado(
-                                                                                    item.id
-                                                                                )
-                                                                            "
-                                                                            :disabled="
-                                                                                eliminandoAudioId ===
-                                                                                item.id
-                                                                            "
-                                                                            title="Eliminar audio"
-                                                                            aria-label="Eliminar audio"
-                                                                        >
-                                                                            <i
-                                                                                v-if="
-                                                                                    eliminandoAudioId ===
-                                                                                    item.id
-                                                                                "
-                                                                                class="fa fa-spinner fa-spin"
-                                                                            ></i>
-                                                                            <i
-                                                                                v-else
-                                                                                class="fa fa-trash"
-                                                                            ></i>
-                                                                        </button>
-                                                                    </div>
-                                                                    <small
-                                                                        class="text-muted"
-                                                                        v-if="item.nombre_original"
-                                                                    >
-                                                                        {{ item.nombre_original }}
-                                                                        <span v-if="item.duracion"
-                                                                            >({{
-                                                                                formatDuracion(
-                                                                                    item.duracion
-                                                                                )
-                                                                            }})</span
-                                                                        >
-                                                                    </small>
-                                                                </div>
-                                                            </div>
-                                                            <div v-else class="text-muted">
-                                                                No hay audios para este estudio.
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Cargar Audios para Transcribir -->
-                                                    <div class="row">
-                                                        <div class="col-12">
-                                                            <h5 class="text-primary">
-                                                                <i class="fa fa-file-audio-o"></i>
-                                                                Cargar Audios para Transcribir
-                                                            </h5>
-                                                            <hr />
-
-                                                            <!-- Zona de carga -->
-                                                            <div class="form-group">
-                                                                <label
-                                                                    for="audioFileInput"
-                                                                    class="btn btn-outline-primary btn-block"
-                                                                >
-                                                                    <i class="fa fa-upload"></i>
-                                                                    Seleccionar Archivos de Audio
-                                                                    <span
-                                                                        v-if="audiosSubiendo > 0"
-                                                                        class="ml-2"
-                                                                    >
-                                                                        <i
-                                                                            class="fa fa-spinner fa-spin"
-                                                                        ></i>
-                                                                        Subiendo ({{
-                                                                            audiosSubiendo
-                                                                        }})
-                                                                    </span>
-                                                                </label>
-                                                                <input
-                                                                    type="file"
-                                                                    id="audioFileInput"
-                                                                    ref="audioFileInput"
-                                                                    multiple
-                                                                    accept=".mp3,.wav,.m4a,.webm,.ogg,.flac"
-                                                                    @change="handleAudioFileSelect"
-                                                                    style="display: none"
-                                                                />
-                                                                <small class="text-muted">
-                                                                    Formatos: mp3, wav, m4a, webm,
-                                                                    ogg | Maximo: 100MB
-                                                                </small>
-                                                            </div>
-
-                                                            <!-- Lista de audios cargados pendientes -->
-                                                            <div
-                                                                v-if="
-                                                                    audiosCargadosPendientes.length >
-                                                                    0
-                                                                "
-                                                                class="mt-3"
-                                                            >
-                                                                <!-- Selector de modo de transcripcion -->
-                                                                <div class="form-group">
-                                                                    <label class="font-weight-bold"
-                                                                        >Modo de
-                                                                        transcripcion:</label
-                                                                    >
-                                                                    <div
-                                                                        class="custom-control custom-radio custom-control-inline"
-                                                                    >
-                                                                        <input
-                                                                            type="radio"
-                                                                            id="modoReemplazar"
-                                                                            name="modoTranscripcion"
-                                                                            value="reemplazar"
-                                                                            v-model="
-                                                                                modoTranscripcion
-                                                                            "
-                                                                            class="custom-control-input"
-                                                                        />
-                                                                        <label
-                                                                            class="custom-control-label"
-                                                                            for="modoReemplazar"
-                                                                        >
-                                                                            Reemplazar texto actual
-                                                                        </label>
-                                                                    </div>
-                                                                    <div
-                                                                        class="custom-control custom-radio custom-control-inline"
-                                                                    >
-                                                                        <input
-                                                                            type="radio"
-                                                                            id="modoAgregar"
-                                                                            name="modoTranscripcion"
-                                                                            value="agregar"
-                                                                            v-model="
-                                                                                modoTranscripcion
-                                                                            "
-                                                                            class="custom-control-input"
-                                                                        />
-                                                                        <label
-                                                                            class="custom-control-label"
-                                                                            for="modoAgregar"
-                                                                        >
-                                                                            Agregar al texto actual
-                                                                        </label>
-                                                                    </div>
-                                                                </div>
-
-                                                                <!-- Tarjetas de audio -->
-                                                                <div
-                                                                    v-for="(
-                                                                        audio, index
-                                                                    ) in audiosCargadosPendientes"
-                                                                    :key="audio.id"
-                                                                    class="card mb-2 shadow-sm"
-                                                                >
-                                                                    <div class="card-body p-2">
-                                                                        <div
-                                                                            class="d-flex align-items-center mb-1"
-                                                                        >
-                                                                            <div
-                                                                                class="custom-control custom-checkbox mr-2"
-                                                                            >
-                                                                                <input
-                                                                                    type="checkbox"
-                                                                                    :id="
-                                                                                        'check-audio-' +
-                                                                                        audio.id
-                                                                                    "
-                                                                                    :value="
-                                                                                        audio.id
-                                                                                    "
-                                                                                    v-model="
-                                                                                        audioSeleccionados
-                                                                                    "
-                                                                                    class="custom-control-input"
-                                                                                />
-                                                                                <label
-                                                                                    :for="
-                                                                                        'check-audio-' +
-                                                                                        audio.id
-                                                                                    "
-                                                                                    class="custom-control-label"
-                                                                                    aria-label="Seleccionar"
-                                                                                ></label>
-                                                                            </div>
-                                                                            <i
-                                                                                class="fa fa-file-audio-o text-muted mr-1"
-                                                                            ></i>
-                                                                            <strong
-                                                                                class="mr-2 text-truncate"
                                                                                 style="
-                                                                                    max-width: 180px;
-                                                                                "
-                                                                                :title="
-                                                                                    audio.nombre_original
-                                                                                "
-                                                                            >
-                                                                                {{
-                                                                                    audio.nombre_original ||
-                                                                                    "Audio " +
-                                                                                        (index + 1)
-                                                                                }}
-                                                                            </strong>
-                                                                            <span
-                                                                                class="badge mr-1"
-                                                                                :class="
-                                                                                    badgeClaseEstado(
-                                                                                        audio.transcripcion_estado
-                                                                                    )
-                                                                                "
-                                                                            >
-                                                                                {{
-                                                                                    audio.transcripcion_estado ||
-                                                                                    "Pendiente"
-                                                                                }}
-                                                                            </span>
-                                                                            <small
-                                                                                class="text-muted mr-1"
-                                                                                v-if="
-                                                                                    audio.duracion
+                                                                                    min-width: 70px;
                                                                                 "
                                                                             >
                                                                                 <i
-                                                                                    class="fa fa-clock-o"
+                                                                                    :class="
+                                                                                        item.tipo ===
+                                                                                        'cargado'
+                                                                                            ? 'fa fa-upload'
+                                                                                            : 'fa fa-microphone'
+                                                                                    "
                                                                                 ></i>
                                                                                 {{
-                                                                                    formatDuracion(
-                                                                                        audio.duracion
-                                                                                    )
+                                                                                    item.tipo ===
+                                                                                    "cargado"
+                                                                                        ? "Cargado"
+                                                                                        : "Grabado"
                                                                                 }}
-                                                                            </small>
-                                                                            <small
-                                                                                class="text-muted"
-                                                                                v-if="audio.tamano"
-                                                                            >
-                                                                                {{
-                                                                                    formatSize(
-                                                                                        audio.tamano
-                                                                                    )
-                                                                                }}
-                                                                            </small>
-                                                                        </div>
-
-                                                                        <div
-                                                                            class="d-flex align-items-center"
-                                                                            style="min-width: 0"
-                                                                        >
+                                                                            </span>
                                                                             <audio
                                                                                 :src="
-                                                                                    obtenerAudioUrl(
-                                                                                        audio
-                                                                                    )
+                                                                                    '/audios/' +
+                                                                                    item.audio
                                                                                 "
                                                                                 controls
                                                                                 style="
                                                                                     height: 30px;
                                                                                     flex: 1;
-                                                                                    min-width: 0;
-                                                                                    max-width: 100%;
                                                                                 "
                                                                             ></audio>
                                                                             <button
+                                                                                v-if="
+                                                                                    item.tipo ===
+                                                                                    'cargado'
+                                                                                "
                                                                                 type="button"
-                                                                                class="btn btn-sm btn-outline-primary ml-1"
-                                                                                style="
-                                                                                    white-space: nowrap;
-                                                                                "
-                                                                                @click="
-                                                                                    insertarAudioIndividual(
-                                                                                        audio
-                                                                                    )
-                                                                                "
-                                                                                :disabled="
-                                                                                    transcribiendo
-                                                                                "
-                                                                                title="Transcribir este audio a la lectura"
-                                                                            >
-                                                                                <i
-                                                                                    class="fa fa-file-text-o"
-                                                                                ></i>
-                                                                                Transcribir
-                                                                            </button>
-                                                                            <button
-                                                                                type="button"
-                                                                                class="btn btn-sm btn-outline-danger ml-1"
+                                                                                class="btn btn-danger btn-sm ml-2"
                                                                                 @click="
                                                                                     eliminarAudioCargado(
-                                                                                        audio.id
+                                                                                        item.id
                                                                                     )
                                                                                 "
                                                                                 :disabled="
                                                                                     eliminandoAudioId ===
-                                                                                    audio.id
+                                                                                    item.id
                                                                                 "
                                                                                 title="Eliminar audio"
                                                                                 aria-label="Eliminar audio"
@@ -1121,7 +858,7 @@
                                                                                 <i
                                                                                     v-if="
                                                                                         eliminandoAudioId ===
-                                                                                        audio.id
+                                                                                        item.id
                                                                                     "
                                                                                     class="fa fa-spinner fa-spin"
                                                                                 ></i>
@@ -1131,326 +868,633 @@
                                                                                 ></i>
                                                                             </button>
                                                                         </div>
-
-                                                                        <div
+                                                                        <small
+                                                                            class="text-muted"
                                                                             v-if="
-                                                                                audio.transcripcion
-                                                                            "
-                                                                            class="bg-light rounded p-1 mt-1"
-                                                                            style="
-                                                                                font-size: 0.8rem;
-                                                                                max-height: 40px;
-                                                                                overflow: hidden;
+                                                                                item.nombre_original
                                                                             "
                                                                         >
                                                                             {{
-                                                                                previewTranscripcion(
-                                                                                    audio.transcripcion,
-                                                                                    120
-                                                                                )
+                                                                                item.nombre_original
                                                                             }}
                                                                             <span
-                                                                                v-if="
-                                                                                    audio
-                                                                                        .transcripcion
-                                                                                        .length >
-                                                                                    120
-                                                                                "
-                                                                                class="text-primary small"
-                                                                                >...</span
+                                                                                v-if="item.duracion"
+                                                                                >({{
+                                                                                    formatDuracion(
+                                                                                        item.duracion
+                                                                                    )
+                                                                                }})</span
                                                                             >
-                                                                        </div>
+                                                                        </small>
                                                                     </div>
                                                                 </div>
-
-                                                                <!-- Boton de insertar batch -->
-                                                                <button
-                                                                    type="button"
-                                                                    class="btn btn-primary btn-block mt-3"
-                                                                    @click="
-                                                                        transcribirAudiosSeleccionados
-                                                                    "
-                                                                    :disabled="
-                                                                        insertandoAudios ||
-                                                                        audioSeleccionados.length ===
-                                                                            0
-                                                                    "
-                                                                >
-                                                                    <i
-                                                                        v-if="insertandoAudios"
-                                                                        class="fa fa-spinner fa-spin"
-                                                                    ></i>
-                                                                    <i
-                                                                        v-else
-                                                                        class="fa fa-file-text-o"
-                                                                    ></i>
-                                                                    {{
-                                                                        insertandoAudios
-                                                                            ? "Insertando..."
-                                                                            : "Insertar Seleccionados en Lectura"
-                                                                    }}
-                                                                </button>
-                                                            </div>
-
-                                                            <div v-else class="text-muted mt-3">
-                                                                No hay audios cargados pendientes de
-                                                                transcripcion.
+                                                                <div v-else class="text-muted">
+                                                                    No hay audios para este estudio.
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                </template>
-                                            </div>
-                                            <div
-                                                class="tab-pane p-20"
-                                                id="motivo_examen_hc"
-                                                role="tabpanel"
-                                            >
-                                                <div class="form-group">
-                                                    <textarea
-                                                        id="motivo_examen"
-                                                        name="motivo_examen"
-                                                        v-model="registro.motivo_examen"
-                                                        class="form-control"
-                                                        placeholder="Ingrese aquí las observaciones del estudio"
-                                                        rows="11"
-                                                    ></textarea>
-                                                </div>
-                                            </div>
-                                            <div
-                                                class="tab-pane p-20"
-                                                id="history_estudios"
-                                                role="tabpanel"
-                                            >
-                                                <div
-                                                    v-if="historial_estudios.length === 0"
-                                                    class="text-center py-4 text-muted"
-                                                >
-                                                    <i class="fa fa-history fa-2x mb-3"></i>
-                                                    <p>
-                                                        No hay historial de estudios para este
-                                                        paciente.
-                                                    </p>
-                                                </div>
-                                                <table
-                                                    v-else
-                                                    id="tablaLeerEstudiosPrevios"
-                                                    class="table table-bordered table-striped"
-                                                    cellspacing="0"
-                                                    width="100%"
-                                                >
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Fecha del Estudio</th>
-                                                            <th>Fecha de lectura</th>
-                                                            <th>Producto</th>
-                                                            <th></th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <tr
-                                                            v-for="item in historial_estudios"
-                                                            :key="item.estudio_producto_id"
-                                                        >
-                                                            <td>{{ item.fec_estudio }}</td>
-                                                            <td>{{ item.fechor_lectura }}</td>
-                                                            <td>{{ item.nom_produc }}</td>
-                                                            <td class="text-nowrap">
-                                                                <button
-                                                                    type="button"
-                                                                    class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
-                                                                    @click="imprimirReporte(item)"
-                                                                    title="Imprimir reporte"
-                                                                    aria-label="Imprimir reporte"
-                                                                    :disabled="
-                                                                        loadingImprimir ===
-                                                                        item.estudio_producto_id
-                                                                    "
-                                                                >
+
+                                                        <!-- Cargar Audios para Transcribir -->
+                                                        <div class="row">
+                                                            <div class="col-12">
+                                                                <h5 class="text-primary">
                                                                     <i
-                                                                        v-if="
+                                                                        class="fa fa-file-audio-o"
+                                                                    ></i>
+                                                                    Cargar Audios para Transcribir
+                                                                </h5>
+                                                                <hr />
+
+                                                                <!-- Zona de carga -->
+                                                                <div class="form-group">
+                                                                    <label
+                                                                        for="audioFileInput"
+                                                                        class="btn btn-outline-primary btn-block"
+                                                                    >
+                                                                        <i class="fa fa-upload"></i>
+                                                                        Seleccionar Archivos de
+                                                                        Audio
+                                                                        <span
+                                                                            v-if="
+                                                                                audiosSubiendo > 0
+                                                                            "
+                                                                            class="ml-2"
+                                                                        >
+                                                                            <i
+                                                                                class="fa fa-spinner fa-spin"
+                                                                            ></i>
+                                                                            Subiendo ({{
+                                                                                audiosSubiendo
+                                                                            }})
+                                                                        </span>
+                                                                    </label>
+                                                                    <input
+                                                                        type="file"
+                                                                        id="audioFileInput"
+                                                                        ref="audioFileInput"
+                                                                        multiple
+                                                                        accept=".mp3,.wav,.m4a,.webm,.ogg,.flac"
+                                                                        @change="
+                                                                            handleAudioFileSelect
+                                                                        "
+                                                                        style="display: none"
+                                                                    />
+                                                                    <small class="text-muted">
+                                                                        Formatos: mp3, wav, m4a,
+                                                                        webm, ogg | Maximo: 100MB
+                                                                    </small>
+                                                                </div>
+
+                                                                <!-- Lista de audios cargados pendientes -->
+                                                                <div
+                                                                    v-if="
+                                                                        audiosCargadosPendientes.length >
+                                                                        0
+                                                                    "
+                                                                    class="mt-3"
+                                                                >
+                                                                    <!-- Selector de modo de transcripcion -->
+                                                                    <div class="form-group">
+                                                                        <label
+                                                                            class="font-weight-bold"
+                                                                            >Modo de
+                                                                            transcripcion:</label
+                                                                        >
+                                                                        <div
+                                                                            class="custom-control custom-radio custom-control-inline"
+                                                                        >
+                                                                            <input
+                                                                                type="radio"
+                                                                                id="modoReemplazar"
+                                                                                name="modoTranscripcion"
+                                                                                value="reemplazar"
+                                                                                v-model="
+                                                                                    modoTranscripcion
+                                                                                "
+                                                                                class="custom-control-input"
+                                                                            />
+                                                                            <label
+                                                                                class="custom-control-label"
+                                                                                for="modoReemplazar"
+                                                                            >
+                                                                                Reemplazar texto
+                                                                                actual
+                                                                            </label>
+                                                                        </div>
+                                                                        <div
+                                                                            class="custom-control custom-radio custom-control-inline"
+                                                                        >
+                                                                            <input
+                                                                                type="radio"
+                                                                                id="modoAgregar"
+                                                                                name="modoTranscripcion"
+                                                                                value="agregar"
+                                                                                v-model="
+                                                                                    modoTranscripcion
+                                                                                "
+                                                                                class="custom-control-input"
+                                                                            />
+                                                                            <label
+                                                                                class="custom-control-label"
+                                                                                for="modoAgregar"
+                                                                            >
+                                                                                Agregar al texto
+                                                                                actual
+                                                                            </label>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <!-- Tarjetas de audio -->
+                                                                    <div
+                                                                        v-for="(
+                                                                            audio, index
+                                                                        ) in audiosCargadosPendientes"
+                                                                        :key="audio.id"
+                                                                        class="card mb-2 shadow-sm"
+                                                                    >
+                                                                        <div class="card-body p-2">
+                                                                            <div
+                                                                                class="d-flex align-items-center mb-1"
+                                                                            >
+                                                                                <div
+                                                                                    class="custom-control custom-checkbox mr-2"
+                                                                                >
+                                                                                    <input
+                                                                                        type="checkbox"
+                                                                                        :id="
+                                                                                            'check-audio-' +
+                                                                                            audio.id
+                                                                                        "
+                                                                                        :value="
+                                                                                            audio.id
+                                                                                        "
+                                                                                        v-model="
+                                                                                            audioSeleccionados
+                                                                                        "
+                                                                                        class="custom-control-input"
+                                                                                    />
+                                                                                    <label
+                                                                                        :for="
+                                                                                            'check-audio-' +
+                                                                                            audio.id
+                                                                                        "
+                                                                                        class="custom-control-label"
+                                                                                        aria-label="Seleccionar"
+                                                                                    ></label>
+                                                                                </div>
+                                                                                <i
+                                                                                    class="fa fa-file-audio-o text-muted mr-1"
+                                                                                ></i>
+                                                                                <strong
+                                                                                    class="mr-2 text-truncate"
+                                                                                    style="
+                                                                                        max-width: 180px;
+                                                                                    "
+                                                                                    :title="
+                                                                                        audio.nombre_original
+                                                                                    "
+                                                                                >
+                                                                                    {{
+                                                                                        audio.nombre_original ||
+                                                                                        "Audio " +
+                                                                                            (index +
+                                                                                                1)
+                                                                                    }}
+                                                                                </strong>
+                                                                                <span
+                                                                                    class="badge mr-1"
+                                                                                    :class="
+                                                                                        badgeClaseEstado(
+                                                                                            audio.transcripcion_estado
+                                                                                        )
+                                                                                    "
+                                                                                >
+                                                                                    {{
+                                                                                        audio.transcripcion_estado ||
+                                                                                        "Pendiente"
+                                                                                    }}
+                                                                                </span>
+                                                                                <small
+                                                                                    class="text-muted mr-1"
+                                                                                    v-if="
+                                                                                        audio.duracion
+                                                                                    "
+                                                                                >
+                                                                                    <i
+                                                                                        class="fa fa-clock-o"
+                                                                                    ></i>
+                                                                                    {{
+                                                                                        formatDuracion(
+                                                                                            audio.duracion
+                                                                                        )
+                                                                                    }}
+                                                                                </small>
+                                                                                <small
+                                                                                    class="text-muted"
+                                                                                    v-if="
+                                                                                        audio.tamano
+                                                                                    "
+                                                                                >
+                                                                                    {{
+                                                                                        formatSize(
+                                                                                            audio.tamano
+                                                                                        )
+                                                                                    }}
+                                                                                </small>
+                                                                            </div>
+
+                                                                            <div
+                                                                                class="d-flex align-items-center"
+                                                                                style="min-width: 0"
+                                                                            >
+                                                                                <audio
+                                                                                    :src="
+                                                                                        obtenerAudioUrl(
+                                                                                            audio
+                                                                                        )
+                                                                                    "
+                                                                                    controls
+                                                                                    style="
+                                                                                        height: 30px;
+                                                                                        flex: 1;
+                                                                                        min-width: 0;
+                                                                                        max-width: 100%;
+                                                                                    "
+                                                                                ></audio>
+                                                                                <button
+                                                                                    type="button"
+                                                                                    class="btn btn-sm btn-outline-primary ml-1"
+                                                                                    style="
+                                                                                        white-space: nowrap;
+                                                                                    "
+                                                                                    @click="
+                                                                                        insertarAudioIndividual(
+                                                                                            audio
+                                                                                        )
+                                                                                    "
+                                                                                    :disabled="
+                                                                                        transcribiendo
+                                                                                    "
+                                                                                    title="Transcribir este audio a la lectura"
+                                                                                >
+                                                                                    <i
+                                                                                        class="fa fa-file-text-o"
+                                                                                    ></i>
+                                                                                    Transcribir
+                                                                                </button>
+                                                                                <button
+                                                                                    type="button"
+                                                                                    class="btn btn-sm btn-outline-danger ml-1"
+                                                                                    @click="
+                                                                                        eliminarAudioCargado(
+                                                                                            audio.id
+                                                                                        )
+                                                                                    "
+                                                                                    :disabled="
+                                                                                        eliminandoAudioId ===
+                                                                                        audio.id
+                                                                                    "
+                                                                                    title="Eliminar audio"
+                                                                                    aria-label="Eliminar audio"
+                                                                                >
+                                                                                    <i
+                                                                                        v-if="
+                                                                                            eliminandoAudioId ===
+                                                                                            audio.id
+                                                                                        "
+                                                                                        class="fa fa-spinner fa-spin"
+                                                                                    ></i>
+                                                                                    <i
+                                                                                        v-else
+                                                                                        class="fa fa-trash"
+                                                                                    ></i>
+                                                                                </button>
+                                                                            </div>
+
+                                                                            <div
+                                                                                v-if="
+                                                                                    audio.transcripcion
+                                                                                "
+                                                                                class="bg-light rounded p-1 mt-1"
+                                                                                style="
+                                                                                    font-size: 0.8rem;
+                                                                                    max-height: 40px;
+                                                                                    overflow: hidden;
+                                                                                "
+                                                                            >
+                                                                                {{
+                                                                                    previewTranscripcion(
+                                                                                        audio.transcripcion,
+                                                                                        120
+                                                                                    )
+                                                                                }}
+                                                                                <span
+                                                                                    v-if="
+                                                                                        audio
+                                                                                            .transcripcion
+                                                                                            .length >
+                                                                                        120
+                                                                                    "
+                                                                                    class="text-primary small"
+                                                                                    >...</span
+                                                                                >
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <!-- Boton de insertar batch -->
+                                                                    <button
+                                                                        type="button"
+                                                                        class="btn btn-primary btn-block mt-3"
+                                                                        @click="
+                                                                            transcribirAudiosSeleccionados
+                                                                        "
+                                                                        :disabled="
+                                                                            insertandoAudios ||
+                                                                            audioSeleccionados.length ===
+                                                                                0
+                                                                        "
+                                                                    >
+                                                                        <i
+                                                                            v-if="insertandoAudios"
+                                                                            class="fa fa-spinner fa-spin"
+                                                                        ></i>
+                                                                        <i
+                                                                            v-else
+                                                                            class="fa fa-file-text-o"
+                                                                        ></i>
+                                                                        {{
+                                                                            insertandoAudios
+                                                                                ? "Insertando..."
+                                                                                : "Insertar Seleccionados en Lectura"
+                                                                        }}
+                                                                    </button>
+                                                                </div>
+
+                                                                <div v-else class="text-muted mt-3">
+                                                                    No hay audios cargados
+                                                                    pendientes de transcripcion.
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                                <div
+                                                    class="tab-pane p-20"
+                                                    id="motivo_examen_hc"
+                                                    role="tabpanel"
+                                                >
+                                                    <div class="form-group">
+                                                        <textarea
+                                                            id="motivo_examen"
+                                                            name="motivo_examen"
+                                                            v-model="registro.motivo_examen"
+                                                            class="form-control"
+                                                            placeholder="Ingrese aquí las observaciones del estudio"
+                                                            rows="11"
+                                                        ></textarea>
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    class="tab-pane p-20"
+                                                    id="history_estudios"
+                                                    role="tabpanel"
+                                                >
+                                                    <div
+                                                        v-if="historial_estudios.length === 0"
+                                                        class="text-center py-4 text-muted"
+                                                    >
+                                                        <i class="fa fa-history fa-2x mb-3"></i>
+                                                        <p>
+                                                            No hay historial de estudios para este
+                                                            paciente.
+                                                        </p>
+                                                    </div>
+                                                    <table
+                                                        v-else
+                                                        id="tablaLeerEstudiosPrevios"
+                                                        class="table table-bordered table-striped"
+                                                        cellspacing="0"
+                                                        width="100%"
+                                                    >
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Fecha del Estudio</th>
+                                                                <th>Fecha de lectura</th>
+                                                                <th>Producto</th>
+                                                                <th></th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr
+                                                                v-for="item in historial_estudios"
+                                                                :key="item.estudio_producto_id"
+                                                            >
+                                                                <td>{{ item.fec_estudio }}</td>
+                                                                <td>{{ item.fechor_lectura }}</td>
+                                                                <td>{{ item.nom_produc }}</td>
+                                                                <td class="text-nowrap">
+                                                                    <button
+                                                                        type="button"
+                                                                        class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm"
+                                                                        @click="
+                                                                            imprimirReporte(item)
+                                                                        "
+                                                                        title="Imprimir reporte"
+                                                                        aria-label="Imprimir reporte"
+                                                                        :disabled="
                                                                             loadingImprimir ===
                                                                             item.estudio_producto_id
                                                                         "
-                                                                        class="fa fa-spinner fa-spin"
-                                                                    ></i>
-                                                                    <i
-                                                                        v-else
-                                                                        class="fa fa-file-pdf-o"
-                                                                    ></i>
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
+                                                                    >
+                                                                        <i
+                                                                            v-if="
+                                                                                loadingImprimir ===
+                                                                                item.estudio_producto_id
+                                                                            "
+                                                                            class="fa fa-spinner fa-spin"
+                                                                        ></i>
+                                                                        <i
+                                                                            v-else
+                                                                            class="fa fa-file-pdf-o"
+                                                                        ></i>
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <div
-                                    class="p-2 rounded border border-danger d-flex align-items-center justify-content-between"
-                                    style="background-color: #fff5f5; border: 1px solid #f5c2c7"
-                                >
-                                    <div class="d-flex align-items-center">
-                                        <i
-                                            class="fa fa-exclamation-triangle fa-2x text-danger mr-3"
-                                        ></i>
-                                        <div>
-                                            <h6 class="mb-0 text-danger font-weight-bold">
-                                                Hallazgo Crítico en Urgencias / UCI
-                                            </h6>
-                                            <small class="text-muted">
-                                                Escala a prioridad máxima y emite alerta inmediata a
-                                                Telegram asistencial.
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div
+                                        class="p-2 rounded border border-danger d-flex align-items-center justify-content-between"
+                                        style="background-color: #fff5f5; border: 1px solid #f5c2c7"
+                                    >
+                                        <div class="d-flex align-items-center">
+                                            <i
+                                                class="fa fa-exclamation-triangle fa-2x text-danger mr-3"
+                                            ></i>
+                                            <div>
+                                                <h6 class="mb-0 text-danger font-weight-bold">
+                                                    Hallazgo Crítico en Urgencias / UCI
+                                                </h6>
+                                                <small class="text-muted">
+                                                    Escala a prioridad máxima y emite alerta
+                                                    inmediata a Telegram asistencial.
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <div
+                                            class="custom-control custom-checkbox custom-control-inline m-0"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                id="check_es_critico_leer"
+                                                v-model="registro.es_critico"
+                                                class="custom-control-input"
+                                            />
+                                            <label
+                                                class="custom-control-label text-danger font-weight-bold"
+                                                for="check_es_critico_leer"
+                                            >
+                                                Marcar Crítico
+                                            </label>
+                                        </div>
+                                        <div
+                                            v-if="registro.es_critico"
+                                            class="w-100 mt-2 pt-2 border-top border-danger"
+                                        >
+                                            <label
+                                                class="small font-weight-bold text-danger mb-1"
+                                                for="input_motivo_critico_leer"
+                                            >
+                                                <i class="fa fa-stethoscope mr-1"></i>
+                                                ¿Por qué se requiere valoración inmediata? (Hallazgo
+                                                puntual opcional):
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="input_motivo_critico_leer"
+                                                v-model="registro.motivo_critico"
+                                                class="form-control form-control-sm border-danger"
+                                                placeholder="Ej: Neumotórax a tensión derecho / Hemorragia subaracnoidea aguda..."
+                                                maxlength="500"
+                                            />
+                                            <small
+                                                class="text-muted d-block mt-1"
+                                                style="font-size: 11px"
+                                            >
+                                                Si se deja en blanco, el sistema extraerá
+                                                automáticamente la conclusión u opinión del informe.
                                             </small>
                                         </div>
                                     </div>
-                                    <div
-                                        class="custom-control custom-checkbox custom-control-inline m-0"
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            id="check_es_critico_leer"
-                                            v-model="registro.es_critico"
-                                            class="custom-control-input"
-                                        />
-                                        <label
-                                            class="custom-control-label text-danger font-weight-bold"
-                                            for="check_es_critico_leer"
-                                        >
-                                            Marcar Crítico
-                                        </label>
-                                    </div>
-                                    <div
-                                        v-if="registro.es_critico"
-                                        class="w-100 mt-2 pt-2 border-top border-danger"
-                                    >
-                                        <label
-                                            class="small font-weight-bold text-danger mb-1"
-                                            for="input_motivo_critico_leer"
-                                        >
-                                            <i class="fa fa-stethoscope mr-1"></i>
-                                            ¿Por qué se requiere valoración inmediata? (Hallazgo
-                                            puntual opcional):
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="input_motivo_critico_leer"
-                                            v-model="registro.motivo_critico"
-                                            class="form-control form-control-sm border-danger"
-                                            placeholder="Ej: Neumotórax a tensión derecho / Hemorragia subaracnoidea aguda..."
-                                            maxlength="500"
-                                        />
-                                        <small
-                                            class="text-muted d-block mt-1"
-                                            style="font-size: 11px"
-                                        >
-                                            Si se deja en blanco, el sistema extraerá
-                                            automáticamente la conclusión u opinión del informe.
-                                        </small>
-                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="form-actions mt-3">
-                            <button
-                                type="button"
-                                class="btn btn-success m-r-5"
-                                @click="guardarRegistro()"
-                                :disabled="loadingGuardar"
-                                title="Guardar informe (Ctrl + S)"
-                            >
-                                <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
-                                <i v-else class="fa fa-check"></i>
-                                Guardar
-                                <span
-                                    class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                                    style="font-size: 10px"
-                                    >Ctrl+S</span
+                            <div class="form-actions mt-3">
+                                <button
+                                    type="button"
+                                    class="btn btn-success m-r-5"
+                                    @click="guardarRegistro()"
+                                    :disabled="loadingGuardar"
+                                    title="Guardar informe (Ctrl + S)"
                                 >
-                            </button>
+                                    <i v-if="loadingGuardar" class="fa fa-spinner fa-spin"></i>
+                                    <i v-else class="fa fa-check"></i>
+                                    Guardar
+                                    <span
+                                        class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                                        style="font-size: 10px"
+                                        >Ctrl+S</span
+                                    >
+                                </button>
 
-                            <button
-                                type="button"
-                                class="btn btn-inverse"
-                                @click="cerrarSidebar()"
-                                title="Cerrar panel (Esc)"
-                            >
-                                Cancelar
-                                <span
-                                    class="badge badge-secondary ml-1 d-none d-md-inline"
-                                    style="font-size: 10px"
-                                    >Esc</span
+                                <button
+                                    type="button"
+                                    class="btn btn-inverse"
+                                    @click="cerrarSidebar()"
+                                    title="Cerrar panel (Esc)"
                                 >
-                            </button>
+                                    Cancelar
+                                    <span
+                                        class="badge badge-secondary ml-1 d-none d-md-inline"
+                                        style="font-size: 10px"
+                                        >Esc</span
+                                    >
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
-        </div>
 
-        <!-- ============================================================== -->
-        <!-- Floating Dictation Capsule (Widget flotante de dictado por voz)-->
-        <!-- ============================================================== -->
-        <transition name="fade-slide">
-            <div
-                v-if="sidebarVisible"
-                class="floating-dictation-pill"
-                :class="{
-                    'is-recording': recording,
-                    'is-listening': recognizing && !recording,
-                    'is-idle': !recording && !recognizing,
-                    'is-dark': isDarkMode,
-                }"
-            >
-                <div class="pill-indicator">
-                    <span class="status-dot"></span>
-                </div>
-
-                <div class="pill-waveform" v-if="recording || recognizing">
-                    <span class="wave-bar bar-1"></span>
-                    <span class="wave-bar bar-2"></span>
-                    <span class="wave-bar bar-3"></span>
-                    <span class="wave-bar bar-4"></span>
-                </div>
-
-                <div class="pill-info">
-                    <span class="pill-status-text">
-                        {{
-                            recording
-                                ? "Grabando Audio"
-                                : recognizing
-                                  ? "Escuchando Voz"
-                                  : "Dictado Inactivo"
-                        }}
-                    </span>
-                    <span class="pill-shortcut text-muted">F2</span>
-                </div>
-
-                <button
-                    type="button"
-                    class="btn btn-circle pill-btn"
-                    :class="recording || recognizing ? 'btn-danger' : 'btn-info'"
-                    @click="toggleSpeechRecognition"
-                    :title="
-                        recording || recognizing
-                            ? 'Pausar / Detener dictado (F2)'
-                            : 'Iniciar dictado por voz (F2)'
-                    "
+            <!-- ============================================================== -->
+            <!-- Floating Dictation Capsule (Widget flotante de dictado por voz)-->
+            <!-- ============================================================== -->
+            <transition name="fade-slide">
+                <div
+                    v-if="sidebarVisible"
+                    class="floating-dictation-pill"
+                    :class="{
+                        'is-recording': recording,
+                        'is-listening': recognizing && !recording,
+                        'is-idle': !recording && !recognizing,
+                        'is-dark': isDarkMode,
+                    }"
                 >
-                    <i :class="recording || recognizing ? 'fa fa-stop' : 'fa fa-microphone'"></i>
-                </button>
-            </div>
-        </transition>
+                    <div class="pill-indicator">
+                        <span class="status-dot"></span>
+                    </div>
+
+                    <div class="pill-waveform" v-if="recording || recognizing">
+                        <span class="wave-bar bar-1"></span>
+                        <span class="wave-bar bar-2"></span>
+                        <span class="wave-bar bar-3"></span>
+                        <span class="wave-bar bar-4"></span>
+                    </div>
+
+                    <div class="pill-info">
+                        <span class="pill-status-text">
+                            {{
+                                recording
+                                    ? "Grabando Audio"
+                                    : recognizing
+                                      ? "Escuchando Voz"
+                                      : "Dictado Inactivo"
+                            }}
+                        </span>
+                        <span class="pill-shortcut text-muted">F2</span>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="btn btn-circle pill-btn"
+                        :class="recording || recognizing ? 'btn-danger' : 'btn-info'"
+                        @click="toggleSpeechRecognition"
+                        :title="
+                            recording || recognizing
+                                ? 'Pausar / Detener dictado (F2)'
+                                : 'Iniciar dictado por voz (F2)'
+                        "
+                    >
+                        <i
+                            :class="recording || recognizing ? 'fa fa-stop' : 'fa fa-microphone'"
+                        ></i>
+                    </button>
+                </div>
+            </transition>
+        </div>
+        <!-- ============================================================== -->
+        <!-- End Right sidebar -->
+        <!-- ============================================================== -->
     </div>
-    <!-- ============================================================== -->
-    <!-- End Right sidebar -->
-    <!-- ============================================================== -->
 </template>
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";

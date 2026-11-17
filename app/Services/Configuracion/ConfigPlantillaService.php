@@ -65,12 +65,12 @@ class ConfigPlantillaService extends BaseService
     }
 
     /**
-     * Obtiene las plantillas activas filtradas por tipo y médico.
+     * Obtiene las plantillas activas filtradas exclusivamente por tipo y médico.
      *
      * @param  int  $tipoId  Identificador del tipo de plantilla.
      * @param  int  $medicoId  Identificador del médico.
      *
-     * @returns array Arreglo con la lista de plantillas activas filtradas.
+     * @returns array Arreglo con la lista de plantillas activas del médico para ese tipo.
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -78,13 +78,13 @@ class ConfigPlantillaService extends BaseService
      */
     public function listarActivosPorTipo(int $tipoId, int $medicoId): array
     {
-        return $this->success(
-            ConfigPlantilla::with(['plantillaTipo', 'medico'])
-                ->where('estado', true)
-                ->where('plantilla_tipo_id', $tipoId)
-                ->where('medico_id', $medicoId)
-                ->get()
-        );
+        $plantillas = ConfigPlantilla::with(['plantillaTipo', 'medico'])
+            ->where('estado', true)
+            ->where('plantilla_tipo_id', $tipoId)
+            ->where('medico_id', $medicoId)
+            ->get();
+
+        return $this->success($plantillas);
     }
 
     /**

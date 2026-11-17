@@ -12,6 +12,7 @@ use App\Http\Controllers\Configuracion\ConfigSedeController;
 use App\Http\Controllers\Configuracion\ConfigSedeWhatsappNumberController;
 use App\Http\Controllers\Configuracion\ConfigServicioController;
 use App\Http\Controllers\Configuracion\ConfigTipoDocumentoController;
+use App\Http\Controllers\Configuracion\ConfigTipoRecaudoController;
 use App\Http\Controllers\Configuracion\ConfigWhatsappController;
 use App\Http\Controllers\Configuracion\ConfigWorklistDispositivoController;
 use App\Http\Controllers\Configuracion\ConsentimientoInformadoController;
@@ -73,6 +74,12 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/config-tipos-documentos/listar/activos', [ConfigTipoDocumentoController::class, 'listarActivos'])
         ->name('api.config.tipos.documentos.listar.activos');
+
+    // Tipos de Recaudo
+    Route::get('/config-tipos-recaudo', [ConfigTipoRecaudoController::class, 'index'])
+        ->name('api.config.tipos.recaudo.index');
+    Route::get('/config-tipos-recaudo/listar/activos', [ConfigTipoRecaudoController::class, 'listarActivos'])
+        ->name('api.config.tipos.recaudo.listar.activos');
 
     // Administradiras de salud
     Route::resource('/config-admin-salud', ConfigAdminSaludController::class)

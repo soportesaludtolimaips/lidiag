@@ -29,8 +29,6 @@
     <link href="{{ asset('admin-wrap/assets/node_modules/sweetalert/sweetalert.css') }}" rel="stylesheet" type="text/css">
     <!-- toast CSS -->
     <link href="{{ asset('admin-wrap/assets/node_modules/toast-master/css/jquery.toast.css') }}" rel="stylesheet">
-    <!-- chartist CSS -->
-    <link href="{{ asset('admin-wrap/assets/node_modules/morrisjs/morris.css') }}" rel="stylesheet">
     <!--c3 CSS -->
     <link href="{{ asset('admin-wrap/assets/node_modules/c3-master/c3.min.css') }}" rel="stylesheet">
     <!-- Color picker plugins css -->
@@ -220,9 +218,6 @@
     <script src="{{ asset('admin-wrap/assets/node_modules/html5-editor/wysihtml5-0.3.0.js') }}"></script>
     <script src="{{ asset('admin-wrap/assets/node_modules/html5-editor/bootstrap-wysihtml5.js') }}"></script>
 
-    <!--morris JavaScript -->
-    <script src="{{ asset('admin-wrap/assets/node_modules/raphael/raphael-min.js') }}"></script>
-    <script src="{{ asset('admin-wrap/assets/node_modules/morrisjs/morris.min.js') }}"></script>
     <!--c3 JavaScript -->
     <script src="{{ asset('admin-wrap/assets/node_modules/d3/d3.min.js') }}"></script>
     <script src="{{ asset('admin-wrap/assets/node_modules/c3-master/c3.min.js') }}"></script>

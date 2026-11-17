@@ -30,11 +30,23 @@ class EcografiaStoreRequest extends FormRequest
         return [
             'num_docu' => 'required|string',
             'nombres' => 'required|string',
+            'seg_nom' => 'sometimes|nullable|string',
             'pri_ape' => 'nullable|string',
+            'seg_ape' => 'sometimes|nullable|string',
+            'sexo' => 'sometimes|nullable|string',
+            'fec_naci' => 'sometimes|nullable|string',
+            'direccion' => 'sometimes|nullable|string',
+            'tel' => 'sometimes|nullable|string',
+            'cel' => 'sometimes|nullable|string',
             'sede_id' => 'required|integer',
             'atencion_id' => 'required|string|max:20',
             'medico_id' => 'required|integer',
+            'tipo_recaudo_id' => 'sometimes|nullable|integer|exists:config_tipos_recaudo,id',
             'productosAgenda' => 'required|array',
+            'contrato' => 'sometimes|nullable|string',
+            'plan' => 'sometimes|nullable|string',
+            'admin_salud' => 'sometimes|nullable|string',
+            'quien_ordeno' => 'sometimes|nullable|string',
         ];
     }
 

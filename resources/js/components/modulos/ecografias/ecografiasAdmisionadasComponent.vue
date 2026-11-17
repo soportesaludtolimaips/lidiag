@@ -384,80 +384,80 @@
         <!-- ============================================================== -->
         <!-- End Page Content -->
         <!-- ============================================================== -->
-    </div>
 
-    <div
-        v-if="modalAnularVisible"
-        id="responsive-modal"
-        class="modal show"
-        tabindex="-1"
-        role="dialog"
-        aria-labelledby="myModalLabel"
-        aria-hidden="true"
-        style="display: block; background: rgba(0, 0, 0, 0.5)"
-        @click.self="cerrarModalAnular()"
-    >
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="myModalLabel">Anular Agenda</h4>
-                    <button
-                        type="button"
-                        class="close"
-                        aria-label="Cerrar modal"
-                        @click="cerrarModalAnular()"
-                    >
-                        ×
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form @submit.prevent="anularEcografia()">
-                        <div class="form-group">
-                            <label for="message-text" class="control-label"
-                                >Motivo de anulación: <span class="text-danger">*</span></label
-                            >
-                            <textarea
-                                class="form-control"
-                                id="message-text"
-                                v-model="registroAnular.motivo_anula"
-                                rows="3"
-                                placeholder="Especifique el motivo de la anulación..."
-                            ></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button
-                        type="button"
-                        class="btn btn-default waves-effect"
-                        id="btnCerrarModalAunular"
-                        @click="cerrarModalAnular()"
-                        title="Cancelar y cerrar modal"
-                    >
-                        Cancelar
-                    </button>
-                    <button
-                        type="button"
-                        class="btn btn-danger waves-effect waves-light"
-                        v-if="can('ecografias.anular')"
-                        @click="anularEcografia()"
-                        :disabled="
-                            isAnulandoAdmisionada ||
-                            !(registroAnular.motivo_anula && registroAnular.motivo_anula.trim())
-                        "
-                        title="Confirmar anulación"
-                    >
-                        <i
-                            class="fa"
-                            :class="isAnulandoAdmisionada ? 'fa-spinner fa-spin' : 'fa-trash'"
-                        ></i>
-                        {{ isAnulandoAdmisionada ? "Anulando..." : "Anular" }}
-                        <span
-                            class="badge badge-light text-dark ml-1 d-none d-md-inline"
-                            style="font-size: 10px; opacity: 0.9"
-                            >Ctrl+S</span
+        <div
+            v-if="modalAnularVisible"
+            id="responsive-modal"
+            class="modal show"
+            tabindex="-1"
+            role="dialog"
+            aria-labelledby="myModalLabel"
+            aria-hidden="true"
+            style="display: block; background: rgba(0, 0, 0, 0.5)"
+            @click.self="cerrarModalAnular()"
+        >
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="myModalLabel">Anular Agenda</h4>
+                        <button
+                            type="button"
+                            class="close"
+                            aria-label="Cerrar modal"
+                            @click="cerrarModalAnular()"
                         >
-                    </button>
+                            ×
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form @submit.prevent="anularEcografia()">
+                            <div class="form-group">
+                                <label for="message-text" class="control-label"
+                                    >Motivo de anulación: <span class="text-danger">*</span></label
+                                >
+                                <textarea
+                                    class="form-control"
+                                    id="message-text"
+                                    v-model="registroAnular.motivo_anula"
+                                    rows="3"
+                                    placeholder="Especifique el motivo de la anulación..."
+                                ></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-default waves-effect"
+                            id="btnCerrarModalAunular"
+                            @click="cerrarModalAnular()"
+                            title="Cancelar y cerrar modal"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-danger waves-effect waves-light"
+                            v-if="can('ecografias.anular')"
+                            @click="anularEcografia()"
+                            :disabled="
+                                isAnulandoAdmisionada ||
+                                !(registroAnular.motivo_anula && registroAnular.motivo_anula.trim())
+                            "
+                            title="Confirmar anulación"
+                        >
+                            <i
+                                class="fa"
+                                :class="isAnulandoAdmisionada ? 'fa-spinner fa-spin' : 'fa-trash'"
+                            ></i>
+                            {{ isAnulandoAdmisionada ? "Anulando..." : "Anular" }}
+                            <span
+                                class="badge badge-light text-dark ml-1 d-none d-md-inline"
+                                style="font-size: 10px; opacity: 0.9"
+                                >Ctrl+S</span
+                            >
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

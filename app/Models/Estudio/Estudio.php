@@ -4,6 +4,7 @@ namespace App\Models\Estudio;
 
 use App\Models\Configuracion\ConfigPrioridad;
 use App\Models\Configuracion\ConfigSede;
+use App\Models\Configuracion\ConfigTipoRecaudo;
 use App\Models\General\Paciente;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -24,6 +25,7 @@ class Estudio extends Model
         'mods_in_study',
         'email_reportar',
         'paciente_id',
+        'tipo_recaudo_id',
         'medico_id',
         'quien_registro_id',
         'sede_id',
@@ -115,6 +117,20 @@ class Estudio extends Model
     public function prioridad()
     {
         return $this->belongsTo(ConfigPrioridad::class);
+    }
+
+    /**
+     * Tipo de recaudo asociado (Particular, Cortesía, Por Atención).
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-17
+     */
+    public function tipoRecaudo()
+    {
+        return $this->belongsTo(ConfigTipoRecaudo::class, 'tipo_recaudo_id');
     }
 
     /**

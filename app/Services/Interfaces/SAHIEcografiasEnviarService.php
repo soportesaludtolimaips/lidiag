@@ -70,10 +70,20 @@ class SAHIEcografiasEnviarService extends BaseService
      */
     public function enviarPorEcografiaProducto(int $ecografiaProductoId): array
     {
-        $ecoProd = EcografiaProducto::where('id', $ecografiaProductoId)->first();
+        $ecoProd = EcografiaProducto::with('ecografia.tipoRecaudo')->where('id', $ecografiaProductoId)->first();
 
         if (! $ecoProd) {
             return $this->notFound('No se encontró el producto de ecografía en LIDiag.');
+        }
+
+        // Si el tipo de recaudo no envía a SAHI (Particular, Cortesía), se omite el envío a SQL Server
+        $tipoRecaudo = $ecoProd->ecografia?->tipoRecaudo;
+        if ($tipoRecaudo && ! $tipoRecaudo->envia_sahi) {
+            return $this->success([
+                'ecografia_producto_id' => $ecoProd->id,
+                'omitido_sahi' => true,
+                'tipo_recaudo' => $tipoRecaudo->nombre,
+            ], "Procedimiento con recaudo '{$tipoRecaudo->nombre}' configurado para envío exclusivo al portal paciente (no transmite a SAHI).");
         }
 
         if ($ecoProd->estado_envio_sahi === 'ENVIADO') {

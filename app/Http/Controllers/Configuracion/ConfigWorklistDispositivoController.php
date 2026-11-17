@@ -21,14 +21,14 @@ class ConfigWorklistDispositivoController extends Controller
         private readonly ConfigWorklistDispositivoService $dispositivoService
     ) {
         $this->middleware('auth:sanctum');
-        $this->middleware('permission:config.dispositivos.index')->only(['index', 'show']);
+        $this->middleware('permission:config.dispositivos.index|ecografias.admision|gestion.pacientes.index')->only(['index', 'show']);
         $this->middleware('permission:config.dispositivos.create')->only(['store']);
         $this->middleware('permission:config.dispositivos.edit')->only(['update', 'toggleEstado']);
         $this->middleware('permission:config.dispositivos.destroy')->only(['destroy']);
     }
 
     /**
-     * Lista los dispositivos (opcionalmente filtrados por sede).
+     * Lista los dispositivos (opcionalmente filtrados por sede y modulo).
      *
      * @author Jhon Javer Lozano Arce
      *
@@ -37,7 +37,8 @@ class ConfigWorklistDispositivoController extends Controller
     public function index(Request $request): JsonResponse
     {
         $sedeId = $request->query('sede_id') ? (int) $request->query('sede_id') : null;
-        $result = $this->dispositivoService->listarPorSede($sedeId);
+        $moduloId = $request->query('modulo_id') ? (int) $request->query('modulo_id') : null;
+        $result = $this->dispositivoService->listarPorSede($sedeId, $moduloId);
 
         return response()->json($result, (int) $result['status']);
     }

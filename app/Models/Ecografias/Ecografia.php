@@ -3,6 +3,7 @@
 namespace App\Models\Ecografias;
 
 use App\Models\Configuracion\ConfigAdminSalud;
+use App\Models\Configuracion\ConfigTipoRecaudo;
 use App\Models\General\Paciente;
 use App\Models\User;
 use App\Models\Worklist\WorklistOrden;
@@ -34,6 +35,7 @@ class Ecografia extends Model
     protected $fillable = [
         'medico_id',
         'paciente_id',
+        'tipo_recaudo_id',
         'usua_regis_id',
         'admin_salud_id',
         'atencion_id',
@@ -96,6 +98,20 @@ class Ecografia extends Model
     }
 
     /**
+     * Tipo de recaudo asociado (Particular, Cortesía, Por Atención).
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-17
+     */
+    public function tipoRecaudo()
+    {
+        return $this->belongsTo(ConfigTipoRecaudo::class, 'tipo_recaudo_id');
+    }
+
+    /**
      * Productos de la ecografía.
      *
      * @returns \Illuminate\Database\Eloquent\Relations\HasMany
@@ -107,6 +123,20 @@ class Ecografia extends Model
     public function productosEcografias()
     {
         return $this->hasMany(EcografiaProducto::class, 'ecografia_id');
+    }
+
+    /**
+     * Alias por convención: productos de la ecografía.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\HasMany
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-17
+     */
+    public function ecografiaProductos()
+    {
+        return $this->productosEcografias();
     }
 
     /**

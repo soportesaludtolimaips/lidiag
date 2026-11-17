@@ -351,6 +351,7 @@
 
         <!-- .right-sidebar -->
         <div
+            id="drawerLecturaEcografia"
             class="right-sidebar sidebar-scroll"
             :class="{ 'shw-rside': sidebarVisible, 'dark-mode': isDarkMode, 'zen-mode': isZenMode }"
         >
@@ -456,8 +457,7 @@
                                                         @click="
                                                             !isGenerandoReporte && generarReporte()
                                                         "
-                                                        data-toggle="modal"
-                                                        data-target=".bs-example-modal-lg-impri-repor"
+                                                        title="Generar e imprimir reporte PDF"
                                                     />
                                                 </li>
                                             </ul>
@@ -481,6 +481,7 @@
                                         :allow-clear="true"
                                         :label-fields="['nom_tipo']"
                                         placeholder="Elija el tipo de plantilla"
+                                        dropdown-parent-selector="#drawerLecturaEcografia"
                                         @input="onTipoPlantillaSelect"
                                     />
                                 </div>
@@ -496,6 +497,7 @@
                                         :options="plantillasOptions"
                                         :label-fields="['nom_plantilla']"
                                         placeholder="Elija la plantilla"
+                                        dropdown-parent-selector="#drawerLecturaEcografia"
                                         @input="onPlantillaSelect"
                                     />
                                 </div>
@@ -686,144 +688,147 @@
         <!-- ============================================================== -->
         <!-- End Right sidebar -->
         <!-- ============================================================== -->
-    </div>
 
-    <!-- sample modal content -->
-    <div
-        class="modal fade bs-example-modal-lg-impri-repor"
-        tabindex="-1"
-        role="dialog"
-        aria-labelledby="myLargeModalLabel-impri-repor"
-        aria-hidden="true"
-        v-show="modalReporteVisible"
-        :style="{ display: modalReporteVisible ? 'block' : 'none' }"
-    >
-        <div class="modal-dialog modal-xl" style="max-width: 70%">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="myLargeModalLabel-impri-repor">
-                        Reporte de lectura
-                    </h4>
-                    <button
-                        type="button"
-                        class="close"
-                        data-dismiss="modal"
-                        aria-hidden="true"
-                        @click="cerrarModalReporte()"
-                    >
-                        ×
-                    </button>
+        <!-- sample modal content -->
+        <div
+            v-if="modalReporteVisible"
+            class="modal fade show bs-example-modal-lg-impri-repor"
+            tabindex="-1"
+            role="dialog"
+            aria-labelledby="myLargeModalLabel-impri-repor"
+            aria-hidden="true"
+            style="display: block; background: rgba(0, 0, 0, 0.6); z-index: 3000"
+            @click.self="cerrarModalReporte()"
+        >
+            <div class="modal-dialog modal-xl" style="max-width: 80%">
+                <div class="modal-content shadow-lg">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="myLargeModalLabel-impri-repor">
+                            Reporte de lectura
+                        </h4>
+                        <button
+                            type="button"
+                            class="close"
+                            aria-label="Cerrar modal"
+                            @click="cerrarModalReporte()"
+                        >
+                            ×
+                        </button>
+                    </div>
+                    <div class="modal-body p-0">
+                        <iframe
+                            v-if="urlReportePdf"
+                            :src="urlReportePdf"
+                            width="100%"
+                            height="650px"
+                            id="ifrReporteEcografia"
+                            frameborder="0"
+                            style="border: 0; outline: none; width: 100%"
+                            scrolling="auto"
+                        ></iframe>
+                    </div>
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-danger waves-effect text-left"
+                            @click="cerrarModalReporte()"
+                        >
+                            Cerrar
+                        </button>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    <iframe
-                        width="100%"
-                        height="600px"
-                        id="ifrReporteEcografia"
-                        frameborder="0"
-                        style="border: 0; outline: none"
-                        scrolling="no"
-                    ></iframe>
-                </div>
-                <div class="modal-footer">
-                    <button
-                        type="button"
-                        class="btn btn-danger waves-effect text-left"
-                        data-dismiss="modal"
-                        @click="cerrarModalReporte()"
-                    >
-                        Close
-                    </button>
-                </div>
+                <!-- /.modal-content -->
             </div>
-            <!-- /.modal-content -->
+            <!-- /.modal-dialog -->
         </div>
-        <!-- /.modal-dialog -->
-    </div>
-    <!-- /.modal -->
+        <!-- /.modal -->
 
-    <div
-        id="modal-pendientes-consentimientos"
-        class="modal fade"
-        tabindex="-1"
-        role="dialog"
-        aria-labelledby="modal-pendientes-consentimientos-title"
-        aria-hidden="true"
-        v-show="modalPendientesConsentimientosVisible"
-        :style="{ display: modalPendientesConsentimientosVisible ? 'block' : 'none' }"
-    >
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="modal-pendientes-consentimientos-title">
-                        Consentimientos pendientes por firmar (día anterior)
-                    </h4>
-                </div>
-                <div class="modal-body">
-                    <div class="alert alert-warning">
-                        Debe firmar los consentimientos pendientes del día anterior para poder
-                        realizar lecturas.
+        <div
+            id="modal-pendientes-consentimientos"
+            class="modal fade"
+            tabindex="-1"
+            role="dialog"
+            aria-labelledby="modal-pendientes-consentimientos-title"
+            aria-hidden="true"
+            v-show="modalPendientesConsentimientosVisible"
+            :style="{ display: modalPendientesConsentimientosVisible ? 'block' : 'none' }"
+        >
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="modal-pendientes-consentimientos-title">
+                            Consentimientos pendientes por firmar (día anterior)
+                        </h4>
                     </div>
+                    <div class="modal-body">
+                        <div class="alert alert-warning">
+                            Debe firmar los consentimientos pendientes del día anterior para poder
+                            realizar lecturas.
+                        </div>
 
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Paciente</th>
-                                    <th>Documento</th>
-                                    <th>Examen</th>
-                                    <th>Firma paciente</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr
-                                    v-for="row in pendientesDiaAnterior"
-                                    :key="row.consentimiento_id"
-                                >
-                                    <td>{{ row.paciente?.nombres || "—" }}</td>
-                                    <td>{{ row.paciente?.num_docu || "—" }}</td>
-                                    <td>{{ row.nom_produc }}</td>
-                                    <td>{{ row.consentimiento_firma_paciente_at || "—" }}</td>
-                                    <td class="text-nowrap">
-                                        <button
-                                            type="button"
-                                            class="btn btn-success btn-sm"
-                                            :disabled="
-                                                !row.consentimiento_id ||
-                                                isFirmandoConsentimiento[row.consentimiento_id]
-                                            "
-                                            @click="firmarConsentimientoMedico(row)"
-                                        >
-                                            <i
-                                                class="fa"
-                                                :class="
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Paciente</th>
+                                        <th>Documento</th>
+                                        <th>Examen</th>
+                                        <th>Firma paciente</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="row in pendientesDiaAnterior"
+                                        :key="row.consentimiento_id"
+                                    >
+                                        <td>{{ row.paciente?.nombres || "—" }}</td>
+                                        <td>{{ row.paciente?.num_docu || "—" }}</td>
+                                        <td>{{ row.nom_produc }}</td>
+                                        <td>{{ row.consentimiento_firma_paciente_at || "—" }}</td>
+                                        <td class="text-nowrap">
+                                            <button
+                                                type="button"
+                                                class="btn btn-success btn-sm"
+                                                :disabled="
+                                                    !row.consentimiento_id ||
                                                     isFirmandoConsentimiento[row.consentimiento_id]
-                                                        ? 'fa-spinner fa-spin'
-                                                        : 'fa-pencil'
                                                 "
-                                            ></i>
-                                            Firmar
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr v-if="pendientesDiaAnterior.length === 0">
-                                    <td colspan="5" class="text-center text-muted">
-                                        Sin pendientes.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                                                @click="firmarConsentimientoMedico(row)"
+                                            >
+                                                <i
+                                                    class="fa"
+                                                    :class="
+                                                        isFirmandoConsentimiento[
+                                                            row.consentimiento_id
+                                                        ]
+                                                            ? 'fa-spinner fa-spin'
+                                                            : 'fa-pencil'
+                                                    "
+                                                ></i>
+                                                Firmar
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr v-if="pendientesDiaAnterior.length === 0">
+                                        <td colspan="5" class="text-center text-muted">
+                                            Sin pendientes.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button
-                        type="button"
-                        class="btn btn-default waves-effect"
-                        data-dismiss="modal"
-                        :disabled="pendientesDiaAnterior.length > 0"
-                    >
-                        Cerrar
-                    </button>
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-default waves-effect"
+                            data-dismiss="modal"
+                            :disabled="pendientesDiaAnterior.length > 0"
+                        >
+                            Cerrar
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -932,6 +937,7 @@ const selTipoPlantilla = ref(null);
 const selPlantilla = ref(null);
 const modalPendientesConsentimientosVisible = ref(false);
 const modalReporteVisible = ref(false);
+const urlReportePdf = ref("");
 
 function cerrarSidebar() {
     if (sidebarVisible.value) {
@@ -1998,8 +2004,7 @@ async function generarReporte() {
 
         if (!guardadoOk) return;
 
-        const iframe = document.getElementById("ifrReporteEcografia");
-        iframe.src = "";
+        urlReportePdf.value = "";
 
         const res = await axios.post(
             "/api/ecografia-generar-reporte/" + registro.value.ecografia_id,
@@ -2007,8 +2012,16 @@ async function generarReporte() {
         );
         const pathReporte = res.data?.data?.plantilla || res.data?.plantilla;
 
-        if (iframe) iframe.src = pathReporte;
-        modalReporteVisible.value = true;
+        if (pathReporte) {
+            urlReportePdf.value = pathReporte;
+            modalReporteVisible.value = true;
+        } else {
+            toastMessage({
+                heading: "Reporte",
+                text: "No se recibió la ruta del archivo PDF generado.",
+                icon: "warning",
+            });
+        }
 
         listarPendiestePorLectura();
 
@@ -2039,6 +2052,7 @@ async function generarReporte() {
  */
 function cerrarModalReporte() {
     modalReporteVisible.value = false;
+    urlReportePdf.value = "";
 }
 
 /**
@@ -2064,11 +2078,16 @@ async function initSede() {
  * @date 2024-06-10
  */
 function establecerMedico() {
-    const medicoId = localStorage.getItem("ST-ecografia-medico") || props.usuarioactual?.id;
+    const medicoStorage =
+        sessionStorage.getItem("ST-ecografia-medico") ||
+        localStorage.getItem("ST-ecografia-medico") ||
+        sessionStorage.getItem("ST-medico") ||
+        localStorage.getItem("ST-medico") ||
+        props.usuarioactual?.id;
 
-    if (medicoId && !isNaN(Number(medicoId))) {
-        busqueda.value.medico_id = String(medicoId);
-        registro.value.medico_id = String(medicoId);
+    if (medicoStorage && !isNaN(Number(medicoStorage))) {
+        busqueda.value.medico_id = String(medicoStorage);
+        registro.value.medico_id = String(medicoStorage);
     }
 
     listarPendiestePorLectura();
@@ -2106,25 +2125,42 @@ async function onTipoPlantillaSelect(value) {
         selectedId = String(value);
     }
     registro.value.tipo_plantilla_id = selectedId || "";
+    registro.value.plantilla_id = "";
+    registro.value.lectura = null;
+    registro.value.opinion = null;
 
     if (!selectedId) {
         plantillas.value = [];
         registro.value.tipo_estudio = "";
-        registro.value.plantilla_id = "";
         return;
     }
 
     try {
-        const url = `/api/config-plantillas/listar/activos/${selectedId}/${registro.value.medico_id}`;
+        const medicoIdPlantilla =
+            sessionStorage.getItem("ST-ecografia-medico") ||
+            localStorage.getItem("ST-ecografia-medico") ||
+            sessionStorage.getItem("ST-medico") ||
+            localStorage.getItem("ST-medico") ||
+            registro.value.medico_id ||
+            props.usuarioactual?.id;
+
+        const url = `/api/config-plantillas/listar/activos/${selectedId}/${medicoIdPlantilla}`;
         const res = await axios.get(url);
 
-        plantillas.value = res.data.data;
+        plantillas.value = res.data.data || [];
         var tipo = tiposPlantillasOptions.value.find(function (t) {
             return String(t.id) === String(selectedId);
         });
         registro.value.tipo_estudio = (tipo && tipo.nom_tipo) || "";
+
+        nextTick(() => {
+            selPlantilla.value?.rebuild();
+        });
     } catch {
         plantillas.value = [];
+        nextTick(() => {
+            selPlantilla.value?.rebuild();
+        });
         toastMessage({
             heading: "Plantillas",
             text: "No se pudieron cargar las plantillas para este tipo.",
@@ -2252,6 +2288,21 @@ function mostrarRegistro(data = {}) {
     registro.value.tipo_plantilla_id = "";
     registro.value.plantilla_id = "";
     plantillas.value = [];
+
+    // El médico seleccionado se obtiene prioritariamente del storage (header/sesión del médico seleccionado)
+    const medicoStorage =
+        sessionStorage.getItem("ST-ecografia-medico") ||
+        localStorage.getItem("ST-ecografia-medico") ||
+        sessionStorage.getItem("ST-medico") ||
+        localStorage.getItem("ST-medico") ||
+        busqueda.value.medico_id ||
+        props.usuarioactual?.id;
+
+    if (medicoStorage) {
+        registro.value.medico_id = String(medicoStorage);
+    } else if (data.medico_id) {
+        registro.value.medico_id = String(data.medico_id);
+    }
 
     registro.value.estado_envio_sahi = data.estado_envio_sahi || null;
     registro.value.fechor_envio_sahi = data.fechor_envio_sahi || null;
@@ -2715,5 +2766,9 @@ onBeforeUnmount(() => {
 .right-sidebar.dark-mode :deep(.wysihtml5-sandbox) {
     border-color: #3b4254 !important;
     background-color: #1e222b !important;
+}
+
+:deep(.select2-dropdown) {
+    z-index: 9999 !important;
 }
 </style>

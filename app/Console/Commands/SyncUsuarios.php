@@ -64,27 +64,31 @@ class SyncUsuarios extends Command
 
             $userDestino = UserDestino::where('num_docu', $user->num_docu)->first();
             if (! $userDestino) {
-
                 $userDestino = new UserDestino;
                 $userDestino->num_docu = $user->num_docu;
                 $userDestino->password = Hash::make('123456'); // Contraseña por defecto
                 $userDestino->name = trim($user->pri_nom.' '.$user->pri_ape);
                 $userDestino->reg_med = $user->num_regis;
 
-                $email = trim($user->e_mail);
+                $email = trim($user->e_mail ?? '');
                 if (empty($email)) {
                     $email = $user->num_docu.'@placeholder.com';
                 }
                 $userDestino->email = $email;
 
                 $userDestino->interface_id = $user->id_sahi;
-                $userDestino->estado = $user->acti;
+                $userDestino->estado = ! is_null($user->acti) ? (int) $user->acti : 1;
                 $userDestino->save();
 
-                ($userDestino->tipo_usua == 2) ? $userDestino->assignRole('Medico Ecografias') : $userDestino->assignRole('Administrativo');
-                $userDestino->modulos()->sync(2);
+                // Rol Medico si es médico (tipo_personal == 2 o tiene registro médico), sino Administrativo
+                if (($user->tipo_personal == 2) || ! empty($user->num_regis)) {
+                    $userDestino->assignRole('Medico');
+                } else {
+                    $userDestino->assignRole('Administrativo');
+                }
+
+                $userDestino->modulos()->syncWithoutDetaching([2]);
             }
-            // $this->syncUser($user);
         }
     }
 
@@ -109,38 +113,49 @@ class SyncUsuarios extends Command
                 $plantillaDestinoTipo = new PlantillaTipoDestino;
                 $plantillaDestinoTipo->nom_tipo = $plantilla->nom_tipo;
                 $plantillaDestinoTipo->save();
+            }
 
-                $plantillaDetalleOrigen = PlantillaDetalleOrigen::where('tipo_id_tipo', $plantilla->id_tipo)->get();
-                foreach ($plantillaDetalleOrigen as $plantillaDetalle) {
+            $plantillaDetalleOrigen = PlantillaDetalleOrigen::where('tipo_id_tipo', $plantilla->id_tipo)->get();
+            foreach ($plantillaDetalleOrigen as $plantillaDetalle) {
+                /**
+                 * Personal origen
+                 */
+                $personalOrigen = PersonalOrigen::where('id_personal', $plantillaDetalle->id_personal)->first();
+                if (! $personalOrigen) {
+                    $this->warn("Personal origen ID {$plantillaDetalle->id_personal} no encontrado.");
 
-                    /**
-                     * Personal origen
-                     */
-                    $personalOrigen = PersonalOrigen::where('id_personal', $plantillaDetalle->id_personal)->first();
+                    continue;
+                }
 
-                    /**
-                     * Peronal origen
-                     */
-                    $personalDestino = UserDestino::where('num_docu', $personalOrigen->num_docu)->first();
-                    // $this->info('Detalle de la plantilla: ' . $plantillaDetalle);
-                    // exit;
-                    /**
-                     * Plantilla detalle destino
-                     */
-                    if (! $personalDestino) {
-                        $this->info("Personal no encontrado: {$personalOrigen}");
+                /**
+                 * Personal destino
+                 */
+                $personalDestino = UserDestino::where('num_docu', $personalOrigen->num_docu)->first();
+                if (! $personalDestino) {
+                    $this->warn("Usuario destino no encontrado para cédula: {$personalOrigen->num_docu}");
 
-                        continue;
-                    }
+                    continue;
+                }
+
+                /**
+                 * Plantilla detalle destino (idempotente)
+                 */
+                $plantillaDestinoDetalle = PlantillaDestino::where('plantilla_tipo_id', $plantillaDestinoTipo->id)
+                    ->where('medico_id', $personalDestino->id)
+                    ->where('nom_plantilla', $plantillaDetalle->nom_plantilla)
+                    ->first();
+
+                if (! $plantillaDestinoDetalle) {
                     $plantillaDestinoDetalle = new PlantillaDestino;
                     $plantillaDestinoDetalle->plantilla_tipo_id = $plantillaDestinoTipo->id;
                     $plantillaDestinoDetalle->medico_id = $personalDestino->id;
                     $plantillaDestinoDetalle->nom_plantilla = $plantillaDetalle->nom_plantilla;
-                    $plantillaDestinoDetalle->plantilla = $plantillaDetalle->detalle;
-                    $plantillaDestinoDetalle->opinion = $plantillaDetalle->opinion;
-                    $plantillaDestinoDetalle->estado = $plantillaDetalle->acti;
-                    $plantillaDestinoDetalle->save();
                 }
+
+                $plantillaDestinoDetalle->plantilla = $plantillaDetalle->detalle ?? '';
+                $plantillaDestinoDetalle->opinion = $plantillaDetalle->opinion ?? '';
+                $plantillaDestinoDetalle->estado = ! is_null($plantillaDetalle->acti) ? (int) $plantillaDetalle->acti : 1;
+                $plantillaDestinoDetalle->save();
             }
         }
     }

@@ -100,7 +100,7 @@ class CheckUserPermission extends Command
             $possibleGuards = Guard::getNames($user)->values();
             $defaultGuard = Guard::getDefaultName($user);
             $this->line('Guards usuario: posibles='.($possibleGuards->isEmpty() ? '—' : $possibleGuards->implode(', ')).'  default='.$defaultGuard);
-            $this->line('Spatie cache: key='.PermissionRegistrar::$cacheKey.'  forget='.($forgot ? 'OK' : 'NO/FAIL'));
+            $this->line('Spatie cache: forget='.($forgot ? 'OK' : 'NO/FAIL'));
 
             $this->newLine();
             $this->info('Chequeo de permisos:');

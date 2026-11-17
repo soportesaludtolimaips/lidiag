@@ -192,6 +192,7 @@ class EcografiaService extends BaseService
             $ecografia = Ecografia::create([
                 'medico_id' => $data['medico_id'],
                 'paciente_id' => $paciente->id,
+                'tipo_recaudo_id' => ! empty($data['tipo_recaudo_id']) ? (int) $data['tipo_recaudo_id'] : null,
                 'usua_regis_id' => auth()->id(),
                 'admin_salud_id' => $adminSalud->id ?? null,
                 'atencion_id' => $data['atencion_id'],
@@ -222,12 +223,15 @@ class EcografiaService extends BaseService
                 EcografiaProducto::create([
                     'usua_regis_id' => auth()->id(),
                     'ecografia_id' => $ecografia->id,
+                    'medico_id' => $producto['medico_id'] ?? $ecografia->medico_id,
                     'producto_id' => $productoExistente->id,
                     'lectura' => $producto['lectura'] ?? null,
                     'opinion' => $producto['opinion'] ?? null,
                     'estado' => 'EN PROCESO',
                 ]);
             }
+
+            $ecografia->load(['paciente', 'ecografiaProductos.configProducto']);
 
             return $this->created($ecografia, 'Ecografía y productos guardados correctamente.');
         });

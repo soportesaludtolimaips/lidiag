@@ -3,6 +3,7 @@
 namespace App\Models\Ecografias;
 
 use App\Models\Configuracion\ConfigProducto;
+use App\Models\User;
 use App\Models\Worklist\WorklistOrden;
 use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,19 +19,20 @@ class EcografiaProducto extends Model
     protected $table = 'ecografias_productos';
 
     protected $fillable = [
-        'atencion_id',
-        'ecografia_id',
-        'usua_regis_id',
-        'producto_id',
-        'lectura',
-        'opinion',
-        'fechor_lectura',
-        'estado',
-        'estado_envio_sahi',
-        'fechor_envio_sahi',
-        'sahi_esquema_149',
-        'sahi_esquema_150',
-        'error_envio_sahi',
+        "atencion_id",
+        "ecografia_id",
+        "usua_regis_id",
+        "medico_id",
+        "producto_id",
+        "lectura",
+        "opinion",
+        "fechor_lectura",
+        "estado",
+        "estado_envio_sahi",
+        "fechor_envio_sahi",
+        "sahi_esquema_149",
+        "sahi_esquema_150",
+        "error_envio_sahi",
     ];
 
     /**
@@ -61,6 +63,34 @@ class EcografiaProducto extends Model
     public function producto()
     {
         return $this->productos();
+    }
+
+    /**
+     * Alias por convención: configuración del producto.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-17
+     */
+    public function configProducto()
+    {
+        return $this->productos();
+    }
+
+    /**
+     * Médico asignado a la lectura del producto de ecografía.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-17
+     */
+    public function medico()
+    {
+        return $this->belongsTo(User::class, "medico_id");
     }
 
     /**

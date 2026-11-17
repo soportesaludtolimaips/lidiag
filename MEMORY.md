@@ -37,6 +37,177 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-17 — Corrección de Advertencia Vue Transition Non-Element Root Node (`leerEstudioComponent.vue`, `admisionarComponent.vue`, `ecografiasAdmisionadasComponent.vue`, `lecturaComponent.vue`):**
+  - **Diagnóstico y Causa Raíz:**
+    * Vue 3 arrojaba el warning: `[Vue warn]: Component inside <Transition> renders non-element root node that cannot be animated` en `leerEstudioComponent.vue`.
+    * En `AppLayout.vue`, `<router-view>` está envuelto en `<transition name="fade-page" mode="out-in">`. Las transiciones en Vue 3 exigen de forma obligatoria que el componente animado posea un único elemento raíz en el DOM.
+    * En `leerEstudioComponent.vue`, la plantilla carecía de un contenedor envolvente único y contenía cuatro nodos raíz hermanos (`.row.page-titles`, `.row`, `<transition name="fade">` del micrófono y `.right-sidebar`), además de comentarios HTML en la raíz.
+  - **Solución Implementada:**
+    * Se encapsuló la plantilla de [`leerEstudioComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/leerEstudioComponent.vue) dentro de un `<div>` raíz único.
+    * Se auditó preventivamente el 100% de los 54 componentes enrutados de la SPA y se normalizó el cierre de elementos raíz en `admisionarComponent.vue`, `ecografiasAdmisionadasComponent.vue` y `lecturaComponent.vue`, garantizando que todos los componentes posean un único nodo raíz.
+  - **Verificaciones:**
+    * Auditoría automática de componentes enrutados: 0 componentes multi-nodo pendientes (54/54 con nodo raíz único) ✅.
+    * ESLint y Prettier 100% limpios (0 errores, 0 warnings) ✅.
+    * Compilación Vite (`npm run build`) completada con éxito en 1.81s ✅.
+
+- [x] **2026-11-17 — Eliminación de Error SVG de Raphael.js y Migración Definitiva de Morris a C3 en Dashboard (`dashboardComponent.vue`, `app.blade.php`):**
+  - **Diagnóstico y Causa Raíz:**
+    * En la consola se reportaban repetidamente 3 errores: `Error: <path> attribute d: Expected moveto path command ('M' or 'm'), "H26"` originados en `raphael-min.js:2` mientras se navegaba en módulos como `leerEstudioComponent.vue`.
+    * En `dashboardComponent.vue`, el gráfico de flujo diario (`#sales-chart`) utilizaba `morrisLib.Area` con `resize: true` y 3 series (`asignados`, `leidos`, `transcritos`).
+    * Al navegar en la SPA a cualquier otro módulo (ej: `leerEstudioComponent.vue`), el contenedor `#sales-chart` se desmontaba del DOM, pero Morris mantenía registrado en `$(window).on('resize')` un listener anónimo huérfano.
+    * Al dispararse un evento de redimensionamiento de ventana (típico al abrir la consola de desarrollador, colapsar el sidebar o redimensionar pantalla), Morris intentaba redibujar las 3 series sobre un elemento con ancho 0 o nulo, generando comandos SVG inválidos que iniciaban directamente en `H26` (sin comando previo `M x y`). Raphael inyectaba este atributo `d="H26"` en los `<path>` de SVG y el motor del navegador disparaba el error fatal por cada una de las 3 series.
+  - **Solución Implementada:**
+    * Se migró `#sales-chart` en `dashboardComponent.vue` al estándar institucional **C3.js / D3.js** (`type: "area-spline"` con la paleta de colores nativa `["#26c6da", "#ffb22b", "#24d2b5"]`).
+    * Se integró `charts.value.transcritos?.destroy()` dentro de `destroyCharts()` para desvincular automáticamente los listeners y liberar memoria en `onBeforeUnmount`.
+    * Se removió la inclusión obsoleta de `raphael-min.js`, `morris.min.js` y `morris.css` en `app.blade.php`, al ser componentes legacy que no se utilizan en ninguna otra vista.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios (0 errores, 0 advertencias) ✅.
+    * Compilación Vite (`npm run build`) completada con éxito en 2.42s ✅.
+
+- [x] **2026-11-17 — Verificación y Corrección de Select2 de Tipos de Plantilla y Plantillas en Lectura de Ecografías (`lecturaComponent.vue`):**
+  - **Diagnóstico:**
+    * Los dos Select2 (`selTipoPlantilla` y `selPlantilla`) residen dentro del drawer lateral (`right-sidebar` con `z-index: 1100`).
+    * Faltaba vincular el dropdown del Select2 al contenedor del drawer (`dropdown-parent-selector="#drawerLecturaEcografia"`), lo que provocaba que el menú desplegable pudiera quedar oculto o renderizado debajo del sidebar.
+    * En `mostrarRegistro()`, no se garantizaba la asignación explícita de `registro.value.medico_id` desde los datos de la ecografía (`data.medico_id`), el médico seleccionado en la cabecera o el usuario logueado. Como la ruta `/api/config-plantillas/listar/activos/{tipoId}/{medicoId}` exige `medicoId`, si éste no estaba seteado no se cargaban las plantillas del médico.
+    * Al consultar las plantillas por tipo en `onTipoPlantillaSelect()`, faltaba reconstruir (`rebuild()`) el Select2 dependiente de plantillas para reflejar inmediatamente las nuevas opciones en el DOM de Select2.
+  - **Solución Implementada:**
+    * Se asignó ID `id="drawerLecturaEcografia"` al contenedor `.right-sidebar`.
+    * Se configuró `dropdown-parent-selector="#drawerLecturaEcografia"` en ambos Select2.
+    * Se agregó regla CSS `:deep(.select2-dropdown) { z-index: 9999 !important; }` para asegurar que las opciones floten siempre sobre el drawer.
+    * En `mostrarRegistro()`, se garantiza la asignación de `registro.value.medico_id` con fallbacks a `data.medico_id`, `busqueda.value.medico_id` y `props.usuarioactual?.id`.
+    * En `onTipoPlantillaSelect()`, se añadió `selPlantilla.value?.rebuild()` tras recibir las plantillas para re-renderizar de inmediato las opciones.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios (0 errores) ✅.
+    * Compilación Vite (`npm run build`) completada con éxito en 2.14s ✅.
+
+- [x] **2026-11-17 — Corrección e Idempotencia en Comando `sync-usuarios` (`SyncUsuarios.php`):**
+  - **Error Solucionado:** `SQLSTATE[23000]: Integrity constraint violation: 1048 Column 'estado' cannot be null` al insertar registros en `users` durante la ejecución de `php artisan sync-usuarios`.
+  - **Causa Raíz:**
+    * En `SyncUsuarios::syncUsers()`, `$user->acti` venía `null` en ciertos registros de origen, provocando la violación de constraint en `users.estado`.
+    * La asignación de roles evaluaba `$userDestino->tipo_usua` (inexistente en el modelo destino) y asignaba un rol obsoleto `'Medico Ecografias'` en lugar del rol estándar `'Medico'`.
+    * En `SyncUsuarios::syncPlantillaEcografias()`, si el tipo de plantilla ya existía en la base de datos de destino, el loop ignoraba la sincronización de las plantillas de los médicos para dicho tipo. Además, la creación de plantillas no era idempotente.
+  - **Solución Implementada:**
+    * Fallback defensivo para el estado: `$userDestino->estado = ! is_null($user->acti) ? (int) $user->acti : 1;`.
+    * Asignación de rol estandarizada: si es médico (`tipo_personal == 2` o tiene `num_regis`), se asigna `'Medico'`; en caso contrario `'Administrativo'`. Se usa `syncWithoutDetaching([2])` para el módulo de ecografías.
+    * Sincronización idempotente de plantillas médicas por `(plantilla_tipo_id, medico_id, nom_plantilla)`.
+  - **Verificaciones:**
+    * Ejecución completa y exitosa de `php artisan sync-usuarios` (sincronizó todos los usuarios y más de 70 tipos y plantillas de ecografías) ✅.
+    * PHP Pint verificado (`vendor\bin\pint.bat --test`) ✅.
+
+- [x] **2026-11-17 — Sincronización de Permisos de Lectura de Ecografías para Rol Médico (`PermisionEcografiasSeeder.php`, `CheckUserPermission.php`):**
+  - **Problema:** Un usuario con rol `Medico` no visualizaba el menú de "Ecografías" ni el submenú "Realizar lectura" en el sidebar.
+  - **Causa Raíz:** En la base de datos de producción/local, el rol `Medico` no tenía sincronizados los permisos definidos en `PermisionEcografiasSeeder` (`ecografias.leer` y `ecografias.reporte`).
+  - **Solución Implementada:**
+    * Se ejecutó el seeder idempotente `php artisan db:seed --class=PermisionEcografiasSeeder`.
+    * Se limpió la caché de permisos con `php artisan permissions:cache-reset`.
+    * Se corrigió la propiedad estática deprecada en el comando diagnóstico `CheckUserPermission.php` para compatibilidad con Spatie Permissions v6.
+    * Se verificó con `php artisan permissions:user-check` que los usuarios con rol `Medico` ahora tienen `ecografias.leer = SI` y `ecografias.reporte = SI`.
+  - **Verificaciones:**
+    * PHP Pint verificado (`vendor\bin\pint.bat --test`) ✅.
+
+- [x] **2026-11-17 — Corrección de visualización del modal de reporte PDF en lectura de ecografías (`lecturaComponent.vue`):**
+  - **Problema:** El modal para previsualizar el PDF de la lectura no se mostraba al hacer clic en el ícono de PDF.
+  - **Causa Raíz:**
+    * El botón/ícono tenía atributos `data-toggle="modal"` y `data-target` de Bootstrap que interferían con la lógica reactiva asíncrona de generación del reporte (`generarReporte()`).
+    * El modal usaba `v-show` con `class="modal fade"` sin la clase `show` ni backdrop semi-transparente, quedando con `z-index` inferior al drawer lateral (`right-sidebar` con `z-index: 1100` / `2500`).
+    * El elemento `<iframe>` dependía de `document.getElementById('ifrReporteEcografia').src`, el cual no se reactualizaba si el DOM no estaba listo.
+  - **Solución Implementada:**
+    * Se removieron los atributos `data-toggle`/`data-target` del ícono de PDF.
+    * Se convirtió el modal a renderizado condicional reactivo `v-if="modalReporteVisible"` con `class="modal fade show"`, `style="display: block; background: rgba(0, 0, 0, 0.6); z-index: 3000"`, y cierre con `@click.self="cerrarModalReporte()"`.
+    * Se vinculó el iframe reactivamente a `urlReportePdf` (`:src="urlReportePdf"`).
+  - **Verificaciones:**
+    * ESLint verificado en `lecturaComponent.vue` (0 errores) ✅.
+    * Compilación Vite (`npm run build`) exitosa en 1.81s ✅.
+
+- [x] **2026-11-17 — Corrección de tipo de columna `lectura` y `opinion` a MEDIUMTEXT en `ecografias_productos`:**
+  - **Error Solucionado:**
+    * `SQLSTATE[22001]: String data, right truncated: 1406 Data too long for column 'lectura' at row 1`.
+  - **Causa Raíz:**
+    * Las columnas `lectura` y `opinion` en la tabla `ecografias_productos` estaban configuradas en la base de datos como `VARCHAR(255)`, lo cual provocaba desbordamiento al almacenar el texto completo de un informe ecográfico.
+  - **Solución Implementada:**
+    * Se alteraron las columnas en MySQL a `MEDIUMTEXT NULL` para soportar informes de gran extensión con formato enriquecido.
+    * Migración creada y registrada: `database/migrations/2026_11_17_154000_change_lectura_opinion_to_mediumtext_in_ecografias_productos_table.php`.
+  - **Verificaciones:**
+    * PHP Pint verificado en la migración (`vendor\bin\pint.bat --test`) ✅.
+    * Base de datos `lidiag` actualizada y comprobada con `DESCRIBE ecografias_productos` ✅.
+
+- [x] **2026-11-17 — Corrección de `medico_id` y relaciones Eloquent en admisión de ecografías (`Ecografia.php`, `EcografiaProducto.php`, `EcografiaService.php`):**
+  - **Error Solucionado:**
+    * `SQLSTATE[HY000]: General error: 1364 Field 'medico_id' doesn't have a default value`.
+    * `Call to undefined relationship [ecografiaProductos] on model [App\Models\Ecografias\Ecografia]`.
+  - **Causa Raíz:**
+    * La tabla `ecografias_productos` requiere obligatoriamente `medico_id`.
+    * En `EcografiaService::create()`, tras guardar, se ejecutaba `$ecografia->load(['paciente', 'ecografiaProductos.configProducto'])`, pero en `Ecografia` la relación histórica se llamaba `productosEcografias()` y en `EcografiaProducto` la relación hacia el producto se llamaba `productos()`.
+  - **Solución Implementada:**
+    * En `Ecografia.php`: se definió el método/alias `ecografiaProductos()` apuntando a `productosEcografias()`.
+    * En `EcografiaProducto.php`: se definió el método/alias `configProducto()` apuntando a `productos()`.
+    * En `EcografiaProducto.php`: se agregó `'medico_id'` a `$fillable` y se definió la relación `medico()`.
+    * En `EcografiaService.php`: se pasó `'medico_id' => $producto['medico_id'] ?? $ecografia->medico_id` en `EcografiaProducto::create()`.
+  - **Verificaciones:**
+    * PHP Pint verificado en backend (`vendor\bin\pint.bat --test`) ✅.
+
+- [x] **2026-11-17 — Eliminación de `config_plantillas_detalles` y Filtrado Exclusivo por Médico Seleccionado en Storage (`config_plantillas`, `lecturaComponent.vue`, `ConfigPlantillaService.php`):**
+  - **Requerimiento y Reglas de Negocio:**
+    * El usuario reportó que al seleccionar un "Tipo de plantilla" en la lectura de ecografías (`lecturaComponent.vue`), se debe consultar estrictamente y listar solo las plantillas pertenecientes al médico seleccionado en el almacenamiento del sistema (`ST-ecografia-medico` / `ST-medico` de sessionStorage y localStorage).
+    * Se eliminó la tabla huérfana `config_plantillas_detalles` mediante la migración `2026_11_17_151436_drop_config_plantillas_detalles_table.php`, dejando `config_plantillas` como la tabla definitiva de plantillas de ecografías.
+  - **Base de Datos & Backend:**
+    * `ConfigPlantillaService::listarActivosPorTipo(int $tipoId, int $medicoId)` filtra exclusivamente por `medico_id = $medicoId` y `plantilla_tipo_id = $tipoId` sin fallbacks cruzados a otros médicos.
+  - **Frontend SPA (Vue 3):**
+    * En `lecturaComponent.vue`: tanto en `onTipoPlantillaSelect` como al abrir el modal de lectura (`abrirModalLectura`) y al inicializar el médico (`establecerMedico`), se prioriza el médico activo en el storage (`ST-ecografia-medico` / `ST-medico`).
+    * Al consultar las plantillas, se envía el ID del médico seleccionado en storage para poblar el combo "Plantilla".
+  - **Verificaciones:**
+    * PHP Pint verificado en backend (`vendor\bin\pint.bat --test`) ✅.
+    * ESLint y Prettier 100% limpios en `lecturaComponent.vue` ✅.
+    * Compilación Vite (`npm run build`) exitosa en 1.82s ✅.
+
+- [x] **2026-11-17 — Implementación de Tipos de Recaudo (Particular, Cortesía, Por Atención) para Ecografías y Estudios (`config_tipos_recaudo`, `admisionarComponent.vue`, `AsignarEstudioComponent.vue`, `SAHIEcografiasEnviarService.php`, `EstudioService.php`):**
+  - **Requerimiento y Reglas de Negocio:**
+    * Crear la tabla `config_tipos_recaudo` con los registros: `Por Atención (SAHI)`, `Particular` y `Cortesía`.
+    * Las ecografías y estudios de cortesía no tienen ningún recaudo (valor `$0`).
+    * Los tipos de recaudo que no transmiten a SAHI (`envia_sahi = false`: Particular y Cortesía) se omiten en la sincronización SQL Server de SAHI y se transfieren exclusivamente al portal del paciente.
+    * Implementar el campo selector de tipo de recaudo en las pantallas de admisión de ecografías y asignación de estudios generales.
+  - **Base de Datos & Backend:**
+    * Migración `database/migrations/2026_11_17_140821_create_config_tipos_recaudo_table.php` (campos `codigo`, `nombre`, `aplica_recaudo`, `envia_sahi`, `descripcion`, `estado`).
+    * Migración `database/migrations/2026_11_17_140828_add_tipo_recaudo_id_to_ecografias_and_estudios_tables.php` (foráneas en `ecografias` y `estudios`).
+    * Seeder `ConfigTipoRecaudoSeeder.php` e inserción idempotente de los 3 tipos de recaudo base.
+    * Modelo `App\Models\Configuracion\ConfigTipoRecaudo`, relaciones en `Ecografia` y `Estudio`.
+    * Servicio `ConfigTipoRecaudoService`, controlador `ConfigTipoRecaudoController` y rutas `/api/config-tipos-recaudo/listar/activos`.
+    * En `SAHIEcografiasEnviarService::enviarPorEcografiaProducto()`, se evalúa `tipoRecaudo->envia_sahi`: si es falso, se omite el envío a SQL Server y se retorna éxito para canalización a portal paciente.
+    * En `EstudioService::procesarPostTranscripcion()`, se aplica la misma validación de exclusión de interfaz SAHI para estudios particulares y de cortesía.
+  - **Frontend SPA (Vue 3):**
+    * En `admisionarComponent.vue`: selector de tipo de ecografía / recaudo con texto aclaratorio dinámico. Al seleccionar "Cortesía", el valor de los productos se bloquea en `$0` y se muestra un badge explicativo.
+    * En `AsignarEstudioComponent.vue`: selector homologado de tipo de estudio / recaudo con carga automática desde `/api/config-tipos-recaudo/listar/activos`.
+  - **Verificaciones:**
+    * PHP Pint verificado en backend (`vendor\bin\pint.bat --test`) ✅.
+    * ESLint y Prettier 100% limpios (0 errores) ✅.
+    * Compilación Vite (`npm run build`) exitosa en 1.76s ✅.
+
+- [x] **2026-11-17 — Modal Dinámico de Dispositivos Worklist al Admisionar Ecografía (`admisionarComponent.vue`, `ConfigWorklistDispositivoController.php`):**
+  - **Requerimiento:** Al guardar la admisión de una ecografía, desplegar automáticamente el modal con los ecógrafos/dispositivos configurados en la sede activa y en el módulo de ecografías para transmitir los ítems a la Modality Worklist DICOM (Dcm4chee).
+  - **Solución Implementada:**
+    * **Backend:**
+      - Se extendió `ConfigWorklistDispositivoService::listarPorSede(?int $sedeId, ?int $moduloId)` y su controlador `ConfigWorklistDispositivoController` para soportar el filtrado simultáneo por sede y por módulo (`modulo_id = 2` para Ecografías).
+      - Se autorizó el consumo del endpoint para los roles con permisos de `ecografias.admision`.
+      - En `EcografiaService::create()` se realiza `load(['paciente', 'ecografiaProductos.configProducto'])` para retornar las relaciones completas tras la creación.
+    * **Frontend:**
+      - En `admisionarComponent.vue`, tras guardar la ecografía (`guardarRegistro`), se cierra el drawer lateral y se activa el modal de "Enviar Ecografía a Worklist".
+      - El modal consulta dinámicamente `/api/config-worklist-dispositivos?sede_id=...&modulo_id=2` (con fallback hacia `/api/pacientes/worklist-estaciones?modality=US`).
+      - Genera el `Accession Number` oficial de ultrasonido (`US-YYYYMMDD-XXXX`) mediante `/api/pacientes/accession-sugerido?modality=US`.
+      - Permite seleccionar el examen admitido y el ecógrafo de destino (ej. *Voluson (Eco01)*) y envía la orden a `/api/pacientes/enviar-worklist` vinculando `ecografia_id` y `ecografia_producto_id`.
+  - **Verificaciones:**
+    * PHP Pint verificado en backend (`vendor\bin\pint.bat --test`) ✅.
+    * ESLint y Prettier 100% limpios (0 errores) ✅.
+    * Compilación Vite (`npm run build`) exitosa en 1.90s ✅.
+
+- [x] **2026-11-17 — Campos Editables para Cantidad y Valor en Productos de Admisión de Ecografías (`admisionarComponent.vue`):**
+  - **Requerimiento:** En la tabla de productos asignados en el drawer de admisiones de ecografías, permitir la edición manual directa de la cantidad (`Cantidad`) y del precio/valor del producto (`ValProduc`).
+  - **Solución Implementada:**
+    * Se reemplazaron las celdas estáticas de la tabla por `<input type="number" v-model.number="item.Cantidad" min="1" step="1">` y un input group con prefijo `$` para el valor `<input type="number" v-model.number="item.ValProduc" min="0" step="any">`.
+    * La columna de acciones fue ajustada visualmente con un ancho fijo accesible.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios (0 errores) ✅.
+    * Compilación Vite (`npm run build`) exitosa en 1.97s ✅.
+
 - [x] **2026-11-17 — Integración de EPS, Contrato y Plan en Drawer de Ecografías y Corrección de Select2 (`admisionarComponent.vue`, `/ecografias.admisiones`):**
   - **Requerimiento y Diagnóstico:**
     * El usuario solicitó agregar la visualización de la EPS (administradora de salud / tercero), Contrato y Plan en el drawer lateral (`right-sidebar`) al momento de admisionar y asignar médicos en ecografías.

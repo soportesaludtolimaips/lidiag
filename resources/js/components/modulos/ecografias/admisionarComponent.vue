@@ -541,7 +541,7 @@
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label class="control-label" for="nombres"
+                                                <label class="control-label" for="Primer nombre"
                                                     >Primer Nombre</label
                                                 >
                                                 <input
@@ -550,14 +550,14 @@
                                                     name="nombres"
                                                     v-model="registro.nombres"
                                                     class="form-control"
-                                                    placeholder="Nombres"
+                                                    placeholder="Primer nombre"
                                                 />
                                             </div>
                                         </div>
 
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label class="control-label" for="seg_nom"
+                                                <label class="control-label" for="Segundo nombres"
                                                     >Segundo Nombre</label
                                                 >
                                                 <input
@@ -566,7 +566,7 @@
                                                     name="seg_nom"
                                                     v-model="registro.seg_nom"
                                                     class="form-control"
-                                                    placeholder="seg_nom"
+                                                    placeholder="Segundo nombre"
                                                 />
                                             </div>
                                         </div>
@@ -583,7 +583,7 @@
                                                     name="pri_ape"
                                                     v-model="registro.pri_ape"
                                                     class="form-control"
-                                                    placeholder="pri_ape"
+                                                    placeholder="Primer apellido"
                                                 />
                                             </div>
                                         </div>
@@ -599,7 +599,7 @@
                                                     name="seg_ape"
                                                     v-model="registro.seg_ape"
                                                     class="form-control"
-                                                    placeholder="seg_ape"
+                                                    placeholder="Segundo apaellido"
                                                 />
                                             </div>
                                         </div>
@@ -682,9 +682,54 @@
                                 </div>
                                 <div class="col-md-6">
                                     <h5 class="card-title text-info">
-                                        <i class="fa fa-user"></i> Datos de la Asignacion
+                                        <i class="fa fa-user"></i> Datos de la Asignación
                                     </h5>
                                     <hr />
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label
+                                                    class="control-label font-weight-bold"
+                                                    for="selTipoRecaudo"
+                                                >
+                                                    Tipo de Ecografía / Recaudo
+                                                    <span class="text-danger">*</span>
+                                                </label>
+                                                <select
+                                                    id="selTipoRecaudo"
+                                                    class="form-control"
+                                                    v-model="registro.tipo_recaudo_id"
+                                                    @change="onTipoRecaudoChange"
+                                                    required
+                                                >
+                                                    <option
+                                                        v-for="tr in tiposRecaudo"
+                                                        :key="tr.id"
+                                                        :value="tr.id"
+                                                    >
+                                                        {{ tr.nombre }} — {{ tr.descripcion }}
+                                                    </option>
+                                                </select>
+                                                <small
+                                                    class="form-text"
+                                                    :class="
+                                                        esCortesia
+                                                            ? 'text-danger font-weight-bold'
+                                                            : 'text-muted'
+                                                    "
+                                                >
+                                                    <i class="fa fa-info-circle mr-1"></i>
+                                                    {{
+                                                        esCortesia
+                                                            ? "Las ecografías de cortesía no generan ningún recaudo y se transfieren únicamente al portal del paciente."
+                                                            : esParticular
+                                                              ? "Las ecografías particulares recaudan directamente y se transfieren al portal del paciente (no se envían a SAHI)."
+                                                              : "Procedimiento institucional facturado por atención SAHI."
+                                                    }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="row">
                                         <div class="col-md-5">
                                             <div class="form-group">
@@ -745,8 +790,9 @@
                                                     <tr>
                                                         <th>Código</th>
                                                         <th>Producto</th>
-                                                        <th>Cantidad</th>
-                                                        <th>Valor</th>
+                                                        <th style="width: 120px">Cantidad</th>
+                                                        <th style="width: 160px">Valor</th>
+                                                        <th style="width: 50px">Acción</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -756,11 +802,44 @@
                                                     >
                                                         <td>{{ item.CodLegal }}</td>
                                                         <td>{{ item.NomProducto }}</td>
-                                                        <td align="right">{{ item.Cantidad }}</td>
-                                                        <td align="right">
-                                                            {{ formatoMoneda(item.ValProduc) }}
+                                                        <td>
+                                                            <input
+                                                                type="number"
+                                                                class="form-control form-control-sm text-right"
+                                                                min="1"
+                                                                step="1"
+                                                                v-model.number="item.Cantidad"
+                                                                placeholder="Cant."
+                                                                aria-label="Cantidad del producto"
+                                                            />
                                                         </td>
-                                                        <td class="text-nowrap">
+                                                        <td>
+                                                            <div class="input-group input-group-sm">
+                                                                <div class="input-group-prepend">
+                                                                    <span class="input-group-text"
+                                                                        >$</span
+                                                                    >
+                                                                </div>
+                                                                <input
+                                                                    type="number"
+                                                                    class="form-control form-control-sm text-right"
+                                                                    min="0"
+                                                                    step="any"
+                                                                    v-model.number="item.ValProduc"
+                                                                    :disabled="esCortesia"
+                                                                    placeholder="0"
+                                                                    aria-label="Precio del producto"
+                                                                />
+                                                            </div>
+                                                            <small
+                                                                v-if="esCortesia"
+                                                                class="text-success font-weight-bold d-block mt-1"
+                                                            >
+                                                                <i class="fa fa-gift mr-1"></i>
+                                                                Cortesía ($0)
+                                                            </small>
+                                                        </td>
+                                                        <td class="text-nowrap text-center">
                                                             <button
                                                                 type="button"
                                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
@@ -817,211 +896,402 @@
         <!-- ============================================================== -->
         <!-- End Right sidebar -->
         <!-- ============================================================== -->
-    </div>
 
-    <div
-        id="responsive-modal"
-        class="modal fade"
-        tabindex="-1"
-        role="dialog"
-        aria-labelledby="myModalLabel"
-        aria-hidden="true"
-        style="display: none"
-    >
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="myModalLabel">Anular Agenda</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                        ×
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form>
-                        <div class="form-group">
-                            <label for="message-text" class="control-label"
-                                >Motivo de anulación:</label
-                            >
-                            <textarea
-                                class="form-control"
-                                id="message-text"
-                                v-model="registroAnular.motivo_anula"
-                            ></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button
-                        type="button"
-                        class="btn btn-default waves-effect"
-                        data-dismiss="modal"
-                        id="btnCerrarModalAunular"
-                    >
-                        Close
-                    </button>
-                    <button
-                        type="button"
-                        class="btn btn-danger waves-effect waves-light"
-                        @click="anularEcografia()"
-                        :disabled="isAnulandoEcografia"
-                    >
-                        <i
-                            class="fa"
-                            :class="isAnulandoEcografia ? 'fa-spinner fa-spin' : 'fa-trash'"
-                        ></i>
-                        {{ isAnulandoEcografia ? "Anulando..." : "Anular" }}
-                    </button>
+        <div
+            id="responsive-modal"
+            class="modal fade"
+            tabindex="-1"
+            role="dialog"
+            aria-labelledby="myModalLabel"
+            aria-hidden="true"
+            style="display: none"
+        >
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="myModalLabel">Anular Agenda</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                            ×
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="form-group">
+                                <label for="message-text" class="control-label"
+                                    >Motivo de anulación:</label
+                                >
+                                <textarea
+                                    class="form-control"
+                                    id="message-text"
+                                    v-model="registroAnular.motivo_anula"
+                                ></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-default waves-effect"
+                            data-dismiss="modal"
+                            id="btnCerrarModalAunular"
+                        >
+                            Close
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-danger waves-effect waves-light"
+                            @click="anularEcografia()"
+                            :disabled="isAnulandoEcografia"
+                        >
+                            <i
+                                class="fa"
+                                :class="isAnulandoEcografia ? 'fa-spinner fa-spin' : 'fa-trash'"
+                            ></i>
+                            {{ isAnulandoEcografia ? "Anulando..." : "Anular" }}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div
-        id="modal-consentimiento"
-        class="modal fade"
-        tabindex="-1"
-        role="dialog"
-        aria-labelledby="modal-consentimiento-title"
-        aria-hidden="true"
-        style="display: none"
-    >
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="modal-consentimiento-title">
-                        Capturar firma consentimiento
-                    </h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                        ×
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div v-if="consentimientoItem">
-                        <div class="mb-2">
-                            <small class="text-muted">
-                                {{ consentimientoItem.NomProducto }} ·
-                                {{ consentimientoItem.NumDocumento }}
-                            </small>
-                        </div>
+        <div
+            id="modal-consentimiento"
+            class="modal fade"
+            tabindex="-1"
+            role="dialog"
+            aria-labelledby="modal-consentimiento-title"
+            aria-hidden="true"
+            style="display: none"
+        >
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="modal-consentimiento-title">
+                            Capturar firma consentimiento
+                        </h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                            ×
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div v-if="consentimientoItem">
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    {{ consentimientoItem.NomProducto }} ·
+                                    {{ consentimientoItem.NumDocumento }}
+                                </small>
+                            </div>
 
-                        <div class="form-group">
-                            <label class="control-label" for="consentimiento-firmante-tipo"
-                                >¿Quién firma?</label
-                            >
-                            <select
-                                class="form-control"
-                                id="consentimiento-firmante-tipo"
-                                v-model="consentimientoFirmanteTipo"
-                            >
-                                <option value="PACIENTE">Paciente</option>
-                                <option value="ACOMPANANTE">Acompañante</option>
-                            </select>
-                        </div>
+                            <div class="form-group">
+                                <label class="control-label" for="consentimiento-firmante-tipo"
+                                    >¿Quién firma?</label
+                                >
+                                <select
+                                    class="form-control"
+                                    id="consentimiento-firmante-tipo"
+                                    v-model="consentimientoFirmanteTipo"
+                                >
+                                    <option value="PACIENTE">Paciente</option>
+                                    <option value="ACOMPANANTE">Acompañante</option>
+                                </select>
+                            </div>
 
-                        <div v-if="consentimientoFirmanteTipo === 'ACOMPANANTE'" class="row">
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label class="control-label" for="acompanante-cedula"
-                                        >Cédula</label
-                                    >
-                                    <input
-                                        id="acompanante-cedula"
-                                        class="form-control"
-                                        v-model="acompanante.cedula"
-                                    />
+                            <div v-if="consentimientoFirmanteTipo === 'ACOMPANANTE'" class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="control-label" for="acompanante-cedula"
+                                            >Cédula</label
+                                        >
+                                        <input
+                                            id="acompanante-cedula"
+                                            class="form-control"
+                                            v-model="acompanante.cedula"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="form-group">
+                                        <label class="control-label" for="acompanante-nombres"
+                                            >Nombres</label
+                                        >
+                                        <input
+                                            id="acompanante-nombres"
+                                            class="form-control"
+                                            v-model="acompanante.nombres"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label" for="acompanante-email"
+                                            >Email</label
+                                        >
+                                        <input
+                                            id="acompanante-email"
+                                            class="form-control"
+                                            v-model="acompanante.email"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label" for="acompanante-telefono"
+                                            >Teléfono</label
+                                        >
+                                        <input
+                                            id="acompanante-telefono"
+                                            class="form-control"
+                                            v-model="acompanante.telefono"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="acompanante-direccion"
+                                            >Dirección</label
+                                        >
+                                        <input
+                                            id="acompanante-direccion"
+                                            class="form-control"
+                                            v-model="acompanante.direccion"
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-8">
-                                <div class="form-group">
-                                    <label class="control-label" for="acompanante-nombres"
-                                        >Nombres</label
-                                    >
-                                    <input
-                                        id="acompanante-nombres"
-                                        class="form-control"
-                                        v-model="acompanante.nombres"
-                                    />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="control-label" for="acompanante-email"
-                                        >Email</label
-                                    >
-                                    <input
-                                        id="acompanante-email"
-                                        class="form-control"
-                                        v-model="acompanante.email"
-                                    />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="control-label" for="acompanante-telefono"
-                                        >Teléfono</label
-                                    >
-                                    <input
-                                        id="acompanante-telefono"
-                                        class="form-control"
-                                        v-model="acompanante.telefono"
-                                    />
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label class="control-label" for="acompanante-direccion"
-                                        >Dirección</label
-                                    >
-                                    <input
-                                        id="acompanante-direccion"
-                                        class="form-control"
-                                        v-model="acompanante.direccion"
-                                    />
-                                </div>
-                            </div>
-                        </div>
 
-                        <div class="mt-2">
-                            <button
-                                type="button"
-                                class="btn btn-success"
-                                @click="generarLinkFirma()"
-                                :disabled="isGenerandoLinkFirma"
-                            >
-                                <i
-                                    class="fa"
-                                    :class="isGenerandoLinkFirma ? 'fa-spinner fa-spin' : 'fa-link'"
-                                ></i>
-                                {{
-                                    isGenerandoLinkFirma
-                                        ? "Generando…"
-                                        : "Generar link de firma (10 min)"
-                                }}
-                            </button>
-                        </div>
-
-                        <div v-if="consentimientoUrl" class="alert alert-info mt-3">
-                            <div><strong>Link de firma</strong></div>
-                            <div class="small" style="word-break: break-all">
-                                {{ consentimientoUrl }}
-                            </div>
                             <div class="mt-2">
                                 <button
-                                    class="btn btn-sm btn-primary"
                                     type="button"
-                                    @click="abrirLinkFirma()"
+                                    class="btn btn-success"
+                                    @click="generarLinkFirma()"
+                                    :disabled="isGenerandoLinkFirma"
                                 >
-                                    Abrir
+                                    <i
+                                        class="fa"
+                                        :class="
+                                            isGenerandoLinkFirma ? 'fa-spinner fa-spin' : 'fa-link'
+                                        "
+                                    ></i>
+                                    {{
+                                        isGenerandoLinkFirma
+                                            ? "Generando…"
+                                            : "Generar link de firma (10 min)"
+                                    }}
                                 </button>
                             </div>
+
+                            <div v-if="consentimientoUrl" class="alert alert-info mt-3">
+                                <div><strong>Link de firma</strong></div>
+                                <div class="small" style="word-break: break-all">
+                                    {{ consentimientoUrl }}
+                                </div>
+                                <div class="mt-2">
+                                    <button
+                                        class="btn btn-sm btn-primary"
+                                        type="button"
+                                        @click="abrirLinkFirma()"
+                                    >
+                                        Abrir
+                                    </button>
+                                </div>
+                            </div>
                         </div>
+                        <div v-else class="text-muted">Seleccione un registro.</div>
                     </div>
-                    <div v-else class="text-muted">Seleccione un registro.</div>
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-default waves-effect"
+                            data-dismiss="modal"
+                        >
+                            Cerrar
+                        </button>
+                    </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">
-                        Cerrar
-                    </button>
+            </div>
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- Modal Enviar a Worklist (Dispositivos / Ecógrafo) -->
+        <!-- ============================================================== -->
+        <div
+            class="modal fade"
+            :class="{ show: modalWorklistVisible, 'd-block': modalWorklistVisible }"
+            tabindex="-1"
+            role="dialog"
+            v-if="modalWorklistVisible"
+            style="background: rgba(0, 0, 0, 0.5)"
+        >
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title font-weight-bold">
+                            <i class="fa fa-television text-info mr-2"></i> Enviar Ecografía a
+                            Worklist
+                        </h4>
+                        <button
+                            type="button"
+                            class="close"
+                            @click="cerrarModalWorklist()"
+                            :disabled="loadingWorklist"
+                            aria-label="Cerrar"
+                        >
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="card card-outline-info p-3 mb-3 bg-light">
+                            <h5 class="card-title text-info mb-1 font-weight-bold">
+                                <i class="fa fa-user mr-1"></i> {{ worklistData.pacienteNombre }}
+                            </h5>
+                            <div class="text-muted small">
+                                <strong># Documento:</strong>
+                                <span class="text-primary font-weight-bold ml-1">
+                                    <i class="fa fa-id-card-o mr-1"></i>{{ worklistData.numDocu }}
+                                </span>
+                                <span class="mx-2">|</span>
+                                <strong>Atención:</strong> {{ worklistData.atencionId }}
+                            </div>
+                        </div>
+
+                        <form action="#" @submit.prevent="confirmarEnvioWorklist()">
+                            <div class="form-group">
+                                <label class="control-label font-weight-bold" for="wl_eco_producto">
+                                    Examen / Procedimiento <span class="text-danger">*</span>
+                                </label>
+                                <select
+                                    id="wl_eco_producto"
+                                    v-model="worklistForm.producto_id"
+                                    class="form-control"
+                                    required
+                                >
+                                    <option :value="null" disabled>-- Seleccione Examen --</option>
+                                    <option
+                                        v-for="prod in worklistData.productos"
+                                        :key="prod.id"
+                                        :value="prod.id"
+                                    >
+                                        {{ prod.nom_produc }} (CUPS: {{ prod.cod_cups }})
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label font-weight-bold" for="wl_eco_acc">
+                                    Accession Number <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <input
+                                        type="text"
+                                        id="wl_eco_acc"
+                                        v-model="worklistForm.accession_no"
+                                        class="form-control font-weight-bold"
+                                        required
+                                    />
+                                    <div class="input-group-append">
+                                        <button
+                                            type="button"
+                                            class="btn btn-secondary"
+                                            @click="generarAccessionSugerido()"
+                                            title="Regenerar sugerido"
+                                        >
+                                            <i class="fa fa-refresh"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <small class="form-text text-muted">
+                                    Identificador único DICOM generado automáticamente.
+                                </small>
+                            </div>
+
+                            <div class="form-group">
+                                <label
+                                    class="control-label font-weight-bold"
+                                    for="wl_eco_dispositivo"
+                                >
+                                    Ecógrafo / Dispositivo de Destino
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div v-if="loadingDispositivos" class="py-2 text-muted">
+                                    <i class="fa fa-spinner fa-spin mr-1"></i> Cargando dispositivos
+                                    configurados...
+                                </div>
+                                <select
+                                    v-else-if="dispositivosWorklist.length > 0"
+                                    id="wl_eco_dispositivo"
+                                    v-model="worklistForm.station_aet"
+                                    class="form-control"
+                                    required
+                                >
+                                    <option value="" disabled>
+                                        -- Seleccione el ecógrafo / sala --
+                                    </option>
+                                    <option
+                                        v-for="disp in dispositivosWorklist"
+                                        :key="disp.aet"
+                                        :value="disp.aet"
+                                    >
+                                        {{ disp.nombre }}
+                                    </option>
+                                </select>
+                                <div v-else>
+                                    <input
+                                        type="text"
+                                        id="wl_eco_dispositivo"
+                                        v-model="worklistForm.station_aet"
+                                        class="form-control"
+                                        placeholder="AE Title del equipo (Ej: VOLUSON, LOGIQ)"
+                                        required
+                                    />
+                                    <small class="text-warning d-block mt-1">
+                                        <i class="fa fa-exclamation-triangle mr-1"></i>
+                                        No hay ecógrafos activos registrados en esta sede. Ingrese
+                                        el AE Title manualmente.
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="form-group mb-0">
+                                <label class="control-label" for="wl_eco_obs"
+                                    >Observaciones (Opcional)</label
+                                >
+                                <textarea
+                                    id="wl_eco_obs"
+                                    v-model="worklistForm.observaciones"
+                                    class="form-control"
+                                    rows="2"
+                                    placeholder="Indicaciones para el ecógrafo o consola..."
+                                ></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-inverse"
+                            @click="cerrarModalWorklist()"
+                            :disabled="loadingWorklist"
+                        >
+                            Omitir
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-success"
+                            @click="confirmarEnvioWorklist()"
+                            :disabled="
+                                loadingWorklist ||
+                                !worklistForm.producto_id ||
+                                !worklistForm.accession_no ||
+                                !worklistForm.station_aet
+                            "
+                        >
+                            <i
+                                class="fa mr-1"
+                                :class="loadingWorklist ? 'fa-spinner fa-spin' : 'fa-send'"
+                            ></i>
+                            {{ loadingWorklist ? "Enviando a Worklist..." : "Enviar a Worklist" }}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1077,6 +1347,7 @@ const registro = ref({
     quien_registro_id: props.usuarioactual.id,
     cel: "",
     atencion_id: null,
+    tipo_recaudo_id: 1, // Por defecto: 1 = Por Atención
     productosAgenda: [],
     contrato: null,
     plan: null,
@@ -1093,6 +1364,7 @@ const errores = ref({});
 const erroresBusqueda = ref({});
 const medicos = ref([]);
 const tipoDocumentos = ref([]);
+const tiposRecaudo = ref([]);
 const medicoActual = ref(
     localStorage.getItem("ST-ecografia-medico") || sessionStorage.getItem("ST-medico")
 );
@@ -1112,6 +1384,59 @@ const sidebarVisible = ref(false);
 const selTipoDoc = ref(null);
 const selMedico = ref(null);
 const selProducto = ref(null);
+
+// Estado y variables para modal de Enviar a Worklist
+const modalWorklistVisible = ref(false);
+const loadingWorklist = ref(false);
+const loadingDispositivos = ref(false);
+const dispositivosWorklist = ref([]);
+const worklistData = ref({
+    pacienteId: null,
+    pacienteNombre: "",
+    numDocu: "",
+    atencionId: "",
+    ecografiaId: null,
+    ecografiaProductoId: null,
+    productos: [],
+});
+const worklistForm = ref({
+    paciente_id: null,
+    sede_id: null,
+    producto_id: null,
+    accession_no: "",
+    modality: "US",
+    station_aet: "",
+    ecografia_id: null,
+    ecografia_producto_id: null,
+    observaciones: "",
+});
+
+const tipoRecaudoActual = computed(() => {
+    return (
+        tiposRecaudo.value.find((tr) => Number(tr.id) === Number(registro.value.tipo_recaudo_id)) ||
+        null
+    );
+});
+
+const esCortesia = computed(() => {
+    return (
+        tipoRecaudoActual.value?.codigo === "CORTESIA" ||
+        (!tipoRecaudoActual.value?.aplica_recaudo && tipoRecaudoActual.value !== null)
+    );
+});
+
+const esParticular = computed(() => {
+    return tipoRecaudoActual.value?.codigo === "PARTICULAR";
+});
+
+function onTipoRecaudoChange() {
+    if (esCortesia.value) {
+        // En cortesía, todo producto asignado tiene valor 0
+        (registro.value.productosAgenda || []).forEach((p) => {
+            p.ValProduc = 0;
+        });
+    }
+}
 
 useKeyboardShortcuts({
     onSearch: () => {
@@ -1405,8 +1730,12 @@ async function guardarRegistro() {
 
             // Actualizar la lista de datos y limpiar el formulario
             listarAtenciones();
-            limpiarFormulario();
             btnCerrarModalForm();
+
+            // Desplegar modal para enviar a Worklist con los datos de la ecografía creada
+            const ecoCreada = ecografiaRes.data?.data;
+            prepararModalWorklist(ecoCreada, registro.value);
+            limpiarFormulario();
         } else {
             toastMessage({
                 heading: "Error",
@@ -1485,6 +1814,233 @@ function anularEcografia() {
             isAnulandoEcografia.value = false;
         }
     });
+}
+
+/**
+ * Prepara y abre el modal de envío a Worklist para la ecografía admitida.
+ *
+ * @param {Object} ecoData Datos retornados de la ecografía creada.
+ * @param {Object} formOriginal Datos originales del formulario de admisión.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-17
+ */
+async function prepararModalWorklist(ecoData = {}, formOriginal = {}) {
+    const sedeIdActual =
+        formOriginal.sede_id ||
+        sessionStorage.getItem("ST-sede") ||
+        localStorage.getItem("ST-sede") ||
+        busqueda.value.sede_id ||
+        null;
+
+    const pacId = ecoData.paciente_id || ecoData.paciente?.id || formOriginal.paciente_id;
+    const nombres =
+        `${formOriginal.nombres || ""} ${formOriginal.seg_nom || ""} ${formOriginal.pri_ape || ""} ${formOriginal.seg_ape || ""}`.trim();
+
+    // Extraer productos admitidos
+    let prods = [];
+    if (ecoData.ecografia_productos && Array.isArray(ecoData.ecografia_productos)) {
+        prods = ecoData.ecografia_productos.map((ep) => ({
+            id: ep.producto_id || ep.config_producto?.id,
+            nom_produc: ep.config_producto?.nom_produc || ep.nom_produc,
+            cod_cups: ep.config_producto?.cod_cups || ep.cod_cups,
+            ecografia_producto_id: ep.id,
+        }));
+    } else if (formOriginal.productosAgenda && Array.isArray(formOriginal.productosAgenda)) {
+        prods = formOriginal.productosAgenda.map((p) => ({
+            id: p.IdProducto || p.id,
+            nom_produc: p.NomProducto || p.nom_produc,
+            cod_cups: p.CodLegal || p.cod_cups,
+            ecografia_producto_id: null,
+        }));
+    }
+
+    const primerProd = prods[0] || null;
+
+    worklistData.value = {
+        pacienteId: pacId,
+        pacienteNombre: nombres || ecoData.paciente?.nombres || "Paciente",
+        numDocu: formOriginal.num_docu || ecoData.paciente?.num_docu || "",
+        atencionId: formOriginal.atencion_id || ecoData.atencion_id || "",
+        ecografiaId: ecoData.id || null,
+        ecografiaProductoId: primerProd?.ecografia_producto_id || null,
+        productos: prods,
+    };
+
+    worklistForm.value = {
+        paciente_id: pacId,
+        sede_id: sedeIdActual ? Number(sedeIdActual) : null,
+        producto_id: primerProd?.id || null,
+        accession_no: "",
+        modality: "US",
+        station_aet: "",
+        ecografia_id: ecoData.id || null,
+        ecografia_producto_id: primerProd?.ecografia_producto_id || null,
+        observaciones: "",
+    };
+
+    modalWorklistVisible.value = true;
+
+    await Promise.all([generarAccessionSugerido(), cargarDispositivosWorklist(sedeIdActual)]);
+}
+
+/**
+ * Consulta los dispositivos configurados para el módulo de ecografías en la sede activa.
+ *
+ * @param {number|string} sedeId Identificador de la sede.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-17
+ */
+async function cargarDispositivosWorklist(sedeId) {
+    loadingDispositivos.value = true;
+    dispositivosWorklist.value = [];
+    try {
+        const idSede =
+            sedeId || sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede");
+
+        if (!idSede) return;
+
+        // Módulo 2 = Ecografias
+        const res = await axios.get("/api/config-worklist-dispositivos", {
+            params: { sede_id: idSede, modulo_id: 2 },
+        });
+
+        const items = res.data?.data || res.data || [];
+        if (Array.isArray(items) && items.length > 0) {
+            dispositivosWorklist.value = items
+                .filter((d) => d.estado)
+                .map((d) => ({
+                    aet: d.ae_title || d.codigo,
+                    nombre: `${d.nombre} (${d.ae_title || d.codigo}) — ${d.ubicacion || "Consultorio"}`,
+                    station_name: d.nombre,
+                    ip: d.ip_address,
+                }));
+
+            if (dispositivosWorklist.value.length > 0) {
+                worklistForm.value.station_aet = dispositivosWorklist.value[0].aet;
+            }
+        } else {
+            // Fallback: consultar estaciones del PACS directamente si no hay dispositivos en la tabla local
+            const resPacs = await axios.get("/api/pacientes/worklist-estaciones", {
+                params: { sede_id: idSede, modality: "US" },
+            });
+            if (resPacs.data?.status === 200 && Array.isArray(resPacs.data?.data)) {
+                dispositivosWorklist.value = resPacs.data.data.map((e) => ({
+                    aet: e.aet,
+                    nombre: e.nombre || e.aet,
+                    station_name: e.station_name || e.aet,
+                }));
+                if (dispositivosWorklist.value.length > 0) {
+                    worklistForm.value.station_aet = dispositivosWorklist.value[0].aet;
+                }
+            }
+        }
+    } catch {
+        dispositivosWorklist.value = [];
+    } finally {
+        loadingDispositivos.value = false;
+    }
+}
+
+/**
+ * Genera el Accession Number sugerido para la modalidad de ecografía (US).
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-17
+ */
+async function generarAccessionSugerido() {
+    try {
+        const idSede =
+            worklistForm.value.sede_id ||
+            sessionStorage.getItem("ST-sede") ||
+            localStorage.getItem("ST-sede");
+
+        const res = await axios.get("/api/pacientes/accession-sugerido", {
+            params: { sede_id: idSede, modality: "US" },
+        });
+
+        if (res.data?.data?.accession_no) {
+            worklistForm.value.accession_no = res.data.data.accession_no;
+        }
+    } catch {
+        const hoy = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+        worklistForm.value.accession_no = `US-${hoy}-0001`;
+    }
+}
+
+/**
+ * Cierra el modal de envío a Worklist.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-17
+ */
+function cerrarModalWorklist() {
+    modalWorklistVisible.value = false;
+}
+
+/**
+ * Envía la orden de ecografía a la Modality Worklist DICOM de la sede.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-17
+ */
+async function confirmarEnvioWorklist() {
+    if (loadingWorklist.value) return;
+    loadingWorklist.value = true;
+
+    try {
+        const prodSeleccionado = worklistData.value.productos.find(
+            (p) => String(p.id) === String(worklistForm.value.producto_id)
+        );
+
+        const payload = {
+            paciente_id: worklistForm.value.paciente_id,
+            sede_id: worklistForm.value.sede_id,
+            producto_id: worklistForm.value.producto_id,
+            accession_no: worklistForm.value.accession_no,
+            modality: "US",
+            station_aet: worklistForm.value.station_aet,
+            ecografia_id: worklistForm.value.ecografia_id,
+            ecografia_producto_id:
+                prodSeleccionado?.ecografia_producto_id ||
+                worklistForm.value.ecografia_producto_id ||
+                null,
+            observaciones: worklistForm.value.observaciones || null,
+        };
+
+        const res = await axios.post("/api/pacientes/enviar-worklist", payload);
+
+        toastMessage({
+            heading: "¡Enviado a Worklist!",
+            text:
+                res.data?.message ||
+                "Paciente y procedimiento cargados en la consola del ecógrafo exitosamente.",
+            icon: "success",
+        });
+
+        cerrarModalWorklist();
+    } catch (err) {
+        toastMessage({
+            heading: "Error en Worklist",
+            text:
+                err.response?.data?.message ||
+                "No fue posible enviar la orden a la consola del ecógrafo. Verifique la conexión con el PACS.",
+            icon: "error",
+        });
+    } finally {
+        loadingWorklist.value = false;
+    }
 }
 /**
  * Inicializa la sede actual desde sesión y limpia la lista de registros.
@@ -1633,6 +2189,25 @@ async function listarTipoDocumentos() {
     }
 }
 /**
+ * Lista los tipos de recaudo activos (Atención, Particular, Cortesía).
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-17
+ */
+async function listarTiposRecaudo() {
+    try {
+        const res = await axios.get("/api/config-tipos-recaudo/listar/activos");
+        tiposRecaudo.value = res.data?.data || res.data || [];
+        if (tiposRecaudo.value.length > 0 && !registro.value.tipo_recaudo_id) {
+            registro.value.tipo_recaudo_id = tiposRecaudo.value[0].id;
+        }
+    } catch {
+        tiposRecaudo.value = [];
+    }
+}
+/**
  * Lista los productos de configuración disponibles para la agenda.
  *
  * @returns {Promise<void>}
@@ -1720,7 +2295,7 @@ function onProductoSelect(value) {
                     CodLegal: prod.cod_cups,
                     NomProducto: prod.nom_produc,
                     Cantidad: 1,
-                    ValProduc: prod.val_produc,
+                    ValProduc: esCortesia.value ? 0 : prod.val_produc,
                 });
             }
 
@@ -1762,6 +2337,9 @@ async function abrirModal() {
     }
     if (!tipoDocumentos.value || tipoDocumentos.value.length === 0) {
         await listarTipoDocumentos();
+    }
+    if (!tiposRecaudo.value || tiposRecaudo.value.length === 0) {
+        await listarTiposRecaudo();
     }
 
     nextTick(() => {
@@ -1896,6 +2474,7 @@ onMounted(() => {
     listarMedicos();
     listarTipoDocumentos();
     listarProductos();
+    listarTiposRecaudo();
 
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
 

@@ -11,18 +11,22 @@ use Illuminate\Support\Facades\DB;
 class ConfigWorklistDispositivoService extends BaseService
 {
     /**
-     * Obtiene el listado de dispositivos filtrados opcionalmente por sede.
+     * Obtiene el listado de dispositivos filtrados opcionalmente por sede y módulo.
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-11-12
      */
-    public function listarPorSede(?int $sedeId = null): array
+    public function listarPorSede(?int $sedeId = null, ?int $moduloId = null): array
     {
-        $dispositivos = ConfigWorklistDispositivo::with(['sede:id,nom_sede', 'modulo:id,modulo'])
-            ->porSede($sedeId)
-            ->orderBy('nombre')
-            ->get();
+        $query = ConfigWorklistDispositivo::with(['sede:id,nom_sede', 'modulo:id,modulo'])
+            ->porSede($sedeId);
+
+        if (! empty($moduloId)) {
+            $query->where('modulo_id', $moduloId);
+        }
+
+        $dispositivos = $query->orderBy('nombre')->get();
 
         return $this->success($dispositivos);
     }

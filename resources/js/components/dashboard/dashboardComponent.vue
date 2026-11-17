@@ -1097,7 +1097,6 @@ function safeC3Generate(selector, config) {
 }
 function initCharts() {
     const c3lib = window.c3;
-    const morrisLib = window.Morris;
 
     // Bar: resumen transcritos vs pendientes
     charts.value.resumen = c3lib
@@ -1124,28 +1123,42 @@ function initCharts() {
           })
         : null;
 
-    // Área: flujo diario (asignados / leídos / transcritos)
-    // Morris puede fallar en `resizeHandler` si se inicializa con `data: []`
-    // y ocurre un resize antes de que llegue `setData(...)`. Usamos un punto dummy.
-    const morrisAreaInitialData = [{ period: "", asignados: 0, leidos: 0, transcritos: 0 }];
-    charts.value.transcritos = morrisLib
-        ? morrisLib.Area({
-              element: "sales-chart",
-              data: morrisAreaInitialData,
-              xkey: "period",
-              ykeys: ["asignados", "leidos", "transcritos"],
-              labels: ["Asignados", "Leídos", "Transcritos"],
-              pointSize: 2,
-              fillOpacity: 0.2,
-              pointStrokeColors: ["#26c6da", "#ffb22b", "#24d2b5"],
-              behaveLikeLine: true,
-              gridLineColor: "#e0e0e0",
-              lineWidth: 2,
-              hideHover: "auto",
-              lineColors: ["#26c6da", "#ffb22b", "#24d2b5"],
-              resize: true,
-          })
-        : null;
+    // Área: flujo diario (asignados / leídos / transcritos) con C3.js
+    // C3 reemplaza a Morris.js para evitar memory leaks en SPA y errores SVG de Raphael (H26)
+    charts.value.transcritos = safeC3Generate("#sales-chart", {
+        bindto: "#sales-chart",
+        data: {
+            x: "x",
+            columns: [["x"], ["Asignados"], ["Leídos"], ["Transcritos"]],
+            type: "area-spline",
+            names: {
+                Asignados: "Asignados",
+                Leídos: "Leídos",
+                Transcritos: "Transcritos",
+            },
+        },
+        axis: {
+            x: {
+                type: "category",
+                tick: {
+                    rotate: 45,
+                    multiline: false,
+                    culling: {
+                        max: 10,
+                    },
+                },
+            },
+            y: {
+                tick: { count: 5, outer: false },
+            },
+        },
+        legend: { show: true },
+        grid: { y: { show: true } },
+        color: {
+            pattern: ["#26c6da", "#ffb22b", "#24d2b5"],
+        },
+        point: { show: true, r: 2.5 },
+    });
 
     // Donut: aging lectura
     charts.value.agingLectura = c3lib
@@ -1327,12 +1340,28 @@ function renderCharts() {
     upsert(series.value.leidosPorDia, "leidos");
     upsert(series.value.transcritosPorDia, "transcritos");
 
-    const areaData = Object.keys(byDate)
-        .sort()
-        .map((k) => byDate[k]);
+    const sortedDates = Object.keys(byDate).sort();
+    const datesCol = ["x"];
+    const colAsignados = ["Asignados"];
+    const colLeidos = ["Leídos"];
+    const colTranscritos = ["Transcritos"];
 
-    if (charts.value.transcritos && typeof charts.value.transcritos.setData === "function") {
-        charts.value.transcritos.setData(areaData);
+    sortedDates.forEach((d) => {
+        datesCol.push(d);
+        colAsignados.push(byDate[d].asignados || 0);
+        colLeidos.push(byDate[d].leidos || 0);
+        colTranscritos.push(byDate[d].transcritos || 0);
+    });
+
+    if (charts.value.transcritos?.load) {
+        charts.value.transcritos.load({
+            columns: [
+                datesCol,
+                colAsignados.length > 1 ? colAsignados : ["Asignados", 0],
+                colLeidos.length > 1 ? colLeidos : ["Leídos", 0],
+                colTranscritos.length > 1 ? colTranscritos : ["Transcritos", 0],
+            ],
+        });
     }
 
     // Donut aging lectura
@@ -1566,6 +1595,7 @@ function onSedeSeleccionada(event) {
 function destroyCharts() {
     try {
         if (charts.value.resumen?.destroy) charts.value.resumen.destroy();
+        if (charts.value.transcritos?.destroy) charts.value.transcritos.destroy();
         if (charts.value.agingLectura?.destroy) charts.value.agingLectura.destroy();
         if (charts.value.agingTranscripcion?.destroy) charts.value.agingTranscripcion.destroy();
         if (charts.value.porHoraHoy?.destroy) charts.value.porHoraHoy.destroy();

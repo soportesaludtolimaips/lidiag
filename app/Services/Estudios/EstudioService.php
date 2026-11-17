@@ -141,6 +141,7 @@ class EstudioService extends BaseService
                     'mods_in_study' => ! empty($registro['mods_in_study']) ? $registro['mods_in_study'] : null,
                     'email_reportar' => ! empty($registro['email_reportar']) ? $registro['email_reportar'] : null,
                     'paciente_id' => $paciente->id,
+                    'tipo_recaudo_id' => ! empty($registro['tipo_recaudo_id']) ? (int) $registro['tipo_recaudo_id'] : null,
                     'medico_id' => $medicoId,
                     'quien_registro_id' => Auth::id(),
                     'prioridad_id' => $registro['prioridad_id'],
@@ -551,31 +552,36 @@ class EstudioService extends BaseService
         // 1. Sincronización hacia SAHI (SQL Server) si la sede tiene la interfaz habilitada
         if (($info['interface_software'] ?? '') === 'SAHI' && ! empty($info['producto_id'])) {
             try {
-                $producto = EstudioProducto::find($info['producto_id']);
+                $producto = EstudioProducto::with('estudio.tipoRecaudo')->find($info['producto_id']);
                 if ($producto) {
-                    $atencionId = ! empty($data['atencion_id']) ? (int) $data['atencion_id'] : null;
-                    if (! $atencionId && ! empty($data['atencion']) && is_numeric($data['atencion'])) {
-                        $atencionId = (int) $data['atencion'];
-                    }
-                    if (! $atencionId && ! empty($info['atencion_estudio']) && is_numeric($info['atencion_estudio'])) {
-                        $atencionId = (int) $info['atencion_estudio'];
-                    }
-
-                    if ($atencionId > 0) {
-                        $sedeActual = ! empty($info['sede_id']) ? ConfigSede::find($info['sede_id']) : null;
-                        SahiConnectionHelper::configureForSede($sedeActual);
-
-                        $sahiResult = $this->sahiTranscibirService->enviarEstudio(
-                            $atencionId,
-                            (int) ($data['medico_id'] ?? $info['medico_estudio_id'] ?? 0),
-                            $info['lectura'] ?? $data['lectura'],
-                            $info['cod_cups'] ?? $producto->cod_cups,
-                            $data['fechor_lectura'] ?? Carbon::now()->format('Y-m-d H:i:s')
-                        );
-
-                        $this->actualizarEstadoSahiProducto($producto, $sahiResult);
+                    $tipoRecaudo = $producto->estudio?->tipoRecaudo;
+                    if ($tipoRecaudo && ! $tipoRecaudo->envia_sahi) {
+                        Log::info("Estudio producto #{$producto->id} tiene tipo de recaudo '{$tipoRecaudo->nombre}' (envío exclusivo a portal paciente, se omite SAHI).");
                     } else {
-                        Log::warning("Estudio producto #{$producto->id} pertenece a sede SAHI pero no cuenta con atencion_id asociada para sincronizar.");
+                        $atencionId = ! empty($data['atencion_id']) ? (int) $data['atencion_id'] : null;
+                        if (! $atencionId && ! empty($data['atencion']) && is_numeric($data['atencion'])) {
+                            $atencionId = (int) $data['atencion'];
+                        }
+                        if (! $atencionId && ! empty($info['atencion_estudio']) && is_numeric($info['atencion_estudio'])) {
+                            $atencionId = (int) $info['atencion_estudio'];
+                        }
+
+                        if ($atencionId > 0) {
+                            $sedeActual = ! empty($info['sede_id']) ? ConfigSede::find($info['sede_id']) : null;
+                            SahiConnectionHelper::configureForSede($sedeActual);
+
+                            $sahiResult = $this->sahiTranscibirService->enviarEstudio(
+                                $atencionId,
+                                (int) ($data['medico_id'] ?? $info['medico_estudio_id'] ?? 0),
+                                $info['lectura'] ?? $data['lectura'],
+                                $info['cod_cups'] ?? $producto->cod_cups,
+                                $data['fechor_lectura'] ?? Carbon::now()->format('Y-m-d H:i:s')
+                            );
+
+                            $this->actualizarEstadoSahiProducto($producto, $sahiResult);
+                        } else {
+                            Log::warning("Estudio producto #{$producto->id} pertenece a sede SAHI pero no cuenta con atencion_id asociada para sincronizar.");
+                        }
                     }
                 }
             } catch (\Throwable $e) {

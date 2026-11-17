@@ -587,9 +587,53 @@
                                 </div>
                                 <div class="col-md-6">
                                     <h5 class="card-title text-info">
-                                        <i class="fa fa-user"></i> Datos de la Asignacion
+                                        <i class="fa fa-user"></i> Datos de la Asignación
                                     </h5>
                                     <hr />
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label
+                                                    class="control-label font-weight-bold"
+                                                    for="selTipoRecaudoEstudio"
+                                                >
+                                                    Tipo de Estudio / Recaudo
+                                                    <span class="text-danger">*</span>
+                                                </label>
+                                                <select
+                                                    id="selTipoRecaudoEstudio"
+                                                    class="form-control"
+                                                    v-model="registro.tipo_recaudo_id"
+                                                    required
+                                                >
+                                                    <option
+                                                        v-for="tr in tiposRecaudo"
+                                                        :key="tr.id"
+                                                        :value="tr.id"
+                                                    >
+                                                        {{ tr.nombre }} — {{ tr.descripcion }}
+                                                    </option>
+                                                </select>
+                                                <small
+                                                    class="form-text"
+                                                    :class="
+                                                        registro.tipo_recaudo_id == 3
+                                                            ? 'text-danger font-weight-bold'
+                                                            : 'text-muted'
+                                                    "
+                                                >
+                                                    <i class="fa fa-info-circle mr-1"></i>
+                                                    {{
+                                                        registro.tipo_recaudo_id == 3
+                                                            ? "Los estudios de cortesía no generan ningún recaudo y se transfieren únicamente al portal del paciente."
+                                                            : registro.tipo_recaudo_id == 2
+                                                              ? "Los estudios particulares se transfieren al portal del paciente (no se envían a SAHI)."
+                                                              : "Procedimiento convencional facturado por atención SAHI."
+                                                    }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="row">
                                         <div class="col-md-8">
                                             <div class="form-group" id="medicos-parent">
@@ -1159,6 +1203,7 @@ const registro = ref({
     productosEstudio: [],
     diagnosticosEstudio: [],
     atencion_id: null,
+    tipo_recaudo_id: 1, // Por defecto: 1 = Por Atención
     destino_estudio: "Salud Tolima",
     motivo_examen: "",
     eps: "",
@@ -1183,6 +1228,7 @@ const medicos = ref([]);
 const prioridades = ref([]);
 const productos = ref([]);
 const diagnosticos = ref([]);
+const tiposRecaudo = ref([]);
 const productoSelecciondo = ref("");
 const diagnosticoSelecciondo = ref("");
 const idRow = ref(null);
@@ -1916,6 +1962,7 @@ function cargarDatosSede(sedeId = null) {
     listarPrioridades();
     listarProductos();
     listarDiagnosticos();
+    listarTiposRecaudo();
 }
 
 /**
@@ -2168,6 +2215,24 @@ async function listarDiagnosticos() {
             text: "No fue posible cargar los diagnósticos.",
             icon: "error",
         });
+    }
+}
+
+/**
+ * Listar los tipos de recaudo activos (Atención, Particular, Cortesía).
+ * @returns {Promise<void>}
+ * @author: Jhon Javer Lozano Arce
+ * @date 2026-11-17
+ */
+async function listarTiposRecaudo() {
+    try {
+        const res = await axios.get("/api/config-tipos-recaudo/listar/activos");
+        tiposRecaudo.value = res.data?.data || res.data || [];
+        if (tiposRecaudo.value.length > 0 && !registro.value.tipo_recaudo_id) {
+            registro.value.tipo_recaudo_id = tiposRecaudo.value[0].id;
+        }
+    } catch (_error) {
+        tiposRecaudo.value = [];
     }
 }
 
