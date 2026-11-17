@@ -368,6 +368,10 @@ class EstudioQueryService extends BaseService
             $query->where(function ($q) {
                 $q->whereNotNull('estudios_productos.fechor_lectura');
             });
+
+            $query->where(function ($q) {
+                $q->whereNull('estudios_productos.fechor_trascrito');
+            });
         }
 
         if (! empty($filters['bus_fech_ini']) && ! empty($filters['bus_fecha_fin'])) {

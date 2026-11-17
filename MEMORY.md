@@ -37,6 +37,56 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-17 — Eliminación del Combo Estado Lectura y Listado Estricto de Pendientes en Tele-Radiología (`EstudioQueryService.php`, `teleRadiologiaTranscibirComponent.vue`):**
+  - **Diagnóstico del Problema y Requerimiento:**
+    * En `https://lidiag.test/tele-radiologia-transcribir`, se estaban listando estudios que no estaban pendientes o estudios sin lectura / ya transcritos.
+    * Además, el usuario solicitó eliminar el selector de "Estado Lectura" dado que esta vista está destinada exclusivamente a estudios pendientes por transcribir (con lectura médica realizada y sin transcripción finalizada).
+    * **Causas Raíz:**
+      1. En `teleRadiologiaTranscibirComponent.vue`, el parámetro en el payload se enviaba con typo `estudioParaTranscibir` (faltaba la 'r') en lugar de `estudioParaTranscribir`, por lo que el Request lo ignoraba y la condición de filtro en `EstudioQueryService` no se activaba.
+      2. En `EstudioQueryService::applyTranscripcionFilters()`, cuando se activaba `estudioParaTranscribir`, la condición usaba el alias inexistente `estu_produc.fechor_trascrito` en vez de `estudios_productos.fechor_trascrito`, lo que causaba un error SQLSTATE `Unknown column 'estu_produc.fechor_trascrito'`.
+  - **Solución Implementada:**
+    * En [`EstudioQueryService.php`](file:///c:/laragon/www/lidiag/app/Services/Estudios/EstudioQueryService.php): Se corrigió el filtro a `$query->whereNull('estudios_productos.fechor_trascrito')` y `$query->whereNotNull('estudios_productos.fechor_lectura')`.
+    * En [`teleRadiologiaTranscibirComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/tele-radiologia/teleRadiologiaTranscibirComponent.vue):
+      - Se retiró el combo "Estado Lectura" del formulario de filtros y se redistribuyeron armoniosamente las columnas (`col-md-4` para búsqueda y `col-md-3` para fecha fin).
+      - Se removieron los badges y variables redundantes (`filtroEstado`, `conteoConLectura`, `conteoSinLectura`, `aplicarFiltroEstado()`).
+      - Se normalizó el payload de búsqueda a `estudioParaTranscribir: "si"`.
+  - **Verificaciones:**
+    * Pint (`vendor\bin\pint.bat --test app/Services/Estudios/EstudioQueryService.php`) 100% aprobado ✅.
+    * ESLint en `teleRadiologiaTranscibirComponent.vue`: 0 errores, 0 warnings ✅.
+    * Vite build (`npm run build`) completado exitosamente en 1.81s ✅.
+
+- [x] **2026-11-12 — Corrección de Error 500 TypeError en `SAHIEcografiasController` y Búsqueda Multicriterio (`SAHIEcografiasController.php`, `SAHIEcografiasService.php`):**
+  - **Diagnóstico del Problema Reportado por el Usuario:**
+    * Al consultar un paciente para asignación/admisión médica en `/ecografias.admisiones`, el endpoint `POST /api/interface-sahi-ecografias/listar/productos/atencion` fallaba con HTTP 500: `Argument #1 ($atencionId) must be of type int, string given`.
+    * **Causa Raíz:**
+      1. El frontend enviaba en el cuerpo el objeto `busqueda` (`bus_nom_num_docu`, `bus_fech_ini`, `bus_fecha_fin`). El controlador extraía `$request->input('bus_nom_num_docu')` como `string` (ej. documento de paciente o atención enviada como texto) y lo pasaba a `SAHIEcografiasService::listarProductosAtencion(int $atencionId)`.
+      2. Bajo PHP 8.4 con tipado estricto, la discrepancia `string` vs `int` lanzaba un `TypeError` fatal no capturado.
+      3. Adicionalmente, el servicio solo soportaba recibir un único entero de atención directa, imposibilitando búsquedas por cédula, nombres del paciente o rango de fechas desde la interfaz.
+  - **Ajustes Implementados:**
+    * **Controlador Flexible ([`SAHIEcografiasController.php`](file:///c:/laragon/www/lidiag/app/Http/Controllers/Interface/SAHIEcografiasController.php)):** Normaliza `atencion_id`, `bus_nom_num_docu`, `bus_fech_ini` y `bus_fecha_fin`, pasándolos al servicio con tipado `int|string|null`.
+    * **Búsqueda Multicriterio en SAHI ([`SAHIEcografiasService.php`](file:///c:/laragon/www/lidiag/app/Services/Interfaces/SAHIEcografiasService.php)):**
+      - Se implementó `resolverAtencionesIds()` que evalúa si el criterio es numérico (atención directa o documento de identidad en `admCliente`) o textual (búsqueda difusa por nombres en `admCliente`), combinando opcionalmente con filtro de fechas `CONVERT(date, admAtencion.FecIngreso)`.
+      - Se actualizaron las consultas de facturas y movimientos a `whereIn('admAtencion.IdAtencion', $atencionIds)`.
+      - Se indexó el cruce local con LIDiag por clave compuesta `atencion_id . '_' . producto_id` y se mapeó el médico que ordenó desde `hceProceOrden` agrupado por atención.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) 100% aprobado en ambos archivos ✅.
+    * Prueba de ejecución directa del controlador y servicio simulando petición HTTP con documento `43458047`: HTTP 200, `success: true`, 13 atenciones/productos retornados correctamente con datos de paciente, contrato, plan y Worklist ✅.
+
+- [x] **2026-11-12 — Corrección de Pérdida de Diseño y Colapso de Columnas en Tabla de Recomendaciones (`recomendacionProductoComponent.vue`):**
+  - **Diagnóstico del Problema Reportado por el Usuario:**
+    * Al refrescar o editar un registro en la tabla de recomendaciones por producto, la tabla perdía el 100% de su ancho, las columnas se colapsaban a la izquierda y el área restante quedaba con fondo gris plano.
+    * **Causa Raíz:**
+      1. El cuarto encabezado `<th>` tenía la clase de Bootstrap `.sr-only` (`position: absolute; width: 1px`). Al tener `position: absolute`, el `<thead>` quedaba con 3 columnas en el flujo del layout contra 4 `<td>` en el `<tbody>`, rompiendo la geometría de la tabla.
+      2. En `buscar()`, `safeDestroyDataTable()` dejaba estilos en línea (`style="width: ...;"`) en la tabla y en las celdas `<th>`.
+      3. `loadingBuscar = true` ocultaba la tabla con `v-show` (`display: none`), y al reinicializar DataTables mientras la tabla estaba oculta o sin reflow completo, DataTables calculaba anchos mínimos/0px.
+      4. El contenedor exterior tenía `table-responsive` sobre `col-12` distorsionando el flujo de la tarjeta.
+  - **Ajustes Implementados:**
+    * **Normalización del Encabezado:** Se reemplazó `<th class="sr-only">Acciones</th>` por `<th class="text-center" style="width: 100px">Acciones</th>` y `<td class="text-nowrap text-center">`, cuadrando con exactitud las 4 columnas de la tabla.
+    * **Limpieza de Contenedores y Estilos:** Se retiró `table-responsive` de `col-12`, se aplicó la clase estándar `display table table-hover table-striped table-bordered` a la tabla, y se agregó regla `:deep(#tablaRecomendaciones), :deep(.dataTables_wrapper) { width: 100% !important; }`.
+    * **Ciclo Seguro de Destrucción y Re-inicialización:** En `buscar()`, tras destruir DataTables se eliminan los estilos en línea residuales (`removeAttr('style')`), se reactiva la visibilidad del contenedor (`loadingBuscar = false`), se aguarda el render del DOM (`await nextTick()`) y se inicializa con `autoWidth: false` seguido de `table.columns.adjust()`.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios en [`recomendacionProductoComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/citas/recomendacionProductoComponent.vue) ✅.
+    * Vite Build (`npm run build`): compilación exitosa en 1.60s ✅.
 - [x] **2026-11-12 — Select2 y Checkbox de Estado en Drawer de Recomendaciones (`recomendacionProductoComponent.vue`, `Select2.vue`):**
   - **Requerimiento del Usuario:**
     * El combo de selección de Producto en el drawer de recomendaciones debe ser un componente `Select2`.

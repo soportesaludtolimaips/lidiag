@@ -164,7 +164,9 @@ class TeleRadiologiaService extends BaseService
 
             $medico = $this->procesarMedicoConFirma($medicoData);
 
-            $estudio = Estudio::where('study_iuid', $d['study_iuid'])->first();
+            $estudio = Estudio::where('study_iuid', $d['study_iuid'])
+                ->where('destino_estudio', '=', 'Tele Radiologia')
+                ->first();
 
             if (! $estudio) {
                 return $this->notFound('Estudio no encontrado con IUID: '.$d['study_iuid']);

@@ -81,7 +81,7 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <div class="form-group">
                                         <label class="control-label" for="bus_nom_num_docu"
                                             >Nombres o # documento</label
@@ -111,7 +111,7 @@
                                         />
                                     </div>
                                 </div>
-                                <div class="col-md-2">
+                                <div class="col-md-3">
                                     <div class="form-group">
                                         <label class="control-label" for="bus_fecha_fin"
                                             >Fecha Fin</label
@@ -123,21 +123,6 @@
                                             v-model="busqueda.bus_fecha_fin"
                                             class="form-control"
                                         />
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label for="filtro_estado">Estado Lectura</label>
-                                        <select
-                                            v-model="filtroEstado"
-                                            id="filtro_estado"
-                                            class="form-control custom-select"
-                                            @change="aplicarFiltroEstado()"
-                                        >
-                                            <option value="todos">...::: Todos :::...</option>
-                                            <option value="con_lectura">Con Lectura</option>
-                                            <option value="sin_lectura">Sin Lectura</option>
-                                        </select>
                                     </div>
                                 </div>
                             </div>
@@ -190,12 +175,6 @@
                             <div class="text-right">
                                 <span class="badge badge-primary mr-1" v-if="registros.length > 0">
                                     {{ registros.length }} pendientes
-                                </span>
-                                <span class="badge badge-success mr-1" v-if="conteoConLectura > 0">
-                                    {{ conteoConLectura }} con lectura
-                                </span>
-                                <span class="badge badge-danger mr-2" v-if="conteoSinLectura > 0">
-                                    {{ conteoSinLectura }} sin lectura
                                 </span>
                             </div>
                         </div>
@@ -688,7 +667,7 @@
     </div>
 </template>
 <script setup>
-import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import FormPaciente from "@/components/comunes/formPacienteComponent.vue";
 import { listarUsuariosYSedes } from "../../../helpers/usuarios";
@@ -729,7 +708,6 @@ function toggleZenMode() {
 const soportesHC = ref([]);
 const todosLosRegistros = ref([]);
 const registros = ref([]);
-const filtroEstado = ref("todos");
 const tituloModal = ref("Transcribir estudio");
 const registro = ref({
     id_estudio: 0,
@@ -766,7 +744,7 @@ const registro = ref({
     destino_estudio: DESTINO_TELE_RADIOLOGIA,
 });
 const busqueda = ref({
-    estudioParaTranscibir: "si",
+    estudioParaTranscribir: "si",
     quien_asigno_id: "",
     medico_id: "",
     sede_id: "",
@@ -789,13 +767,6 @@ const loadingAnularId = ref(null);
 const loadingDescargaSoporte = ref(null);
 const loadingVerImagen = ref(false);
 
-const conteoConLectura = computed(
-    () => todosLosRegistros.value.filter((x) => x.fechor_lectura != null).length
-);
-const conteoSinLectura = computed(
-    () => todosLosRegistros.value.filter((x) => x.fechor_lectura === null).length
-);
-
 function initDataTable() {
     if (registros.value.length === 0) return;
     safeInitDataTable(dt.value || "#tablaTeleRadiologiaTranscribir", {
@@ -810,29 +781,12 @@ function destroyDataTable() {
     safeDestroyDataTable(dt.value || "#tablaTeleRadiologiaTranscribir");
 }
 
-async function aplicarFiltroEstado() {
-    destroyDataTable();
-    if (filtroEstado.value === "con_lectura") {
-        registros.value = todosLosRegistros.value.filter((x) => x.fechor_lectura != null);
-    } else if (filtroEstado.value === "sin_lectura") {
-        registros.value = todosLosRegistros.value.filter((x) => x.fechor_lectura === null);
-    } else {
-        registros.value = [...todosLosRegistros.value];
-    }
-    await nextTick();
-    if (registros.value.length > 0) {
-        destroyDataTable();
-        initDataTable();
-    }
-}
-
 function btnLimpiar() {
     busqueda.value.quien_asigno_id = "";
     busqueda.value.medico_id = "";
     busqueda.value.bus_nom_num_docu = "";
     busqueda.value.bus_fech_ini = "";
     busqueda.value.bus_fecha_fin = "";
-    filtroEstado.value = "todos";
     errores.value = {};
     destroyDataTable();
     todosLosRegistros.value = [];
@@ -874,7 +828,7 @@ async function listarPendientesTrascribir() {
             bus_fech_ini: busqueda.value.bus_fech_ini || undefined,
             bus_fecha_fin: busqueda.value.bus_fecha_fin || undefined,
             destino_estudio: DESTINO_TELE_RADIOLOGIA,
-            estudioParaTranscibir: busqueda.value.estudioParaTranscibir,
+            estudioParaTranscribir: busqueda.value.estudioParaTranscribir,
         });
 
         let data = res.data.data;
@@ -886,6 +840,11 @@ async function listarPendientesTrascribir() {
             }
         }
         todosLosRegistros.value = Array.isArray(data) ? data : [];
+        registros.value = [...todosLosRegistros.value];
+        await nextTick();
+        if (registros.value.length > 0) {
+            initDataTable();
+        }
     } catch (error) {
         toastMessage({
             heading: "Error",
@@ -893,9 +852,9 @@ async function listarPendientesTrascribir() {
             icon: "error",
         });
         todosLosRegistros.value = [];
+        registros.value = [];
     } finally {
         loadingBuscar.value = false;
-        await aplicarFiltroEstado();
     }
 }
 
