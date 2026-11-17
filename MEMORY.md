@@ -37,6 +37,23 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-17 — Implementación Completa del Módulo "WorkFlow Dispositivos" (Multisede, Backend Laravel, Vue 3 SPA y Permisos Spatie):**
+  - **Base de Datos & Modelo Eloquent:**
+    * Migración `database/migrations/2026_11_12_124100_create_config_worklist_dispositivos_table.php`: tabla `config_worklist_dispositivos` con claves foráneas hacia `config_sedes` (`sede_id`) y `config_modulos` (`modulo_id`), campos DICOM (`codigo`, `nombre`, `ae_title`, `modality`, `ip_address`, `puerto`, `ubicacion`, `estado`) y restricción de unicidad `['sede_id', 'codigo']`.
+    * Modelo `App\Models\Configuracion\ConfigWorklistDispositivo` con relaciones `sede()` y `modulo()`, además de scopes `porSede()` y `activos()`.
+  - **Backend API & Autorización:**
+    * `ConfigWorklistDispositivoRequest`: validación estricta de campos obligatorios, unicidad compuesta por sede y formatos de red (IP, puerto 1-65535).
+    * `ConfigWorklistDispositivoService`: transacciones seguras con `DB::beginTransaction()` / `DB::rollBack()` y auditoría mediante `AuditLogger`.
+    * `ConfigWorklistDispositivoController`: CRUD y endpoint `PATCH /config-worklist-dispositivos/{id}/toggle-estado`.
+    * Seeder `PermisionWorklistDispositivosSeeder`: generación y asignación de permisos `config.dispositivos.*` a roles administrativos (`Administrador`, `Administrativo`, `Soporte Manager`, `Soporte Tecnico`).
+  - **Frontend SPA (Vue 3 + Bootstrap 5):**
+    * Componente `resources/js/components/modulos/configuracion/configDispositivosComponent.vue`: consumo del contexto multisede transversal vía `localStorage.getItem("ST-sede")`, apertura del drawer lateral nativo de LIDiag (`right-sidebar` con backdrop reactivo) alineando el botón a la derecha y carga dinámica de módulos asistenciales desde `/api/config-modulos-listar`.
+    * Registro de ruta SPA en `resources/js/router/routes.js` (`/config-dispositivos-listar`) y en el menú de navegación reactivo `resources/js/layouts/AppSidebar.vue` y `resources/views/comunes/sidebar.blade.php`, ordenado alfabéticamente en la sección de Configuraciones.
+  - **Verificaciones y Estilo:**
+    * PHP Pint ejecutado y verificado.
+    * ESLint en Vue/JS: 0 errores, 0 warnings.
+    * Vite build (`npm run build`) compilado con éxito.
+
 - [x] **2026-11-17 — Eliminación del Combo Estado Lectura y Listado Estricto de Pendientes en Tele-Radiología (`EstudioQueryService.php`, `teleRadiologiaTranscibirComponent.vue`):**
   - **Diagnóstico del Problema y Requerimiento:**
     * En `https://lidiag.test/tele-radiologia-transcribir`, se estaban listando estudios que no estaban pendientes o estudios sin lectura / ya transcritos.

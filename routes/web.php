@@ -271,6 +271,10 @@ Route::get('/config-productos-listar', fn () => view('layouts.app'))
     ->name('config.productos.listar')
     ->middleware(['auth', 'permission:config.productos.index']);
 
+Route::get('/config-dispositivos-listar', fn () => view('modulos.configuracion.config-dispositivos'))
+    ->name('config.dispositivos.listar')
+    ->middleware(['auth', 'permission:config.dispositivos.index']);
+
 Route::get('/config-sedes-listar', fn () => view('layouts.app'))
     ->name('config.sedes.listar')
     ->middleware(['auth', 'permission:config.sedes.index']);

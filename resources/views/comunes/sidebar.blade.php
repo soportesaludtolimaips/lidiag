@@ -367,7 +367,8 @@
                             'config.admin.salud.index', 'config.diagnosticos.index', 'config.prioridades.index', 'config.productos.index', 'config.sedes.index',
                             'config.servicio.citas.index', 'config.plantillas.index', 'config.tipo.documento.index', 'config.consentimiento_informado.index',
                             'config.whatsapp.saludo.index', 'ecografias.consentimientos.index', 'ecografias.consentimientos.plantillas.index',
-                            'helpdesk.config.categorias.index', 'helpdesk.config.prioridades.index', 'helpdesk.config.estados.index', 'citas.index'
+                            'helpdesk.config.categorias.index', 'helpdesk.config.prioridades.index', 'helpdesk.config.estados.index', 'citas.index',
+                            'config.dispositivos.index'
                         ])
                             <li class="{{ request()->routeIs('config.*') ? 'active' : '' }}">
                                 <a class="has-arrow waves-effect waves-dark {{ request()->routeIs('config.*') ? 'active' : '' }}" href="#" aria-expanded="{{ request()->routeIs('config.*') ? 'true' : 'false' }}">
@@ -375,6 +376,7 @@
                                     <span class="hide-menu">Configuraciones</span>
                                 </a>
                                 <ul aria-expanded="{{ request()->routeIs('config.*') ? 'true' : 'false' }}" class="collapse {{ request()->routeIs('config.*') ? 'in' : '' }}">
+                                    {{-- 1. Admin. Salud --}}
                                     @can('config.admin.salud.index')
                                         <li class="{{ request()->routeIs('config.adminsalud.*') ? 'active' : '' }}">
                                             <a class="{{ request()->routeIs('config.adminsalud.*') ? 'active' : '' }}" href="{{ route('config.adminsalud.listar') }}">
@@ -382,65 +384,8 @@
                                             </a>
                                         </li>
                                     @endcan
-                                    @can('config.diagnosticos.index')
-                                        <li class="{{ request()->routeIs('config.diagnosticos.*') ? 'active' : '' }}">
-                                            <a class="{{ request()->routeIs('config.diagnosticos.*') ? 'active' : '' }}" href="{{ route('config.diagnosticos.listar') }}">
-                                                <i class="fa fa-stethoscope text-info"></i> Diagnósticos
-                                            </a>
-                                        </li>
-                                    @endcan
-                                    @can('config.prioridades.index')
-                                        <li class="{{ request()->routeIs('config.prioridades.*') ? 'active' : '' }}">
-                                            <a class="{{ request()->routeIs('config.prioridades.*') ? 'active' : '' }}" href="{{ route('config.prioridades.listar') }}">
-                                                <i class="fa fa-flag text-info"></i> Prioridades
-                                            </a>
-                                        </li>
-                                    @endcan
-                                    @can('config.productos.index')
-                                        <li class="{{ request()->routeIs('config.productos.*') ? 'active' : '' }}">
-                                            <a class="{{ request()->routeIs('config.productos.*') ? 'active' : '' }}" href="{{ route('config.productos.listar') }}">
-                                                <i class="fa fa-cube text-info"></i> Productos
-                                            </a>
-                                        </li>
-                                    @endcan
-                                    @can('config.sedes.index')
-                                        <li class="{{ request()->routeIs('config.sedes.*') ? 'active' : '' }}">
-                                            <a class="{{ request()->routeIs('config.sedes.*') ? 'active' : '' }}" href="{{ route('config.sedes.listar') }}">
-                                                <i class="fa fa-hospital-o text-info"></i> Sedes
-                                            </a>
-                                        </li>
-                                    @endcan
-                                    @can('config.servicio.citas.index')
-                                        <li class="{{ request()->routeIs('config.servicio.citas.*') ? 'active' : '' }}">
-                                            <a class="{{ request()->routeIs('config.servicio.citas.*') ? 'active' : '' }}" href="{{ route('config.servicio.citas.listar') }}">
-                                                <i class="fa fa-calendar-plus-o text-info"></i> Servicios de Citas
-                                            </a>
-                                        </li>
-                                        <li class="{{ request()->routeIs('config.servicio.producto') ? 'active' : '' }}">
-                                            <a class="{{ request()->routeIs('config.servicio.producto') ? 'active' : '' }}" href="{{ route('config.servicio.producto') }}">
-                                                <i class="fa fa-cubes text-info"></i> Productos por Servicio
-                                            </a>
-                                        </li>
-                                    @endcan
-                                    @can('config.plantillas.index')
-                                        <li class="{{ request()->routeIs('config.tipos.plantillas.*') ? 'active' : '' }}">
-                                            <a class="{{ request()->routeIs('config.tipos.plantillas.*') ? 'active' : '' }}" href="{{ route('config.tipos.plantillas.listar') }}">
-                                                <i class="fa fa-folder-open-o text-info"></i> Tipos de Plantillas
-                                            </a>
-                                        </li>
-                                        <li class="{{ request()->routeIs('config.plantillas.*') ? 'active' : '' }}">
-                                            <a class="{{ request()->routeIs('config.plantillas.*') ? 'active' : '' }}" href="{{ route('config.plantillas.listar') }}">
-                                                <i class="fa fa-file-text-o text-info"></i> Plantillas
-                                            </a>
-                                        </li>
-                                    @endcan
-                                    @can('config.tipo.documento.index')
-                                        <li class="{{ request()->routeIs('config.tipos.documentos.*') ? 'active' : '' }}">
-                                            <a class="{{ request()->routeIs('config.tipos.documentos.*') ? 'active' : '' }}" href="{{ route('config.tipos.documentos.listar') }}">
-                                                <i class="fa fa-id-card-o text-info"></i> Tipos de Documentos
-                                            </a>
-                                        </li>
-                                    @endcan
+
+                                    {{-- 2. Consentimiento Informado --}}
                                     @can('config.consentimiento_informado.index')
                                         <li class="{{ request()->routeIs('config.consentimiento.informado.*') ? 'active' : '' }}">
                                             <a class="{{ request()->routeIs('config.consentimiento.informado.*') ? 'active' : '' }}" href="{{ route('config.consentimiento.informado.listar') }}">
@@ -448,6 +393,8 @@
                                             </a>
                                         </li>
                                     @endcan
+
+                                    {{-- 3. Consentimientos (Firmas/PDF) --}}
                                     @can('ecografias.consentimientos.index')
                                         <li class="{{ request()->routeIs('config.consentimientos.index') ? 'active' : '' }}">
                                             <a class="{{ request()->routeIs('config.consentimientos.index') ? 'active' : '' }}" href="{{ route('config.consentimientos.index') }}">
@@ -455,40 +402,31 @@
                                             </a>
                                         </li>
                                     @endcan
-                                    @can('ecografias.consentimientos.plantillas.index')
-                                        <li class="{{ request()->routeIs('config.consentimientos.plantillas.*') ? 'active' : '' }}">
-                                            <a class="{{ request()->routeIs('config.consentimientos.plantillas.*') ? 'active' : '' }}" href="{{ route('config.consentimientos.plantillas.index') }}">
-                                                <i class="fa fa-files-o text-info"></i> Plantillas Consentimientos
-                                            </a>
-                                        </li>
-                                    @endcan
-                                    @can('config.whatsapp.saludo.index')
-                                        <li class="{{ request()->routeIs('config.whatsapp.*') ? 'active' : '' }}">
-                                            <a class="{{ request()->routeIs('config.whatsapp.*') ? 'active' : '' }}" href="{{ route('config.whatsapp.listar') }}">
-                                                <i class="fa fa-whatsapp text-info"></i> WhatsApp Bot
-                                            </a>
-                                        </li>
-                                    @endcan
-                                    @can('citas.index')
-                                        <li class="{{ request()->routeIs('config.cita.rechazo.motivos') ? 'active' : '' }}">
-                                            <a class="{{ request()->routeIs('config.cita.rechazo.motivos') ? 'active' : '' }}" href="{{ route('config.cita.rechazo.motivos') }}">
-                                                <i class="fa fa-ban text-info"></i> Motivos de Rechazo
+
+                                    {{-- 4. Diagnósticos --}}
+                                    @can('config.diagnosticos.index')
+                                        <li class="{{ request()->routeIs('config.diagnosticos.*') ? 'active' : '' }}">
+                                            <a class="{{ request()->routeIs('config.diagnosticos.*') ? 'active' : '' }}" href="{{ route('config.diagnosticos.listar') }}">
+                                                <i class="fa fa-stethoscope text-info"></i> Diagnósticos
                                             </a>
                                         </li>
                                     @endcan
 
+                                    {{-- 5. Dispositivos (WorkFlow) --}}
+                                    @can('config.dispositivos.index')
+                                        <li class="{{ request()->routeIs('config.dispositivos.*') ? 'active' : '' }}">
+                                            <a class="{{ request()->routeIs('config.dispositivos.*') ? 'active' : '' }}" href="{{ route('config.dispositivos.listar') }}">
+                                                <i class="fa fa-desktop text-info"></i> Dispositivos (WorkFlow)
+                                            </a>
+                                        </li>
+                                    @endcan
+
+                                    {{-- 6. Helpdesk: Categorías, Estados, Prioridades --}}
                                     @canany(['helpdesk.config.categorias.index', 'helpdesk.config.prioridades.index', 'helpdesk.config.estados.index'])
                                         @can('helpdesk.config.categorias.index')
                                             <li class="{{ request()->routeIs('config.helpdesk.categorias.*') ? 'active' : '' }}">
                                                 <a class="{{ request()->routeIs('config.helpdesk.categorias.*') ? 'active' : '' }}" href="{{ route('config.helpdesk.categorias.listar') }}">
                                                     <i class="fa fa-tags text-info"></i> Helpdesk: Categorías
-                                                </a>
-                                            </li>
-                                        @endcan
-                                        @can('helpdesk.config.prioridades.index')
-                                            <li class="{{ request()->routeIs('config.helpdesk.prioridades.*') ? 'active' : '' }}">
-                                                <a class="{{ request()->routeIs('config.helpdesk.prioridades.*') ? 'active' : '' }}" href="{{ route('config.helpdesk.prioridades.listar') }}">
-                                                    <i class="fa fa-exclamation-circle text-info"></i> Helpdesk: Prioridades
                                                 </a>
                                             </li>
                                         @endcan
@@ -499,7 +437,105 @@
                                                 </a>
                                             </li>
                                         @endcan
+                                        @can('helpdesk.config.prioridades.index')
+                                            <li class="{{ request()->routeIs('config.helpdesk.prioridades.*') ? 'active' : '' }}">
+                                                <a class="{{ request()->routeIs('config.helpdesk.prioridades.*') ? 'active' : '' }}" href="{{ route('config.helpdesk.prioridades.listar') }}">
+                                                    <i class="fa fa-exclamation-circle text-info"></i> Helpdesk: Prioridades
+                                                </a>
+                                            </li>
+                                        @endcan
                                     @endcanany
+
+                                    {{-- 7. Motivos de Rechazo --}}
+                                    @can('citas.index')
+                                        <li class="{{ request()->routeIs('config.cita.rechazo.motivos') ? 'active' : '' }}">
+                                            <a class="{{ request()->routeIs('config.cita.rechazo.motivos') ? 'active' : '' }}" href="{{ route('config.cita.rechazo.motivos') }}">
+                                                <i class="fa fa-ban text-info"></i> Motivos de Rechazo
+                                            </a>
+                                        </li>
+                                    @endcan
+
+                                    {{-- 8. Plantillas --}}
+                                    @can('config.plantillas.index')
+                                        <li class="{{ request()->routeIs('config.plantillas.*') ? 'active' : '' }}">
+                                            <a class="{{ request()->routeIs('config.plantillas.*') ? 'active' : '' }}" href="{{ route('config.plantillas.listar') }}">
+                                                <i class="fa fa-file-text-o text-info"></i> Plantillas
+                                            </a>
+                                        </li>
+                                    @endcan
+
+                                    {{-- 9. Plantillas Consentimientos --}}
+                                    @can('ecografias.consentimientos.plantillas.index')
+                                        <li class="{{ request()->routeIs('config.consentimientos.plantillas.*') ? 'active' : '' }}">
+                                            <a class="{{ request()->routeIs('config.consentimientos.plantillas.*') ? 'active' : '' }}" href="{{ route('config.consentimientos.plantillas.index') }}">
+                                                <i class="fa fa-files-o text-info"></i> Plantillas Consentimientos
+                                            </a>
+                                        </li>
+                                    @endcan
+
+                                    {{-- 10. Prioridades --}}
+                                    @can('config.prioridades.index')
+                                        <li class="{{ request()->routeIs('config.prioridades.*') ? 'active' : '' }}">
+                                            <a class="{{ request()->routeIs('config.prioridades.*') ? 'active' : '' }}" href="{{ route('config.prioridades.listar') }}">
+                                                <i class="fa fa-flag text-info"></i> Prioridades
+                                            </a>
+                                        </li>
+                                    @endcan
+
+                                    {{-- 11. Productos --}}
+                                    @can('config.productos.index')
+                                        <li class="{{ request()->routeIs('config.productos.*') ? 'active' : '' }}">
+                                            <a class="{{ request()->routeIs('config.productos.*') ? 'active' : '' }}" href="{{ route('config.productos.listar') }}">
+                                                <i class="fa fa-cube text-info"></i> Productos
+                                            </a>
+                                        </li>
+                                    @endcan
+
+
+                                    {{-- 13. Sedes --}}
+                                    @can('config.sedes.index')
+                                        <li class="{{ request()->routeIs('config.sedes.*') ? 'active' : '' }}">
+                                            <a class="{{ request()->routeIs('config.sedes.*') ? 'active' : '' }}" href="{{ route('config.sedes.listar') }}">
+                                                <i class="fa fa-hospital-o text-info"></i> Sedes
+                                            </a>
+                                        </li>
+                                    @endcan
+
+                                    {{-- 14. Servicios de Citas --}}
+                                    @can('config.servicio.citas.index')
+                                        <li class="{{ request()->routeIs('config.servicio.citas.*') ? 'active' : '' }}">
+                                            <a class="{{ request()->routeIs('config.servicio.citas.*') ? 'active' : '' }}" href="{{ route('config.servicio.citas.listar') }}">
+                                                <i class="fa fa-calendar-plus-o text-info"></i> Servicios de Citas
+                                            </a>
+                                        </li>
+                                    @endcan
+
+                                    {{-- 15. Tipos de Documentos --}}
+                                    @can('config.tipo.documento.index')
+                                        <li class="{{ request()->routeIs('config.tipos.documentos.*') ? 'active' : '' }}">
+                                            <a class="{{ request()->routeIs('config.tipos.documentos.*') ? 'active' : '' }}" href="{{ route('config.tipos.documentos.listar') }}">
+                                                <i class="fa fa-id-card-o text-info"></i> Tipos de Documentos
+                                            </a>
+                                        </li>
+                                    @endcan
+
+                                    {{-- 16. Tipos de Plantillas --}}
+                                    @can('config.plantillas.index')
+                                        <li class="{{ request()->routeIs('config.tipos.plantillas.*') ? 'active' : '' }}">
+                                            <a class="{{ request()->routeIs('config.tipos.plantillas.*') ? 'active' : '' }}" href="{{ route('config.tipos.plantillas.listar') }}">
+                                                <i class="fa fa-folder-open-o text-info"></i> Tipos de Plantillas
+                                            </a>
+                                        </li>
+                                    @endcan
+
+                                    {{-- 17. WhatsApp Bot --}}
+                                    @can('config.whatsapp.saludo.index')
+                                        <li class="{{ request()->routeIs('config.whatsapp.*') ? 'active' : '' }}">
+                                            <a class="{{ request()->routeIs('config.whatsapp.*') ? 'active' : '' }}" href="{{ route('config.whatsapp.listar') }}">
+                                                <i class="fa fa-whatsapp text-info"></i> WhatsApp Bot
+                                            </a>
+                                        </li>
+                                    @endcan
                                 </ul>
                             </li>
                         @endcanany

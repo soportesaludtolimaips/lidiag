@@ -95,6 +95,12 @@ app.component(
     )
 );
 app.component(
+    "ConfigDispositivosComponent",
+    defineAsyncComponent(
+        () => import("./components/modulos/configuracion/configDispositivosComponent.vue")
+    )
+);
+app.component(
     "ConfigSedeComponent",
     defineAsyncComponent(() => import("./components/modulos/configuracion/configSedeComponent.vue"))
 );

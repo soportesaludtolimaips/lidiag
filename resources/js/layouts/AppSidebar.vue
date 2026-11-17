@@ -725,21 +725,22 @@
                         v-if="
                             can([
                                 'config.admin.salud.index',
-                                'config.diagnosticos.index',
-                                'config.prioridades.index',
-                                'config.productos.index',
-                                'config.sedes.index',
-                                'config.servicio.citas.index',
-                                'config.plantillas.index',
-                                'config.tipo.documento.index',
                                 'config.consentimiento_informado.index',
-                                'config.whatsapp.saludo.index',
                                 'ecografias.consentimientos.index',
                                 'ecografias.consentimientos.plantillas.index',
+                                'config.diagnosticos.index',
+                                'config.dispositivos.index',
                                 'helpdesk.config.categorias.index',
                                 'helpdesk.config.prioridades.index',
                                 'helpdesk.config.estados.index',
                                 'citas.index',
+                                'config.plantillas.index',
+                                'config.prioridades.index',
+                                'config.productos.index',
+                                'config.sedes.index',
+                                'config.servicio.citas.index',
+                                'config.tipo.documento.index',
+                                'config.whatsapp.saludo.index',
                             ])
                         "
                         :class="{ active: isRouteActive('/config') }"
@@ -759,6 +760,7 @@
                             :class="{ in: openMenus.config }"
                             :aria-expanded="openMenus.config ? 'true' : 'false'"
                         >
+                            <!-- 1. Admin. Salud -->
                             <li
                                 v-if="can('config.admin.salud.index')"
                                 :class="{ active: isRouteActive('/config-adminsalud-listar') }"
@@ -767,85 +769,8 @@
                                     <i class="fa fa-medkit text-info"></i> Admin. Salud
                                 </router-link>
                             </li>
-                            <li
-                                v-if="can('config.diagnosticos.index')"
-                                :class="{ active: isRouteActive('/config-diagnosticos-listar') }"
-                            >
-                                <router-link to="/config-diagnosticos-listar" active-class="active">
-                                    <i class="fa fa-stethoscope text-info"></i> Diagnósticos
-                                </router-link>
-                            </li>
-                            <li
-                                v-if="can('config.prioridades.index')"
-                                :class="{ active: isRouteActive('/config-prioridades-listar') }"
-                            >
-                                <router-link to="/config-prioridades-listar" active-class="active">
-                                    <i class="fa fa-flag text-info"></i> Prioridades
-                                </router-link>
-                            </li>
-                            <li
-                                v-if="can('config.productos.index')"
-                                :class="{ active: isRouteActive('/config-productos-listar') }"
-                            >
-                                <router-link to="/config-productos-listar" active-class="active">
-                                    <i class="fa fa-cube text-info"></i> Productos
-                                </router-link>
-                            </li>
-                            <li
-                                v-if="can('config.sedes.index')"
-                                :class="{ active: isRouteActive('/config-sedes-listar') }"
-                            >
-                                <router-link to="/config-sedes-listar" active-class="active">
-                                    <i class="fa fa-hospital-o text-info"></i> Sedes
-                                </router-link>
-                            </li>
-                            <li
-                                v-if="can('config.servicio.citas.index')"
-                                :class="{ active: isRouteActive('/config-servicio-citas-listar') }"
-                            >
-                                <router-link
-                                    to="/config-servicio-citas-listar"
-                                    active-class="active"
-                                >
-                                    <i class="fa fa-calendar-plus-o text-info"></i> Servicios de
-                                    Citas
-                                </router-link>
-                            </li>
-                            <li
-                                v-if="can('config.plantillas.index')"
-                                :class="{
-                                    active: isRouteActive('/config-tipos-plantillas.listar'),
-                                }"
-                            >
-                                <router-link
-                                    to="/config-tipos-plantillas.listar"
-                                    active-class="active"
-                                >
-                                    <i class="fa fa-folder-open-o text-info"></i> Tipos de
-                                    Plantillas
-                                </router-link>
-                            </li>
-                            <li
-                                v-if="can('config.plantillas.index')"
-                                :class="{ active: isRouteActive('/config-plantillas-listar') }"
-                            >
-                                <router-link to="/config-plantillas-listar" active-class="active">
-                                    <i class="fa fa-file-text-o text-info"></i> Plantillas
-                                </router-link>
-                            </li>
-                            <li
-                                v-if="can('config.tipo.documento.index')"
-                                :class="{
-                                    active: isRouteActive('/config-tipos-documentos-listar'),
-                                }"
-                            >
-                                <router-link
-                                    to="/config-tipos-documentos-listar"
-                                    active-class="active"
-                                >
-                                    <i class="fa fa-id-card-o text-info"></i> Tipos de Documentos
-                                </router-link>
-                            </li>
+
+                            <!-- 2. Consentimiento Informado -->
                             <li
                                 v-if="can('config.consentimiento_informado.index')"
                                 :class="{
@@ -862,25 +787,39 @@
                                     Informado
                                 </router-link>
                             </li>
+
+                            <!-- 3. Consentimientos (Firmas/PDF) -->
                             <li
-                                v-if="can('config.whatsapp.saludo.index')"
-                                :class="{ active: isRouteActive('/config-whatsapp-listar') }"
+                                v-if="can('ecografias.consentimientos.index')"
+                                :class="{ active: isRouteActive('/config-consentimientos') }"
                             >
-                                <router-link to="/config-whatsapp-listar" active-class="active">
-                                    <i class="fa fa-whatsapp text-info"></i> WhatsApp Bot
+                                <router-link to="/config-consentimientos" active-class="active">
+                                    <i class="fa fa-pencil-square-o text-info"></i> Consentimientos
+                                    (Firmas/PDF)
                                 </router-link>
                             </li>
+
+                            <!-- 4. Diagnósticos -->
                             <li
-                                v-if="can('citas.index')"
-                                :class="{ active: isRouteActive('/config-cita-rechazo-motivos') }"
+                                v-if="can('config.diagnosticos.index')"
+                                :class="{ active: isRouteActive('/config-diagnosticos-listar') }"
                             >
-                                <router-link
-                                    to="/config-cita-rechazo-motivos"
-                                    active-class="active"
-                                >
-                                    <i class="fa fa-ban text-info"></i> Motivos de Rechazo
+                                <router-link to="/config-diagnosticos-listar" active-class="active">
+                                    <i class="fa fa-stethoscope text-info"></i> Diagnósticos
                                 </router-link>
                             </li>
+
+                            <!-- 5. Dispositivos (WorkFlow) -->
+                            <li
+                                v-if="can('config.dispositivos.index')"
+                                :class="{ active: isRouteActive('/config-dispositivos-listar') }"
+                            >
+                                <router-link to="/config-dispositivos-listar" active-class="active">
+                                    <i class="fa fa-desktop text-info"></i> Dispositivos (WorkFlow)
+                                </router-link>
+                            </li>
+
+                            <!-- 6. Helpdesk: Categorías -->
                             <li
                                 v-if="can('helpdesk.config.categorias.index')"
                                 :class="{
@@ -894,6 +833,23 @@
                                     <i class="fa fa-tags text-info"></i> Helpdesk: Categorías
                                 </router-link>
                             </li>
+
+                            <!-- 7. Helpdesk: Estados -->
+                            <li
+                                v-if="can('helpdesk.config.estados.index')"
+                                :class="{
+                                    active: isRouteActive('/config-helpdesk-estados-listar'),
+                                }"
+                            >
+                                <router-link
+                                    to="/config-helpdesk-estados-listar"
+                                    active-class="active"
+                                >
+                                    <i class="fa fa-tasks text-info"></i> Helpdesk: Estados
+                                </router-link>
+                            </li>
+
+                            <!-- 8. Helpdesk: Prioridades -->
                             <li
                                 v-if="can('helpdesk.config.prioridades.index')"
                                 :class="{
@@ -908,17 +864,128 @@
                                     Prioridades
                                 </router-link>
                             </li>
+
+                            <!-- 9. Motivos de Rechazo -->
                             <li
-                                v-if="can('helpdesk.config.estados.index')"
+                                v-if="can('citas.index')"
+                                :class="{ active: isRouteActive('/config-cita-rechazo-motivos') }"
+                            >
+                                <router-link
+                                    to="/config-cita-rechazo-motivos"
+                                    active-class="active"
+                                >
+                                    <i class="fa fa-ban text-info"></i> Motivos de Rechazo
+                                </router-link>
+                            </li>
+
+                            <!-- 10. Plantillas -->
+                            <li
+                                v-if="can('config.plantillas.index')"
+                                :class="{ active: isRouteActive('/config-plantillas-listar') }"
+                            >
+                                <router-link to="/config-plantillas-listar" active-class="active">
+                                    <i class="fa fa-file-text-o text-info"></i> Plantillas
+                                </router-link>
+                            </li>
+
+                            <!-- 11. Plantillas Consentimientos -->
+                            <li
+                                v-if="can('ecografias.consentimientos.plantillas.index')"
                                 :class="{
-                                    active: isRouteActive('/config-helpdesk-estados-listar'),
+                                    active: isRouteActive('/config-consentimientos-plantillas'),
                                 }"
                             >
                                 <router-link
-                                    to="/config-helpdesk-estados-listar"
+                                    to="/config-consentimientos-plantillas"
                                     active-class="active"
                                 >
-                                    <i class="fa fa-tasks text-info"></i> Helpdesk: Estados
+                                    <i class="fa fa-files-o text-info"></i> Plantillas
+                                    Consentimientos
+                                </router-link>
+                            </li>
+
+                            <!-- 12. Prioridades -->
+                            <li
+                                v-if="can('config.prioridades.index')"
+                                :class="{ active: isRouteActive('/config-prioridades-listar') }"
+                            >
+                                <router-link to="/config-prioridades-listar" active-class="active">
+                                    <i class="fa fa-flag text-info"></i> Prioridades
+                                </router-link>
+                            </li>
+
+                            <!-- 13. Productos -->
+                            <li
+                                v-if="can('config.productos.index')"
+                                :class="{ active: isRouteActive('/config-productos-listar') }"
+                            >
+                                <router-link to="/config-productos-listar" active-class="active">
+                                    <i class="fa fa-cube text-info"></i> Productos
+                                </router-link>
+                            </li>
+
+                            <!-- 14. Sedes -->
+                            <li
+                                v-if="can('config.sedes.index')"
+                                :class="{ active: isRouteActive('/config-sedes-listar') }"
+                            >
+                                <router-link to="/config-sedes-listar" active-class="active">
+                                    <i class="fa fa-hospital-o text-info"></i> Sedes
+                                </router-link>
+                            </li>
+
+                            <!-- 15. Servicios de Citas -->
+                            <li
+                                v-if="can('config.servicio.citas.index')"
+                                :class="{ active: isRouteActive('/config-servicio-citas-listar') }"
+                            >
+                                <router-link
+                                    to="/config-servicio-citas-listar"
+                                    active-class="active"
+                                >
+                                    <i class="fa fa-calendar-plus-o text-info"></i> Servicios de
+                                    Citas
+                                </router-link>
+                            </li>
+
+                            <!-- 16. Tipos de Documentos -->
+                            <li
+                                v-if="can('config.tipo.documento.index')"
+                                :class="{
+                                    active: isRouteActive('/config-tipos-documentos-listar'),
+                                }"
+                            >
+                                <router-link
+                                    to="/config-tipos-documentos-listar"
+                                    active-class="active"
+                                >
+                                    <i class="fa fa-id-card-o text-info"></i> Tipos de Documentos
+                                </router-link>
+                            </li>
+
+                            <!-- 17. Tipos de Plantillas -->
+                            <li
+                                v-if="can('config.plantillas.index')"
+                                :class="{
+                                    active: isRouteActive('/config-tipos-plantillas.listar'),
+                                }"
+                            >
+                                <router-link
+                                    to="/config-tipos-plantillas.listar"
+                                    active-class="active"
+                                >
+                                    <i class="fa fa-folder-open-o text-info"></i> Tipos de
+                                    Plantillas
+                                </router-link>
+                            </li>
+
+                            <!-- 18. WhatsApp Bot -->
+                            <li
+                                v-if="can('config.whatsapp.saludo.index')"
+                                :class="{ active: isRouteActive('/config-whatsapp-listar') }"
+                            >
+                                <router-link to="/config-whatsapp-listar" active-class="active">
+                                    <i class="fa fa-whatsapp text-info"></i> WhatsApp Bot
                                 </router-link>
                             </li>
                         </ul>

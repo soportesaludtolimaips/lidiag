@@ -366,6 +366,17 @@ export const routes = [
         },
     },
     {
+        path: "/config-dispositivos-listar",
+        name: "config.dispositivos",
+        component: () =>
+            import("../components/modulos/configuracion/configDispositivosComponent.vue"),
+        meta: {
+            title: "WorkFlow Dispositivos",
+            permission: "config.dispositivos.index",
+            auth: true,
+        },
+    },
+    {
         path: "/config-prioridades-listar",
         name: "config.prioridades",
         component: () => import("../components/modulos/configuracion/configPrioridadComponent.vue"),

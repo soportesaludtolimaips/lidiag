@@ -13,6 +13,7 @@ use App\Http\Controllers\Configuracion\ConfigSedeWhatsappNumberController;
 use App\Http\Controllers\Configuracion\ConfigServicioController;
 use App\Http\Controllers\Configuracion\ConfigTipoDocumentoController;
 use App\Http\Controllers\Configuracion\ConfigWhatsappController;
+use App\Http\Controllers\Configuracion\ConfigWorklistDispositivoController;
 use App\Http\Controllers\Configuracion\ConsentimientoInformadoController;
 use App\Http\Controllers\Configuracion\ServicioProductoController;
 use App\Http\Controllers\Consentimientos\ConsentimientoPlantillasController;
@@ -35,6 +36,13 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('/config-diagnosticos', ConfigDiagnosticoController::class)
         ->names('api.config.diagnosticos')
         ->except(['create', 'show']);
+
+    // Dispositivos de flujo / Worklist
+    Route::patch('/config-worklist-dispositivos/{id}/toggle-estado', [ConfigWorklistDispositivoController::class, 'toggleEstado'])
+        ->name('api.config.dispositivos.toggle');
+    Route::resource('/config-worklist-dispositivos', ConfigWorklistDispositivoController::class)
+        ->names('api.config.dispositivos')
+        ->except(['create']);
 
     // Prioridades
     Route::resource('/config-prioridades', ConfigPrioridadController::class)
