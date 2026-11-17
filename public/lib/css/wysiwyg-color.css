@@ -40,3 +40,22 @@ html, body {
 .wysiwyg-font-size-medium { font-size: 16px !important; }
 .wysiwyg-font-size-large { font-size: 20px !important; }
 .wysiwyg-font-size-xlarge { font-size: 24px !important; }
+
+/* Imágenes responsivas dentro del editor */
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+img.wysiwyg-float-left {
+  float: left;
+  margin: 0 12px 12px 0;
+}
+img.wysiwyg-float-right {
+  float: right;
+  margin: 0 0 12px 12px;
+}
+img.wysiwyg-center {
+  display: block;
+  margin: 12px auto;
+}

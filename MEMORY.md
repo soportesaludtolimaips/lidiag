@@ -37,6 +37,23 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-17 — Integración de Herramienta de Imágenes en Editor WYSIWYG (`WysiwygEditor.vue`, `wysiwyg-color.css`):**
+  - **Requerimiento:**
+    * Analizar el estilo y las herramientas del editor en la plantilla oficial `Documentos/Plantilla lidiag/mini-sidebar/form-bootstrapwysihtml5.html` e implementar en [`WysiwygEditor.vue`](file:///c:/laragon/www/lidiag/resources/js/components/shared/WysiwygEditor.vue) la herramienta faltante para insertar imágenes.
+  - **Diagnóstico y Análisis de la Plantilla:**
+    * En `form-bootstrapwysihtml5.html`, el toolbar de Bootstrap wysihtml5 dispone de un botón de imagen (`<i class="fa fa-image"></i>` / `fa-picture-o`) que abre un modal para ingresar la URL de la imagen y las clases de estilo (`.img-fluid`, `.wysiwyg-float-left`, `.wysiwyg-float-right`, etc.).
+    * En `WysiwygEditor.vue`, `image: false` estaba deshabilitado y las reglas del parser omitían la etiqueta `<img>` y sus atributos (`src`, `alt`, `width`, `height`).
+  - **Solución Implementada:**
+    * **Modal Interactivo de Inserción de Imágenes:** Se incorporó en el template un modal Bootstrap estilizado con pestañas para insertar imagen por **URL** (externa o relativa) o mediante **Subida de archivo local / portapapeles** (DataURL Base64), con opciones de alineación (en línea, flotación izquierda, flotación derecha o centrada), texto alternativo (`alt`) y previsualización en vivo.
+    * **Botón en Toolbar:** Se agregó a la barra de herramientas el botón con ícono `<i class="fa fa-picture-o text-info"></i>` condicionado a la prop reactiva `allowImages: { type: Boolean, default: true }`.
+    * **Parser Rules & Sandbox CSS:**
+      - Se habilitaron las reglas de parseo para etiquetas `img` (`check_attributes: { src: 'url', alt: 'alt', width: 'numbers', height: 'numbers' }`) y clases (`img-fluid`, `wysiwyg-float-left`, `wysiwyg-float-right`, `wysiwyg-center`).
+      - En [`wysiwyg-color.css`](file:///c:/laragon/www/lidiag/public/lib/css/wysiwyg-color.css) se definieron estilos para `img` dentro del iframe del editor (`max-width: 100%`, `height: auto`, flotaciones y margen de separación).
+    * **Sincronización:** Se integró la función `obtenerValorActual(editor)` considerando las props `asHtml` y `v-model` para preservar la compatibilidad con campos de texto plano (informes médicos, SAHI) y campos de texto enriquecido (consentimientos informados, formatos HTML).
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios (0 errores, 0 advertencias) ✅.
+    * Compilación Vite (`npm run build`) exitosa en 2.14s ✅.
+
 - [x] **2026-11-17 — Corrección de Advertencia Vue Transition Non-Element Root Node (`leerEstudioComponent.vue`, `admisionarComponent.vue`, `ecografiasAdmisionadasComponent.vue`, `lecturaComponent.vue`):**
   - **Diagnóstico y Causa Raíz:**
     * Vue 3 arrojaba el warning: `[Vue warn]: Component inside <Transition> renders non-element root node that cannot be animated` en `leerEstudioComponent.vue`.

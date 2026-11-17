@@ -43,11 +43,153 @@
             @paste="onNativeTextareaPaste"
             @keydown="onNativeTextareaKeydown"
         ></textarea>
+
+        <!-- Modal para Insertar Imagen (URL o Subir Archivo Local / Portapapeles) -->
+        <div
+            v-if="modalImagenVisible"
+            class="modal fade show d-block"
+            tabindex="-1"
+            role="dialog"
+            aria-labelledby="modalInsertarImagenLabel"
+            style="background: rgba(0, 0, 0, 0.5); z-index: 1060"
+            @click.self="cerrarModalImagen"
+        >
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content shadow-lg">
+                    <div class="modal-header bg-info text-white py-2">
+                        <h5 class="modal-title font-16" id="modalInsertarImagenLabel">
+                            <i class="fa fa-picture-o mr-1"></i> Insertar Imagen en el Editor
+                        </h5>
+                        <button
+                            type="button"
+                            class="close text-white"
+                            aria-label="Cerrar"
+                            @click="cerrarModalImagen"
+                        >
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body p-3">
+                        <!-- Pestañas: URL web / Archivo local -->
+                        <ul class="nav nav-pills nav-justified mb-3">
+                            <li class="nav-item">
+                                <a
+                                    class="nav-link cursor-pointer"
+                                    :class="{ active: tabImagen === 'url' }"
+                                    @click="tabImagen = 'url'"
+                                >
+                                    <i class="fa fa-globe mr-1"></i> Desde URL
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a
+                                    class="nav-link cursor-pointer"
+                                    :class="{ active: tabImagen === 'archivo' }"
+                                    @click="tabImagen = 'archivo'"
+                                >
+                                    <i class="fa fa-upload mr-1"></i> Subir Archivo
+                                </a>
+                            </li>
+                        </ul>
+
+                        <!-- Opción URL Web -->
+                        <div v-show="tabImagen === 'url'">
+                            <div class="form-group mb-2">
+                                <label class="small font-weight-bold text-muted mb-1">
+                                    URL de la imagen (http://, https:// o relativa)
+                                </label>
+                                <input
+                                    ref="urlImagenInputRef"
+                                    type="text"
+                                    class="form-control form-control-sm"
+                                    v-model.trim="formImagen.url"
+                                    placeholder="https://ejemplo.com/imagen.jpg"
+                                    @keyup.enter="insertarImagenDesdeModal"
+                                />
+                            </div>
+                        </div>
+
+                        <!-- Opción Archivo local / Drag & Drop -->
+                        <div v-show="tabImagen === 'archivo'">
+                            <div class="form-group mb-2">
+                                <label class="small font-weight-bold text-muted mb-1">
+                                    Seleccionar imagen desde tu equipo (JPG, PNG, GIF, WEBP)
+                                </label>
+                                <input
+                                    type="file"
+                                    ref="archivoImagenInputRef"
+                                    class="form-control-file form-control-sm border p-1 rounded"
+                                    accept="image/*"
+                                    @change="onArchivoImagenSeleccionado"
+                                />
+                            </div>
+                        </div>
+
+                        <!-- Opciones comunes de formato y dimensiones -->
+                        <div class="row mt-3">
+                            <div class="col-6">
+                                <label class="small font-weight-bold text-muted mb-1"
+                                    >Alineación</label
+                                >
+                                <select
+                                    class="form-control form-control-sm"
+                                    v-model="formImagen.align"
+                                >
+                                    <option value="">Alineación normal (en línea)</option>
+                                    <option value="left">Flotar a la izquierda</option>
+                                    <option value="right">Flotar a la derecha</option>
+                                    <option value="center">Centrada en párrafo</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="small font-weight-bold text-muted mb-1"
+                                    >Texto alternativo (alt)</label
+                                >
+                                <input
+                                    type="text"
+                                    class="form-control form-control-sm"
+                                    v-model.trim="formImagen.alt"
+                                    placeholder="Descripción de la imagen"
+                                />
+                            </div>
+                        </div>
+
+                        <!-- Previsualización si existe imagen -->
+                        <div v-if="previewSrc" class="mt-3 text-center border p-2 bg-light rounded">
+                            <span class="small text-muted d-block mb-1">Previsualización:</span>
+                            <img
+                                :src="previewSrc"
+                                alt="Previsualización"
+                                style="max-height: 140px; max-width: 100%; object-fit: contain"
+                                class="rounded shadow-sm"
+                            />
+                        </div>
+                    </div>
+                    <div class="modal-footer py-2">
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-secondary"
+                            @click="cerrarModalImagen"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-info"
+                            :disabled="!previewSrc"
+                            @click="insertarImagenDesdeModal"
+                        >
+                            <i class="fa fa-check mr-1"></i> Insertar en el Editor
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref, watch, nextTick } from "vue";
+import { onMounted, onBeforeUnmount, ref, computed, watch, nextTick } from "vue";
 import { cleanPastedHtml, htmlToPlain, plainToHtml, CLINICAL_MACROS } from "@/helpers/wysiwyg.js";
 
 let idCounter = 0;
@@ -58,6 +200,8 @@ const props = defineProps({
     rows: { type: Number, default: 4 },
     height: { type: String, default: "" },
     draftKey: { type: String, default: "" },
+    allowImages: { type: Boolean, default: true },
+    asHtml: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["update:modelValue", "draft-restored"]);
@@ -71,6 +215,168 @@ let documentClickHandler = null;
 const showDraftBanner = ref(false);
 const draftTimestamp = ref("");
 let pendingDraftText = "";
+
+// Estados reactivos para Modal de Inserción de Imágenes
+const modalImagenVisible = ref(false);
+const tabImagen = ref("url");
+const urlImagenInputRef = ref(null);
+const archivoImagenInputRef = ref(null);
+const formImagen = ref({
+    url: "",
+    base64: "",
+    align: "",
+    alt: "",
+});
+
+const previewSrc = computed(() => {
+    if (tabImagen.value === "url") {
+        return formImagen.value.url;
+    }
+    return formImagen.value.base64;
+});
+
+/**
+ * Abre el modal interactivo para insertar una imagen mediante URL o archivo local.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-17
+ */
+function abrirModalImagen() {
+    formImagen.value = {
+        url: "",
+        base64: "",
+        align: "",
+        alt: "",
+    };
+    tabImagen.value = "url";
+    modalImagenVisible.value = true;
+    nextTick(() => {
+        if (urlImagenInputRef.value?.focus) {
+            urlImagenInputRef.value.focus();
+        }
+    });
+}
+
+/**
+ * Cierra el modal de inserción de imagen y devuelve el foco al editor.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-17
+ */
+function cerrarModalImagen() {
+    modalImagenVisible.value = false;
+    const el = textareaRef.value;
+    if (el && window.$) {
+        const inst = $(el).data("wysihtml5");
+        inst?.editor?.composer?.element?.focus?.();
+    }
+}
+
+/**
+ * Procesa el archivo de imagen seleccionado por el usuario y lo convierte a DataURL (base64).
+ *
+ * @param {Event} event Evento change del input file.
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-17
+ */
+function onArchivoImagenSeleccionado(event) {
+    const file = event?.target?.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        formImagen.value.base64 = e.target?.result || "";
+    };
+    reader.readAsDataURL(file);
+}
+
+/**
+ * Inserta la imagen configurada en el modal dentro del editor wysihtml5.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-17
+ */
+function insertarImagenDesdeModal() {
+    const src = previewSrc.value;
+    if (!src) return;
+
+    const el = textareaRef.value;
+    if (!el || !window.$) return;
+    const inst = $(el).data("wysihtml5");
+    const editor = inst?.editor;
+
+    let imgClass = "img-fluid";
+    if (formImagen.value.align === "left") {
+        imgClass += " wysiwyg-float-left";
+    } else if (formImagen.value.align === "right") {
+        imgClass += " wysiwyg-float-right";
+    } else if (formImagen.value.align === "center") {
+        imgClass += " wysiwyg-center";
+    }
+
+    const altAttr = formImagen.value.alt
+        ? ` alt="${formImagen.value.alt.replace(/"/g, "&quot;")}"`
+        : ' alt="imagen"';
+    const htmlImg = `<img src="${src}" class="${imgClass}"${altAttr} style="max-width: 100%; height: auto;" />`;
+
+    const iframe = textareaRef.value?.parentElement?.querySelector(".wysihtml5-sandbox");
+    let inserted = false;
+
+    try {
+        if (editor?.composer?.commands?.support?.("insertHTML")) {
+            editor.composer.commands.exec("insertHTML", htmlImg);
+            inserted = true;
+        } else if (iframe?.contentDocument?.execCommand) {
+            inserted = iframe.contentDocument.execCommand("insertHTML", false, htmlImg);
+        }
+    } catch (_) {
+        inserted = false;
+    }
+
+    if (!inserted && editor?.composer) {
+        editor.composer.setValue((editor.composer.getValue(false) || "") + htmlImg, false);
+    }
+
+    cerrarModalImagen();
+
+    nextTick(() => {
+        const val = obtenerValorActual(editor);
+        emit("update:modelValue", val);
+        saveDraft(val);
+    });
+}
+
+/**
+ * Obtiene el valor actual del editor considerando si se emite como HTML o texto plano.
+ *
+ * @param {Object} editor Instancia de wysihtml5.Editor
+ * @returns {string}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-17
+ */
+function obtenerValorActual(editor) {
+    const rawHtml = editor?.composer?.element
+        ? editor.composer.getValue(false)
+        : editor?.getValue?.(false) || textareaRef.value?.value || "";
+
+    if (props.asHtml) {
+        return rawHtml;
+    }
+    return htmlToPlain(rawHtml);
+}
 
 /**
  * Maneja la entrada directa en el textarea nativo (modo fallback móvil o previo a wysihtml5).
@@ -189,7 +495,9 @@ function syncEditorValue(rawVal) {
 
     const editor = inst.editor;
     if (editor.composer && editor.composer.element) {
-        const current = htmlToPlain(editor.composer.getValue(false));
+        const current = props.asHtml
+            ? editor.composer.getValue(false)
+            : htmlToPlain(editor.composer.getValue(false));
         if (current !== plain) {
             if (plain) {
                 try {
@@ -197,7 +505,8 @@ function syncEditorValue(rawVal) {
                 } catch (_) {
                     /* noop */
                 }
-                editor.composer.setValue(plainToHtml(plain), false);
+                const formattedHtml = props.asHtml ? plain : plainToHtml(plain);
+                editor.composer.setValue(formattedHtml, false);
                 editor.composer.element.classList?.remove("placeholder");
             } else {
                 editor.composer.clear();
@@ -418,6 +727,69 @@ function initEditor() {
         el.value = props.modelValue;
     }
 
+    const toolbarConfig = {
+        "font-family": `
+            <li class="dropdown">
+                <a class="btn dropdown-toggle" data-toggle="dropdown" href="javascript:;" role="button" aria-haspopup="true" aria-expanded="false" title="Tipo de fuente">
+                    <i class="fa fa-font"></i>&nbsp;<span class="current-font-family">Fuente</span>&nbsp;<b class="caret"></b>
+                </a>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontFamily" data-wysihtml5-command-value="arial" style="font-family: Arial, sans-serif;">Arial</a>
+                    <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontFamily" data-wysihtml5-command-value="calibri" style="font-family: Calibri, sans-serif;">Calibri</a>
+                    <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontFamily" data-wysihtml5-command-value="times" style="font-family: 'Times New Roman', serif;">Times New Roman</a>
+                    <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontFamily" data-wysihtml5-command-value="roboto" style="font-family: Roboto, sans-serif;">Roboto</a>
+                    <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontFamily" data-wysihtml5-command-value="verdana" style="font-family: Verdana, sans-serif;">Verdana</a>
+                    <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontFamily" data-wysihtml5-command-value="tahoma" style="font-family: Tahoma, sans-serif;">Tahoma</a>
+                    <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontFamily" data-wysihtml5-command-value="courier" style="font-family: 'Courier New', monospace;">Courier New</a>
+                </div>
+            </li>
+        `,
+        "font-size": `
+            <li class="dropdown">
+                <a class="btn dropdown-toggle" data-toggle="dropdown" href="javascript:;" role="button" aria-haspopup="true" aria-expanded="false" title="Tamaño de fuente">
+                    <i class="fa fa-text-height"></i>&nbsp;<span class="current-font-size">Tamaño</span>&nbsp;<b class="caret"></b>
+                </a>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontSize" data-wysihtml5-command-value="small" style="font-size: 11px;">Pequeño (11px)</a>
+                    <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontSize" data-wysihtml5-command-value="normal" style="font-size: 14px;">Normal (14px)</a>
+                    <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontSize" data-wysihtml5-command-value="medium" style="font-size: 16px;">Mediano (16px)</a>
+                    <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontSize" data-wysihtml5-command-value="large" style="font-size: 20px;">Grande (20px)</a>
+                    <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontSize" data-wysihtml5-command-value="xlarge" style="font-size: 24px;">Muy grande (24px)</a>
+                </div>
+            </li>
+        `,
+    };
+
+    if (props.allowImages) {
+        toolbarConfig.image = `
+            <li>
+                <div class="btn-group">
+                    <a class="btn btn-insert-image" href="javascript:;" title="Insertar imagen (URL o archivo)" data-wysihtml5-action="custom_insert_image">
+                        <i class="fa fa-picture-o text-info"></i>
+                    </a>
+                </div>
+            </li>
+        `;
+    }
+
+    toolbarConfig.macros = `
+        <li class="dropdown">
+            <a class="btn dropdown-toggle" data-toggle="dropdown" href="javascript:;" role="button" aria-haspopup="true" aria-expanded="false" title="Plantillas y Macros Rápidas">
+                <i class="fa fa-magic text-warning"></i>&nbsp;<span class="current-macro">Macros</span>&nbsp;<b class="caret"></b>
+            </a>
+            <div class="dropdown-menu dropdown-menu-right" style="min-width: 250px;">
+                <h6 class="dropdown-header text-muted" style="font-size: 11px; padding: 4px 14px;">Escribe el atajo o haz clic:</h6>
+                <a class="dropdown-item macro-item" href="javascript:;" data-macro-key=".normal"><strong>.normal</strong> — Normal estándar</a>
+                <a class="dropdown-item macro-item" href="javascript:;" data-macro-key=".torax"><strong>.torax</strong> — Tórax normal</a>
+                <a class="dropdown-item macro-item" href="javascript:;" data-macro-key=".craneo"><strong>.craneo</strong> — Cráneo simple normal</a>
+                <a class="dropdown-item macro-item" href="javascript:;" data-macro-key=".abdomen"><strong>.abdomen</strong> — Abdomen normal</a>
+                <a class="dropdown-item macro-item" href="javascript:;" data-macro-key=".columna"><strong>.columna</strong> — Columna normal</a>
+                <a class="dropdown-item macro-item" href="javascript:;" data-macro-key=".sinpatologia"><strong>.sinpatologia</strong> — Sin patología aguda</a>
+                <a class="dropdown-item macro-item" href="javascript:;" data-macro-key=".conclusion"><strong>.conclusion</strong> — Conclusión estándar</a>
+            </div>
+        </li>
+    `;
+
     $el.wysihtml5({
         stylesheets: ["/lib/css/wysiwyg-color.css"],
         supportTouchDevices: true,
@@ -468,55 +840,7 @@ function initEditor() {
                 `;
             },
         },
-        toolbar: {
-            "font-family": `
-                <li class="dropdown">
-                    <a class="btn dropdown-toggle" data-toggle="dropdown" href="javascript:;" role="button" aria-haspopup="true" aria-expanded="false" title="Tipo de fuente">
-                        <i class="fa fa-font"></i>&nbsp;<span class="current-font-family">Fuente</span>&nbsp;<b class="caret"></b>
-                    </a>
-                    <div class="dropdown-menu">
-                        <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontFamily" data-wysihtml5-command-value="arial" style="font-family: Arial, sans-serif;">Arial</a>
-                        <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontFamily" data-wysihtml5-command-value="calibri" style="font-family: Calibri, sans-serif;">Calibri</a>
-                        <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontFamily" data-wysihtml5-command-value="times" style="font-family: 'Times New Roman', serif;">Times New Roman</a>
-                        <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontFamily" data-wysihtml5-command-value="roboto" style="font-family: Roboto, sans-serif;">Roboto</a>
-                        <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontFamily" data-wysihtml5-command-value="verdana" style="font-family: Verdana, sans-serif;">Verdana</a>
-                        <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontFamily" data-wysihtml5-command-value="tahoma" style="font-family: Tahoma, sans-serif;">Tahoma</a>
-                        <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontFamily" data-wysihtml5-command-value="courier" style="font-family: 'Courier New', monospace;">Courier New</a>
-                    </div>
-                </li>
-            `,
-            "font-size": `
-                <li class="dropdown">
-                    <a class="btn dropdown-toggle" data-toggle="dropdown" href="javascript:;" role="button" aria-haspopup="true" aria-expanded="false" title="Tamaño de fuente">
-                        <i class="fa fa-text-height"></i>&nbsp;<span class="current-font-size">Tamaño</span>&nbsp;<b class="caret"></b>
-                    </a>
-                    <div class="dropdown-menu">
-                        <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontSize" data-wysihtml5-command-value="small" style="font-size: 11px;">Pequeño (11px)</a>
-                        <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontSize" data-wysihtml5-command-value="normal" style="font-size: 14px;">Normal (14px)</a>
-                        <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontSize" data-wysihtml5-command-value="medium" style="font-size: 16px;">Mediano (16px)</a>
-                        <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontSize" data-wysihtml5-command-value="large" style="font-size: 20px;">Grande (20px)</a>
-                        <a class="dropdown-item" href="javascript:;" data-wysihtml5-command="fontSize" data-wysihtml5-command-value="xlarge" style="font-size: 24px;">Muy grande (24px)</a>
-                    </div>
-                </li>
-            `,
-            macros: `
-                <li class="dropdown">
-                    <a class="btn dropdown-toggle" data-toggle="dropdown" href="javascript:;" role="button" aria-haspopup="true" aria-expanded="false" title="Plantillas y Macros Rápidas">
-                        <i class="fa fa-magic text-warning"></i>&nbsp;<span class="current-macro">Macros</span>&nbsp;<b class="caret"></b>
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-right" style="min-width: 250px;">
-                        <h6 class="dropdown-header text-muted" style="font-size: 11px; padding: 4px 14px;">Escribe el atajo o haz clic:</h6>
-                        <a class="dropdown-item macro-item" href="javascript:;" data-macro-key=".normal"><strong>.normal</strong> — Normal estándar</a>
-                        <a class="dropdown-item macro-item" href="javascript:;" data-macro-key=".torax"><strong>.torax</strong> — Tórax normal</a>
-                        <a class="dropdown-item macro-item" href="javascript:;" data-macro-key=".craneo"><strong>.craneo</strong> — Cráneo simple normal</a>
-                        <a class="dropdown-item macro-item" href="javascript:;" data-macro-key=".abdomen"><strong>.abdomen</strong> — Abdomen normal</a>
-                        <a class="dropdown-item macro-item" href="javascript:;" data-macro-key=".columna"><strong>.columna</strong> — Columna normal</a>
-                        <a class="dropdown-item macro-item" href="javascript:;" data-macro-key=".sinpatologia"><strong>.sinpatologia</strong> — Sin patología aguda</a>
-                        <a class="dropdown-item macro-item" href="javascript:;" data-macro-key=".conclusion"><strong>.conclusion</strong> — Conclusión estándar</a>
-                    </div>
-                </li>
-            `,
-        },
+        toolbar: toolbarConfig,
         parserRules: {
             classes: {
                 "wysiwyg-color-silver": 1,
@@ -551,6 +875,12 @@ function initEditor() {
                 "wysiwyg-font-family-verdana": 1,
                 "wysiwyg-font-family-tahoma": 1,
                 "wysiwyg-font-family-courier": 1,
+
+                // Clases de imágenes y flotación
+                "img-fluid": 1,
+                "wysiwyg-float-left": 1,
+                "wysiwyg-float-right": 1,
+                "wysiwyg-center": 1,
             },
             tags: {
                 b: {},
@@ -569,6 +899,14 @@ function initEditor() {
                 h2: {},
                 h3: {},
                 blockquote: {},
+                img: {
+                    check_attributes: {
+                        src: "url",
+                        alt: "alt",
+                        width: "numbers",
+                        height: "numbers",
+                    },
+                },
             },
         },
     });
@@ -588,9 +926,7 @@ function initEditor() {
         inst.editor.observe("load", onEditorReady);
 
         inst.editor.on("blur", () => {
-            const val = inst.editor.composer?.element
-                ? htmlToPlain(inst.editor.composer.getValue(false))
-                : el.value || "";
+            const val = obtenerValorActual(inst.editor);
             emit("update:modelValue", val);
             saveDraft(val);
         });
@@ -641,6 +977,12 @@ function setupToolbarInteractions($el, editor) {
         const key = $(this).data("macro-key");
         insertMacroAtCaret(key, editor);
         $toolbar.find(".dropdown.show, .dropdown-menu.show").removeClass("show");
+    });
+
+    // Inserción de imagen desde botón custom
+    $toolbar.find("a[data-wysihtml5-action='custom_insert_image']").on("click", function (e) {
+        e.preventDefault();
+        abrirModalImagen();
     });
 
     $toolbar.find("[data-toggle='dropdown']").on("click", function (e) {
@@ -713,9 +1055,7 @@ function insertMacroAtCaret(triggerKey, editor) {
     }
 
     nextTick(() => {
-        const current = editor?.composer?.element
-            ? htmlToPlain(editor.composer.getValue(false))
-            : textareaRef.value?.value || "";
+        const current = obtenerValorActual(editor);
         emit("update:modelValue", current);
         saveDraft(current);
     });
@@ -805,12 +1145,9 @@ function attachObserver(editor) {
             if (pending) return;
             pending = true;
             setTimeout(() => {
-                const rawHtml = editor.composer?.element
-                    ? editor.composer.getValue(false)
-                    : editor.getValue(false);
-                const plain = htmlToPlain(rawHtml);
-                emit("update:modelValue", plain);
-                saveDraft(plain);
+                const val = obtenerValorActual(editor);
+                emit("update:modelValue", val);
+                saveDraft(val);
                 pending = false;
             }, 300);
         });
@@ -890,9 +1227,7 @@ function attachPasteForwarding(iframe, editor) {
                 }
 
                 nextTick(() => {
-                    const current = editor.composer?.element
-                        ? htmlToPlain(editor.composer.getValue(false))
-                        : textareaRef.value?.value || "";
+                    const current = obtenerValorActual(editor);
                     emit("update:modelValue", current);
                     saveDraft(current);
                 });
@@ -979,9 +1314,7 @@ function attachKeydownForwarding(iframe, editor) {
                             }
 
                             nextTick(() => {
-                                const current = editor?.composer?.element
-                                    ? htmlToPlain(editor.composer.getValue(false))
-                                    : "";
+                                const current = obtenerValorActual(editor);
                                 emit("update:modelValue", current);
                                 saveDraft(current);
                             });
@@ -1160,5 +1493,9 @@ onBeforeUnmount(destroyEditor);
 :deep(.wysihtml5-sandbox) {
     border-top-left-radius: 0 !important;
     border-top-right-radius: 0 !important;
+}
+
+.cursor-pointer {
+    cursor: pointer;
 }
 </style>
