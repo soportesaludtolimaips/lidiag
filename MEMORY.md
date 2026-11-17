@@ -37,6 +37,20 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-17 — Integración de EPS, Contrato y Plan en Drawer de Ecografías y Corrección de Select2 (`admisionarComponent.vue`, `/ecografias.admisiones`):**
+  - **Requerimiento y Diagnóstico:**
+    * El usuario solicitó agregar la visualización de la EPS (administradora de salud / tercero), Contrato y Plan en el drawer lateral (`right-sidebar`) al momento de admisionar y asignar médicos en ecografías.
+    * Además, se corrigió el comportamiento del `Select2` de médicos y productos dentro del drawer:
+      1. Se agregó el bloque informativo superior de EPS (`NomTercero`), Contrato (`DesContrato`), Plan (`DesPlan`) y Médico que ordenó (`quien_ordeno`) en el formulario del panel lateral con diseño clínico estandarizado.
+      2. Se asignó ID contenedor `#drawerAdmisionarEcografia` al drawer lateral y se configuró `dropdown-parent-selector="#drawerAdmisionarEcografia"` en los Select2 (`selTipoDoc`, `selMedico`, `selProducto`).
+      3. Se elevó el `z-index` de `.select2-dropdown` a `9999 !important` para evitar que las opciones se renderizaran detrás del drawer (`z-index: 1100`).
+      4. En `abrirModal()`, se aseguró la precarga asíncrona de médicos (`listarMedicos()`), productos (`listarProductos()`) y tipos de documento si se encontraban vacíos, ejecutando la reconstrucción (`rebuild()`) con debounce para garantizar la inicialización del DOM.
+      5. Se corrigió el uso de `getCurrentInstance().proxy.emitter` sustituyéndolo por `appContext.config.globalProperties.emitter`.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios (0 errores) ✅.
+    * Compilación Vite (`npm run build`) completada con éxito en 1.78s ✅.
+    * PHP Pint verificado en backend (`vendor\bin\pint.bat --test`) ✅.
+
 - [x] **2026-11-17 — Implementación Completa del Módulo "WorkFlow Dispositivos" (Multisede, Backend Laravel, Vue 3 SPA y Permisos Spatie):**
   - **Base de Datos & Modelo Eloquent:**
     * Migración `database/migrations/2026_11_12_124100_create_config_worklist_dispositivos_table.php`: tabla `config_worklist_dispositivos` con claves foráneas hacia `config_sedes` (`sede_id`) y `config_modulos` (`modulo_id`), campos DICOM (`codigo`, `nombre`, `ae_title`, `modality`, `ip_address`, `puerto`, `ubicacion`, `estado`) y restricción de unicidad `['sede_id', 'codigo']`.

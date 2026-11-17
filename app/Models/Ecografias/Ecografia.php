@@ -5,6 +5,7 @@ namespace App\Models\Ecografias;
 use App\Models\Configuracion\ConfigAdminSalud;
 use App\Models\General\Paciente;
 use App\Models\User;
+use App\Models\Worklist\WorklistOrden;
 use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -106,5 +107,19 @@ class Ecografia extends Model
     public function productosEcografias()
     {
         return $this->hasMany(EcografiaProducto::class, 'ecografia_id');
+    }
+
+    /**
+     * Órdenes de Worklist asociadas a la ecografía.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\HasMany
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-12
+     */
+    public function worklistOrdenes()
+    {
+        return $this->hasMany(WorklistOrden::class, 'ecografia_id');
     }
 }

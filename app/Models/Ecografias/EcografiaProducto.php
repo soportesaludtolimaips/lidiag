@@ -3,6 +3,7 @@
 namespace App\Models\Ecografias;
 
 use App\Models\Configuracion\ConfigProducto;
+use App\Models\Worklist\WorklistOrden;
 use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -60,5 +61,19 @@ class EcografiaProducto extends Model
     public function producto()
     {
         return $this->productos();
+    }
+
+    /**
+     * Orden de Worklist activa o asociada al producto ecográfico.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\HasOne
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-12
+     */
+    public function worklistOrden()
+    {
+        return $this->hasOne(WorklistOrden::class, 'ecografia_producto_id');
     }
 }

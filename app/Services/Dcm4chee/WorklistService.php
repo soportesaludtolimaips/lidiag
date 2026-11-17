@@ -5,6 +5,7 @@ namespace App\Services\Dcm4chee;
 use App\Helpers\DicomDatasetBuilder;
 use App\Models\Configuracion\ConfigProducto;
 use App\Models\Configuracion\ConfigSede;
+use App\Models\Ecografias\Ecografia;
 use App\Models\Estudio\Estudio;
 use App\Models\General\Paciente;
 use App\Models\Worklist\WorklistOrden;
@@ -25,17 +26,20 @@ use Illuminate\Support\Facades\Log;
 class WorklistService extends BaseService
 {
     /**
-     * Genera un Accession Number sugerido único con formato secuencial por sede y fecha.
+     * Genera un Accession Number sugerido único con formato secuencial por sede, fecha y modalidad.
      *
      * @param  int  $sedeId  ID de la sede asistencial
+     * @param  string  $modality  Modalidad DICOM (ej. DX, CR, US)
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-10-21
      */
-    public function generarAccessionSugerido(int $sedeId): string
+    public function generarAccessionSugerido(int $sedeId, string $modality = 'DX'): string
     {
-        $prefijoFecha = 'RX-'.date('Ymd').'-';
+        $modality = strtoupper(trim($modality));
+        $prefijoModalidad = in_array($modality, ['US', 'ECO'], true) ? 'US-' : 'RX-';
+        $prefijoFecha = $prefijoModalidad.date('Ymd').'-';
 
         $ultimo = WorklistOrden::where('sede_id', $sedeId)
             ->where('accession_no', 'like', $prefijoFecha.'%')
@@ -71,12 +75,13 @@ class WorklistService extends BaseService
      * Obtiene la lista de estaciones (AE Titles / Salas) registradas dinámicamente en el PACS de la sede.
      *
      * @param  int  $sedeId  ID de la sede asistencial
+     * @param  string|null  $modality  Modalidad opcional para priorizar/filtrar equipos (ej. US, DX)
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-10-22
      */
-    public function obtenerEstacionesWorklist(int $sedeId): array
+    public function obtenerEstacionesWorklist(int $sedeId, ?string $modality = null): array
     {
         $sede = ConfigSede::find($sedeId);
         if (! $sede) {
@@ -112,26 +117,53 @@ class WorklistService extends BaseService
                 'DCM4CHEE', 'CDRECORD', 'OVIYAM', 'OVIYAM2', 'WEASIS_AET',
             ];
 
-            $nodos = $pacsConn->table('ae')
+            $query = $pacsConn->table('ae')
                 ->whereNotIn('aet', $infraAets)
                 ->where(function ($q) {
                     $q->whereNull('ae_desc')
                         ->orWhere('ae_desc', 'not like', '%archive instance%');
                 })
-                ->where('hostname', '!=', 'localhost')
-                ->orderBy('aet')
+                ->where('hostname', '!=', 'localhost');
+
+            $nodos = $query->orderBy('aet')
                 ->get(['aet', 'ae_desc', 'station_name', 'hostname', 'port']);
 
             $estaciones = [];
+            $modalityNorm = strtoupper(trim((string) $modality));
+
             foreach ($nodos as $nodo) {
                 $descripcion = trim($nodo->ae_desc ?: ($nodo->station_name ?: ''));
                 $etiqueta = ! empty($descripcion) ? "{$nodo->aet} — {$descripcion}" : $nodo->aet;
+
+                // Indicador de afinidad según modalidad para sugerir primero equipos de ultrasonido si aplica
+                $esEcografo = false;
+                $aetUpper = strtoupper($nodo->aet);
+                $descUpper = strtoupper($descripcion);
+                if (
+                    str_contains($aetUpper, 'US') ||
+                    str_contains($aetUpper, 'ECO') ||
+                    str_contains($aetUpper, 'LOGIQ') ||
+                    str_contains($aetUpper, 'VOLUSON') ||
+                    str_contains($descUpper, 'ULTRASOUND') ||
+                    str_contains($descUpper, 'ECOGRAF')
+                ) {
+                    $esEcografo = true;
+                }
+
                 $estaciones[] = [
                     'aet' => $nodo->aet,
                     'nombre' => $etiqueta,
                     'station_name' => $nodo->station_name ?: $nodo->aet,
                     'hostname' => $nodo->hostname,
+                    'es_ecografo' => $esEcografo,
                 ];
+            }
+
+            // Si se solicitó explícitamente modalidad US y existen equipos identificados como ecógrafos, ordenarlos primero
+            if ($modalityNorm === 'US') {
+                usort($estaciones, function ($a, $b) {
+                    return ($b['es_ecografo'] ? 1 : 0) <=> ($a['es_ecografo'] ? 1 : 0);
+                });
             }
 
             return $this->success($estaciones, 'Estaciones recuperadas exitosamente del PACS de la sede.');
@@ -179,12 +211,17 @@ class WorklistService extends BaseService
 
         $producto = ConfigProducto::find($productoId);
         if (! $producto) {
-            return $this->error('Procedimiento o producto de Rayos X no encontrado.', 404);
+            return $this->error('Procedimiento o producto no encontrado.', 404);
+        }
+
+        $modality = strtoupper(trim($data['modality'] ?? 'DX'));
+        if (! in_array($modality, ['CR', 'DX', 'US'], true)) {
+            $modality = 'DX';
         }
 
         $accessionNo = trim($data['accession_no'] ?? '');
         if (empty($accessionNo)) {
-            $accessionNo = $this->generarAccessionSugerido($sedeId);
+            $accessionNo = $this->generarAccessionSugerido($sedeId, $modality);
         }
 
         // Validar unicidad del Accession Number en órdenes activas de la sede
@@ -195,11 +232,6 @@ class WorklistService extends BaseService
 
         if ($ordenExistente) {
             return $this->error("El Accession Number '{$accessionNo}' ya se encuentra activo en la Worklist de esta sede.", 422);
-        }
-
-        $modality = strtoupper(trim($data['modality'] ?? 'DX'));
-        if (! in_array($modality, ['CR', 'DX'], true)) {
-            $modality = 'DX';
         }
 
         $stationAetInput = strtoupper(trim($data['station_aet'] ?? ''));
@@ -356,6 +388,8 @@ class WorklistService extends BaseService
             'modality' => $modality,
             'station_aet' => $stationAet,
             'mwl_item_pk' => $mwlItemPk,
+            'ecografia_id' => ! empty($data['ecografia_id']) ? (int) $data['ecografia_id'] : null,
+            'ecografia_producto_id' => ! empty($data['ecografia_producto_id']) ? (int) $data['ecografia_producto_id'] : null,
             'estado' => 'PENDIENTE',
             'usuario_id' => $usuarioId,
             'observaciones' => $data['observaciones'] ?? null,
@@ -363,7 +397,9 @@ class WorklistService extends BaseService
 
         $orden->load(['paciente', 'producto', 'sede']);
 
-        return $this->success($orden, "Paciente enviado a la Worklist de Rayos X exitosamente con Accession No. '{$accessionNo}'.", 201);
+        $tipoModalidad = ($modality === 'US') ? 'Ecografía' : 'Rayos X';
+
+        return $this->success($orden, "Paciente enviado a la Worklist ({$tipoModalidad}) exitosamente con Accession No. '{$accessionNo}'.", 201);
     }
 
     /**
@@ -515,7 +551,7 @@ class WorklistService extends BaseService
                 foreach ($ordenesPendientes as $orden) {
                     $resumen['total_evaluadas']++;
 
-                    // 1. Verificar si ya fue asignado en LIDiag
+                    // 1. Verificar si ya fue asignado en LIDiag (Estudios RX o Ecografías leídas)
                     $estudioLidiag = Estudio::where('sede_id', $sede->id)
                         ->where(function ($q) use ($orden) {
                             if (! empty($orden->accession_no)) {
@@ -526,6 +562,27 @@ class WorklistService extends BaseService
                             }
                         })
                         ->first(['id', 'study_pk', 'created_at']);
+
+                    if (! $estudioLidiag && $orden->ecografia_id) {
+                        $ecoLidiag = Ecografia::where('id', $orden->ecografia_id)
+                            ->where('estado', 'LEIDO')
+                            ->first(['id', 'estado']);
+
+                        if ($ecoLidiag && $orden->estado !== 'COMPLETADO') {
+                            $orden->estado = 'COMPLETADO';
+                            $orden->save();
+                            $resumen['completadas']++;
+                            $resumen['detalles'][] = [
+                                'orden_id' => $orden->id,
+                                'accession_no' => $orden->accession_no,
+                                'sede' => $sede->nom_sede,
+                                'nuevo_estado' => 'COMPLETADO',
+                                'motivo' => "Ecografía #{$ecoLidiag->id} ya informada/leída en LIDiag.",
+                            ];
+
+                            continue;
+                        }
+                    }
 
                     if ($estudioLidiag) {
                         if ($orden->estado !== 'COMPLETADO') {

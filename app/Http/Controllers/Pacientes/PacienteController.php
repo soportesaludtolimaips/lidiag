@@ -34,13 +34,13 @@ class PacienteController extends Controller
         private readonly PacienteService $pacienteService,
         private readonly WorklistService $worklistService,
     ) {
-        $this->middleware('permission:gestion.pacientes.index')->only([
+        $this->middleware('permission:gestion.pacientes.index|ecografias.index|ecografias.admision')->only([
             'listar', 'show', 'obtenerCatalogos', 'obtenerAccessionSugerido', 'obtenerEstacionesWorklist',
         ]);
-        $this->middleware('permission:gestion.pacientes.create')->only([
+        $this->middleware('permission:gestion.pacientes.create|ecografias.admision')->only([
             'store', 'enviarWorklist',
         ]);
-        $this->middleware('permission:gestion.pacientes.update')->only([
+        $this->middleware('permission:gestion.pacientes.update|ecografias.admision')->only([
             'update', 'cancelarWorklist',
         ]);
         $this->middleware('permission:gestion.pacientes.delete')->only([
@@ -112,7 +112,7 @@ class PacienteController extends Controller
     }
 
     /**
-     * Genera un Accession Number sugerido para una sede determinada.
+     * Genera un Accession Number sugerido para una sede determinada y modalidad.
      */
     public function obtenerAccessionSugerido(Request $request): JsonResponse
     {
@@ -130,7 +130,8 @@ class PacienteController extends Controller
             ], 422);
         }
 
-        $accessionNo = $this->worklistService->generarAccessionSugerido($sedeId);
+        $modality = (string) ($request->input('modality') ?: 'DX');
+        $accessionNo = $this->worklistService->generarAccessionSugerido($sedeId, $modality);
 
         return response()->json([
             'status' => 200,
@@ -153,7 +154,8 @@ class PacienteController extends Controller
             ], 422);
         }
 
-        $result = $this->worklistService->obtenerEstacionesWorklist($sedeId);
+        $modality = $request->query('modality') ?: $request->input('modality');
+        $result = $this->worklistService->obtenerEstacionesWorklist($sedeId, $modality);
 
         return response()->json($result, (int) $result['status'], [], JSON_INVALID_UTF8_SUBSTITUTE);
     }

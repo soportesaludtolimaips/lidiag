@@ -4,6 +4,8 @@ namespace App\Models\Worklist;
 
 use App\Models\Configuracion\ConfigProducto;
 use App\Models\Configuracion\ConfigSede;
+use App\Models\Ecografias\Ecografia;
+use App\Models\Ecografias\EcografiaProducto;
 use App\Models\Estudio\Estudio;
 use App\Models\General\Paciente;
 use App\Models\User;
@@ -35,6 +37,8 @@ class WorklistOrden extends Model
         'mwl_item_pk',
         'study_pk',
         'estudio_id',
+        'ecografia_id',
+        'ecografia_producto_id',
         'estado',
         'adquirido_at',
         'usuario_id',
@@ -48,6 +52,8 @@ class WorklistOrden extends Model
         'mwl_item_pk' => 'integer',
         'study_pk' => 'integer',
         'estudio_id' => 'integer',
+        'ecografia_id' => 'integer',
+        'ecografia_producto_id' => 'integer',
         'usuario_id' => 'integer',
         'adquirido_at' => 'datetime',
     ];
@@ -98,6 +104,30 @@ class WorklistOrden extends Model
     public function estudio(): BelongsTo
     {
         return $this->belongsTo(Estudio::class, 'estudio_id');
+    }
+
+    /**
+     * Ecografía asociada en LIDiag si la orden corresponde a la modalidad de ultrasonido.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-12
+     */
+    public function ecografia(): BelongsTo
+    {
+        return $this->belongsTo(Ecografia::class, 'ecografia_id');
+    }
+
+    /**
+     * Producto específico de ecografía asociado a la orden de Worklist.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-12
+     */
+    public function ecografiaProducto(): BelongsTo
+    {
+        return $this->belongsTo(EcografiaProducto::class, 'ecografia_producto_id');
     }
 
     /**

@@ -171,7 +171,7 @@
         </div>
 
         <div class="row">
-            <div class="col-12 table-responsive">
+            <div class="col-12">
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">Listado de recomendaciones</h4>
@@ -192,11 +192,11 @@
                         />
 
                         <div v-show="!loadingBuscar && registros.length > 0">
-                            <div class="table-responsive">
+                            <div class="table-responsive m-t-20">
                                 <table
                                     id="tablaRecomendaciones"
                                     ref="dt"
-                                    class="table table-bordered table-striped"
+                                    class="display table table-hover table-striped table-bordered"
                                     cellspacing="0"
                                     width="100%"
                                 >
@@ -205,7 +205,9 @@
                                             <th>Producto</th>
                                             <th>Recomendación</th>
                                             <th>Estado</th>
-                                            <th class="sr-only">Acciones</th>
+                                            <th class="text-center" style="width: 100px">
+                                                Acciones
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -244,7 +246,7 @@
                                                     {{ item.estado ? "Activo" : "Inactivo" }}
                                                 </span>
                                             </td>
-                                            <td class="text-nowrap">
+                                            <td class="text-nowrap text-center">
                                                 <button
                                                     type="button"
                                                     class="btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5"
@@ -559,15 +561,27 @@ async function buscar() {
         }
         const res = await axios.get("/api/config-recomendacion-productos", { params });
         safeDestroyDataTable(dt.value || "#tablaRecomendaciones");
+        if (window.$) {
+            window
+                .$("#tablaRecomendaciones")
+                .removeAttr("style")
+                .find("th, td")
+                .removeAttr("style");
+        }
         registros.value = res.data?.data || [];
-        nextTick(() => {
-            safeInitDataTable(dt.value || "#tablaRecomendaciones", {
+        loadingBuscar.value = false;
+        await nextTick();
+        if (registros.value.length > 0) {
+            const table = safeInitDataTable(dt.value || "#tablaRecomendaciones", {
                 dom: "Bfrtip",
                 buttons: ["copy", "csv", "excel", "pdf", "print"],
+                autoWidth: false,
             });
-        });
+            table?.columns?.adjust?.();
+        }
     } catch {
         registros.value = [];
+        safeDestroyDataTable(dt.value || "#tablaRecomendaciones");
     } finally {
         loadingBuscar.value = false;
     }
@@ -726,6 +740,14 @@ defineExpose({
 });
 </script>
 <style scoped>
+:deep(#tablaRecomendaciones) {
+    width: 100% !important;
+}
+
+:deep(.dataTables_wrapper) {
+    width: 100% !important;
+}
+
 .sidebar-backdrop {
     position: fixed;
     top: 0;

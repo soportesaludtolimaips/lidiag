@@ -166,7 +166,7 @@
                                         >
                                         <FormattedTextEditor
                                             v-model="recomendacion"
-                                            rows="18"
+                                            rows="25"
                                             placeholder="Texto de recomendación para el paciente. Use saltos de línea si es necesario."
                                         />
                                         <small class="text-muted">

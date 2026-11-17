@@ -865,6 +865,7 @@ import axios from "axios";
 const props = defineProps({
     usuarioactual: { type: Object, default: () => ({}) },
     permisos: { type: Array, default: () => [] },
+    rolesusuario: { type: String, default: "" },
 });
 const { can } = usePermissions(props.permisos);
 const { sedeInterface, sedeNombre, establecerSede: establecerSedeComposable } = useSede();

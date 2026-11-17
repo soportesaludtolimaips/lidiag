@@ -7,6 +7,7 @@ use App\Models\Configuracion\ConfigProducto;
 use App\Models\Ecografias\Ecografia;
 use App\Models\Ecografias\EcografiaProducto;
 use App\Models\General\Paciente;
+use App\Models\Worklist\WorklistOrden;
 use App\Services\BaseService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -108,7 +109,25 @@ class EcografiaService extends BaseService
             ]);
         }
 
-        return $this->success($query->get());
+        $items = $query->get();
+
+        // Mapear órdenes de Worklist activas para cada ecografía/producto
+        $ecografiaProductoIds = $items->pluck('ecografia_producto_id')->filter()->all();
+        $ordenesWorklist = [];
+
+        if (! empty($ecografiaProductoIds)) {
+            $ordenesWorklist = WorklistOrden::whereIn('ecografia_producto_id', $ecografiaProductoIds)
+                ->whereIn('estado', ['PENDIENTE', 'ADQUIRIDO', 'COMPLETADO'])
+                ->orderBy('id', 'desc')
+                ->get()
+                ->keyBy('ecografia_producto_id');
+        }
+
+        foreach ($items as $item) {
+            $item->orden_worklist = $ordenesWorklist[$item->ecografia_producto_id] ?? null;
+        }
+
+        return $this->success($items);
     }
 
     /**

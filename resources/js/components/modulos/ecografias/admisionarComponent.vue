@@ -415,7 +415,11 @@
         </transition>
 
         <!-- .right-sidebar -->
-        <div class="right-sidebar sidebar-scroll" :class="{ 'shw-rside': sidebarVisible }">
+        <div
+            id="drawerAdmisionarEcografia"
+            class="right-sidebar sidebar-scroll"
+            :class="{ 'shw-rside': sidebarVisible }"
+        >
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
@@ -434,6 +438,56 @@
                     <!-- ============================================================== -->
                     <form action="#">
                         <div class="form-body">
+                            <!-- Resumen informativo de EPS, Contrato, Plan y Atención -->
+                            <div
+                                v-if="
+                                    registro.admin_salud ||
+                                    registro.contrato ||
+                                    registro.plan ||
+                                    registro.atencion_id
+                                "
+                                class="alert alert-info py-2 px-3 mb-3 border-left-info shadow-sm"
+                                style="
+                                    font-size: 13px;
+                                    line-height: 1.5;
+                                    border-left: 4px solid #009efb;
+                                "
+                            >
+                                <div class="row">
+                                    <div class="col-md-3" v-if="registro.admin_salud">
+                                        <strong
+                                            ><i class="fa fa-hospital-o mr-1"></i>EPS /
+                                            Tercero:</strong
+                                        >
+                                        <div class="text-dark font-weight-bold">
+                                            {{ registro.admin_salud }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3" v-if="registro.contrato">
+                                        <strong
+                                            ><i class="fa fa-file-text-o mr-1"></i>Contrato:</strong
+                                        >
+                                        <div class="text-dark font-weight-bold">
+                                            {{ registro.contrato }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3" v-if="registro.plan">
+                                        <strong><i class="fa fa-bookmark-o mr-1"></i>Plan:</strong>
+                                        <div class="text-dark font-weight-bold">
+                                            {{ registro.plan }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3" v-if="registro.quien_ordeno">
+                                        <strong
+                                            ><i class="fa fa-user-md mr-1"></i>Médico que
+                                            ordenó:</strong
+                                        >
+                                        <div class="text-dark font-weight-bold">
+                                            {{ registro.quien_ordeno }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="row">
                                 <div class="col-md-6">
                                     <h5 class="card-title text-info">
@@ -456,6 +510,7 @@
                                                     width="100%"
                                                     :allow-clear="true"
                                                     :label-fields="['codigo', 'tipo_documento']"
+                                                    dropdown-parent-selector="#drawerAdmisionarEcografia"
                                                     @input="onTipoDocumentoSelect"
                                                 />
 
@@ -646,6 +701,7 @@
                                                     width="100%"
                                                     :allow-clear="true"
                                                     :label-fields="['name']"
+                                                    dropdown-parent-selector="#drawerAdmisionarEcografia"
                                                     @input="onMedicoSelect"
                                                 />
 
@@ -668,6 +724,7 @@
                                                     :options="productoOptions"
                                                     width="100%"
                                                     :allow-clear="true"
+                                                    dropdown-parent-selector="#drawerAdmisionarEcografia"
                                                     @input="onProductoSelect"
                                                 />
                                             </div>
@@ -972,8 +1029,8 @@
 </template>
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
-const { proxy } = getCurrentInstance();
-const emitter = proxy.emitter;
+const { appContext } = getCurrentInstance();
+const emitter = appContext?.config?.globalProperties?.emitter;
 
 import usePermissions from "@/helpers/permissions.js";
 import { formatoMoneda } from "@/helpers/funciones.js";
@@ -1694,12 +1751,25 @@ const btnCerrarModalForm = cerrarSidebar;
  * @author Jhon Javer Lozano Arce
  * @date 2026-10-19
  */
-function abrirModal() {
+async function abrirModal() {
     sidebarVisible.value = true;
+
+    if (!medicos.value || medicos.value.length === 0) {
+        await listarMedicos();
+    }
+    if (!productos.value || productos.value.length === 0) {
+        await listarProductos();
+    }
+    if (!tipoDocumentos.value || tipoDocumentos.value.length === 0) {
+        await listarTipoDocumentos();
+    }
+
     nextTick(() => {
-        selTipoDoc.value?.rebuild();
-        selMedico.value?.rebuild();
-        selProducto.value?.rebuild();
+        setTimeout(() => {
+            selTipoDoc.value?.rebuild();
+            selMedico.value?.rebuild();
+            selProducto.value?.rebuild();
+        }, 50);
         document.getElementById("num_docu")?.focus();
     });
 }
@@ -1921,5 +1991,13 @@ onBeforeUnmount(() => {
 
 .breadcrumb-btn {
     vertical-align: baseline;
+}
+
+:deep(.select2-dropdown) {
+    z-index: 9999 !important;
+}
+
+:deep(.select2-container) {
+    width: 100% !important;
 }
 </style>

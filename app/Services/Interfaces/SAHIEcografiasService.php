@@ -7,31 +7,51 @@ use App\Models\Consentimientos\ConsentimientoPlantilla;
 use App\Models\Consentimientos\EcografiaConsentimiento;
 use App\Models\Interface\Sahi\facFacturaDet;
 use App\Models\Interface\Sahi\FacMovimientoDet;
+use App\Models\Worklist\WorklistOrden;
 use App\Services\BaseService;
 use Illuminate\Support\Facades\DB;
 
 class SAHIEcografiasService extends BaseService
 {
     /**
-     * Lista y enriquece los productos de una atención de SAHI para admisión de ecografías.
+     * Lista y enriquece los productos de atención de SAHI para admisión de ecografías.
+     * Soporta búsqueda por número de atención, número de documento, nombres de paciente
+     * o rango de fechas (FecIngreso).
      *
-     * @param  int  $atencionId  Identificador de la atención en SAHI.
+     * Flujo del proceso:
+     * 1. Resuelve los IDs de atención de SAHI según los criterios de búsqueda (atención, documento, nombres o fechas).
+     * 2. Si no se encuentran atenciones o no hay criterios válidos, retorna una lista vacía exitosa.
+     * 3. Consulta facturas (facFacturaDet) y órdenes/cargos (facMovimientoDet) de SAHI para las atenciones filtrando por grupos de ecografía/diagnóstico.
+     * 4. Mapea el médico que ordenó el procedimiento desde hceProceOrden agrupado por atención.
+     * 5. Cruza con los catálogos y admisiones existentes en LIDiag (ecografias, ecografias_productos, consentimientos y worklist).
+     * 6. Retorna la colección estructurada y enriquecida para el módulo de admisión de ecografías.
      *
-     * @returns {array}
+     * @param  int|string|null  $criterio  ID de atención, número de documento o nombre del paciente.
+     * @param  string|null  $fechaIni  Fecha de inicio en formato YYYY-MM-DD.
+     * @param  string|null  $fechaFin  Fecha de fin en formato YYYY-MM-DD.
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2024-04-04
      */
-    public function listarProductosAtencion(int $atencionId): array
+    public function listarProductosAtencion(int|string|null $criterio = null, ?string $fechaIni = null, ?string $fechaFin = null): array
     {
+        $atencionIds = $this->resolverAtencionesIds($criterio, $fechaIni, $fechaFin);
+
+        if (empty($atencionIds)) {
+            return $this->success([]);
+        }
+
         $gruposPermitidos = [44, 195, 156, 190, 204, 191];
 
-        $quienOrdeno = DB::connection('sqlsrv')
+        $quienOrdenoMap = DB::connection('sqlsrv')
             ->table('hceProceOrden')
-            ->where('IdAtencion', $atencionId)
+            ->whereIn('IdAtencion', $atencionIds)
             ->orderByDesc('IdOrdenPro')
-            ->value('NomResponsable');
+            ->get(['IdAtencion', 'NomResponsable'])
+            ->groupBy('IdAtencion')
+            ->map(fn ($group) => $group->first()->NomResponsable)
+            ->all();
 
         $consulta1 = facFacturaDet::select([
             'admAtencion.IdAtencion',
@@ -68,7 +88,7 @@ class SAHIEcografiasService extends BaseService
             ->join('conPlan', 'AdmAtencionContrato.IdPlan', '=', 'conPlan.IdPlan')
             ->join('genTercero', 'conContrato.IdTercero', '=', 'genTercero.IdTercero')
             ->join('genTipoDoc', 'admCliente.IdTipoDoc', '=', 'genTipoDoc.IdTipoDoc')
-            ->where('admAtencion.IdAtencion', $atencionId)
+            ->whereIn('admAtencion.IdAtencion', $atencionIds)
             ->where('facFacturaDet.Cantidad', '>', 0)
             ->whereIn('proProducto.IdGrupo', $gruposPermitidos);
 
@@ -107,19 +127,17 @@ class SAHIEcografiasService extends BaseService
             ->join('conPlan', 'AdmAtencionContrato.IdPlan', '=', 'conPlan.IdPlan')
             ->join('genTercero', 'conContrato.IdTercero', '=', 'genTercero.IdTercero')
             ->join('genTipoDoc', 'admCliente.IdTipoDoc', '=', 'genTipoDoc.IdTipoDoc')
-            ->where('admAtencion.IdAtencion', $atencionId)
+            ->whereIn('admAtencion.IdAtencion', $atencionIds)
             ->where('facMovimientoDet.Cantidad', '>', 0)
             ->whereIn('proProducto.IdGrupo', $gruposPermitidos);
 
         $atencionesSahi = $consulta1->union($consulta2)->get();
 
-        if ($quienOrdeno) {
-            $atencionesSahi->transform(function ($row) use ($quienOrdeno) {
-                $row->quien_ordeno = $quienOrdeno;
+        $atencionesSahi->transform(function ($row) use ($quienOrdenoMap) {
+            $row->quien_ordeno = $quienOrdenoMap[$row->IdAtencion] ?? null;
 
-                return $row;
-            });
-        }
+            return $row;
+        });
 
         $moduloEcografiasId = 2;
         $cods = $atencionesSahi
@@ -146,9 +164,10 @@ class SAHIEcografiasService extends BaseService
 
         $local = DB::table('ecografias')
             ->join('ecografias_productos as ep', 'ep.ecografia_id', '=', 'ecografias.id')
-            ->where('ecografias.atencion_id', $atencionId)
+            ->whereIn('ecografias.atencion_id', $atencionIds)
             ->select([
                 'ecografias.id as ecografia_id',
+                'ecografias.atencion_id',
                 'ecografias.estado as estado_ecografia',
                 'ep.producto_id',
                 'ep.id as ecografia_producto_id',
@@ -160,7 +179,7 @@ class SAHIEcografiasService extends BaseService
             ])
             ->orderBy('ecografias.id')
             ->get()
-            ->keyBy('producto_id');
+            ->keyBy(fn ($item) => "{$item->atencion_id}_{$item->producto_id}");
 
         $ecografiaProductoIds = $local->pluck('ecografia_producto_id')->filter()->values();
         $consentimientos = EcografiaConsentimiento::query()
@@ -170,9 +189,19 @@ class SAHIEcografiasService extends BaseService
             ->get()
             ->keyBy('ecografia_producto_id');
 
-        $atencionesSahi = $atencionesSahi->map(function ($row) use ($local, $configProductos, $plantillasVigentes, $consentimientos) {
+        $ordenesWorklist = [];
+        if ($ecografiaProductoIds->isNotEmpty()) {
+            $ordenesWorklist = WorklistOrden::whereIn('ecografia_producto_id', $ecografiaProductoIds->all())
+                ->whereIn('estado', ['PENDIENTE', 'ADQUIRIDO', 'COMPLETADO'])
+                ->orderBy('id', 'desc')
+                ->get()
+                ->keyBy('ecografia_producto_id');
+        }
+
+        $atencionesSahi = $atencionesSahi->map(function ($row) use ($local, $configProductos, $plantillasVigentes, $consentimientos, $ordenesWorklist) {
             $productoId = (int) ($row->IdProducto ?? 0);
-            $match = $productoId && isset($local[$productoId]) ? $local[$productoId] : null;
+            $claveLocal = "{$row->IdAtencion}_{$productoId}";
+            $match = $productoId && isset($local[$claveLocal]) ? $local[$claveLocal] : null;
 
             $row->id = $match?->ecografia_id ?? null;
             $row->estado_ecografia = $match?->estado_ecografia ?? null;
@@ -183,6 +212,10 @@ class SAHIEcografiasService extends BaseService
             $row->error_envio_sahi = $match?->error_envio_sahi ?? null;
             $row->sahi_esquema_149 = $match?->sahi_esquema_149 ?? null;
             $row->sahi_esquema_150 = $match?->sahi_esquema_150 ?? null;
+
+            $row->orden_worklist = ($row->ecografia_producto_id && isset($ordenesWorklist[$row->ecografia_producto_id]))
+                ? $ordenesWorklist[$row->ecografia_producto_id]
+                : null;
 
             $cod = trim((string) ($row->CodProducto ?? ''));
             $cfg = $cod && isset($configProductos[$cod]) ? $configProductos[$cod] : null;
@@ -207,5 +240,101 @@ class SAHIEcografiasService extends BaseService
         });
 
         return $this->success($atencionesSahi);
+    }
+
+    /**
+     * Resuelve una lista de IDs de atención en SAHI según criterios de búsqueda.
+     *
+     * @param  int|string|null  $criterio  Número de atención, cédula o nombres de paciente.
+     * @param  string|null  $fechaIni  Fecha de inicio (YYYY-MM-DD).
+     * @param  string|null  $fechaFin  Fecha de fin (YYYY-MM-DD).
+     * @return array<int>
+     */
+    private function resolverAtencionesIds(int|string|null $criterio = null, ?string $fechaIni = null, ?string $fechaFin = null): array
+    {
+        $criterio = trim((string) $criterio);
+
+        if (empty($criterio) && empty($fechaIni) && empty($fechaFin)) {
+            return [];
+        }
+
+        $atencionIds = [];
+
+        if (! empty($criterio)) {
+            if (is_numeric($criterio)) {
+                $directo = DB::connection('sqlsrv')
+                    ->table('admAtencion')
+                    ->where('IdAtencion', (int) $criterio)
+                    ->value('IdAtencion');
+
+                if ($directo) {
+                    $atencionIds[] = (int) $directo;
+                }
+
+                $queryDoc = DB::connection('sqlsrv')
+                    ->table('admAtencion')
+                    ->join('admCliente', 'admCliente.IdCliente', '=', 'admAtencion.IdCliente')
+                    ->where('admCliente.NumDocumento', $criterio);
+
+                if ($fechaIni) {
+                    $queryDoc->whereRaw('CONVERT(date, admAtencion.FecIngreso) >= ?', [$fechaIni]);
+                }
+                if ($fechaFin) {
+                    $queryDoc->whereRaw('CONVERT(date, admAtencion.FecIngreso) <= ?', [$fechaFin]);
+                }
+
+                $porDoc = $queryDoc->orderByDesc('admAtencion.IdAtencion')
+                    ->limit(20)
+                    ->pluck('admAtencion.IdAtencion')
+                    ->all();
+
+                $atencionIds = array_values(array_unique(array_merge($atencionIds, $porDoc)));
+            } else {
+                $tokens = array_filter(explode(' ', $criterio));
+                $queryNombre = DB::connection('sqlsrv')
+                    ->table('admAtencion')
+                    ->join('admCliente', 'admCliente.IdCliente', '=', 'admAtencion.IdCliente')
+                    ->select('admAtencion.IdAtencion');
+
+                foreach ($tokens as $token) {
+                    $queryNombre->where(function ($sub) use ($token) {
+                        $sub->where('admCliente.PrimerNombre', 'LIKE', "%{$token}%")
+                            ->orWhere('admCliente.SegundoNombre', 'LIKE', "%{$token}%")
+                            ->orWhere('admCliente.PrimerApellido', 'LIKE', "%{$token}%")
+                            ->orWhere('admCliente.SegundoApellido', 'LIKE', "%{$token}%");
+                    });
+                }
+
+                if ($fechaIni) {
+                    $queryNombre->whereRaw('CONVERT(date, admAtencion.FecIngreso) >= ?', [$fechaIni]);
+                }
+                if ($fechaFin) {
+                    $queryNombre->whereRaw('CONVERT(date, admAtencion.FecIngreso) <= ?', [$fechaFin]);
+                }
+
+                $atencionIds = $queryNombre->orderByDesc('admAtencion.IdAtencion')
+                    ->limit(20)
+                    ->pluck('admAtencion.IdAtencion')
+                    ->all();
+            }
+        } else {
+            $queryFechas = DB::connection('sqlsrv')
+                ->table('admAtencion')
+                ->select('admAtencion.IdAtencion');
+
+            if ($fechaIni) {
+                $queryFechas->whereRaw('CONVERT(date, admAtencion.FecIngreso) >= ?', [$fechaIni]);
+            }
+            if ($fechaFin) {
+                $queryFechas->whereRaw('CONVERT(date, admAtencion.FecIngreso) <= ?', [$fechaFin]);
+            }
+
+            $atencionIds = $queryFechas->orderByDesc('admAtencion.IdAtencion')
+                ->limit(30)
+                ->pluck('admAtencion.IdAtencion')
+                ->all();
+        }
+
+        return $atencionIds;
     }
 }

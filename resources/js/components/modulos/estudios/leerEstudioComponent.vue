@@ -1486,6 +1486,7 @@ function toggleDarkMode() {
 const props = defineProps({
     usuarioactual: { type: Object, default: null },
     permisos: { type: Array, default: () => [] },
+    rolesusuario: { type: String, default: "" },
 });
 
 const dictationFlow = useDictationFlow();

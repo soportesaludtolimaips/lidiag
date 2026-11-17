@@ -42,8 +42,10 @@ class WorklistEnviarRequest extends FormRequest
             'sede_id' => 'required|integer|exists:config_sedes,id',
             'producto_id' => 'required|integer|exists:config_productos,id',
             'accession_no' => 'required|string|max:50',
-            'modality' => 'nullable|string|in:CR,DX',
+            'modality' => 'nullable|string|in:CR,DX,US',
             'station_aet' => 'nullable|string|max:50',
+            'ecografia_id' => 'nullable|integer|exists:ecografias,id',
+            'ecografia_producto_id' => 'nullable|integer|exists:ecografias_productos,id',
             'observaciones' => 'nullable|string|max:500',
         ];
     }
@@ -55,10 +57,10 @@ class WorklistEnviarRequest extends FormRequest
             'paciente_id.exists' => 'El paciente no existe en el sistema.',
             'sede_id.required' => 'La sede es obligatoria.',
             'sede_id.exists' => 'La sede seleccionada no es válida.',
-            'producto_id.required' => 'Debe seleccionar el procedimiento de Rayos X a realizar.',
+            'producto_id.required' => 'Debe seleccionar el procedimiento a realizar.',
             'producto_id.exists' => 'El procedimiento seleccionado no es válido.',
             'accession_no.required' => 'El Accession Number es obligatorio.',
-            'modality.in' => 'La modalidad debe ser CR o DX.',
+            'modality.in' => 'La modalidad debe ser CR, DX o US.',
         ];
     }
 }
