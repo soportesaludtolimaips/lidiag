@@ -180,7 +180,7 @@
                                         <th>Contrato</th>
                                         <th>Plan</th>
                                         <th>Quien Ordeno</th>
-                                        <th>Servicio</th>
+                                        <th>Servicio / Ubicación</th>
                                         <th>Cama</th>
                                         <th>Estado</th>
                                         <th>SAHI</th>
@@ -233,8 +233,24 @@
                                         <td>{{ item.DesContrato }}</td>
                                         <td>{{ item.DesPlan }}</td>
                                         <td>{{ item.quien_ordeno }}</td>
-                                        <td>{{ item.NomUbicacion || item.ubicacion || "-" }}</td>
-                                        <td>{{ item.Cama || item.cama || "-" }}</td>
+                                        <td>
+                                            {{
+                                                item.NomUbicacion ||
+                                                item.ubicacion ||
+                                                "Sin ubicación"
+                                            }}
+                                        </td>
+                                        <td>
+                                            <span
+                                                :class="
+                                                    item.Cama || item.cama
+                                                        ? 'badge badge-light text-dark font-weight-bold'
+                                                        : 'text-muted font-italic'
+                                                "
+                                            >
+                                                {{ item.Cama || item.cama || "Sin cama" }}
+                                            </span>
+                                        </td>
                                         <td>
                                             <span
                                                 class="label label-info"

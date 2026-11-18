@@ -37,6 +37,15 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-18 — Mejora Visual y Fallback de Camas y Ubicaciones en Módulo de Ecografías (`admisionarComponent.vue`, `ecografiasAdmisionadasComponent.vue`, `lecturaComponent.vue`):**
+  - **Diagnóstico del Problema:**
+    * En la tabla de búsqueda de atenciones SAHI de `admisionarComponent.vue` (y en tablas de admisionadas y lectura), cuando una atención no tiene cama hospitalaria asignada en SAHI (ej. pacientes ambulatorios o en salas de atención transitoria como sala de partos / observación), se mostraba un simple guion (`-`), lo que generaba ambigüedad sobre si el dato no se cargaba o si el paciente no tenía cama.
+  - **Solución Implementada:**
+    * En [`admisionarComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/admisionarComponent.vue), [`ecografiasAdmisionadasComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/ecografiasAdmisionadasComponent.vue) y [`lecturaComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/lecturaComponent.vue):
+      - Se implementó etiqueta badge con formato para cuando tiene cama física asignada (`badge badge-light text-dark font-weight-bold`).
+      - Se estableció texto descriptivo con estilo atenuado `"Sin cama"` (`text-muted font-italic`) cuando el paciente no cuenta con cama hospitalaria en SAHI.
+      - Se estableció texto `"Sin ubicación"` para casos donde no se registre servicio/ubicación.
+    * Verificado con ESLint y compilado con `npm run build`.
 - [x] **2026-11-18 — Corrección de Relación Indefinida `usuaRegis` en `EcografiaProducto` (`PlantillaEcografiaService.php`, `EcografiaProducto.php`):**
   - **Diagnóstico del Problema:**
     * Al generar el reporte DOCX de una ecografía (`POST /api/ecografia-generar-reporte/{id}`), el sistema arrojaba un error 400:

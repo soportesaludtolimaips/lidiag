@@ -211,7 +211,7 @@
                                         <th>Administradora</th>
                                         <th>Contrato</th>
                                         <th>Plan</th>
-                                        <th>Servicio</th>
+                                        <th>Servicio / Ubicación</th>
                                         <th>Cama</th>
                                         <th>Estado</th>
                                         <th>SAHI</th>
@@ -239,8 +239,18 @@
                                         <td>{{ item.admin_salud?.nom_admin_salud }}</td>
                                         <td>{{ item.contrato }}</td>
                                         <td>{{ item.plan }}</td>
-                                        <td>{{ item.ubicacion || "-" }}</td>
-                                        <td>{{ item.cama || "-" }}</td>
+                                        <td>{{ item.ubicacion || "Sin ubicación" }}</td>
+                                        <td>
+                                            <span
+                                                :class="
+                                                    item.cama
+                                                        ? 'badge badge-light text-dark font-weight-bold'
+                                                        : 'text-muted font-italic'
+                                                "
+                                            >
+                                                {{ item.cama || "Sin cama" }}
+                                            </span>
+                                        </td>
                                         <td>
                                             <span
                                                 class="label label-info"
