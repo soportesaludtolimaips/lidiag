@@ -166,8 +166,8 @@ class ConfigSedeService extends BaseService
      * Crea una nueva sede validando los datos y almacenando las plantillas de Rx si se envÃ­an.
      *
      * @param  array  $data  Datos validados de la sede.
-     * @param  Illuminate\Http\UploadedFile|null  $plantillaRx  Archivo de plantilla Rx (opcional).
-     * @param  Illuminate\Http\UploadedFile|null  $plantillaEcografia  Archivo de plantilla de ecografÃ­a (opcional).
+     * @param  UploadedFile|null  $plantillaRx  Archivo de plantilla Rx (opcional).
+     * @param  UploadedFile|null  $plantillaEcografia  Archivo de plantilla de ecografía (opcional).
      *
      * @returns array Respuesta con la sede creada y el estado de la operaciÃ³n.
      *
@@ -182,7 +182,7 @@ class ConfigSedeService extends BaseService
             'email_repor' => 'nullable|string|max:255',
             'ip_dcm' => 'nullable|string|max:255',
             'bd_dcm' => 'nullable|string|max:255',
-            'puerto_dcm' => 'nullable|string|max:255',
+            'puerto_dcm' => 'nullable|numeric|between:1,65535',
             'usuario_dcm' => 'nullable|string|max:255',
             'password_dcm' => 'nullable|string|max:255',
             'usuario_oviyam' => 'nullable|string|max:255',
@@ -197,7 +197,7 @@ class ConfigSedeService extends BaseService
             'interface_software' => 'nullable|string|max:255',
             'interface_driver' => 'nullable|string|max:255',
             'interface_host' => 'nullable|string|max:255',
-            'interface_port' => 'nullable|string|max:255',
+            'interface_port' => 'nullable|numeric|between:1,65535',
             'interface_database' => 'nullable|string|max:255',
             'interface_username' => 'nullable|string|max:255',
             'interface_password' => 'nullable|string|max:255',
@@ -214,12 +214,12 @@ class ConfigSedeService extends BaseService
 
         if ($plantillaRx) {
             $info = $this->fileService->store($plantillaRx, 'local', 'plantillas_lecturas');
-            $item->plantilla_rx = $info['path'];
+            $item->plantilla_rx = basename($info['path']);
         }
 
         if ($plantillaEcografia) {
             $info = $this->fileService->store($plantillaEcografia, 'local', 'plantillas_lecturas');
-            $item->plantilla_ecografia = $info['path'];
+            $item->plantilla_ecografia = basename($info['path']);
         }
 
         $item->save();
@@ -231,8 +231,8 @@ class ConfigSedeService extends BaseService
      * Actualiza una sede existente, reemplazando las plantillas si se envÃ­an nuevos archivos.
      *
      * @param  array  $data  Datos validados de la sede (debe incluir el id).
-     * @param  Illuminate\Http\UploadedFile|null  $plantillaRx  Archivo de plantilla Rx (opcional).
-     * @param  Illuminate\Http\UploadedFile|null  $plantillaEcografia  Archivo de plantilla de ecografÃ­a (opcional).
+     * @param  UploadedFile|null  $plantillaRx  Archivo de plantilla Rx (opcional).
+     * @param  UploadedFile|null  $plantillaEcografia  Archivo de plantilla de ecografía (opcional).
      *
      * @returns array Respuesta con la sede actualizada y el estado de la operaciÃ³n.
      *
@@ -252,7 +252,7 @@ class ConfigSedeService extends BaseService
             'email_repor' => 'nullable|string|max:255',
             'ip_dcm' => 'nullable|string|max:255',
             'bd_dcm' => 'nullable|string|max:255',
-            'puerto_dcm' => 'nullable|string|max:255',
+            'puerto_dcm' => 'nullable|numeric|between:1,65535',
             'usuario_dcm' => 'nullable|string|max:255',
             'password_dcm' => 'nullable|string|max:255',
             'usuario_oviyam' => 'nullable|string|max:255',
@@ -267,7 +267,7 @@ class ConfigSedeService extends BaseService
             'interface_software' => 'nullable|string|max:255',
             'interface_driver' => 'nullable|string|max:255',
             'interface_host' => 'nullable|string|max:255',
-            'interface_port' => 'nullable|string|max:255',
+            'interface_port' => 'nullable|numeric|between:1,65535',
             'interface_database' => 'nullable|string|max:255',
             'interface_username' => 'nullable|string|max:255',
             'interface_password' => 'nullable|string|max:255',
@@ -284,12 +284,12 @@ class ConfigSedeService extends BaseService
 
         if ($plantillaRx) {
             $info = $this->fileService->replace('local', $item->plantilla_rx, $plantillaRx, 'plantillas_lecturas');
-            $item->plantilla_rx = $info['path'];
+            $item->plantilla_rx = basename($info['path']);
         }
 
         if ($plantillaEcografia) {
             $info = $this->fileService->replace('local', $item->plantilla_ecografia, $plantillaEcografia, 'plantillas_lecturas');
-            $item->plantilla_ecografia = $info['path'];
+            $item->plantilla_ecografia = basename($info['path']);
         }
 
         $item->save();
@@ -367,6 +367,8 @@ class ConfigSedeService extends BaseService
             if (array_key_exists($field, $data)) {
                 if (in_array($field, ['estado'], true)) {
                     $item->$field = filter_var($data[$field], FILTER_VALIDATE_BOOLEAN);
+                } elseif (in_array($field, ['puerto_dcm', 'interface_port'], true)) {
+                    $item->$field = ($data[$field] !== null && $data[$field] !== '') ? (int) $data[$field] : null;
                 } else {
                     $item->$field = $data[$field];
                 }

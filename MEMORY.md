@@ -37,6 +37,75 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-18 — Corrección de Error 500 "Path must not be empty" al Subir Plantillas de Sede (`FileService.php`, `ConfigSedeService.php`, `configSedeComponent.vue`):**
+  - **Diagnóstico del Problema:**
+    * Al actualizar la sede con una plantilla de ecografía o Rx (`POST /config/sedes/updateWitchPlantillas`), el servidor arrojaba un error 500: `{"success":false,"data":null,"message":"Path must not be empty","status":500}`.
+    * **Causa Raíz:** En PHP 8.4 bajo Windows (Apache `mod_fcgid`), `UploadedFile::getRealPath()` retorna `false` en ciertas rutas temporales cuando el runtime de C no resuelve la ruta canónica. Al invocar `$file->storeAs()`, Laravel llama internamente a `FilesystemAdapter::putFileAs()`, el cual ejecuta `$stream = fopen(is_string($file) ? $file : $file->getRealPath(), 'r')`. Al ser `false`, `fopen(false, 'r')` dispara un `ValueError: Path must not be empty` nativo de PHP 8+.
+    * **Causa Secundaria en Rutas de Plantillas:** `ConfigSedeService` almacenaba `$item->plantilla_rx = $info['path']` (guardando `'plantillas_lecturas/archivo.docx'`), mientras que todos los servicios consumidores (`PlantillaEstudioService`, `EstudioService`, `EstudioPortalSyncService`) y la base de datos esperan únicamente el nombre base (`basename()`), ya que unen `storage_path('app/plantillas_lecturas/' . $archivo)`.
+  - **Solución Implementada:**
+    * **Servicio de Archivos ([`FileService.php`](file:///c:/laragon/www/lidiag/app/Services/FileService.php)):**
+      - Se implementó resolución de ruta segura y defensiva: si `$file->getRealPath()` es inválido o no existe en disco, se utiliza `$file->getPathname()`.
+      - Se realiza el almacenamiento directo mediante stream `@fopen($filePath, 'r')` sobre el disco o `file_get_contents()` como fallback seguro, previniendo excepciones en `putFileAs`.
+      - En `replace()`, se valida que `$existingPath` contenga caracteres reales antes de disparar la eliminación, y en `delete()` se comprueba la existencia tanto en la raíz del disco como bajo el subdirectorio `plantillas_lecturas/`.
+    * **Servicio de Sedes ([`ConfigSedeService.php`](file:///c:/laragon/www/lidiag/app/Services/Configuracion/ConfigSedeService.php)):**
+      - Se normalizó el guardado a `basename($info['path'])` tanto en `create()` como en `update()`.
+    * **Frontend ([`configSedeComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/configuracion/configSedeComponent.vue)):**
+      - Se simplificó `guardarRegistro()` para enviar únicamente `plantilla_ecografia` sin duplicar la carga en `plantilla_rx_ecografia`.
+  - **Verificaciones:**
+    * Prueba end-to-end simulando subida de plantilla y actualización en PHP 8.4 exitosa (`UPDATE SUCCESS: true`, `STATUS: 200`) ✅.
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% (0 errores) ✅.
+    * Larastan / PHPStan Nivel 5: 2/2 archivos con `[OK] No errors` ✅.
+    * ESLint y Prettier 100% limpios ✅.
+    * Compilación Vite exitosa (`npm run build` en 2.39s) ✅.
+
+- [x] **2026-11-18 — Modernización Integral UI/UX en Módulo de Sedes (`configSedeComponent.vue`):**
+  - **Requerimiento:** Aplicar las directrices de diseño, accesibilidad clínica y fases de mejora de [`docs/UI-UX-IMPROVEMENT-PHASES.md`](file:///c:/laragon/www/lidiag/docs/UI-UX-IMPROVEMENT-PHASES.md) al componente [`configSedeComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/configuracion/configSedeComponent.vue).
+  - **Mejoras Implementadas:**
+    * **Fase 1 (Mecánica y Accesibilidad WCAG 2.1/2.2):**
+      - Todos los `<label>` asociados a sus respectivos inputs mediante atributos `for="<id>"`.
+      - Agregados atributos `aria-label`, `title` y estados `aria-required="true"` en campos requeridos.
+      - Corrección ortográfica y de redacción en breadcrumbs, placeholders y textos descriptivos ("imágenes diagnósticas", "distribución y asignación", "residencia", "teléfono", "ecografías").
+      - Corrección de cabecera de tabla: la columna que mostraba `url_oviyam` tenía el título erróneo "Password Oviyam"; se renombró a "URL Oviyam" con enlace externo clicable seguro (`target="_blank"`, `rel="noopener noreferrer"`).
+    * **Fase 2 (Drawer Lateral Unificado):**
+      - Ancho responsive estandarizado: 80% en escritorio y 100% en pantallas móviles (`@media (max-width: 767px)`).
+      - Botón de cierre semántico `<button type="button" class="right-side-toggle">` con etiqueta `aria-label`.
+      - Autofocus accesible en `nom_sede` mediante `ref="primerInput"` tras la apertura con `nextTick`.
+    * **Fase 3 & 4 (Feedback Visual, Validación y Badges):**
+      - Indicador visual obligatorio `<span class="text-danger">*</span>` en el nombre de la sede.
+      - Feedback visual de validación defensiva en frontend antes de peticiones HTTP con clases `.is-invalid` y `.invalid-feedback`.
+      - Badges semánticos en tabla: `badge badge-success` con `<i class="fa fa-check">` (Activa) y `badge badge-secondary` con `<i class="fa fa-ban">` (Inactiva).
+      - Estados de carga en botones con spinners (`loadingGuardar`, `loadingEliminarId`, `loadingListar`).
+      - Retroalimentación interactiva al seleccionar archivos de plantilla Word con visualización de nombre, tamaño en KB y botón para deseleccionar/quitar archivo.
+    * **Fase 5 & 6 (Ergonomía, Shimmer y Catálogo de Variables):**
+      - Tarjetas KPI dinámicas en la cabecera: Total de Sedes, Sedes Activas y Sedes Inactivas.
+      - Catálogo categorizado de variables asistenciales para plantillas (Paciente, Estudio, Ecografías, EPS, Médico) con badges clicables que copian el token (`${variable}`) instantáneamente al portapapeles con confirmación visual `toastMessage`.
+      - Preservación del DOM en DataTables (`v-show` con `table-skeleton-loader` y `empty-state-component`).
+      - Atajos de teclado clínicos (`Ctrl+S` para guardar formulario, `Esc` para cancelar/cerrar).
+    * **Fase 7 (Modo Oscuro):**
+      - Cobertura completa bajo `body.theme-dark` en panel drawer, tokens de variables asistenciales, tablas y formulario.
+  - **Verificaciones:**
+    * ESLint verificado con 0 errores y 0 advertencias ✅.
+    * Prettier formateado al 100% ✅.
+    * Compilación Vite (`npm run build`) exitosa en 1.78s ✅.
+
+- [x] **2026-11-18 — Corrección de Error 422 en Validación de Puerto DCM de Sedes (`ConfigSedeService.php`, `ConfigSede.php`, `configSedeComponent.vue`):**
+  - **Diagnóstico del Problema:**
+    * Al actualizar la sede en `POST /config/sedes/updateWitchPlantillas`, el validador retornaba error 422: `{"puerto_dcm": ["El campo puerto dcm debe ser una cadena de texto."]}`.
+    * En MySQL, la columna `config_sedes.puerto_dcm` es de tipo `int`. En el formulario Vue, el campo es un `<input type="number">`, lo que produce un valor numérico entero (ej: `3306`) en el JSON.
+    * En [`ConfigSedeService.php`](file:///c:/laragon/www/lidiag/app/Services/Configuracion/ConfigSedeService.php), la regla `'puerto_dcm' => 'nullable|string|max:255'` exigía estrictamente un string (`is_string()`), rechazando los números enteros.
+  - **Solución Implementada:**
+    * **Backend ([`ConfigSedeService.php`](file:///c:/laragon/www/lidiag/app/Services/Configuracion/ConfigSedeService.php)):**
+      - Se cambió la regla de validación en `create` y `update` a `'puerto_dcm' => 'nullable|numeric|between:1,65535'` y `'interface_port' => 'nullable|numeric|between:1,65535'`.
+      - En `fillSedeData()`, se castea explícitamente a entero o null si viene vacío.
+    * **Modelo ([`ConfigSede.php`](file:///c:/laragon/www/lidiag/app/Models/Configuracion/ConfigSede.php)):**
+      - Se documentaron las propiedades `@property int|string|null $puerto_dcm`, `$interface_port` y relaciones tipadas `: HasMany` para cumplimiento de PHPStan nivel 5.
+    * **Frontend ([`configSedeComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/configuracion/configSedeComponent.vue)):**
+      - En `guardarRegistro()`, se normaliza `puerto_dcm` para enviar número o null en caso de cadena vacía.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% (0 errores) ✅.
+    * Larastan / PHPStan Nivel 5: `[OK] No errors` ✅.
+    * ESLint y Prettier 100% limpios en `configSedeComponent.vue` ✅.
+    * Compilación Vite exitosa (`npm run build` en 1.94s) ✅.
 - [x] **2026-11-18 — Obligatoriedad de Plantilla de Ecografía por Sede y Eliminación de Fallback Local (`PlantillaEcografiaService.php`, `EcografiaProducto.php`, `HtmlToPhpWordHelper.php`):**
   - **Decisión de Arquitectura y Requerimiento del Usuario:**
     * Se eliminó definitivamente el directorio y archivo fallback `resources/plantillas/reporte_ecografia.docx`.

@@ -4,9 +4,44 @@ namespace App\Models\Configuracion;
 
 use App\Models\Dosimetria\EquipoEmisor;
 use App\Models\Dosimetria\RegistroDosisRadiacion;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property string $nom_sede
+ * @property string|null $email_repor
+ * @property string|null $ip_dcm
+ * @property string|null $bd_dcm
+ * @property int|string|null $puerto_dcm
+ * @property string|null $usuario_dcm
+ * @property string|null $password_dcm
+ * @property string|null $usuario_oviyam
+ * @property string|null $password_oviyam
+ * @property string|null $url_oviyam
+ * @property string|null $tap_oviyam
+ * @property string|null $encabezado
+ * @property string|null $pie_pagina
+ * @property string|null $logo_1
+ * @property string|null $logo_2
+ * @property bool $estado
+ * @property string|null $interface_software
+ * @property string|null $interface_driver
+ * @property string|null $interface_host
+ * @property int|string|null $interface_port
+ * @property string|null $interface_database
+ * @property string|null $interface_username
+ * @property string|null $interface_password
+ * @property string|null $plantilla_rx
+ * @property string|null $plantilla_ecografia
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Collection<int, ConfigServicio> $servicios
+ * @property-read Collection<int, ConfigSedeWhatsappNumber> $whatsappNumbers
+ */
 class ConfigSede extends Model
 {
     use HasFactory;
@@ -60,7 +95,7 @@ class ConfigSede extends Model
      *
      * @date 2026-10-13
      */
-    public function servicios()
+    public function servicios(): HasMany
     {
         return $this->hasMany(ConfigServicio::class, 'sede_id');
     }
@@ -74,7 +109,7 @@ class ConfigSede extends Model
      *
      * @date 2026-10-13
      */
-    public function whatsappNumbers()
+    public function whatsappNumbers(): HasMany
     {
         return $this->hasMany(ConfigSedeWhatsappNumber::class, 'sede_id');
     }
@@ -88,7 +123,7 @@ class ConfigSede extends Model
      *
      * @date 2026-10-23
      */
-    public function equiposEmisores()
+    public function equiposEmisores(): HasMany
     {
         return $this->hasMany(EquipoEmisor::class, 'sede_id');
     }
@@ -102,7 +137,7 @@ class ConfigSede extends Model
      *
      * @date 2026-10-23
      */
-    public function registrosDosis()
+    public function registrosDosis(): HasMany
     {
         return $this->hasMany(RegistroDosisRadiacion::class, 'sede_id');
     }

@@ -12,6 +12,13 @@ class FileService implements FileServiceInterface
     /**
      * Almacena un archivo subido en el disco y ruta indicados, generando nombre aleatorio.
      *
+     * Flujo del proceso:
+     * 1. Extrae el nombre original y determina la extensión correcta del archivo.
+     * 2. Genera un nombre criptográficamente seguro de 50 caracteres aleatorios.
+     * 3. Resuelve defensivamente la ruta temporal del archivo (getRealPath o getPathname) para Windows / mod_fcgid.
+     * 4. Almacena el archivo en el disco indicado mediante stream o put directo.
+     * 5. Calcula y retorna los metadatos del archivo incluyendo hash SHA-256.
+     *
      * @param  UploadedFile  $file  Archivo subido por el usuario
      * @param  string  $disk  Disco de almacenamiento configurado en el sistema
      * @param  string|null  $directory  Subdirectorio destino dentro del disco
@@ -23,12 +30,32 @@ class FileService implements FileServiceInterface
     public function store(UploadedFile $file, string $disk, ?string $directory = null): array
     {
         $originalName = $file->getClientOriginalName();
-        $extension = $file->extension();
-        $storedName = Str::random(50).'.'.$extension;
-        $storedPath = $file->storeAs($directory ?? '', $storedName, $disk);
+        $extension = $file->extension() ?: $file->getClientOriginalExtension();
+        $storedName = Str::random(50).($extension ? '.'.$extension : '');
+        $targetDirectory = trim($directory ?? '', '/');
+        $storedPath = $targetDirectory !== '' ? "{$targetDirectory}/{$storedName}" : $storedName;
+
+        // Resuelve de forma defensiva la ruta del archivo temporal en Windows / FastCGI
+        $filePath = $file->getRealPath();
+        if (! $filePath || ! file_exists($filePath)) {
+            $filePath = $file->getPathname();
+        }
+
+        if ($filePath && file_exists($filePath) && is_readable($filePath)) {
+            $stream = @fopen($filePath, 'r');
+            if (is_resource($stream)) {
+                Storage::disk($disk)->put($storedPath, $stream);
+                fclose($stream);
+            } else {
+                Storage::disk($disk)->put($storedPath, (string) file_get_contents($filePath));
+            }
+        } else {
+            $storedPath = $file->storeAs($directory ?? '', $storedName, $disk);
+        }
 
         $info = [
             'path' => $storedPath,
+            'filename' => $storedName,
             'hash' => $this->hash($storedPath, $disk),
             'original_name' => $originalName,
             'size' => $file->getSize(),
@@ -52,7 +79,7 @@ class FileService implements FileServiceInterface
      */
     public function replace(string $disk, ?string $existingPath, UploadedFile $newFile, ?string $directory = null): array
     {
-        if ($existingPath) {
+        if ($existingPath && trim($existingPath) !== '') {
             $this->delete($existingPath, $disk);
         }
 
@@ -71,7 +98,17 @@ class FileService implements FileServiceInterface
      */
     public function delete(string $path, string $disk): bool
     {
+        $path = trim($path);
+        if ($path === '') {
+            return false;
+        }
+
         if (! Storage::disk($disk)->exists($path)) {
+            // Verificar si el archivo existe con el prefijo plantillas_lecturas/
+            if (! str_starts_with($path, 'plantillas_lecturas/') && Storage::disk($disk)->exists("plantillas_lecturas/{$path}")) {
+                return Storage::disk($disk)->delete("plantillas_lecturas/{$path}");
+            }
+
             return false;
         }
 
