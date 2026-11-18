@@ -522,10 +522,15 @@
                                                         <code>${nom_sede}</code> Sede de la toma,
                                                         <code>${transcriptor}</code> Transcriptor y
                                                         lector del estudio,
+                                                        <code>${fecha_hora_transcripcion}</code>
+                                                        Fecha y Hora de transcripción,
                                                         <code>${quien_imprimio}</code> Usuario que
                                                         imprime el reporte,
-                                                        <code>${ubicacion}</code> Ubicación,
-                                                        <code>${cama}</code> Cama. <br /><br />
+                                                        <code>${fecha_hora_impresion}</code> Fecha y
+                                                        Hora de impresión del reporte,
+                                                        <code>${ubicacion}</code> Ubicación /
+                                                        Servicio, <code>${cama}</code> Cama.
+                                                        <br /><br />
 
                                                         <label class="text-info">Ecografías</label>:
                                                         <code>${tipo_estudio}</code> Tipo de
