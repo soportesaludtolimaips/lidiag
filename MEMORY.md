@@ -37,6 +37,24 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-18 — Obligatoriedad de Plantilla de Ecografía por Sede y Eliminación de Fallback Local (`PlantillaEcografiaService.php`, `EcografiaProducto.php`, `HtmlToPhpWordHelper.php`):**
+  - **Decisión de Arquitectura y Requerimiento del Usuario:**
+    * Se eliminó definitivamente el directorio y archivo fallback `resources/plantillas/reporte_ecografia.docx`.
+    * Es estrictamente obligatorio que la ecografía se genere utilizando la plantilla específica configurada en la sede hospitalaria (`config_sedes.plantilla_ecografia`).
+  - **Ajustes Implementados:**
+    * **Servicio ([`PlantillaEcografiaService.php`](file:///c:/laragon/www/lidiag/app/Services/Ecografias/PlantillaEcografiaService.php)):**
+      - Se eliminó la constante `TEMPLATE_PATH` y la lógica de autocopiado desde `resources/plantillas`.
+      - Se consulta directamente `$sede = ConfigSede::find($data['sede_id'])`. Si la sede o `plantilla_ecografia` no están configuradas, se detiene el flujo con error explicativo 402: *"La plantilla de ecografías para la sede {sede} no está configurada."*.
+      - Se valida la existencia física del archivo en `storage/app/plantillas_lecturas/{archivo}` (retornando 404 si falta en disco).
+      - Se eliminó el método no utilizado `buildWordFromData()`, garantizando que todo reporte se construya exclusivamente con el `TemplateProcessor` sobre la plantilla oficial de la sede.
+    * **Modelo ([`EcografiaProducto.php`](file:///c:/laragon/www/lidiag/app/Models/Ecografias/EcografiaProducto.php)):**
+      - Tipado de relaciones `: BelongsTo` en `productos()` y `producto()`, y documentación `@property-read` para resolución de Larastan.
+    * **Helper ([`HtmlToPhpWordHelper.php`](file:///c:/laragon/www/lidiag/app/Helpers/HtmlToPhpWordHelper.php)):**
+      - Ajuste en `parseInlineToTextRun` usando `$section->addTextRun($style)` y simplificación de condición de texto para cumplir con PHPStan nivel 5.
+  - **Verificaciones:**
+    * Eliminado físicamente el directorio `resources/plantillas/` ✅.
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% (0 errores) ✅.
+    * Larastan / PHPStan Nivel 5: 3/3 archivos analizados con `[OK] No errors` ✅.
 - [x] **2026-11-18 — Corrección de Error 422 al Cargar Plantilla de Ecografía de Sede (`configSedeComponent.vue`, `UpdateConfigSedeRequest.php`, `StoreConfigSedeRequest.php`, `ConfigSedeController.php`):**
   - **Diagnóstico del Problema:**
     * Al intentar cargar la plantilla de ecografía en la sede Espinal desde `https://lidiag.test/config-sedes-listar`, el endpoint `POST /config/sedes/updateWitchPlantillas` devolvía un error HTTP 422: `{"id": ["El campo id es obligatorio."]}`.

@@ -8,8 +8,16 @@ use App\Models\Worklist\WorklistOrden;
 use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $id
+ * @property int $ecografia_id
+ * @property int $producto_id
+ * @property-read ConfigProducto|null $productos
+ * @property-read ConfigProducto|null $producto
+ */
 class EcografiaProducto extends Model
 {
     use HasFactory;
@@ -38,7 +46,7 @@ class EcografiaProducto extends Model
     /**
      * Relaciones
      */
-    public function ecografia()
+    public function ecografia(): BelongsTo
     {
         return $this->belongsTo(Ecografia::class, 'ecografia_id');
     }
@@ -52,7 +60,7 @@ class EcografiaProducto extends Model
      *
      * @date 2026-10-13
      */
-    public function productos()
+    public function productos(): BelongsTo
     {
         return $this->belongsTo(ConfigProducto::class, 'producto_id');
     }
@@ -60,7 +68,7 @@ class EcografiaProducto extends Model
     /**
      * Alias por compatibilidad: algunos controladores usan `producto`.
      */
-    public function producto()
+    public function producto(): BelongsTo
     {
         return $this->productos();
     }

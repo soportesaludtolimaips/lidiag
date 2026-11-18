@@ -4,6 +4,7 @@ namespace App\Services\Ecografias;
 
 use App\Helpers\HtmlToPhpWordHelper;
 use App\Helpers\PdfConverterHelper;
+use App\Models\Configuracion\ConfigSede;
 use App\Models\Ecografias\EcografiaProducto;
 use App\Models\User;
 use App\Services\BaseService;
@@ -11,28 +12,44 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use PhpOffice\PhpWord\Element\TextRun;
-use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\TemplateProcessor;
-use PhpOffice\PhpWord\Writer\Word2007;
 
 class PlantillaEcografiaService extends BaseService
 {
-    private const TEMPLATE_PATH = 'app/plantillas/reporte_ecografia.docx';
-
     /**
-     * Genera un reporte de ecografía en formato Word/PDF utilizando los datos proporcionados,
-     * construyendo el documento a partir de una plantilla o desde cero, y convirtiéndolo a PDF.
+     * Genera un reporte de ecografía en formato Word/PDF utilizando la plantilla obligatoria
+     * configurada en la sede hospitalaria correspondiente, y convirtiéndolo a PDF.
      *
-     * @param  array  $data  Datos necesarios para generar el reporte de ecografía, incluyendo información del médico, paciente y estudio.
+     * @param  array  $data  Datos necesarios para generar el reporte de ecografía, incluyendo información del médico, paciente, sede y estudio.
      *
      * @returns array Arreglo con el resultado de la operación, incluyendo el estado, mensaje y la URL del archivo generado.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-07-14
+     * @date 2026-11-18
      */
     public function editWord(array $data): array
     {
+        $sede = ConfigSede::find($data['sede_id'] ?? null);
+        if (! $sede || empty($sede->plantilla_ecografia)) {
+            return $this->error(
+                'La plantilla de ecografías para la sede '.($sede->nom_sede ?? 'N/A').' no está configurada.',
+                402
+            );
+        }
+
+        $plantillaArchivo = $sede->plantilla_ecografia;
+        $templatePath = str_starts_with($plantillaArchivo, 'plantillas_lecturas/')
+            ? storage_path('app/'.$plantillaArchivo)
+            : storage_path('app/plantillas_lecturas/'.$plantillaArchivo);
+
+        if (! file_exists($templatePath)) {
+            return $this->error(
+                "Archivo de plantilla de ecografías no encontrado en disco ({$plantillaArchivo}).",
+                404
+            );
+        }
+
         $medico = User::find($data['medico_id'] ?? null);
         if (! $medico) {
             return $this->notFound('Médico no encontrado.');
@@ -45,30 +62,27 @@ class PlantillaEcografiaService extends BaseService
 
         $nombrePaciente = str_replace(['^^^', ' ^', '^'], ['', '', ' '], $data['nom_pacien'] ?? '');
 
-        $rawName = 'ECOGRAFIA-'.($data['tipo_estudio'] ?? 'ECO').'-'.($data['num_docu'] ?? 'SIN_DOC')."-".$nombrePaciente;
+        $rawName = 'ECOGRAFIA-'.($data['tipo_estudio'] ?? 'ECO').'-'.($data['num_docu'] ?? 'SIN_DOC').'-'.$nombrePaciente;
         $nomArchivo = Str::of($rawName)->replaceMatches('/[\\\\\\/\\:\\*\\?\\"\\<\\>\\|\\s]+/', '-')->limit(150, '')->toString();
 
         $outputPath = storage_path('app/reporte_lecturas_ecografias/'.$nomArchivo.'.docx');
 
-        Log::debug('editWord generating DOCX', [
+        Log::debug('editWord generating DOCX from sede plantilla', [
+            'sede_id' => $sede->id,
+            'nom_sede' => $sede->nom_sede,
+            'plantilla_ecografia' => $plantillaArchivo,
             'nomArchivo' => $nomArchivo,
             'outputPath' => $outputPath,
-            'templateExists' => file_exists(storage_path(self::TEMPLATE_PATH)),
             'rawName' => $rawName,
             'nombrePaciente' => $nombrePaciente,
         ]);
 
-        $templatePath = storage_path(self::TEMPLATE_PATH);
         try {
-            if (file_exists($templatePath)) {
-                $this->fillTemplateWithHtml($templatePath, $data, $nombrePaciente, $outputPath);
-            } else {
-                $this->buildWordFromData($data, $nombrePaciente, $outputPath);
-            }
+            $this->fillTemplateWithHtml($templatePath, $data, $nombrePaciente, $outputPath);
         } catch (\Throwable $e) {
             Log::error('Error generando DOCX: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
 
-            return $this->error('Error generando plantilla DOCX.', 400);
+            return $this->error('Error generando plantilla DOCX: '.$e->getMessage(), 400);
         }
 
         Log::debug('DOCX created', [
@@ -165,108 +179,6 @@ class PlantillaEcografiaService extends BaseService
         }
 
         $templateProcessor->saveAs($outputPath);
-    }
-
-    /**
-     * Construye un documento Word desde los datos proporcionados sin utilizar una plantilla.
-     *
-     * @param  array  $data  - Los datos necesarios para construir el documento Word.
-     * @param  string  $nombrePaciente  - El nombre del paciente.
-     * @param  string  $outputPath  - La ruta donde se guardará el archivo DOCX generado.
-     *
-     * @throws \Exception - Si ocurre algún error durante la construcción del documento Word.
-     *
-     * @author Jhon Javer Lozano Arce
-     *
-     * @date 2024-06-10
-     */
-    private function buildWordFromData(array $data, string $nombrePaciente, string $outputPath): void
-    {
-        $phpWord = new PhpWord;
-
-        $section = $phpWord->addSection([
-            'orientation' => 'portrait',
-            'marginTop' => 900,
-            'marginBottom' => 900,
-            'marginLeft' => 1200,
-            'marginRight' => 1200,
-        ]);
-
-        $styleTitle = ['bold' => true, 'size' => 14, 'name' => 'Arial'];
-        $styleHeader = ['bold' => true, 'size' => 10, 'name' => 'Arial'];
-        $styleNormal = ['size' => 10, 'name' => 'Arial'];
-
-        $section->addText('REPORTE DE ECOGRAFIA', $styleTitle);
-        $section->addTextBreak(1);
-
-        $fecEstudio = ! empty($data['fec_estudio']) ? Carbon::parse($data['fec_estudio'])->format('d/m/Y') : '';
-        $fecLectura = ! empty($data['fechor_lectura']) ? Carbon::parse($data['fechor_lectura'])->format('d/m/Y H:i') : '';
-
-        $section->addText('Sede: '.($data['nom_sede'] ?? ''), $styleNormal);
-        $section->addText('Tipo de estudio: '.($data['tipo_estudio'] ?? ''), $styleNormal);
-        $section->addText('Fecha del estudio: '.$fecEstudio, $styleNormal);
-        $section->addText('Fecha de lectura: '.$fecLectura, $styleNormal);
-        $section->addTextBreak(1);
-
-        $section->addText('DATOS DEL PACIENTE', $styleHeader);
-        $section->addText('Nombre: '.$nombrePaciente, $styleNormal);
-        $section->addText('Documento: '.($data['num_docu'] ?? ''), $styleNormal);
-        $section->addText('Sexo: '.($data['sexo'] ?? '').'  |  Edad: '.($data['edad'] ?? ''), $styleNormal);
-        $section->addText('Fecha nacimiento: '.($data['fec_naci'] ?? ''), $styleNormal);
-        $section->addText('Direccion: '.($data['dir'] ?? ''), $styleNormal);
-        $section->addText('Telefono: '.($data['tel'] ?? '').'  |  Celular: '.($data['cel'] ?? ''), $styleNormal);
-        $section->addText('Atencion: '.($data['atencion'] ?? ''), $styleNormal);
-        $section->addText('EPS: '.($data['admin_salud'] ?? ''), $styleNormal);
-        $section->addText('Contrato: '.($data['contrato'] ?? ''), $styleNormal);
-        $section->addTextBreak(1);
-
-        $section->addText('DATOS DEL ESTUDIO', $styleHeader);
-        $section->addText('CUPS: '.($data['cod_cups'] ?? ''), $styleNormal);
-        $section->addText('Producto: '.($data['nom_produc'] ?? ''), $styleNormal);
-
-        $productosEcografia = EcografiaProducto::where('ecografia_id', $data['ecografia_id'] ?? null)
-            ->with('productos')
-            ->get();
-
-        if ($productosEcografia->isNotEmpty()) {
-            $section->addText('Productos:', $styleNormal);
-            foreach ($productosEcografia as $item) {
-                $section->addText('• '.$item->productos->nom_produc, $styleNormal);
-            }
-        }
-        $section->addTextBreak(1);
-
-        if (! empty($data['lectura'])) {
-            $section->addText('LECTURA', $styleHeader);
-            HtmlToPhpWordHelper::addHtmlToSection($section, $data['lectura'], $styleNormal);
-            $section->addTextBreak(1);
-        }
-
-        if (! empty($data['opinion'])) {
-            $section->addText('OPINION', $styleHeader);
-            HtmlToPhpWordHelper::addHtmlToSection($section, $data['opinion'], $styleNormal);
-            $section->addTextBreak(1);
-        }
-
-        $section->addTextBreak(2);
-
-        $section->addText('Medico: '.($data['nombres_medico'] ?? ''), $styleNormal);
-        $section->addText('Reg. Medico: '.($data['reg_medico'] ?? ''), $styleNormal);
-        $section->addText('Doc. Medico: '.($data['num_docu_medico'] ?? ''), $styleNormal);
-
-        if (! empty($data['firma_medico'])) {
-            $firmaPath = storage_path('app/'.$data['firma_medico']);
-            if (file_exists($firmaPath)) {
-                $section->addImage($firmaPath, [
-                    'width' => 100,
-                    'height' => 100,
-                    'ratio' => false,
-                ]);
-            }
-        }
-
-        $writer = new Word2007($phpWord);
-        $writer->save($outputPath);
     }
 
     /**

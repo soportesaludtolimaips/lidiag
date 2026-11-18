@@ -47,9 +47,8 @@ class HtmlToPhpWordHelper
             if (preg_match('/^<p[\s>]/i', $block)) {
                 $inner = preg_replace('/^<p[^>]*>/i', '', $block);
                 $inner = preg_replace('/<\/p>$/i', '', $inner);
-                $textRun = new TextRun($style);
+                $textRun = $section->addTextRun($style);
                 self::parseInlineToTextRun($textRun, $inner, $style);
-                $section->addText($textRun);
             } elseif (preg_match('/^<(ul|ol)[\s>]/i', $block)) {
                 $items = preg_split('/<li[^>]*>/i', $block);
                 array_shift($items);
@@ -57,17 +56,15 @@ class HtmlToPhpWordHelper
                     $item = preg_replace('/<\/li>.*$/i', '', $item);
                     $item = trim($item);
                     if ($item !== '') {
-                        $textRun = new TextRun($style);
+                        $textRun = $section->addTextRun($style);
                         self::parseInlineToTextRun($textRun, '• '.$item, $style);
-                        $section->addText($textRun);
                     }
                 }
             } elseif (preg_match('/^<br\s*\/?>/i', $block)) {
                 $section->addTextBreak();
             } else {
-                $textRun = new TextRun($style);
+                $textRun = $section->addTextRun($style);
                 self::parseInlineToTextRun($textRun, $block, $style);
-                $section->addText($textRun);
             }
         }
     }
@@ -153,7 +150,7 @@ class HtmlToPhpWordHelper
                 $textRun->addText(self::stripAllTags($match[4]), $innerStyle);
             } elseif (preg_match('/^<br/i', $match[0])) {
                 $textRun->addTextBreak();
-            } elseif (isset($match[5]) && $match[5] !== '') {
+            } elseif (! empty($match[5])) {
                 $textRun->addText($match[5], $baseStyle);
             }
         }
