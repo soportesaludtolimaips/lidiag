@@ -102,6 +102,34 @@ class EcografiaProducto extends Model
     }
 
     /**
+     * Usuario que registró el producto de la ecografía.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-18
+     */
+    public function usuarioRegistrador(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'usua_regis_id');
+    }
+
+    /**
+     * Alias de usuario que registró el producto de ecografía.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-18
+     */
+    public function usuaRegis(): BelongsTo
+    {
+        return $this->usuarioRegistrador();
+    }
+
+    /**
      * Orden de Worklist activa o asociada al producto ecográfico.
      *
      * @returns \Illuminate\Database\Eloquent\Relations\HasOne

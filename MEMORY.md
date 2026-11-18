@@ -37,6 +37,36 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-18 — Corrección de Relación Indefinida `usuaRegis` en `EcografiaProducto` (`PlantillaEcografiaService.php`, `EcografiaProducto.php`):**
+  - **Diagnóstico del Problema:**
+    * Al generar el reporte DOCX de una ecografía (`POST /api/ecografia-generar-reporte/{id}`), el sistema arrojaba un error 400:
+      `Error generando plantilla DOCX: Call to undefined relationship [usuaRegis] on model [App\Models\Ecografias\EcografiaProducto]`.
+    * **Causa Raíz:** En `PlantillaEcografiaService::fillTemplateWithHtml()`, para determinar el transcriptor del estudio se hacía `EcografiaProducto::where('ecografia_id', ...)->with('usuaRegis')->first()`. Sin embargo, el modelo `EcografiaProducto` carecía del método de relación `usuaRegis()` (y `usuarioRegistrador()`).
+  - **Solución Implementada:**
+    * En [`EcografiaProducto.php`](file:///c:/laragon/www/lidiag/app/Models/Ecografias/EcografiaProducto.php), se agregaron las relaciones Eloquent:
+      - `usuarioRegistrador(): BelongsTo` hacia `User::class` con clave foránea `usua_regis_id`.
+      - `usuaRegis(): BelongsTo` como alias directo por compatibilidad con las consultas existentes del generador de reportes.
+- [x] **2026-11-18 — Inclusión de Médico que Ordenó, Ubicación y Cama en Reporte de Producción Detallada de RX (`CruceFinancieroService.php`, `ProduccionDetalladaDetalleSheet.php`, `Estudio.php`, `EstudioService.php`, `2026_11_18_122000_add_ubicacion_and_cama_to_estudios_table.php`):**
+  - **Requerimiento del Usuario:**
+    * Agregar los campos de cama hospitalaria (`cama`), ubicación asistencial (`ubicacion`) y médico que ordenó (`medico_ordena`) al reporte de producción detallada de RX (Radiología e Imágenes Diagnósticas).
+  - **Solución Implementada:**
+    * **Motor de Cruce Financiero ([`CruceFinancieroService.php`](file:///c:/laragon/www/lidiag/app/Services/Liquidacion/CruceFinancieroService.php)):**
+      - Proyección de `medico_ordena` desde `estudios_productos.medico_ordena`.
+      - Proyección defensiva de `ubicacion` evaluando `estudios.ubicacion` con fallback automático a `estudios.servicio`.
+      - Proyección de `cama` evaluando defensivamente `Schema::hasColumn('estudios', 'cama')`.
+    * **Hoja Detalle de Producción ([`ProduccionDetalladaDetalleSheet.php`](file:///c:/laragon/www/lidiag/app/Exports/Sheets/ProduccionDetalladaDetalleSheet.php)):**
+      - Agregadas las 3 columnas: `Médico que Ordenó` (Columna S), `Ubicación` (Columna T) y `Cama` (Columna U).
+      - Ampliado el banner corporativo y rango de estilos a 27 columnas (`A1:AA1` y `A3:AA3`).
+      - Ajustados los rangos de formato monetario para las columnas financieras (`W4:Y{$highestRow}`) y alineación centrada (`Z4:AA{$highestRow}`).
+    * **Modelo y Servicio de Estudios ([`Estudio.php`](file:///c:/laragon/www/lidiag/app/Models/Estudio/Estudio.php), [`EstudioService.php`](file:///c:/laragon/www/lidiag/app/Services/Estudios/EstudioService.php)):**
+      - Añadidas las columnas `ubicacion` y `cama` al `$fillable` de `Estudio`.
+      - Mapeo de `ubicacion` y `cama` desde SAHI en `resolveInterfaceData` y almacenamiento transaccional en `storeEstudio`.
+    * **Migración de Base de Datos ([`2026_11_18_122000_add_ubicacion_and_cama_to_estudios_table.php`](file:///c:/laragon/www/lidiag/database/migrations/2026_11_18_122000_add_ubicacion_and_cama_to_estudios_table.php)):**
+      - Migración para añadir `ubicacion` (varchar 150) y `cama` (varchar 50) a la tabla `estudios`.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% (0 errores) ✅.
+    * Larastan PHPStan Nivel 5 verificado con 0 errores en los servicios de exportación y cruce financiero ✅.
+    * Generación física de libro Excel con PhpSpreadsheet comprobando las 27 columnas (A a AA) y el contenido real extraído ✅.
 - [x] **2026-11-18 — Inclusión de Ubicación y Cama en Reporte de Producción de Ecografías (`ProduccionDetalladaEcografiasExport.php`, `ProduccionDetalladaEcografiasDetalleSheet.php`, `2026_11_18_121500_update_view_reporte_ecografias_add_ubicacion_cama.php`):**
   - **Requerimiento del Usuario:**
     * Agregar los campos de ubicación asistencial (`ubicacion`) y cama hospitalaria (`cama`) al reporte Excel de producción de ecografías.
