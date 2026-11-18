@@ -97,6 +97,25 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * ESLint y Prettier 100% limpios (0 errores) ✅.
     * Compilación Vite (`npm run build`) completada con éxito en 2.14s ✅.
 
+- [x] **2026-11-18 — Botón y Modal de Envío a Worklist DICOM en Ecografías Admisionadas (`ecografiasAdmisionadasComponent.vue`, `EcografiaService.php`, `PacienteController.php`):**
+  - **Requerimiento:** Agregar el botón de envío a la Modality Worklist DICOM en cada fila de la tabla de ecografías admisionadas (`ecografiasAdmisionadasComponent.vue`).
+  - **Solución Implementada:**
+    * **Backend:**
+      - En `EcografiaService::filtarEcografias()`, se incluyó `ep.producto_id` en el `SELECT` de la consulta para contar con el ID del producto directamente al abrir la orden.
+      - En `PacienteController.php`, se amplió el middleware de `enviarWorklist` y `cancelarWorklist` para autorizar a usuarios con permiso `ecografias.index` además de `ecografias.admision`.
+      - En `ConfigWorklistDispositivoController.php`, se autorizó la consulta de dispositivos para `ecografias.index`.
+    * **Frontend:**
+      - En `ecografiasAdmisionadasComponent.vue`, se agregó en la columna de acciones de cada fila el botón de Worklist:
+        `<button class="btn btn-rounded btn-outline-info btn-sm" @click="abrirModalWorklist(item)" title="Enviar a Worklist DICOM"><i class="fa fa-television"></i></button>`.
+      - Se implementó el modal reactivo de envío a Worklist:
+        * Carga automática o manual del Accession Number sugerido (`US-YYYYMMDD-XXXX`).
+        * Selección de ecógrafos/dispositivos DICOM activos por sede y módulo de ecografías (`/api/config-worklist-dispositivos`), con fallback a `/api/pacientes/worklist-estaciones`.
+        * Confirmación de envío hacia `/api/pacientes/enviar-worklist` vinculando `ecografia_id` y `ecografia_producto_id`.
+  - **Verificaciones:**
+    * PHP Pint verificado en backend (`vendor\bin\pint.bat --test`) ✅.
+    * ESLint y Prettier 100% limpios (0 errores) ✅.
+    * Compilación Vite (`npm run build`) exitosa en 3.12s (`ecografias-BDYgfSuA.js`) ✅.
+
 - [x] **2026-11-17 — Corrección e Idempotencia en Comando `sync-usuarios` (`SyncUsuarios.php`):**
   - **Error Solucionado:** `SQLSTATE[23000]: Integrity constraint violation: 1048 Column 'estado' cannot be null` al insertar registros en `users` durante la ejecución de `php artisan sync-usuarios`.
   - **Causa Raíz:**

@@ -37,10 +37,10 @@ class PacienteController extends Controller
         $this->middleware('permission:gestion.pacientes.index|ecografias.index|ecografias.admision')->only([
             'listar', 'show', 'obtenerCatalogos', 'obtenerAccessionSugerido', 'obtenerEstacionesWorklist',
         ]);
-        $this->middleware('permission:gestion.pacientes.create|ecografias.admision')->only([
+        $this->middleware('permission:gestion.pacientes.create|ecografias.admision|ecografias.index')->only([
             'store', 'enviarWorklist',
         ]);
-        $this->middleware('permission:gestion.pacientes.update|ecografias.admision')->only([
+        $this->middleware('permission:gestion.pacientes.update|ecografias.admision|ecografias.index')->only([
             'update', 'cancelarWorklist',
         ]);
         $this->middleware('permission:gestion.pacientes.delete')->only([

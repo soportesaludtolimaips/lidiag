@@ -76,6 +76,7 @@ class EcografiaService extends BaseService
         $query = Ecografia::select(
             'ecografias.*',
             'ep.id as ecografia_producto_id',
+            'ep.producto_id',
             'ep.lectura',
             'ep.fechor_lectura',
             'ep.estado_envio_sahi',

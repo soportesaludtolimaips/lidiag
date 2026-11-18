@@ -343,6 +343,16 @@
                                         <td class="text-nowrap">
                                             <button
                                                 type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
+                                                @click="abrirModalWorklist(item)"
+                                                title="Enviar a Worklist DICOM"
+                                                aria-label="Enviar a Worklist DICOM"
+                                            >
+                                                <i class="fa fa-television"></i>
+                                            </button>
+
+                                            <button
+                                                type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
                                                 @click="
                                                     actualizar = false;
@@ -461,6 +471,188 @@
                 </div>
             </div>
         </div>
+
+        <!-- ============================================================== -->
+        <!-- Modal Enviar a Worklist (Dispositivos / Ecógrafo)               -->
+        <!-- ============================================================== -->
+        <div
+            v-if="modalWorklistVisible"
+            class="modal fade show"
+            tabindex="-1"
+            role="dialog"
+            aria-labelledby="modalWorklistLabel"
+            aria-hidden="true"
+            style="display: block; background: rgba(0, 0, 0, 0.5); z-index: 1050"
+            @click.self="cerrarModalWorklist()"
+        >
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title font-weight-bold" id="modalWorklistLabel">
+                            <i class="fa fa-television text-info mr-2"></i> Enviar Ecografía a
+                            Worklist
+                        </h4>
+                        <button
+                            type="button"
+                            class="close"
+                            @click="cerrarModalWorklist()"
+                            :disabled="loadingWorklist"
+                            aria-label="Cerrar modal"
+                        >
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="card card-outline-info p-3 mb-3 bg-light">
+                            <h5 class="card-title text-info mb-1 font-weight-bold">
+                                <i class="fa fa-user mr-1"></i> {{ worklistData.pacienteNombre }}
+                            </h5>
+                            <div class="text-muted small">
+                                <strong># Documento:</strong>
+                                <span class="text-primary font-weight-bold ml-1">
+                                    <i class="fa fa-id-card-o mr-1"></i>{{ worklistData.numDocu }}
+                                </span>
+                                <span class="mx-2" v-if="worklistData.atencionId">|</span>
+                                <strong v-if="worklistData.atencionId">Atención:</strong>
+                                <span v-if="worklistData.atencionId">
+                                    {{ worklistData.atencionId }}</span
+                                >
+                            </div>
+                        </div>
+
+                        <form action="#" @submit.prevent="confirmarEnvioWorklist()">
+                            <div class="form-group">
+                                <label class="control-label font-weight-bold" for="wl_adm_producto">
+                                    Examen / Procedimiento <span class="text-danger">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    id="wl_adm_producto"
+                                    class="form-control"
+                                    :value="worklistData.nomProduc"
+                                    readonly
+                                />
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label font-weight-bold" for="wl_adm_acc">
+                                    Accession Number <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <input
+                                        type="text"
+                                        id="wl_adm_acc"
+                                        v-model="worklistForm.accession_no"
+                                        class="form-control font-weight-bold"
+                                        required
+                                    />
+                                    <div class="input-group-append">
+                                        <button
+                                            type="button"
+                                            class="btn btn-secondary"
+                                            @click="generarAccessionSugerido()"
+                                            title="Regenerar sugerido"
+                                        >
+                                            <i class="fa fa-refresh"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <small class="form-text text-muted">
+                                    Identificador único DICOM generado automáticamente.
+                                </small>
+                            </div>
+
+                            <div class="form-group">
+                                <label
+                                    class="control-label font-weight-bold"
+                                    for="wl_adm_dispositivo"
+                                >
+                                    Ecógrafo / Dispositivo de Destino
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div v-if="loadingDispositivos" class="py-2 text-muted">
+                                    <i class="fa fa-spinner fa-spin mr-1"></i> Cargando dispositivos
+                                    configurados...
+                                </div>
+                                <select
+                                    v-else-if="dispositivosWorklist.length > 0"
+                                    id="wl_adm_dispositivo"
+                                    v-model="worklistForm.station_aet"
+                                    class="form-control"
+                                    required
+                                >
+                                    <option value="" disabled>
+                                        -- Seleccione el ecógrafo / sala --
+                                    </option>
+                                    <option
+                                        v-for="disp in dispositivosWorklist"
+                                        :key="disp.aet"
+                                        :value="disp.aet"
+                                    >
+                                        {{ disp.nombre }}
+                                    </option>
+                                </select>
+                                <div v-else>
+                                    <input
+                                        type="text"
+                                        id="wl_adm_dispositivo"
+                                        v-model="worklistForm.station_aet"
+                                        class="form-control"
+                                        placeholder="AE Title del equipo (Ej: VOLUSON, LOGIQ)"
+                                        required
+                                    />
+                                    <small class="text-warning d-block mt-1">
+                                        <i class="fa fa-exclamation-triangle mr-1"></i>
+                                        No hay ecógrafos activos registrados en esta sede. Ingrese
+                                        el AE Title manualmente.
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="form-group mb-0">
+                                <label class="control-label" for="wl_adm_obs"
+                                    >Observaciones (Opcional)</label
+                                >
+                                <textarea
+                                    id="wl_adm_obs"
+                                    v-model="worklistForm.observaciones"
+                                    class="form-control"
+                                    rows="2"
+                                    placeholder="Indicaciones para el ecógrafo o consola..."
+                                ></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-inverse"
+                            @click="cerrarModalWorklist()"
+                            :disabled="loadingWorklist"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-success"
+                            @click="confirmarEnvioWorklist()"
+                            :disabled="
+                                loadingWorklist ||
+                                !worklistForm.producto_id ||
+                                !worklistForm.accession_no ||
+                                !worklistForm.station_aet
+                            "
+                        >
+                            <i
+                                class="fa mr-1"
+                                :class="loadingWorklist ? 'fa-spinner fa-spin' : 'fa-send'"
+                            ></i>
+                            {{ loadingWorklist ? "Enviando a Worklist..." : "Enviar a Worklist" }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 <script setup>
@@ -523,6 +715,32 @@ const isAnulandoAdmisionada = ref(false);
 const isConsultandoSahi = ref({});
 const isEnviandoSahi = ref({});
 const modalAnularVisible = ref(false);
+
+// Estado y variables para modal de Enviar a Worklist
+const modalWorklistVisible = ref(false);
+const loadingWorklist = ref(false);
+const loadingDispositivos = ref(false);
+const dispositivosWorklist = ref([]);
+const worklistData = ref({
+    pacienteId: null,
+    pacienteNombre: "",
+    numDocu: "",
+    atencionId: "",
+    nomProduc: "",
+    ecografiaId: null,
+    ecografiaProductoId: null,
+});
+const worklistForm = ref({
+    paciente_id: null,
+    sede_id: null,
+    producto_id: null,
+    accession_no: "",
+    modality: "US",
+    station_aet: "",
+    ecografia_id: null,
+    ecografia_producto_id: null,
+    observaciones: "",
+});
 
 function cerrarModalAnular() {
     modalAnularVisible.value = false;
@@ -920,6 +1138,203 @@ function onMedicoSeleccionado(data) {
         busqueda.value.medico_id = String(data.idMedico);
     }
     registros.value = [];
+}
+
+/**
+ * Abre el modal para enviar la ecografía seleccionada a la Modality Worklist DICOM.
+ *
+ * @param {Object} item Fila seleccionada de la tabla con los datos del paciente y ecografía.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-18
+ */
+async function abrirModalWorklist(item) {
+    const sedeIdActual =
+        busqueda.value.sede_id ||
+        sessionStorage.getItem("ST-sede") ||
+        localStorage.getItem("ST-sede");
+
+    const pac = item.paciente || {};
+    const nombreCompleto =
+        `${pac.nombres || ""} ${pac.seg_nom || ""} ${pac.pri_ape || ""} ${pac.seg_ape || ""}`.trim();
+
+    worklistData.value = {
+        pacienteId: pac.id || item.paciente_id || null,
+        pacienteNombre: nombreCompleto || "Paciente",
+        numDocu: pac.num_docu || "",
+        atencionId: item.atencion_id || "",
+        nomProduc: item.nom_produc || "Ecografía",
+        ecografiaId: item.id || null,
+        ecografiaProductoId: item.ecografia_producto_id || null,
+    };
+
+    worklistForm.value = {
+        paciente_id: pac.id || item.paciente_id || null,
+        sede_id: sedeIdActual || null,
+        producto_id: item.producto_id || null,
+        accession_no: "",
+        modality: "US",
+        station_aet: "",
+        ecografia_id: item.id || null,
+        ecografia_producto_id: item.ecografia_producto_id || null,
+        observaciones: "",
+    };
+
+    modalWorklistVisible.value = true;
+
+    await Promise.all([generarAccessionSugerido(), cargarDispositivosWorklist(sedeIdActual)]);
+}
+
+/**
+ * Consulta los dispositivos configurados para el módulo de ecografías en la sede activa.
+ *
+ * @param {number|string} sedeId Identificador de la sede.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-18
+ */
+async function cargarDispositivosWorklist(sedeId) {
+    loadingDispositivos.value = true;
+    dispositivosWorklist.value = [];
+    try {
+        const idSede =
+            sedeId || sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede");
+
+        if (!idSede) return;
+
+        // Módulo 2 = Ecografías
+        const res = await axios.get("/api/config-worklist-dispositivos", {
+            params: { sede_id: idSede, modulo_id: 2 },
+        });
+
+        const items = res.data?.data || res.data || [];
+        if (Array.isArray(items) && items.length > 0) {
+            dispositivosWorklist.value = items
+                .filter((d) => d.estado)
+                .map((d) => ({
+                    aet: d.ae_title || d.codigo,
+                    nombre: `${d.nombre} (${d.ae_title || d.codigo}) — ${d.ubicacion || "Consultorio"}`,
+                    station_name: d.nombre,
+                    ip: d.ip_address,
+                }));
+
+            if (dispositivosWorklist.value.length > 0) {
+                worklistForm.value.station_aet = dispositivosWorklist.value[0].aet;
+            }
+        } else {
+            // Fallback: consultar estaciones del PACS directamente si no hay dispositivos en la tabla local
+            const resPacs = await axios.get("/api/pacientes/worklist-estaciones", {
+                params: { sede_id: idSede, modality: "US" },
+            });
+            if (resPacs.data?.status === 200 && Array.isArray(resPacs.data?.data)) {
+                dispositivosWorklist.value = resPacs.data.data.map((e) => ({
+                    aet: e.aet,
+                    nombre: e.nombre || e.aet,
+                    station_name: e.station_name || e.aet,
+                }));
+                if (dispositivosWorklist.value.length > 0) {
+                    worklistForm.value.station_aet = dispositivosWorklist.value[0].aet;
+                }
+            }
+        }
+    } catch {
+        dispositivosWorklist.value = [];
+    } finally {
+        loadingDispositivos.value = false;
+    }
+}
+
+/**
+ * Genera el Accession Number sugerido para la modalidad de ecografía (US).
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-18
+ */
+async function generarAccessionSugerido() {
+    try {
+        const idSede =
+            worklistForm.value.sede_id ||
+            sessionStorage.getItem("ST-sede") ||
+            localStorage.getItem("ST-sede");
+
+        const res = await axios.get("/api/pacientes/accession-sugerido", {
+            params: { sede_id: idSede, modality: "US" },
+        });
+
+        if (res.data?.data?.accession_no) {
+            worklistForm.value.accession_no = res.data.data.accession_no;
+        }
+    } catch {
+        const hoy = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+        worklistForm.value.accession_no = `US-${hoy}-0001`;
+    }
+}
+
+/**
+ * Cierra el modal de envío a Worklist.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-18
+ */
+function cerrarModalWorklist() {
+    modalWorklistVisible.value = false;
+}
+
+/**
+ * Confirma el envío de la orden de ecografía a la Modality Worklist DICOM de la sede.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-18
+ */
+async function confirmarEnvioWorklist() {
+    if (loadingWorklist.value) return;
+    loadingWorklist.value = true;
+
+    try {
+        const payload = {
+            paciente_id: worklistForm.value.paciente_id,
+            sede_id: worklistForm.value.sede_id,
+            producto_id: worklistForm.value.producto_id,
+            accession_no: worklistForm.value.accession_no,
+            modality: "US",
+            station_aet: worklistForm.value.station_aet,
+            ecografia_id: worklistForm.value.ecografia_id,
+            ecografia_producto_id: worklistForm.value.ecografia_producto_id || null,
+            observaciones: worklistForm.value.observaciones || null,
+        };
+
+        const res = await axios.post("/api/pacientes/enviar-worklist", payload);
+
+        toastMessage({
+            heading: "¡Enviado a Worklist!",
+            text:
+                res.data?.message ||
+                "Paciente y procedimiento cargados en la consola del ecógrafo exitosamente.",
+            icon: "success",
+        });
+
+        cerrarModalWorklist();
+    } catch (err) {
+        toastMessage({
+            heading: "Error en Worklist",
+            text:
+                err.response?.data?.message ||
+                "No fue posible enviar la orden a la consola del ecógrafo. Verifique la conexión con el PACS.",
+            icon: "error",
+        });
+    } finally {
+        loadingWorklist.value = false;
+    }
 }
 
 /**

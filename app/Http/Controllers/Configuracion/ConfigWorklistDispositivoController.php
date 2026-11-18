@@ -21,7 +21,7 @@ class ConfigWorklistDispositivoController extends Controller
         private readonly ConfigWorklistDispositivoService $dispositivoService
     ) {
         $this->middleware('auth:sanctum');
-        $this->middleware('permission:config.dispositivos.index|ecografias.admision|gestion.pacientes.index')->only(['index', 'show']);
+        $this->middleware('permission:config.dispositivos.index|ecografias.admision|ecografias.index|gestion.pacientes.index')->only(['index', 'show']);
         $this->middleware('permission:config.dispositivos.create')->only(['store']);
         $this->middleware('permission:config.dispositivos.edit')->only(['update', 'toggleEstado']);
         $this->middleware('permission:config.dispositivos.destroy')->only(['destroy']);
