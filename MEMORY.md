@@ -37,6 +37,13 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-18 — Creación Defensiva del Directorio `reporte_lecturas_ecografias` (`PlantillaEcografiaService.php`):**
+  - **Diagnóstico del Problema:**
+    * En producción, al generar el reporte de ecografía (`POST /api/ecografia-generar-reporte/{id}`), fallaba con:
+      `copy(C:\laragon\www\lidiag\storage\app/reporte_lecturas_ecografias/...docx): Failed to open stream: No such file or directory`.
+    * **Causa Raíz:** El directorio `storage/app/reporte_lecturas_ecografias` está en `.gitignore` y no existe en un entorno recién desplegado o limpio. Al llamar a `TemplateProcessor::saveAs($outputPath)`, PhpWord ejecuta internamente `copy($tempFile, $outputPath)` el cual falla si el directorio padre no existe.
+  - **Solución Implementada:**
+    * En [`PlantillaEcografiaService.php`](file:///c:/laragon/www/lidiag/app/Services/Ecografias/PlantillaEcografiaService.php), se añadió la verificación defensiva con `is_dir()` y creación automática `mkdir($outputDir, 0755, true)` antes de generar el archivo DOCX.
 - [x] **2026-11-18 — Corrección de Error 500 "Path must not be empty" al Subir Plantillas de Sede (`FileService.php`, `ConfigSedeService.php`, `configSedeComponent.vue`):**
   - **Diagnóstico del Problema:**
     * Al actualizar la sede con una plantilla de ecografía o Rx (`POST /config/sedes/updateWitchPlantillas`), el servidor arrojaba un error 500: `{"success":false,"data":null,"message":"Path must not be empty","status":500}`.

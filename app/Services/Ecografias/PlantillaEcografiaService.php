@@ -65,7 +65,12 @@ class PlantillaEcografiaService extends BaseService
         $rawName = 'ECOGRAFIA-'.($data['tipo_estudio'] ?? 'ECO').'-'.($data['num_docu'] ?? 'SIN_DOC').'-'.$nombrePaciente;
         $nomArchivo = Str::of($rawName)->replaceMatches('/[\\\\\\/\\:\\*\\?\\"\\<\\>\\|\\s]+/', '-')->limit(150, '')->toString();
 
-        $outputPath = storage_path('app/reporte_lecturas_ecografias/'.$nomArchivo.'.docx');
+        $outputDir = storage_path('app/reporte_lecturas_ecografias');
+        if (! is_dir($outputDir)) {
+            mkdir($outputDir, 0755, true);
+        }
+
+        $outputPath = $outputDir.'/'.$nomArchivo.'.docx';
 
         Log::debug('editWord generating DOCX from sede plantilla', [
             'sede_id' => $sede->id,
