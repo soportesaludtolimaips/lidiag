@@ -81,6 +81,7 @@
                             <form
                                 v-show="filtrosVisible"
                                 action="#"
+                                autocomplete="off"
                                 @submit.prevent="listarAtenciones()"
                             >
                                 <div class="form-body">
@@ -98,6 +99,7 @@
                                                     v-model="busqueda.bus_nom_num_docu"
                                                     class="form-control"
                                                     placeholder="Atención, Nombres de paciente o # de documento"
+                                                    autocomplete="off"
                                                     @keyup.enter="buscarStudy()"
                                                 />
                                             </div>
@@ -113,6 +115,7 @@
                                                     name="bus_fech_ini"
                                                     v-model="busqueda.bus_fech_ini"
                                                     class="form-control"
+                                                    autocomplete="off"
                                                     @keyup.enter="buscarStudy()"
                                                 />
                                             </div>
@@ -128,6 +131,7 @@
                                                     name="bus_fecha_fin"
                                                     v-model="busqueda.bus_fecha_fin"
                                                     class="form-control"
+                                                    autocomplete="off"
                                                     @keyup.enter="buscarStudy()"
                                                 />
                                             </div>
@@ -197,101 +201,251 @@
                             <table
                                 id="tablaEcografiasAdmisionadas"
                                 ref="dt"
-                                class="table table-bordered table-striped"
+                                class="table table-hover table-bordered table-custom-compact"
                                 cellspacing="0"
                                 width="100%"
                             >
-                                <thead>
+                                <thead class="thead-light">
                                     <tr>
-                                        <th with="5%">Fecha</th>
-                                        <th with="5%"># Documento</th>
-                                        <th with="30%">Paciente</th>
-                                        <th>Examen</th>
-                                        <th>Val. Examen</th>
-                                        <th>Administradora</th>
-                                        <th>Contrato</th>
-                                        <th>Plan</th>
-                                        <th>Servicio / Ubicación</th>
-                                        <th>Cama</th>
-                                        <th>Estado</th>
-                                        <th>SAHI</th>
-                                        <th></th>
+                                        <th style="width: 10%">Fecha / Hora</th>
+                                        <th style="width: 18%">Paciente</th>
+                                        <th style="width: 22%">Examen / Procedimiento</th>
+                                        <th style="width: 9%" class="text-center">Recaudo</th>
+                                        <th style="width: 18%">Aseguramiento / EPS</th>
+                                        <th style="width: 10%">Ubicación & Cama</th>
+                                        <th style="width: 7%" class="text-center">Estado</th>
+                                        <th style="width: 6%" class="text-center">SAHI</th>
+                                        <th style="width: 8%" class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr v-for="(item, index) in registros" :key="item.id || index">
-                                        <td>{{ item.created_at }}</td>
-                                        <td class="text-nowrap align-middle">
+                                        <!-- 1. Fecha / Hora -->
+                                        <td class="align-middle">
                                             <div
-                                                class="text-primary font-weight-bold"
-                                                style="font-size: 15px"
+                                                class="font-weight-bold text-dark"
+                                                style="font-size: 13px"
+                                            >
+                                                <i class="fa fa-calendar-o text-muted mr-1"></i>
+                                                {{ formatearFecha(item.created_at) }}
+                                            </div>
+                                            <small
+                                                class="text-muted d-block"
+                                                style="font-size: 11px"
+                                            >
+                                                <i class="fa fa-clock-o mr-1"></i
+                                                >{{ formatearHora(item.created_at) }}
+                                            </small>
+                                        </td>
+
+                                        <!-- 2. Paciente + Documento -->
+                                        <td class="align-middle">
+                                            <div class="paciente-nombre font-weight-bold text-dark">
+                                                {{ item.paciente?.nombres }}
+                                                {{ item.paciente?.seg_nom }}
+                                                {{ item.paciente?.pri_ape }}
+                                                {{ item.paciente?.seg_ape }}
+                                            </div>
+                                            <div
+                                                class="text-primary mt-1"
+                                                style="font-size: 12px; font-weight: 600"
                                             >
                                                 <i class="fa fa-id-card-o mr-1"></i>
-                                                {{ item.paciente.num_docu }}
+                                                {{ item.paciente?.num_docu }}
                                             </div>
                                         </td>
-                                        <td>
-                                            {{ item.paciente.nombres }} {{ item.paciente.seg_nom }}
-                                            {{ item.paciente.pri_ape }} {{ item.paciente.seg_ape }}
+
+                                        <!-- 3. Examen / Procedimiento + Valor -->
+                                        <td class="align-middle">
+                                            <div
+                                                class="examen-titulo font-weight-bold text-dark"
+                                                :title="item.nom_produc"
+                                            >
+                                                {{ item.nom_produc }}
+                                            </div>
+                                            <div class="mt-1 d-flex align-items-center">
+                                                <span
+                                                    class="badge badge-light border text-muted mr-2"
+                                                    style="font-size: 11px"
+                                                >
+                                                    Valor: ${{ formatearMoneda(item.ValProduc) }}
+                                                </span>
+                                                <small
+                                                    v-if="item.CodProducto"
+                                                    class="text-muted"
+                                                    style="font-size: 11px"
+                                                >
+                                                    Cód: {{ item.CodProducto }}
+                                                </small>
+                                            </div>
                                         </td>
-                                        <td>{{ item.nom_produc }}</td>
-                                        <td>{{ item.ValProduc }}</td>
-                                        <td>{{ item.admin_salud?.nom_admin_salud }}</td>
-                                        <td>{{ item.contrato }}</td>
-                                        <td>{{ item.plan }}</td>
-                                        <td>{{ item.ubicacion || "Sin ubicación" }}</td>
-                                        <td>
+
+                                        <!-- 4. Recaudo -->
+                                        <td class="text-center align-middle">
                                             <span
-                                                :class="
-                                                    item.cama
-                                                        ? 'badge badge-light text-dark font-weight-bold'
-                                                        : 'text-muted font-italic'
+                                                v-if="item.tipo_recaudo || item.tipoRecaudo"
+                                                class="badge font-weight-bold py-1 px-2"
+                                                :class="{
+                                                    'badge-primary':
+                                                        (item.tipo_recaudo?.codigo ||
+                                                            item.tipoRecaudo?.codigo) ===
+                                                            'PARTICULAR' ||
+                                                        item.tipo_recaudo_id == 2,
+                                                    'badge-warning text-white':
+                                                        (item.tipo_recaudo?.codigo ||
+                                                            item.tipoRecaudo?.codigo) ===
+                                                            'CORTESIA' || item.tipo_recaudo_id == 3,
+                                                    'badge-info':
+                                                        (item.tipo_recaudo?.codigo ||
+                                                            item.tipoRecaudo?.codigo) ===
+                                                            'ATENCION' ||
+                                                        item.tipo_recaudo_id == 1 ||
+                                                        !item.tipo_recaudo_id,
+                                                }"
+                                                :title="
+                                                    item.tipo_recaudo?.descripcion ||
+                                                    item.tipoRecaudo?.descripcion ||
+                                                    ''
                                                 "
                                             >
-                                                {{ item.cama || "Sin cama" }}
+                                                {{
+                                                    item.tipo_recaudo?.nombre ||
+                                                    item.tipoRecaudo?.nombre ||
+                                                    (item.tipo_recaudo_id == 2
+                                                        ? "Particular"
+                                                        : item.tipo_recaudo_id == 3
+                                                          ? "Cortesía"
+                                                          : "Por Atención")
+                                                }}
+                                            </span>
+                                            <span v-else class="badge badge-info py-1 px-2">
+                                                {{
+                                                    item.tipo_recaudo_id == 2
+                                                        ? "Particular"
+                                                        : item.tipo_recaudo_id == 3
+                                                          ? "Cortesía"
+                                                          : "Por Atención"
+                                                }}
                                             </span>
                                         </td>
-                                        <td>
+
+                                        <!-- 5. Aseguramiento / EPS + Contrato + Plan -->
+                                        <td class="align-middle">
+                                            <div
+                                                class="font-weight-bold text-dark text-truncate"
+                                                style="max-width: 220px"
+                                                :title="
+                                                    item.admin_salud?.nom_admin_salud ||
+                                                    'Particular / Directo'
+                                                "
+                                            >
+                                                {{
+                                                    item.admin_salud?.nom_admin_salud ||
+                                                    (item.tipo_recaudo_id == 2
+                                                        ? "PARTICULAR"
+                                                        : item.tipo_recaudo_id == 3
+                                                          ? "CORTESÍA"
+                                                          : "Sin EPS")
+                                                }}
+                                            </div>
+                                            <div
+                                                v-if="item.contrato || item.plan"
+                                                class="small text-muted mt-1"
+                                                style="font-size: 11px; line-height: 1.3"
+                                            >
+                                                <div
+                                                    v-if="item.contrato"
+                                                    class="text-truncate"
+                                                    style="max-width: 220px"
+                                                    :title="'Contrato: ' + item.contrato"
+                                                >
+                                                    <strong>C:</strong> {{ item.contrato }}
+                                                </div>
+                                                <div
+                                                    v-if="item.plan"
+                                                    class="text-truncate"
+                                                    style="max-width: 220px"
+                                                    :title="'Plan: ' + item.plan"
+                                                >
+                                                    <strong>P:</strong> {{ item.plan }}
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <!-- 6. Ubicación & Cama -->
+                                        <td class="align-middle">
+                                            <div
+                                                class="text-truncate"
+                                                style="max-width: 140px"
+                                                :title="item.ubicacion || 'Sin ubicación'"
+                                            >
+                                                <i class="fa fa-hospital-o text-muted mr-1"></i>
+                                                <span style="font-size: 12px">{{
+                                                    item.ubicacion || "Sin ubicación"
+                                                }}</span>
+                                            </div>
+                                            <div class="mt-1">
+                                                <span
+                                                    v-if="item.cama"
+                                                    class="badge badge-light border text-dark font-weight-bold"
+                                                    style="font-size: 10px"
+                                                >
+                                                    Cama: {{ item.cama }}
+                                                </span>
+                                                <span
+                                                    v-else
+                                                    class="text-muted font-italic"
+                                                    style="font-size: 10px"
+                                                >
+                                                    Sin cama
+                                                </span>
+                                            </div>
+                                        </td>
+
+                                        <!-- 7. Estado -->
+                                        <td class="text-center align-middle">
                                             <span
-                                                class="label label-info"
+                                                class="badge badge-info"
                                                 v-if="item.estado === 'EN PROCESO'"
                                                 >{{ item.estado }}</span
                                             >
                                             <span
-                                                class="label label-success"
+                                                class="badge badge-success"
                                                 v-if="item.estado === 'LEIDO'"
                                                 >{{ item.estado }}</span
                                             >
                                             <span
-                                                class="label label-danger"
+                                                class="badge badge-danger"
                                                 v-if="item.estado === 'ANULADO'"
                                                 >{{ item.estado }}</span
                                             >
                                         </td>
-                                        <td>
+
+                                        <!-- 8. SAHI -->
+                                        <td class="text-center align-middle">
                                             <template v-if="sedeInterface">
                                                 <span
                                                     v-if="item.estado_envio_sahi"
-                                                    class="label"
+                                                    class="badge"
                                                     :class="{
-                                                        'label-success':
+                                                        'badge-success':
                                                             item.estado_envio_sahi === 'ENVIADO',
-                                                        'label-warning':
+                                                        'badge-warning text-white':
                                                             item.estado_envio_sahi === 'ENVIANDO' ||
                                                             item.estado_envio_sahi === 'PENDIENTE',
-                                                        'label-danger':
+                                                        'badge-danger':
                                                             item.estado_envio_sahi === 'ERROR',
-                                                        'label-default': !item.estado_envio_sahi,
+                                                        'badge-secondary': !item.estado_envio_sahi,
                                                     }"
                                                 >
                                                     {{ item.estado_envio_sahi }}
                                                 </span>
                                                 <span v-else class="text-muted">—</span>
 
-                                                <div class="m-t-5">
+                                                <div class="mt-1">
                                                     <button
                                                         type="button"
-                                                        class="btn btn-info btn-xs m-r-5"
+                                                        class="btn btn-info btn-xs mr-1"
                                                         @click="consultarEstadoSahi(item)"
                                                         :disabled="
                                                             isConsultandoSahi[
@@ -345,7 +499,15 @@
                                                         item.estado_envio_sahi === 'ERROR' &&
                                                         item.error_envio_sahi
                                                     "
-                                                    class="text-danger d-block"
+                                                    class="text-danger d-block mt-1"
+                                                    style="
+                                                        font-size: 10px;
+                                                        max-width: 100px;
+                                                        overflow: hidden;
+                                                        text-overflow: ellipsis;
+                                                        white-space: nowrap;
+                                                    "
+                                                    :title="item.error_envio_sahi"
                                                 >
                                                     {{ item.error_envio_sahi }}
                                                 </small>
@@ -354,10 +516,12 @@
                                                 <span class="text-muted">—</span>
                                             </template>
                                         </td>
-                                        <td class="text-nowrap">
+
+                                        <!-- 9. Acciones -->
+                                        <td class="text-center align-middle text-nowrap">
                                             <button
                                                 type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm mr-1"
                                                 @click="abrirModalWorklist(item)"
                                                 title="Enviar a Worklist DICOM"
                                                 aria-label="Enviar a Worklist DICOM"
@@ -367,7 +531,7 @@
 
                                             <button
                                                 type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm mr-1"
                                                 @click="
                                                     actualizar = false;
                                                     registroParaAnular(item);
@@ -381,7 +545,7 @@
 
                                             <button
                                                 type="button"
-                                                class="btn waves-effect waves-info btn-rounded btn-outline-primary btn-sm m-r-5"
+                                                class="btn waves-effect waves-info btn-rounded btn-outline-primary btn-sm"
                                                 @click="imprimirReporte(item)"
                                                 title="Imprimir reporte"
                                                 aria-label="Imprimir reporte"
@@ -670,13 +834,12 @@
     </div>
 </template>
 <script setup>
-import { nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 
 import usePermissions from "@/helpers/permissions.js";
 import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
 import { useSede } from "@/composables/useSede.js";
 import { useSahiInterface } from "@/composables/useSahiInterface.js";
-import { useFilterPersistence } from "@/composables/useFilterPersistence.js";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
 import axios from "axios";
 
@@ -695,26 +858,27 @@ const emitter = proxy.emitter;
 const dt = ref(null);
 const actualizar = ref(false);
 
-const defaultBusqueda = {
+const busqueda = ref({
     sede_id: "",
     medico_id: "",
     bus_nom_num_docu: "",
     bus_fech_ini: "",
     bus_fecha_fin: "",
-};
+});
 
-const {
-    filtros: busqueda,
-    filtrosVisible,
-    filtrosActivosCount,
-    hasRestoredFilters,
-    guardarFiltros,
-    toggleFiltros,
-    limpiarFiltrosStorage,
-} = useFilterPersistence("lidiag_filters_ecografias_admisionadas", defaultBusqueda, [
-    "sede_id",
-    "medico_id",
-]);
+const filtrosVisible = ref(true);
+function toggleFiltros() {
+    filtrosVisible.value = !filtrosVisible.value;
+}
+
+const filtrosActivosCount = computed(() => {
+    let count = 0;
+    if (busqueda.value.bus_nom_num_docu) count++;
+    if (busqueda.value.bus_fech_ini) count++;
+    if (busqueda.value.bus_fecha_fin) count++;
+    return count;
+});
+
 const registros = ref([]);
 const registroAnular = ref({
     ecografia_id: "",
@@ -761,6 +925,61 @@ function cerrarModalAnular() {
     registroAnular.value.motivo_anula = "";
 }
 
+/**
+ * Formatea una fecha ISO a DD/MM/YYYY.
+ *
+ * @param {string} fecha Fecha en formato ISO o string.
+ * @returns {string} Fecha formateada o guion si no existe.
+ */
+function formatearFecha(fecha) {
+    if (!fecha) return "—";
+    try {
+        const d = new Date(fecha);
+        if (isNaN(d.getTime())) return fecha;
+        const dia = String(d.getDate()).padStart(2, "0");
+        const mes = String(d.getMonth() + 1).padStart(2, "0");
+        const anio = d.getFullYear();
+        return `${dia}/${mes}/${anio}`;
+    } catch {
+        return fecha;
+    }
+}
+
+/**
+ * Formatea una fecha ISO para obtener la hora en formato HH:mm (12h o 24h).
+ *
+ * @param {string} fecha Fecha en formato ISO o string.
+ * @returns {string} Hora formateada o guion.
+ */
+function formatearHora(fecha) {
+    if (!fecha) return "";
+    try {
+        const d = new Date(fecha);
+        if (isNaN(d.getTime())) return "";
+        let horas = d.getHours();
+        const minutos = String(d.getMinutes()).padStart(2, "0");
+        const ampm = horas >= 12 ? "PM" : "AM";
+        horas = horas % 12;
+        horas = horas ? horas : 12; // Hora '0' se muestra como '12'
+        return `${String(horas).padStart(2, "0")}:${minutos} ${ampm}`;
+    } catch {
+        return "";
+    }
+}
+
+/**
+ * Formatea valores numéricos a formato de moneda con separador de miles.
+ *
+ * @param {number|string} valor Monto a formatear.
+ * @returns {string} Valor formateado con separadores de miles.
+ */
+function formatearMoneda(valor) {
+    if (valor === null || valor === undefined || valor === "") return "0";
+    const num = Number(valor);
+    if (isNaN(num)) return String(valor);
+    return num.toLocaleString("es-CO");
+}
+
 useKeyboardShortcuts({
     onSave: () => {
         if (modalAnularVisible.value) {
@@ -799,7 +1018,15 @@ function buscarStudy() {
  * @date 2025-11-18
  */
 function btnLimpiar() {
-    limpiarFiltrosStorage();
+    busqueda.value.bus_nom_num_docu = "";
+    busqueda.value.bus_fech_ini = "";
+    busqueda.value.bus_fecha_fin = "";
+    try {
+        sessionStorage.removeItem("lidiag_filters_ecografias_admisionadas");
+        sessionStorage.removeItem("lidiag_filters_ecografias_admisionadas_visible");
+    } catch {
+        // best-effort
+    }
     erroresBusqueda.value = {};
 
     safeDestroyDataTable(dt.value || "#tablaEcografiasAdmisionadas");
@@ -906,7 +1133,6 @@ async function listarAtenciones() {
             safeDestroyDataTable(dt.value || "#tablaEcografiasAdmisionadas");
 
             registros.value = res.data.data;
-            guardarFiltros();
 
             safeInitDataTable(dt.value || "#tablaEcografiasAdmisionadas");
         }
@@ -1364,17 +1590,15 @@ async function confirmarEnvioWorklist() {
  * @date 2025-11-18
  */
 onMounted(async () => {
+    try {
+        sessionStorage.removeItem("lidiag_filters_ecografias_admisionadas");
+        sessionStorage.removeItem("lidiag_filters_ecografias_admisionadas_visible");
+    } catch {
+        // best-effort
+    }
     await initSede();
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
     emitter.on("medicoSeleccionado", onMedicoSeleccionado);
-    if (
-        hasRestoredFilters &&
-        (busqueda.value.bus_nom_num_docu ||
-            busqueda.value.bus_fech_ini ||
-            busqueda.value.bus_fecha_fin)
-    ) {
-        listarAtenciones();
-    }
 });
 
 onBeforeUnmount(() => {
@@ -1426,5 +1650,48 @@ onBeforeUnmount(() => {
 
 .breadcrumb-btn {
     vertical-align: baseline;
+}
+
+/* ============================================================== */
+/* Estilos compactos para tabla de ecografías admisionadas        */
+/* ============================================================== */
+.table-custom-compact {
+    font-size: 13px;
+    margin-bottom: 0;
+}
+
+.table-custom-compact thead th {
+    background-color: #f8fafc;
+    color: #495057;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 10px 8px !important;
+    vertical-align: middle !important;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.table-custom-compact tbody td {
+    padding: 8px 8px !important;
+    vertical-align: middle !important;
+}
+
+.paciente-nombre {
+    font-size: 13px;
+    line-height: 1.25;
+    color: #2b3035;
+}
+
+.examen-titulo {
+    font-size: 12.5px;
+    line-height: 1.3;
+    max-width: 280px;
+    word-break: break-word;
+    color: #1a202c;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f1f7ff;
 }
 </style>

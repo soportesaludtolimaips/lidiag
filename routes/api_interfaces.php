@@ -42,6 +42,10 @@ Route::middleware(['auth'])->group(function () {
     /*
      * Interface SAHI API Endpoints
      */
+    Route::get('/interface-sahi/buscar-paciente/{numDocu}', [SAHIController::class, 'buscarPacientePorDocumento'])
+        ->name('api.sahi.buscar.paciente')
+        ->middleware(['permission:ecografias.index|ecografias.admision|estudio.asignar|estudio.transcribir|tele.ragiologia.enviar|gestion.pacientes.index']);
+
     Route::get('/interface-sahi-listar-atenciones/{numDocu}', [SAHIController::class, 'listarAtenciones'])
         ->name('api.sahi.listar.atenciones')
         ->middleware(['permission:ecografias.index|ecografias.admision|estudio.asignar|estudio.transcribir|tele.ragiologia.enviar']);

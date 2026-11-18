@@ -21,6 +21,24 @@ class SAHIController extends Controller
     ) {}
 
     /**
+     * Busca los datos demográficos de un paciente en SAHI por su número de documento.
+     *
+     * @param  Request  $request  Solicitud HTTP con el parámetro numDocu (cuerpo o ruta).
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-18
+     */
+    public function buscarPacientePorDocumento(Request $request): JsonResponse
+    {
+        $numDocu = $request->input('numDocu') ?? $request->route('numDocu');
+
+        $result = $this->sahiService->buscarPacientePorDocumento($numDocu);
+
+        return response()->json($result, $result['status']);
+    }
+
+    /**
      * Lista las atenciones de un paciente en SAHI por número de documento.
      *
      * @param  Request  $request  Solicitud HTTP con el parámetro numDocu (cuerpo o ruta).

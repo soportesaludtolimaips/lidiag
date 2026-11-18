@@ -29,6 +29,22 @@
                 </ol>
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
+                <button
+                    type="button"
+                    class="btn btn-primary m-r-5"
+                    @click="nuevoRegistroDirecto('PARTICULAR')"
+                    title="Asignar estudio particular directamente sin requerir atención previa"
+                >
+                    <i class="fa fa-user-plus m-r-5"></i> + Particular
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-warning text-white m-r-5"
+                    @click="nuevoRegistroDirecto('CORTESIA')"
+                    title="Asignar estudio de cortesía directamente sin requerir atención previa"
+                >
+                    <i class="fa fa-gift m-r-5"></i> + Cortesía
+                </button>
                 <button type="button" class="btn btn-info" @click="nuevoRegistro()">
                     <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
@@ -693,7 +709,14 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-md-4" v-if="sedeInterface === true">
+                                        <div
+                                            class="col-md-4"
+                                            v-if="
+                                                sedeInterface === true &&
+                                                !esParticular &&
+                                                !esCortesia
+                                            "
+                                        >
                                             <div class="form-group">
                                                 <label
                                                     class="control-label"
@@ -767,7 +790,11 @@
                                     <div class="row">
                                         <div
                                             class="col-md-12"
-                                            v-if="sedeInterface === false"
+                                            v-if="
+                                                sedeInterface === false ||
+                                                esParticular ||
+                                                esCortesia
+                                            "
                                             id="productos-parent"
                                         >
                                             <Select2
@@ -852,7 +879,11 @@
                                     <div class="row">
                                         <div
                                             class="col-md-12"
-                                            v-if="sedeInterface === false"
+                                            v-if="
+                                                sedeInterface === false ||
+                                                esParticular ||
+                                                esCortesia
+                                            "
                                             id="diagnosticos-parent"
                                         >
                                             <Select2
@@ -1371,6 +1402,25 @@ function alternarSeleccion(item) {
         });
     }
 }
+
+const tipoRecaudoActual = computed(() => {
+    return (
+        tiposRecaudo.value.find((tr) => Number(tr.id) === Number(registro.value.tipo_recaudo_id)) ||
+        null
+    );
+});
+
+const esCortesia = computed(() => {
+    return (
+        registro.value.tipo_recaudo_id == 3 ||
+        tipoRecaudoActual.value?.codigo === "CORTESIA" ||
+        (!tipoRecaudoActual.value?.aplica_recaudo && tipoRecaudoActual.value !== null)
+    );
+});
+
+const esParticular = computed(() => {
+    return registro.value.tipo_recaudo_id == 2 || tipoRecaudoActual.value?.codigo === "PARTICULAR";
+});
 
 const diagnosticoOptions = computed(() => {
     // Adaptar opciones al Select2 local: usa optionValue='id' y labelFields.
@@ -2012,6 +2062,40 @@ function abrirModal() {
         selProducto.value?.rebuild();
         selDiagnostico.value?.rebuild();
     });
+}
+
+/**
+ * Prepara el panel para crear un estudio directo (Particular o Cortesía) sin atenciones obligatorias.
+ *
+ * @param {'PARTICULAR'|'CORTESIA'} tipoCodigo Código del tipo de recaudo.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-18
+ */
+async function nuevoRegistroDirecto(tipoCodigo = "PARTICULAR") {
+    limpiarFormulario();
+
+    if (!tiposRecaudo.value || tiposRecaudo.value.length === 0) {
+        await listarTiposRecaudo();
+    }
+
+    const trEncontrado = tiposRecaudo.value.find((tr) => tr.codigo === tipoCodigo);
+    if (trEncontrado) {
+        registro.value.tipo_recaudo_id = trEncontrado.id;
+    } else {
+        registro.value.tipo_recaudo_id = tipoCodigo === "CORTESIA" ? 3 : 2;
+    }
+
+    registro.value.atencion_id = "";
+    interfaceAtencionSeleccionada.value = null;
+    tituloModal.value =
+        tipoCodigo === "CORTESIA"
+            ? "Nuevo registro de estudio (Cortesía)"
+            : "Nuevo registro de estudio (Particular)";
+
+    abrirModal();
 }
 
 /**

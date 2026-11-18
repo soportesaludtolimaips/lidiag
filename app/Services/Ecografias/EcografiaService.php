@@ -86,7 +86,7 @@ class EcografiaService extends BaseService
             'ep.error_envio_sahi',
             'p.nom_produc',
             Schema::hasColumn('config_productos', 'val_produc') ? 'p.val_produc as ValProduc' : DB::raw('0 as ValProduc')
-        )->with(['paciente', 'usuarioRegistrador', 'adminSalud', 'medico'])
+        )->with(['paciente', 'usuarioRegistrador', 'adminSalud', 'medico', 'tipoRecaudo'])
             ->join('ecografias_productos as ep', 'ep.ecografia_id', '=', 'ecografias.id')
             ->join('config_productos as p', 'p.id', '=', 'ep.producto_id');
 
@@ -190,13 +190,25 @@ class EcografiaService extends BaseService
                 ['estado' => true]
             );
 
+            $tipoRecaudoId = ! empty($data['tipo_recaudo_id']) ? (int) $data['tipo_recaudo_id'] : null;
+            $atencionId = ! empty($data['atencion_id']) ? (string) $data['atencion_id'] : '';
+            if ($atencionId === '') {
+                if ($tipoRecaudoId === 2) {
+                    $atencionId = 'PARTICULAR';
+                } elseif ($tipoRecaudoId === 3) {
+                    $atencionId = 'CORTESIA';
+                } else {
+                    $atencionId = 'SIN-ATENCION';
+                }
+            }
+
             $ecografia = Ecografia::create([
                 'medico_id' => $data['medico_id'],
                 'paciente_id' => $paciente->id,
-                'tipo_recaudo_id' => ! empty($data['tipo_recaudo_id']) ? (int) $data['tipo_recaudo_id'] : null,
+                'tipo_recaudo_id' => $tipoRecaudoId,
                 'usua_regis_id' => auth()->id(),
                 'admin_salud_id' => $adminSalud->id ?? null,
-                'atencion_id' => $data['atencion_id'],
+                'atencion_id' => $atencionId,
                 'fec_cita_sahi' => $data['fec_cita_sahi'] ?? null,
                 'fec_regis_cita_sahi' => $data['fec_regis_cita_sahi'] ?? null,
                 'contrato' => $data['contrato'] ?? null,
@@ -210,18 +222,29 @@ class EcografiaService extends BaseService
             $hasValProduc = Schema::hasColumn('config_productos', 'val_produc');
 
             foreach ($data['productosAgenda'] as $producto) {
+                $idProducto = $producto['IdProducto'] ?? $producto['id'] ?? null;
+                $nomProducto = $producto['NomProducto'] ?? $producto['nom_produc'] ?? 'PRODUCTO';
+                $codCups = $producto['CodProducto'] ?? $producto['CodLegal'] ?? $producto['cod_cups'] ?? '';
+
                 $crearData = [
-                    'nom_produc' => $producto['NomProducto'],
-                    'cod_cups' => $producto['CodProducto'],
+                    'nom_produc' => $nomProducto,
+                    'cod_cups' => $codCups,
                 ];
                 if ($hasValProduc) {
-                    $crearData['val_produc'] = $producto['ValProduc'] ?? 0;
+                    $crearData['val_produc'] = $producto['ValProduc'] ?? $producto['val_produc'] ?? 0;
                 }
 
-                $productoExistente = ConfigProducto::firstOrCreate(
-                    ['id' => $producto['IdProducto']],
-                    $crearData
-                );
+                if ($idProducto) {
+                    $productoExistente = ConfigProducto::firstOrCreate(
+                        ['id' => $idProducto],
+                        $crearData
+                    );
+                } else {
+                    $productoExistente = ConfigProducto::firstOrCreate(
+                        ['cod_cups' => $codCups],
+                        $crearData
+                    );
+                }
 
                 EcografiaProducto::create([
                     'usua_regis_id' => auth()->id(),

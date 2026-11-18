@@ -8,6 +8,10 @@
                 <div class="form-group">
                     <label class="control-label" for="num_docu">
                         # Documento <span class="text-danger">*</span>
+                        <i
+                            v-if="buscandoDocumento"
+                            class="fa fa-spinner fa-spin text-info ml-1"
+                        ></i>
                     </label>
                     <input
                         type="text"
@@ -17,7 +21,8 @@
                         class="form-control"
                         :class="getInputClass(statusNumDocu)"
                         placeholder="# de Documento"
-                        @blur="touch('num_docu')"
+                        @blur="onNumDocuBlur()"
+                        @keyup.enter="buscarPacienteJerarquico()"
                     />
                     <div class="invalid-feedback d-block" v-if="statusNumDocu.isInvalid">
                         {{ statusNumDocu.message }}
@@ -162,9 +167,12 @@
     </div>
 </template>
 <script setup>
-import { computed, watch } from "vue";
+/* eslint-disable vue/no-mutating-props */
+import axios from "axios";
+import { computed, ref, watch } from "vue";
 
 import { useFormValidation } from "@/composables/useFormValidation";
+import { toastMessage } from "@/helpers/alerts.js";
 import { normalizarFecha, calcularEdad } from "@/helpers/dateUtils.js";
 
 const props = defineProps({
@@ -181,6 +189,9 @@ const props = defineProps({
         default: true,
     },
 });
+
+const buscandoDocumento = ref(false);
+let ultimoDocumentoBuscado = "";
 
 const { touch, getFieldStatus, getInputClass, validators } = useFormValidation();
 
@@ -267,6 +278,153 @@ const statusEmail = computed(() =>
 );
 
 /**
+ * Ejecuta la validación táctil del campo documento e inicia la búsqueda en cascada.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-18
+ */
+async function onNumDocuBlur() {
+    touch("num_docu");
+    await buscarPacienteJerarquico();
+}
+
+/**
+ * Búsqueda jerárquica de pacientes:
+ * 1. Búsqueda local en la base de datos de LIDiag (/api/pacientes/listar).
+ * 2. Si no existe, verifica si la sede cuenta con interfaz externa (ej. SAHI) y consulta la información.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-18
+ */
+async function buscarPacienteJerarquico() {
+    const doc = String(props.registro.num_docu || "").trim();
+    if (!doc || doc.length < 3) return;
+    if (doc === ultimoDocumentoBuscado) return;
+    if (buscandoDocumento.value) return;
+
+    try {
+        buscandoDocumento.value = true;
+        const sedeId =
+            props.registro.sede_id ||
+            sessionStorage.getItem("ST-sede") ||
+            localStorage.getItem("ST-sede") ||
+            1;
+
+        // 1. Búsqueda Local en LIDiag
+        const resLocal = await axios.post("/api/pacientes/listar", {
+            bus_documento: doc,
+            sede_id: sedeId,
+            limite: 1,
+        });
+
+        const listaLocal = resLocal.data?.data?.data || resLocal.data?.data || [];
+        if (Array.isArray(listaLocal) && listaLocal.length > 0) {
+            const pac = listaLocal[0];
+            props.registro.paciente_id = pac.id;
+            const nombres = `${pac.nombres || ""} ${pac.seg_nom || ""}`.trim();
+            const apellidos = `${pac.pri_ape || ""} ${pac.seg_ape || ""}`.trim();
+            props.registro.nombres =
+                pac.nombre_completo || `${nombres} ${apellidos}`.trim() || pac.nombres;
+            if (pac.fec_naci) {
+                props.registro.fec_naci = normalizarFecha(pac.fec_naci) || pac.fec_naci;
+            }
+            if (pac.sexo) {
+                const s = String(pac.sexo).trim().toUpperCase();
+                props.registro.sexo =
+                    s === "1" || s === "M" ? "M" : s === "2" || s === "F" ? "F" : s;
+            }
+            if (pac.direccion) props.registro.direccion = pac.direccion;
+            if (pac.tel || pac.cel) props.registro.tel = pac.tel || pac.cel;
+            if (pac.email) props.registro.email = pac.email;
+            if (pac.tipo_documento_id) props.registro.tipo_documento_id = pac.tipo_documento_id;
+
+            ultimoDocumentoBuscado = doc;
+            toastMessage({
+                heading: "Paciente encontrado",
+                text: `Datos de ${props.registro.nombres} cargados desde la base de datos local.`,
+                icon: "info",
+                hideAfter: 3500,
+            });
+            return;
+        }
+
+        // 2. Búsqueda en Interfaz Externa (Fallback por Sede)
+        let tieneInterface = false;
+        let softwareInterface = null;
+        try {
+            const resSede = await axios.get(`/api/config-sedes/${sedeId}/buscarPorId`);
+            const dataSede = resSede.data?.data;
+            if (dataSede?.interface_software) {
+                tieneInterface = true;
+                softwareInterface = String(dataSede.interface_software).toLowerCase();
+            }
+        } catch (_) {
+            tieneInterface = false;
+        }
+
+        if (tieneInterface && softwareInterface === "sahi") {
+            try {
+                const resSahi = await axios.get(
+                    `/api/interface-sahi/buscar-paciente/${encodeURIComponent(doc)}`
+                );
+                if (resSahi.status === 200 && resSahi.data?.data) {
+                    const c = resSahi.data.data;
+                    const nombres = `${c.PrimerNombre || ""} ${c.SegundoNombre || ""}`.trim();
+                    const apellidos = `${c.PrimerApellido || ""} ${c.SegundoApellido || ""}`.trim();
+                    props.registro.nombres = `${nombres} ${apellidos}`.trim();
+                    if (c.FecNacimiento) {
+                        props.registro.fec_naci =
+                            normalizarFecha(c.FecNacimiento) || c.FecNacimiento;
+                    }
+                    if (c.IdSexo) {
+                        const s = String(c.IdSexo).trim().toUpperCase();
+                        props.registro.sexo =
+                            s === "1" || s === "M" ? "M" : s === "2" || s === "F" ? "F" : s;
+                    }
+                    if (c.DirCasa) props.registro.direccion = c.DirCasa;
+                    if (c.TelCasa) props.registro.tel = c.TelCasa;
+
+                    ultimoDocumentoBuscado = doc;
+                    toastMessage({
+                        heading: "Paciente localizado en SAHI",
+                        text: `Información demográfica obtenida desde el sistema institucional (SAHI).`,
+                        icon: "success",
+                        hideAfter: 4000,
+                    });
+                    return;
+                }
+            } catch (errSahi) {
+                if (errSahi.response?.status === 404) {
+                    toastMessage({
+                        heading: "No registrado",
+                        text: "El paciente no se encuentra en LIDiag ni en el sistema externo de la sede. Puede diligenciar los datos manualmente.",
+                        icon: "warning",
+                        hideAfter: 4500,
+                    });
+                }
+            }
+        } else if (!tieneInterface) {
+            toastMessage({
+                heading: "Paciente no encontrado",
+                text: "No existe en la base de datos local y la sede no cuenta con interfaz externa conectada.",
+                icon: "info",
+                hideAfter: 4000,
+            });
+        }
+
+        ultimoDocumentoBuscado = doc;
+    } catch (_) {
+        // Fallback silencioso para no bloquear el llenado manual
+    } finally {
+        buscandoDocumento.value = false;
+    }
+}
+
+/**
  * Calcula la edad del paciente a partir de la fecha de nacimiento del registro.
  *
  * @returns {number|null} Edad calculada o null si no hay fecha válida.
@@ -278,7 +436,7 @@ const edad = computed(() => calcularEdad(props.registro.fec_naci));
 
 /**
  * Observa cambios en el objeto registro para normalizar pat_birthdate
- * y asignarlo a fec_naci cuando esté disponible.
+ * y el sexo cuando provenga en formatos numéricos o códigos externos (ej. SAHI: 1 = M, 2 = F).
  *
  * @author Jhon Javer Lozano Arce
  * @date 2026-06-01
@@ -286,10 +444,25 @@ const edad = computed(() => calcularEdad(props.registro.fec_naci));
 watch(
     () => props.registro,
     (val) => {
-        if (val?.pat_birthdate) {
+        if (!val) return;
+
+        if (val.pat_birthdate) {
             const normalizada = normalizarFecha(val.pat_birthdate);
             if (normalizada) {
                 val.fec_naci = normalizada;
+            }
+        }
+
+        // Normalización de sexo (SAHI: 1 = Masculino, 2 = Femenino, o IdSexo / pat_sex)
+        const rawSexo = val.sexo ?? val.IdSexo ?? val.pat_sex;
+        if (rawSexo !== undefined && rawSexo !== null) {
+            const strSexo = String(rawSexo).trim().toUpperCase();
+            if (strSexo === "1" || strSexo === "M" || strSexo === "MASCULINO") {
+                if (val.sexo !== "M") val.sexo = "M";
+            } else if (strSexo === "2" || strSexo === "F" || strSexo === "FEMENINO") {
+                if (val.sexo !== "F") val.sexo = "F";
+            } else if (strSexo === "O" || strSexo === "OTRO" || strSexo === "3") {
+                if (val.sexo !== "O") val.sexo = "O";
             }
         }
     },

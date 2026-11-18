@@ -69,6 +69,58 @@ class SAHIService extends BaseService
     }
 
     /**
+     * Busca los datos demográficos de un paciente en SAHI por su número de documento.
+     *
+     * Flujo del proceso:
+     * 1. Valida que el número de documento no sea nulo o vacío.
+     * 2. Consulta en SQL Server en la tabla admCliente con join a genTipoDoc.
+     * 3. Retorna los datos normalizados del paciente o error 404 si no existe.
+     *
+     * @param  string|null  $numDocu  Número de documento del paciente
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-18
+     */
+    public function buscarPacientePorDocumento(?string $numDocu): array
+    {
+        if (empty($numDocu)) {
+            return $this->error('El número de documento es obligatorio.', 422);
+        }
+
+        try {
+            $cliente = DB::connection('sqlsrv')->table('admCliente')
+                ->leftJoin('genTipoDoc', 'admCliente.IdTipoDoc', '=', 'genTipoDoc.IdTipoDoc')
+                ->select([
+                    'admCliente.IdCliente',
+                    'admCliente.NumDocumento',
+                    'admCliente.PrimerNombre',
+                    'admCliente.SegundoNombre',
+                    'admCliente.PrimerApellido',
+                    'admCliente.SegundoApellido',
+                    DB::raw('CONVERT(char(10), admCliente.FecNacimiento, 120) AS FecNacimiento'),
+                    'admCliente.IdSexo',
+                    'admCliente.DirCasa',
+                    'admCliente.TelCasa',
+                    'genTipoDoc.CodTipoDoc',
+                    'genTipoDoc.NomTipoDoc',
+                ])
+                ->where('admCliente.NumDocumento', trim($numDocu))
+                ->first();
+
+            if (! $cliente) {
+                return $this->error('Paciente no encontrado en el sistema SAHI.', 404);
+            }
+
+            return $this->success($cliente, 'Paciente localizado en SAHI.');
+        } catch (\Throwable $e) {
+            Log::error('Error al buscar paciente en SAHI: '.$e->getMessage(), ['numDocu' => $numDocu]);
+
+            return $this->error('No fue posible comunicarse con el sistema SAHI: '.$e->getMessage(), 503);
+        }
+    }
+
+    /**
      * Lista las atenciones de un paciente en SAHI por su número de documento.
      *
      * Flujo del proceso:

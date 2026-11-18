@@ -209,22 +209,18 @@
                             <table
                                 id="tablaEcografiasLectura"
                                 ref="dt"
-                                class="table table-bordered table-striped"
+                                class="table table-hover table-bordered table-custom-compact"
                                 cellspacing="0"
                                 width="100%"
                             >
-                                <thead>
+                                <thead class="thead-light">
                                     <tr>
-                                        <th with="3%">Atención</th>
-                                        <th with="3%"># Documento</th>
-                                        <th with="30%">Paciente</th>
-                                        <th with="30%">Examen</th>
-                                        <th with="30%">Administradora</th>
-                                        <th>Contrato</th>
-                                        <th>Plan</th>
-                                        <th>Servicio / Ubicación</th>
-                                        <th>Cama</th>
-                                        <th></th>
+                                        <th style="width: 11%">Atención / Fecha</th>
+                                        <th style="width: 20%">Paciente</th>
+                                        <th style="width: 25%">Examen / Procedimiento</th>
+                                        <th style="width: 20%">Aseguramiento / EPS</th>
+                                        <th style="width: 14%">Ubicación & Cama</th>
+                                        <th style="width: 10%" class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -232,65 +228,163 @@
                                         v-for="(item, index) in registros"
                                         :key="item.ecografia_producto_id || item.id || index"
                                     >
-                                        <td>{{ item.atencion_id }}</td>
-                                        <td class="text-nowrap align-middle">
+                                        <!-- 1. Atención / Fecha -->
+                                        <td class="align-middle">
                                             <div
-                                                class="text-primary font-weight-bold"
-                                                style="font-size: 15px"
+                                                class="font-weight-bold text-dark"
+                                                style="font-size: 13px"
+                                            >
+                                                <i class="fa fa-hashtag text-muted mr-1"></i>
+                                                {{ item.atencion_id || "Directo" }}
+                                            </div>
+                                            <small
+                                                v-if="item.created_at"
+                                                class="text-muted d-block"
+                                                style="font-size: 11px"
+                                            >
+                                                <i class="fa fa-calendar-o mr-1"></i
+                                                >{{ formatearFecha(item.created_at) }}
+                                            </small>
+                                        </td>
+
+                                        <!-- 2. Paciente + Documento -->
+                                        <td class="align-middle">
+                                            <div class="paciente-nombre font-weight-bold text-dark">
+                                                {{ item.paciente?.nombres }}
+                                                {{ item.paciente?.seg_nom }}
+                                                {{ item.paciente?.pri_ape }}
+                                                {{ item.paciente?.seg_ape }}
+                                            </div>
+                                            <div
+                                                class="text-primary mt-1"
+                                                style="font-size: 12px; font-weight: 600"
                                             >
                                                 <i class="fa fa-id-card-o mr-1"></i>
-                                                {{ item.paciente.num_docu }}
+                                                {{ item.paciente?.num_docu }}
                                             </div>
                                         </td>
-                                        <td>{{ item.paciente.nombres }}</td>
-                                        <td>
-                                            <div>{{ item.nom_produc }}</div>
-                                            <small
-                                                v-if="
-                                                    item.consentimiento_estado ===
-                                                    'PENDIENTE_PACIENTE'
-                                                "
-                                                class="text-danger"
+
+                                        <!-- 3. Examen / Procedimiento + Consentimiento -->
+                                        <td class="align-middle">
+                                            <div
+                                                class="examen-titulo font-weight-bold text-dark"
+                                                :title="item.nom_produc"
                                             >
-                                                Pendiente firma paciente/acompañante
-                                            </small>
-                                            <small
-                                                v-else-if="
-                                                    item.consentimiento_estado ===
-                                                    'PENDIENTE_MEDICO'
-                                                "
-                                                class="text-warning"
-                                            >
-                                                Pendiente firma médico
-                                            </small>
-                                            <small
-                                                v-else-if="
-                                                    item.consentimiento_estado === 'COMPLETO'
-                                                "
-                                                class="text-success"
-                                            >
-                                                Consentimiento completo
-                                            </small>
+                                                {{ item.nom_produc }}
+                                            </div>
+                                            <div v-if="item.cod_cups" class="mt-1">
+                                                <small class="text-muted" style="font-size: 11px">
+                                                    Cód: {{ item.cod_cups }}
+                                                </small>
+                                            </div>
+                                            <div class="mt-1">
+                                                <small
+                                                    v-if="
+                                                        item.consentimiento_estado ===
+                                                        'PENDIENTE_PACIENTE'
+                                                    "
+                                                    class="badge badge-danger"
+                                                >
+                                                    Firma paciente pendiente
+                                                </small>
+                                                <small
+                                                    v-else-if="
+                                                        item.consentimiento_estado ===
+                                                        'PENDIENTE_MEDICO'
+                                                    "
+                                                    class="badge badge-warning text-white"
+                                                >
+                                                    Firma médico pendiente
+                                                </small>
+                                                <small
+                                                    v-else-if="
+                                                        item.consentimiento_estado === 'COMPLETO'
+                                                    "
+                                                    class="badge badge-success"
+                                                >
+                                                    Consentimiento completo
+                                                </small>
+                                            </div>
                                         </td>
-                                        <td>{{ item.admin_salud.nom_admin_salud }}</td>
-                                        <td>{{ item.contrato }}</td>
-                                        <td>{{ item.plan }}</td>
-                                        <td>{{ item.ubicacion || "Sin ubicación" }}</td>
-                                        <td>
-                                            <span
-                                                :class="
-                                                    item.cama
-                                                        ? 'badge badge-light text-dark font-weight-bold'
-                                                        : 'text-muted font-italic'
+
+                                        <!-- 4. Aseguramiento / EPS + Contrato + Plan -->
+                                        <td class="align-middle">
+                                            <div
+                                                class="font-weight-bold text-dark text-truncate"
+                                                style="max-width: 240px"
+                                                :title="
+                                                    item.admin_salud?.nom_admin_salud ||
+                                                    'Particular / Directo'
                                                 "
                                             >
-                                                {{ item.cama || "Sin cama" }}
-                                            </span>
+                                                {{
+                                                    item.admin_salud?.nom_admin_salud ||
+                                                    (item.tipo_recaudo_id == 2
+                                                        ? "PARTICULAR"
+                                                        : item.tipo_recaudo_id == 3
+                                                          ? "CORTESÍA"
+                                                          : "Sin EPS")
+                                                }}
+                                            </div>
+                                            <div
+                                                v-if="item.contrato || item.plan"
+                                                class="small text-muted mt-1"
+                                                style="font-size: 11px; line-height: 1.3"
+                                            >
+                                                <div
+                                                    v-if="item.contrato"
+                                                    class="text-truncate"
+                                                    style="max-width: 240px"
+                                                    :title="'Contrato: ' + item.contrato"
+                                                >
+                                                    <strong>C:</strong> {{ item.contrato }}
+                                                </div>
+                                                <div
+                                                    v-if="item.plan"
+                                                    class="text-truncate"
+                                                    style="max-width: 240px"
+                                                    :title="'Plan: ' + item.plan"
+                                                >
+                                                    <strong>P:</strong> {{ item.plan }}
+                                                </div>
+                                            </div>
                                         </td>
-                                        <td class="text-nowrap">
+
+                                        <!-- 5. Ubicación & Cama -->
+                                        <td class="align-middle">
+                                            <div
+                                                class="text-truncate"
+                                                style="max-width: 160px"
+                                                :title="item.ubicacion || 'Sin ubicación'"
+                                            >
+                                                <i class="fa fa-hospital-o text-muted mr-1"></i>
+                                                <span style="font-size: 12px">{{
+                                                    item.ubicacion || "Sin ubicación"
+                                                }}</span>
+                                            </div>
+                                            <div class="mt-1">
+                                                <span
+                                                    v-if="item.cama"
+                                                    class="badge badge-light border text-dark font-weight-bold"
+                                                    style="font-size: 10px"
+                                                >
+                                                    Cama: {{ item.cama }}
+                                                </span>
+                                                <span
+                                                    v-else
+                                                    class="text-muted font-italic"
+                                                    style="font-size: 10px"
+                                                >
+                                                    Sin cama
+                                                </span>
+                                            </div>
+                                        </td>
+
+                                        <!-- 6. Acciones -->
+                                        <td class="text-center align-middle text-nowrap">
                                             <button
                                                 type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm mr-1"
                                                 :disabled="
                                                     bloqueoLectura ||
                                                     (item.tiene_plantilla_consentimiento &&
@@ -305,7 +399,7 @@
                                                 title="Realizar lectura"
                                                 aria-label="Realizar lectura"
                                             >
-                                                <i class="fa fa-check"></i>
+                                                <i class="fa fa-check mr-1"></i> Leer
                                             </button>
 
                                             <button
@@ -1684,6 +1778,26 @@ async function consultarEstadoSahi(silent = false) {
 }
 
 /**
+ * Formatea una fecha ISO a DD/MM/YYYY.
+ *
+ * @param {string} fecha Fecha en formato ISO o string.
+ * @returns {string} Fecha formateada o guion si no existe.
+ */
+function formatearFecha(fecha) {
+    if (!fecha) return "—";
+    try {
+        const d = new Date(fecha);
+        if (isNaN(d.getTime())) return fecha;
+        const dia = String(d.getDate()).padStart(2, "0");
+        const mes = String(d.getMonth() + 1).padStart(2, "0");
+        const anio = d.getFullYear();
+        return `${dia}/${mes}/${anio}`;
+    } catch {
+        return fecha;
+    }
+}
+
+/**
  * Destruye de manera segura un DataTable en el selector dado, si existe y está inicializado.
  * @param {string} selector - Selector del DataTable a destruir (por defecto: "#tablaEcografiasLectura").
  * @author Jhon Javer Lozano Arce
@@ -2811,5 +2925,48 @@ onBeforeUnmount(() => {
 
 :deep(.select2-dropdown) {
     z-index: 9999 !important;
+}
+
+/* ============================================================== */
+/* Estilos compactos para tabla de ecografías pendientes          */
+/* ============================================================== */
+.table-custom-compact {
+    font-size: 13px;
+    margin-bottom: 0;
+}
+
+.table-custom-compact thead th {
+    background-color: #f8fafc;
+    color: #495057;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 10px 8px !important;
+    vertical-align: middle !important;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.table-custom-compact tbody td {
+    padding: 8px 8px !important;
+    vertical-align: middle !important;
+}
+
+.paciente-nombre {
+    font-size: 13px;
+    line-height: 1.25;
+    color: #2b3035;
+}
+
+.examen-titulo {
+    font-size: 12.5px;
+    line-height: 1.3;
+    max-width: 300px;
+    word-break: break-word;
+    color: #1a202c;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f1f7ff;
 }
 </style>

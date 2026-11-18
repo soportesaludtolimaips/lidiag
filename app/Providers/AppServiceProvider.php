@@ -81,7 +81,13 @@ class AppServiceProvider extends ServiceProvider
                 return Limit::perMinute(1200)->by($request->user()?->id ?: $request->ip());
             }
 
-            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+            // Para usuarios autenticados aumentamos el límite a 300 peticiones/minuto para soportar
+            // navegación fluida con componentes que consultan catálogos y notificaciones simultáneamente.
+            if ($request->user()) {
+                return Limit::perMinute(300)->by($request->user()->id);
+            }
+
+            return Limit::perMinute(60)->by($request->ip());
         });
 
         RateLimiter::for('api-general', fn () => Limit::perMinute(60));

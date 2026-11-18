@@ -95,8 +95,9 @@ class HtmlToPhpWordHelper
 
         $style = array_merge(self::$normalStyle, $baseStyle);
         $blocks = self::splitIntoBlocks($html);
+        $totalBlocks = count($blocks);
 
-        foreach ($blocks as $block) {
+        foreach ($blocks as $i => $block) {
             $block = trim($block);
             if ($block === '') {
                 continue;
@@ -111,6 +112,9 @@ class HtmlToPhpWordHelper
                 $textRun->addTextBreak();
             } else {
                 self::parseInlineToTextRun($textRun, $block, $style);
+                if ($i < $totalBlocks - 1) {
+                    $textRun->addTextBreak();
+                }
             }
         }
     }
@@ -138,20 +142,32 @@ class HtmlToPhpWordHelper
             return;
         }
 
-        $pattern = '/<(strong|b)[^>]*>(.*?)<\/\1>|<(em|i)[^>]*>(.*?)<\/\3>|<br\s*\/?>|([^<]+)/is';
-        preg_match_all($pattern, $html, $matches, PREG_SET_ORDER);
+        $lines = explode("\n", $html);
+        $totalLines = count($lines);
 
-        foreach ($matches as $match) {
-            if (isset($match[2]) && $match[2] !== '') {
-                $innerStyle = array_merge($baseStyle, ['bold' => true]);
-                $textRun->addText(self::stripAllTags($match[2]), $innerStyle);
-            } elseif (isset($match[4]) && $match[4] !== '') {
-                $innerStyle = array_merge($baseStyle, ['italic' => true]);
-                $textRun->addText(self::stripAllTags($match[4]), $innerStyle);
-            } elseif (preg_match('/^<br/i', $match[0])) {
+        foreach ($lines as $index => $line) {
+            $line = trim($line);
+            if ($line !== '') {
+                $pattern = '/<(strong|b)[^>]*>(.*?)<\/\1>|<(em|i)[^>]*>(.*?)<\/\3>|<br\s*\/?>|([^<]+)/is';
+                preg_match_all($pattern, $line, $matches, PREG_SET_ORDER);
+
+                foreach ($matches as $match) {
+                    if (isset($match[2]) && $match[2] !== '') {
+                        $innerStyle = array_merge($baseStyle, ['bold' => true]);
+                        $textRun->addText(self::stripAllTags($match[2]), $innerStyle);
+                    } elseif (isset($match[4]) && $match[4] !== '') {
+                        $innerStyle = array_merge($baseStyle, ['italic' => true]);
+                        $textRun->addText(self::stripAllTags($match[4]), $innerStyle);
+                    } elseif (preg_match('/^<br/i', $match[0])) {
+                        $textRun->addTextBreak();
+                    } elseif (! empty($match[5])) {
+                        $textRun->addText($match[5], $baseStyle);
+                    }
+                }
+            }
+
+            if ($index < $totalLines - 1) {
                 $textRun->addTextBreak();
-            } elseif (! empty($match[5])) {
-                $textRun->addText($match[5], $baseStyle);
             }
         }
     }
@@ -203,11 +219,13 @@ class HtmlToPhpWordHelper
      */
     private static function cleanHtml(string $html): string
     {
+        $html = preg_replace("/\r\n|\r/", "\n", $html);
         $html = strip_tags($html, '<p><br><strong><b><em><i><ul><ol><li>');
         $html = str_ireplace(['&nbsp;', '&#160;'], ' ', $html);
         $html = html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $html = preg_replace('/\x{00A0}/u', ' ', $html);
-        $html = preg_replace('/\s+/', ' ', $html);
+        $html = preg_replace('/[ \t]+/', ' ', $html);
+        $html = preg_replace('/\n{3,}/', "\n\n", $html);
         $html = trim($html);
 
         return $html;

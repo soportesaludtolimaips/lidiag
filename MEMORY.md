@@ -37,6 +37,191 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-18 — Visualización de Tipo de Recaudo en `ecografiasAdmisionadasComponent.vue`:**
+  - **Diagnóstico y Solución:**
+    * En el listado de ecografías admisionadas no se identificaba si una ecografía era Particular, Cortesía o Por Atención.
+    * En [`EcografiaService::filtarEcografias()`](file:///c:/laragon/www/lidiag/app/Services/Ecografias/EcografiaService.php), se añadió la relación `tipoRecaudo` al eager loading `with(['paciente', 'usuarioRegistrador', 'adminSalud', 'medico', 'tipoRecaudo'])`.
+    * En [`ecografiasAdmisionadasComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/ecografiasAdmisionadasComponent.vue), se agregó la columna **Recaudo** con badges distintivos:
+      - `badge-primary` para **Particular**
+      - `badge-warning text-white` para **Cortesía**
+      - `badge-info` para **Por Atención (SAHI)**
+  - **Verificaciones:**
+    * ESLint y Pint pasados con 0 errores.
+    * Compilación Vite exitosa.
+- [x] **2026-11-18 — Compatibilidad de Propiedades de Producto en `EcografiaService.php` y `admisionarComponent.vue`:**
+  - **Diagnóstico del Problema:**
+    * Al admisionar un paciente particular o directo en ecografías agregando el procedimiento desde el combo de producto, la petición `POST /api/ecografias` arrojaba `500 Internal Server Error: Undefined array key "CodProducto"`.
+    * **Causa Raíz:** En `onProductoSelect()` del frontend, el objeto agregado a `productosAgenda` utilizaba los campos locales `IdProducto`, `CodLegal` y `NomProducto`. En `EcografiaService.php`, el bucle de creación asumía la estructura de SAHI requiriendo obligatoriamente `$producto['CodProducto']` sin fallback.
+  - **Solución Implementada:**
+    * En [`EcografiaService.php`](file:///c:/laragon/www/lidiag/app/Services/Ecografias/EcografiaService.php): se añadieron fallbacks defensivos para resolver el código, nombre y valor (`$producto['CodProducto'] ?? $producto['CodLegal'] ?? $producto['cod_cups'] ?? ''` y `$producto['IdProducto'] ?? $producto['id'] ?? null`).
+    * En [`admisionarComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/admisionarComponent.vue): en `onProductoSelect()`, se asignan de forma homologada tanto `CodLegal` como `CodProducto` y `cod_cups`.
+  - **Verificaciones:**
+    * Pint: `vendor\bin\pint.bat --test app/Services/Ecografias/EcografiaService.php` (passed).
+    * ESLint: 0 errores.
+    * Compilación Vite exitosa.
+- [x] **2026-11-18 — Corrección de Clave de Filtrado de Documento en `admisionarComponent.vue` y `PacienteIndexRequest`:**
+  - **Diagnóstico del Problema:**
+    * Al digitar el documento `97612752` en la admisión directa de ecografías, en lugar de autocompletar al paciente respectivo (`ING LOZANO JHON`), el formulario traía a `LAURA XIMENA ARTEAGA SANCHEZ`.
+    * **Causa Raíz:** En `buscarPacientePorDocumento()` de `admisionarComponent.vue`, el payload enviado era `{ documento: doc, ... }`. Sin embargo, `PacienteIndexRequest` y `PacienteService::listar()` esperan el parámetro `bus_documento`. Al no coincidir el nombre del atributo, la consulta a base de datos descartaba el filtro y retornaba los 300 pacientes más recientes ordenados descendente por `id`, seleccionando la primera posición (`lista[0]`), que correspondía a Laura Ximena (último paciente creado con ID `101671`).
+  - **Solución Implementada:**
+    * En [`admisionarComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/admisionarComponent.vue): se ajustó el payload a `bus_documento: doc` y se agregó lógica de coincidencia exacta/parcial contra el documento digitado, además de fallback hacia SAHI si la sede cuenta con interfaz.
+    * En [`PacienteIndexRequest.php`](file:///c:/laragon/www/lidiag/app/Http/Requests/Pacientes/PacienteIndexRequest.php): en `prepareForValidation()`, se agregó compatibilidad automática mapeando `documento` a `bus_documento` y `nombre` a `bus_nombre` si llegasen con la nomenclatura alternativa.
+  - **Verificaciones:**
+    * Script PHP en sandbox validando que con `bus_documento: '97612752'` retorna exactamente `ING LOZANO JHON` (ID 23296).
+    * ESLint y Pint pasados con 0 errores.
+    * Compilación de assets con Vite exitosa.
+- [x] **2026-11-18 — Rediseño UX y Optimización de Columnas en Tabla de Lectura de Ecografías (`lecturaComponent.vue`):**
+  - **Diagnóstico del Problema:**
+    * La tabla de ecografías pendientes por lectura en [`lecturaComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/lecturaComponent.vue) mostraba 10 columnas separadas (`Atención`, `# Documento`, `Paciente`, `Examen`, `Administradora`, `Contrato`, `Plan`, `Servicio / Ubicación`, `Cama`, `Acciones`), saturando el espacio horizontal de los médicos especialistas y provocando quiebres bruscos de texto.
+  - **Solución Implementada:**
+    * En [`lecturaComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/lecturaComponent.vue):
+      - Se reestructuró la tabla a 6 columnas compactas de alto impacto clínico:
+        1. **Atención / Fecha (11%):** Número de atención en negrita con la fecha formateada (`DD/MM/YYYY`) debajo mediante `formatearFecha()`.
+        2. **Paciente (20%):** Nombre y apellidos completos con número de documento debajo en color primario (`fa-id-card-o`).
+        3. **Examen / Procedimiento (25%):** Nombre del examen con salto natural, código cups y badges del estado del consentimiento informado.
+        4. **Aseguramiento / EPS (20%):** Nombre de la Administradora/EPS en negrita con Contrato (`C:`) y Plan (`P:`) unificados en subtítulo compacto con tooltips en hover.
+        5. **Ubicación & Cama (14%):** Servicio/Ubicación con icono de hospital y cama destacada en badge (`Cama: X` o `Sin cama`).
+        6. **Acciones (10%):** Botones compactos (botón principal `Leer` con texto e icono, más botón de firma de consentimiento si aplica).
+      - Se implementaron las clases CSS scoped `.table-custom-compact` con padding balanceado (`8px 8px`), encabezados nítidos y hover visual.
+  - **Verificaciones:**
+    * ESLint: `npx eslint resources/js/components/modulos/ecografias/lecturaComponent.vue` (0 errores).
+    * Compilación Vite: `npm run build` ejecutado exitosamente.
+- [x] **2026-11-18 — Rediseño UX y Optimización de Tabla de Atenciones Disponibles (`admisionarComponent.vue`):**
+  - **Diagnóstico del Problema:**
+    * La tabla de atenciones disponibles de ecografía presentaba 15 columnas individuales saturadas (`Fecha`, `# Documento`, `Paciente`, `Examen`, `Cantidad`, `Val. Examen`, `Administradora`, `Contrato`, `Plan`, `Quien Ordeno`, `Servicio / Ubicación`, `Cama`, `Estado`, `SAHI`, `Acciones`), causando desborde horizontal masivo y columnas administrativas estiradas de forma desproporcionada.
+  - **Solución Implementada:**
+    * En [`admisionarComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/admisionarComponent.vue):
+      - Se condensó la distribución de 15 a 9 columnas funcionales:
+        1. **Fecha / Ingreso (10%):** Fecha formateada `DD/MM/YYYY` en texto oscuro con hora `hh:mm A` en subtítulo sutil con helpers `formatearFecha` y `formatearHora`.
+        2. **Paciente (18%):** Nombre completo destacado con número de documento debajo con icono (`fa-id-card-o`) y color primario.
+        3. **Examen / Procedimiento (22%):** Nombre del examen con salto natural y valor formateado en badge/subtítulo (`$formatoMoneda(ValProduc)`), código cups y badges compactos para el estado del consentimiento informado.
+        4. **Cant. (6%):** Cantidad numérica centrada y nítida.
+        5. **Aseguramiento / EPS (18%):** Administradora/Tercero en negrita con Contrato (`C:`) y Plan (`P:`) unificados en subtítulo compacto con tooltips preventivos.
+        6. **Ubicación & Cama (11%):** Servicio/Ubicación con icono, cama en badge o etiqueta sutil y médico que ordenó (`fa-user-md`) integrado debajo.
+        7. **Estado (5%):** Badge centrado de lectura (`EN PROCESO`, `LEIDO`, `ANULADO`).
+        8. **SAHI (5%):** Badge de transmisión SAHI y botones de consulta/reintento.
+        9. **Acciones (5%):** Botones compactos agrupados sin salto de línea (Anular, Agendar, Consentimiento).
+      - Se agregaron estilos CSS scoped `.table-custom-compact` con padding balanceado (`8px 8px`), encabezados claros y hover visual.
+  - **Verificaciones:**
+    * ESLint: `npx eslint resources/js/components/modulos/ecografias/admisionarComponent.vue` (0 errores).
+    * Compilación Vite: `npm run build` ejecutado exitosamente.
+- [x] **2026-11-18 — Eliminación de Caché de Filtros de Búsqueda en Ecografías Admisionadas:**
+  - **Diagnóstico del Problema:**
+    * Los filtros de búsqueda (`bus_nom_num_docu`, `bus_fech_ini`, `bus_fecha_fin`) en `ecografiasAdmisionadasComponent.vue` persistían automáticamente en `sessionStorage` a través de `useFilterPersistence`.
+    * Al recargar o reingresar al módulo, el hook `onMounted` restauraba los filtros antiguos y disparaba `listarAtenciones()` automáticamente, recargando criterios cacheados sin intervención del usuario.
+    * Además, los inputs no tenían `autocomplete="off"`, permitiendo que el navegador ofreciera o completara términos de búsqueda anteriores.
+  - **Solución Implementada:**
+    * En [`ecografiasAdmisionadasComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/ecografiasAdmisionadasComponent.vue):
+      - Se desvinculó `useFilterPersistence` de la reactividad de `busqueda`, manejando el estado mediante un `ref` limpio con valores por defecto.
+      - Se añadió `autocomplete="off"` tanto en el tag `<form>` como en cada `<input>` (`bus_nom_num_docu`, `bus_fech_ini`, `bus_fecha_fin`).
+      - Se eliminó el guardado automático en `sessionStorage` (`guardarFiltros()`) al consultar registros.
+      - En `onMounted` y `btnLimpiar`, se purgan proactivamente las llaves residuales de `sessionStorage` (`lidiag_filters_ecografias_admisionadas`).
+      - Se retiró la auto-ejecución automática en `onMounted`, garantizando que la vista abra siempre limpia y a la espera de la acción del usuario.
+  - **Verificaciones:**
+    * ESLint: `npx eslint resources/js/components/modulos/ecografias/ecografiasAdmisionadasComponent.vue` (0 errores).
+    * Compilación Vite: `npm run build` ejecutado exitosamente.
+- [x] **2026-11-18 — Rediseño UX y Optimización de Columnas en Tabla de Ecografías Admisionadas (`ecografiasAdmisionadasComponent.vue`):**
+  - **Diagnóstico del Problema:**
+    * La tabla de ecografías admisionadas presentaba 14 columnas apretadas horizontalmente (`Fecha`, `# Documento`, `Paciente`, `Examen`, `Recaudo`, `Val. Examen`, `Administradora`, `Contrato`, `Plan`, `Servicio / Ubicación`, `Cama`, `Estado`, `SAHI`, `Acciones`), causando severo apeñuzcamiento (*cramped UI*), quiebres verticales forzados de palabras y fechas en formato ISO crudo.
+  - **Solución Implementada:**
+    * En [`ecografiasAdmisionadasComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/ecografiasAdmisionadasComponent.vue):
+      - Se condensó la estructura de 14 a 9 columnas funcionales con jerarquía visual:
+        1. **Fecha / Hora:** Fecha formateada `DD/MM/YYYY` en negrita con hora en subtítulo `hh:mm A` mediante helpers `formatearFecha` y `formatearHora`.
+        2. **Paciente:** Nombre completo con tipografía nítida y documento debajo con icono y color primario (`#num_docu`).
+        3. **Examen / Procedimiento:** Título legible con saltos naturales y valor formateado en badge/subtítulo (`$formatearMoneda(ValProduc)`).
+        4. **Recaudo:** Badge distintivo (Particular, Cortesía, Por Atención).
+        5. **Aseguramiento / EPS:** Administradora en negrita con contrato y plan unificados en subtítulo compacto.
+        6. **Ubicación & Cama:** Servicio con icono de edificio y cama en badge destacado o etiqueta sutil.
+        7. **Estado:** Badge estándar del estado de lectura (En proceso, Leído, Anulado).
+        8. **SAHI:** Badge de estado y botones de sincronización.
+        9. **Acciones:** Botones compactos agrupados (Worklist, Anular, Imprimir).
+      - Se implementaron estilos CSS scoped `.table-custom-compact` reduciendo el padding a niveles balanceados (`8px 8px`), encabezados nítidos y hover visual elegante.
+  - **Verificaciones:**
+    * Linter y Estilo: `npx eslint --fix resources/js/components/modulos/ecografias/ecografiasAdmisionadasComponent.vue` (0 errores).
+    * Compilación Vite: `npm run build` ejecutado exitosamente.
+- [x] **2026-11-18 — Asignación Directa de Estudios y Búsqueda Jerárquica de Pacientes:**
+  - **Diagnóstico del Problema:**
+    * En el módulo de asignación de estudios ([`AsignarEstudioComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/AsignarEstudioComponent.vue)), cuando la sede operaba con interface SAHI activa, los selectores de productos y diagnósticos quedaban ocultos y se obligaba a vincular una atención previa del HIS, dificultando agendar estudios particulares o de cortesía que no tuvieran una orden institucional.
+    * En el formulario de pacientes ([`formPacienteComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/comunes/formPacienteComponent.vue)), al ingresar el número de documento no existía una búsqueda automática en cascada que consultara primero la base de datos local y, como respaldo por sede, la interfaz externa (SAHI).
+  - **Solución Implementada:**
+    * **Fase 1 — Asignación de Estudios ([`AsignarEstudioComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/AsignarEstudioComponent.vue)):**
+      - Se agregaron los botones de acción rápida `+ Particular` y `+ Cortesía` en la barra superior.
+      - Se implementó la función `nuevoRegistroDirecto(tipoCodigo)` que inicializa el formulario con el tipo de recaudo correspondiente, limpia `atencion_id` y abre el panel.
+      - Se flexibilizó la visibilidad de los selectores manuales de Productos y Diagnósticos para que se muestren automáticamente cuando el recaudo sea Particular o Cortesía, incluso si la sede tiene interface SAHI activa.
+      - Se condicionó el combo de Selección de Atención institucional para que solo se despliegue en estudios facturados convencionalmente por SAHI.
+    * **Fase 2 — Búsqueda Jerárquica de Pacientes ([`formPacienteComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/comunes/formPacienteComponent.vue), [`SAHIService.php`](file:///c:/laragon/www/lidiag/app/Services/Interfaces/SAHIService.php), [`SAHIController.php`](file:///c:/laragon/www/lidiag/app/Http/Controllers/Interface/SAHIController.php), [`api_interfaces.php`](file:///c:/laragon/www/lidiag/routes/api_interfaces.php)):**
+      - Se implementó el endpoint backend `GET /api/interface-sahi/buscar-paciente/{numDocu}` que consulta la tabla `admCliente` y `genTipoDoc` de SQL Server de forma segura y defensiva.
+      - En `formPacienteComponent.vue`, se incorporó `buscarPacienteJerarquico()` con indicador visual `buscandoDocumento`:
+        1. Consulta primero `/api/pacientes/listar` en la base de datos de LIDiag.
+        2. Si no existe localmente, consulta `/api/config-sedes/{sedeId}/buscarPorId` para verificar si la sede tiene interface `sahi` configurada.
+        3. Si cuenta con interface activa, invoca `/api/interface-sahi/buscar-paciente/{numDocu}`, autocompletando nombres, fecha de nacimiento, sexo, dirección y teléfono del paciente. Si no se encuentra o no tiene interface, informa oportunamente permitiendo el diligenciamiento manual.
+  - **Verificaciones:**
+    * Pint: `vendor\bin\pint.bat --test app/Services/Interfaces/SAHIService.php app/Http/Controllers/Interface/SAHIController.php routes/api_interfaces.php` (passed).
+    * ESLint: `npx eslint resources/js/components/modulos/estudios/AsignarEstudioComponent.vue resources/js/components/comunes/formPacienteComponent.vue` (0 errores).
+    * Compilación Vite: `npm run build` ejecutado exitosamente.
+- [x] **2026-11-18 — Admisión Directa para Pacientes Particulares y Cortesía en Ecografías:**
+  - **Diagnóstico del Problema:**
+    * El flujo anterior obligaba estrictamente a realizar una búsqueda y seleccionar una atención previa proveniente de SAHI antes de poder abrir el formulario de admisión y elegir el tipo de recaudo.
+    * Además, la validación en backend (`EcografiaStoreRequest.php`) exigía `atencion_id` como obligatorio (`required`), impidiendo registrar ecografías particulares o de cortesía que no tuvieran una orden institucional o atención en SAHI.
+  - **Solución Implementada:**
+    * **Frontend ([`admisionarComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/admisionarComponent.vue)):**
+      - Se incorporaron en la cabecera / barra superior dos botones de acción rápida: `+ Particular` y `+ Cortesía`.
+      - Se implementó la función `abrirAdmisionDirecta(tipoCodigo)` que limpia el formulario, preselecciona el tipo de recaudo correspondiente (Particular o Cortesía), deja vacía la atención y abre directamente el drawer lateral.
+      - Se adaptó el resumen informativo superior para ocultarse cuando la admisión sea Particular o Cortesía.
+      - Se habilitó la búsqueda y autocompletado automático de datos del paciente por documento (`@blur` y `@keyup.enter` en `#num_docu`) mediante `/api/pacientes/listar`.
+      - Se condicionó `guardarRegistro()` para que solo exija atención previa cuando el recaudo sea institucional (Por Atención SAHI).
+    * **Backend ([`EcografiaStoreRequest.php`](file:///c:/laragon/www/lidiag/app/Http/Requests/Ecografias/EcografiaStoreRequest.php) y [`EcografiaService.php`](file:///c:/laragon/www/lidiag/app/Services/Ecografias/EcografiaService.php)):**
+      - En `EcografiaStoreRequest.php`: la validación de `atencion_id` ahora es condicional según el tipo de recaudo; si el recaudo no transmite a SAHI (`envia_sahi == false`), `atencion_id` es opcional (`sometimes|nullable`).
+      - En `EcografiaService.php`: al persistir en la tabla `ecografias`, si `atencion_id` viene vacío se asigna automáticamente `'PARTICULAR'` o `'CORTESIA'` según corresponda, cumpliendo con la restricción `NOT NULL` de la base de datos MySQL.
+  - **Verificaciones:**
+    * Pint: `vendor\bin\pint.bat --test app/Http/Requests/Ecografias/EcografiaStoreRequest.php app/Services/Ecografias/EcografiaService.php` (passed).
+    * ESLint: `npx eslint resources/js/components/modulos/ecografias/admisionarComponent.vue` (0 errores).
+    * Compilación Vite: `npm run build` ejecutado exitosamente.
+- [x] **2026-11-18 — Reemplazo de Input por Select y Normalización de Sexo en `admisionarComponent.vue`:**
+  - **Diagnóstico del Problema:**
+    * En el modal/drawer lateral de Admisión de Ecografías (`admisionarComponent.vue`), el campo de Sexo no era un combo desplegable (`<select>`) sino un `<input type="text">` plano.
+    * Al abrir una atención procedente de SAHI (donde el sexo llega como `IdSexo = 2`), el campo mostraba directamente el texto plano `"2"` en vez de un select con las opciones M / F / Otro y el valor `"F"` seleccionado.
+  - **Solución Implementada:**
+    * En [`admisionarComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/admisionarComponent.vue):
+      - Se reemplazó el `<input type="text" id="sexo">` por un `<select id="sexo" name="sexo" v-model="registro.sexo" class="form-control">` con las opciones `—`, `M`, `F`, `O` (Otro).
+      - En la función `mostrarRegistro(data)`: se agregó la homologación automática de `data.IdSexo`: `1` $\rightarrow$ `"M"`, `2` $\rightarrow$ `"F"`, `3` $\rightarrow$ `"O"`.
+  - **Verificaciones:**
+    * Linter y Estilo: `npx eslint resources/js/components/modulos/ecografias/admisionarComponent.vue` (0 errores).
+    * Compilación de assets: `npm run build` ejecutado exitosamente.
+- [x] **2026-11-18 — Ampliación de Rate Limiting para Usuarios Autenticados (`AppServiceProvider.php`):**
+  - **Diagnóstico del Problema:**
+    * El usuario recibía errores `HTTP 429 Too Many Requests ("Demasiadas solicitudes.")` en múltiples llamadas simultáneas del frontend (`/api/helpdesk-notificaciones`, `/api/config-productos`, `/api/config-tipos-recaudo/listar/activos`, `/api/config-sedes/1/buscarPorId`, `/api/citas/notificaciones/no-leidas`, `/api/user.listarUsuarios/Medico/2`, etc.).
+    * **Causa Raíz:** En `AppServiceProvider::configureRateLimiting()`, el limitador global `RateLimiter::for('api', ...)` estaba fijado en `Limit::perMinute(60)`. Al navegar entre pantallas asistenciales o recargar la página, se cargan múltiples componentes en paralelo (la barra superior de perfil/búsqueda, los badges de notificaciones de citas y helpdesk, y las listas de catálogos y selects del formulario de admisión). Esta concurrencia de peticiones sobrepasaba rápidamente la cuota de 60 peticiones en 1 minuto, bloqueando llamadas legítimas de la interfaz con 429.
+  - **Solución Implementada:**
+    * En [`AppServiceProvider.php`](file:///c:/laragon/www/lidiag/app/Providers/AppServiceProvider.php):
+      - Se incrementó el límite para usuarios autenticados a **300 peticiones por minuto** (`Limit::perMinute(300)->by($request->user()->id)`).
+      - Se mantuvo el límite de 60 peticiones/minuto por IP para usuarios no autenticados (protección contra escaneos o abusos anónimos).
+      - Se limpió la caché de la aplicación (`php artisan optimize:clear` y `php artisan cache:clear`).
+  - **Verificaciones:**
+    * Formato de código: `vendor\bin\pint.bat --test app\Providers\AppServiceProvider.php` (passed).
+- [x] **2026-11-18 — Normalización Automática de Sexo en `formPacienteComponent.vue` (SAHI 1/2 a M/F):**
+  - **Diagnóstico del Problema:**
+    * Al consultar datos desde SAHI (SQL Server), el campo de sexo del paciente llega codificado numéricamente (`IdSexo`: 1 para masculino, 2 para femenino).
+    * Al abrir el formulario común de pacientes [`formPacienteComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/comunes/formPacienteComponent.vue), el `<select id="sexo">` maneja valores `['M', 'F', 'O']`. Cuando `registro.sexo` contenía `"1"` o `"2"`, el componente mostraba una opción no estándar o fallaba al mapear al género correspondiente.
+  - **Solución Implementada:**
+    * En [`formPacienteComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/comunes/formPacienteComponent.vue):
+      - Se extendió el `watch` reactivo de `props.registro` para normalizar automáticamente el valor de `sexo`, `IdSexo` o `pat_sex`.
+      - Mapeo transparente: `1` / `"1"` / `"MASCULINO"` → `"M"`; `2` / `"2"` / `"FEMENINO"` → `"F"`; `3` / `"3"` / `"OTRO"` → `"O"`.
+  - **Verificaciones:**
+    * Linter y Estilo: `npx eslint resources/js/components/comunes/formPacienteComponent.vue` (0 errores).
+    * Compilación de assets: `npm run build` ejecutado exitosamente.
+- [x] **2026-11-18 — Preservación de Formato y Saltos de Línea en Reportes PDF de Ecografías (`HtmlToPhpWordHelper.php`):**
+  - **Diagnóstico del Problema:**
+    * Al generar el reporte PDF de ecografía (`ECOGRAFIA-ABDOMEN-TOTAL-HOMBRE-*.pdf`), el texto de la lectura y de la opinión aparecía compactado en un único bloque continuo de texto, perdiendo los saltos de línea y párrafos que sí se visualizaban correctamente en el editor de pantalla.
+    * **Causa Raíz:** En `HtmlToPhpWordHelper::cleanHtml()`, la expresión regular `$html = preg_replace('/\s+/', ' ', $html);` colapsaba indiscriminadamente todos los saltos de línea (`\n`, `\r\n`) en un espacio simple `' '`. Además, `addToTextRun()` y `parseInlineToTextRun()` no dividían los bloques de texto plano por saltos de línea para invocar `$textRun->addTextBreak()`, unificando todo el contenido en una sola línea continua dentro del elemento de PhpWord.
+  - **Solución Implementada:**
+    * En [`HtmlToPhpWordHelper.php`](file:///c:/laragon/www/lidiag/app/Helpers/HtmlToPhpWordHelper.php):
+      - Se ajustó `cleanHtml()` para normalizar saltos de línea a `\n` y colapsar únicamente espacios y tabuladores horizontales (`preg_replace('/[ \t]+/', ' ', $html)`), conservando intactos los `\n`.
+      - En `parseInlineToTextRun()`, se implementó la división por líneas (`explode("\n", $html)`) para procesar formato en línea (`<strong>`, `<em>`, `<br>`) e insertar llamadas a `$textRun->addTextBreak()` entre cada línea.
+      - En `addToTextRun()`, se aseguró que entre bloques consecutivos que no son párrafos cerrados también se preserve la separación mediante `$textRun->addTextBreak()`.
+  - **Verificaciones:**
+    * Pruebas con strings de lectura reales: Se verificó que genera la secuencia correcta de objetos `PhpOffice\PhpWord\Element\Text` y `PhpOffice\PhpWord\Element\TextBreak`.
+    * Formato de código: `vendor\bin\pint.bat --test app\Helpers\HtmlToPhpWordHelper.php` ejecutado con resultado `passed`.
 - [x] **2026-11-18 — Compatibilidad Defensiva de Columnas en MySQL Local (`SAHIEcografiasService.php`):**
   - **Diagnóstico del Problema:**
     * Al consultar atenciones en producción (`POST /api/interface-sahi-ecografias/listar/productos/atencion`), la consulta de cruce con la tabla local de MySQL arrojaba: `Column not found: 1054 Unknown column 'ecografias.ubicacion' in 'field list'`.

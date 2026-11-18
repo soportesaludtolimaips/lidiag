@@ -33,6 +33,16 @@ class PacienteIndexRequest extends FormRequest
                 $this->merge(['sede_id' => (int) $sedeId]);
             }
         }
+
+        // Compatibilidad: si envían 'documento' mapear a 'bus_documento'
+        if ($this->has('documento') && ! $this->has('bus_documento')) {
+            $this->merge(['bus_documento' => $this->input('documento')]);
+        }
+
+        // Compatibilidad: si envían 'nombre' mapear a 'bus_nombre'
+        if ($this->has('nombre') && ! $this->has('bus_nombre')) {
+            $this->merge(['bus_nombre' => $this->input('nombre')]);
+        }
     }
 
     public function rules(): array

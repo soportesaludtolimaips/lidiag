@@ -23,6 +23,24 @@
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <button
                     type="button"
+                    class="btn btn-primary waves-effect waves-light m-r-5"
+                    @click="abrirAdmisionDirecta('PARTICULAR')"
+                    title="Admisionar paciente particular directamente sin requerir atención previa"
+                >
+                    <i class="fa fa-user-plus mr-1"></i>
+                    + Particular
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-warning text-white waves-effect waves-light m-r-5"
+                    @click="abrirAdmisionDirecta('CORTESIA')"
+                    title="Admisionar paciente de cortesía directamente sin requerir atención previa"
+                >
+                    <i class="fa fa-gift mr-1"></i>
+                    + Cortesía
+                </button>
+                <button
+                    type="button"
                     class="btn btn-info waves-effect waves-light"
                     @click="listarAtenciones()"
                     :disabled="isBuscandoAtenciones"
@@ -164,136 +182,246 @@
                             <table
                                 id="tablaAdmisiones"
                                 ref="dt"
-                                class="table table-bordered table-striped"
+                                class="table table-hover table-bordered table-custom-compact"
                                 cellspacing="0"
                                 width="100%"
                             >
-                                <thead>
+                                <thead class="thead-light">
                                     <tr>
-                                        <th with="5%">Fecha</th>
-                                        <th with="5%"># Documento</th>
-                                        <th with="30%">Paciente</th>
-                                        <th>Examen</th>
-                                        <th>Cantidad</th>
-                                        <th>Val. Examen</th>
-                                        <th>Administradora</th>
-                                        <th>Contrato</th>
-                                        <th>Plan</th>
-                                        <th>Quien Ordeno</th>
-                                        <th>Servicio / Ubicación</th>
-                                        <th>Cama</th>
-                                        <th>Estado</th>
-                                        <th>SAHI</th>
-                                        <th></th>
+                                        <th style="width: 10%">Fecha / Ingreso</th>
+                                        <th style="width: 18%">Paciente</th>
+                                        <th style="width: 22%">Examen / Procedimiento</th>
+                                        <th style="width: 6%" class="text-center">Cant.</th>
+                                        <th style="width: 18%">Aseguramiento / EPS</th>
+                                        <th style="width: 11%">Ubicación & Cama</th>
+                                        <th style="width: 5%" class="text-center">Estado</th>
+                                        <th style="width: 5%" class="text-center">SAHI</th>
+                                        <th style="width: 5%" class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr v-for="(item, index) in registros" :key="item.id || index">
-                                        <td>{{ item.FecIngreso }}</td>
-                                        <td>{{ item.NumDocumento }}</td>
-                                        <td>
-                                            {{ item.PrimerNombre }} {{ item.SegundoNombre }}
-                                            {{ item.PrimerApellido }} {{ item.SegundoApellido }}
-                                        </td>
-                                        <td>
-                                            <div>{{ item.NomProducto }}</div>
-                                            <small
-                                                v-if="
-                                                    item.tiene_plantilla_consentimiento &&
-                                                    item.consentimiento_estado ===
-                                                        'PENDIENTE_PACIENTE'
-                                                "
-                                                class="text-danger"
+                                        <!-- 1. Fecha / Ingreso -->
+                                        <td class="align-middle">
+                                            <div
+                                                class="font-weight-bold text-dark"
+                                                style="font-size: 13px"
                                             >
-                                                Pendiente firma paciente/acompañante
-                                            </small>
+                                                <i class="fa fa-calendar-o text-muted mr-1"></i>
+                                                {{ formatearFecha(item.FecIngreso) }}
+                                            </div>
                                             <small
-                                                v-else-if="
-                                                    item.tiene_plantilla_consentimiento &&
-                                                    item.consentimiento_estado ===
-                                                        'PENDIENTE_MEDICO'
-                                                "
-                                                class="text-warning"
+                                                class="text-muted d-block"
+                                                style="font-size: 11px"
                                             >
-                                                Pendiente firma médico
-                                            </small>
-                                            <small
-                                                v-else-if="
-                                                    item.tiene_plantilla_consentimiento &&
-                                                    item.consentimiento_estado === 'COMPLETO'
-                                                "
-                                                class="text-success"
-                                            >
-                                                Consentimiento completo
+                                                <i class="fa fa-clock-o mr-1"></i
+                                                >{{ formatearHora(item.FecIngreso) }}
                                             </small>
                                         </td>
-                                        <td align="right">{{ item.Cantidad }}</td>
-                                        <td align="right">{{ formatoMoneda(item.ValProduc) }}</td>
-                                        <td>{{ item.NomTercero }}</td>
-                                        <td>{{ item.DesContrato }}</td>
-                                        <td>{{ item.DesPlan }}</td>
-                                        <td>{{ item.quien_ordeno }}</td>
-                                        <td>
-                                            {{
-                                                item.NomUbicacion ||
-                                                item.ubicacion ||
-                                                "Sin ubicación"
-                                            }}
+
+                                        <!-- 2. Paciente + Documento -->
+                                        <td class="align-middle">
+                                            <div class="paciente-nombre font-weight-bold text-dark">
+                                                {{ item.PrimerNombre }} {{ item.SegundoNombre }}
+                                                {{ item.PrimerApellido }} {{ item.SegundoApellido }}
+                                            </div>
+                                            <div
+                                                class="text-primary mt-1"
+                                                style="font-size: 12px; font-weight: 600"
+                                            >
+                                                <i class="fa fa-id-card-o mr-1"></i>
+                                                {{ item.NumDocumento }}
+                                            </div>
                                         </td>
-                                        <td>
+
+                                        <!-- 3. Examen / Procedimiento + Valor -->
+                                        <td class="align-middle">
+                                            <div
+                                                class="examen-titulo font-weight-bold text-dark"
+                                                :title="item.NomProducto"
+                                            >
+                                                {{ item.NomProducto }}
+                                            </div>
+                                            <div class="mt-1 d-flex flex-wrap align-items-center">
+                                                <span
+                                                    class="badge badge-light border text-muted mr-2"
+                                                    style="font-size: 11px"
+                                                >
+                                                    Valor: ${{ formatoMoneda(item.ValProduc) }}
+                                                </span>
+                                                <small
+                                                    v-if="item.CodProducto"
+                                                    class="text-muted mr-2"
+                                                    style="font-size: 11px"
+                                                >
+                                                    Cód: {{ item.CodProducto }}
+                                                </small>
+                                            </div>
+                                            <div class="mt-1">
+                                                <small
+                                                    v-if="
+                                                        item.tiene_plantilla_consentimiento &&
+                                                        item.consentimiento_estado ===
+                                                            'PENDIENTE_PACIENTE'
+                                                    "
+                                                    class="badge badge-danger"
+                                                >
+                                                    Firma paciente pendiente
+                                                </small>
+                                                <small
+                                                    v-else-if="
+                                                        item.tiene_plantilla_consentimiento &&
+                                                        item.consentimiento_estado ===
+                                                            'PENDIENTE_MEDICO'
+                                                    "
+                                                    class="badge badge-warning text-white"
+                                                >
+                                                    Firma médico pendiente
+                                                </small>
+                                                <small
+                                                    v-else-if="
+                                                        item.tiene_plantilla_consentimiento &&
+                                                        item.consentimiento_estado === 'COMPLETO'
+                                                    "
+                                                    class="badge badge-success"
+                                                >
+                                                    Consentimiento firmado
+                                                </small>
+                                            </div>
+                                        </td>
+
+                                        <!-- 4. Cantidad -->
+                                        <td
+                                            class="text-center align-middle font-weight-bold"
+                                            style="font-size: 13px"
+                                        >
+                                            {{ item.Cantidad }}
+                                        </td>
+
+                                        <!-- 5. Aseguramiento / EPS + Contrato + Plan -->
+                                        <td class="align-middle">
+                                            <div
+                                                class="font-weight-bold text-dark text-truncate"
+                                                style="max-width: 220px"
+                                                :title="item.NomTercero || 'Particular / Directo'"
+                                            >
+                                                {{ item.NomTercero || "Sin Administradora" }}
+                                            </div>
+                                            <div
+                                                v-if="item.DesContrato || item.DesPlan"
+                                                class="small text-muted mt-1"
+                                                style="font-size: 11px; line-height: 1.3"
+                                            >
+                                                <div
+                                                    v-if="item.DesContrato"
+                                                    class="text-truncate"
+                                                    style="max-width: 220px"
+                                                    :title="'Contrato: ' + item.DesContrato"
+                                                >
+                                                    <strong>C:</strong> {{ item.DesContrato }}
+                                                </div>
+                                                <div
+                                                    v-if="item.DesPlan"
+                                                    class="text-truncate"
+                                                    style="max-width: 220px"
+                                                    :title="'Plan: ' + item.DesPlan"
+                                                >
+                                                    <strong>P:</strong> {{ item.DesPlan }}
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <!-- 6. Ubicación & Cama + Ordenó -->
+                                        <td class="align-middle">
+                                            <div
+                                                class="text-truncate"
+                                                style="max-width: 140px"
+                                                :title="
+                                                    item.NomUbicacion ||
+                                                    item.ubicacion ||
+                                                    'Sin ubicación'
+                                                "
+                                            >
+                                                <i class="fa fa-hospital-o text-muted mr-1"></i>
+                                                <span style="font-size: 12px">{{
+                                                    item.NomUbicacion ||
+                                                    item.ubicacion ||
+                                                    "Sin ubicación"
+                                                }}</span>
+                                            </div>
+                                            <div class="mt-1">
+                                                <span
+                                                    v-if="item.Cama || item.cama"
+                                                    class="badge badge-light border text-dark font-weight-bold"
+                                                    style="font-size: 10px"
+                                                >
+                                                    Cama: {{ item.Cama || item.cama }}
+                                                </span>
+                                                <span
+                                                    v-else
+                                                    class="text-muted font-italic"
+                                                    style="font-size: 10px"
+                                                >
+                                                    Sin cama
+                                                </span>
+                                            </div>
+                                            <div
+                                                v-if="item.quien_ordeno"
+                                                class="small text-muted mt-1 text-truncate"
+                                                style="max-width: 140px; font-size: 10px"
+                                                :title="'Ordenó: ' + item.quien_ordeno"
+                                            >
+                                                <i class="fa fa-user-md text-info mr-1"></i
+                                                >{{ item.quien_ordeno }}
+                                            </div>
+                                        </td>
+
+                                        <!-- 7. Estado -->
+                                        <td class="text-center align-middle">
                                             <span
-                                                :class="
-                                                    item.Cama || item.cama
-                                                        ? 'badge badge-light text-dark font-weight-bold'
-                                                        : 'text-muted font-italic'
-                                                "
-                                            >
-                                                {{ item.Cama || item.cama || "Sin cama" }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span
-                                                class="label label-info"
+                                                class="badge badge-info"
                                                 v-if="item.estado_ecografia === 'EN PROCESO'"
                                                 >{{ item.estado_ecografia }}</span
                                             >
                                             <span
-                                                class="label label-success"
+                                                class="badge badge-success"
                                                 v-if="item.estado_ecografia === 'LEIDO'"
                                                 >{{ item.estado_ecografia }}</span
                                             >
                                             <span
-                                                class="label label-danger"
+                                                class="badge badge-danger"
                                                 v-if="item.estado_ecografia === 'ANULADO'"
                                                 >{{ item.estado_ecografia }}</span
                                             >
                                         </td>
-                                        <td>
+
+                                        <!-- 8. SAHI -->
+                                        <td class="text-center align-middle">
                                             <template
                                                 v-if="sedeInterface && item.ecografia_producto_id"
                                             >
                                                 <span
                                                     v-if="item.estado_envio_sahi"
-                                                    class="label"
+                                                    class="badge"
                                                     :class="{
-                                                        'label-success':
+                                                        'badge-success':
                                                             item.estado_envio_sahi === 'ENVIADO',
-                                                        'label-warning':
+                                                        'badge-warning text-white':
                                                             item.estado_envio_sahi === 'ENVIANDO' ||
                                                             item.estado_envio_sahi === 'PENDIENTE',
-                                                        'label-danger':
+                                                        'badge-danger':
                                                             item.estado_envio_sahi === 'ERROR',
-                                                        'label-default': !item.estado_envio_sahi,
+                                                        'badge-secondary': !item.estado_envio_sahi,
                                                     }"
                                                 >
                                                     {{ item.estado_envio_sahi }}
                                                 </span>
                                                 <span v-else class="text-muted">—</span>
 
-                                                <div class="m-t-5">
+                                                <div class="mt-1">
                                                     <button
                                                         type="button"
-                                                        class="btn btn-info btn-xs m-r-5"
+                                                        class="btn btn-info btn-xs mr-1"
                                                         @click="consultarEstadoSahi(item)"
                                                         :disabled="
                                                             isConsultandoSahi[
@@ -347,7 +475,15 @@
                                                         item.estado_envio_sahi === 'ERROR' &&
                                                         item.error_envio_sahi
                                                     "
-                                                    class="text-danger d-block"
+                                                    class="text-danger d-block mt-1"
+                                                    style="
+                                                        font-size: 10px;
+                                                        max-width: 90px;
+                                                        overflow: hidden;
+                                                        text-overflow: ellipsis;
+                                                        white-space: nowrap;
+                                                    "
+                                                    :title="item.error_envio_sahi"
                                                 >
                                                     {{ item.error_envio_sahi }}
                                                 </small>
@@ -356,10 +492,12 @@
                                                 <span class="text-muted">—</span>
                                             </template>
                                         </td>
-                                        <td class="text-nowrap">
+
+                                        <!-- 9. Acciones -->
+                                        <td class="text-center align-middle text-nowrap">
                                             <button
                                                 type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm mr-1"
                                                 @click="
                                                     actualizar = false;
                                                     registroParaAnular(item);
@@ -376,7 +514,7 @@
 
                                             <button
                                                 type="button"
-                                                class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm mr-1"
                                                 @click="
                                                     actualizar = true;
                                                     mostrarRegistro(item);
@@ -458,13 +596,15 @@
                     <!-- ============================================================== -->
                     <form action="#">
                         <div class="form-body">
-                            <!-- Resumen informativo de EPS, Contrato, Plan y Atención -->
+                            <!-- Resumen informativo de EPS, Contrato, Plan y Atención (solo aplica cuando proviene de una atención institucional) -->
                             <div
                                 v-if="
-                                    registro.admin_salud ||
-                                    registro.contrato ||
-                                    registro.plan ||
-                                    registro.atencion_id
+                                    !esParticular &&
+                                    !esCortesia &&
+                                    (registro.admin_salud ||
+                                        registro.contrato ||
+                                        registro.plan ||
+                                        registro.atencion_id)
                                 "
                                 class="alert alert-info py-2 px-3 mb-3 border-left-info shadow-sm"
                                 style="
@@ -569,6 +709,8 @@
                                                     v-model="registro.num_docu"
                                                     class="form-control"
                                                     placeholder="# de Documento"
+                                                    @blur="buscarPacientePorDocumento()"
+                                                    @keyup.enter="buscarPacientePorDocumento()"
                                                 />
                                             </div>
                                         </div>
@@ -643,13 +785,17 @@
                                         <div class="col-md-2">
                                             <div class="form-group">
                                                 <label class="control-label" for="sexo">Sexo</label>
-                                                <input
-                                                    type="text"
+                                                <select
                                                     id="sexo"
                                                     name="sexo"
                                                     v-model="registro.sexo"
                                                     class="form-control"
-                                                />
+                                                >
+                                                    <option value="">—</option>
+                                                    <option value="M">M</option>
+                                                    <option value="F">F</option>
+                                                    <option value="O">Otro</option>
+                                                </select>
                                             </div>
                                         </div>
 
@@ -1568,6 +1714,48 @@ function btnLimpiar() {
     registros.value = [];
     limpiarFormulario();
 }
+
+/**
+ * Formatea una fecha ISO a DD/MM/YYYY.
+ *
+ * @param {string} fecha Fecha en formato ISO o string.
+ * @returns {string} Fecha formateada o guion si no existe.
+ */
+function formatearFecha(fecha) {
+    if (!fecha) return "—";
+    try {
+        const d = new Date(fecha);
+        if (isNaN(d.getTime())) return fecha;
+        const dia = String(d.getDate()).padStart(2, "0");
+        const mes = String(d.getMonth() + 1).padStart(2, "0");
+        const anio = d.getFullYear();
+        return `${dia}/${mes}/${anio}`;
+    } catch {
+        return fecha;
+    }
+}
+
+/**
+ * Formatea una fecha ISO para obtener la hora en formato HH:mm (12h o 24h).
+ *
+ * @param {string} fecha Fecha en formato ISO o string.
+ * @returns {string} Hora formateada o guion.
+ */
+function formatearHora(fecha) {
+    if (!fecha) return "";
+    try {
+        const d = new Date(fecha);
+        if (isNaN(d.getTime())) return "";
+        let horas = d.getHours();
+        const minutos = String(d.getMinutes()).padStart(2, "0");
+        const ampm = horas >= 12 ? "PM" : "AM";
+        horas = horas % 12;
+        horas = horas ? horas : 12; // Hora '0' se muestra como '12'
+        return `${String(horas).padStart(2, "0")}:${minutos} ${ampm}`;
+    } catch {
+        return "";
+    }
+}
 /**
  * Destruye de forma segura la instancia de DataTable si existe.
  *
@@ -1752,6 +1940,16 @@ async function refrescarConsentimientoItem() {
  * @date 2024-04-04
  */
 async function guardarRegistro() {
+    // Si no es particular ni cortesía, la atención previa de SAHI es obligatoria
+    if (!esParticular.value && !esCortesia.value && !registro.value.atencion_id) {
+        toastMessage({
+            heading: "¡Atención!",
+            text: "Para este tipo de recaudo es obligatorio seleccionar una atención previa proveniente de SAHI.",
+            icon: "warning",
+        });
+        return;
+    }
+
     try {
         isGuardandoEcografia.value = true;
 
@@ -2325,12 +2523,18 @@ function onProductoSelect(value) {
             return String(p.id) === String(selectedId);
         });
         if (prod) {
-            const yaExiste = registro.value.productosAgenda.some((p) => p.id == prod.id);
+            const yaExiste = registro.value.productosAgenda.some(
+                (p) => (p.IdProducto || p.id) == prod.id
+            );
             if (!yaExiste) {
                 registro.value.productosAgenda.push({
+                    id: prod.id,
                     IdProducto: prod.id,
                     CodLegal: prod.cod_cups,
+                    CodProducto: prod.cod_cups,
+                    cod_cups: prod.cod_cups,
                     NomProducto: prod.nom_produc,
+                    nom_produc: prod.nom_produc,
                     Cantidad: 1,
                     ValProduc: esCortesia.value ? 0 : prod.val_produc,
                 });
@@ -2409,7 +2613,19 @@ function mostrarRegistro(data = {}) {
     registro.value.seg_nom = data.SegundoNombre;
     registro.value.pri_ape = data.PrimerApellido;
     registro.value.seg_ape = data.SegundoApellido;
-    registro.value.sexo = data.IdSexo;
+    // Homologar sexo (SAHI: 1 = Masculino, 2 = Femenino, o códigos textuales)
+    const rawSexo = String(data.IdSexo ?? data.sexo ?? "")
+        .trim()
+        .toUpperCase();
+    if (rawSexo === "1" || rawSexo === "M" || rawSexo === "MASCULINO") {
+        registro.value.sexo = "M";
+    } else if (rawSexo === "2" || rawSexo === "F" || rawSexo === "FEMENINO") {
+        registro.value.sexo = "F";
+    } else if (rawSexo === "O" || rawSexo === "OTRO" || rawSexo === "3") {
+        registro.value.sexo = "O";
+    } else {
+        registro.value.sexo = data.IdSexo ?? "";
+    }
     registro.value.fec_naci = data.FecNacimiento;
     registro.value.direccion = data.DirCasa;
     registro.value.tel = data.TelCasa;
@@ -2433,6 +2649,136 @@ function mostrarRegistro(data = {}) {
 
     abrirModal();
 }
+/**
+ * Abre directamente el formulario de admisión para Particular o Cortesía sin requerir atención previa.
+ *
+ * @param {'PARTICULAR'|'CORTESIA'} tipoCodigo Código del tipo de recaudo.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-18
+ */
+async function abrirAdmisionDirecta(tipoCodigo = "PARTICULAR") {
+    limpiarFormulario();
+
+    if (!tiposRecaudo.value || tiposRecaudo.value.length === 0) {
+        await listarTiposRecaudo();
+    }
+
+    const trEncontrado = tiposRecaudo.value.find((tr) => tr.codigo === tipoCodigo);
+    if (trEncontrado) {
+        registro.value.tipo_recaudo_id = trEncontrado.id;
+    } else {
+        registro.value.tipo_recaudo_id = tipoCodigo === "CORTESIA" ? 3 : 2;
+    }
+
+    registro.value.atencion_id = "";
+    tituloModal.value =
+        tipoCodigo === "CORTESIA"
+            ? "Nueva Admisión de Cortesía (Directa)"
+            : "Nueva Admisión Particular (Directa)";
+
+    await abrirModal();
+}
+
+/**
+ * Consulta un paciente registrado en el sistema local o externo por su número de documento para autocompletar.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-18
+ */
+async function buscarPacientePorDocumento() {
+    const doc = String(registro.value.num_docu || "").trim();
+    if (!doc || doc.length < 3) return;
+
+    try {
+        const sedeId =
+            registro.value.sede_id ||
+            sessionStorage.getItem("ST-sede") ||
+            localStorage.getItem("ST-sede") ||
+            1;
+
+        // 1. Búsqueda Local en LIDiag
+        const res = await axios.post("/api/pacientes/listar", {
+            bus_documento: doc,
+            sede_id: sedeId,
+        });
+
+        const lista = res.data?.data?.data || res.data?.data || [];
+        const encontradoLocal = Array.isArray(lista)
+            ? lista.find((p) => String(p.num_docu || "").trim() === doc) || lista[0]
+            : null;
+
+        if (
+            encontradoLocal &&
+            String(encontradoLocal.num_docu || "")
+                .trim()
+                .includes(doc)
+        ) {
+            registro.value.paciente_id = encontradoLocal.id;
+            registro.value.nombres = encontradoLocal.nombres || registro.value.nombres;
+            registro.value.seg_nom = encontradoLocal.seg_nom || registro.value.seg_nom;
+            registro.value.pri_ape = encontradoLocal.pri_ape || registro.value.pri_ape;
+            registro.value.seg_ape = encontradoLocal.seg_ape || registro.value.seg_ape;
+            if (encontradoLocal.sexo) {
+                const s = String(encontradoLocal.sexo).trim().toUpperCase();
+                registro.value.sexo =
+                    s === "1" || s === "M" ? "M" : s === "2" || s === "F" ? "F" : s;
+            }
+            registro.value.fec_naci = encontradoLocal.fec_naci || registro.value.fec_naci;
+            registro.value.direccion = encontradoLocal.direccion || registro.value.direccion;
+            registro.value.tel = encontradoLocal.tel || registro.value.tel;
+            registro.value.cel = encontradoLocal.cel || registro.value.cel;
+            registro.value.email = encontradoLocal.email || registro.value.email;
+            if (encontradoLocal.tipo_documento_id) {
+                registro.value.tipo_documento_id = encontradoLocal.tipo_documento_id;
+                selTipoDoc.value?.rebuild();
+            }
+            return;
+        }
+
+        // 2. Si no está local, buscar en SAHI si la sede cuenta con interfaz
+        try {
+            const resSahi = await axios.get(
+                `/api/interface-sahi/buscar-paciente/${encodeURIComponent(doc)}`
+            );
+            if (resSahi.status === 200 && resSahi.data?.data) {
+                const c = resSahi.data.data;
+                registro.value.nombres = c.PrimerNombre || registro.value.nombres;
+                registro.value.seg_nom = c.SegundoNombre || "";
+                registro.value.pri_ape = c.PrimerApellido || registro.value.pri_ape;
+                registro.value.seg_ape = c.SegundoApellido || "";
+                if (c.FecNacimiento) {
+                    registro.value.fec_naci = c.FecNacimiento;
+                }
+                if (c.IdSexo) {
+                    const s = String(c.IdSexo).trim().toUpperCase();
+                    registro.value.sexo =
+                        s === "1" || s === "M" ? "M" : s === "2" || s === "F" ? "F" : s;
+                }
+                if (c.DirCasa) registro.value.direccion = c.DirCasa;
+                if (c.TelCasa) registro.value.tel = c.TelCasa;
+                if (c.CodTipoDoc && tipoDocumentoOptions.value?.length) {
+                    const tipoHomologado = tipoDocumentoOptions.value.find(
+                        (t) => t.codigo === c.CodTipoDoc
+                    );
+                    if (tipoHomologado) {
+                        registro.value.tipo_documento_id = tipoHomologado.id;
+                        selTipoDoc.value?.rebuild();
+                    }
+                }
+            }
+        } catch (_) {
+            // No existe en SAHI o falló la conexión
+        }
+    } catch (_) {
+        // Búsqueda auxiliar no bloqueante
+    }
+}
+
 /**
  * Reinicia los campos del formulario de admisión de la ecografía.
  *
@@ -2619,5 +2965,48 @@ onBeforeUnmount(() => {
 
 :deep(.select2-container) {
     width: 100% !important;
+}
+
+/* ============================================================== */
+/* Estilos compactos para tabla de atenciones disponibles         */
+/* ============================================================== */
+.table-custom-compact {
+    font-size: 13px;
+    margin-bottom: 0;
+}
+
+.table-custom-compact thead th {
+    background-color: #f8fafc;
+    color: #495057;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 10px 8px !important;
+    vertical-align: middle !important;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.table-custom-compact tbody td {
+    padding: 8px 8px !important;
+    vertical-align: middle !important;
+}
+
+.paciente-nombre {
+    font-size: 13px;
+    line-height: 1.25;
+    color: #2b3035;
+}
+
+.examen-titulo {
+    font-size: 12.5px;
+    line-height: 1.3;
+    max-width: 280px;
+    word-break: break-word;
+    color: #1a202c;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f1f7ff;
 }
 </style>

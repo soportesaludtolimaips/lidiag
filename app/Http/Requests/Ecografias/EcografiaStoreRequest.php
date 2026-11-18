@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Ecografias;
 
+use App\Models\Configuracion\ConfigTipoRecaudo;
 use Illuminate\Foundation\Http\FormRequest;
 
 class EcografiaStoreRequest extends FormRequest
@@ -27,6 +28,10 @@ class EcografiaStoreRequest extends FormRequest
      */
     public function rules(): array
     {
+        $tipoRecaudoId = $this->input('tipo_recaudo_id');
+        $tipoRecaudo = $tipoRecaudoId ? ConfigTipoRecaudo::find($tipoRecaudoId) : null;
+        $requiereAtencion = ! $tipoRecaudo || (bool) $tipoRecaudo->envia_sahi;
+
         return [
             'num_docu' => 'required|string',
             'nombres' => 'required|string',
@@ -38,8 +43,9 @@ class EcografiaStoreRequest extends FormRequest
             'direccion' => 'sometimes|nullable|string',
             'tel' => 'sometimes|nullable|string',
             'cel' => 'sometimes|nullable|string',
+            'email' => 'sometimes|nullable|string',
             'sede_id' => 'required|integer',
-            'atencion_id' => 'required|string|max:20',
+            'atencion_id' => $requiereAtencion ? 'required|string|max:20' : 'sometimes|nullable|string|max:20',
             'medico_id' => 'required|integer',
             'tipo_recaudo_id' => 'sometimes|nullable|integer|exists:config_tipos_recaudo,id',
             'productosAgenda' => 'required|array',
