@@ -37,6 +37,21 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-18 — Resiliencia y Diagnóstico Defensivo en Conexión PACS (`StudyService.php`):**
+  - **Diagnóstico del Problema:**
+    * En producción, la consulta de estudios DICOM (`POST /api/study.listarEstudios`) arrojaba un error 500 genérico `Error interno del servidor.`.
+    * **Causa Raíz:** La contraseña del PACS (`password_dcm`) en la base de datos de producción para la sede estaba vacía o desactualizada. Al intentar conectar a la base de datos del PACS con contraseña vacía o incorrecta, MySQL lanzaba `SQLSTATE[HY000] [1045] Access denied for user 'lidiag'`, la cual al no tener manejo defensivo de excepciones en `StudyService::listarEstudios()`, provocaba una excepción no capturada de base de datos que derivaba en un HTTP 500 opaco sin mensaje para el usuario.
+  - **Solución Implementada:**
+    * En [`StudyService.php`](file:///c:/laragon/www/lidiag/app/Services/Dcm4chee/StudyService.php):
+      - Se implementó validación previa de presencia de credenciales (`ip_dcm`, `bd_dcm`, `usuario_dcm` y `password_dcm`). Si falta la contraseña, retorna un error 422 descriptivo inmediato: *"La sede 'X' no tiene configurada la contraseña del PACS. Por favor edite la sede y configure la contraseña."*.
+      - Se agregó purga defensiva de conexiones de base de datos (`DB::purge('mysql_sucursal')`) antes y después de la consulta para evitar reuso de credenciales obsoletas en caché de PDO.
+      - Se configuró timeout de conexión (`\PDO::ATTR_TIMEOUT => 5`) para prevenir que caídas de red o servidores PACS apagados congelen los procesos de PHP en producción.
+      - Se encapsuló la consulta en bloque `try / catch (\Throwable $e)` con logging detallado y traducción a mensajes de error legibles por el usuario (*Error de autenticación PACS* vs *Servidor inaccesible en red*).
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% (0 errores) ✅.
+    * Simulación con contraseña vacía verificada: retorna estado 422 con mensaje descriptivo ✅.
+    * Simulación con sede operativa verificada: retorna estado 200 con listado exitoso ✅.
+
 - [x] **2026-11-18 — Mejora Visual y Fallback de Camas y Ubicaciones en Módulo de Ecografías (`admisionarComponent.vue`, `ecografiasAdmisionadasComponent.vue`, `lecturaComponent.vue`):**
   - **Diagnóstico del Problema:**
     * En la tabla de búsqueda de atenciones SAHI de `admisionarComponent.vue` (y en tablas de admisionadas y lectura), cuando una atención no tiene cama hospitalaria asignada en SAHI (ej. pacientes ambulatorios o en salas de atención transitoria como sala de partos / observación), se mostraba un simple guion (`-`), lo que generaba ambigüedad sobre si el dato no se cargaba o si el paciente no tenía cama.

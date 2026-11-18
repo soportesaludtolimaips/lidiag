@@ -7,6 +7,8 @@ use App\Models\Dcm4chee\Study;
 use App\Models\Estudio\Estudio;
 use App\Services\BaseService;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class StudyService extends BaseService
 {
@@ -54,16 +56,28 @@ class StudyService extends BaseService
             return $this->error('Sede no encontrada.', 404);
         }
 
+        if (empty($sedeActual->ip_dcm) || empty($sedeActual->bd_dcm) || empty($sedeActual->usuario_dcm)) {
+            return $this->error("La sede '{$sedeActual->nom_sede}' no tiene configurada la conexión al PACS (IP, base de datos o usuario).", 422);
+        }
+
+        if (empty($sedeActual->password_dcm)) {
+            return $this->error("La sede '{$sedeActual->nom_sede}' no tiene configurada la contraseña del PACS. Por favor edite la sede y configure la contraseña.", 422);
+        }
+
         config(['database.connections.mysql_sucursal' => [
             'driver' => 'mysql',
             'host' => $sedeActual->ip_dcm,
-            'port' => $sedeActual->puerto_dcm,
+            'port' => $sedeActual->puerto_dcm ?: 3306,
             'database' => $sedeActual->bd_dcm,
             'username' => $sedeActual->usuario_dcm,
             'password' => $sedeActual->password_dcm,
             'charset' => 'latin1',
             'collation' => 'latin1_swedish_ci',
+            'options' => [
+                \PDO::ATTR_TIMEOUT => 5,
+            ],
         ]]);
+        DB::purge('mysql_sucursal');
 
         $conexionOriginal = config('database.default');
         try {
@@ -105,8 +119,27 @@ class StudyService extends BaseService
             $query->orderBy('study.study_datetime', 'desc')->limit(500);
 
             $resultados = $query->get();
+        } catch (\Throwable $e) {
+            Log::error("Error consultando PACS en sede {$sedeActual->nom_sede} (#{$sedeId}): ".$e->getMessage(), [
+                'exception' => $e,
+                'sede_id' => $sedeId,
+                'ip' => $sedeActual->ip_dcm,
+                'usuario' => $sedeActual->usuario_dcm,
+            ]);
+
+            $msg = "No fue posible consultar el servidor PACS de la sede {$sedeActual->nom_sede}";
+            if (str_contains($e->getMessage(), 'Access denied')) {
+                $msg .= '. Error de autenticación en la base de datos del PACS (verifique usuario y contraseña en la configuración de la sede).';
+            } elseif (str_contains($e->getMessage(), 'Connection refused') || str_contains($e->getMessage(), 'timed out') || str_contains($e->getMessage(), '2002')) {
+                $msg .= ". El servidor PACS no responde o no es accesible en la red ({$sedeActual->ip_dcm}).";
+            } else {
+                $msg .= ': '.$e->getMessage();
+            }
+
+            return $this->error($msg, 500);
         } finally {
             Config::set('database.default', $conexionOriginal);
+            DB::purge('mysql_sucursal');
         }
 
         // Reconciliación multi-criterio de asignación clínica sin acoplamientos rígidos:
