@@ -36,6 +36,16 @@ class EcografiaLecturaService extends BaseService
                 return $this->notFound("El producto de la ecografía no se encontró");
             }
 
+            if ($accion === 'GUARDAR_BORRADOR') {
+                $producto->update([
+                    'lectura' => $data['registro']['lectura'] ?? null,
+                    'opinion' => $data['registro']['opinion'] ?? null,
+                    'usua_regis_id' => auth()->id(),
+                ]);
+
+                return $this->success(['message' => 'Borrador guardado exitosamente']);
+            }
+
             if ($accion === 'IMPRIMIR_LECTURA') {
                 $producto->update([
                     'lectura' => $data['registro']['lectura'] ?? null,

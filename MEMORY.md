@@ -37,6 +37,20 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-18 — Implementación de Autoguardado de Borrador en Lectura de Ecografías (`lecturaComponent.vue` y `EcografiaLecturaService.php`):**
+  - **Diagnóstico del Problema:**
+    * Los médicos radiólogos no contaban con autoguardado periódico en las lecturas de ecografías. Si se cerraba la pestaña, ocurría un fallo de red o corte de energía, se perdían informes extensos.
+  - **Solución Implementada:**
+    * En [`EcografiaLecturaService.php`](file:///c:/laragon/www/lidiag/app/Services/Ecografias/EcografiaLecturaService.php): se añadió el soporte de la acción `'GUARDAR_BORRADOR'`, actualizando `lectura`, `opinion` y `usua_regis_id` en `ecografias_productos` sin alterar el estado de la ecografía (permanece `EN PROCESO` sin disparar envíos a SAHI).
+    * En [`lecturaComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/lecturaComponent.vue):
+      - Se implementó `iniciarAutoguardado()` con ciclo cada 60 segundos (`setInterval`).
+      - Se compara el contenido previo contra el actual para evitar peticiones innecesarias si el médico no ha editado.
+      - Se añadió indicador visual sutil junto a los botones de acción (`Borrador guardado a las HH:mm:ss` o indicador de progreso/error).
+      - Se controla el ciclo de vida limpiando el temporizador al cerrar el panel (`cerrarSidebar`, `btnCerrarModalForm`), al limpiar el formulario y al desmontar el componente (`onBeforeUnmount`).
+  - **Verificaciones:**
+    * Pint: `vendor\bin\pint.bat --test app/Services/Ecografias/EcografiaLecturaService.php` (passed).
+    * ESLint & Prettier: 0 errores.
+    * Compilación Vite exitosa.
 - [x] **2026-11-18 — Visualización de Tipo de Recaudo en `ecografiasAdmisionadasComponent.vue`:**
   - **Diagnóstico y Solución:**
     * En el listado de ecografías admisionadas no se identificaba si una ecografía era Particular, Cortesía o Por Atención.

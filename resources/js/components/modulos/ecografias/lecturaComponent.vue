@@ -710,6 +710,25 @@
                                 {{ registro.error_envio_sahi }}
                             </small>
 
+                            <!-- Indicador de Autoguardado -->
+                            <span
+                                v-if="estadoAutoguardado.visible"
+                                class="badge badge-light border text-muted ml-2 mr-2"
+                                style="font-size: 11px; font-weight: normal"
+                            >
+                                <i
+                                    class="fa mr-1"
+                                    :class="
+                                        estadoAutoguardado.guardando
+                                            ? 'fa-spinner fa-spin text-info'
+                                            : estadoAutoguardado.error
+                                              ? 'fa-exclamation-triangle text-danger'
+                                              : 'fa-check text-success'
+                                    "
+                                ></i>
+                                {{ estadoAutoguardado.texto }}
+                            </span>
+
                             <button
                                 type="button"
                                 class="btn btn-inverse waves-effect waves-light"
@@ -1047,9 +1066,20 @@ const modalPendientesConsentimientosVisible = ref(false);
 const modalReporteVisible = ref(false);
 const urlReportePdf = ref("");
 
+// Variables de estado para el Autoguardado de borrador (cada 1 min)
+const timerAutoguardado = ref(null);
+const ultimoContenidoGuardado = ref("");
+const estadoAutoguardado = ref({
+    visible: false,
+    guardando: false,
+    error: false,
+    texto: "",
+});
+
 function cerrarSidebar() {
     if (sidebarVisible.value) {
         sidebarVisible.value = false;
+        detenerAutoguardado();
         stopSahiPolling();
     }
 }
@@ -2344,6 +2374,86 @@ function onPlantillaSelect(value) {
     registro.value.opinion = (plantilla && plantilla.opinion) || null;
 }
 /**
+ * Inicia el temporizador de autoguardado en segundo plano (cada 60 segundos).
+ *
+ * @returns {void}
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-18
+ */
+function iniciarAutoguardado() {
+    detenerAutoguardado();
+    ultimoContenidoGuardado.value = `${registro.value.lectura || ""}|${registro.value.opinion || ""}`;
+    estadoAutoguardado.value = {
+        visible: false,
+        guardando: false,
+        error: false,
+        texto: "",
+    };
+
+    timerAutoguardado.value = setInterval(async () => {
+        if (!sidebarVisible.value || !registro.value.ecografia_id) return;
+        if (isGuardandoLectura.value || isGenerandoReporte.value) return;
+
+        const contenidoActual = `${registro.value.lectura || ""}|${registro.value.opinion || ""}`;
+        const textoLimpio = (registro.value.lectura || "").replace(/<[^>]*>/g, "").trim();
+
+        // Si no hay texto significativo o no ha cambiado desde el último guardado, omitir
+        if (!textoLimpio || contenidoActual === ultimoContenidoGuardado.value) return;
+
+        try {
+            estadoAutoguardado.value = {
+                visible: true,
+                guardando: true,
+                error: false,
+                texto: "Guardando borrador...",
+            };
+
+            const res = await axios.put(`/api/ecografia-lectura/${registro.value.ecografia_id}`, {
+                accion: "GUARDAR_BORRADOR",
+                registro: registro.value,
+            });
+
+            if (res.status === 200 || res.status === 201) {
+                ultimoContenidoGuardado.value = contenidoActual;
+                const ahora = new Date();
+                const horaStr = ahora.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                });
+                estadoAutoguardado.value = {
+                    visible: true,
+                    guardando: false,
+                    error: false,
+                    texto: `Borrador guardado a las ${horaStr}`,
+                };
+            }
+        } catch {
+            estadoAutoguardado.value = {
+                visible: true,
+                guardando: false,
+                error: true,
+                texto: "Error al autoguardar borrador",
+            };
+        }
+    }, 60000); // 1 minuto
+}
+
+/**
+ * Detiene y limpia el temporizador de autoguardado.
+ *
+ * @returns {void}
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-18
+ */
+function detenerAutoguardado() {
+    if (timerAutoguardado.value) {
+        clearInterval(timerAutoguardado.value);
+        timerAutoguardado.value = null;
+    }
+}
+
+/**
  * Cierra/despliega el panel lateral del formulario de lectura y detiene el sondeo SAHI.
  *
  * @returns {void}
@@ -2361,6 +2471,9 @@ function btnCerrarModalForm() {
             selTipoPlantilla.value?.rebuild();
             selPlantilla.value?.rebuild();
         });
+        iniciarAutoguardado();
+    } else {
+        detenerAutoguardado();
     }
     // al cerrar, detenemos polling para evitar fugas
     stopSahiPolling();
@@ -2480,6 +2593,8 @@ function mostrarRegistro(data = {}) {
  */
 function limpiarFormulario() {
     tituloModal.value = "";
+    detenerAutoguardado();
+    estadoAutoguardado.value = { visible: false, guardando: false, error: false, texto: "" };
     stopSahiPolling();
 
     registro.value.paciente_id = "";
@@ -2569,6 +2684,7 @@ onBeforeUnmount(() => {
     window.removeEventListener("keydown", handleKeydown);
     emitter.off("sedeSeleccionada", onSedeSeleccionada);
     emitter.off("medicoSeleccionado", onMedicoSeleccionado);
+    detenerAutoguardado();
     stopSahiPolling();
     try {
         stopVoice();
