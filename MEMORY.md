@@ -50,6 +50,7 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * **Servicio de Sedes ([`ConfigSedeService.php`](file:///c:/laragon/www/lidiag/app/Services/Configuracion/ConfigSedeService.php)):**
       - Se normalizó el guardado a `basename($info['path'])` tanto en `create()` como en `update()`.
     * **Frontend ([`configSedeComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/configuracion/configSedeComponent.vue)):**
+      - Se eliminaron todos los estilos custom y selectores scoped inventados, utilizando estrictamente los estilos nativos de la plantilla del sistema (.right-sidebar estándar, labels y tablas Bootstrap).
       - Se simplificó `guardarRegistro()` para enviar únicamente `plantilla_ecografia` sin duplicar la carga en `plantilla_rx_ecografia`.
   - **Verificaciones:**
     * Prueba end-to-end simulando subida de plantilla y actualización en PHP 8.4 exitosa (`UPDATE SUCCESS: true`, `STATUS: 200`) ✅.
