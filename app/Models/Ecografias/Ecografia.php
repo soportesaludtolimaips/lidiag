@@ -45,6 +45,9 @@ class Ecografia extends Model
         'plan',
         'quien_ordena',
         'estado',
+        'usua_anula_id',
+        'fechor_anula',
+        'motivo_anula',
     ];
 
     /**
@@ -67,6 +70,20 @@ class Ecografia extends Model
     public function usuarioRegistrador()
     {
         return $this->belongsTo(User::class, 'usua_regis_id');
+    }
+
+    /**
+     * Usuario que anuló la ecografía.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-18
+     */
+    public function usuarioAnula()
+    {
+        return $this->belongsTo(User::class, 'usua_anula_id');
     }
 
     /**

@@ -290,14 +290,23 @@ class EcografiaService extends BaseService
     /**
      * Anula una ecografía registrando el motivo y el usuario que anula.
      *
+     * Flujo del proceso:
+     * 1. Busca la ecografía por su identificador.
+     * 2. Si no existe, retorna error 404 notFound.
+     * 3. Dentro de una transacción de base de datos, actualiza el estado de la ecografía a 'ANULADO',
+     *    asignando el motivo, usuario que anula y fecha/hora actual.
+     * 4. Actualiza los productos asociados en ecografias_productos a estado 'ANULADO'.
+     * 5. Actualiza las órdenes de Worklist asociadas pendientes a estado 'CANCELADO'.
+     * 6. Retorna respuesta exitosa.
+     *
      * @param  int  $id  Identificador de la ecografía.
      * @param  string  $motivo  Motivo de la anulación.
      *
-     * @returns {array}
+     * @returns array
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-07-14
+     * @date 2026-11-18
      */
     public function anular(int $id, string $motivo): array
     {
@@ -307,12 +316,22 @@ class EcografiaService extends BaseService
             return $this->notFound('Ecografía no encontrada');
         }
 
-        $ecografia->estado = 'ANULADO';
-        $ecografia->motivo_anula = $motivo;
-        $ecografia->usua_anula_id = auth()->id();
-        $ecografia->fechor_anula = now();
-        $ecografia->save();
+        return DB::transaction(function () use ($ecografia, $motivo, $id) {
+            $ecografia->estado = 'ANULADO';
+            $ecografia->motivo_anula = $motivo;
+            $ecografia->usua_anula_id = auth()->id();
+            $ecografia->fechor_anula = now();
+            $ecografia->save();
 
-        return $this->success(null, 'Ecografía anulada correctamente');
+            EcografiaProducto::where('ecografia_id', $id)
+                ->where('estado', '!=', 'ANULADO')
+                ->update(['estado' => 'ANULADO']);
+
+            WorklistOrden::where('ecografia_id', $id)
+                ->where('estado', 'PENDIENTE')
+                ->update(['estado' => 'CANCELADO']);
+
+            return $this->success(null, 'Ecografía anulada correctamente');
+        });
     }
 }

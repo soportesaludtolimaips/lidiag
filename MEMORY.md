@@ -37,6 +37,15 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-18 — Corrección de Error 500 al Anular Ecografía (`POST /api/ecografia-anular/{id}`):**
+  - **Diagnóstico:**
+    * Al intentar anular una ecografía (`POST https://lidiag.com/api/ecografia-anular/{id}`), el backend devolvía error 500 (`Error interno del servidor`).
+    * La tabla física `ecografias` en MySQL carecía de las columnas de anulación (`usua_anula_id`, `fechor_anula`, `motivo_anula`), lo que generaba una excepción SQLSTATE[42S22] (Unknown column 'motivo_anula').
+    * Además, en `EcografiaService::anular()`, solo se actualizaba la cabecera `ecografias`, dejando los productos asociados en `ecografias_productos` y las órdenes asociadas en `worklist_ordenes` en estado inconsistente.
+  - **Solución Implementada:**
+    * **Migración:** Se creó la migración reproducible [`database/migrations/2026_11_18_091000_add_anulacion_columns_to_ecografias_table.php`](file:///c:/laragon/www/lidiag/database/migrations/2026_11_18_091000_add_anulacion_columns_to_ecografias_table.php) y se sincronizó en la base de datos `lidiag`.
+    * **Modelo:** Se agregaron `usua_anula_id`, `fechor_anula` y `motivo_anula` al `$fillable` de [`app/Models/Ecografias/Ecografia.php`](file:///c:/laragon/www/lidiag/app/Models/Ecografias/Ecografia.php) y la relación `usuarioAnula()`.
+    * **Servicio:** Se actualizó [`EcografiaService::anular()`](file:///c:/laragon/www/lidiag/app/Services/Ecografias/EcografiaService.php) dentro de una transacción `DB::transaction()` para marcar la ecografía como `ANULADO`, actualizar sus productos `ecografias_productos` a `ANULADO` y cancelar órdenes pendientes en `worklist_ordenes`.
 - [x] **2026-11-17 — Integración de Herramienta de Imágenes en Editor WYSIWYG (`WysiwygEditor.vue`, `wysiwyg-color.css`):**
   - **Requerimiento:**
     * Analizar el estilo y las herramientas del editor en la plantilla oficial `Documentos/Plantilla lidiag/mini-sidebar/form-bootstrapwysihtml5.html` e implementar en [`WysiwygEditor.vue`](file:///c:/laragon/www/lidiag/resources/js/components/shared/WysiwygEditor.vue) la herramienta faltante para insertar imágenes.
