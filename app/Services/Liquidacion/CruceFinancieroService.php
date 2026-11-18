@@ -6,6 +6,7 @@ use App\Services\BaseService;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\LazyCollection;
 
 /**
@@ -53,6 +54,17 @@ class CruceFinancieroService extends BaseService
         // Criterio de producción simplificado:
         // Solo se listan los estudios que tengan lectura y el filtro de fechas
         // se evalúa estrictamente por la fecha y hora de la lectura médica (fechor_lectura).
+        $hasUbicacionCol = Schema::hasColumn("estudios", "ubicacion");
+        $hasCamaCol = Schema::hasColumn("estudios", "cama");
+
+        $colUbicacion = $hasUbicacionCol
+            ? "COALESCE(NULLIF(estudios.ubicacion, ''), NULLIF(estudios.servicio, ''), 'N/A') as ubicacion"
+            : "COALESCE(NULLIF(estudios.servicio, ''), 'N/A') as ubicacion";
+
+        $colCama = $hasCamaCol
+            ? "COALESCE(NULLIF(estudios.cama, ''), 'N/A') as cama"
+            : "'N/A' as cama";
+
         return DB::table("estudios_productos")
             ->join("estudios", "estudios_productos.estudio_id", "=", "estudios.id")
             ->join("config_sedes", "estudios.sede_id", "=", "config_sedes.id")
@@ -109,6 +121,9 @@ class CruceFinancieroService extends BaseService
                 "estudios.eps",
                 "estudios.contrato",
                 "estudios.plan",
+                DB::raw("COALESCE(NULLIF(estudios_productos.medico_ordena, ''), 'N/A') as medico_ordena"),
+                DB::raw($colUbicacion),
+                DB::raw($colCama),
                 DB::raw("(SELECT GROUP_CONCAT('- ', nom_diagnos SEPARATOR '\n')
                             FROM estudios_diagnosticos
                             WHERE estudio_id = estudios.id) as diagnosticos"),

@@ -34,6 +34,8 @@ class Estudio extends Model
         'motivo_examen',
         'atencion',
         'servicio',
+        'ubicacion',
+        'cama',
         'eps',
         'contrato',
         'plan',

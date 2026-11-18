@@ -149,6 +149,8 @@ class EstudioService extends BaseService
                     'motivo_examen' => ! empty($registro['motivo_examen']) ? $registro['motivo_examen'] : null,
                     'atencion' => ! empty($registro['atencion_id']) ? $registro['atencion_id'] : null,
                     'servicio' => $interfaceData['servicio'] ?? null,
+                    'ubicacion' => $interfaceData['ubicacion'] ?? ($interfaceData['servicio'] ?? null),
+                    'cama' => $interfaceData['cama'] ?? null,
                     'eps' => $interfaceData['eps'] ?? null,
                     'contrato' => $interfaceData['contrato'] ?? null,
                     'plan' => $interfaceData['plan'] ?? null,
@@ -1097,6 +1099,8 @@ class EstudioService extends BaseService
                         'contrato' => (string) ($itemArray['DesContrato'] ?? ''),
                         'plan' => (string) ($itemArray['DesPlan'] ?? ''),
                         'servicio' => (string) ($itemArray['NomUbicacion'] ?? ''),
+                        'ubicacion' => (string) ($itemArray['NomUbicacion'] ?? ''),
+                        'cama' => (string) ($itemArray['Cama'] ?? ''),
                         'medico_ordena' => (string) ($itemArray['quien_ordeno'] ?? ''),
                     ];
                 }

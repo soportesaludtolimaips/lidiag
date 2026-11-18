@@ -102,6 +102,9 @@ class ProduccionDetalladaDetalleSheet implements FromCollection, WithColumnWidth
             "EPS",
             "Contrato",
             "Plan",
+            "Médico que Ordenó",
+            "Ubicación",
+            "Cama",
             "Lectura",
             "Valor Contratado Entidad",
             "Valor Contratado Médico",
@@ -143,6 +146,9 @@ class ProduccionDetalladaDetalleSheet implements FromCollection, WithColumnWidth
             $estudio->eps ?? "N/A",
             $estudio->contrato ?? "N/A",
             $estudio->plan ?? "N/A",
+            $estudio->medico_ordena ?? "N/A",
+            $estudio->ubicacion ?? "N/A",
+            $estudio->cama ?? "N/A",
             $estudio->lectura ?? "N/A",
             (float) ($estudio->valor_entidad ?? 0),
             (float) ($estudio->valor_medico ?? 0),
@@ -167,7 +173,7 @@ class ProduccionDetalladaDetalleSheet implements FromCollection, WithColumnWidth
     {
         // Encabezado corporativo institucional
         $sheet->setCellValue("A1", "Salud Tolima - Reporte de Producción y Liquidación");
-        $sheet->mergeCells("A1:X1");
+        $sheet->mergeCells("A1:AA1");
         $sheet->getStyle("A1")->applyFromArray([
             "font" => [
                 "bold" => true,
@@ -186,7 +192,7 @@ class ProduccionDetalladaDetalleSheet implements FromCollection, WithColumnWidth
         $sheet->getRowDimension(1)->setRowHeight(30);
 
         // Encabezado de la tabla de datos
-        $sheet->getStyle("A3:X3")->applyFromArray([
+        $sheet->getStyle("A3:AA3")->applyFromArray([
             "font" => [
                 "bold" => true,
                 "color" => ["rgb" => "FFFFFF"],
@@ -205,7 +211,7 @@ class ProduccionDetalladaDetalleSheet implements FromCollection, WithColumnWidth
         // Bordes y formatos para los registros de datos
         $highestRow = max(3, $sheet->getHighestRow());
         if ($highestRow >= 4) {
-            $sheet->getStyle("A4:X{$highestRow}")->applyFromArray([
+            $sheet->getStyle("A4:AA{$highestRow}")->applyFromArray([
                 "borders" => [
                     "allBorders" => [
                         "borderStyle" => Border::BORDER_THIN,
@@ -214,13 +220,13 @@ class ProduccionDetalladaDetalleSheet implements FromCollection, WithColumnWidth
                 ],
             ]);
 
-            // Formato de moneda para columnas financieras (T: Valor Entidad, U: Valor Médico, V: Margen)
-            $sheet->getStyle("T4:V{$highestRow}")
+            // Formato de moneda para columnas financieras (W: Valor Entidad, X: Valor Médico, Y: Margen)
+            $sheet->getStyle("W4:Y{$highestRow}")
                 ->getNumberFormat()
                 ->setFormatCode("$#,##0.00");
 
             // Alineación centrada para columnas de tarifas y auditoría
-            $sheet->getStyle("W4:X{$highestRow}")
+            $sheet->getStyle("Z4:AA{$highestRow}")
                 ->getAlignment()
                 ->setHorizontal(Alignment::HORIZONTAL_CENTER);
         }
@@ -232,7 +238,7 @@ class ProduccionDetalladaDetalleSheet implements FromCollection, WithColumnWidth
     }
 
     /**
-     * Define el ancho de cada columna del reporte (A hasta X).
+     * Define el ancho de cada columna del reporte (A hasta AA).
      *
      * @returns array<string, int>
      *
@@ -261,12 +267,15 @@ class ProduccionDetalladaDetalleSheet implements FromCollection, WithColumnWidth
             "P" => 26, // EPS
             "Q" => 24, // Contrato
             "R" => 24, // Plan
-            "S" => 40, // Lectura
-            "T" => 24, // Valor Contratado Entidad
-            "U" => 24, // Valor Contratado Médico
-            "V" => 20, // Margen Bruto
-            "W" => 18, // Tipo Tarifa Médico
-            "X" => 24, // Estado Tarifa
+            "S" => 28, // Médico que Ordenó
+            "T" => 26, // Ubicación
+            "U" => 15, // Cama
+            "V" => 40, // Lectura
+            "W" => 24, // Valor Contratado Entidad
+            "X" => 24, // Valor Contratado Médico
+            "Y" => 20, // Margen Bruto
+            "Z" => 18, // Tipo Tarifa Médico
+            "AA" => 24, // Estado Tarifa
         ];
     }
 
