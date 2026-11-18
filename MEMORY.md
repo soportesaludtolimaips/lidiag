@@ -37,6 +37,39 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-18 — Corrección de Error 422 al Cargar Plantilla de Ecografía de Sede (`configSedeComponent.vue`, `UpdateConfigSedeRequest.php`, `StoreConfigSedeRequest.php`, `ConfigSedeController.php`):**
+  - **Diagnóstico del Problema:**
+    * Al intentar cargar la plantilla de ecografía en la sede Espinal desde `https://lidiag.test/config-sedes-listar`, el endpoint `POST /config/sedes/updateWitchPlantillas` devolvía un error HTTP 422: `{"id": ["El campo id es obligatorio."]}`.
+    * **Causa Raíz 1 (Falta de ID en FormData):** En [`configSedeComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/configuracion/configSedeComponent.vue), `guardarRegistro()` serializaba `registro.value` en una clave `"registro"` tipo JSON, pero no adjuntaba `id` en la raíz del `FormData`.
+    * **Causa Raíz 2 (Validación rígida en Backend):** En [`UpdateConfigSedeRequest.php`](file:///c:/laragon/www/lidiag/app/Http/Requests/Configuracion/UpdateConfigSedeRequest.php), la regla `'id' => 'required|integer|exists:config_sedes,id'` evaluaba el parámetro raíz sin extraerlo del JSON `registro`.
+    * **Causa Raíz 3 (Inconsistencia en el Nombre del Archivo):** En el componente Vue se enviaba el archivo como `plantilla_ecografia`, mientras que en `UpdateConfigSedeRequest`, `StoreConfigSedeRequest` y `ConfigSedeController` se exigía el nombre divergente `plantilla_rx_ecografia`, lo que provocaba que el archivo fuera ignorado al procesar la actualización.
+    * **Causa Raíz 4 (Límite de tamaño de archivo):** Las reglas validaban `max:2048` (2 MB), insuficiente para plantillas Word (.docx) con membretes y logotipos institucionales.
+  - **Solución Implementada:**
+    * **Frontend ([`configSedeComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/configuracion/configSedeComponent.vue)):**
+      - Se agregó explícitamente `formData.append("id", String(registro.value.id))` cuando `registro.value.id` está presente.
+      - Se envían ambas claves de archivo (`plantilla_ecografia` y `plantilla_rx_ecografia`) para garantizar compatibilidad retroactiva.
+      - Se vinculó `plantilla_ecografia` y `plantilla_rx` al estado reactivo al abrir edición (`mostrarRegistro`), visualizando el nombre del archivo actual cargado en la sede.
+      - Se añadieron métodos para limpiar y resetear los campos `input[type="file"]` en el DOM tras guardar o limpiar.
+    * **FormRequests ([`UpdateConfigSedeRequest.php`](file:///c:/laragon/www/lidiag/app/Http/Requests/Configuracion/UpdateConfigSedeRequest.php), [`StoreConfigSedeRequest.php`](file:///c:/laragon/www/lidiag/app/Http/Requests/Configuracion/StoreConfigSedeRequest.php)):**
+      - Se incorporó `prepareForValidation()` en `UpdateConfigSedeRequest` para fusionar automáticamente `id` desde el JSON `registro` en caso de que no venga como parámetro raíz.
+      - Se admiten tanto `plantilla_ecografia` como `plantilla_rx_ecografia` con un límite ampliado de hasta 10 MB (`max:10240`).
+    * **Controlador ([`ConfigSedeController.php`](file:///c:/laragon/www/lidiag/app/Http/Controllers/Configuracion/ConfigSedeController.php)):**
+      - Se actualizó el despacho en `store` y `update` para tomar `$request->file('plantilla_ecografia') ?? $request->file('plantilla_rx_ecografia')`.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% (0 errores) ✅.
+    * Larastan / PHPStan Nivel 5: 3/3 archivos analizados con `[OK] No errors` ✅.
+    * ESLint y Prettier 100% limpios en `configSedeComponent.vue` ✅.
+    * Compilación Vite exitosa (`npm run build` en 3.09s) ✅.
+- [x] **2026-11-18 — Corrección de Error 400 al Generar Reporte de Ecografía en Producción (`POST /api/ecografia-generar-reporte/{id}`):**
+  - **Diagnóstico:**
+    * En el log de producción: `"templateExists": false`. Al no existir la plantilla en `storage/app/plantillas/reporte_ecografia.docx`, el flujo recurrió al fallback `buildWordFromData()`.
+    * En `HtmlToPhpWordHelper::addHtmlToSection($section, ...)`, se ejecutaba `$section->addText($textRun)`. En PhpWord (`v1.x`), el método `addText(string $text, ...)` espera un string o array; pasar una instancia de `TextRun` provocaba:
+      `mb_convert_encoding(): Argument #1 ($string) must be of type array|string, PhpOffice\PhpWord\Element\TextRun given`.
+    * Además, la plantilla oficial `reporte_ecografia.docx` no estaba versionada en el repositorio (`storage/app/` está en `.gitignore`), por lo que en producción faltaba el archivo base.
+  - **Solución Implementada:**
+    * **Plantilla Versionada:** Se versionó `reporte_ecografia.docx` en [`resources/plantillas/reporte_ecografia.docx`](file:///c:/laragon/www/lidiag/resources/plantillas/reporte_ecografia.docx).
+    * **Auto-copiado en Fallback:** En [`PlantillaEcografiaService`](file:///c:/laragon/www/lidiag/app/Services/Ecografias/PlantillaEcografiaService.php), si `storage/app/plantillas/reporte_ecografia.docx` no existe, se copia automáticamente desde `resources/plantillas/reporte_ecografia.docx`.
+    * **Corrección en `HtmlToPhpWordHelper`:** En [`HtmlToPhpWordHelper`](file:///c:/laragon/www/lidiag/app/Helpers/HtmlToPhpWordHelper.php), se reemplazó `$section->addText($textRun)` por `$textRun = $section->addTextRun($style); self::parseInlineToTextRun($textRun, ...)`, que es la API correcta de PhpWord para secciones.
 - [x] **2026-11-18 — Corrección de Error 500 al Anular Ecografía (`POST /api/ecografia-anular/{id}`):**
   - **Diagnóstico:**
     * Al intentar anular una ecografía (`POST https://lidiag.com/api/ecografia-anular/{id}`), el backend devolvía error 500 (`Error interno del servidor`).

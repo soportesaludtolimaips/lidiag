@@ -415,6 +415,16 @@
                                                     >Plantilla para Rx, Tomografía y
                                                     resonancia</label
                                                 >
+                                                <div
+                                                    v-if="registro.plantilla_rx"
+                                                    class="small text-muted mb-1"
+                                                >
+                                                    <i
+                                                        class="fa fa-file-word-o text-primary mr-1"
+                                                    ></i>
+                                                    Actual:
+                                                    <strong>{{ registro.plantilla_rx }}</strong>
+                                                </div>
                                                 <input
                                                     type="file"
                                                     class="form-control"
@@ -430,6 +440,18 @@
                                                     for="exampleInputFileEcografia"
                                                     >Plantilla para ecografias</label
                                                 >
+                                                <div
+                                                    v-if="registro.plantilla_ecografia"
+                                                    class="small text-muted mb-1"
+                                                >
+                                                    <i
+                                                        class="fa fa-file-word-o text-success mr-1"
+                                                    ></i>
+                                                    Actual:
+                                                    <strong>{{
+                                                        registro.plantilla_ecografia
+                                                    }}</strong>
+                                                </div>
                                                 <input
                                                     type="file"
                                                     class="form-control"
@@ -597,6 +619,9 @@ const registro = ref({
     password_oviyam: "",
     url_oviyam: "",
     tap_oviyam: "",
+    plantilla: "",
+    plantilla_rx: "",
+    plantilla_ecografia: "",
     estado: true,
 });
 const tituloModal = ref("Nuevo registro");
@@ -668,11 +693,15 @@ async function guardarRegistro() {
     try {
         const formData = new FormData();
         formData.append("registro", JSON.stringify(registro.value));
+        if (registro.value && registro.value.id) {
+            formData.append("id", String(registro.value.id));
+        }
         if (plantillaRx.value) {
             formData.append("plantilla_rx", plantillaRx.value);
         }
         if (plantillaEcografia.value) {
             formData.append("plantilla_ecografia", plantillaEcografia.value);
+            formData.append("plantilla_rx_ecografia", plantillaEcografia.value);
         }
 
         if (actualizar.value === false) {
@@ -757,22 +786,34 @@ function obtenerPlantillaEcografia(e) {
     plantillaEcografia.value = e.target.files[0];
 }
 
+function resetFileInputs() {
+    plantillaRx.value = null;
+    plantillaEcografia.value = null;
+    const inputRx = document.getElementById("exampleInputFileRx");
+    if (inputRx) inputRx.value = "";
+    const inputEco = document.getElementById("exampleInputFileEcografia");
+    if (inputEco) inputEco.value = "";
+}
+
 function mostrarRegistro(data = {}) {
+    resetFileInputs();
     if (actualizar.value) {
-        tituloModal.value = "Actualizar el registro: " + data.nom_sede;
-        registro.value.id = data.id;
-        registro.value.nom_sede = data.nom_sede;
-        registro.value.email_repor = data.email_repor;
-        registro.value.ip_dcm = data.ip_dcm;
-        registro.value.bd_dcm = data.bd_dcm;
-        registro.value.puerto_dcm = data.puerto_dcm;
-        registro.value.usuario_dcm = data.usuario_dcm;
-        registro.value.password_dcm = data.password_dcm;
-        registro.value.usuario_oviyam = data.usuario_oviyam;
-        registro.value.password_oviyam = data.password_oviyam;
-        registro.value.url_oviyam = data.url_oviyam;
-        registro.value.tap_oviyam = data.tap_oviyam;
-        registro.value.plantilla = data.plantilla_rx;
+        tituloModal.value = "Actualizar el registro: " + (data.nom_sede || "");
+        registro.value.id = data.id || null;
+        registro.value.nom_sede = data.nom_sede || "";
+        registro.value.email_repor = data.email_repor || "";
+        registro.value.ip_dcm = data.ip_dcm || "";
+        registro.value.bd_dcm = data.bd_dcm || "";
+        registro.value.puerto_dcm = data.puerto_dcm || "";
+        registro.value.usuario_dcm = data.usuario_dcm || "";
+        registro.value.password_dcm = data.password_dcm || "";
+        registro.value.usuario_oviyam = data.usuario_oviyam || "";
+        registro.value.password_oviyam = data.password_oviyam || "";
+        registro.value.url_oviyam = data.url_oviyam || "";
+        registro.value.tap_oviyam = data.tap_oviyam || "";
+        registro.value.plantilla = data.plantilla_rx || "";
+        registro.value.plantilla_rx = data.plantilla_rx || "";
+        registro.value.plantilla_ecografia = data.plantilla_ecografia || "";
         registro.value.estado = Boolean(data.estado);
 
         abrirSidebar();
@@ -793,6 +834,8 @@ function mostrarRegistro(data = {}) {
         registro.value.url_oviyam = "";
         registro.value.tap_oviyam = "";
         registro.value.plantilla = "";
+        registro.value.plantilla_rx = "";
+        registro.value.plantilla_ecografia = "";
         registro.value.estado = true;
 
         abrirSidebar();
@@ -801,6 +844,7 @@ function mostrarRegistro(data = {}) {
 }
 
 function limpiar() {
+    resetFileInputs();
     actualizar.value = false;
     tituloModal.value = "Nuevo registro";
     registro.value.id = 0;
@@ -816,6 +860,8 @@ function limpiar() {
     registro.value.url_oviyam = "";
     registro.value.tap_oviyam = "";
     registro.value.plantilla = "";
+    registro.value.plantilla_rx = "";
+    registro.value.plantilla_ecografia = "";
     registro.value.estado = true;
 
     cerrarSidebar();

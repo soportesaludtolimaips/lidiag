@@ -129,7 +129,7 @@ class ConfigSedeController extends Controller
         $result = $this->configSedeService->create(
             $request->decoded(),
             $request->file("plantilla_rx"),
-            $request->file("plantilla_rx_ecografia"),
+            $request->file("plantilla_ecografia") ?? $request->file("plantilla_rx_ecografia"),
         );
 
         return response()->json($result, (int) $result["status"]);
@@ -144,14 +144,14 @@ class ConfigSedeController extends Controller
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2024-04-04
+     * @date 2026-11-18
      */
     public function update(UpdateConfigSedeRequest $request): JsonResponse
     {
         $result = $this->configSedeService->update(
             $request->decoded(),
             $request->file("plantilla_rx"),
-            $request->file("plantilla_rx_ecografia"),
+            $request->file("plantilla_ecografia") ?? $request->file("plantilla_rx_ecografia"),
         );
 
         return response()->json($result, (int) $result["status"]);

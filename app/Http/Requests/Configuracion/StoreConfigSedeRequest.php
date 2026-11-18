@@ -29,8 +29,9 @@ class StoreConfigSedeRequest extends FormRequest
     {
         return [
             'registro' => 'required|json',
-            'plantilla_rx' => 'nullable|file|max:2048',
-            'plantilla_rx_ecografia' => 'nullable|file|max:2048',
+            'plantilla_rx' => 'nullable|file|max:10240',
+            'plantilla_ecografia' => 'nullable|file|max:10240',
+            'plantilla_rx_ecografia' => 'nullable|file|max:10240',
         ];
     }
 
