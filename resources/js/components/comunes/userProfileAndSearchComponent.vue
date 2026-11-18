@@ -351,7 +351,8 @@
     </ul>
 </template>
 <script setup>
-import { computed, getCurrentInstance, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, getCurrentInstance, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { useRoute } from "vue-router";
 
 import axios from "axios";
 
@@ -360,6 +361,7 @@ defineProps({
     perfilUrl: { type: String, default: "" },
 });
 
+const route = useRoute();
 const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
 
@@ -885,17 +887,31 @@ onMounted(() => {
     listarSedes();
     cargarTodasNotificaciones();
 
-    const url = window.location.pathname;
-    const rutasEcografias = [
-        "/ecografias.admisiones",
-        "/ecografias.admisionadas",
-        "/ecografias-pendientes-lecturas",
-        "/ecografias-consentimientos",
-        "/ecografias-consentimientos-plantillas",
-    ];
-    mostrarMedico.value = rutasEcografias.includes(url);
-    if (mostrarMedico.value) {
-        listarMedicos();
+    function verificarVisibilidadMedico(pathActual) {
+        const path = pathActual || route?.path || window.location.pathname;
+        const rutasEcografias = [
+            "/ecografias.admisiones",
+            "/ecografias.admisionadas",
+            "/ecografias.adminisionadas",
+            "/ecografias-pendientes-lecturas",
+            "/ecografias-consentimientos",
+            "/ecografias-consentimientos-plantillas",
+        ];
+        mostrarMedico.value = rutasEcografias.some((r) => path.startsWith(r) || path === r);
+        if (mostrarMedico.value) {
+            listarMedicos();
+        }
+    }
+
+    verificarVisibilidadMedico();
+
+    if (route) {
+        watch(
+            () => route.path,
+            (newPath) => {
+                verificarVisibilidadMedico(newPath);
+            }
+        );
     }
 
     // Polling inteligente cada 30 segundos (con backoff cuando la pestaña está oculta)

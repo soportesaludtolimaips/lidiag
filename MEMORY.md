@@ -97,6 +97,16 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * ESLint y Prettier 100% limpios (0 errores) ✅.
     * Compilación Vite (`npm run build`) completada con éxito en 2.14s ✅.
 
+- [x] **2026-11-18 — Detección Reactiva de Rutas para Combo de Médicos en Header (`userProfileAndSearchComponent.vue`):**
+  - **Problema:** En la SPA, al navegar mediante Vue Router a `/ecografias-pendientes-lecturas` (o rutas de ecografías), el combo de médicos del header no se visualizaba porque `window.location.pathname` se comprobaba una única vez en el `onMounted`.
+  - **Solución Implementada:**
+    * Se integró `useRoute` de `vue-router` en `userProfileAndSearchComponent.vue`.
+    * Se configuró la función `verificarVisibilidadMedico()` observando reactivamente con `watch(() => route.path, ...)` las rutas de ecografías (`/ecografias-pendientes-lecturas`, `/ecografias.admisiones`, `/ecografias.admisionadas`, `/ecografias.adminisionadas`, `/ecografias-consentimientos*`).
+    * Al entrar a la ruta, se activa de inmediato `mostrarMedico.value = true` y se ejecuta `listarMedicos()`.
+  - **Verificaciones:**
+    * ESLint y Prettier 100% limpios (0 errores) ✅.
+    * Compilación Vite (`npm run build`) exitosa en 1.89s ✅.
+
 - [x] **2026-11-18 — Botón y Modal de Envío a Worklist DICOM en Ecografías Admisionadas (`ecografiasAdmisionadasComponent.vue`, `EcografiaService.php`, `PacienteController.php`):**
   - **Requerimiento:** Agregar el botón de envío a la Modality Worklist DICOM en cada fila de la tabla de ecografías admisionadas (`ecografiasAdmisionadasComponent.vue`).
   - **Solución Implementada:**
