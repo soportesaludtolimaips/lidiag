@@ -180,6 +180,8 @@
                                         <th>Contrato</th>
                                         <th>Plan</th>
                                         <th>Quien Ordeno</th>
+                                        <th>Servicio</th>
+                                        <th>Cama</th>
                                         <th>Estado</th>
                                         <th>SAHI</th>
                                         <th></th>
@@ -231,6 +233,8 @@
                                         <td>{{ item.DesContrato }}</td>
                                         <td>{{ item.DesPlan }}</td>
                                         <td>{{ item.quien_ordeno }}</td>
+                                        <td>{{ item.NomUbicacion || item.ubicacion || "-" }}</td>
+                                        <td>{{ item.Cama || item.cama || "-" }}</td>
                                         <td>
                                             <span
                                                 class="label label-info"
@@ -484,6 +488,21 @@
                                         >
                                         <div class="text-dark font-weight-bold">
                                             {{ registro.quien_ordeno }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3" v-if="registro.ubicacion">
+                                        <strong
+                                            ><i class="fa fa-building-o mr-1"></i>Servicio /
+                                            Ubicación:</strong
+                                        >
+                                        <div class="text-dark font-weight-bold">
+                                            {{ registro.ubicacion }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3" v-if="registro.cama">
+                                        <strong><i class="fa fa-bed mr-1"></i>Cama:</strong>
+                                        <div class="text-dark font-weight-bold">
+                                            {{ registro.cama }}
                                         </div>
                                     </div>
                                 </div>
@@ -1353,6 +1372,8 @@ const registro = ref({
     plan: null,
     admin_salud: null,
     quien_ordeno: null,
+    ubicacion: "",
+    cama: "",
 });
 const registroAnular = ref({
     ecografia_id: "",
@@ -2382,6 +2403,8 @@ function mostrarRegistro(data = {}) {
     registro.value.plan = data.DesPlan;
     registro.value.admin_salud = data.NomTercero;
     registro.value.quien_ordeno = data.quien_ordeno;
+    registro.value.ubicacion = data.NomUbicacion || data.ubicacion || "";
+    registro.value.cama = data.Cama || data.cama || "";
 
     registro.value.productosAgenda = [data];
     // Homologar tipo de documento
@@ -2422,6 +2445,8 @@ function limpiarFormulario() {
     registro.value.plan = "";
     registro.value.admin_salud = "";
     registro.value.quien_ordeno = "";
+    registro.value.ubicacion = "";
+    registro.value.cama = "";
 
     registro.value.productosAgenda = [];
 }

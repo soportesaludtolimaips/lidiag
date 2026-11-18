@@ -150,6 +150,7 @@ class PlantillaEcografiaService extends BaseService
         $templateProcessor->setValue('fechor_estudio', $fecEstudio);
         $templateProcessor->setValue('fechor_lectura', $fecLectura);
         $templateProcessor->setValue('fechor_transcripcion', $fecTrascrito);
+        $templateProcessor->setValue('fechor_transcipcion', $fecTrascrito);
         $templateProcessor->setValue('atencion', $data['atencion'] ?? '');
         $templateProcessor->setValue('cod_producto', $data['cod_cups'] ?? '');
         $templateProcessor->setValue('nom_producto', $data['nom_produc'] ?? '');
@@ -158,9 +159,34 @@ class PlantillaEcografiaService extends BaseService
         $templateProcessor->setValue('productos', $productosLista);
         $templateProcessor->setValue('eps', $data['admin_salud'] ?? '');
         $templateProcessor->setValue('contrato', $data['contrato'] ?? '');
+        $templateProcessor->setValue('ubicacion', $data['ubicacion'] ?? '');
+        $templateProcessor->setValue('ubucacion', $data['ubicacion'] ?? '');
+        $templateProcessor->setValue('cama', $data['cama'] ?? '');
+        $templateProcessor->setValue('quien_ordena', $data['quien_ordena'] ?? '');
         $templateProcessor->setValue('nombres_medico', $data['nombres_medico']);
         $templateProcessor->setValue('reg_medico', $data['reg_medico']);
         $templateProcessor->setValue('num_docu_medico', $data['num_docu_medico']);
+
+        // Transcriptor y Lector del estudio
+        $quienTranscribio = $data['quien_transcribio'] ?? $data['transcriptor'] ?? '';
+        if (empty($quienTranscribio) && ! empty($data['ecografia_id'])) {
+            $ep = EcografiaProducto::where('ecografia_id', $data['ecografia_id'])
+                ->whereNotNull('usua_regis_id')
+                ->with('usuaRegis')
+                ->first();
+            $quienTranscribio = $ep?->usuaRegis?->name ?? '';
+        }
+        if (empty($quienTranscribio)) {
+            $quienTranscribio = auth()->user()?->name ?? ($data['nombres_medico'] ?? '');
+        }
+
+        // Quien imprimió el reporte
+        $quienImprimio = $data['quiebn_imprimio'] ?? $data['quien_imprimio'] ?? auth()->user()?->name ?? '';
+
+        $templateProcessor->setValue('quien_transcribio', $quienTranscribio);
+        $templateProcessor->setValue('transcriptor', $quienTranscribio);
+        $templateProcessor->setValue('quiebn_imprimio', $quienImprimio);
+        $templateProcessor->setValue('quien_imprimio', $quienImprimio);
 
         $lecturaStyle = ['size' => 10, 'name' => 'Arial'];
         $lecturaTextRun = new TextRun($lecturaStyle);

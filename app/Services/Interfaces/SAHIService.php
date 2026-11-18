@@ -233,6 +233,7 @@ class SAHIService extends BaseService
                     conPlan.DesPlan,
                     conPlan.CodLegal,
                     COALESCE(genUbiAct.NomUbicacion, genUbiIng.NomUbicacion, '') as NomUbicacion,
+                    COALESCE(admCama.CodCama, '') as Cama,
                     COALESCE(
                         (SELECT TOP 1 QuinOrdenoOrden.NomResponsable
                             FROM hceProceOrden QuinOrdenoOrden
@@ -247,6 +248,7 @@ class SAHIService extends BaseService
                         ''
                     ) as quien_ordeno
                 FROM admAtencion
+                LEFT JOIN admCama ON admAtencion.IdCamaActual = admCama.IdCama
                 LEFT JOIN AdmAtencionContrato ON admAtencion.IdAtencion = AdmAtencionContrato.IdAtencion
                 LEFT JOIN conContrato ON AdmAtencionContrato.IdContrato = conContrato.IdContrato
                 LEFT JOIN conPlan ON AdmAtencionContrato.IdPlan = conPlan.IdPlan
@@ -267,9 +269,11 @@ class SAHIService extends BaseService
                     'conPlan.DesPlan',
                     'conPlan.CodLegal',
                     'conContrato.DesContrato',
-                    'genUbicacion.NomUbicacion'
+                    'genUbicacion.NomUbicacion',
+                    DB::raw("COALESCE(admCama.CodCama, '') as Cama")
                 )
                     ->join('admAtencion', 'facFactura.IdDestino', 'admAtencion.IdAtencion')
+                    ->leftJoin('admCama', 'admAtencion.IdCamaActual', 'admCama.IdCama')
                     ->leftJoin('genUbicacion', 'admAtencion.IdUbicacionIng', 'genUbicacion.IdUbicacion')
                     ->join('conPlan', 'facFactura.IdPlan', 'conPlan.IdPlan')
                     ->join('conContrato', 'facFactura.IdContrato', 'conContrato.IdContrato')
@@ -323,6 +327,9 @@ class SAHIService extends BaseService
                 ->join('facFactura', 'facFacturaDet.IdFactura', '=', 'facFactura.IdFactura')
                 ->join('proProducto', 'facFacturaDet.IdProducto', '=', 'proProducto.IdProducto')
                 ->join('admAtencion', 'facFactura.IdDestino', '=', 'admAtencion.IdAtencion')
+                ->leftJoin('admCama', 'admAtencion.IdCamaActual', '=', 'admCama.IdCama')
+                ->leftJoin('genUbicacion as genUbiAct', 'admAtencion.IdUbicacionActual', '=', 'genUbiAct.IdUbicacion')
+                ->leftJoin('genUbicacion as genUbiIng', 'admAtencion.IdUbicacionIng', '=', 'genUbiIng.IdUbicacion')
                 ->join('admCliente', 'admAtencion.IdCliente', '=', 'admCliente.IdCliente')
                 ->join('AdmAtencionContrato', 'admAtencion.IdAtencion', '=', 'AdmAtencionContrato.IdAtencion')
                 ->join('conContrato', 'AdmAtencionContrato.IdContrato', '=', 'conContrato.IdContrato')
@@ -335,6 +342,9 @@ class SAHIService extends BaseService
                 ->join('facMovimiento', 'facMovimientoDet.IdMovimiento', '=', 'facMovimiento.IdMovimiento')
                 ->join('proProducto', 'facMovimientoDet.IdProducto', '=', 'proProducto.IdProducto')
                 ->join('admAtencion', 'facMovimiento.IdDestino', '=', 'admAtencion.IdAtencion')
+                ->leftJoin('admCama', 'admAtencion.IdCamaActual', '=', 'admCama.IdCama')
+                ->leftJoin('genUbicacion as genUbiAct', 'admAtencion.IdUbicacionActual', '=', 'genUbiAct.IdUbicacion')
+                ->leftJoin('genUbicacion as genUbiIng', 'admAtencion.IdUbicacionIng', '=', 'genUbiIng.IdUbicacion')
                 ->join('admCliente', 'admAtencion.IdCliente', '=', 'admCliente.IdCliente')
                 ->join('AdmAtencionContrato', 'admAtencion.IdAtencion', '=', 'AdmAtencionContrato.IdAtencion')
                 ->join('conContrato', 'AdmAtencionContrato.IdContrato', '=', 'conContrato.IdContrato')
@@ -401,6 +411,8 @@ class SAHIService extends BaseService
             'conContrato.DesContrato',
             'conPlan.DesPlan',
             'genTercero.NomTercero',
+            DB::raw("COALESCE(genUbiAct.NomUbicacion, genUbiIng.NomUbicacion, '') AS NomUbicacion"),
+            DB::raw("COALESCE(admCama.CodCama, '') AS Cama"),
             DB::raw('(SELECT TOP(1) QuinOrdenoOrden.NomResponsable
                     FROM hceProceOrden QuinOrdenoOrden
                         INNER JOIN hceProceDetalle ON QuinOrdenoOrden.IdOrdenPro = hceProceDetalle.IdOrdenPro

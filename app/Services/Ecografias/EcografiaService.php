@@ -201,7 +201,9 @@ class EcografiaService extends BaseService
                 'fec_regis_cita_sahi' => $data['fec_regis_cita_sahi'] ?? null,
                 'contrato' => $data['contrato'] ?? null,
                 'plan' => $data['plan'] ?? null,
-                'quien_ordena' => $data['quien_ordena'] ?? null,
+                'quien_ordena' => $data['quien_ordeno'] ?? $data['quien_ordena'] ?? null,
+                'ubicacion' => $data['ubicacion'] ?? null,
+                'cama' => $data['cama'] ?? null,
                 'estado' => 'EN PROCESO',
             ]);
 

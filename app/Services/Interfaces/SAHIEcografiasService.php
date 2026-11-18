@@ -78,10 +78,15 @@ class SAHIEcografiasService extends BaseService
             'conContrato.DesContrato',
             'conPlan.DesPlan',
             'genTercero.NomTercero',
+            DB::raw("COALESCE(genUbiAct.NomUbicacion, genUbiIng.NomUbicacion, '') AS NomUbicacion"),
+            DB::raw("COALESCE(admCama.CodCama, '') AS Cama"),
         ])
             ->join('facFactura', 'facFacturaDet.IdFactura', '=', 'facFactura.IdFactura')
             ->join('proProducto', 'facFacturaDet.IdProducto', '=', 'proProducto.IdProducto')
             ->join('admAtencion', 'facFactura.IdDestino', '=', 'admAtencion.IdAtencion')
+            ->leftJoin('admCama', 'admAtencion.IdCamaActual', '=', 'admCama.IdCama')
+            ->leftJoin('genUbicacion as genUbiAct', 'admAtencion.IdUbicacionActual', '=', 'genUbiAct.IdUbicacion')
+            ->leftJoin('genUbicacion as genUbiIng', 'admAtencion.IdUbicacionIng', '=', 'genUbiIng.IdUbicacion')
             ->join('admCliente', 'admAtencion.IdCliente', '=', 'admCliente.IdCliente')
             ->join('AdmAtencionContrato', 'admAtencion.IdAtencion', '=', 'AdmAtencionContrato.IdAtencion')
             ->join('conContrato', 'AdmAtencionContrato.IdContrato', '=', 'conContrato.IdContrato')
@@ -117,10 +122,15 @@ class SAHIEcografiasService extends BaseService
             'conContrato.DesContrato',
             'conPlan.DesPlan',
             'genTercero.NomTercero',
+            DB::raw("COALESCE(genUbiAct.NomUbicacion, genUbiIng.NomUbicacion, '') AS NomUbicacion"),
+            DB::raw("COALESCE(admCama.CodCama, '') AS Cama"),
         ])
             ->join('facMovimiento', 'facMovimientoDet.IdMovimiento', '=', 'facMovimiento.IdMovimiento')
             ->join('proProducto', 'facMovimientoDet.IdProducto', '=', 'proProducto.IdProducto')
             ->join('admAtencion', 'facMovimiento.IdDestino', '=', 'admAtencion.IdAtencion')
+            ->leftJoin('admCama', 'admAtencion.IdCamaActual', '=', 'admCama.IdCama')
+            ->leftJoin('genUbicacion as genUbiAct', 'admAtencion.IdUbicacionActual', '=', 'genUbiAct.IdUbicacion')
+            ->leftJoin('genUbicacion as genUbiIng', 'admAtencion.IdUbicacionIng', '=', 'genUbiIng.IdUbicacion')
             ->join('admCliente', 'admAtencion.IdCliente', '=', 'admCliente.IdCliente')
             ->join('AdmAtencionContrato', 'admAtencion.IdAtencion', '=', 'AdmAtencionContrato.IdAtencion')
             ->join('conContrato', 'AdmAtencionContrato.IdContrato', '=', 'conContrato.IdContrato')
@@ -168,6 +178,8 @@ class SAHIEcografiasService extends BaseService
             ->select([
                 'ecografias.id as ecografia_id',
                 'ecografias.atencion_id',
+                'ecografias.ubicacion',
+                'ecografias.cama',
                 'ecografias.estado as estado_ecografia',
                 'ep.producto_id',
                 'ep.id as ecografia_producto_id',
@@ -212,6 +224,8 @@ class SAHIEcografiasService extends BaseService
             $row->error_envio_sahi = $match?->error_envio_sahi ?? null;
             $row->sahi_esquema_149 = $match?->sahi_esquema_149 ?? null;
             $row->sahi_esquema_150 = $match?->sahi_esquema_150 ?? null;
+            $row->ubicacion = ! empty($row->NomUbicacion) ? $row->NomUbicacion : ($match?->ubicacion ?? null);
+            $row->cama = ! empty($row->Cama) ? $row->Cama : ($match?->cama ?? null);
 
             $row->orden_worklist = ($row->ecografia_producto_id && isset($ordenesWorklist[$row->ecografia_producto_id]))
                 ? $ordenesWorklist[$row->ecografia_producto_id]

@@ -2,8 +2,12 @@
 
 namespace App\Http\Resources\Ecografias;
 
+use App\Models\Ecografias\Ecografia;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin Ecografia
+ */
 class EcografiaResource extends JsonResource
 {
     /**
@@ -27,6 +31,8 @@ class EcografiaResource extends JsonResource
             'contrato' => $this->contrato,
             'plan' => $this->plan,
             'quien_ordena' => $this->quien_ordena,
+            'ubicacion' => $this->ubicacion,
+            'cama' => $this->cama,
             'estado' => $this->estado,
             'motivo_anula' => $this->motivo_anula,
             'usua_anula_id' => $this->usua_anula_id,

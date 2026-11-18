@@ -211,6 +211,8 @@
                                         <th>Administradora</th>
                                         <th>Contrato</th>
                                         <th>Plan</th>
+                                        <th>Servicio</th>
+                                        <th>Cama</th>
                                         <th>Estado</th>
                                         <th>SAHI</th>
                                         <th></th>
@@ -237,6 +239,8 @@
                                         <td>{{ item.admin_salud?.nom_admin_salud }}</td>
                                         <td>{{ item.contrato }}</td>
                                         <td>{{ item.plan }}</td>
+                                        <td>{{ item.ubicacion || "-" }}</td>
+                                        <td>{{ item.cama || "-" }}</td>
                                         <td>
                                             <span
                                                 class="label label-info"
@@ -951,6 +955,9 @@ async function imprimirReporte(item) {
             atencion: String(item.atencion_id || item.IdAtencion || ""),
             admin_salud: item.admin_salud?.nom_admin_salud || item.NomTercero || "",
             contrato: item.contrato || item.DesContrato || "",
+            ubicacion: item.ubicacion || "",
+            cama: item.cama || "",
+            quien_ordena: item.quien_ordena || "",
         };
 
         const res = await axios.post(`/api/ecografia-generar-reporte/${item.id}`, payload);

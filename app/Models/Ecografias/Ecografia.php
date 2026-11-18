@@ -24,6 +24,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $contrato
  * @property string $plan
  * @property string $quien_ordena
+ * @property string|null $ubicacion
+ * @property string|null $cama
  * @property string $estado
  */
 class Ecografia extends Model
@@ -44,6 +46,8 @@ class Ecografia extends Model
         'contrato',
         'plan',
         'quien_ordena',
+        'ubicacion',
+        'cama',
         'estado',
         'usua_anula_id',
         'fechor_anula',

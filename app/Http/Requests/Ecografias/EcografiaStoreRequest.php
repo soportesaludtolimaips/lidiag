@@ -47,6 +47,8 @@ class EcografiaStoreRequest extends FormRequest
             'plan' => 'sometimes|nullable|string',
             'admin_salud' => 'sometimes|nullable|string',
             'quien_ordeno' => 'sometimes|nullable|string',
+            'ubicacion' => 'sometimes|nullable|string|max:150',
+            'cama' => 'sometimes|nullable|string|max:50',
         ];
     }
 

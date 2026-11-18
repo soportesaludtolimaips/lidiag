@@ -37,6 +37,59 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-18 — Extracción e Integración de Servicio (`ubicacion`) y Cama de SAHI en Módulo de Ecografías:**
+  - **Requerimiento:**
+    * Extraer desde SAHI el servicio/ubicación (`NomUbicacion`) y la cama (`admCama.CodCama`) correspondientes a la atención del paciente.
+    * Crear y persistir los campos `ubicacion` (VARCHAR 150 nullable) y `cama` (VARCHAR 50 nullable) en la tabla `ecografias` de MySQL.
+    * Integrar ambos datos en todo el ciclo de vida del módulo de ecografías: búsqueda en SAHI, formulario de admisión, listado de admisiones, módulo de lecturas médicas y generación de reportes Word/PDF.
+  - **Solución Implementada:**
+    * **Migración de Base de Datos ([`2026_11_18_120000_add_ubicacion_and_cama_to_ecografias_table.php`](file:///c:/laragon/www/lidiag/database/migrations/2026_11_18_120000_add_ubicacion_and_cama_to_ecografias_table.php)):**
+      - Agregadas columnas `ubicacion` (`string('ubicacion', 150)->nullable()->after('quien_ordena')`) y `cama` (`string('cama', 50)->nullable()->after('ubicacion')`) con verificación defensiva `Schema::hasColumn()`.
+      - Migración ejecutada con éxito en MySQL.
+    * **Modelo Eloquent ([`Ecografia.php`](file:///c:/laragon/www/lidiag/app/Models/Ecografias/Ecografia.php)):**
+      - Añadidos `ubicacion` y `cama` en `$fillable` y en las anotaciones PHPDoc `@property`.
+    * **Servicio de Extracción SAHI ([`SAHIEcografiasService.php`](file:///c:/laragon/www/lidiag/app/Services/Interfaces/SAHIEcografiasService.php) y [`SAHIService.php`](file:///c:/laragon/www/lidiag/app/Services/Interfaces/SAHIService.php)):**
+      - Se incorporaron las relaciones: `LEFT JOIN admCama ON admAtencion.IdCamaActual = admCama.IdCama`, `LEFT JOIN genUbicacion genUbiAct ON admAtencion.IdUbicacionActual = genUbiAct.IdUbicacion` y `LEFT JOIN genUbicacion genUbiIng ON admAtencion.IdUbicacionIng = genUbiIng.IdUbicacion`.
+      - Se proyectaron `COALESCE(genUbiAct.NomUbicacion, genUbiIng.NomUbicacion, '') AS NomUbicacion` y `COALESCE(admCama.CodCama, '') AS Cama`.
+      - Se mapearon en el objeto de respuesta como `NomUbicacion`, `Cama`, `ubicacion` y `cama`.
+    * **Backend de Ecografías ([`EcografiaStoreRequest.php`](file:///c:/laragon/www/lidiag/app/Http/Requests/Ecografias/EcografiaStoreRequest.php), [`EcografiaService.php`](file:///c:/laragon/www/lidiag/app/Services/Ecografias/EcografiaService.php), [`EcografiaResource.php`](file:///c:/laragon/www/lidiag/app/Http/Resources/Ecografias/EcografiaResource.php), [`PlantillaEcografiaService.php`](file:///c:/laragon/www/lidiag/app/Services/Ecografias/PlantillaEcografiaService.php)):**
+      - `EcografiaStoreRequest`: Reglas de validación `'ubicacion' => 'sometimes|nullable|string|max:150'` y `'cama' => 'sometimes|nullable|string|max:50'`.
+      - `EcografiaService::create()`: Persistencia de `ubicacion` y `cama` al crear la ecografía.
+      - `EcografiaResource`: Exposición de `ubicacion` y `cama` en respuestas de la API.
+      - `PlantillaEcografiaService`: Vinculación de variables `${ubicacion}`, `${cama}` y `${quien_ordena}` en las plantillas de reporte Word.
+    * **Frontend ([`admisionarComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/admisionarComponent.vue), [`ecografiasAdmisionadasComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/ecografiasAdmisionadasComponent.vue), [`lecturaComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/lecturaComponent.vue)):**
+      - `admisionarComponent`: Columnas "Servicio" y "Cama" en la tabla de atenciones disponibles de SAHI, banner de datos de admisión con Servicio y Cama, y envío de ambos campos en la carga de admisión.
+      - `ecografiasAdmisionadasComponent`: Columnas "Servicio" y "Cama" en la tabla de ecografías admisionadas y paso de variables al generar reporte.
+      - `lecturaComponent`: Columnas "Servicio" y "Cama" en la tabla de lecturas, y visualización en el encabezado del drawer de lectura (`Atención N° ... — Servicio: ... — Cama: ...`).
+  - **Verificaciones:**
+    * Extracción en vivo contra SAHI verificada con la atención #7019395: `NomUbicacion = 'Hospitalizacion Clinica Piso 1'`, `Cama = '113'` ✅.
+    * Creación de ecografía y persistencia en MySQL probada con rollback: `Status 201`, guardado y recuperación exactos de `ubicacion` y `cama` ✅.
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% (0 errores) ✅.
+    * ESLint y Prettier 100% limpios sin advertencias ✅.
+    * Compilación Vite exitosa (`npm run build`) en 1.92s ✅.
+
+- [x] **2026-11-18 — Prevención de Sobrescritura de Credenciales PACS/Oviyam al Actualizar Sede o Subir Plantillas (`ConfigSedeService.php`, `configSedeComponent.vue`):**
+  - **Diagnóstico del Problema:**
+    * Al subir una plantilla de ecografías o Rx desde el modal de edición de sede, se borraba o editaba la contraseña del usuario del PACS (`password_dcm`) y de Oviyam (`password_oviyam`) en la base de datos.
+    * **Causa Raíz:** En `ConfigSede.php`, los campos `password_dcm`, `password_oviyam` e `interface_password` están definidos en `$hidden` por seguridad. Al listarse las sedes desde `GET /api/config-sedes`, estos campos no se devuelven al frontend. En `configSedeComponent.vue`, se inicializaban en `""` y al enviar el formulario para actualizar o subir plantillas, `ConfigSedeService::fillSedeData()` sobrescribía incondicionalmente las columnas de la BD con cadenas vacías.
+  - **Solución Implementada:**
+    * **Backend ([`ConfigSedeService.php`](file:///c:/laragon/www/lidiag/app/Services/Configuracion/ConfigSedeService.php)):**
+      - Se agregó el flag booleano `$isUpdate` al método `fillSedeData(ConfigSede $item, array $data, bool $isUpdate = false)`.
+      - Si la operación es de actualización (`$isUpdate = true`), los campos de contraseñas (`password_dcm`, `password_oviyam`, `interface_password`) solo se modifican si se envía un valor explícito no nulo y no vacío (`trim((string) $data[$field]) !== ''`), preservando intacto el valor existente en BD.
+    * **Frontend ([`configSedeComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/configuracion/configSedeComponent.vue)):**
+      - En `mostrarRegistro()`, los campos de contraseña siempre se inicializan limpios en `""`.
+      - En `guardarRegistro()`, cuando `actualizar.value` es verdadero, si las contraseñas están vacías se eliminan del payload (`delete reg.password_dcm`, `delete reg.password_oviyam`) antes de enviar.
+      - En los inputs de contraseña se agregaron placeholders contextuales dinámicos (`actualizar ? 'Dejar en blanco para conservar actual' : ...`) y `autocomplete="new-password"` defensivo.
+    * **Recuperación de Datos en BD:**
+      - Mediante inspección binaria de los logs de transacciones de MySQL (`mysqlbinlog` sobre `binlog.000054`), se recuperaron exactamente los valores originales previos al incidente y se restauraron en la BD:
+        * Sede 1 (Espinal): `password_dcm` = `'Lidiag@852'`, `password_oviyam` = `'admin'`.
+        * Sede 3 (Chaparral): `password_dcm` = `'Lidiag753...'`, `password_oviyam` = `'admin'`.
+  - **Verificaciones:**
+    * Prueba unitaria con rollback confirmando que actualizaciones con campos vacíos u omitidos preservan las contraseñas existentes y que envíos con nuevas contraseñas las actualizan correctamente ✅.
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% ✅.
+    * ESLint y Prettier 100% limpios ✅.
+    * Compilación exitosa con Vite (`npm run build`) ✅.
+
 - [x] **2026-11-18 — Creación Defensiva del Directorio `reporte_lecturas_ecografias` (`PlantillaEcografiaService.php`):**
   - **Diagnóstico del Problema:**
     * En producción, al generar el reporte de ecografía (`POST /api/ecografia-generar-reporte/{id}`), fallaba con:

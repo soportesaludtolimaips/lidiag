@@ -222,6 +222,8 @@
                                         <th with="30%">Administradora</th>
                                         <th>Contrato</th>
                                         <th>Plan</th>
+                                        <th>Servicio</th>
+                                        <th>Cama</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -273,6 +275,8 @@
                                         <td>{{ item.admin_salud.nom_admin_salud }}</td>
                                         <td>{{ item.contrato }}</td>
                                         <td>{{ item.plan }}</td>
+                                        <td>{{ item.ubicacion || "-" }}</td>
+                                        <td>{{ item.cama || "-" }}</td>
                                         <td class="text-nowrap">
                                             <button
                                                 type="button"
@@ -2231,7 +2235,9 @@ function btnCerrarModalForm() {
  * @date 2025-11-18
  */
 function mostrarRegistro(data = {}) {
-    tituloAtencion.value = `Atención N°: ${data.atencion_id}`;
+    const ubicacionInfo = data.ubicacion ? ` — Servicio: ${data.ubicacion}` : "";
+    const camaInfo = data.cama ? ` — Cama: ${data.cama}` : "";
+    tituloAtencion.value = `Atención N°: ${data.atencion_id}${ubicacionInfo}${camaInfo}`;
     tituloModal.value = `Paciente: ${data.paciente.num_docu} - Nombres: ${data.paciente.nombres} ${data.paciente.seg_nom} ${data.paciente.pri_ape} ${data.paciente.seg_ape} `;
     subTituloModal.value = `Examen: ${data.nom_produc} - Valor: ${data.ValProduc}`;
 
@@ -2255,6 +2261,9 @@ function mostrarRegistro(data = {}) {
     registro.value.contrato = data.contrato;
     registro.value.plan = data.plan;
     registro.value.admin_salud = data.admin_salud?.nom_admin_salud || "";
+    registro.value.ubicacion = data.ubicacion || "";
+    registro.value.cama = data.cama || "";
+    registro.value.quien_ordena = data.quien_ordena || "";
 
     registro.value.fec_estudio = data.fec_cita_sahi || "";
     registro.value.nom_produc = data.nom_produc || "";
@@ -2347,6 +2356,9 @@ function limpiarFormulario() {
     registro.value.plan = "";
     registro.value.admin_salud = "";
     registro.value.quien_ordeno = "";
+    registro.value.quien_ordena = "";
+    registro.value.ubicacion = "";
+    registro.value.cama = "";
     registro.value.lectura = "";
     registro.value.opinion = "";
     errores.value = {};
