@@ -96,6 +96,8 @@ class ProduccionDetalladaEcografiasDetalleSheet implements FromCollection, WithC
             "Contrato",
             "Plan",
             "Quien Ordena",
+            "Ubicación",
+            "Cama",
             "Lectura",
             "Opinión",
         ];
@@ -129,6 +131,8 @@ class ProduccionDetalladaEcografiasDetalleSheet implements FromCollection, WithC
             $ecografia->contrato ?? "N/A",
             $ecografia->plan ?? "N/A",
             $ecografia->quien_ordena ?? "N/A",
+            $ecografia->ubicacion ?? "N/A",
+            $ecografia->cama ?? "N/A",
             strip_tags((string) ($ecografia->lectura ?? "N/A")),
             strip_tags((string) ($ecografia->opinion ?? "N/A")),
         ];
@@ -161,8 +165,10 @@ class ProduccionDetalladaEcografiasDetalleSheet implements FromCollection, WithC
             "M" => 20,
             "N" => 20,
             "O" => 25,
-            "P" => 40,
-            "Q" => 40,
+            "P" => 25,
+            "Q" => 15,
+            "R" => 40,
+            "S" => 40,
         ];
     }
 
@@ -177,7 +183,7 @@ class ProduccionDetalladaEcografiasDetalleSheet implements FromCollection, WithC
     {
         // Encabezado personalizado
         $sheet->setCellValue("A1", "Salud Tolima - Reporte de Producción Ecografías");
-        $sheet->mergeCells("A1:Q1");
+        $sheet->mergeCells("A1:S1");
         $sheet->getStyle("A1")->applyFromArray([
             "font" => [
                 "bold" => true,
@@ -194,7 +200,7 @@ class ProduccionDetalladaEcografiasDetalleSheet implements FromCollection, WithC
         ]);
 
         // Estilo para el encabezado de los datos (Fila 3)
-        $sheet->getStyle("A3:Q3")->applyFromArray([
+        $sheet->getStyle("A3:S3")->applyFromArray([
             "font" => [
                 "bold" => true,
                 "color" => ["rgb" => "FFFFFF"],
@@ -211,7 +217,7 @@ class ProduccionDetalladaEcografiasDetalleSheet implements FromCollection, WithC
         // Bordes
         $highestRow = $sheet->getHighestRow();
         if ($highestRow >= 4) {
-            $sheet->getStyle("A4:Q{$highestRow}")->applyFromArray([
+            $sheet->getStyle("A4:S{$highestRow}")->applyFromArray([
                 "borders" => [
                     "allBorders" => [
                         "borderStyle" => Border::BORDER_THIN,

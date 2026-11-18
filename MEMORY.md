@@ -37,6 +37,41 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-18 — Inclusión de Ubicación y Cama en Reporte de Producción de Ecografías (`ProduccionDetalladaEcografiasExport.php`, `ProduccionDetalladaEcografiasDetalleSheet.php`, `2026_11_18_121500_update_view_reporte_ecografias_add_ubicacion_cama.php`):**
+  - **Requerimiento del Usuario:**
+    * Agregar los campos de ubicación asistencial (`ubicacion`) y cama hospitalaria (`cama`) al reporte Excel de producción de ecografías.
+  - **Solución Implementada:**
+    * **Exportador Backend ([`ProduccionDetalladaEcografiasExport.php`](file:///c:/laragon/www/lidiag/app/Exports/ProduccionDetalladaEcografiasExport.php)):**
+      - Migrada la consulta a Query Builder nativo de Eloquent con joins explícitos a `ecografias_productos`, `ecografias`, `pacientes`, `users` y catálogos, eliminando la fragilidad por dependencias de vistas no versionadas.
+      - Proyección de los campos `e.ubicacion` y `e.cama`.
+    * **Hoja Detalle de Ecografías ([`ProduccionDetalladaEcografiasDetalleSheet.php`](file:///c:/laragon/www/lidiag/app/Exports/Sheets/ProduccionDetalladaEcografiasDetalleSheet.php)):**
+      - Agregados los encabezados `Ubicación` (Columna P) y `Cama` (Columna Q).
+      - Ampliado el banner corporativo y rango de estilos a 19 columnas (`A1:S1` y `A3:S3`).
+      - Asignados anchos de columna específicos (P: 25, Q: 15).
+    * **Migración de Base de Datos ([`2026_11_18_121500_update_view_reporte_ecografias_add_ubicacion_cama.php`](file:///c:/laragon/www/lidiag/database/migrations/2026_11_18_121500_update_view_reporte_ecografias_add_ubicacion_cama.php)):**
+      - Actualizada la vista MySQL `view_reporte_ecografias` para incluir `e.ubicacion`, `e.cama` y corregir la referencia a `e.atencion_id`.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% (0 errores) ✅.
+    * Larastan PHPStan Nivel 5 completado con 0 errores ✅.
+    * Generación física de archivo Excel verificada con PhpSpreadsheet comprobando las 19 columnas y datos correctos ✅.
+- [x] **2026-11-18 — Habilitación de Nuevas Variables Asistenciales en Plantillas Word (`PlantillaEcografiaService.php`, `PlantillaEstudioService.php`, `configSedeComponent.vue`):**
+  - **Requerimiento:**
+    * Permitir la personalización de las plantillas Word (`.docx`) de Sedes y Estudios con las variables asistenciales `${transcriptor}` (o `${quien_transcribio}`), `${quien_imprimio}` (o `${quiebn_imprimio}`), `${ubicacion}` (o `${ubucacion}`) y `${cama}`.
+    * Actualizar la documentación y catálogo de variables en el drawer de Sedes ([`configSedeComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/configuracion/configSedeComponent.vue)).
+  - **Solución Implementada:**
+    * **Servicio de Ecografías ([`PlantillaEcografiaService.php`](file:///c:/laragon/www/lidiag/app/Services/Ecografias/PlantillaEcografiaService.php)):**
+      - Mapeo automático de `${transcriptor}` y `${quien_transcribio}` resolviendo desde `ecografias_productos.usua_regis_id`, médico o usuario autenticado.
+      - Mapeo de `${quien_imprimio}` y tolerancia a errores de tipeo `${quiebn_imprimio}` resolviendo el usuario autenticado que genera el reporte.
+      - Mapeo de `${ubicacion}`, `${ubucacion}` y `${cama}` para completar datos hospitalarios del paciente.
+    * **Servicio de Estudios ([`PlantillaEstudioService.php`](file:///c:/laragon/www/lidiag/app/Services/Estudios/PlantillaEstudioService.php)):**
+      - Mapeo análogo de `${transcriptor}` (resolviendo desde `estudios_productos.transcriptor_id`), `${quien_imprimio}`, `${ubicacion}` y `${cama}`.
+    * **Frontend ([`configSedeComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/configuracion/configSedeComponent.vue)):**
+      - Actualizado el panel informativo de "Variables disponibles para la plantilla" reflejando claramente `${transcriptor}`, `${quien_imprimio}`, `${ubicacion}` y `${cama}`.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% (0 errores) ✅.
+    * ESLint y Prettier 100% limpios ✅.
+    * Compilación Vite exitosa (`npm run build`) en 2.95s ✅.
+
 - [x] **2026-11-18 — Extracción e Integración de Servicio (`ubicacion`) y Cama de SAHI en Módulo de Ecografías:**
   - **Requerimiento:**
     * Extraer desde SAHI el servicio/ubicación (`NomUbicacion`) y la cama (`admCama.CodCama`) correspondientes a la atención del paciente.

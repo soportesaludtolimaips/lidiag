@@ -301,7 +301,11 @@
                                             name="password_dcm"
                                             v-model="registro.password_dcm"
                                             class="form-control"
-                                            placeholder="Password de la base de datos"
+                                            :placeholder="
+                                                actualizar
+                                                    ? 'Dejar en blanco para conservar actual'
+                                                    : 'Password de la base de datos'
+                                            "
                                             autocomplete="new-password"
                                         />
                                         <span class="text-danger" v-if="errores.password_dcm">{{
@@ -364,7 +368,11 @@
                                             name="password_oviyam"
                                             v-model="registro.password_oviyam"
                                             class="form-control"
-                                            placeholder="Password del visor Oviyam"
+                                            :placeholder="
+                                                actualizar
+                                                    ? 'Dejar en blanco para conservar actual'
+                                                    : 'Password del visor Oviyam'
+                                            "
                                             autocomplete="new-password"
                                         />
                                         <span class="text-danger" v-if="errores.password_oviyam">{{
@@ -511,8 +519,13 @@
                                                         producto,
                                                         <code>${nom_producto}</code> Nombre del
                                                         producto, <code>${lectura}</code>,
-                                                        <code>${nom_sede}</code> Sede de la toma.
-                                                        <br /><br />
+                                                        <code>${nom_sede}</code> Sede de la toma,
+                                                        <code>${transcriptor}</code> Transcriptor y
+                                                        lector del estudio,
+                                                        <code>${quien_imprimio}</code> Usuario que
+                                                        imprime el reporte,
+                                                        <code>${ubicacion}</code> Ubicación,
+                                                        <code>${cama}</code> Cama. <br /><br />
 
                                                         <label class="text-info">Ecografías</label>:
                                                         <code>${tipo_estudio}</code> Tipo de
@@ -721,6 +734,14 @@ async function guardarRegistro() {
         } else {
             reg.puerto_dcm = Number(reg.puerto_dcm);
         }
+        if (actualizar.value) {
+            if (!reg.password_dcm || reg.password_dcm.trim() === "") {
+                delete reg.password_dcm;
+            }
+            if (!reg.password_oviyam || reg.password_oviyam.trim() === "") {
+                delete reg.password_oviyam;
+            }
+        }
         formData.append("registro", JSON.stringify(reg));
         if (registro.value && registro.value.id) {
             formData.append("id", String(registro.value.id));
@@ -834,9 +855,9 @@ function mostrarRegistro(data = {}) {
         registro.value.bd_dcm = data.bd_dcm || "";
         registro.value.puerto_dcm = data.puerto_dcm ?? "";
         registro.value.usuario_dcm = data.usuario_dcm || "";
-        registro.value.password_dcm = data.password_dcm || "";
+        registro.value.password_dcm = "";
         registro.value.usuario_oviyam = data.usuario_oviyam || "";
-        registro.value.password_oviyam = data.password_oviyam || "";
+        registro.value.password_oviyam = "";
         registro.value.url_oviyam = data.url_oviyam || "";
         registro.value.tap_oviyam = data.tap_oviyam || "";
         registro.value.plantilla = data.plantilla_rx || "";

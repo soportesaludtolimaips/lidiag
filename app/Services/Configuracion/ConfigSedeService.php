@@ -210,7 +210,7 @@ class ConfigSedeService extends BaseService
         }
 
         $item = new ConfigSede;
-        $this->fillSedeData($item, $validated->validated());
+        $this->fillSedeData($item, $validated->validated(), false);
 
         if ($plantillaRx) {
             $info = $this->fileService->store($plantillaRx, 'local', 'plantillas_lecturas');
@@ -280,7 +280,7 @@ class ConfigSedeService extends BaseService
         }
 
         $item = ConfigSede::findOrFail($id);
-        $this->fillSedeData($item, $validated->validated());
+        $this->fillSedeData($item, $validated->validated(), true);
 
         if ($plantillaRx) {
             $info = $this->fileService->replace('local', $item->plantilla_rx, $plantillaRx, 'plantillas_lecturas');
@@ -328,14 +328,21 @@ class ConfigSedeService extends BaseService
     /**
      * Rellena los campos configurables de una sede a partir de los datos enviados.
      *
+     * Flujo del proceso:
+     * 1. Itera sobre los campos permitidos del modelo ConfigSede.
+     * 2. Si el campo es una contraseña (password_dcm, password_oviyam, interface_password) y la operación
+     *    es de actualización ($isUpdate), solo se modifica si el valor enviado no es nulo ni una cadena vacía.
+     * 3. Sanitiza tipos de datos para campos booleanos (estado) y numéricos (puertos).
+     *
      * @param  ConfigSede  $item  Instancia de la sede a completar
      * @param  array  $data  Datos enviados con los campos a actualizar
+     * @param  bool  $isUpdate  Indica si la operación es de actualización (preserva contraseñas si vienen vacías)
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-10-13
+     * @date 2026-11-18
      */
-    private function fillSedeData(ConfigSede $item, array $data): void
+    private function fillSedeData(ConfigSede $item, array $data, bool $isUpdate = false): void
     {
         $fields = [
             'nom_sede',
@@ -363,8 +370,24 @@ class ConfigSedeService extends BaseService
             'interface_password',
         ];
 
+        $passwordFields = ['password_dcm', 'password_oviyam', 'interface_password'];
+
         foreach ($fields as $field) {
             if (array_key_exists($field, $data)) {
+                if (in_array($field, $passwordFields, true)) {
+                    if ($isUpdate) {
+                        if ($data[$field] !== null && trim((string) $data[$field]) !== '') {
+                            $item->$field = (string) $data[$field];
+                        }
+                    } else {
+                        $item->$field = ($data[$field] !== null && trim((string) $data[$field]) !== '')
+                            ? (string) $data[$field]
+                            : null;
+                    }
+
+                    continue;
+                }
+
                 if (in_array($field, ['estado'], true)) {
                     $item->$field = filter_var($data[$field], FILTER_VALIDATE_BOOLEAN);
                 } elseif (in_array($field, ['puerto_dcm', 'interface_port'], true)) {

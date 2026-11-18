@@ -5,6 +5,8 @@ namespace App\Services\Estudios;
 use App\Helpers\PdfConverterHelper;
 use App\Helpers\QrCodeHelper;
 use App\Models\Configuracion\ConfigSede;
+use App\Models\Estudio\EstudioProducto;
+use App\Models\User;
 use App\Services\BaseService;
 use Carbon\Carbon;
 use PhpOffice\PhpWord\Element\TextRun;
@@ -61,6 +63,31 @@ class PlantillaEstudioService extends BaseService
         $template->setValue('fechor_estudio', $fecEstudio);
         $template->setValue('fechor_lectura', $fecLectura);
         $template->setValue('fechor_transcripcion', $fecTrascrito);
+        $template->setValue('fechor_transcipcion', $fecTrascrito);
+
+        $template->setValue('ubicacion', $data['ubicacion'] ?? '');
+        $template->setValue('ubucacion', $data['ubicacion'] ?? '');
+        $template->setValue('cama', $data['cama'] ?? '');
+
+        // Transcriptor y Lector del estudio
+        $quienTranscribio = $data['transcriptor'] ?? $data['quien_transcribio'] ?? '';
+        if (empty($quienTranscribio) && ! empty($data['estudio_producto_id'])) {
+            $ep = EstudioProducto::find($data['estudio_producto_id']);
+            if ($ep && $ep->transcriptor_id) {
+                $quienTranscribio = User::find($ep->transcriptor_id)?->name ?? '';
+            }
+        }
+        if (empty($quienTranscribio)) {
+            $quienTranscribio = auth()->user()?->name ?? ($data['nombres_medico'] ?? '');
+        }
+
+        // Quien imprimió el reporte
+        $quienImprimio = $data['quien_imprimio'] ?? $data['quiebn_imprimio'] ?? auth()->user()?->name ?? '';
+
+        $template->setValue('transcriptor', $quienTranscribio);
+        $template->setValue('quien_transcribio', $quienTranscribio);
+        $template->setValue('quien_imprimio', $quienImprimio);
+        $template->setValue('quiebn_imprimio', $quienImprimio);
 
         $template->setValue('atencion', ($data['atencion'] ?? '') === 'null' ? '' : ($data['atencion'] ?? ''));
 
