@@ -37,6 +37,19 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-18 — Manejo Defensivo y Sede Dinámica en Consulta SAHI Ecografías (`SAHIEcografiasController.php` y `SAHIEcografiasService.php`):**
+  - **Diagnóstico del Problema:**
+    * En producción, al buscar atenciones en el módulo de admisión de ecografías (`POST /api/interface-sahi-ecografias/listar/productos/atencion`), el servidor respondía con error HTTP 500 genérico `Error interno del servidor.`
+    * **Causa Raíz:** En `SAHIEcografiasService::listarProductosAtencion()`, las consultas SQL Server (`DB::connection('sqlsrv')`) no estaban envueltas en un bloque `try / catch (\Throwable $e)`. Ante cualquier intermitencia de red, tiempo de espera agotado (timeout) o credencial de conexión de SQL Server en producción, la excepción de PDO burbujeaba hasta el exception handler de Laravel, retornando un error 500 opaco en lugar de un mensaje explicativo y manejado. Adicionalmente, el servicio no estaba aplicando `SahiConnectionHelper::configureForSede($sede)` con el `sede_id` enviado desde el frontend en `busqueda.sede_id`.
+  - **Solución Implementada:**
+    * En [`SAHIEcografiasController.php`](file:///c:/laragon/www/lidiag/app/Http/Controllers/Interface/SAHIEcografiasController.php):
+      - Se extrae `$request->input('sede_id')` y se pasa a `SAHIEcografiasService::listarProductosAtencion()`.
+    * En [`SAHIEcografiasService.php`](file:///c:/laragon/www/lidiag/app/Services/Interfaces/SAHIEcografiasService.php):
+      - Se encapsuló todo el proceso de consulta a SQL Server en un bloque `try / catch (\Throwable $e)` con logging detallado.
+      - Si se especifica `sedeId`, se invoca defensivamente `SahiConnectionHelper::configureForSede($sede)` para garantizar que los parámetros de conexión apunten a la sede correcta.
+      - En caso de error de red o autenticación, se traduce la excepción a un mensaje claro para el usuario con código 503 (*Error de autenticación* vs *El servidor no responde o no es accesible en la red*).
+  - **Verificaciones:**
+    * Pint: `vendor\bin\pint.bat --test` validado al 100%.
 - [x] **2026-11-18 — Ubicación, Cama, Servicio y Variables de Fecha en Reportes (`PlantillaEcografiaService.php` y `PlantillaEstudioService.php`):**
   - **Diagnóstico del Problema:**
     * En el reporte de ecografías no aparecían la ubicación y cama debido a que el FormRequest descartaba dichos atributos. Adicionalmente, se requerían las variables `${fecha_hora_transcripcion}` y `${fecha_hora_impresion}` para ser procesadas en las plantillas DOCX de sedes.

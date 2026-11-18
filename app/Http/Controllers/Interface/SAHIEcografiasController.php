@@ -41,10 +41,13 @@ class SAHIEcografiasController extends Controller
             ?? $request->input('bus_nom_num_docu')
             ?? $request->input('idAtencion');
 
+        $sedeId = $request->input('sede_id') ? (int) $request->input('sede_id') : null;
+
         $result = $this->sahiEcografiasService->listarProductosAtencion(
             $criterio,
             $request->input('bus_fech_ini'),
-            $request->input('bus_fecha_fin')
+            $request->input('bus_fecha_fin'),
+            $sedeId
         );
 
         return response()->json($result, $result['status']);
