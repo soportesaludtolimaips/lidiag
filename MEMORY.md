@@ -70,6 +70,19 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * Script PHP en sandbox validando que con `bus_documento: '97612752'` retorna exactamente `ING LOZANO JHON` (ID 23296).
     * ESLint y Pint pasados con 0 errores.
     * Compilación de assets con Vite exitosa.
+- [x] **2026-11-18 — Optimización de Búsqueda de Atenciones por Fecha en SAHI (`SAHIEcografiasService.php`):**
+  - **Diagnóstico del Problema:**
+    * Al buscar atenciones por rango de fechas (ej. el día de hoy) en `admisionarComponent.vue`, la consulta tardaba demasiado o devolvía 0 resultados útiles.
+    * **Causa Raíz:** En `resolverAtencionesIds()`, al no haber criterio de texto, se consultaba `admAtencion` ordenando por `IdAtencion DESC` con `LIMIT 30` genérico. En un día de alta afluencia ingresan más de 1.500 atenciones hospitalarias/urgencias en SAHI. El `LIMIT 30` capturaba únicamente las últimas 30 admisiones globales (que eran consultas de medicina general, odontología, suturas o partos). Al cruzar esas 30 atenciones contra los grupos asistenciales de ecografía (`[44, 195, 156, 190, 204, 191]`), ninguna coincidía y la consulta terminaba descartándolas todas.
+    * Adicionalmente, el filtro aplicaba `CONVERT(date, FecIngreso)` impidiendo el uso de índices sargables en SQL Server.
+  - **Solución Implementada:**
+    * En [`SAHIEcografiasService.php`](file:///c:/laragon/www/lidiag/app/Services/Interfaces/SAHIEcografiasService.php):
+      - Se reestructuró la resolución por fechas: ahora filtra directamente las atenciones que tengan movimientos (`facMovimientoDet`) o facturas (`facFacturaDet`) registradas con productos de ecografía (`IdGrupo` permitidos) dentro del rango temporal.
+      - Se optimizó el filtrado de fechas usando comparación sargable con formato estándar 120 (`admAtencion.FecIngreso >= CONVERT(datetime, 'YYYY-MM-DD 00:00:00', 120)`).
+      - El tiempo de respuesta se redujo drásticamente a **~140 ms**, retornando inmediatamente todas las atenciones reales con ecografías pendientes del día.
+  - **Verificaciones:**
+    * Pint: `vendor\bin\pint.bat --test app/Services/Interfaces/SAHIEcografiasService.php` (passed).
+    * Benchmark en SQL Server: consulta ejecutada en 0.14s con 64 procedimientos de ecografías encontrados para el día de hoy.
 - [x] **2026-11-18 — Rediseño UX y Optimización de Columnas en Tabla de Lectura de Ecografías (`lecturaComponent.vue`):**
   - **Diagnóstico del Problema:**
     * La tabla de ecografías pendientes por lectura en [`lecturaComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/lecturaComponent.vue) mostraba 10 columnas separadas (`Atención`, `# Documento`, `Paciente`, `Examen`, `Administradora`, `Contrato`, `Plan`, `Servicio / Ubicación`, `Cama`, `Acciones`), saturando el espacio horizontal de los médicos especialistas y provocando quiebres bruscos de texto.

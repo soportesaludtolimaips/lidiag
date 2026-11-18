@@ -335,10 +335,10 @@ class SAHIEcografiasService extends BaseService
                     ->where('admCliente.NumDocumento', $criterio);
 
                 if ($fechaIni) {
-                    $queryDoc->whereRaw('CONVERT(date, admAtencion.FecIngreso) >= ?', [$fechaIni]);
+                    $queryDoc->whereRaw('admAtencion.FecIngreso >= CONVERT(datetime, ?, 120)', ["{$fechaIni} 00:00:00"]);
                 }
                 if ($fechaFin) {
-                    $queryDoc->whereRaw('CONVERT(date, admAtencion.FecIngreso) <= ?', [$fechaFin]);
+                    $queryDoc->whereRaw('admAtencion.FecIngreso <= CONVERT(datetime, ?, 120)', ["{$fechaFin} 23:59:59"]);
                 }
 
                 $porDoc = $queryDoc->orderByDesc('admAtencion.IdAtencion')
@@ -364,10 +364,10 @@ class SAHIEcografiasService extends BaseService
                 }
 
                 if ($fechaIni) {
-                    $queryNombre->whereRaw('CONVERT(date, admAtencion.FecIngreso) >= ?', [$fechaIni]);
+                    $queryNombre->whereRaw('admAtencion.FecIngreso >= CONVERT(datetime, ?, 120)', ["{$fechaIni} 00:00:00"]);
                 }
                 if ($fechaFin) {
-                    $queryNombre->whereRaw('CONVERT(date, admAtencion.FecIngreso) <= ?', [$fechaFin]);
+                    $queryNombre->whereRaw('admAtencion.FecIngreso <= CONVERT(datetime, ?, 120)', ["{$fechaFin} 23:59:59"]);
                 }
 
                 $atencionIds = $queryNombre->orderByDesc('admAtencion.IdAtencion')
@@ -376,21 +376,62 @@ class SAHIEcografiasService extends BaseService
                     ->all();
             }
         } else {
-            $queryFechas = DB::connection('sqlsrv')
-                ->table('admAtencion')
-                ->select('admAtencion.IdAtencion');
+            // Cuando la búsqueda es puramente por rango de fechas (sin documento/nombre),
+            // filtramos las atenciones buscando directamente en movimientos y facturas que contengan
+            // productos de los grupos asistenciales permitidos. Esto evita escanear miles de atenciones
+            // ajenas a ecografías y asegura que los resultados devueltos tengan estudios válidos.
+            $gruposPermitidos = [44, 195, 156, 190, 204, 191];
+
+            $queryMov = DB::connection('sqlsrv')
+                ->table('facMovimientoDet')
+                ->join('facMovimiento', 'facMovimientoDet.IdMovimiento', '=', 'facMovimiento.IdMovimiento')
+                ->join('proProducto', 'facMovimientoDet.IdProducto', '=', 'proProducto.IdProducto')
+                ->join('admAtencion', 'facMovimiento.IdDestino', '=', 'admAtencion.IdAtencion')
+                ->whereIn('proProducto.IdGrupo', $gruposPermitidos)
+                ->where('facMovimientoDet.Cantidad', '>', 0);
+
+            $queryFac = DB::connection('sqlsrv')
+                ->table('facFacturaDet')
+                ->join('facFactura', 'facFacturaDet.IdFactura', '=', 'facFactura.IdFactura')
+                ->join('proProducto', 'facFacturaDet.IdProducto', '=', 'proProducto.IdProducto')
+                ->join('admAtencion', 'facFactura.IdDestino', '=', 'admAtencion.IdAtencion')
+                ->whereIn('proProducto.IdGrupo', $gruposPermitidos)
+                ->where('facFacturaDet.Cantidad', '>', 0);
 
             if ($fechaIni) {
-                $queryFechas->whereRaw('CONVERT(date, admAtencion.FecIngreso) >= ?', [$fechaIni]);
+                $queryMov->whereRaw('admAtencion.FecIngreso >= CONVERT(datetime, ?, 120)', ["{$fechaIni} 00:00:00"]);
+                $queryFac->whereRaw('admAtencion.FecIngreso >= CONVERT(datetime, ?, 120)', ["{$fechaIni} 00:00:00"]);
             }
             if ($fechaFin) {
-                $queryFechas->whereRaw('CONVERT(date, admAtencion.FecIngreso) <= ?', [$fechaFin]);
+                $queryMov->whereRaw('admAtencion.FecIngreso <= CONVERT(datetime, ?, 120)', ["{$fechaFin} 23:59:59"]);
+                $queryFac->whereRaw('admAtencion.FecIngreso <= CONVERT(datetime, ?, 120)', ["{$fechaFin} 23:59:59"]);
             }
 
-            $atencionIds = $queryFechas->orderByDesc('admAtencion.IdAtencion')
-                ->limit(30)
-                ->pluck('admAtencion.IdAtencion')
-                ->all();
+            $idsMov = $queryMov->select('admAtencion.IdAtencion')->distinct()->pluck('admAtencion.IdAtencion')->all();
+            $idsFac = $queryFac->select('admAtencion.IdAtencion')->distinct()->pluck('admAtencion.IdAtencion')->all();
+
+            $atencionIds = array_values(array_unique(array_merge($idsMov, $idsFac)));
+            rsort($atencionIds);
+            $atencionIds = array_slice($atencionIds, 0, 50);
+
+            // Fallback preventivo por si no hubiese movimientos ni facturas en ese rango
+            if (empty($atencionIds)) {
+                $queryFechas = DB::connection('sqlsrv')
+                    ->table('admAtencion')
+                    ->select('admAtencion.IdAtencion');
+
+                if ($fechaIni) {
+                    $queryFechas->whereRaw('admAtencion.FecIngreso >= CONVERT(datetime, ?, 120)', ["{$fechaIni} 00:00:00"]);
+                }
+                if ($fechaFin) {
+                    $queryFechas->whereRaw('admAtencion.FecIngreso <= CONVERT(datetime, ?, 120)', ["{$fechaFin} 23:59:59"]);
+                }
+
+                $atencionIds = $queryFechas->orderByDesc('admAtencion.IdAtencion')
+                    ->limit(30)
+                    ->pluck('admAtencion.IdAtencion')
+                    ->all();
+            }
         }
 
         return $atencionIds;
