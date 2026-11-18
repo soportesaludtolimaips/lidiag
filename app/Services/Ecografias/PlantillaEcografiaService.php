@@ -5,6 +5,7 @@ namespace App\Services\Ecografias;
 use App\Helpers\HtmlToPhpWordHelper;
 use App\Helpers\PdfConverterHelper;
 use App\Models\Configuracion\ConfigSede;
+use App\Models\Ecografias\Ecografia;
 use App\Models\Ecografias\EcografiaProducto;
 use App\Models\User;
 use App\Services\BaseService;
@@ -59,6 +60,16 @@ class PlantillaEcografiaService extends BaseService
         $data['reg_medico'] = $medico->reg_med;
         $data['num_docu_medico'] = $medico->num_docu;
         $data['firma_medico'] = $medico->firma;
+
+        // Si ubicación o cama no vinieron en el request, rescatarlas defensivamente de la ecografía en BD
+        if ((empty($data['ubicacion']) || empty($data['cama'])) && ! empty($data['ecografia_id'])) {
+            $ecografiaBd = Ecografia::find($data['ecografia_id']);
+            if ($ecografiaBd) {
+                $data['ubicacion'] = $data['ubicacion'] ?? $ecografiaBd->ubicacion;
+                $data['cama'] = $data['cama'] ?? $ecografiaBd->cama;
+                $data['quien_ordena'] = $data['quien_ordena'] ?? $ecografiaBd->quien_ordena;
+            }
+        }
 
         $nombrePaciente = str_replace(['^^^', ' ^', '^'], ['', '', ' '], $data['nom_pacien'] ?? '');
 
@@ -133,6 +144,7 @@ class PlantillaEcografiaService extends BaseService
         $fecEstudio = ! empty($data['fec_estudio']) ? Carbon::parse($data['fec_estudio'])->format('d/m/Y') : '';
         $fecLectura = ! empty($data['fechor_lectura']) ? Carbon::parse($data['fechor_lectura'])->format('d/m/Y H:i') : '';
         $fecTrascrito = ! empty($data['fechor_trascrito']) ? Carbon::parse($data['fechor_trascrito'])->format('d/m/Y H:i') : '';
+        $fecImpresion = Carbon::now()->format('d/m/Y H:i');
 
         $productosEcografia = EcografiaProducto::where('ecografia_id', $data['ecografia_id'] ?? null)
             ->with('productos')
@@ -151,6 +163,9 @@ class PlantillaEcografiaService extends BaseService
         $templateProcessor->setValue('fechor_lectura', $fecLectura);
         $templateProcessor->setValue('fechor_transcripcion', $fecTrascrito);
         $templateProcessor->setValue('fechor_transcipcion', $fecTrascrito);
+        $templateProcessor->setValue('fecha_hora_transcripcion', $fecTrascrito);
+        $templateProcessor->setValue('fecha_hora_impresion', $fecImpresion);
+        $templateProcessor->setValue('fechor_impresion', $fecImpresion);
         $templateProcessor->setValue('atencion', $data['atencion'] ?? '');
         $templateProcessor->setValue('cod_producto', $data['cod_cups'] ?? '');
         $templateProcessor->setValue('nom_producto', $data['nom_produc'] ?? '');

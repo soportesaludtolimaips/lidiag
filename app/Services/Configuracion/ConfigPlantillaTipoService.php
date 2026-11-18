@@ -46,6 +46,10 @@ class ConfigPlantillaTipoService extends BaseService
 
     /**
      * Obtiene los tipos de plantilla activos registrados.
+     * Opcionalmente filtra por médico si se especifica, retornando solo aquellos
+     * tipos que tienen al menos una plantilla activa para dicho médico.
+     *
+     * @param  int|null  $medicoId  Identificador opcional del médico.
      *
      * @returns array Arreglo con la lista de tipos de plantilla activos.
      *
@@ -53,9 +57,17 @@ class ConfigPlantillaTipoService extends BaseService
      *
      * @date 2026-07-14
      */
-    public function listarActivos(): array
+    public function listarActivos(?int $medicoId = null): array
     {
-        return $this->success(ConfigPlantillaTipo::where('estado', true)->get());
+        $query = ConfigPlantillaTipo::where('estado', true);
+
+        if ($medicoId && $medicoId > 0) {
+            $query->whereHas('plantillas', function ($q) use ($medicoId) {
+                $q->where('estado', true)->where('medico_id', $medicoId);
+            });
+        }
+
+        return $this->success($query->get());
     }
 
     /**

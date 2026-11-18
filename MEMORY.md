@@ -37,6 +37,37 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-18 — Ubicación, Cama, Servicio y Variables de Fecha en Reportes (`PlantillaEcografiaService.php` y `PlantillaEstudioService.php`):**
+  - **Diagnóstico del Problema:**
+    * En el reporte de ecografías no aparecían la ubicación y cama debido a que el FormRequest descartaba dichos atributos. Adicionalmente, se requerían las variables `${fecha_hora_transcripcion}` y `${fecha_hora_impresion}` para ser procesadas en las plantillas DOCX de sedes.
+  - **Solución Implementada:**
+    * En [`EcografiaGenerarReporteRequest.php`](file:///c:/laragon/www/lidiag/app/Http/Requests/Ecografias/EcografiaGenerarReporteRequest.php):
+      - Se agregaron las reglas de validación `nullable|string` para `'ubicacion'`, `'cama'` y `'quien_ordena'`.
+    * En [`PlantillaEcografiaService.php`](file:///c:/laragon/www/lidiag/app/Services/Ecografias/PlantillaEcografiaService.php) y [`PlantillaEstudioService.php`](file:///c:/laragon/www/lidiag/app/Services/Estudios/PlantillaEstudioService.php):
+      - Se implementó el reemplazo de las variables `${fecha_hora_transcripcion}`, `${fecha_hora_impresion}` y `${fechor_impresion}` (`Carbon::now()->format('d/m/Y H:i')`).
+      - Se aseguró fallback de `ubicacion` y `cama` consultando directamente la base de datos si venían vacías en el payload.
+  - **Verificaciones:**
+    * Pint: `vendor\bin\pint.bat --test` pasado con éxito.
+    * Vite: `npm run build` compilado sin errores.
+- [x] **2026-11-18 — Carga de Plantillas por Médico y Columnas Servicio/Cama en Lectura de Ecografías (`lecturaComponent.vue`):**
+  - **Diagnóstico del Problema:**
+    * En el modal de lectura de ecografías no se cargaban las plantillas al seleccionar un tipo de plantilla: el combo de "Tipos de plantillas" cargaba indiscriminadamente todos los 140 tipos existentes en BD (muchos para los cuales el médico activo no tenía plantillas registradas o estaban nombrados con ligeras variaciones como "ABDOMEN TOTAL MUJER" vs "ECOGRAFIA ABDOMINAL MUJER"), y la resolución de `medicoId` en frontend priorizaba el usuario logueado en vez del médico seleccionado. Además, en la tabla de pendientes de lectura faltaban por alinearse las columnas de "Servicio / Ubicación" y "Cama" junto con el skeleton loader (:columns="10").
+  - **Solución Implementada:**
+    * En [`ConfigPlantillaTipoService.php`](file:///c:/laragon/www/lidiag/app/Services/Configuracion/ConfigPlantillaTipoService.php) y [`ConfigPlantillaTipoController.php`](file:///c:/laragon/www/lidiag/app/Http/Controllers/Configuracion/ConfigPlantillaTipoController.php):
+      - Se añadió soporte al endpoint `GET /api/config-tipos-plantillas/listar/activos?medico_id=...` para filtrar y listar únicamente los tipos de plantillas que efectivamente tienen plantillas activas asignadas a dicho médico.
+    * En [`ConfigPlantillaTipo.php`](file:///c:/laragon/www/lidiag/app/Models/Configuracion/ConfigPlantillaTipo.php):
+      - Se definió la relación `plantillas()` (`hasMany(ConfigPlantilla::class, 'plantilla_tipo_id')`).
+    * En [`ConfigPlantillaService.php`](file:///c:/laragon/www/lidiag/app/Services/Configuracion/ConfigPlantillaService.php):
+      - Se implementó búsqueda resiliente en `listarActivosPorTipo($tipoId, $medicoId)`: búsqueda directa por tipo y médico -> fallback por equivalencia semántica de palabras clave de tipos de plantilla para el médico -> fallback de plantillas globales -> plantillas del tipo.
+    * En [`lecturaComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/lecturaComponent.vue):
+      - Se ajustó el skeleton loader a `:columns="10"`.
+      - Se actualizó `listarTiposPlantillas()` para consultar con `medico_id`.
+      - Se actualizó `onMedicoSeleccionado()` para refrescar los tipos de plantilla al cambiar de médico.
+      - Se corrigió la resolución de `medicoIdPlantilla` en `onTipoPlantillaSelect()`.
+  - **Verificaciones:**
+    * Laravel Pint: `vendor\bin\pint.bat --test` pasado al 100%.
+    * ESLint: `npx eslint resources/js/components/modulos/ecografias/lecturaComponent.vue` sin errores (código 0).
+    * Vite: `npm run build` compiló sin errores.
 - [x] **2026-11-18 — Resiliencia y Diagnóstico Defensivo en Conexión PACS (`StudyService.php`):**
   - **Diagnóstico del Problema:**
     * En producción, la consulta de estudios DICOM (`POST /api/study.listarEstudios`) arrojaba un error 500 genérico `Error interno del servidor.`.

@@ -187,7 +187,7 @@
                         <table-skeleton-loader
                             :visible="isBuscandoPendientes"
                             :rows="6"
-                            :columns="8"
+                            :columns="10"
                         />
                         <empty-state-component
                             v-if="
@@ -2115,10 +2115,26 @@ function establecerMedico() {
  * @author Jhon Javer Lozano Arce
  * @date 2024-06-10
  */
-async function listarTiposPlantillas() {
+async function listarTiposPlantillas(medicoId = null) {
     try {
-        const res = await axios.get("/api/config-tipos-plantillas/listar/activos");
+        const idMed =
+            medicoId ||
+            busqueda.value.medico_id ||
+            sessionStorage.getItem("ST-ecografia-medico") ||
+            localStorage.getItem("ST-ecografia-medico") ||
+            sessionStorage.getItem("ST-medico") ||
+            localStorage.getItem("ST-medico") ||
+            "";
+
+        const url = idMed
+            ? `/api/config-tipos-plantillas/listar/activos?medico_id=${idMed}`
+            : "/api/config-tipos-plantillas/listar/activos";
+
+        const res = await axios.get(url);
         tiposPlantillas.value = res.data.data;
+        nextTick(() => {
+            selTipoPlantilla.value?.rebuild();
+        });
     } catch {
         tiposPlantillas.value = [];
     }
@@ -2151,12 +2167,14 @@ async function onTipoPlantillaSelect(value) {
 
     try {
         const medicoIdPlantilla =
+            registro.value.medico_id ||
+            busqueda.value.medico_id ||
             sessionStorage.getItem("ST-ecografia-medico") ||
             localStorage.getItem("ST-ecografia-medico") ||
             sessionStorage.getItem("ST-medico") ||
             localStorage.getItem("ST-medico") ||
-            registro.value.medico_id ||
-            props.usuarioactual?.id;
+            props.usuarioactual?.id ||
+            0;
 
         const url = `/api/config-plantillas/listar/activos/${selectedId}/${medicoIdPlantilla}`;
         const res = await axios.get(url);
@@ -2398,6 +2416,7 @@ function onMedicoSeleccionado(data) {
         busqueda.value.medico_id = String(data.idMedico);
     }
     establecerMedico();
+    listarTiposPlantillas(data?.idMedico);
 }
 
 /**

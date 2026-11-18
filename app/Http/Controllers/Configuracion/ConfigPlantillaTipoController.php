@@ -7,6 +7,7 @@ use App\Http\Requests\Configuracion\StoreConfigPlantillaTipoRequest;
 use App\Http\Requests\Configuracion\UpdateConfigPlantillaTipoRequest;
 use App\Services\Configuracion\ConfigPlantillaTipoService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class ConfigPlantillaTipoController extends Controller
 {
@@ -61,7 +62,9 @@ class ConfigPlantillaTipoController extends Controller
     }
 
     /**
-     * Lista los tipos de plantilla activos registrados en el sistema.
+     * Lista los tipos de plantilla activos registrados en el sistema, permitiendo filtrar por médico.
+     *
+     * @param  Request  $request  Petición HTTP con posibles parámetros de filtro (ej: medico_id).
      *
      * @returns JsonResponse Respuesta JSON con la lista de tipos de plantilla activos.
      *
@@ -69,9 +72,10 @@ class ConfigPlantillaTipoController extends Controller
      *
      * @date 2025-03-27
      */
-    public function listarActivos(): JsonResponse
+    public function listarActivos(Request $request): JsonResponse
     {
-        $result = $this->configPlantillaTipoService->listarActivos();
+        $medicoId = $request->filled('medico_id') ? (int) $request->input('medico_id') : null;
+        $result = $this->configPlantillaTipoService->listarActivos($medicoId);
 
         return response()->json($result, (int) $result["status"]);
     }

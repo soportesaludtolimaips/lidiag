@@ -59,11 +59,15 @@ class PlantillaEstudioService extends BaseService
         $fecEstudio = ! empty($data['fec_estudio']) ? Carbon::parse($data['fec_estudio'])->format('d/m/Y') : '';
         $fecLectura = ! empty($data['fechor_lectura']) ? Carbon::parse($data['fechor_lectura'])->format('d/m/Y H:i') : '';
         $fecTrascrito = ! empty($data['fechor_trascrito']) ? Carbon::parse($data['fechor_trascrito'])->format('d/m/Y H:i') : '';
+        $fecImpresion = Carbon::now()->format('d/m/Y H:i');
 
         $template->setValue('fechor_estudio', $fecEstudio);
         $template->setValue('fechor_lectura', $fecLectura);
         $template->setValue('fechor_transcripcion', $fecTrascrito);
         $template->setValue('fechor_transcipcion', $fecTrascrito);
+        $template->setValue('fecha_hora_transcripcion', $fecTrascrito);
+        $template->setValue('fecha_hora_impresion', $fecImpresion);
+        $template->setValue('fechor_impresion', $fecImpresion);
 
         $template->setValue('ubicacion', $data['ubicacion'] ?? '');
         $template->setValue('ubucacion', $data['ubicacion'] ?? '');

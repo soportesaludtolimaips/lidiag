@@ -4,6 +4,7 @@ namespace App\Services\Configuracion;
 
 use App\Helpers\AuditLogger;
 use App\Models\Configuracion\ConfigPlantilla;
+use App\Models\Configuracion\ConfigPlantillaTipo;
 use App\Services\BaseService;
 
 class ConfigPlantillaService extends BaseService
@@ -65,7 +66,9 @@ class ConfigPlantillaService extends BaseService
     }
 
     /**
-     * Obtiene las plantillas activas filtradas exclusivamente por tipo y médico.
+     * Obtiene las plantillas activas para un tipo y médico dados.
+     * Si no se encuentran plantillas asignadas directamente a ese tipo para el médico,
+     * busca por coincidencia en tipos de nombres equivalentes o plantillas generales.
      *
      * @param  int  $tipoId  Identificador del tipo de plantilla.
      * @param  int  $medicoId  Identificador del médico.
@@ -78,13 +81,67 @@ class ConfigPlantillaService extends BaseService
      */
     public function listarActivosPorTipo(int $tipoId, int $medicoId): array
     {
-        $plantillas = ConfigPlantilla::with(['plantillaTipo', 'medico'])
-            ->where('estado', true)
+        $queryBase = ConfigPlantilla::with(['plantillaTipo', 'medico'])
+            ->where('estado', true);
+
+        // 1. Búsqueda directa por el tipo y médico solicitados
+        if ($medicoId > 0) {
+            $plantillas = (clone $queryBase)
+                ->where('plantilla_tipo_id', $tipoId)
+                ->where('medico_id', $medicoId)
+                ->get();
+
+            if ($plantillas->isNotEmpty()) {
+                return $this->success($plantillas);
+            }
+
+            // 2. Fallback inteligente: buscar si el médico tiene plantillas en un tipo con nombre equivalente
+            $tipo = ConfigPlantillaTipo::find($tipoId);
+            if ($tipo && ! empty($tipo->nom_tipo)) {
+                $nombreNormalizado = trim(preg_replace('/\b(ECOGRAFIA|ECOGRAFÍA|DE|DEL|LA|EL|LOS|LAS)\b/ui', '', $tipo->nom_tipo));
+                $palabrasClave = array_values(array_filter(explode(' ', preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $nombreNormalizado)), function ($w) {
+                    return mb_strlen(trim($w)) >= 4;
+                }));
+
+                if (! empty($palabrasClave)) {
+                    $tiposIdsEquivalentes = ConfigPlantillaTipo::where('estado', true)
+                        ->where(function ($q) use ($palabrasClave) {
+                            foreach ($palabrasClave as $palabra) {
+                                $q->orWhere('nom_tipo', 'LIKE', '%'.$palabra.'%');
+                            }
+                        })
+                        ->pluck('id');
+
+                    $plantillasEquivalentes = (clone $queryBase)
+                        ->whereIn('plantilla_tipo_id', $tiposIdsEquivalentes)
+                        ->where('medico_id', $medicoId)
+                        ->get();
+
+                    if ($plantillasEquivalentes->isNotEmpty()) {
+                        return $this->success($plantillasEquivalentes);
+                    }
+                }
+            }
+
+            // 3. Fallback: buscar plantillas del tipo sin médico asignado (plantillas generales/globales)
+            $plantillasGenerales = (clone $queryBase)
+                ->where('plantilla_tipo_id', $tipoId)
+                ->where(function ($q) {
+                    $q->whereNull('medico_id')->orWhere('medico_id', 0);
+                })
+                ->get();
+
+            if ($plantillasGenerales->isNotEmpty()) {
+                return $this->success($plantillasGenerales);
+            }
+        }
+
+        // Si no hay médico o no se encontraron bajo el médico, retornar las del tipo
+        $plantillasTipo = (clone $queryBase)
             ->where('plantilla_tipo_id', $tipoId)
-            ->where('medico_id', $medicoId)
             ->get();
 
-        return $this->success($plantillas);
+        return $this->success($plantillasTipo);
     }
 
     /**

@@ -50,6 +50,9 @@ class EcografiaGenerarReporteRequest extends FormRequest
             'atencion' => 'nullable|string',
             'admin_salud' => 'nullable|string',
             'contrato' => 'nullable|string',
+            'ubicacion' => 'nullable|string',
+            'cama' => 'nullable|string',
+            'quien_ordena' => 'nullable|string',
         ];
     }
 

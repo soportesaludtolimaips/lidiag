@@ -30,4 +30,18 @@ class ConfigPlantillaTipo extends Model
     {
         return $this->belongsTo(ConfigProducto::class, 'producto_id');
     }
+
+    /**
+     * Plantillas asociadas a este tipo.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\HasMany
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-18
+     */
+    public function plantillas()
+    {
+        return $this->hasMany(ConfigPlantilla::class, 'plantilla_tipo_id');
+    }
 }
