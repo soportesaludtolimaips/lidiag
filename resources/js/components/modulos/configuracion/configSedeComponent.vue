@@ -164,7 +164,12 @@
         <div v-if="sidebarVisible" class="sidebar-backdrop" @click="cerrarSidebar()"></div>
 
         <!-- Right sidebar -->
-        <div ref="sidebarRef" class="right-sidebar" :class="{ 'shw-rside': sidebarVisible }">
+        <div
+            ref="sidebarRef"
+            class="right-sidebar"
+            :class="{ 'shw-rside': sidebarVisible }"
+            style="overflow-x: hidden; overflow-y: auto; height: 100%"
+        >
             <div class="slimscrollright">
                 <div class="rpanel-title">
                     {{ tituloModal }}
@@ -926,6 +931,7 @@ onBeforeUnmount(() => {
         visibility 0.35s;
     visibility: hidden;
     pointer-events: none;
+    overflow-y: auto;
 }
 
 .shw-rside {
