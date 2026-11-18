@@ -37,6 +37,15 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-18 — Compatibilidad Defensiva de Columnas en MySQL Local (`SAHIEcografiasService.php`):**
+  - **Diagnóstico del Problema:**
+    * Al consultar atenciones en producción (`POST /api/interface-sahi-ecografias/listar/productos/atencion`), la consulta de cruce con la tabla local de MySQL arrojaba: `Column not found: 1054 Unknown column 'ecografias.ubicacion' in 'field list'`.
+    * **Causa Raíz:** En el servidor de producción aún no se ha ejecutado la migración `2026_11_18_120000_add_ubicacion_and_cama_to_ecografias_table.php`, por lo que las columnas `ubicacion` y `cama` no existen físicamente en la tabla `ecografias` de MySQL de producción. Al estar explícitamente en el `SELECT` del cruce local, MySQL fallaba con error 1054.
+  - **Solución Implementada:**
+    * En [`SAHIEcografiasService.php`](file:///c:/laragon/www/lidiag/app/Services/Interfaces/SAHIEcografiasService.php):
+      - Se implementó introspección defensiva con `Schema::hasColumn('ecografias', 'ubicacion')` y `Schema::hasColumn('ecografias', 'cama')`. Solo si las columnas existen en la base de datos se incluyen en el `select()` del query builder local.
+  - **Verificaciones:**
+    * Pint: `vendor\bin\pint.bat --test` validado al 100%.
 - [x] **2026-11-18 — Manejo Defensivo y Sede Dinámica en Consulta SAHI Ecografías (`SAHIEcografiasController.php` y `SAHIEcografiasService.php`):**
   - **Diagnóstico del Problema:**
     * En producción, al buscar atenciones en el módulo de admisión de ecografías (`POST /api/interface-sahi-ecografias/listar/productos/atencion`), el servidor respondía con error HTTP 500 genérico `Error interno del servidor.`

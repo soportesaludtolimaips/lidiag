@@ -13,6 +13,7 @@ use App\Models\Worklist\WorklistOrden;
 use App\Services\BaseService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class SAHIEcografiasService extends BaseService
 {
@@ -185,23 +186,33 @@ class SAHIEcografiasService extends BaseService
                 ->get()
                 ->keyBy('producto_id');
 
+            $tieneUbicacion = Schema::hasColumn('ecografias', 'ubicacion');
+            $tieneCama = Schema::hasColumn('ecografias', 'cama');
+
+            $selectLocal = [
+                'ecografias.id as ecografia_id',
+                'ecografias.atencion_id',
+                'ecografias.estado as estado_ecografia',
+                'ep.producto_id',
+                'ep.id as ecografia_producto_id',
+                'ep.estado_envio_sahi',
+                'ep.fechor_envio_sahi',
+                'ep.error_envio_sahi',
+                'ep.sahi_esquema_149',
+                'ep.sahi_esquema_150',
+            ];
+
+            if ($tieneUbicacion) {
+                $selectLocal[] = 'ecografias.ubicacion';
+            }
+            if ($tieneCama) {
+                $selectLocal[] = 'ecografias.cama';
+            }
+
             $local = DB::table('ecografias')
                 ->join('ecografias_productos as ep', 'ep.ecografia_id', '=', 'ecografias.id')
                 ->whereIn('ecografias.atencion_id', $atencionIds)
-                ->select([
-                    'ecografias.id as ecografia_id',
-                    'ecografias.atencion_id',
-                    'ecografias.ubicacion',
-                    'ecografias.cama',
-                    'ecografias.estado as estado_ecografia',
-                    'ep.producto_id',
-                    'ep.id as ecografia_producto_id',
-                    'ep.estado_envio_sahi',
-                    'ep.fechor_envio_sahi',
-                    'ep.error_envio_sahi',
-                    'ep.sahi_esquema_149',
-                    'ep.sahi_esquema_150',
-                ])
+                ->select($selectLocal)
                 ->orderBy('ecografias.id')
                 ->get()
                 ->keyBy(fn ($item) => "{$item->atencion_id}_{$item->producto_id}");
