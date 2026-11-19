@@ -277,18 +277,35 @@ async function listarSedes() {
 }
 
 /**
- * Limpia los filtros del formulario.
+ * Limpia los filtros del formulario y restablece fechas al día actual.
  *
  * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
- * @date 2026-11-04
+ * @date 2026-11-19
  */
 function limpiarFiltros() {
     const sedeGuardada = sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede");
     datosReporte.value.sedeId = sedeGuardada ? Number(sedeGuardada) : 0;
-    datosReporte.value.fechaIni = "";
-    datosReporte.value.fechaFin = "";
+    const hoy = new Date().toISOString().split("T")[0];
+    datosReporte.value.fechaIni = hoy;
+    datosReporte.value.fechaFin = hoy;
+}
+
+/**
+ * Inicializa las fechas por defecto si están vacías.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-19
+ */
+function inicializarFechas() {
+    if (!datosReporte.value.fechaIni && !datosReporte.value.fechaFin) {
+        const hoy = new Date().toISOString().split("T")[0];
+        datosReporte.value.fechaIni = hoy;
+        datosReporte.value.fechaFin = hoy;
+    }
 }
 
 /**
@@ -351,11 +368,20 @@ function descargarReporte() {
             fechaFin: String(datosReporte.value.fechaFin),
         });
 
-        window.open(
+        const win = window.open(
             `/descarga-reportes-estudios-pac?${params.toString()}`,
             "_blank",
             "noopener,noreferrer"
         );
+
+        if (!win) {
+            toastMessage({
+                heading: "Ventana Emergente Bloqueada",
+                text: "Por favor permite las ventanas emergentes en tu navegador para descargar el reporte.",
+                icon: "warning",
+            });
+            return;
+        }
 
         toastMessage({
             heading: "Generando Reporte",
@@ -376,6 +402,7 @@ function descargarReporte() {
 }
 
 onMounted(() => {
+    inicializarFechas();
     proxy?.emitter?.on("sedeSeleccionada", onSedeSeleccionada);
     if (!sessionStorage.getItem("ST-sede") && !localStorage.getItem("ST-sede")) {
         proxy?.emitter?.emit("solicitarSedeActiva");

@@ -37,6 +37,48 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-19 — Corrección en Descarga del Reporte de Estudios PACS (`reporteEstudiosPACComponent.vue` y `ReportesEstudioPAC.php`):**
+  - **Diagnóstico del Problema:**
+    * Al generar y descargar el reporte de estudios PACS desde [`reporteEstudiosPACComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/reportes/reporteEstudiosPACComponent.vue), el archivo Excel descargaba sin registros (vacío o con 0 filas).
+    * Al auditar [`ReportesEstudioPAC.php`](file:///c:/laragon/www/lidiag/app/Exports/ReportesEstudioPAC.php), se detectó que la resolución de la conexión remota PACS utilizaba el operador ternario invertido:
+      `config("database.connections.mysql_sucursal.host") ?: $sedeActual->ip_dcm`.
+    * Dado que `config("database.connections.mysql_sucursal.*")` posee valores estáticos por defecto en `config/database.php` (ej. `127.0.0.1`, `forge`), la expresión evaluaba siempre a la configuración estática/default y **jamás** utilizaba los parámetros reales de la sede (`$sedeActual->ip_dcm`, `$sedeActual->bd_dcm`, `$sedeActual->usuario_dcm`, `$sedeActual->password_dcm`).
+    * En entornos donde `DB_HOST_2` no apuntaba a la sede o usaba credenciales por defecto (`forge`), la conexión fallaba por autenticación (código 1045) y capturaba silenciosamente la excepción retornando una colección vacía.
+    * Además, para cualquier sede seleccionada (Chaparral, Ibagué, Líbano, Honda), se intentaba consultar siempre el host/credenciales de la Sede 1, retornando datos ajenos o fallos de conexión.
+  - **Solución Implementada:**
+    * En [`ReportesEstudioPAC.php`](file:///c:/laragon/www/lidiag/app/Exports/ReportesEstudioPAC.php):
+      - Se priorizaron directamente las credenciales específicas de cada sede almacenadas en `ConfigSede`: `$sedeActual->ip_dcm`, `$sedeActual->puerto_dcm`, `$sedeActual->bd_dcm`, `$sedeActual->usuario_dcm`, `$sedeActual->password_dcm`, dejando `config(...)` únicamente como fallback en caso de valores vacíos.
+      - Se implementó un nombre de conexión dinámico dedicado (`pacs_reporte_{$sedeId}_{uniqid}`) con timeout estricto (`PDO::ATTR_TIMEOUT => 5`) y liberación garantizada en bloque `finally` (`DB::purge($connName)`).
+      - Se mejoró la consulta cambiando `join('patient')` a `leftJoin('patient')` para evitar pérdida de estudios por inconsistencias de claves foráneas.
+      - Se normalizó el parseo de fechas para asegurar la inclusión de `00:00:00` y `23:59:59` de forma robusta.
+    * En [`ReportesEstudioPACDetalleSheet.php`](file:///c:/laragon/www/lidiag/app/Exports/Sheets/ReportesEstudioPACDetalleSheet.php):
+      - Se limpió el formato DICOM de nombres de paciente (`APELLIDO^NOMBRE^^^^`) reemplazando los símbolos `^` por espacios legibles.
+    * En [`reporteEstudiosPACComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/reportes/reporteEstudiosPACComponent.vue):
+      - Se prellenan las fechas inicial y final con la fecha del día actual (`YYYY-MM-DD`) al montar el componente para agilizar la descarga.
+      - Se agregó validación para detectar bloqueadores de ventanas emergentes al ejecutar `window.open()`, alertando al usuario amigablemente.
+  - **Verificaciones:**
+    * Pruebas de conexión y consulta exitosas contra las bases de datos PACS de sedes activas (Espinal: 2037 registros, Chaparral: 1270 registros, Ibagué: 280 registros, Líbano: 1209 registros, Honda: 1591 registros).
+    * Generación completa del libro Excel multi-hoja ("Estadísticas y Gráficas" y "Detalle de Estudios") validada con PhpSpreadsheet.
+    * Pint (`vendor\bin\pint.bat --test`): aprobado sin observaciones.
+    * PHPStan (Larastan nivel 5): aprobado con 0 errores.
+    * ESLint: 0 errores.
+    * Vite build (`npm run build`): compilado exitosamente.
+- [x] **2026-11-19 — Optimización de Búsqueda Manual en `transcribirEstudioComponent.vue`:**
+  - **Diagnóstico del Problema:**
+    * Al abrir la vista de transcribir estudios o cambiar opciones en los filtros desplegables ("Quién asignó" o "Médicos"), se ejecutaba inmediatamente la petición `POST /api/estudio-listarPendientesTrascribir`, sobrecargando el servidor innecesariamente antes de que el usuario defina sus criterios de búsqueda.
+    * Al analizar el componente, se identificaron múltiples disparadores automáticos:
+      1. `@change="listarPendientesTrascribir()"` en los `<select>` de `quien_asigno_id` y `medico_id`.
+      2. `applyDashboardPrefill()` ejecutaba `listarPendientesTrascribir()` de forma incondicional en el hook `onMounted` si existía una sede configurada en sesión o almacenamiento local (`sedeActualPrefill != null`).
+      3. `onSedeSeleccionada` ejecutaba `listarPendientesTrascribir()` al dispararse la resolución reactiva de la sede activa.
+  - **Solución Implementada:**
+    * En [`transcribirEstudioComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/transcribirEstudioComponent.vue):
+      - Se retiraron los eventos `@change="listarPendientesTrascribir()"` de los selectores de "Quién asignó" y "Médicos", permitiendo al usuario configurar sus filtros tranquilamente.
+      - Se ajustó `applyDashboardPrefill()` para que únicamente ejecute la consulta si existe un valor explícito en `sessionStorage.getItem("ST-accession")` originado por una navegación intencional desde el Dashboard. Al abrir normalmente la pantalla, no se dispara ninguna petición.
+      - En `onSedeSeleccionada`, al cambiar de sede ahora únicamente se limpia la tabla (`registros.value = []`) y se destruye el DataTable previo sin lanzar consultas automáticas al servidor.
+      - La consulta solo se ejecuta cuando el usuario hace clic en el botón **Buscar** (o presiona Enter en los campos de texto/fecha).
+  - **Verificaciones:**
+    * ESLint & Prettier: 0 errores.
+    * Compilación con Vite (`npm run build`): ejecutada exitosamente en 1.88s sin errores.
 - [x] **2026-11-19 — Flujo Completo de Activación de Cuenta por Correo y Restablecimiento Manual en Módulo de Seguridad:**
   - **Flujo 1 — Creación de Usuario y Activación por Correo Electrónico:**
     * Notificación [`ActivarCuentaNotification.php`](file:///c:/laragon/www/lidiag/app/Notifications/Seguridad/ActivarCuentaNotification.php): genera un enlace firmado y temporal (`route('usuario.activar')`) con token de 60 minutos en la tabla `password_resets`.

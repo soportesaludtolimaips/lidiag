@@ -98,20 +98,21 @@ class ReportesEstudioPACDetalleSheet implements FromCollection, WithColumnWidths
      * Mapea cada objeto de estudio a un array de celdas para el archivo Excel.
      *
      * @param  mixed  $estudio  Registro con campos de la tabla study y patient.
-     *
-     * @returns array<string> Valores mapeados para la fila.
+     * @return array<string> Valores mapeados para la fila.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-11-04
+     * @date 2026-11-19
      */
     public function map($estudio): array
     {
+        $nombrePaciente = trim(str_replace("^", " ", (string) ($estudio->pat_name ?? "")));
+
         return [
             $this->sedeNombre !== "" ? $this->sedeNombre : "N/A",
             $estudio->study_datetime ?? "N/A",
             $estudio->pat_id ?? "N/A",
-            $estudio->pat_name ?? "N/A",
+            $nombrePaciente !== "" ? $nombrePaciente : "N/A",
             $estudio->study_desc ?? "N/A",
             $estudio->mods_in_study ?? "N/A",
         ];

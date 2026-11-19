@@ -67,7 +67,6 @@
                                                 name="quien_asigno_id"
                                                 id="quien_asigno_id"
                                                 class="form-control custom-select"
-                                                @change="listarPendientesTrascribir()"
                                             >
                                                 <option value="">
                                                     ...::: Todos los usuarios :::...
@@ -90,7 +89,6 @@
                                                 name="medico_id"
                                                 id="medico_id"
                                                 class="form-control custom-select"
-                                                @change="listarPendientesTrascribir()"
                                             >
                                                 <option value="" selected>
                                                     ...::: Todos los médicos :::...
@@ -1084,9 +1082,13 @@ useKeyboardShortcuts({
 });
 
 /**
- * Aplica un prellenado del dashboard si existe un accession almacenado en sessionStorage. Si se encuentra un accession válido, se busca el estudio correspondiente y se muestra en la interfaz. Si no hay un accession válido, simplemente se listan los estudios pendientes.
+ * Aplica un prellenado del dashboard si existe un accession almacenado en sessionStorage.
+ * Si se encuentra un accession válido proveniente de una acción directa en el dashboard,
+ * se busca el estudio correspondiente. De lo contrario, no ejecuta consulta automática.
+ *
  * @returns {void}
- * @author: Jhon Javer Lozano Arce
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-19
  */
 function applyDashboardPrefill() {
     try {
@@ -1095,10 +1097,6 @@ function applyDashboardPrefill() {
             busqueda.value.bus_nom_num_docu = String(accession).trim();
             // Consumir para no pegar el filtro en siguientes visitas
             sessionStorage.removeItem("ST-accession");
-        }
-        const sedeActualPrefill =
-            sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede");
-        if (sedeActualPrefill != null) {
             destroyDataTable();
             listarPendientesTrascribir();
         }
@@ -1108,7 +1106,6 @@ function applyDashboardPrefill() {
             text: "No fue posible cargar el prellenado del dashboard.",
             icon: "error",
         });
-        listarPendientesTrascribir();
     }
 }
 
@@ -1607,7 +1604,7 @@ onMounted(async () => {
 /**
  * Maneja el evento "sedeSeleccionada" emitido por el selector global de sede: actualiza
  * busqueda.sede_id, limpia los filtros de asignador y médico, recarga los asignadores y médicos
- * para la nueva sede, destruye la tabla y vuelve a listar los pendientes de transcribir.
+ * para la nueva sede, destruye la tabla y resetea los registros. La consulta se ejecuta cuando el usuario presiona Buscar.
  *
  * @param {Object} data - Payload del evento, contiene data.idSede con el ID de la sede elegida.
  *
@@ -1615,7 +1612,7 @@ onMounted(async () => {
  *
  * @author Jhon Javer Lozano Arce
  *
- * @date 2026-10-29
+ * @date 2026-11-19
  */
 function onSedeSeleccionada(data) {
     const nuevaSede =
@@ -1630,7 +1627,7 @@ function onSedeSeleccionada(data) {
         cargarAsignadoresYSedes(nuevaSede);
         if (cambioSede) {
             destroyDataTable();
-            listarPendientesTrascribir();
+            registros.value = [];
         }
     }
 }

@@ -65,40 +65,70 @@ class ReportesEstudioPAC implements WithMultipleSheets
     /**
      * Consulta los estudios desde la base de datos PACS de la sede configurada.
      *
+     * Flujo del proceso:
+     * 1. Obtiene el modelo de la sede hospitalaria desde la base de datos local.
+     * 2. Resuelve de forma dinámica los parámetros de conexión al servidor PACS (priorizando ip_dcm, puerto_dcm, etc.).
+     * 3. Configura una conexión temporal dedicada con timeout estricto para evitar bloqueos por sedes fuera de línea.
+     * 4. Realiza la consulta de estudios y pacientes mediante LEFT JOIN sobre la tabla study y patient.
+     * 5. Purga y limpia la conexión temporal antes de retornar la colección.
+     *
      * @returns Collection Colección de estudios adquiridos.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-11-04
+     * @date 2026-11-19
      */
     protected function consultarEstudiosPac(): Collection
     {
         $sedeActual = ConfigSede::find($this->sedeId);
 
         if (! $sedeActual) {
+            Log::warning("ReportesEstudioPAC: Sede ID {$this->sedeId} no encontrada en la base de datos.");
+
             return collect();
         }
 
         if ($this->sedeNombre === "") {
-            $this->sedeNombre = (string) ($sedeActual->nom_sede ?? "");
+            $this->sedeNombre = (string) ($sedeActual->nom_sede ?? "Sede {$this->sedeId}");
         }
 
+        $host = ! empty($sedeActual->ip_dcm) ? $sedeActual->ip_dcm : config("database.connections.mysql_sucursal.host");
+        $port = ! empty($sedeActual->puerto_dcm) ? (int) $sedeActual->puerto_dcm : (int) (config("database.connections.mysql_sucursal.port") ?: 3306);
+        $database = ! empty($sedeActual->bd_dcm) ? $sedeActual->bd_dcm : config("database.connections.mysql_sucursal.database");
+        $username = ! empty($sedeActual->usuario_dcm) ? $sedeActual->usuario_dcm : config("database.connections.mysql_sucursal.username");
+        $password = $sedeActual->password_dcm ?? config("database.connections.mysql_sucursal.password");
+
+        if (empty($host) || empty($database)) {
+            Log::warning("ReportesEstudioPAC: La sede {$this->sedeNombre} (ID {$this->sedeId}) no tiene host o base de datos PACS configurada.");
+
+            return collect();
+        }
+
+        $connName = "pacs_reporte_".$this->sedeId."_".uniqid();
+
         config([
-            "database.connections.mysql_sucursal" => [
+            "database.connections.{$connName}" => [
                 "driver" => "mysql",
-                "host" => config("database.connections.mysql_sucursal.host") ?: $sedeActual->ip_dcm,
-                "port" => config("database.connections.mysql_sucursal.port") ?: $sedeActual->puerto_dcm,
-                "database" => config("database.connections.mysql_sucursal.database") ?: $sedeActual->bd_dcm,
-                "username" => config("database.connections.mysql_sucursal.username") ?: $sedeActual->usuario_dcm,
-                "password" => config("database.connections.mysql_sucursal.password") ?: $sedeActual->password_dcm,
+                "host" => $host,
+                "port" => $port,
+                "database" => $database,
+                "username" => $username,
+                "password" => $password,
                 "charset" => "latin1",
                 "collation" => "latin1_swedish_ci",
+                "options" => [
+                    \PDO::ATTR_TIMEOUT => 5,
+                ],
             ],
         ]);
-        DB::purge("mysql_sucursal");
+
+        $fechaIni = trim($this->fechaInicio);
+        $fechaFin = trim($this->fechaFin);
+        $desde = str_contains($fechaIni, " ") ? $fechaIni : $fechaIni." 00:00:00";
+        $hasta = str_contains($fechaFin, " ") ? $fechaFin : $fechaFin." 23:59:59";
 
         try {
-            return DB::connection("mysql_sucursal")
+            return DB::connection($connName)
                 ->table("study")
                 ->select(
                     "patient.pat_id",
@@ -107,20 +137,24 @@ class ReportesEstudioPAC implements WithMultipleSheets
                     "study.study_desc",
                     "study.mods_in_study"
                 )
-                ->join("patient", "patient.pk", "=", "study.patient_fk")
-                ->whereBetween("study.study_datetime", [
-                    $this->fechaInicio." 00:00:00",
-                    $this->fechaFin." 23:59:59",
-                ])
+                ->leftJoin("patient", "patient.pk", "=", "study.patient_fk")
+                ->whereBetween("study.study_datetime", [$desde, $hasta])
                 ->orderBy("study.study_datetime", "desc")
                 ->get();
         } catch (\Throwable $e) {
             Log::error(
-                "ReportesEstudioPAC: Error querying remote PAC DB",
-                ["sede_id" => $this->sedeId, "error" => $e->getMessage()]
+                "ReportesEstudioPAC: Error consultando BD PACS remota",
+                [
+                    "sede_id" => $this->sedeId,
+                    "host" => $host,
+                    "database" => $database,
+                    "error" => $e->getMessage(),
+                ]
             );
 
             return collect();
+        } finally {
+            DB::purge($connName);
         }
     }
 
