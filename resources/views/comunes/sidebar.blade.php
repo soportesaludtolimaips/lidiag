@@ -141,7 +141,21 @@
                                     @can('oftalmologia.admision')
                                         <li class="{{ request()->routeIs('oftalmologia.admisiones') ? 'active' : '' }}">
                                             <a class="{{ request()->routeIs('oftalmologia.admisiones') ? 'active' : '' }}" href="{{ route('oftalmologia.admisiones') }}">
-                                                <i class="fa fa-address-book-o text-info"></i> Admisión de pacientes
+                                                <i class="fa fa-address-book-o text-info"></i> Admisionar paciente
+                                            </a>
+                                        </li>
+                                    @endcan
+                                    @canany(['oftalmologia.index', 'oftalmologia.admision'])
+                                        <li class="{{ request()->routeIs('oftalmologia.admisionadas') ? 'active' : '' }}">
+                                            <a class="{{ request()->routeIs('oftalmologia.admisionadas') ? 'active' : '' }}" href="{{ route('oftalmologia.admisionadas') }}">
+                                                <i class="fa fa-list text-info"></i> Pacientes admisionados
+                                            </a>
+                                        </li>
+                                    @endcanany
+                                    @can('oftalmologia.consulta')
+                                        <li class="{{ request()->routeIs('oftalmologia.consulta') ? 'active' : '' }}">
+                                            <a class="{{ request()->routeIs('oftalmologia.consulta') ? 'active' : '' }}" href="{{ route('oftalmologia.consulta') }}">
+                                                <i class="fa fa-stethoscope text-info"></i> Realizar consulta
                                             </a>
                                         </li>
                                     @endcan
@@ -482,6 +496,32 @@
                                             </a>
                                         </li>
                                     @endcan
+
+                                    {{-- Plantillas Oftalmología --}}
+                                    @canany(['config.plantillas.index', 'oftalmologia.plantillas'])
+                                        <li class="{{ request()->routeIs('config.plantillas.oftalmologia*') ? 'active' : '' }}">
+                                            <a class="has-arrow waves-effect waves-dark {{ request()->routeIs('config.plantillas.oftalmologia*') ? 'active' : '' }}" href="#" aria-expanded="{{ request()->routeIs('config.plantillas.oftalmologia*') ? 'true' : 'false' }}">
+                                                <i class="fa fa-eye text-info"></i> Oftalmología
+                                            </a>
+                                            <ul aria-expanded="{{ request()->routeIs('config.plantillas.oftalmologia*') ? 'true' : 'false' }}" class="collapse {{ request()->routeIs('config.plantillas.oftalmologia*') ? 'in' : '' }}">
+                                                <li>
+                                                    <a href="{{ route('config.plantillas.oftalmologia') }}?seccion=CONCEPTO_PLAN">
+                                                        <i class="fa fa-file-text-o text-info"></i> Plantillas Consulta
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="{{ route('config.plantillas.oftalmologia') }}?seccion=MEDICAMENTOS">
+                                                        <i class="fa fa-medkit text-info"></i> Plantilla de órdenes de medicamentos
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="{{ route('config.plantillas.oftalmologia') }}?seccion=PROCEDIMIENTOS">
+                                                        <i class="fa fa-list-alt text-info"></i> Plantilla de órdenes de procedimientos
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    @endcanany
 
                                     {{-- 9. Plantillas Consentimientos --}}
                                     @can('ecografias.consentimientos.plantillas.index')

@@ -96,6 +96,7 @@ export const routes = [
     // Oftalmología
     {
         path: "/oftalmologia.admisiones",
+        alias: ["/oftalmologia.admisionar", "/oftalmologia.admisionadas"],
         name: "oftalmologia.admisiones",
         component: () =>
             import("../components/modulos/oftalmologia/oftalmologiaAdmisionComponent.vue"),
@@ -107,6 +108,17 @@ export const routes = [
         component: () =>
             import("../components/modulos/oftalmologia/oftalmologiaConsultaComponent.vue"),
         meta: { title: "Consulta Oftalmología", permission: "oftalmologia.consulta", auth: true },
+    },
+    {
+        path: "/config-plantillas-oftalmologia",
+        name: "config.plantillas.oftalmologia",
+        component: () =>
+            import("../components/modulos/configuracion/configPlantillasOftalmologiaComponent.vue"),
+        meta: {
+            title: "Plantillas Oftalmología",
+            permission: "config.plantillas.index",
+            auth: true,
+        },
     },
 
     // Ecografías
