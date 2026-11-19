@@ -305,9 +305,16 @@
                 aria-haspopup="true"
                 aria-expanded="false"
             >
-                <img :src="'/images/users/1.jpg'" alt="user" class="" />
+                <img
+                    :src="avatarUrl"
+                    alt="user"
+                    class="avatar-nav-img"
+                    style="height: 30px; width: 30px; object-fit: cover; border-radius: 100%"
+                    @error="onAvatarError"
+                />
                 <span class="hidden-md-down">
-                    &nbsp; {{ usuarioactual.name }}
+                    &nbsp;
+                    {{ currentUser.name || usuarioactual?.name || usuario?.name || "Usuario" }}
                     <i class="fa fa-angle-down"></i>
                 </span>
             </a>
@@ -316,13 +323,37 @@
                     <li>
                         <div class="dw-user-box">
                             <div class="u-img">
-                                <img :src="'/images/users/1.jpg'" alt="user" />
+                                <img
+                                    :src="avatarUrl"
+                                    alt="user"
+                                    style="
+                                        height: 70px;
+                                        width: 70px;
+                                        object-fit: cover;
+                                        border-radius: 5px;
+                                    "
+                                    @error="onAvatarError"
+                                />
                             </div>
                             <div class="u-text">
-                                <h4>{{ usuarioactual.name }}</h4>
-                                <p class="text-muted">{{ usuarioactual.email }}</p>
+                                <h4>
+                                    {{
+                                        currentUser.name ||
+                                        usuarioactual?.name ||
+                                        usuario?.name ||
+                                        "Usuario"
+                                    }}
+                                </h4>
+                                <p class="text-muted">
+                                    {{
+                                        currentUser.email ||
+                                        usuarioactual?.email ||
+                                        usuario?.email ||
+                                        ""
+                                    }}
+                                </p>
                                 <!-- <router-link class="btn btn-rounded btn-danger btn-sm" :to="{
-                                    name: 'seguridad.usuario.perfil', params: { id: usuarioactual.id }
+                                    name: 'seguridad.usuario.perfil', params: { id: currentUser.id || usuarioactual?.id }
                                 }">
                                     Ver Perfil
                                 </router-link> -->
@@ -356,14 +387,71 @@ import { useRoute } from "vue-router";
 
 import axios from "axios";
 
-defineProps({
+const props = defineProps({
     usuarioactual: { type: Object, default: null },
+    usuario: { type: Object, default: null },
     perfilUrl: { type: String, default: "" },
 });
 
 const route = useRoute();
 const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
+
+const defaultAvatar = "/admin-wrap/assets/images/users/avatar_default.png";
+const avatarError = ref(false);
+const currentUser = ref(
+    props.usuarioactual ? { ...props.usuarioactual } : props.usuario ? { ...props.usuario } : {}
+);
+
+watch(
+    () => props.usuarioactual || props.usuario,
+    (nuevo) => {
+        if (nuevo) {
+            currentUser.value = { ...currentUser.value, ...nuevo };
+            avatarError.value = false;
+        }
+    },
+    { deep: true }
+);
+
+const avatarUrl = computed(() => {
+    if (avatarError.value) {
+        return defaultAvatar;
+    }
+    const img = currentUser.value?.imagen_perfil;
+    if (img) {
+        if (img.startsWith("http://") || img.startsWith("https://") || img.startsWith("/files/")) {
+            return img;
+        }
+        return `/files/${img}`;
+    }
+    return defaultAvatar;
+});
+
+function onAvatarError() {
+    avatarError.value = true;
+}
+
+/**
+ * Sincroniza en tiempo real los datos del usuario y avatar cuando se actualiza el perfil.
+ *
+ * Flujo del proceso:
+ * 1. Recibe los datos actualizados del perfil desde el bus de eventos global.
+ * 2. Actualiza el estado reactivo currentUser y resetea el flag de error de imagen.
+ *
+ * @param {Object} datos Atributos actualizados del usuario autenticado.
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-19
+ */
+function onUsuarioPerfilActualizado(datos) {
+    if (datos) {
+        currentUser.value = {
+            ...currentUser.value,
+            ...datos,
+        };
+        avatarError.value = false;
+    }
+}
 
 const sedes = ref([]);
 const sedeSeleccionada = ref(
@@ -934,6 +1022,19 @@ onMounted(() => {
         emitter.on("sedeSeleccionada", onSedeSeleccionada);
         emitter.on("medicoSeleccionado", onMedicoSeleccionado);
         emitter.on("solicitarSedeActiva", responderSedeActiva);
+        emitter.on("usuarioPerfilActualizado", onUsuarioPerfilActualizado);
+    }
+
+    if (!currentUser.value?.imagen_perfil) {
+        axios
+            .get("/api/user")
+            .then((res) => {
+                if (res?.data) {
+                    currentUser.value = { ...currentUser.value, ...res.data };
+                    avatarError.value = false;
+                }
+            })
+            .catch(() => {});
     }
 });
 
@@ -999,6 +1100,7 @@ onBeforeUnmount(() => {
             emitter.off("sedeSeleccionada", onSedeSeleccionada);
             emitter.off("medicoSeleccionado", onMedicoSeleccionado);
             emitter.off("solicitarSedeActiva", responderSedeActiva);
+            emitter.off("usuarioPerfilActualizado", onUsuarioPerfilActualizado);
         } catch (_) {}
     }
 });

@@ -37,6 +37,57 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-19 — Sincronización Reactiva de Avatar de Usuario en Header/Navbar (`userProfileAndSearchComponent.vue` y `usuarioPerfil.vue`):**
+  - **Diagnóstico del Problema:**
+    * El usuario administrador actualizaba su avatar desde su perfil y la imagen se reflejaba en `usuarioPerfil.vue`, pero en el topbar/navbar (`userProfileAndSearchComponent.vue`) la imagen continuaba mostrando la foto estática de plantilla.
+    * Al revisar el código, en `userProfileAndSearchComponent.vue` las etiquetas `<img>` de la barra superior y del menú desplegable de usuario (`.dw-user-box .u-img`) estaban cableadas de forma fija a `'/images/users/1.jpg'`.
+  - **Solución Implementada:**
+    * En [`userProfileAndSearchComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/comunes/userProfileAndSearchComponent.vue):
+      - Se implementó el estado reactivo `currentUser` a partir de `props.usuarioactual` o `props.usuario`, con un `watch` profundo para reaccionar a cambios en las propiedades.
+      - Se calculó de manera computada `avatarUrl` resolviendo la ruta `/files/{imagen_perfil}` con fallback defensivo a `/admin-wrap/assets/images/users/avatar_default.png`, además del manejador de error `@error="onAvatarError"`.
+      - Se configuró la escucha del evento de bus global `usuarioPerfilActualizado` vía Mitt (`proxy.emitter`) para refrescar en caliente el avatar y nombre de usuario sin recargas de página ni pérdida de estado, con limpieza en `onBeforeUnmount`.
+      - En caso de montarse sin imagen de perfil en las propiedades iniciales, consulta defensivamente `/api/user` en segundo plano.
+      - Se ajustó el estilo visual (`object-fit: cover`) para evitar distorsión en imágenes con distintas proporciones.
+    * En [`usuarioPerfil.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/seguridad/usuarioPerfil.vue):
+      - Al completar exitosamente `actualizarPerfil()`, se emite el evento global `usuarioPerfilActualizado` con los datos actualizados del registro y se sincroniza con el composable `useAuth().fetchUser()`.
+    * En [`userProfileAndSearch.blade.php`](file:///c:/laragon/www/lidiag/resources/views/comunes/userProfileAndSearch.blade.php):
+      - Se actualizó de manera preventiva el renderizado de Blade con `auth()->user()->imagen_perfil ? asset('/files/' . auth()->user()->imagen_perfil) : asset('/admin-wrap/assets/images/users/avatar_default.png')`.
+  - **Verificaciones:**
+    * ESLint & Prettier: 0 errores en todos los componentes Vue modificados.
+    * Compilación con Vite (`npm run build`): ejecutada exitosamente en 1.32s sin errores ni advertencias.
+- [x] **2026-11-19 — Fase 2 Módulo Oftalmología: Gateway SAHI, Servicio de Admisión y Componente Vue:**
+  - **Diagnóstico y Solución:**
+    * Se implementó el gateway [`SAHIOftalmologiaService.php`](file:///c:/laragon/www/lidiag/app/Services/Interfaces/SAHIOftalmologiaService.php): evalúa la capacidad de interfaz por sede (Espinal `SAHI` vs demás sedes locales), consulta atenciones en SQL Server (`hceConsulta` con Especialidad 17 / CUPS 890202, 890302) cruzando defensivamente con atenciones registradas localmente en MySQL.
+    * Se creó [`OftalmologiaAdmisionService.php`](file:///c:/laragon/www/lidiag/app/Services/Oftalmologia/OftalmologiaAdmisionService.php) y [`OftalmologiaAdmisionController.php`](file:///c:/laragon/www/lidiag/app/Http/Controllers/Oftalmologia/OftalmologiaAdmisionController.php): gestión transaccional de admisiones (`+ Particular`, `+ Cortesía` y por atención SAHI), resolución automática del paciente en [`Paciente`](file:///c:/laragon/www/lidiag/app/Models/General/Paciente.php), listado paginado y anulación con auditoría.
+    * Se creó el componente [`oftalmologiaAdmisionComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/oftalmologia/oftalmologiaAdmisionComponent.vue): adaptativo a `useSede()`, con drawer lateral de admisión directa, pestañas para atenciones en sala y atenciones de SAHI (solo visible en sedes con interfaz activa como El Espinal), badges distintivos de recaudo y estado de sincronización.
+    * Cableado completo del módulo: registro de `api_oftalmologia.php` en `bootstrap/app.php`, ruta web `/oftalmologia.admisiones` en `routes/web.php`, ruta en `resources/js/router/routes.js`, componente registrado en `resources/js/app.js` y entrada en `resources/views/comunes/sidebar.blade.php`.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`): 100% pasado en rutas, controladores y servicios.
+    * ESLint y Prettier: 0 errores en frontend.
+    * Compilación con Vite (`npm run build`): ejecutada exitosamente en 1.34s.
+    * Pruebas en sandbox: verificación de consulta en SAHI (Espinal 50 atenciones encontradas en SQL Server; La Dorada activando modo local), y verificación de admisiones particulares y de SAHI.
+- [x] **2026-11-19 — Fase 1 Módulo Oftalmología: Migraciones Individuales, Modelos Eloquent y Seeder Spatie:**
+  - **Diagnóstico y Diseño:**
+    * Basado en el levantamiento de información (`Levantamiento de informacion.docx`), capturas de SAHI y consultas SQL a `ESP_PRI` (`hceConsulta`, `hceProceOrden`, `hceFormuOrden`, `hceRemision`, `hceConsultaIncapacidad`, `hceConsulDiagnostico`).
+    * Se integró la matriz de decisión de interoperabilidad condicional por sede: solo sedes con `interface_software = 'SAHI'` (ej. El Espinal) y con recaudo que transmita a SAHI (`envia_sahi = true`) interactúan con SQL Server; para sedes locales o recaudos particulares/cortesía el sistema opera de forma local e independiente sin lanzar errores.
+  - **Componentes Creados:**
+    * Migraciones individuales (1 tabla por archivo):
+      1. [`2026_11_19_100001_create_oftalmologia_atenciones_table.php`](file:///c:/laragon/www/lidiag/database/migrations/2026_11_19_100001_create_oftalmologia_atenciones_table.php)
+      2. [`2026_11_19_100002_create_oftalmologia_consultas_table.php`](file:///c:/laragon/www/lidiag/database/migrations/2026_11_19_100002_create_oftalmologia_consultas_table.php)
+      3. [`2026_11_19_100003_create_oftalmologia_diagnosticos_table.php`](file:///c:/laragon/www/lidiag/database/migrations/2026_11_19_100003_create_oftalmologia_diagnosticos_table.php) (con FK `diagnostico_id` referenciando `config_diagnosticos`)
+      4. [`2026_11_19_100004_create_oftalmologia_procedimientos_table.php`](file:///c:/laragon/www/lidiag/database/migrations/2026_11_19_100004_create_oftalmologia_procedimientos_table.php) (con FK `producto_id` referenciando `config_productos`)
+      5. [`2026_11_19_100005_create_oftalmologia_medicamentos_table.php`](file:///c:/laragon/www/lidiag/database/migrations/2026_11_19_100005_create_oftalmologia_medicamentos_table.php) (con FK `producto_id` referenciando `config_productos`)
+      6. [`2026_11_19_100006_create_oftalmologia_remisiones_table.php`](file:///c:/laragon/www/lidiag/database/migrations/2026_11_19_100006_create_oftalmologia_remisiones_table.php)
+      7. [`2026_11_19_100007_create_oftalmologia_incapacidades_table.php`](file:///c:/laragon/www/lidiag/database/migrations/2026_11_19_100007_create_oftalmologia_incapacidades_table.php)
+      8. [`2026_11_19_100008_create_config_plantillas_oftalmologia_table.php`](file:///c:/laragon/www/lidiag/database/migrations/2026_11_19_100008_create_config_plantillas_oftalmologia_table.php) (ubicada en el módulo de Configuración como `config_plantillas_oftalmologia`)
+    * Modelos Eloquent:
+      - `app/Models/Oftalmologia/`: `OftalmologiaAtencion`, `OftalmologiaConsulta`, `OftalmologiaDiagnostico`, `OftalmologiaProcedimiento`, `OftalmologiaMedicamento`, `OftalmologiaRemision`, `OftalmologiaIncapacidad`.
+      - `app/Models/Configuracion/`: `ConfigPlantillaOftalmologia`.
+    * Seeder de Permisos [`PermisionOftalmologiaSeeder.php`](file:///c:/laragon/www/lidiag/database/seeders/PermisionOftalmologiaSeeder.php): Sembrado idempotente de los 7 permisos de oftalmología asignados a Administrador, Médico, Administrativo y Transcriptor.
+  - **Verificaciones:**
+    * `vendor\bin\pint.bat --test` pasado con 0 errores (estilo PSR-12 y Laravel).
+    * `php artisan db:seed --class=PermisionOftalmologiaSeeder` ejecutado exitosamente.
+    * Prueba en sandbox transaccional (`DB::beginTransaction()` y `DB::rollBack()`) ejecutando el UP de las 8 migraciones en orden, probando la inserción de atenciones, consultas, diagnósticos vinculados a `config_diagnosticos`, procedimientos y medicamentos vinculados a `config_productos`, y plantillas en `config_plantillas_oftalmologia`, ejecutando el DOWN en reversa sin mutación residual en la base de datos física.
 - [x] **2026-11-18 — Implementación de Autoguardado de Borrador en Lectura de Ecografías (`lecturaComponent.vue` y `EcografiaLecturaService.php`):**
   - **Diagnóstico del Problema:**
     * Los médicos radiólogos no contaban con autoguardado periódico en las lecturas de ecografías. Si se cerraba la pestaña, ocurría un fallo de red o corte de energía, se perdían informes extensos.

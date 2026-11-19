@@ -601,12 +601,17 @@
     </div>
 </template>
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, getCurrentInstance, onBeforeUnmount, onMounted, ref } from "vue";
 import axios from "axios";
 import { alertError, swalSuccess, toastMessage } from "@/helpers/alerts";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts.js";
+import { useAuth } from "@/composables/useAuth";
 
 const props = defineProps({ usuarioactual: { type: Object, default: () => ({}) } });
+
+const { proxy } = getCurrentInstance() || {};
+const emitter = proxy?.emitter;
+const { fetchUser } = useAuth();
 
 const id = ref(props.usuarioactual.id);
 const tabActiva = ref("settings");
@@ -689,6 +694,19 @@ async function obtenerRegistro() {
     }
 }
 
+/**
+ * Envía el formulario multipart con los datos actualizados del usuario, nuevo avatar o firma médica.
+ *
+ * Flujo del proceso:
+ * 1. Construye el payload en FormData incluyendo archivos adjuntos si fueron seleccionados.
+ * 2. Emite la solicitud POST a /api/seguridad-actualizar-perfil/{id}.
+ * 3. En caso de éxito, limpia los previews y recarga los datos actualizados con obtenerRegistro().
+ * 4. Emite el evento global usuarioPerfilActualizado vía Mitt y refresca el composable useAuth.
+ * 5. Notifica con toastMessage al usuario.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-19
+ */
 async function actualizarPerfil() {
     if (loadingActualizar.value) return;
     loadingActualizar.value = true;
@@ -708,6 +726,20 @@ async function actualizarPerfil() {
         avatarPreview.value = "";
         firmaPreview.value = "";
         await obtenerRegistro();
+
+        // Notifica globalmente la actualización del perfil para refrescar el topbar/navbar en caliente
+        if (emitter) {
+            emitter.emit("usuarioPerfilActualizado", {
+                id: id.value,
+                name: registro.value.name,
+                email: registro.value.email,
+                num_docu: registro.value.num_docu,
+                imagen_perfil: registro.value.imagen_perfil,
+            });
+        }
+        try {
+            await fetchUser();
+        } catch (_) {}
 
         toastMessage({
             heading: "Ok!!!",

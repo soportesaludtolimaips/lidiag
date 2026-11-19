@@ -190,7 +190,7 @@
     <!-- ============================================================== -->
     <li class="nav-item dropdown u-pro">
         <a class="nav-link dropdown-toggle waves-effect waves-dark profile-pic" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <img src="{{ asset('/admin-wrap/assets/images/users/1.jpg') }}" alt="user" class="" />
+            <img src="{{ auth()->user()->imagen_perfil ? asset('/files/' . auth()->user()->imagen_perfil) : asset('/admin-wrap/assets/images/users/avatar_default.png') }}" alt="user" class="" style="height: 30px; width: 30px; object-fit: cover; border-radius: 100%" />
             <span class="hidden-md-down"> &nbsp; {{ auth()->user()->name }}
                 <i class="fa fa-angle-down"></i>
             </span>
@@ -200,7 +200,7 @@
                 <li>
                     <div class="dw-user-box">
                         <div class="u-img">
-                            <img src="{{ asset('/admin-wrap/assets/images/users/1.jpg') }}" alt="user">
+                            <img src="{{ auth()->user()->imagen_perfil ? asset('/files/' . auth()->user()->imagen_perfil) : asset('/admin-wrap/assets/images/users/avatar_default.png') }}" alt="user" style="height: 70px; width: 70px; object-fit: cover; border-radius: 5px">
                         </div>
                         <div class="u-text">
                             <h4>{{ auth()->user()->name }} </h4>
