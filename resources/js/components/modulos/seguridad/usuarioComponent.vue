@@ -193,6 +193,14 @@
                                                 >Inactivo</span
                                             >
                                             <span
+                                                v-if="!item.email_verified_at"
+                                                class="badge badge-secondary m-t-5 d-block"
+                                                title="La cuenta no ha sido activada por correo electrónico"
+                                            >
+                                                <i class="fa fa-envelope-o"></i> Activación
+                                                pendiente
+                                            </span>
+                                            <span
                                                 v-if="!item.password_changed_at"
                                                 class="badge badge-warning m-t-5 d-block"
                                                 title="El usuario debe cambiar la contraseña en su próximo inicio de sesión"
@@ -225,6 +233,19 @@
                                                 @click="abrirModalReset(item)"
                                             >
                                                 <i class="fa fa-key"></i>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                title="Enviar enlace de restablecimiento de contraseña por correo"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
+                                                :disabled="loadingEmailResetId === item.id"
+                                                @click="confirmarEnviarResetEmail(item)"
+                                            >
+                                                <i
+                                                    v-if="loadingEmailResetId === item.id"
+                                                    class="fa fa-spinner fa-spin"
+                                                ></i>
+                                                <i v-else class="fa fa-envelope-o"></i>
                                             </button>
                                             <button
                                                 type="button"
@@ -412,7 +433,59 @@
                                 </div>
                             </div>
 
-                            <div class="row">
+                            <div class="row" v-if="!actualizar">
+                                <div class="col-md-12">
+                                    <div class="card bg-light border-info m-b-20">
+                                        <div class="card-body p-3">
+                                            <div
+                                                class="d-flex align-items-center justify-content-between"
+                                            >
+                                                <div>
+                                                    <h5 class="m-b-0 font-weight-bold text-info">
+                                                        <i class="fa fa-envelope-o mr-1"></i>
+                                                        Activación por Correo Electrónico
+                                                    </h5>
+                                                    <small class="text-muted">
+                                                        El usuario recibirá un enlace seguro para
+                                                        activar su cuenta y definir su propia
+                                                        contraseña.
+                                                    </small>
+                                                </div>
+                                                <div class="custom-control custom-switch">
+                                                    <input
+                                                        type="checkbox"
+                                                        class="custom-control-input"
+                                                        id="switchInvitacionEmail"
+                                                        v-model="registro.enviar_invitacion"
+                                                    />
+                                                    <label
+                                                        class="custom-control-label font-weight-bold"
+                                                        for="switchInvitacionEmail"
+                                                    >
+                                                        {{
+                                                            registro.enviar_invitacion
+                                                                ? "Activado"
+                                                                : "Manual"
+                                                        }}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div
+                                                v-if="registro.enviar_invitacion"
+                                                class="alert alert-info m-t-10 m-b-0 p-2 font-13"
+                                            >
+                                                <i class="fa fa-info-circle mr-1"></i> La cuenta
+                                                quedará registrada en estado
+                                                <strong>Pendiente de Activación</strong> hasta que
+                                                el usuario complete el proceso desde su correo. No
+                                                se requiere contraseña manual.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row" v-if="!registro.enviar_invitacion || actualizar">
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label class="control-label" for="password">
@@ -708,7 +781,7 @@
                                 </div>
                             </div>
 
-                            <div class="row">
+                            <div class="row" v-if="!registro.enviar_invitacion || actualizar">
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <div class="checkbox checkbox-success">
@@ -1018,6 +1091,7 @@ const resetForm = ref({
 const registros = ref([]);
 const roles = ref([]);
 const id = ref(null);
+const loadingEmailResetId = ref(null);
 const registro = ref({
     num_docu: "",
     reg_med: "",
@@ -1026,6 +1100,7 @@ const registro = ref({
     password: "",
     confirmarPassword: "",
     forzar_cambio_password: true,
+    enviar_invitacion: true,
     estado: false,
     imagen_perfil: "",
     rolesUsuario: [],
@@ -1286,6 +1361,7 @@ function mostrarRegistro(data = {}) {
     if (actualizar.value) {
         tituloModal.value = "Actualizar el registro: " + data.name;
         id.value = data.id;
+        registro.value.enviar_invitacion = false;
         registro.value.num_docu = data.num_docu;
         registro.value.reg_med = data.reg_med;
         registro.value.name = data.name;
@@ -1367,6 +1443,8 @@ function mostrarRegistro(data = {}) {
         registro.value.name = "";
         registro.value.email = "";
         registro.value.password = "";
+        registro.value.confirmarPassword = "";
+        registro.value.enviar_invitacion = true;
         registro.value.estado = true;
         registro.value.interface_id = "";
         // Reset sedes y servicios de cita
@@ -1570,6 +1648,49 @@ async function ejecutarResetPassword() {
     }
 }
 
+/**
+ * Solicita confirmación y envía un correo electrónico con el enlace seguro y
+ * temporal para restablecer la contraseña del usuario seleccionado.
+ *
+ * Flujo del proceso:
+ * 1. Solicita confirmación al usuario mediante confirmAction.
+ * 2. Emite la petición POST a /api/seguridad-usuarios/{id}/enviar-reset-email.
+ * 3. Notifica el resultado mediante SweetAlert modal (swalSuccess) o alertError.
+ *
+ * @param {Object} item Datos del usuario seleccionado
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-11-19
+ */
+async function confirmarEnviarResetEmail(item) {
+    if (!item?.id || loadingEmailResetId.value) return;
+
+    const ok = await confirmAction({
+        title: "¿Enviar restablecimiento por correo?",
+        text: `Se enviará un correo a ${item.email} con un enlace seguro y temporal para restablecer su contraseña.`,
+        icon: "question",
+    });
+    if (!ok) return;
+
+    loadingEmailResetId.value = item.id;
+    try {
+        const res = await axios.post(`/api/seguridad-usuarios/${item.id}/enviar-reset-email`);
+        swalSuccess(
+            "¡Enlace Enviado!",
+            res?.data?.message || `Se ha enviado el enlace de restablecimiento a ${item.email}.`
+        );
+    } catch (err) {
+        alertError(
+            "Error",
+            err?.response?.data?.message || "No fue posible enviar el correo de restablecimiento.",
+            "error"
+        );
+    } finally {
+        loadingEmailResetId.value = null;
+    }
+}
+
 function btnCerrarModalForm() {
     sidebarOpen.value = false;
 }
@@ -1586,6 +1707,7 @@ function limpiarFormulario() {
     registro.value.password = "";
     registro.value.confirmarPassword = "";
     registro.value.forzar_cambio_password = true;
+    registro.value.enviar_invitacion = true;
     registro.value.estado = false;
     errores.value = {};
 }

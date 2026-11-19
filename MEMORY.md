@@ -37,6 +37,22 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-19 — Flujo Completo de Activación de Cuenta por Correo y Restablecimiento Manual en Módulo de Seguridad:**
+  - **Flujo 1 — Creación de Usuario y Activación por Correo Electrónico:**
+    * Notificación [`ActivarCuentaNotification.php`](file:///c:/laragon/www/lidiag/app/Notifications/Seguridad/ActivarCuentaNotification.php): genera un enlace firmado y temporal (`route('usuario.activar')`) con token de 60 minutos en la tabla `password_resets`.
+    * Backend [`UserService.php`](file:///c:/laragon/www/lidiag/app/Services/Seguridad/UserService.php) y [`UserController.php`](file:///c:/laragon/www/lidiag/app/Http/Controllers/Seguridad/UserController.php): soporte del flag `enviar_invitacion`. Al activarse, se genera una contraseña aleatoria temporal interna, se fija `estado = false` (inactivo/pendiente), `email_verified_at = null`, y se despacha la notificación de activación por correo electrónico sin requerir contraseña manual en el formulario.
+    * Controlador [`AccountActivationController.php`](file:///c:/laragon/www/lidiag/app/Http/Controllers/Auth/AccountActivationController.php) y vista Blade [`activar.blade.php`](file:///c:/laragon/www/lidiag/resources/views/auth/activar.blade.php): interfaz AdminWrap para definir la contraseña definitiva cumpliendo `PasswordRules::nueva()`, invalidando el token usado, marcando `estado = 1`, `email_verified_at = now()`, `password_changed_at = now()` y revocando sesiones previas con registro en auditoría.
+    * Vistas de restablecimiento [`reset.blade.php`](file:///c:/laragon/www/lidiag/resources/views/auth/passwords/reset.blade.php) y [`ResetPasswordController.php`](file:///c:/laragon/www/lidiag/app/Http/Controllers/Auth/ResetPasswordController.php): modernizadas con la estética institucional de autenticación, validación robusta y reactivación de cuenta con `password_changed_at = now()`.
+  - **Flujo 2 — Restablecimiento Manual de Contraseña desde Tabla de Usuarios:**
+    * Endpoint `POST /api/seguridad-usuarios/{id}/enviar-reset-email` en [`routes/api_seguridad.php`](file:///c:/laragon/www/lidiag/routes/api_seguridad.php), protegido por permiso `seguridad.usuarios.edit`.
+    * Método `sendPasswordResetEmail(int $id)` en [`UserService.php`](file:///c:/laragon/www/lidiag/app/Services/Seguridad/UserService.php) que genera el token vía `Password::broker()` y despacha [`RestablecerPasswordEmailNotification.php`](file:///c:/laragon/www/lidiag/app/Notifications/Seguridad/RestablecerPasswordEmailNotification.php).
+    * En [`usuarioComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/seguridad/usuarioComponent.vue): botón de acción inline en cada fila de la tabla con ícono `fa-envelope-o`, tooltip "Enviar enlace de restablecimiento de contraseña por correo", diálogo de confirmación `confirmAction`, estado de carga (`loadingEmailResetId`), badges informativos de estado (`Activación pendiente`), switch `Activación por Correo Electrónico` en el drawer de creación con ocultamiento condicional de campos de contraseña.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`): 100% aprobado en todos los archivos PHP nuevos y modificados.
+    * Larastan / PHPStan: nivel 5 verificado sin errores.
+    * ESLint y Prettier: 0 errores en `usuarioComponent.vue`.
+    * Vite (`npm run build`): compilación limpia de assets en 3.09s.
+
 - [x] **2026-11-19 — Refactorización Estructural y Visual de Oftalmología idéntica a Ecografías:**
   - Alineación total con el estándar del repositorio y la arquitectura de `Ecografías`:
     * Separación de pantallas: `oftalmologiaAdmisionarComponent.vue` (Admisión / Atenciones disponibles con drawer lateral `.right-sidebar.sidebar-scroll`) y `oftalmologiaAdmisionadasComponent.vue` (Pacientes admisionados con filtros `fade-collapse` y tabla `table-custom-compact`).

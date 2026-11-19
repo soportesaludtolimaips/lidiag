@@ -34,7 +34,7 @@ class UserController extends Controller
         // selectores globales del header (médicos/asignadores) para cualquier perfil autenticado.
         $this->middleware('permission:seguridad.usuarios.index')->only(['index']);
         $this->middleware('permission:seguridad.usuarios.create')->only(['store']);
-        $this->middleware('permission:seguridad.usuarios.edit')->only(['update', 'estadoUsuario', 'restablecerPassword']);
+        $this->middleware('permission:seguridad.usuarios.edit')->only(['update', 'estadoUsuario', 'restablecerPassword', 'enviarResetEmail']);
         $this->middleware('permission:seguridad.usuarios.destroy')->only(['destroy']);
     }
 
@@ -80,13 +80,17 @@ class UserController extends Controller
     public function store(StoreUserRequest $request): JsonResponse
     {
         $data = $request->decoded();
+        $enviarInvitacion = filter_var($data["enviar_invitacion"] ?? false, FILTER_VALIDATE_BOOLEAN);
 
-        $this->validarPasswordUsuario($data, requerida: true);
+        if (! $enviarInvitacion) {
+            $this->validarPasswordUsuario($data, requerida: true);
+        }
 
         $result = $this->userService->create(
             $data,
             $request->file("firma"),
             $request->file("avatar"),
+            $enviarInvitacion
         );
 
         return response()->json($result, (int) $result["status"]);
@@ -204,6 +208,27 @@ class UserController extends Controller
             $validated["password"],
             (bool) ($validated["forzar_cambio"] ?? true),
         );
+
+        return response()->json($result, (int) $result["status"]);
+    }
+
+    /**
+     * Envía manualmente un enlace de restablecimiento de contraseña al correo del usuario.
+     *
+     * Flujo del proceso:
+     * 1. Delega al servicio la generación del token y el envío de la notificación por correo.
+     * 2. Retorna respuesta JSON estructurada con el resultado.
+     *
+     * @param  int  $id  Identificador del usuario.
+     * @return JsonResponse Resultado de la operación en formato JSON.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-19
+     */
+    public function enviarResetEmail(int $id): JsonResponse
+    {
+        $result = $this->userService->sendPasswordResetEmail((int) $id);
 
         return response()->json($result, (int) $result["status"]);
     }

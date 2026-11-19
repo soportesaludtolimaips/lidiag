@@ -1,65 +1,144 @@
-@extends('layouts.app')
+<!DOCTYPE html>
+<html lang="es">
 
-@section('content')
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">{{ __('Reset Password') }}</div>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Restablecer contraseña en LIDiag">
+    <meta name="author" content="LIDiag">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('admin-wrap-login/assets/images/favicon.png') }}">
+    <title>{{ config('app.name', 'LIDiag') }} - Restablecer Contraseña</title>
+    <link href="{{ asset('admin-wrap-login/assets/node_modules/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('admin-wrap-login/css/pages/login-register-lock.css') }}" rel="stylesheet">
+    <link href="{{ asset('admin-wrap-login/css/style.css') }}" rel="stylesheet">
+    <link href="{{ asset('admin-wrap-login/css/colors/default.css') }}" id="theme" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+</head>
 
-                <div class="card-body">
-                    <form method="POST" action="{{ route('password.update') }}">
-                        @csrf
-
-                        <input type="hidden" name="token" value="{{ $token }}">
-
-                        <div class="row mb-3">
-                            <label for="email" class="col-md-4 col-form-label text-md-end">{{ __('Email Address') }}</label>
-
-                            <div class="col-md-6">
-                                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ $email ?? old('email') }}" required autocomplete="email" autofocus>
-
-                                @error('email')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <label for="password" class="col-md-4 col-form-label text-md-end">{{ __('Password') }}</label>
-
-                            <div class="col-md-6">
-                                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="new-password">
-
-                                @error('password')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <label for="password-confirm" class="col-md-4 col-form-label text-md-end">{{ __('Confirm Password') }}</label>
-
-                            <div class="col-md-6">
-                                <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required autocomplete="new-password">
-                            </div>
-                        </div>
-
-                        <div class="row mb-0">
-                            <div class="col-md-6 offset-md-4">
-                                <button type="submit" class="btn btn-primary">
-                                    {{ __('Reset Password') }}
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
+<body>
+    <!-- Preloader -->
+    <div class="preloader">
+        <div class="loader">
+            <div class="loader__figure"></div>
+            <p class="loader__label">Lidiag</p>
         </div>
     </div>
-</div>
-@endsection
+
+    <!-- Main wrapper -->
+    <section id="wrapper" class="login-register login-sidebar" style="background-image:url({{ asset('admin-wrap-login/assets/images/background/login-register.jpg') }});
+        -moz-background-size: 100% 100%;
+        -o-background-size: 100% 100%;
+        -webkit-background-size: 100% 100%;
+        background-size: 100% 100%;
+        float: left;">
+
+        <div class="login-box card">
+            <div class="card-body">
+                <form class="form-horizontal form-material" method="POST" action="{{ route('password.update') }}">
+                    @csrf
+                    <input type="hidden" name="token" value="{{ $token }}">
+
+                    <a href="javascript:void(0)" class="text-center db">
+                        <img src="{{ asset('admin-wrap-login/assets/images/logo-icon.png') }}" alt="Home" /><br />
+                        <img src="{{ asset('admin-wrap-login/assets/images/logo-text.png') }}" alt="Home" />
+                    </a>
+
+                    <h3 class="box-title m-t-30 text-center font-weight-bold">Restablecer Contraseña</h3>
+                    <p class="text-center text-muted m-b-20">Ingresa tu correo y define tu nueva contraseña de acceso.</p>
+
+                    @if (session('status'))
+                        <div class="alert alert-success">
+                            <i class="fa fa-check-circle mr-1"></i> {{ session('status') }}
+                        </div>
+                    @endif
+
+                    @if ($errors->any())
+                        <div class="alert alert-warning">
+                            <i class="fa fa-ban mr-1"></i> <strong>Por favor revisa los errores:</strong>
+                            <ul class="m-b-0 p-l-20">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <div class="form-group m-t-20">
+                        <div class="col-xs-12">
+                            <label class="font-weight-bold" for="email">Correo Electrónico</label>
+                            <input
+                                class="form-control"
+                                type="email"
+                                name="email"
+                                id="email"
+                                value="{{ $email ?? old('email') }}"
+                                required
+                                autofocus
+                                placeholder="tu@correo.com"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-xs-12">
+                            <label class="font-weight-bold" for="password">Nueva Contraseña</label>
+                            <input
+                                class="form-control"
+                                type="password"
+                                name="password"
+                                id="password"
+                                required
+                                placeholder="Mínimo 8 caracteres (mayús, minús, núm, símbolo)"
+                            />
+                            <small class="text-muted d-block m-t-5">
+                                <i class="fa fa-shield text-info"></i> Mínimo 8 caracteres, al menos una mayúscula, minúscula, número y símbolo.
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-xs-12">
+                            <label class="font-weight-bold" for="password_confirmation">Confirmar Contraseña</label>
+                            <input
+                                class="form-control"
+                                type="password"
+                                name="password_confirmation"
+                                id="password_confirmation"
+                                required
+                                placeholder="Repite tu nueva contraseña"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="form-group text-center m-t-30">
+                        <div class="col-xs-12">
+                            <button class="btn btn-info btn-lg btn-block text-uppercase waves-effect waves-light" type="submit">
+                                <i class="fa fa-key mr-1"></i> Restablecer Contraseña
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group m-b-0">
+                        <div class="col-sm-12 text-center">
+                            <p class="text-muted">¿Recordaste tu contraseña? <a href="{{ route('login') }}" class="text-info m-l-5"><b>Iniciar Sesión</b></a></p>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Scripts -->
+    <script src="{{ asset('admin-wrap-login/assets/node_modules/jquery/jquery.min.js') }}"></script>
+    <script src="{{ asset('admin-wrap-login/assets/node_modules/bootstrap/js/popper.min.js') }}"></script>
+    <script src="{{ asset('admin-wrap-login/assets/node_modules/bootstrap/js/bootstrap.min.js') }}"></script>
+    <script type="text/javascript">
+        $(function() {
+            $(".preloader").fadeOut();
+        });
+    </script>
+</body>
+
+</html>

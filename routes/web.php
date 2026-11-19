@@ -42,11 +42,20 @@ Route::post('/logout', [LoginController::class, 'logout'])
 // Password Reset
 use App\Http\Controllers\Agenda\AgendaCitaController;
 use App\Http\Controllers\Api\DosimetriaController;
+use App\Http\Controllers\Auth\AccountActivationController;
 use App\Http\Controllers\Auth\PasswordChangeController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Configuracion\ConfigSedeController;
 use App\Http\Controllers\Liquidacion\LiquidacionController;
 use App\Http\Controllers\Publico\VerificacionInformeController;
+
+// Account Activation (guest)
+Route::get('/activar-cuenta/{token}', [AccountActivationController::class, 'showForm'])
+    ->name('usuario.activar')
+    ->middleware(['guest']);
+Route::post('/activar-cuenta', [AccountActivationController::class, 'activate'])
+    ->name('usuario.activar.post')
+    ->middleware(['guest', 'throttle:5,1']);
 
 Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])
     ->name('password.reset')

@@ -5,6 +5,8 @@ namespace App\Services\Seguridad;
 use App\Helpers\AuditLogger;
 use App\Models\Configuracion\ConfigModulo;
 use App\Models\User;
+use App\Notifications\Seguridad\ActivarCuentaNotification;
+use App\Notifications\Seguridad\RestablecerPasswordEmailNotification;
 use App\Services\BaseService;
 use App\Services\Contracts\FileServiceInterface;
 use Illuminate\Http\UploadedFile;
@@ -12,7 +14,10 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 
 class UserService extends BaseService
@@ -177,19 +182,29 @@ class UserService extends BaseService
      * @param  array  $data  Datos del usuario: name, email, password, estado, roles, módulos, sedes
      * @param  UploadedFile|null  $firma  Archivo de la firma del médico
      * @param  UploadedFile|null  $avatar  Archivo del avatar del usuario
+     * @param  bool  $enviarInvitacion  Indica si se envía enlace de activación por correo en lugar de asignar contraseña directa
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-10-13
      */
-    public function create(array $data, ?UploadedFile $firma = null, ?UploadedFile $avatar = null): array
+    public function create(array $data, ?UploadedFile $firma = null, ?UploadedFile $avatar = null, bool $enviarInvitacion = false): array
     {
-        return $this->transaction(function () use ($data, $firma, $avatar) {
+        return $this->transaction(function () use ($data, $firma, $avatar, $enviarInvitacion) {
             $user = new User;
             $this->fillUserData($user, $data);
-            $user->password = Hash::make($data['password']);
-            $user->password_changed_at = null;
-            $user->estado = filter_var($data['estado'] ?? true, FILTER_VALIDATE_BOOLEAN);
+
+            if ($enviarInvitacion) {
+                // Genera clave temporal aleatoria; el usuario definirá la propia al activar la cuenta por correo
+                $user->password = Hash::make(Str::random(32));
+                $user->password_changed_at = null;
+                // La cuenta queda inactiva hasta que complete la activación por correo
+                $user->estado = false;
+            } else {
+                $user->password = Hash::make($data['password']);
+                $user->password_changed_at = null;
+                $user->estado = filter_var($data['estado'] ?? true, FILTER_VALIDATE_BOOLEAN);
+            }
 
             if ($firma) {
                 $info = $this->fileService->store($firma, 'local', 'firmas_medicos');
@@ -206,6 +221,11 @@ class UserService extends BaseService
             $this->syncRelations($user, $data);
 
             AuditLogger::crear($user, 'Usuario creado: '.($data['name'] ?? ''));
+
+            if ($enviarInvitacion) {
+                $token = Password::broker()->createToken($user);
+                $user->notify(new ActivarCuentaNotification($token));
+            }
 
             return $this->created($user->load(['modulos', 'roles', 'sedes', 'serviciosCita']));
         });
@@ -334,6 +354,61 @@ class UserService extends BaseService
                 'Contraseña restablecida correctamente. El usuario deberá cambiarla al iniciar sesión.'
             );
         });
+    }
+
+    /**
+     * Genera un token de restablecimiento de contraseña y envía la notificación al correo del usuario.
+     *
+     * Flujo del proceso:
+     * 1. Localiza al usuario objetivo en la base de datos o lanza excepción 404.
+     * 2. Valida que el usuario tenga un correo electrónico registrado y válido.
+     * 3. Genera el token seguro de restablecimiento a través de Password::broker().
+     * 4. Despacha la notificación RestablecerPasswordEmailNotification.
+     * 5. Registra el evento en la bitácora de auditoría ISO 27001.
+     * 6. Retorna respuesta estructurada de éxito con los datos del usuario.
+     *
+     * @param  int  $id  Identificador del usuario.
+     * @return array Respuesta estructurada con estado y mensaje.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-19
+     */
+    public function sendPasswordResetEmail(int $id): array
+    {
+        $user = User::findOrFail($id);
+
+        if (empty($user->email) || ! filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
+            return $this->error("El usuario no tiene una dirección de correo electrónico válida configurada.", 422);
+        }
+
+        try {
+            $token = Password::broker()->createToken($user);
+            $user->notify(new RestablecerPasswordEmailNotification($token));
+
+            AuditLogger::actualizar(
+                $user,
+                ["email" => $user->email],
+                "Enlace de restablecimiento de contraseña enviado por correo a: {$user->email} ({$user->name})"
+            );
+
+            return $this->success(
+                [
+                    "id" => $user->id,
+                    "name" => $user->name,
+                    "email" => $user->email,
+                ],
+                "Se ha enviado exitosamente el enlace de restablecimiento al correo: {$user->email}"
+            );
+        } catch (\Throwable $e) {
+            Log::error("Error al enviar correo de restablecimiento: ".$e->getMessage(), [
+                "user_id" => $user->id,
+                "email" => $user->email,
+                "trace" => $e->getTraceAsString(),
+            ]);
+
+            return $this->error("No fue posible enviar el correo de restablecimiento. Verifica la configuración de correo del servidor.", 500);
+        }
     }
 
     /**

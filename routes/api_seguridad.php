@@ -52,6 +52,10 @@ Route::middleware(['auth'])->group(function () {
         ->name('api.seguridad.usuarios.restablecer-password')
         ->middleware(['permission:seguridad.usuarios.edit']);
 
+    Route::post('/seguridad-usuarios/{id}/enviar-reset-email', [UserController::class, 'enviarResetEmail'])
+        ->name('api.seguridad.usuarios.enviar-reset-email')
+        ->middleware(['permission:seguridad.usuarios.edit']);
+
     Route::get('/user.listarUsuarios/{tipo_user}/{modulo}', [UserController::class, 'listarUsuarios'])
         ->name('api.user.listarUsuarios');
 
