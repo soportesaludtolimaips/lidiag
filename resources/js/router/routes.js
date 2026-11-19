@@ -96,11 +96,18 @@ export const routes = [
     // Oftalmología
     {
         path: "/oftalmologia.admisiones",
-        alias: ["/oftalmologia.admisionar", "/oftalmologia.admisionadas"],
+        alias: ["/oftalmologia.admisionar"],
         name: "oftalmologia.admisiones",
         component: () =>
-            import("../components/modulos/oftalmologia/oftalmologiaAdmisionComponent.vue"),
+            import("../components/modulos/oftalmologia/oftalmologiaAdmisionarComponent.vue"),
         meta: { title: "Admisión Oftalmología", permission: "oftalmologia.admision", auth: true },
+    },
+    {
+        path: "/oftalmologia.admisionadas",
+        name: "oftalmologia.admisionadas",
+        component: () =>
+            import("../components/modulos/oftalmologia/oftalmologiaAdmisionadasComponent.vue"),
+        meta: { title: "Oftalmología Admisionadas", permission: "oftalmologia.index", auth: true },
     },
     {
         path: "/oftalmologia.consulta/:id?",

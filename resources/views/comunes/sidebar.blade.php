@@ -108,7 +108,7 @@
                         @canany(['tele.ragiologia.index', 'tele.ragiologia.enviar', 'tele.ragiologia.transcribir'])
                             <li class="{{ request()->routeIs('teleradiologia.*') || request()->routeIs('tele.ragiologia.*') ? 'active' : '' }}">
                                 <a class="has-arrow waves-effect waves-dark {{ request()->routeIs('teleradiologia.*') || request()->routeIs('tele.ragiologia.*') ? 'active' : '' }}" href="#" aria-expanded="{{ request()->routeIs('teleradiologia.*') || request()->routeIs('tele.ragiologia.*') ? 'true' : 'false' }}">
-                                    <i class="fa fa-cloud-upload"></i>
+                                    <i class="sl-icon-cloud-upload"></i>
                                     <span class="hide-menu">Tele Radiología</span>
                                 </a>
                                 <ul aria-expanded="{{ request()->routeIs('teleradiologia.*') || request()->routeIs('tele.ragiologia.*') ? 'true' : 'false' }}" class="collapse {{ request()->routeIs('teleradiologia.*') || request()->routeIs('tele.ragiologia.*') ? 'in' : '' }}">
@@ -167,7 +167,7 @@
                         @canany(['ecografias.index', 'ecografias.admision', 'ecografias.anular', 'ecografias.leer', 'ecografias.reporte', 'ecografias.consentimientos.index', 'ecografias.consentimientos.plantillas.index'])
                             <li class="{{ request()->routeIs('ecografias.*') ? 'active' : '' }}">
                                 <a class="has-arrow waves-effect waves-dark {{ request()->routeIs('ecografias.*') ? 'active' : '' }}" href="#" aria-expanded="{{ request()->routeIs('ecografias.*') ? 'true' : 'false' }}">
-                                    <i class="fa fa-stethoscope"></i>
+                                    <i class="icon-Stethoscope"></i>
                                     <span class="hide-menu">Ecografías</span>
                                 </a>
                                 <ul aria-expanded="{{ request()->routeIs('ecografias.*') ? 'true' : 'false' }}" class="collapse {{ request()->routeIs('ecografias.*') ? 'in' : '' }}">
@@ -221,7 +221,7 @@
                         @can('citas.index')
                             <li class="{{ request()->routeIs('citas.*') ? 'active' : '' }}">
                                 <a class="has-arrow waves-effect waves-dark {{ request()->routeIs('citas.*') ? 'active' : '' }}" href="#" aria-expanded="{{ request()->routeIs('citas.*') ? 'true' : 'false' }}">
-                                    <i class="fa fa-calendar"></i>
+                                    <i class="sl-icon-calender"></i>
                                     <span class="hide-menu">Citas</span>
                                 </a>
                                 <ul aria-expanded="{{ request()->routeIs('citas.*') ? 'true' : 'false' }}" class="collapse {{ request()->routeIs('citas.*') ? 'in' : '' }}">

@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('oftalmologia')->middleware(['auth:sanctum'])->group(function () {
     // Admisiones
-    Route::get('atenciones', [OftalmologiaAdmisionController::class, 'index'])->name('oftalmologia.atenciones.index');
-    Route::get('atenciones/sahi', [OftalmologiaAdmisionController::class, 'listarSahi'])->name('oftalmologia.atenciones.sahi');
+    Route::match(['get', 'post'], 'atenciones', [OftalmologiaAdmisionController::class, 'index'])->name('oftalmologia.atenciones.index');
+    Route::match(['get', 'post'], 'atenciones/sahi', [OftalmologiaAdmisionController::class, 'listarSahi'])->name('oftalmologia.atenciones.sahi');
     Route::post('admisionar', [OftalmologiaAdmisionController::class, 'store'])->name('oftalmologia.admisionar');
     Route::post('atenciones/{id}/anular', [OftalmologiaAdmisionController::class, 'anular'])->name('oftalmologia.atenciones.anular');
 

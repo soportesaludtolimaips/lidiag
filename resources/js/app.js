@@ -194,10 +194,19 @@ app.component(
 /**
  * Ecografías (Asíncrono)
  */
+/*
+ * Oftalmología (Asíncrono)
+ */
 app.component(
-    "OftalmologiaAdmisionComponent",
+    "OftalmologiaAdmisionesComponent",
     defineAsyncComponent(
-        () => import("./components/modulos/oftalmologia/oftalmologiaAdmisionComponent.vue")
+        () => import("./components/modulos/oftalmologia/oftalmologiaAdmisionarComponent.vue")
+    )
+);
+app.component(
+    "OftalmologiaAdmisionadasComponent",
+    defineAsyncComponent(
+        () => import("./components/modulos/oftalmologia/oftalmologiaAdmisionadasComponent.vue")
     )
 );
 app.component(
@@ -206,6 +215,9 @@ app.component(
         () => import("./components/modulos/oftalmologia/oftalmologiaConsultaComponent.vue")
     )
 );
+
+/*
+ * Ecografías (Asíncrono)
 app.component(
     "EcografiasAdmisionesComponent",
     defineAsyncComponent(() => import("./components/modulos/ecografias/admisionarComponent.vue"))

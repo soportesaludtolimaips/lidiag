@@ -160,13 +160,13 @@ Route::redirect('/teleradiologia.transcribir', '/tele-radiologia-transcribir');
 /*
  * Oftalmologia
  */
-Route::get('/oftalmologia.admisiones', fn () => view('layouts.app'))
+Route::get('/oftalmologia.admisiones', fn () => view('modulos.oftalmologia.admisiones'))
     ->name('oftalmologia.admisiones')
     ->middleware(['auth', 'permission:oftalmologia.admision']);
-Route::get('/oftalmologia.admisionadas', fn () => view('layouts.app'))
+Route::get('/oftalmologia.admisionadas', fn () => view('modulos.oftalmologia.admisionadas'))
     ->name('oftalmologia.admisionadas')
     ->middleware(['auth', 'permission:oftalmologia.index|oftalmologia.admision']);
-Route::get('/oftalmologia.consulta/{id?}', fn () => view('layouts.app'))
+Route::get('/oftalmologia.consulta/{id?}', fn () => view('modulos.oftalmologia.consulta'))
     ->name('oftalmologia.consulta')
     ->middleware(['auth', 'permission:oftalmologia.consulta']);
 Route::get('/config-plantillas-oftalmologia', fn () => view('layouts.app'))

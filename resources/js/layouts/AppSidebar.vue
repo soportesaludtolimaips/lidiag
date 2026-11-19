@@ -241,7 +241,7 @@
                             :aria-expanded="openMenus.teleradiologia ? 'true' : 'false'"
                             @click.prevent="toggleMenu('teleradiologia')"
                         >
-                            <i class="fa fa-cloud-upload"></i>
+                            <i class="sl-icon-cloud-upload"></i>
                             <span class="hide-menu">Tele Radiología</span>
                         </a>
                         <ul
@@ -302,7 +302,7 @@
                             :aria-expanded="openMenus.ecografias ? 'true' : 'false'"
                             @click.prevent="toggleMenu('ecografias')"
                         >
-                            <i class="fa fa-stethoscope"></i>
+                            <i class="icon-Stethoscope"></i>
                             <span class="hide-menu">Ecografías</span>
                         </a>
                         <ul
@@ -455,7 +455,7 @@
                             :aria-expanded="openMenus.citas ? 'true' : 'false'"
                             @click.prevent="toggleMenu('citas')"
                         >
-                            <i class="fa fa-calendar"></i>
+                            <i class="sl-icon-calender"></i>
                             <span class="hide-menu">Citas</span>
                         </a>
                         <ul

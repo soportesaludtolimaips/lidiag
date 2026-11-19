@@ -39,12 +39,12 @@ class OftalmologiaAdmisionController extends Controller
     public function index(Request $request): JsonResponse
     {
         $filtros = [
-            'sede_id' => $request->query('sede_id'),
-            'estado' => $request->query('estado'),
-            'fecha_ini' => $request->query('fecha_ini'),
-            'fecha_fin' => $request->query('fecha_fin'),
-            'busqueda' => $request->query('busqueda'),
-            'per_page' => $request->query('per_page', 15),
+            'sede_id' => $request->input('sede_id', $request->query('sede_id')),
+            'estado' => $request->input('estado', $request->query('estado')),
+            'fecha_ini' => $request->input('fecha_ini', $request->input('bus_fech_ini', $request->query('fecha_ini'))),
+            'fecha_fin' => $request->input('fecha_fin', $request->input('bus_fecha_fin', $request->query('fecha_fin'))),
+            'busqueda' => $request->input('busqueda', $request->input('bus_nom_num_docu', $request->query('busqueda'))),
+            'per_page' => $request->input('per_page', $request->query('per_page', 15)),
         ];
 
         $resultado = $this->admisionService->listarAtenciones($filtros);
@@ -57,7 +57,7 @@ class OftalmologiaAdmisionController extends Controller
      */
     public function listarSahi(Request $request): JsonResponse
     {
-        $sedeId = (int) $request->query('sede_id');
+        $sedeId = (int) ($request->input('sede_id', $request->query('sede_id')));
         if (! $sedeId) {
             return response()->json([
                 'ok' => false,
@@ -66,10 +66,10 @@ class OftalmologiaAdmisionController extends Controller
         }
 
         $filtros = [
-            'fecha_ini' => $request->query('fecha_ini'),
-            'fecha_fin' => $request->query('fecha_fin'),
-            'busqueda' => $request->query('busqueda'),
-            'atencion_id' => $request->query('atencion_id'),
+            'fecha_ini' => $request->input('fecha_ini', $request->input('bus_fech_ini', $request->query('fecha_ini'))),
+            'fecha_fin' => $request->input('fecha_fin', $request->input('bus_fecha_fin', $request->query('fecha_fin'))),
+            'busqueda' => $request->input('busqueda', $request->input('bus_nom_num_docu', $request->query('busqueda'))),
+            'atencion_id' => $request->input('atencion_id', $request->query('atencion_id')),
         ];
 
         $resultado = $this->sahiOftalmologiaService->listarAtencionesDisponibles($sedeId, $filtros);

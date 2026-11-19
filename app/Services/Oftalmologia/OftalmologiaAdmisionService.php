@@ -234,7 +234,7 @@ class OftalmologiaAdmisionService extends BaseService
             }
         }
 
-        $documento = trim((string) ($data['documento'] ?? ''));
+        $documento = trim((string) ($data['documento'] ?? $data['num_docu'] ?? ''));
         if ($documento === '') {
             return null;
         }
@@ -244,15 +244,23 @@ class OftalmologiaAdmisionService extends BaseService
             return $paciente->id;
         }
 
-        $nomCompleto = trim((string) ($data['paciente_nombre'] ?? ''));
+        $nombresPartes = array_filter([
+            trim((string) ($data['nombres'] ?? '')),
+            trim((string) ($data['seg_nom'] ?? '')),
+        ]);
+        $nomUnido = implode(' ', $nombresPartes);
+        $nomCompleto = trim((string) ($data['paciente_nombre'] ?? $nomUnido));
         $nombres = $nomCompleto !== '' ? $nomCompleto : 'PACIENTE SIN NOMBRE';
 
         $nuevo = Paciente::create([
             'num_docu' => $documento,
+            'id_tipo_documento' => ! empty($data['tipo_documento_id']) ? (int) $data['tipo_documento_id'] : null,
             'nombres' => $nombres,
+            'pri_ape' => ! empty($data['pri_ape']) ? trim((string) $data['pri_ape']) : null,
+            'seg_ape' => ! empty($data['seg_ape']) ? trim((string) $data['seg_ape']) : null,
             'sexo' => in_array($data['sexo'] ?? '', ['M', 'F', 'O'], true) ? $data['sexo'] : 'O',
-            'fec_naci' => ! empty($data['fecha_nacimiento']) ? Carbon::parse($data['fecha_nacimiento'])->toDateString() : null,
-            'cel' => ! empty($data['telefono']) ? substr(trim((string) $data['telefono']), 0, 50) : null,
+            'fec_naci' => ! empty($data['fecha_nacimiento'] ?? $data['fec_naci'] ?? null) ? Carbon::parse($data['fecha_nacimiento'] ?? $data['fec_naci'])->toDateString() : null,
+            'cel' => ! empty($data['telefono'] ?? $data['cel'] ?? $data['tel'] ?? null) ? substr(trim((string) ($data['telefono'] ?? $data['cel'] ?? $data['tel'])), 0, 50) : null,
             'direccion' => ! empty($data['direccion']) ? substr(trim((string) $data['direccion']), 0, 200) : null,
         ]);
 

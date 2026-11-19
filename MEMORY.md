@@ -37,6 +37,24 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-19 — Refactorización Estructural y Visual de Oftalmología idéntica a Ecografías:**
+  - Alineación total con el estándar del repositorio y la arquitectura de `Ecografías`:
+    * Separación de pantallas: `oftalmologiaAdmisionarComponent.vue` (Admisión / Atenciones disponibles con drawer lateral `.right-sidebar.sidebar-scroll`) y `oftalmologiaAdmisionadasComponent.vue` (Pacientes admisionados con filtros `fade-collapse` y tabla `table-custom-compact`).
+    * Adaptación de vistas Blade en `resources/views/modulos/oftalmologia/`: `admisiones.blade.php`, `admisionadas.blade.php`, `consulta.blade.php`.
+    * Enrutamiento SPA en `routes.js`: `/oftalmologia.admisiones`, `/oftalmologia.admisionadas`, `/oftalmologia.consulta/:id?`.
+    * Registro de componentes en `app.js`: `OftalmologiaAdmisionesComponent`, `OftalmologiaAdmisionadasComponent`, `OftalmologiaConsultaComponent`.
+    * Homologación visual en `oftalmologiaConsultaComponent.vue`: Cabecera con migas de pan estándar AdminWrap (`row page-titles`), tarjeta limpia de paciente y acciones de autoguardado.
+  - Verificación: ESLint limpio en todos los archivos modificados, `npm run build` exitoso y vistas compiladas purgadas.
+
+- [x] **2026-11-19 — Estandarización visual de iconos en Menú Lateral (Sidebar):**
+  - Quitado el estilo en negrita (`fa fa-*` solid) de los iconos principales del menú lateral para que armonicen con la línea visual estética del tema (IconMind / Simple Line Icons):
+    * **Tele Radiología:** Reemplazado `<i class="fa fa-cloud-upload"></i>` por `<i class="sl-icon-cloud-upload"></i>`.
+    * **Ecografías:** Reemplazado `<i class="fa fa-stethoscope"></i>` por `<i class="icon-Stethoscope"></i>` (línea estética de IconMind estándar del sidebar).
+    * **Citas:** Reemplazado `<i class="fa fa-calendar"></i>` por `<i class="sl-icon-calender"></i>`.
+    * **Oftalmología:** Previamente actualizado a `<i class="sl-icon-eye"></i>`.
+  - Aplicado tanto en [AppSidebar.vue](file:///c:/laragon/www/lidiag/resources/js/layouts/AppSidebar.vue) como en [sidebar.blade.php](file:///c:/laragon/www/lidiag/resources/views/comunes/sidebar.blade.php).
+  - Assets compilados con `npm run build` y caché de vistas limpiada.
+
 - [x] **2026-11-19 — Módulo Oftalmología Completo (Fases 1 a 6): Migraciones individuales, SAHI Gateway, Admisiones, Consulta Clínica, Órdenes, Remisión, Incapacidad y Plantillas Clínicas:**
   - **Fase 1 (Migraciones individuales, Modelos y Permisos Spatie):**
     * 8 migraciones independientes creadas en `database/migrations/` (`2026_11_19_100001` a `100008`) para atenciones, consultas, diagnósticos (FK `config_diagnosticos`), procedimientos (FK `config_productos`), medicamentos (FK `config_productos`), remisiones, incapacidades y `config_plantillas_oftalmologia` (módulo Configuración).
