@@ -20,7 +20,7 @@
                     {{-- ============================================================== --}}
                     {{-- GESTIÓN CLÍNICA --}}
                     {{-- ============================================================== --}}
-                    @canany(['gestion.pacientes.index', 'gestion.pacientes.create', 'gestion.pacientes.delete', 'gestion.pacientes.update', 'estudio.asignar', 'estudio.transcribir', 'estudio.leerEstudio', 'estudios.notificar.index', 'estudios.reporteLectura.index', 'dosimetria.dashboard', 'dosimetria.registros', 'dosimetria.configurar', 'tele.ragiologia.index', 'tele.ragiologia.enviar', 'tele.ragiologia.transcribir', 'ecografias.index', 'ecografias.admision', 'ecografias.anular', 'ecografias.leer', 'ecografias.reporte'])
+                    @canany(['gestion.pacientes.index', 'gestion.pacientes.create', 'gestion.pacientes.delete', 'gestion.pacientes.update', 'estudio.asignar', 'estudio.transcribir', 'estudio.leerEstudio', 'estudios.notificar.index', 'estudios.reporteLectura.index', 'dosimetria.dashboard', 'dosimetria.registros', 'dosimetria.configurar', 'tele.ragiologia.index', 'tele.ragiologia.enviar', 'tele.ragiologia.transcribir', 'ecografias.index', 'ecografias.admision', 'ecografias.anular', 'ecografias.leer', 'ecografias.reporte', 'oftalmologia.index', 'oftalmologia.admision', 'oftalmologia.consulta', 'oftalmologia.plantillas', 'oftalmologia.reportes'])
                         <li class="nav-small-cap"><span>Gestión Clínica</span></li>
 
                         {{-- Pacientes --}}
