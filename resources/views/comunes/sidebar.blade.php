@@ -130,6 +130,25 @@
                             </li>
                         @endcanany
 
+                        {{-- Oftalmología --}}
+                        @canany(['oftalmologia.index', 'oftalmologia.admision', 'oftalmologia.consulta', 'oftalmologia.plantillas', 'oftalmologia.reportes'])
+                            <li class="{{ request()->routeIs('oftalmologia.*') ? 'active' : '' }}">
+                                <a class="has-arrow waves-effect waves-dark {{ request()->routeIs('oftalmologia.*') ? 'active' : '' }}" href="#" aria-expanded="{{ request()->routeIs('oftalmologia.*') ? 'true' : 'false' }}">
+                                    <i class="fa fa-eye"></i>
+                                    <span class="hide-menu">Oftalmología</span>
+                                </a>
+                                <ul aria-expanded="{{ request()->routeIs('oftalmologia.*') ? 'true' : 'false' }}" class="collapse {{ request()->routeIs('oftalmologia.*') ? 'in' : '' }}">
+                                    @can('oftalmologia.admision')
+                                        <li class="{{ request()->routeIs('oftalmologia.admisiones') ? 'active' : '' }}">
+                                            <a class="{{ request()->routeIs('oftalmologia.admisiones') ? 'active' : '' }}" href="{{ route('oftalmologia.admisiones') }}">
+                                                <i class="fa fa-address-book-o text-info"></i> Admisión de pacientes
+                                            </a>
+                                        </li>
+                                    @endcan
+                                </ul>
+                            </li>
+                        @endcanany
+
                         {{-- Ecografías --}}
                         @canany(['ecografias.index', 'ecografias.admision', 'ecografias.anular', 'ecografias.leer', 'ecografias.reporte', 'ecografias.consentimientos.index', 'ecografias.consentimientos.plantillas.index'])
                             <li class="{{ request()->routeIs('ecografias.*') ? 'active' : '' }}">

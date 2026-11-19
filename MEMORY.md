@@ -37,6 +37,29 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-19 — Módulo Oftalmología Completo (Fases 1 a 6): Migraciones individuales, SAHI Gateway, Admisiones, Consulta Clínica, Órdenes, Remisión, Incapacidad y Plantillas Clínicas:**
+  - **Fase 1 (Migraciones individuales, Modelos y Permisos Spatie):**
+    * 8 migraciones independientes creadas en `database/migrations/` (`2026_11_19_100001` a `100008`) para atenciones, consultas, diagnósticos (FK `config_diagnosticos`), procedimientos (FK `config_productos`), medicamentos (FK `config_productos`), remisiones, incapacidades y `config_plantillas_oftalmologia` (módulo Configuración).
+    * Modelos Eloquent completos en `App\Models\Oftalmologia\` y `App\Models\Configuracion\ConfigPlantillaOftalmologia`.
+    * Permisos sembrados con `PermisionOftalmologiaSeeder`.
+  - **Fase 2 (Gateway SAHI y Admisión):**
+    * `SAHIOftalmologiaService`: Interoperabilidad condicionada por sede (solo Espinal con `interface_software = 'SAHI'`) y por recaudo (`envia_sahi = true`). Las demás sedes y atenciones particulares/cortesía operan en modo local independiente.
+    * `OftalmologiaAdmisionService` y `OftalmologiaAdmisionController`.
+    * Componente `oftalmologiaAdmisionComponent.vue` con soporte reactivo a sedes, drawer de admisión y tabs.
+  - **Fase 3 & 4 (Historia Clínica, Órdenes, Remisión, Incapacidad y Transmisión SAHI):**
+    * `OftalmologiaConsultaService`: Gestión transaccional de Anamnesis, Examen Físico completo con Agudeza Visual OD/OI, Diagnósticos CIE-10, Procedimientos CUPS, Medicamentos oftálmicos, Remisión médica e Incapacidad laboral. Transición de estados de atención (`PENDIENTE` -> `EN_CONSULTA` -> `ATENDIDO`).
+    * Transmisión bidireccional a SQL Server (`ESP_PRI`) en `hceConsulta`, `hceProceOrden`, `hceFormuOrden`, etc., actualizando `estado_sahi` a `ENVIADO` o gestionando fallback seguro.
+    * Búsqueda en vivo de CIE-10 (`oftalmologia.diagnosticos.buscar`) y productos/fármacos (`oftalmologia.productos.buscar`).
+    * Componente `oftalmologiaConsultaComponent.vue`: 6 pestañas clínicas, autoguardado a 60s, alertas con `alerts.js`.
+  - **Fase 5 (Módulo de Configuración de Plantillas Clínicas de Oftalmología):**
+    * Servicio `ConfigPlantillaOftalmologiaService` y controlador `ConfigPlantillaOftalmologiaController` integrados en `routes/api_configuracion.php`.
+    * Endpoints con soporte para plantillas por sección (`EXAMEN_FISICO`, `CONCEPTO_PLAN`, `PROCEDIMIENTOS`, `MEDICAMENTOS`, `ANAMNESIS`) e institucionales o por especialista.
+  - **Fase 6 (Reportes de Producción / Facturación):**
+    * Verificación y compatibilidad de `ProduccionDetalladaOftalmologiaExport.php` en `ReporteProduccionService.php` y su integración en `reporteProduccionComponent.vue`.
+  - **Verificaciones:**
+    * Pint (`vendor\bin\pint.bat --test`): 100% aprobado en todos los archivos PHP creados y modificados.
+    * ESLint & Prettier: 0 errores ni advertencias.
+    * Vite (`npm run build`): Compilación exitosa de todos los assets en 1.31s.
 - [x] **2026-11-19 — Sincronización Reactiva de Avatar de Usuario en Header/Navbar (`userProfileAndSearchComponent.vue` y `usuarioPerfil.vue`):**
   - **Diagnóstico del Problema:**
     * El usuario administrador actualizaba su avatar desde su perfil y la imagen se reflejaba en `usuarioPerfil.vue`, pero en el topbar/navbar (`userProfileAndSearchComponent.vue`) la imagen continuaba mostrando la foto estática de plantilla.
@@ -55,6 +78,18 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Verificaciones:**
     * ESLint & Prettier: 0 errores en todos los componentes Vue modificados.
     * Compilación con Vite (`npm run build`): ejecutada exitosamente en 1.32s sin errores ni advertencias.
+- [x] **2026-11-19 — Fase 3 Módulo Oftalmología: Consulta Clínica e Historia Oftalmológica:**
+  - **Diagnóstico y Solución:**
+    * Se desarrolló [`OftalmologiaConsultaService.php`](file:///c:/laragon/www/lidiag/app/Services/Oftalmologia/OftalmologiaConsultaService.php) y [`OftalmologiaConsultaController.php`](file:///c:/laragon/www/lidiag/app/Http/Controllers/Oftalmologia/OftalmologiaConsultaController.php): gestión transaccional de la historia clínica en dos modalidades (Borrador con autoguardado vs Finalización).
+    * Gestión estructurada de Anamnesis, Examen Físico Oftalmológico (Agudeza Visual OD/OI con y sin corrección, MOE, Pupilas, Biomicroscopía anterior, Tonometría PIO y Fondo de ojo) y sincronización de diagnósticos CIE-10 contra [`ConfigDiagnostico`](file:///c:/laragon/www/lidiag/app/Models/Configuracion/ConfigDiagnostico.php) con lateralidad ocular.
+    * Actualización dinámica del ciclo de atención del paciente: `PENDIENTE` $\rightarrow$ `EN_CONSULTA` (al abrir/guardar borrador) $\rightarrow$ `ATENDIDO` (al finalizar consulta).
+    * Se construyó el componente Vue [`oftalmologiaConsultaComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/oftalmologia/oftalmologiaConsultaComponent.vue): cabecera resumen del paciente, pestañas clínicas dinámicas, grid de Agudeza Visual, buscador en vivo de diagnósticos CIE-10, temporizador de autoguardado cada 60s y alertas integradas con `alerts.js`.
+    * Enrutamiento SPA registrado: ruta API `oftalmologia/consultas` en `routes/api_oftalmologia.php`, ruta web `/oftalmologia.consulta/{id?}` en `routes/web.php` y en `resources/js/router/routes.js`.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`): 100% pasado en todas las clases backend.
+    * ESLint & Prettier: 0 errores en frontend.
+    * Compilación con Vite (`npm run build`): ejecutada exitosamente en 1.35s.
+    * Pruebas en sandbox: verificación de guardado de borrador (transición a `EN_CONSULTA`), persistencia de diagnósticos CIE-10, lectura clínica completa y cierre definitivo de atención (transición a `ATENDIDO`).
 - [x] **2026-11-19 — Fase 2 Módulo Oftalmología: Gateway SAHI, Servicio de Admisión y Componente Vue:**
   - **Diagnóstico y Solución:**
     * Se implementó el gateway [`SAHIOftalmologiaService.php`](file:///c:/laragon/www/lidiag/app/Services/Interfaces/SAHIOftalmologiaService.php): evalúa la capacidad de interfaz por sede (Espinal `SAHI` vs demás sedes locales), consulta atenciones en SQL Server (`hceConsulta` con Especialidad 17 / CUPS 890202, 890302) cruzando defensivamente con atenciones registradas localmente en MySQL.

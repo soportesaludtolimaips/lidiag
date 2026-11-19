@@ -158,6 +158,16 @@ Route::get('/tele-radiologia-transcribir', fn () => view('layouts.app'))
 Route::redirect('/teleradiologia.transcribir', '/tele-radiologia-transcribir');
 
 /*
+ * Oftalmologia
+ */
+Route::get('/oftalmologia.admisiones', fn () => view('layouts.app'))
+    ->name('oftalmologia.admisiones')
+    ->middleware(['auth', 'permission:oftalmologia.admision']);
+Route::get('/oftalmologia.consulta/{id?}', fn () => view('layouts.app'))
+    ->name('oftalmologia.consulta')
+    ->middleware(['auth', 'permission:oftalmologia.consulta']);
+
+/*
  * Ecografias
  */
 Route::get('/ecografias.admisiones', fn () => view('layouts.app'))

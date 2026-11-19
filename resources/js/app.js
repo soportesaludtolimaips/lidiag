@@ -195,6 +195,18 @@ app.component(
  * Ecografías (Asíncrono)
  */
 app.component(
+    "OftalmologiaAdmisionComponent",
+    defineAsyncComponent(
+        () => import("./components/modulos/oftalmologia/oftalmologiaAdmisionComponent.vue")
+    )
+);
+app.component(
+    "OftalmologiaConsultaComponent",
+    defineAsyncComponent(
+        () => import("./components/modulos/oftalmologia/oftalmologiaConsultaComponent.vue")
+    )
+);
+app.component(
     "EcografiasAdmisionesComponent",
     defineAsyncComponent(() => import("./components/modulos/ecografias/admisionarComponent.vue"))
 );

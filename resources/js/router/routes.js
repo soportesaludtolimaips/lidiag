@@ -93,6 +93,22 @@ export const routes = [
         },
     },
 
+    // Oftalmología
+    {
+        path: "/oftalmologia.admisiones",
+        name: "oftalmologia.admisiones",
+        component: () =>
+            import("../components/modulos/oftalmologia/oftalmologiaAdmisionComponent.vue"),
+        meta: { title: "Admisión Oftalmología", permission: "oftalmologia.admision", auth: true },
+    },
+    {
+        path: "/oftalmologia.consulta/:id?",
+        name: "oftalmologia.consulta",
+        component: () =>
+            import("../components/modulos/oftalmologia/oftalmologiaConsultaComponent.vue"),
+        meta: { title: "Consulta Oftalmología", permission: "oftalmologia.consulta", auth: true },
+    },
+
     // Ecografías
     {
         path: "/ecografias.admisiones",

@@ -4,6 +4,7 @@ use App\Http\Controllers\Configuracion\ConfigAdminSaludController;
 use App\Http\Controllers\Configuracion\ConfigDiagnosticoController;
 use App\Http\Controllers\Configuracion\ConfigModulosController;
 use App\Http\Controllers\Configuracion\ConfigPlantillaController;
+use App\Http\Controllers\Configuracion\ConfigPlantillaOftalmologiaController;
 use App\Http\Controllers\Configuracion\ConfigPlantillaTipoController;
 use App\Http\Controllers\Configuracion\ConfigPrioridadController;
 use App\Http\Controllers\Configuracion\ConfigProductoController;
@@ -104,6 +105,13 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/config-plantillas/listar/activos/{tipoId}/{medicoId}', [ConfigPlantillaController::class, 'listarActivosPorTipo'])
         ->name('api.config.plantillas.listar.activos.por.tipo');
+
+    // Plantillas Oftalmología
+    Route::get('/config-plantillas-oftalmologia/seccion/{seccion}', [ConfigPlantillaOftalmologiaController::class, 'listarPorSeccion'])
+        ->name('api.config.plantillas.oftalmologia.seccion');
+    Route::resource('/config-plantillas-oftalmologia', ConfigPlantillaOftalmologiaController::class)
+        ->names('api.config.plantillas.oftalmologia')
+        ->except(['create', 'edit']);
 
     Route::get('/config-tipos-plantillas/listar/activos', [ConfigPlantillaTipoController::class, 'listarActivos'])
         ->name('api.config.tipos.plantillas.listar.activos');
