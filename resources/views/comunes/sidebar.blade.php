@@ -87,15 +87,15 @@
 
                         {{-- Control Radiación / Dosimetría --}}
                         @canany(['dosimetria.dashboard', 'dosimetria.registros', 'dosimetria.configurar'])
-                            <li class="{{ (request()->routeIs('dosimetria.*') || request()->routeIs('dosis.*')) ? 'active' : '' }}">
-                                <a class="has-arrow waves-effect waves-dark {{ (request()->routeIs('dosimetria.*') || request()->routeIs('dosis.*')) ? 'active' : '' }}" href="#" aria-expanded="{{ (request()->routeIs('dosimetria.*') || request()->routeIs('dosis.*')) ? 'true' : 'false' }}">
+                            <li class="{{ request()->routeIs('dosimetria.*') || request()->routeIs('dosis.*') ? 'active' : '' }}">
+                                <a class="has-arrow waves-effect waves-dark {{ request()->routeIs('dosimetria.*') || request()->routeIs('dosis.*') ? 'active' : '' }}" href="#" aria-expanded="{{ request()->routeIs('dosimetria.*') || request()->routeIs('dosis.*') ? 'true' : 'false' }}">
                                     <i class="fa fa-radiation text-warning"></i>
                                     <span class="hide-menu">Control Radiación</span>
                                 </a>
-                                <ul aria-expanded="{{ (request()->routeIs('dosimetria.*') || request()->routeIs('dosis.*')) ? 'true' : 'false' }}" class="collapse {{ (request()->routeIs('dosimetria.*') || request()->routeIs('dosis.*')) ? 'in' : '' }}">
+                                <ul aria-expanded="{{ request()->routeIs('dosimetria.*') || request()->routeIs('dosis.*') ? 'true' : 'false' }}" class="collapse {{ request()->routeIs('dosimetria.*') || request()->routeIs('dosis.*') ? 'in' : '' }}">
                                     @can('dosimetria.dashboard')
-                                        <li class="{{ (request()->routeIs('dosimetria.dashboard') || request()->routeIs('dosis.dashboard')) ? 'active' : '' }}">
-                                            <a class="{{ (request()->routeIs('dosimetria.dashboard') || request()->routeIs('dosis.dashboard')) ? 'active' : '' }}" href="{{ route('dosimetria.dashboard') }}">
+                                        <li class="{{ request()->routeIs('dosimetria.dashboard') || request()->routeIs('dosis.dashboard') ? 'active' : '' }}">
+                                            <a class="{{ request()->routeIs('dosimetria.dashboard') || request()->routeIs('dosis.dashboard') ? 'active' : '' }}" href="{{ route('dosimetria.dashboard') }}">
                                                 <i class="fa fa-tachometer text-info"></i> Dashboard NRD
                                             </a>
                                         </li>
@@ -133,8 +133,8 @@
                         {{-- Oftalmología --}}
                         @canany(['oftalmologia.index', 'oftalmologia.admision', 'oftalmologia.consulta', 'oftalmologia.plantillas', 'oftalmologia.reportes'])
                             <li class="{{ request()->routeIs('oftalmologia.*') ? 'active' : '' }}">
-                                <a class="has-arrow waves-effect waves-dark {{ request()->routeIs('oftalmologia.*') ? 'active' : '' }}" href="#" aria-expanded="{{ request()->routeIs('oftalmologia.*') ? 'true' : 'false' }}">
-                                    <i class="fa fa-eye"></i>
+                                <a class="has-arrow waves-effect {{ request()->routeIs('oftalmologia.*') ? 'active' : '' }}" href="#" aria-expanded="{{ request()->routeIs('oftalmologia.*') ? 'true' : 'false' }}">
+                                    <i class="sl-icon-eye"></i>
                                     <span class="hide-menu">Oftalmología</span>
                                 </a>
                                 <ul aria-expanded="{{ request()->routeIs('oftalmologia.*') ? 'true' : 'false' }}" class="collapse {{ request()->routeIs('oftalmologia.*') ? 'in' : '' }}">
@@ -348,11 +348,7 @@
                     {{-- ============================================================== --}}
                     {{-- ADMINISTRACIÓN Y SOPORTE --}}
                     {{-- ============================================================== --}}
-                    @canany([
-                        'helpdesk.tickets.index', 'helpdesk.tickets.create', 'helpdesk.tickets.show', 'helpdesk.reportes.index', 'helpdesk.notificaciones.index',
-                        'config.admin.salud.index', 'config.diagnosticos.index', 'config.prioridades.index', 'config.productos.index', 'config.sedes.index', 'config.servicio.citas.index', 'config.plantillas.index', 'config.tipo.documento.index', 'config.consentimiento_informado.index', 'config.whatsapp.saludo.index', 'ecografias.consentimientos.index', 'ecografias.consentimientos.plantillas.index', 'helpdesk.config.categorias.index', 'helpdesk.config.prioridades.index', 'helpdesk.config.estados.index',
-                        'seguridad.usuarios.index', 'seguridad.roles.index', 'seguridad.auditoria.index', 'seguridad.backups.index', 'seguridad.tokens.index'
-                    ])
+                    @canany(['helpdesk.tickets.index', 'helpdesk.tickets.create', 'helpdesk.tickets.show', 'helpdesk.reportes.index', 'helpdesk.notificaciones.index', 'config.admin.salud.index', 'config.diagnosticos.index', 'config.prioridades.index', 'config.productos.index', 'config.sedes.index', 'config.servicio.citas.index', 'config.plantillas.index', 'config.tipo.documento.index', 'config.consentimiento_informado.index', 'config.whatsapp.saludo.index', 'ecografias.consentimientos.index', 'ecografias.consentimientos.plantillas.index', 'helpdesk.config.categorias.index', 'helpdesk.config.prioridades.index', 'helpdesk.config.estados.index', 'seguridad.usuarios.index', 'seguridad.roles.index', 'seguridad.auditoria.index', 'seguridad.backups.index', 'seguridad.tokens.index'])
                         <li class="nav-small-cap"><span>Administración</span></li>
 
                         {{-- Helpdesk --}}
@@ -396,13 +392,7 @@
                         @endcanany
 
                         {{-- Configuraciones / Parametrización --}}
-                        @canany([
-                            'config.admin.salud.index', 'config.diagnosticos.index', 'config.prioridades.index', 'config.productos.index', 'config.sedes.index',
-                            'config.servicio.citas.index', 'config.plantillas.index', 'config.tipo.documento.index', 'config.consentimiento_informado.index',
-                            'config.whatsapp.saludo.index', 'ecografias.consentimientos.index', 'ecografias.consentimientos.plantillas.index',
-                            'helpdesk.config.categorias.index', 'helpdesk.config.prioridades.index', 'helpdesk.config.estados.index', 'citas.index',
-                            'config.dispositivos.index'
-                        ])
+                        @canany(['config.admin.salud.index', 'config.diagnosticos.index', 'config.prioridades.index', 'config.productos.index', 'config.sedes.index', 'config.servicio.citas.index', 'config.plantillas.index', 'config.tipo.documento.index', 'config.consentimiento_informado.index', 'config.whatsapp.saludo.index', 'ecografias.consentimientos.index', 'ecografias.consentimientos.plantillas.index', 'helpdesk.config.categorias.index', 'helpdesk.config.prioridades.index', 'helpdesk.config.estados.index', 'citas.index', 'config.dispositivos.index'])
                             <li class="{{ request()->routeIs('config.*') ? 'active' : '' }}">
                                 <a class="has-arrow waves-effect waves-dark {{ request()->routeIs('config.*') ? 'active' : '' }}" href="#" aria-expanded="{{ request()->routeIs('config.*') ? 'true' : 'false' }}">
                                     <i class="icon-Gears"></i>
@@ -501,7 +491,7 @@
                                     @canany(['config.plantillas.index', 'oftalmologia.plantillas'])
                                         <li class="{{ request()->routeIs('config.plantillas.oftalmologia*') ? 'active' : '' }}">
                                             <a class="has-arrow waves-effect waves-dark {{ request()->routeIs('config.plantillas.oftalmologia*') ? 'active' : '' }}" href="#" aria-expanded="{{ request()->routeIs('config.plantillas.oftalmologia*') ? 'true' : 'false' }}">
-                                                <i class="fa fa-eye text-info"></i> Oftalmología
+                                                <i class="sl-icon-eye text-info"></i> Oftalmología
                                             </a>
                                             <ul aria-expanded="{{ request()->routeIs('config.plantillas.oftalmologia*') ? 'true' : 'false' }}" class="collapse {{ request()->routeIs('config.plantillas.oftalmologia*') ? 'in' : '' }}">
                                                 <li>

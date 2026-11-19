@@ -386,7 +386,7 @@
                             :aria-expanded="openMenus.oftalmologia ? 'true' : 'false'"
                             @click.prevent="toggleMenu('oftalmologia')"
                         >
-                            <i class="fa fa-eye"></i>
+                            <i class="sl-icon-eye"></i>
                             <span class="hide-menu">Oftalmología</span>
                         </a>
                         <ul
@@ -967,7 +967,7 @@
                                     "
                                     @click.prevent="toggleMenu('plantillasOftalmologia')"
                                 >
-                                    <i class="fa fa-eye text-info"></i>
+                                    <i class="sl-icon-eye text-info"></i>
                                     <span class="hide-menu">Oftalmología</span>
                                 </a>
                                 <ul
