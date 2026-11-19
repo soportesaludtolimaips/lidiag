@@ -46,6 +46,11 @@
                                 'ecografias.anular',
                                 'ecografias.leer',
                                 'ecografias.reporte',
+                                'oftalmologia.index',
+                                'oftalmologia.admision',
+                                'oftalmologia.consulta',
+                                'oftalmologia.plantillas',
+                                'oftalmologia.reportes',
                             ])
                         "
                         class="nav-small-cap"
@@ -356,6 +361,62 @@
                                 >
                                     <i class="fa fa-file-text-o text-info"></i> Plantillas
                                     Consentimientos
+                                </router-link>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- Oftalmología -->
+                    <li
+                        v-if="
+                            can([
+                                'oftalmologia.index',
+                                'oftalmologia.admision',
+                                'oftalmologia.consulta',
+                                'oftalmologia.plantillas',
+                                'oftalmologia.reportes',
+                            ])
+                        "
+                        :class="{ active: isRouteActive('/oftalmologia') }"
+                    >
+                        <a
+                            class="has-arrow waves-effect waves-dark"
+                            :class="{ active: isRouteActive('/oftalmologia') }"
+                            href="javascript:void(0)"
+                            :aria-expanded="openMenus.oftalmologia ? 'true' : 'false'"
+                            @click.prevent="toggleMenu('oftalmologia')"
+                        >
+                            <i class="fa fa-eye"></i>
+                            <span class="hide-menu">Oftalmología</span>
+                        </a>
+                        <ul
+                            class="collapse"
+                            :class="{ in: openMenus.oftalmologia }"
+                            :aria-expanded="openMenus.oftalmologia ? 'true' : 'false'"
+                        >
+                            <li
+                                v-if="can('oftalmologia.admision')"
+                                :class="{ active: isRouteActive('/oftalmologia.admisiones') }"
+                            >
+                                <router-link to="/oftalmologia.admisiones" active-class="active">
+                                    <i class="fa fa-address-book-o text-info"></i> Admisionar
+                                    paciente
+                                </router-link>
+                            </li>
+                            <li
+                                v-if="can(['oftalmologia.index', 'oftalmologia.admision'])"
+                                :class="{ active: isRouteActive('/oftalmologia.admisionadas') }"
+                            >
+                                <router-link to="/oftalmologia.admisionadas" active-class="active">
+                                    <i class="fa fa-list text-info"></i> Pacientes admisionados
+                                </router-link>
+                            </li>
+                            <li
+                                v-if="can('oftalmologia.consulta')"
+                                :class="{ active: isRouteActive('/oftalmologia.consulta') }"
+                            >
+                                <router-link to="/oftalmologia.consulta" active-class="active">
+                                    <i class="fa fa-stethoscope text-info"></i> Realizar consulta
                                 </router-link>
                             </li>
                         </ul>
@@ -888,6 +949,73 @@
                                 </router-link>
                             </li>
 
+                            <!-- Plantillas Oftalmología -->
+                            <li
+                                v-if="can(['config.plantillas.index', 'oftalmologia.plantillas'])"
+                                :class="{
+                                    active: isRouteActive('/config-plantillas-oftalmologia'),
+                                }"
+                            >
+                                <a
+                                    class="has-arrow waves-effect waves-dark"
+                                    :class="{
+                                        active: isRouteActive('/config-plantillas-oftalmologia'),
+                                    }"
+                                    href="javascript:void(0)"
+                                    :aria-expanded="
+                                        openMenus.plantillasOftalmologia ? 'true' : 'false'
+                                    "
+                                    @click.prevent="toggleMenu('plantillasOftalmologia')"
+                                >
+                                    <i class="fa fa-eye text-info"></i>
+                                    <span class="hide-menu">Oftalmología</span>
+                                </a>
+                                <ul
+                                    class="collapse"
+                                    :class="{ in: openMenus.plantillasOftalmologia }"
+                                    :aria-expanded="
+                                        openMenus.plantillasOftalmologia ? 'true' : 'false'
+                                    "
+                                >
+                                    <li>
+                                        <router-link
+                                            :to="{
+                                                path: '/config-plantillas-oftalmologia',
+                                                query: { seccion: 'CONCEPTO_PLAN' },
+                                            }"
+                                            active-class="active"
+                                        >
+                                            <i class="fa fa-file-text-o text-info"></i> Plantillas
+                                            Consulta
+                                        </router-link>
+                                    </li>
+                                    <li>
+                                        <router-link
+                                            :to="{
+                                                path: '/config-plantillas-oftalmologia',
+                                                query: { seccion: 'MEDICAMENTOS' },
+                                            }"
+                                            active-class="active"
+                                        >
+                                            <i class="fa fa-medkit text-info"></i> Plantilla de
+                                            órdenes de medicamentos
+                                        </router-link>
+                                    </li>
+                                    <li>
+                                        <router-link
+                                            :to="{
+                                                path: '/config-plantillas-oftalmologia',
+                                                query: { seccion: 'PROCEDIMIENTOS' },
+                                            }"
+                                            active-class="active"
+                                        >
+                                            <i class="fa fa-list-alt text-info"></i> Plantilla de
+                                            órdenes de procedimientos
+                                        </router-link>
+                                    </li>
+                                </ul>
+                            </li>
+
                             <!-- 11. Plantillas Consentimientos -->
                             <li
                                 v-if="can('ecografias.consentimientos.plantillas.index')"
@@ -1083,6 +1211,7 @@ const openMenus = reactive({
     dosimetria: false,
     teleradiologia: false,
     ecografias: false,
+    oftalmologia: false,
     citas: false,
     agenda: false,
     reportes: false,
@@ -1090,6 +1219,7 @@ const openMenus = reactive({
     contratos: false,
     helpdesk: false,
     config: false,
+    plantillasOftalmologia: false,
     seguridad: false,
 });
 
@@ -1114,6 +1244,11 @@ watch(
         if (newPath.startsWith("/tele-radiologia")) openMenus.teleradiologia = true;
         if (newPath.startsWith("/ecografias") || newPath.startsWith("/config-consentimientos"))
             openMenus.ecografias = true;
+        if (newPath.startsWith("/oftalmologia")) openMenus.oftalmologia = true;
+        if (newPath.startsWith("/config-plantillas-oftalmologia")) {
+            openMenus.config = true;
+            openMenus.plantillasOftalmologia = true;
+        }
         if (newPath.startsWith("/citas")) openMenus.citas = true;
         if (newPath.startsWith("/agenda")) openMenus.agenda = true;
         if (newPath.startsWith("/reportes")) openMenus.reportes = true;
