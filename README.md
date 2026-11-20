@@ -322,6 +322,25 @@ Módulo administrativo para la emisión, rotación segura y monitorización de c
     -   Markdown: [`docs/INFORME_PROPUESTA_MEJORAS.md`](file:///c:/laragon/www/lidiag/docs/INFORME_PROPUESTA_MEJORAS.md)
     -   PDF Ejecutivo: [`docs/INFORME_PROPUESTA_MEJORAS.pdf`](file:///c:/laragon/www/lidiag/docs/INFORME_PROPUESTA_MEJORAS.pdf) *(Catálogo de 6 nuevos módulos: RADPEER, Farmacovigilancia, Mantenimiento biomédico, Portal de remitentes, RIPS JSON Res. 2275 e IA Pre-Triage)*.
 
+### 22. Oftalmología
+
+**Propósito:** Gestión clínica especializada de consultas, interconsultas y procedimientos oftalmológicos con interoperabilidad SAHI.
+
+-   **Flujo Asistencial Integrado:**
+    -   *Admisión de Pacientes (`/oftalmologia.admisiones`):* Búsqueda e importación directa desde órdenes y movimientos facturados en SAHI (`facFacturaDet` y `facMovimientoDet` para CUPS como `890476` - Interconsulta por especialista en oftalmología, `890202` - Primera vez, `890302` - Control), o admisiones autónomas directas (Particular / Cortesía).
+    -   *Pacientes Admisionados (`/oftalmologia.admisionadas`):* Sala de espera digital con filtros avanzados por documento, nombre, estado clínico (`ADMISIONADO`, `EN_CONSULTA`, `ATENDIDO`, `ANULADO`) y rango de fechas.
+    -   *Realización de Consulta Médica (`/oftalmologia.consulta`):* Espacio de trabajo médico estructurado en dos etapas (selección desde atenciones admisionadas $\rightarrow$ workspace clínico):
+        -   **Anamnesis:** Motivo de consulta, enfermedad actual, antecedentes médicos, quirúrgicos oftalmológicos, alérgicos y revisión por sistemas con selector de plantillas preconfiguradas.
+        -   **Examen Físico Oftalmológico:** Agudeza Visual tabular (OD / OI) con agudeza sin corrección (SC), con corrección (CC) y con agujero estenopeico (PH); biomicroscopía anterior, presiones intraoculares (PIO), motilidad ocular extrínseca (MOE), pupilas y fondo de ojo.
+        -   **Diagnósticos CIE-10:** Buscador ágil de patologías, selección de diagnóstico principal, tipo de diagnóstico y lateralidad (OD, OI, Bilateral).
+        -   **Concepto y Plan:** Recomendaciones clínicas, destino del paciente y selector de plantillas preconfiguradas.
+        -   **Órdenes Médicas y Procedimientos:** Formulación de colirios/fármacos oftálmicos y órdenes de procedimientos CUPS.
+        -   **Anexos Normativos:** Remisiones a otras IPS/especialidades e incapacidades médicas.
+-   **Autoguardado y Seguridad:** Temporizador de guardado automático de borrador en segundo plano cada 60 segundos y confirmación obligatoria para finalización.
+-   **Sincronización SAHI (SQL Server):** Transmisión bidireccional automática del motivo, enfermedad actual, examen físico y concepto hacia la historia clínica institucional en SAHI (`hceConsulta`) al finalizar la atención.
+-   **Configuración de Plantillas (`/config-plantillas-oftalmologia`):** Parametrización de plantillas institucionales o por médico especialista segmentadas por sección clínica (`ANAMNESIS`, `EXAMEN_FISICO`, `CONCEPTO_PLAN`, `PROCEDIMIENTOS`, `MEDICAMENTOS`).
+-   **UI y Rutas:** Pantallas web en `/oftalmologia.admisiones`, `/oftalmologia.admisionadas`, `/oftalmologia.consulta` y `/config-plantillas-oftalmologia`, API en `/api/oftalmologia/*` (permisos `oftalmologia.*`).
+
 ---
 
 ## Comandos Personalizados (Console Commands)
