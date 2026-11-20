@@ -171,11 +171,19 @@
                         <empty-state-component
                             v-if="!isBuscandoAtenciones && registros.length === 0"
                             icon="sl-icon-eye"
-                            title="No hay atenciones para mostrar"
-                            description="No se encontraron atenciones con los criterios de búsqueda seleccionados o la sede no cuenta con atenciones pendientes de SAHI."
-                            action-text="Limpiar filtros"
-                            action-icon="fa fa-refresh"
-                            @action="btnLimpiar()"
+                            :title="
+                                haBuscado
+                                    ? 'No hay atenciones para mostrar'
+                                    : 'Ingrese los criterios de búsqueda'
+                            "
+                            :description="
+                                haBuscado
+                                    ? 'No se encontraron atenciones con los criterios de búsqueda seleccionados o la sede no cuenta con atenciones pendientes de SAHI.'
+                                    : 'Haga clic en el botón Buscar o presione Enter en el filtro de búsqueda para consultar las atenciones disponibles.'
+                            "
+                            :action-text="haBuscado ? 'Limpiar filtros' : 'Buscar atenciones'"
+                            :action-icon="haBuscado ? 'fa fa-refresh' : 'fa fa-search'"
+                            @action="haBuscado ? btnLimpiar() : listarAtenciones()"
                         />
                         <div
                             class="table-responsive"
@@ -725,6 +733,7 @@ const actualizar = ref(false);
 const sidebarVisible = ref(false);
 const tituloModal = ref("Nueva admisión");
 const isBuscandoAtenciones = ref(false);
+const haBuscado = ref(false);
 const isGuardandoAdmision = ref(false);
 const registros = ref([]);
 
@@ -868,6 +877,7 @@ function btnLimpiar() {
     busqueda.value.bus_nom_num_docu = "";
     busqueda.value.bus_fech_ini = "";
     busqueda.value.bus_fecha_fin = "";
+    haBuscado.value = false;
     safeDestroyDataTable(dt.value || "#tablaAdmisionesOftalmologia");
     registros.value = [];
     limpiarFormulario();
@@ -978,6 +988,7 @@ function mostrarRegistro(data = {}) {
 async function listarAtenciones() {
     try {
         isBuscandoAtenciones.value = true;
+        haBuscado.value = true;
         const sede = sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede");
         busqueda.value.sede_id = sede;
 
@@ -1130,7 +1141,9 @@ async function listarTiposRecaudo() {
 function onSedeSeleccionada(nuevaSede) {
     busqueda.value.sede_id = nuevaSede?.id || nuevaSede;
     registro.value.sede_id = busqueda.value.sede_id;
-    listarAtenciones();
+    if (haBuscado.value) {
+        listarAtenciones();
+    }
 }
 
 onMounted(() => {
@@ -1146,7 +1159,7 @@ onMounted(() => {
         busqueda.value.sede_id = sede;
         registro.value.sede_id = sede;
         establecerSedeComposable();
-        listarAtenciones();
+        // Solo listar bajo demanda cuando el usuario busque o presione Enter en el filtro
     }
 });
 
