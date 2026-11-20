@@ -45,9 +45,12 @@ class SAHIEcografiasService extends BaseService
         try {
             if ($sedeId && $sedeId > 0) {
                 $sede = ConfigSede::find($sedeId);
-                if ($sede) {
-                    SahiConnectionHelper::configureForSede($sede);
+                if (! $sede || $sede->interface_software !== 'SAHI') {
+                    return $this->success([], 'La sede seleccionada no tiene configurada interfaz con SAHI. Modo autónomo local activado.');
                 }
+                SahiConnectionHelper::configureForSede($sede);
+            } else {
+                return $this->success([], 'No se ha seleccionado una sede válida.');
             }
 
             $atencionIds = $this->resolverAtencionesIds($criterio, $fechaIni, $fechaFin);
@@ -209,10 +212,15 @@ class SAHIEcografiasService extends BaseService
                 $selectLocal[] = 'ecografias.cama';
             }
 
-            $local = DB::table('ecografias')
+            $localQuery = DB::table('ecografias')
                 ->join('ecografias_productos as ep', 'ep.ecografia_id', '=', 'ecografias.id')
-                ->whereIn('ecografias.atencion_id', $atencionIds)
-                ->select($selectLocal)
+                ->whereIn('ecografias.atencion_id', $atencionIds);
+
+            if ($sedeId && $sedeId > 0 && Schema::hasColumn('ecografias', 'sede_id')) {
+                $localQuery->where('ecografias.sede_id', $sedeId);
+            }
+
+            $local = $localQuery->select($selectLocal)
                 ->orderBy('ecografias.id')
                 ->get()
                 ->keyBy(fn ($item) => "{$item->atencion_id}_{$item->producto_id}");

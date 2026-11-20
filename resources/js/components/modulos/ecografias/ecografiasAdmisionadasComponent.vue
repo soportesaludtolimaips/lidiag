@@ -1127,6 +1127,14 @@ async function listarAtenciones() {
     try {
         isBuscandoAdmisionadas.value = true;
 
+        const sedeActiva =
+            sessionStorage.getItem("ST-sede") ||
+            localStorage.getItem("ST-sede") ||
+            busqueda.value.sede_id;
+        if (sedeActiva) {
+            busqueda.value.sede_id = String(sedeActiva);
+        }
+
         const res = await axios.post("/api/ecografias-filtar", busqueda.value);
 
         if (res.status == 200) {

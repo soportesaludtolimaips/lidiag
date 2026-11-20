@@ -3,6 +3,7 @@
 namespace App\Models\Ecografias;
 
 use App\Models\Configuracion\ConfigAdminSalud;
+use App\Models\Configuracion\ConfigSede;
 use App\Models\Configuracion\ConfigTipoRecaudo;
 use App\Models\General\Paciente;
 use App\Models\User;
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $id
  * @property int $medico_id
  * @property int $paciente_id
+ * @property int $sede_id
  * @property int $usua_regis_id
  * @property int $admin_salud_id
  * @property int $atencion_id
@@ -35,6 +37,7 @@ class Ecografia extends Model
     use SoftDeletes;
 
     protected $fillable = [
+        'sede_id',
         'medico_id',
         'paciente_id',
         'tipo_recaudo_id',
@@ -53,6 +56,20 @@ class Ecografia extends Model
         'fechor_anula',
         'motivo_anula',
     ];
+
+    /**
+     * Sede hospitalaria donde se realiza la ecografía.
+     *
+     * @returns \Illuminate\Database\Eloquent\Relations\BelongsTo
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-20
+     */
+    public function sede()
+    {
+        return $this->belongsTo(ConfigSede::class, 'sede_id');
+    }
 
     /**
      * Relaciones

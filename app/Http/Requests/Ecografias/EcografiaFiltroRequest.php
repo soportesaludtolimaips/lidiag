@@ -30,6 +30,7 @@ class EcografiaFiltroRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'sede_id' => 'nullable|integer',
             'bus_nom_num_docu' => 'nullable|string|max:255',
             'bus_fech_ini' => 'nullable|date',
             'bus_fecha_fin' => 'nullable|date',

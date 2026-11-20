@@ -37,6 +37,31 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-20 — Filtro Estricto Multisede en Admisión y Búsqueda de Ecografías (`admisionarComponent.vue`, `ecografiasAdmisionadasComponent.vue`, `SAHIEcografiasService.php` y `EcografiaService.php`):**
+  - **Diagnóstico del Problema:**
+    * Al buscar atenciones para admisionar ecografías en [`admisionarComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/admisionarComponent.vue), o al buscar ecografías admisionadas en [`ecografiasAdmisionadasComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/ecografiasAdmisionadasComponent.vue), no se distinguía la sede seleccionada, consultando la base de datos SQL Server global (`ESP_PRI`) y trayendo ecografías de todas las sedes.
+    * **Causas Raíz:**
+      1. La tabla `ecografias` carecía de la columna `sede_id`, imposibilitando registrar y filtrar de manera aislada por sede.
+      2. `SAHIEcografiasService::listarProductosAtencion()` no validaba si la sede activa contaba con `interface_software === 'SAHI'`, ejecutando la consulta en el host global de Espinal por defecto para cualquier sede.
+      3. `EcografiaService::filtarEcografias()` y `EcografiaFiltroRequest` no contemplaban el parámetro `sede_id` en las reglas ni en el query builder.
+      4. Los componentes Vue no garantizaban el paso reactivo de `sede_id` ni limpiaban los resultados residuales al alternar de sede.
+  - **Solución Implementada:**
+    * **1. Base de Datos & Migración:**
+      - Se creó la migración `2026_11_20_141500_add_sede_id_to_ecografias_table.php` agregando `sede_id` foráneo e indexado a la tabla `ecografias`, asignando por defecto sede 1 a los registros previos.
+      - Se actualizó la vista `view_reporte_ecografias` incorporando `e.sede_id` y `s.nom_sede`.
+    * **2. Backend (Modelos, Requests y Servicios):**
+      - En [`Ecografia.php`](file:///c:/laragon/www/lidiag/app/Models/Ecografias/Ecografia.php): se agregó `sede_id` al `$fillable` y la relación `belongsTo(ConfigSede::class, 'sede_id')`.
+      - En [`EcografiaFiltroRequest.php`](file:///c:/laragon/www/lidiag/app/Http/Requests/Ecografias/EcografiaFiltroRequest.php): se agregó la regla `'sede_id' => 'nullable|integer'`.
+      - En [`EcografiaService.php`](file:///c:/laragon/www/lidiag/app/Services/Ecografias/EcografiaService.php): se filtró estrictamente por `sede_id` en `filtarEcografias()` y `all()`, y se persistió `sede_id` en `create()`.
+      - En [`SAHIEcografiasService.php`](file:///c:/laragon/www/lidiag/app/Services/Interfaces/SAHIEcografiasService.php): se validó la presencia de interfaz SAHI activa en la sede; si no cuenta con SAHI, retorna inmediatamente lista vacía con mensaje de modo local. Además, filtra las ecografías locales por `sede_id`.
+    * **3. Frontend (`admisionarComponent.vue` y `ecografiasAdmisionadasComponent.vue`):**
+      - Se aseguró que `busqueda.value.sede_id` se tome siempre del storage activo antes de ejecutar las peticiones HTTP.
+      - Al cambiar de sede (`onSedeSeleccionada`), se limpian reactivamente los datos de la tabla y se destruye el DataTable para evitar mezclar registros.
+  - **Verificaciones:**
+    * Pruebas PHP CLI ejecutadas para sedes con SAHI (Espinal) y sin SAHI (La Dorada), validando aislamiento exacto de registros (items=0 en sedes sin SAHI o sin registros).
+    * Laravel Pint verificado (`passed`).
+    * ESLint verificado (0 errores).
+    * Compilación Vite (`npm run build`) exitosa.
 - [x] **2026-11-20 — Reactividad Multisede en `configDispositivosComponent.vue`:**
   - **Diagnóstico del Problema:**
     * Al cambiar de sede desde el selector global del header (`userProfileAndSearchComponent.vue`), la tabla de dispositivos en [`configDispositivosComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/configuracion/configDispositivosComponent.vue) no actualizaba el listado para la nueva sede seleccionada.

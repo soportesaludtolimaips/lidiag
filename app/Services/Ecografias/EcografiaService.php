@@ -29,6 +29,10 @@ class EcografiaService extends BaseService
     {
         $query = Ecografia::with(['paciente', 'usuarioRegistrador', 'adminSalud', 'medico']);
 
+        if (! empty($filters['sede_id'])) {
+            $query->where('ecografias.sede_id', (int) $filters['sede_id']);
+        }
+
         if (! empty($filters['bus_nom_num_docu'])) {
             $query->whereHas('paciente', function ($q) use ($filters) {
                 $q->where('num_docu', 'like', '%'.$filters['bus_nom_num_docu'].'%')
@@ -89,6 +93,10 @@ class EcografiaService extends BaseService
         )->with(['paciente', 'usuarioRegistrador', 'adminSalud', 'medico', 'tipoRecaudo'])
             ->join('ecografias_productos as ep', 'ep.ecografia_id', '=', 'ecografias.id')
             ->join('config_productos as p', 'p.id', '=', 'ep.producto_id');
+
+        if (! empty($filters['sede_id'])) {
+            $query->where('ecografias.sede_id', (int) $filters['sede_id']);
+        }
 
         if (! empty($filters['bus_nom_num_docu'])) {
             $valor = $filters['bus_nom_num_docu'];
@@ -203,6 +211,7 @@ class EcografiaService extends BaseService
             }
 
             $ecografia = Ecografia::create([
+                'sede_id' => ! empty($data['sede_id']) ? (int) $data['sede_id'] : null,
                 'medico_id' => $data['medico_id'],
                 'paciente_id' => $paciente->id,
                 'tipo_recaudo_id' => $tipoRecaudoId,

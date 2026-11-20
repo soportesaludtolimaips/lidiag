@@ -1817,6 +1817,14 @@ async function listarAtenciones() {
     try {
         isBuscandoAtenciones.value = true;
 
+        const sedeActiva =
+            sessionStorage.getItem("ST-sede") ||
+            localStorage.getItem("ST-sede") ||
+            busqueda.value.sede_id;
+        if (sedeActiva) {
+            busqueda.value.sede_id = String(sedeActiva);
+        }
+
         const res = await axios.post(
             "/api/interface-sahi-ecografias/listar/productos/atencion",
             busqueda.value
@@ -1826,6 +1834,14 @@ async function listarAtenciones() {
             safeDestroyDataTable(dt.value || "#tablaAdmisiones");
 
             registros.value = res.data.data;
+
+            if (res.data?.message && res.data.data.length === 0 && !sedeInterface.value) {
+                toastMessage({
+                    heading: "Modo Local",
+                    text: res.data.message,
+                    icon: "info",
+                });
+            }
 
             safeInitDataTable(dt.value || "#tablaAdmisiones");
         }
@@ -2845,6 +2861,8 @@ async function onSedeSeleccionada(data) {
         sessionStorage.setItem("ST-sede", String(sedeId));
         localStorage.setItem("ST-sede", String(sedeId));
     }
+    safeDestroyDataTable(dt.value || "#tablaAdmisiones");
+    registros.value = [];
     await establecerMedico();
 }
 
