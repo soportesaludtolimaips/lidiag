@@ -264,12 +264,28 @@ Módulo administrativo para la emisión, rotación segura y monitorización de c
 
 ### 15. Tele-Radiología
 
-**Propósito:** Flujo de trabajo para asignación, descarga y lectura deslocalizada de estudios entre sedes remotas y especialistas externos.
+**Propósito:** Orquestación integral del flujo de tele-radiología para asignación, despacho a centros de lectura externos, recepción automatizada de informes radiológicos y transcripción asistencial local.
 
--   **Asignación Deslocalizada:** Distribución de estudios a médicos radiólogos remotos con destino configurable (`Tele-Radiología`).
--   **Transcripción y Notificación Remota:** Pantallas especializadas para transcripción a distancia (`/tele-radiologia-transcribir`) y visualización de cola de trabajo remota (`/tele-radiologia`).
--   **Integración con Plantillas Word/PDF:** Sincronización de formatos institucionales de reporte según la sede de origen.
--   **UI y Rutas:** Pantallas web en `/tele-radiologia` y `/tele-radiologia-transcribir`.
+-   **Envío y Asignación Deslocalizada (`/tele-radiologia`):**
+    -   Selección y envío de estudios radiológicos (identificados por `study_iuid`, `accession_no`, paciente y CUPS) hacia proveedores externos de tele-radiología con destino asignado (`Tele Radiologia`).
+    -   Envío estructurado de órdenes (`POST /api/tele-radiologia-enviar-orden`) con soporte de reintentos, tiempos de espera configurables y trazabilidad en bitácora.
+    -   Soporte híbrido de sedes: integración directa para sedes con interfaz DICOM/PACS y selectores dinámicos asistenciales (productos y diagnósticos CIE-10) para sedes remotas sin interfaz directa.
+-   **Webhook de Recepción Automatizada (`POST /api/tele-radiologia-recibir-lectura`):**
+    -   Endpoint público protegido mediante firma HMAC (`VerifyTeleRadiologiaHmac`) para recibir en tiempo real las lecturas emitidas por radiólogos externos.
+    -   Doble trazabilidad temporal: discriminación precisa entre `fechor_lectura` (momento en que el radiólogo emite el informe) y `fechor_recepcion_tele` (marca de tiempo exacta en que LIDiag recibe el informe en su servidor).
+    -   Auto-creación / actualización del perfil del médico especialista (`TL [Nombre]`) con persistencia segura de su firma digital codificada en Base64 en almacenamiento local.
+    -   Soporte completo de **Adendums**: registro histórico e inmutable en `estudios_productos_adendum` y actualización de la lectura consolidada en `estudios_productos`.
+-   **Cola y Módulo de Transcripción (`/tele-radiologia-transcribir`):**
+    -   Bandeja operativa orientada estrictamente a **estudios pendientes de transcripción** (`fechor_lectura IS NOT NULL` y `fechor_trascrito IS NULL`), evitando colas saturadas o estudios sin lectura.
+    -   Filtros optimizados por sede, quién asignó, paciente (nombre o documento) y rango de fechas.
+    -   Visualización de metadatos clínicos: fecha de toma, fecha de lectura médica, fecha y hora de recepción en LIDiag, fecha de envío, datos del paciente y enlace directo al visor DICOM (Oviyam).
+    -   Drawer lateral ergonomizado con editor WYSIWYG enriquecido, plantillas Word/PDF institucionales por sede, visualización y descarga de soportes de historia clínica, y guardado con atajos de teclado (`Ctrl + S`, `Esc`).
+    -   Cierre inmediato y reactivo del drawer tras la persistencia de la transcripción, con refresco fluido en DataTables sin bloqueos de interfaz.
+-   **Reportes e Indicadores de Producción:**
+    -   Generación y exportación de reportes de tele-radiología en formato Excel multi-hoja (`ReporteTeleRadiologiaExport` con pestañas de estadísticas y detalle), integrándose con los consolidados de producción global y cálculo de tiempos de respuesta (TAT / SLA).
+-   **Seguridad, Rutas y API:**
+    -   **Web:** `/tele-radiologia` (envío y cola) y `/tele-radiologia-transcribir` (transcripción).
+    -   **API:** `/api/tele-radiologia-*` (endpoints protegidos con permisos `estudio.index|estudio.asignar|estudio.transcribir`) y `/api/tele-radiologia-recibir-lectura` (webhook HMAC).
 
 ### 16. Bot de Telegram & Telemetría Asistencial (`@salud_tolima_bot`)
 
