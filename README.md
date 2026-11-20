@@ -389,6 +389,34 @@ Módulo administrativo para la emisión, rotación segura y monitorización de c
 -   **Configuración de Plantillas (`/config-plantillas-oftalmologia`):** Parametrización de plantillas institucionales o por médico especialista segmentadas por sección clínica (`ANAMNESIS`, `EXAMEN_FISICO`, `CONCEPTO_PLAN`, `PROCEDIMIENTOS`, `MEDICAMENTOS`).
 -   **UI y Rutas:** Pantallas web en `/oftalmologia.admisiones`, `/oftalmologia.admisionadas`, `/oftalmologia.consulta` y `/config-plantillas-oftalmologia`, API en `/api/oftalmologia/*` (permisos `oftalmologia.*`).
 
+### 23. WorkFlow Dispositivos (Modalidades y Estaciones Asistenciales)
+
+**Propósito:** Gestión y parametrización centralizada multisede de dispositivos tecnológicos, consolas de adquisición y modalidades de diagnóstico médico (Rayos X, Ecógrafos, Tomógrafos, Resonadores, etc.) vinculadas estrictamente a los módulos clínicos del sistema (`config_modulos`).
+
+-   **Arquitectura Multisede Dinámica:**
+    -   Persistencia en tabla `config_worklist_dispositivos` con llaves foráneas a `config_sedes` (`sede_id`) y `config_modulos` (`modulo_id`).
+    -   Restricción de integridad y unicidad compuesta por sede: `UNIQUE(sede_id, codigo)`.
+    -   Filtrado y asociación contextual automática con base en la sede activa almacenada en `localStorage.getItem("ST-sede")` / `sessionStorage`.
+-   **Parámetros Técnicos y de Conectividad DICOM:**
+    -   `codigo`: Identificador institucional único del equipo en la sede (ej. `RX-01`, `ECO-S01`, `TAC-P1`).
+    -   `nombre`: Nombre descriptivo (ej. *Equipo Rayos X Sala 2*, *Voluson E8*).
+    -   `modulo_id`: Vinculación al catálogo de módulos asistenciales (`Rx`, `Ecografias`, `Oftalmologia`, etc.).
+    -   `modality`: Modalidad DICOM (`CR`, `DX`, `CT`, `MR`, `US`, `MG`).
+    -   `ae_title`: Application Entity Title DICOM para comunicación con PACS Dcm4chee y consolas de adquisición.
+    -   `ip_address` y `puerto`: Dirección IP de red local y puerto de comunicación DICOM (ej. `104`, `11112`).
+    -   `ubicacion`: Consultorio, sala o área física de prestación del servicio.
+    -   `estado`: Flag booleano para habilitar/inhabilitar el equipo en los flujos de asignación y listas de trabajo (`active`).
+-   **Interfaz de Usuario y Ergonomía (Vue 3 SPA):**
+    -   Ruta web `/config-dispositivos-listar` montada en el shell reactivo SPA con Vue Router.
+    -   Ubicación en el menú lateral (`AppSidebar.vue` y `sidebar.blade.php`) bajo la categoría **Configuraciones**, ordenada alfabéticamente en la letra **D**.
+    -   Formulario de registro y edición en **drawer lateral nativo** (`right-sidebar` con backdrop reactivo), alineación ergonómica de botones a la derecha y atajos de teclado.
+    -   Carga asíncrona de módulos asistenciales desde `/api/config-modulos-listar`.
+-   **API Backend y Seguridad (Spatie):**
+    -   Controlador: `ConfigWorklistDispositivoController` con CRUD completo bajo `auth:sanctum`.
+    -   Servicio: `ConfigWorklistDispositivoService` con manejo transaccional seguro (`DB::beginTransaction()` / `DB::rollBack()`) y auditoría con `AuditLogger`.
+    -   Permisos asignados a roles administrativos: `config.dispositivos.index`, `config.dispositivos.create`, `config.dispositivos.edit`, `config.dispositivos.destroy`.
+    -   Seeder: `php artisan db:seed --class=PermisionWorklistDispositivosSeeder`.
+
 ---
 
 ## Comandos Personalizados (Console Commands)
