@@ -598,6 +598,13 @@
                                                     }}</strong
                                                 >
                                             </span>
+                                            <span class="ml-3" v-if="nomMedicoActivo">
+                                                <i class="fa fa-user-md text-info mr-1"></i
+                                                >Especialista:
+                                                <strong class="text-info">{{
+                                                    nomMedicoActivo
+                                                }}</strong>
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -1882,7 +1889,13 @@ import {
 } from "vue";
 import { useRoute } from "vue-router";
 import axios from "axios";
-import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
+import {
+    alertError,
+    alertSuccess,
+    alertWarning,
+    confirmAction,
+    toastMessage,
+} from "@/helpers/alerts.js";
 import { useSede } from "@/composables/useSede.js";
 
 const { appContext } = getCurrentInstance();
@@ -1895,6 +1908,14 @@ const _props = defineProps({
 
 const route = useRoute();
 const { sedeActual } = useSede();
+
+// Estado del Médico activo (sincronizado con selector superior y storage)
+const medicoIdActivo = ref(
+    sessionStorage.getItem("ST-medico") || localStorage.getItem("ST-medico") || null
+);
+const nomMedicoActivo = ref(
+    sessionStorage.getItem("ST-nomMedico") || localStorage.getItem("ST-nomMedico") || null
+);
 
 // Navegación de dos etapas
 const vistaActual = ref("listado"); // 'listado' | 'consulta'
@@ -2145,8 +2166,29 @@ function irAListado() {
     }
 }
 
+function verificarMedicoSeleccionado() {
+    const med =
+        medicoIdActivo.value ||
+        sessionStorage.getItem("ST-medico") ||
+        localStorage.getItem("ST-medico");
+
+    if (!med) {
+        alertWarning(
+            "Médico no seleccionado",
+            "Debe seleccionar un especialista de oftalmología en la barra superior antes de iniciar o ingresar a la consulta clínica."
+        );
+        return false;
+    }
+    return true;
+}
+
 async function iniciarAtencionConsulta(item) {
     if (!item?.id) return;
+
+    if (!verificarMedicoSeleccionado()) {
+        return;
+    }
+
     atencionSeleccionada.value = item;
     vistaActual.value = "consulta";
     tabActiva.value = "anamnesis";
@@ -2586,9 +2628,13 @@ function calcularEdad() {
 onMounted(async () => {
     await cargarPlantillasConfiguradas();
 
-    // Si viene con ID por parámetro de ruta (/oftalmologia.consulta/:id), abrimos directamente la consulta de ese paciente
+    // Si viene con ID por parámetro de ruta (/oftalmologia.consulta/:id), validamos médico y abrimos directamente
     const paramId = route.params.id || route.query.atencion_id;
     if (paramId) {
+        if (!verificarMedicoSeleccionado()) {
+            vistaActual.value = "listado";
+            return;
+        }
         vistaActual.value = "consulta";
         await cargarDatosConsulta(paramId);
         iniciarAutoguardado();
@@ -2597,7 +2643,17 @@ onMounted(async () => {
         // No ejecutar consulta automáticamente al cargar; solo bajo demanda al buscar o enter
     }
 
+    function onMedicoSeleccionado(data) {
+        if (data?.idMedico) {
+            medicoIdActivo.value = data.idMedico;
+            if (data?.nomMedico) {
+                nomMedicoActivo.value = data.nomMedico;
+            }
+        }
+    }
+
     if (emitter) {
+        emitter.on("medicoSeleccionado", onMedicoSeleccionado);
         emitter.on("sede-cambiada", (sedeId) => {
             busqueda.value.sede_id = sedeId;
             if (vistaActual.value === "listado" && haBuscado.value) {

@@ -37,6 +37,56 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-20 — Reactividad Multisede en `configDispositivosComponent.vue`:**
+  - **Diagnóstico del Problema:**
+    * Al cambiar de sede desde el selector global del header (`userProfileAndSearchComponent.vue`), la tabla de dispositivos en [`configDispositivosComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/configuracion/configDispositivosComponent.vue) no actualizaba el listado para la nueva sede seleccionada.
+    * **Causa Raíz:** El componente leía la sede una única vez durante el montaje (`getSedeActiva()`) y no estaba suscrito al evento global `sedeSeleccionada` emitido por el bus `mitt` (`emitter`).
+  - **Solución Implementada:**
+    * En [`configDispositivosComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/configuracion/configDispositivosComponent.vue):
+      - Se obtuvo la instancia global de `emitter` vía `getCurrentInstance()`.
+      - Se implementó el listener reactivo `onSedeSeleccionada`: actualiza `sedeActivaId.value`, sincroniza `form.sede_id` y recarga automáticamente la tabla con `cargarDispositivos()`.
+      - Se suscribió al evento en `onMounted` con fallback `solicitarSedeActiva` si no hay sede en storage.
+      - Se limpió la suscripción en `onBeforeUnmount` para evitar memory leaks.
+  - **Verificaciones:**
+    * ESLint: 0 errores.
+    * Compilación Vite (`npm run build`): Exitosa.
+- [x] **2026-11-20 — Corrección de Error 500 al Actualizar Dispositivos de Flujo (`configDispositivosComponent.vue` y `ConfigWorklistDispositivoService.php`):**
+  - **Diagnóstico del Problema:**
+    * Al intentar editar/actualizar un dispositivo de trabajo desde el componente [`configDispositivosComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/configuracion/configDispositivosComponent.vue), la petición `PUT /api/config-worklist-dispositivos/{id}` arrojaba un error 500 (o alternar estado con `PATCH .../toggle-estado`).
+    * **Causa Raíz:** En [`ConfigWorklistDispositivoService.php`](file:///c:/laragon/www/lidiag/app/Services/Configuracion/ConfigWorklistDispositivoService.php) líneas 96 y 126, se invocaba `AuditLogger::modificar(...)`, un método inexistente en la clase `App\Helpers\AuditLogger` (la cual define `AuditLogger::actualizar($model, $datosViejos, $descripcion)`). Esto provocaba un `Error: Call to undefined method App\Helpers\AuditLogger::modificar()` capturado en el `catch` y retornado como error 500.
+    * Adicionalmente, el frontend no proporcionaba feedback visual accesible (`toastMessage`) ni modales de confirmación con `confirmAction` para eliminación.
+  - **Solución Implementada:**
+    * En [`ConfigWorklistDispositivoService.php`](file:///c:/laragon/www/lidiag/app/Services/Configuracion/ConfigWorklistDispositivoService.php): se corrigieron las llamadas reemplazando `AuditLogger::modificar(...)` por `AuditLogger::actualizar($dispositivo, $dispositivo->getOriginal(), ...)`.
+    * En [`configDispositivosComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/configuracion/configDispositivosComponent.vue): se integró `toastMessage` para feedback de éxito/validación/error al crear, editar, alternar estado y eliminar, así como `confirmAction` institucional antes de eliminar un equipo.
+  - **Verificaciones:**
+    * Script PHP en sandbox validando la ejecución de `update()` exitosa con código HTTP 200.
+    * Laravel Pint: `vendor\bin\pint.bat --test app/Services/Configuracion/ConfigWorklistDispositivoService.php` (passed).
+    * ESLint: 0 errores.
+    * Compilación Vite (`npm run build`): Exitosa.
+- [x] **2026-11-20 — Sincronización de Selector de Médico y Bloqueo de Consulta en Oftalmología:**
+  - **Diagnóstico y Contexto:**
+    * El componente compartido del header `userProfileAndSearchComponent.vue` exponía el selector de médicos de forma fija únicamente para ecografías (`modulo_id: 2`), sin contemplar las rutas de consulta oftalmológica ni el filtro por módulo asistencial.
+    * En `oftalmologiaConsultaComponent.vue`, el médico podía iniciar la consulta sin verificar previamente si existía un especialista seleccionado en el contexto de sesión o header.
+  - **Solución Implementada:**
+    * **1. Selector de Médicos Dinámico por Módulo en `userProfileAndSearchComponent.vue`:**
+      - Se añadió reactividad en `verificarVisibilidadMedico()` para detectar tanto rutas de ecografías como rutas de consulta oftalmológica (`/oftalmologia.consulta`).
+      - Si la ruta activa es de oftalmología, consulta y expone los médicos asignados al módulo 3 (`/api/user.listarUsuarios/Medico/3`). Si es ecografía, mantiene el módulo 2.
+      - Al seleccionar o cambiar de médico, emite `medicoSeleccionado` vía `emitter` y persiste en `sessionStorage` / `localStorage` (`ST-medico`, `ST-nomMedico`).
+    * **2. Bloqueo y Validación al Iniciar Consulta en `oftalmologiaConsultaComponent.vue`:**
+      - Se implementó `verificarMedicoSeleccionado()` que valida el médico en `medicoIdActivo` y storages (`ST-medico`).
+      - Si no hay médico seleccionado, bloquea el acceso a la consulta y lanza una alerta visual clara (`alertWarning`) indicando que debe seleccionar un oftalmólogo en la barra superior.
+      - Si se accede directamente por URL con parámetro (`/oftalmologia.consulta/:id`), se aplica la misma validación preventiva.
+      - Escucha el evento `medicoSeleccionado` en el bus de eventos para actualizar en tiempo real el especialista asignado en el encabezado del workspace.
+    * **3. Verificación:** ESLint verificado (`npx eslint`), formateo Prettier aplicado y bundle compilado sin errores con `npm run build`.
+- [x] **2026-11-20 — Rediseño UI/UX del Drawer de Admisión de Oftalmología (`oftalmologiaAdmisionarComponent.vue`):**
+  - **Diagnóstico y Contexto:**
+    * El drawer lateral de admisión en oftalmología presentaba una disposición vertical plana y asimétrica respecto al estándar de admisión de ecografías (`admisionarComponent.vue`), desaprovechando el ancho del panel (`right-sidebar` al 80%).
+  - **Solución Implementada:**
+    * **1. Banner Contextual Superior Institucional:** Adaptado en 6 columnas compactas (`alert-info py-2 px-3 border-left-info shadow-sm`) con iconos representativos de EPS/Tercero, Contrato, Plan, Atención SAHI, Servicio/Ubicación y Cama.
+    * **2. Distribución en 2 Columnas Paralelas (`col-md-6`):**
+      - **Columna Izquierda (Datos del Paciente):** Título `<h5 class="card-title text-info"><i class="fa fa-user"></i> Datos del Paciente</h5>`, tipo de documento y número en fila balanceada (`col-md-6` / `col-md-6`) con búsqueda inmediata (`@blur` y `@keyup.enter`), primer y segundo nombre en columnas separadas, primer y segundo apellido, sexo y fecha de nacimiento (`col-md-4` y `col-md-8`), y dirección y celular (`col-md-7` y `col-md-5`).
+      - **Columna Derecha (Datos de la Asignación):** Título `<h5 class="card-title text-info"><i class="fa fa-stethoscope"></i> Datos de la Asignación</h5>`, selector de Tipo de Recaudo con leyenda informativa dinámica (`small.form-text`), campo condicional de `# Atención SAHI`, selector de especialista en oftalmología con `Select2` (`dropdown-parent-selector="#drawerAdmisionarOftalmologia"`), y campos de ubicación/consultorio y cubículo/cama en grid de 6.
+    * **3. Verificación de Calidad:** ESLint verificado sin errores (`npx eslint`), formateo con Prettier y assets compilados con `npm run build`.
 - [x] **2026-11-20 — Auditoría y Perfeccionamiento Módulo por Módulo de `docs/READMES/`:**
   - **Diagnóstico y Contexto:**
     * Se ejecutó una revisión sistemática e iterativa de cada uno de los 15 módulos del sistema LIDiag para garantizar una cobertura exhaustiva basada en código real (rutas, controladores, servicios, form requests, modelos, migraciones y componentes Vue).
@@ -5795,6 +5845,18 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     - Agregados atributos `for="<id>"` en todos los labels y selectores de filtros.
     - Normalizados backdrops y sidebars a estándares AdminWrap / Bootstrap 4.
   - **Verificación estricta:** ESLint 0 errores/warnings en todos los componentes de ecografías y citas ✅ | Vite `npm run build` en 2.45s ✅ | Caches de vistas y configuración de Laravel purgadas ✅.
+
+- [x] **2026-11-20 — Corrección de Carga de Médicos y Validación Obligatoria en Admisión de Oftalmología:**
+  - **Problemas Identificados:**
+    1. El componente `Select2` de médicos en `oftalmologiaAdmisionarComponent.vue` no renderizaba las opciones con texto porque le faltaba la prop `:label-fields="['name']"` y apuntaba al módulo de ecografías (`/api/user.listarUsuarios/Medico/2`) en vez de oftalmología (`/api/user.listarUsuarios/Medico/3`).
+    2. Al hacer clic en "Guardar Admisión" sin médico seleccionado, no se validaba la obligatoriedad del especialista en oftalmología, permitiendo enviar la admisión con `medico_id = null`.
+  - **Solución Implementada:**
+    - Se agregó `:label-fields="['name']"` y listener `@input="alSeleccionarMedico($event)"` al `<Select2 id="selMedico">`.
+    - Se corrigió el endpoint en `listarMedicos()` a `/api/user.listarUsuarios/Medico/3`.
+    - Se inicializó `medico_id: null` en `limpiarFormulario()` en lugar de tomar el primer médico automáticamente.
+    - Se añadió validación obligatoria en `guardarRegistro()` con alerta `toastMessage` de advertencia si no se ha seleccionado especialista.
+    - Se robusteció `alSeleccionarMedico()` para procesar selecciones directas o en arreglos emitidas por Select2.
+  - **Verificación:** ESLint limpio (0 advertencias/errores) ✅ | `npm run build` exitoso ✅.
 
 ### Estado de módulos recientes (oct. 2026)
 - **Auditoría de Permisos Spatie** (2026-10-22): ✅ 100% sincronizado (0 faltantes en BD, regex de guard corregida, seeders idempotentes ejecutados).

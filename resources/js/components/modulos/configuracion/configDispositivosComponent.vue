@@ -393,8 +393,12 @@
 </template>
 
 <script setup>
-import { ref, reactive, nextTick, onMounted } from "vue";
+import { ref, reactive, nextTick, onMounted, onBeforeUnmount, getCurrentInstance } from "vue";
 import axios from "axios";
+import { toastMessage, confirmAction } from "@/helpers/alerts.js";
+
+const { proxy } = getCurrentInstance() || {};
+const emitter = proxy?.emitter;
 
 const dispositivos = ref([]);
 const modulos = ref([]);
@@ -512,8 +516,18 @@ const guardarDispositivo = async () => {
 
         if (isEdit.value) {
             await axios.put(`/api/config-worklist-dispositivos/${editId.value}`, form);
+            toastMessage({
+                heading: "¡Éxito!",
+                text: "Dispositivo actualizado correctamente.",
+                icon: "success",
+            });
         } else {
             await axios.post("/api/config-worklist-dispositivos", form);
+            toastMessage({
+                heading: "¡Éxito!",
+                text: "Dispositivo registrado correctamente.",
+                icon: "success",
+            });
         }
 
         cerrarDrawer();
@@ -521,8 +535,18 @@ const guardarDispositivo = async () => {
     } catch (e) {
         if (e.response && e.response.status === 422) {
             errores.value = e.response.data.errors || {};
+            toastMessage({
+                heading: "Validación",
+                text: "Por favor revise los campos requeridos.",
+                icon: "warning",
+            });
         } else {
             console.error("Error al guardar dispositivo:", e);
+            toastMessage({
+                heading: "Error",
+                text: e.response?.data?.message || "Ocurrió un error al guardar el dispositivo.",
+                icon: "error",
+            });
         }
     } finally {
         loadingGuardar.value = false;
@@ -533,24 +557,74 @@ const cambiarEstado = async (item) => {
     try {
         await axios.patch(`/api/config-worklist-dispositivos/${item.id}/toggle-estado`);
         item.estado = !item.estado;
+        toastMessage({
+            heading: "¡Éxito!",
+            text: `Dispositivo ${item.estado ? "activado" : "desactivado"} correctamente.`,
+            icon: "success",
+        });
     } catch (e) {
         console.error("Error alternando estado:", e);
+        toastMessage({
+            heading: "Error",
+            text: "No se pudo cambiar el estado del dispositivo.",
+            icon: "error",
+        });
     }
 };
 
 const eliminarDispositivo = async (item) => {
-    if (!confirm(`¿Desea eliminar el dispositivo "${item.nombre}"?`)) return;
+    const confirmado = await confirmAction({
+        title: "¿Eliminar Dispositivo?",
+        text: `¿Está seguro de eliminar el dispositivo "${item.nombre}"? Esta acción no se puede deshacer.`,
+        confirmButtonText: "Sí, eliminar",
+    });
+
+    if (!confirmado) return;
 
     try {
         await axios.delete(`/api/config-worklist-dispositivos/${item.id}`);
+        toastMessage({
+            heading: "¡Éxito!",
+            text: "Dispositivo eliminado correctamente.",
+            icon: "success",
+        });
         await cargarDispositivos();
     } catch (e) {
         console.error("Error eliminando dispositivo:", e);
+        toastMessage({
+            heading: "Error",
+            text: e.response?.data?.message || "No se pudo eliminar el dispositivo.",
+            icon: "error",
+        });
     }
 };
 
+const onSedeSeleccionada = async (event) => {
+    const rawSede =
+        event?.sede ??
+        (typeof event === "object" ? event.idSede || event.id : event) ??
+        getSedeActiva();
+
+    if (!rawSede) return;
+    sedeActivaId.value = String(rawSede);
+    form.sede_id = parseInt(rawSede, 10);
+    await cargarDispositivos();
+};
+
 onMounted(async () => {
+    if (emitter) {
+        emitter.on("sedeSeleccionada", onSedeSeleccionada);
+        if (!getSedeActiva()) {
+            emitter.emit("solicitarSedeActiva");
+        }
+    }
     await Promise.all([cargarModulos(), cargarDispositivos()]);
+});
+
+onBeforeUnmount(() => {
+    if (emitter) {
+        emitter.off("sedeSeleccionada", onSedeSeleccionada);
+    }
 });
 </script>
 

@@ -93,7 +93,7 @@ class ConfigWorklistDispositivoService extends BaseService
             DB::beginTransaction();
 
             $dispositivo->update($data);
-            AuditLogger::modificar($dispositivo, 'Dispositivo actualizado: '.$dispositivo->nombre);
+            AuditLogger::actualizar($dispositivo, $dispositivo->getOriginal(), 'Dispositivo actualizado: '.$dispositivo->nombre);
 
             DB::commit();
 
@@ -123,7 +123,7 @@ class ConfigWorklistDispositivoService extends BaseService
         $dispositivo->estado = ! $dispositivo->estado;
         $dispositivo->save();
 
-        AuditLogger::modificar($dispositivo, 'Cambio de estado dispositivo: '.($dispositivo->estado ? 'Activo' : 'Inactivo'));
+        AuditLogger::actualizar($dispositivo, $dispositivo->getOriginal(), 'Cambio de estado dispositivo: '.($dispositivo->estado ? 'Activo' : 'Inactivo'));
 
         return $this->success($dispositivo);
     }

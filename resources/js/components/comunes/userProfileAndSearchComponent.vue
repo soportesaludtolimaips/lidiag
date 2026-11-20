@@ -472,6 +472,7 @@ const nomMedicoSeleccionado = ref(
         localStorage.getItem("ST-ecografia-nomMedico") ||
         null
 );
+const moduloActivo = ref(2); // 2: Ecografías, 3: Oftalmología
 const mostrarMedico = ref(false);
 
 const nomSedeActiva = computed(() => {
@@ -681,17 +682,19 @@ async function listarSedes() {
     }
 }
 /**
- * Obtiene la lista de médicos disponibles desde la API y los almacena en medicos.
+ * Obtiene la lista de médicos disponibles desde la API según el módulo clínico activo
+ * y los almacena en medicos.
  * Si solo hay un médico, lo selecciona automáticamente.
  *
+ * @param {number} [moduloId=2] ID del módulo (2: Ecografías, 3: Oftalmología).
  * @returns {Promise<void>}
  *
  * @author Jhon Javer Lozano Arce
  * @date 2024-04-04
  */
-async function listarMedicos() {
+async function listarMedicos(moduloId = moduloActivo.value || 2) {
     try {
-        const res = await axios.get(`/api/user.listarUsuarios/Medico/2`);
+        const res = await axios.get(`/api/user.listarUsuarios/Medico/${moduloId}`);
         medicos.value = res.data.data;
         if (medicos.value.length === 1 && !medicoSeleccionado.value) {
             medicoSeleccionado.value = medicos.value[0].id;
@@ -985,9 +988,16 @@ onMounted(() => {
             "/ecografias-consentimientos",
             "/ecografias-consentimientos-plantillas",
         ];
-        mostrarMedico.value = rutasEcografias.some((r) => path.startsWith(r) || path === r);
+        const rutasOftalmologia = ["/oftalmologia.consulta"];
+
+        const esEcografia = rutasEcografias.some((r) => path.startsWith(r) || path === r);
+        const esOftalmologia = rutasOftalmologia.some((r) => path.startsWith(r) || path === r);
+
+        mostrarMedico.value = esEcografia || esOftalmologia;
         if (mostrarMedico.value) {
-            listarMedicos();
+            const nuevoModulo = esOftalmologia ? 3 : 2;
+            moduloActivo.value = nuevoModulo;
+            listarMedicos(nuevoModulo);
         }
     }
 

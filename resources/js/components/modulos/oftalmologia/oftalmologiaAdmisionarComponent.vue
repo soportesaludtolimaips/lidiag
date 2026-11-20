@@ -394,6 +394,7 @@
                                     !esCortesia &&
                                     (registro.admin_salud ||
                                         registro.contrato ||
+                                        registro.plan ||
                                         registro.atencion_id)
                                 "
                                 class="alert alert-info py-2 px-3 mb-3 border-left-info shadow-sm"
@@ -404,7 +405,7 @@
                                 "
                             >
                                 <div class="row">
-                                    <div class="col-md-4" v-if="registro.admin_salud">
+                                    <div class="col-md-3" v-if="registro.admin_salud">
                                         <strong
                                             ><i class="fa fa-hospital-o mr-1"></i>EPS /
                                             Tercero:</strong
@@ -413,7 +414,7 @@
                                             {{ registro.admin_salud }}
                                         </div>
                                     </div>
-                                    <div class="col-md-4" v-if="registro.contrato">
+                                    <div class="col-md-3" v-if="registro.contrato">
                                         <strong
                                             ><i class="fa fa-file-text-o mr-1"></i>Contrato:</strong
                                         >
@@ -421,7 +422,13 @@
                                             {{ registro.contrato }}
                                         </div>
                                     </div>
-                                    <div class="col-md-4" v-if="registro.atencion_id">
+                                    <div class="col-md-3" v-if="registro.plan">
+                                        <strong><i class="fa fa-bookmark-o mr-1"></i>Plan:</strong>
+                                        <div class="text-dark font-weight-bold">
+                                            {{ registro.plan }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3" v-if="registro.atencion_id">
                                         <strong
                                             ><i class="fa fa-hashtag mr-1"></i>Atención
                                             SAHI:</strong
@@ -430,248 +437,348 @@
                                             {{ registro.atencion_id }}
                                         </div>
                                     </div>
+                                    <div class="col-md-3" v-if="registro.ubicacion">
+                                        <strong
+                                            ><i class="fa fa-building-o mr-1"></i>Servicio /
+                                            Ubicación:</strong
+                                        >
+                                        <div class="text-dark font-weight-bold">
+                                            {{ registro.ubicacion }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3" v-if="registro.cama">
+                                        <strong><i class="fa fa-bed mr-1"></i>Cama:</strong>
+                                        <div class="text-dark font-weight-bold">
+                                            {{ registro.cama }}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Selector de Tipo de Recaudo -->
+                            <!-- Distribución en 2 columnas paralelas: Datos del Paciente (Izq) y Datos de la Asignación (Der) -->
                             <div class="row">
+                                <!-- Columna Izquierda: Datos del Paciente -->
                                 <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label
-                                            class="control-label font-weight-bold"
-                                            for="selTipoRecaudo"
-                                            >Tipo de Recaudo
-                                            <span class="text-danger">*</span></label
-                                        >
-                                        <select
-                                            id="selTipoRecaudo"
-                                            v-model="registro.tipo_recaudo_id"
-                                            class="form-control"
-                                            @change="alCambiarTipoRecaudo()"
-                                        >
-                                            <option
-                                                v-for="tr in tiposRecaudo"
-                                                :key="tr.id"
-                                                :value="tr.id"
-                                            >
-                                                {{ tr.nombre }}
-                                            </option>
-                                        </select>
+                                    <h5 class="card-title text-info">
+                                        <i class="fa fa-user"></i> Datos del Paciente
+                                    </h5>
+                                    <hr />
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label
+                                                    class="control-label font-weight-bold"
+                                                    for="selTipoDoc"
+                                                >
+                                                    Tipo de documento
+                                                    <span class="text-danger">*</span>
+                                                </label>
+                                                <Select2
+                                                    id="selTipoDoc"
+                                                    ref="selTipoDoc"
+                                                    :value="registro.tipo_documento_id"
+                                                    :options="tipoDocumentoOptions"
+                                                    width="100%"
+                                                    :label-fields="['codigo', 'tipo_documento']"
+                                                    dropdown-parent-selector="#drawerAdmisionarOftalmologia"
+                                                    placeholder="Seleccione tipo documento"
+                                                    @select="alSeleccionarTipoDocumento($event)"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label
+                                                    class="control-label font-weight-bold"
+                                                    for="num_docu"
+                                                >
+                                                    # Documento <span class="text-danger">*</span>
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    id="num_docu"
+                                                    v-model="registro.num_docu"
+                                                    class="form-control"
+                                                    placeholder="# de Documento"
+                                                    @blur="buscarPacientePorDocumento()"
+                                                    @keyup.enter="buscarPacientePorDocumento()"
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-md-6" v-if="!esParticular && !esCortesia">
-                                    <div class="form-group">
-                                        <label
-                                            class="control-label font-weight-bold"
-                                            for="txtAtencionId"
-                                            ># de Atención SAHI
-                                            <span class="text-danger">*</span></label
-                                        >
-                                        <input
-                                            type="text"
-                                            id="txtAtencionId"
-                                            v-model="registro.atencion_id"
-                                            class="form-control"
-                                            placeholder="# Atención"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
 
-                            <h5 class="text-themecolor border-bottom pb-2 mt-2">
-                                <i class="fa fa-user mr-1"></i> Datos del Paciente
-                            </h5>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label
+                                                    class="control-label font-weight-bold"
+                                                    for="nombres"
+                                                >
+                                                    Primer Nombre <span class="text-danger">*</span>
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    id="nombres"
+                                                    v-model="registro.nombres"
+                                                    class="form-control"
+                                                    placeholder="Primer nombre"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label
+                                                    class="control-label font-weight-bold"
+                                                    for="seg_nom"
+                                                >
+                                                    Segundo Nombre
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    id="seg_nom"
+                                                    v-model="registro.seg_nom"
+                                                    class="form-control"
+                                                    placeholder="Segundo nombre"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
 
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label class="control-label" for="selTipoDoc"
-                                            >Tipo Documento</label
-                                        >
-                                        <Select2
-                                            id="selTipoDoc"
-                                            ref="selTipoDoc"
-                                            :value="registro.tipo_documento_id"
-                                            :options="tipoDocumentoOptions"
-                                            width="100%"
-                                            placeholder="Seleccione tipo documento"
-                                            @select="alSeleccionarTipoDocumento($event)"
-                                        />
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label
+                                                    class="control-label font-weight-bold"
+                                                    for="pri_ape"
+                                                >
+                                                    Primer Apellido
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    id="pri_ape"
+                                                    v-model="registro.pri_ape"
+                                                    class="form-control"
+                                                    placeholder="Primer apellido"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label
+                                                    class="control-label font-weight-bold"
+                                                    for="seg_ape"
+                                                >
+                                                    Segundo Apellido
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    id="seg_ape"
+                                                    v-model="registro.seg_ape"
+                                                    class="form-control"
+                                                    placeholder="Segundo apellido"
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label class="control-label" for="num_docu"
-                                            >Documento <span class="text-danger">*</span></label
-                                        >
-                                        <input
-                                            type="text"
-                                            id="num_docu"
-                                            v-model="registro.num_docu"
-                                            class="form-control"
-                                            placeholder="Número de documento"
-                                            @blur="buscarPacientePorDocumento()"
-                                            @keyup.enter="buscarPacientePorDocumento()"
-                                        />
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label class="control-label" for="nombres"
-                                            >Nombres / Razón Social
-                                            <span class="text-danger">*</span></label
-                                        >
-                                        <input
-                                            type="text"
-                                            id="nombres"
-                                            v-model="registro.nombres"
-                                            class="form-control"
-                                            placeholder="Primer y segundo nombre"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
 
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label class="control-label" for="pri_ape"
-                                            >Primer Apellido</label
-                                        >
-                                        <input
-                                            type="text"
-                                            id="pri_ape"
-                                            v-model="registro.pri_ape"
-                                            class="form-control"
-                                            placeholder="Primer apellido"
-                                        />
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label class="control-label" for="selSexo"
+                                                    >Sexo</label
+                                                >
+                                                <select
+                                                    id="selSexo"
+                                                    v-model="registro.sexo"
+                                                    class="form-control"
+                                                >
+                                                    <option value="">—</option>
+                                                    <option value="M">Masculino</option>
+                                                    <option value="F">Femenino</option>
+                                                    <option value="O">Otro</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <div class="form-group">
+                                                <label class="control-label" for="fec_naci">
+                                                    Fecha de Nacimiento
+                                                </label>
+                                                <input
+                                                    type="date"
+                                                    id="fec_naci"
+                                                    v-model="registro.fec_naci"
+                                                    class="form-control"
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label class="control-label" for="seg_ape"
-                                            >Segundo Apellido</label
-                                        >
-                                        <input
-                                            type="text"
-                                            id="seg_ape"
-                                            v-model="registro.seg_ape"
-                                            class="form-control"
-                                            placeholder="Segundo apellido"
-                                        />
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label class="control-label" for="selSexo">Sexo</label>
-                                        <select
-                                            id="selSexo"
-                                            v-model="registro.sexo"
-                                            class="form-control"
-                                        >
-                                            <option value="">Seleccione...</option>
-                                            <option value="M">Masculino</option>
-                                            <option value="F">Femenino</option>
-                                            <option value="O">Otro</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
 
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label class="control-label" for="fec_naci"
-                                            >Fecha de Nacimiento</label
-                                        >
-                                        <input
-                                            type="date"
-                                            id="fec_naci"
-                                            v-model="registro.fec_naci"
-                                            class="form-control"
-                                        />
+                                    <div class="row">
+                                        <div class="col-md-7">
+                                            <div class="form-group">
+                                                <label class="control-label" for="direccion"
+                                                    >Dirección</label
+                                                >
+                                                <input
+                                                    type="text"
+                                                    id="direccion"
+                                                    v-model="registro.direccion"
+                                                    class="form-control"
+                                                    placeholder="Dirección residencial"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <div class="form-group">
+                                                <label class="control-label" for="tel"
+                                                    >Teléfono / Celular</label
+                                                >
+                                                <input
+                                                    type="text"
+                                                    id="tel"
+                                                    v-model="registro.tel"
+                                                    class="form-control"
+                                                    placeholder="Celular"
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label class="control-label" for="tel"
-                                            >Teléfono / Celular</label
-                                        >
-                                        <input
-                                            type="text"
-                                            id="tel"
-                                            v-model="registro.tel"
-                                            class="form-control"
-                                            placeholder="Celular"
-                                        />
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label class="control-label" for="direccion"
-                                            >Dirección</label
-                                        >
-                                        <input
-                                            type="text"
-                                            id="direccion"
-                                            v-model="registro.direccion"
-                                            class="form-control"
-                                            placeholder="Dirección"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
 
-                            <h5 class="text-themecolor border-bottom pb-2 mt-3">
-                                <i class="fa fa-stethoscope mr-1"></i> Asignación y Profesional
-                            </h5>
-
-                            <div class="row">
+                                <!-- Columna Derecha: Datos de la Asignación -->
                                 <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label
-                                            class="control-label font-weight-bold"
-                                            for="selMedico"
-                                            >Especialista de Oftalmología
-                                            <span class="text-danger">*</span></label
-                                        >
-                                        <Select2
-                                            id="selMedico"
-                                            ref="selMedico"
-                                            :value="registro.medico_id"
-                                            :options="medicoOptions"
-                                            width="100%"
-                                            placeholder="Seleccione especialista"
-                                            @select="alSeleccionarMedico($event)"
-                                        />
+                                    <h5 class="card-title text-info">
+                                        <i class="fa fa-stethoscope"></i> Datos de la Asignación
+                                    </h5>
+                                    <hr />
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label
+                                                    class="control-label font-weight-bold"
+                                                    for="selTipoRecaudo"
+                                                >
+                                                    Tipo de Consulta / Recaudo
+                                                    <span class="text-danger">*</span>
+                                                </label>
+                                                <select
+                                                    id="selTipoRecaudo"
+                                                    v-model="registro.tipo_recaudo_id"
+                                                    class="form-control"
+                                                    @change="alCambiarTipoRecaudo()"
+                                                    required
+                                                >
+                                                    <option
+                                                        v-for="tr in tiposRecaudo"
+                                                        :key="tr.id"
+                                                        :value="tr.id"
+                                                    >
+                                                        {{ tr.nombre }} —
+                                                        {{ tr.descripcion || tr.codigo }}
+                                                    </option>
+                                                </select>
+                                                <small
+                                                    class="form-text"
+                                                    :class="
+                                                        esCortesia
+                                                            ? 'text-danger font-weight-bold'
+                                                            : 'text-muted'
+                                                    "
+                                                >
+                                                    <i class="fa fa-info-circle mr-1"></i>
+                                                    {{
+                                                        esCortesia
+                                                            ? "Las consultas de oftalmología de cortesía no generan ningún recaudo y no se transmiten a SAHI."
+                                                            : esParticular
+                                                              ? "Consulta particular con cobro directo institucional (no se factura por SAHI)."
+                                                              : "Consulta institucional facturada por orden médica / atención de SAHI."
+                                                    }}
+                                                </small>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label class="control-label" for="txtUbicacion"
-                                            >Ubicación</label
-                                        >
-                                        <input
-                                            type="text"
-                                            id="txtUbicacion"
-                                            v-model="registro.ubicacion"
-                                            class="form-control"
-                                            placeholder="Consultorio / Sala"
-                                        />
+
+                                    <div class="row" v-if="!esParticular && !esCortesia">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label
+                                                    class="control-label font-weight-bold"
+                                                    for="txtAtencionId"
+                                                >
+                                                    # de Atención SAHI
+                                                    <span class="text-danger">*</span>
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    id="txtAtencionId"
+                                                    v-model="registro.atencion_id"
+                                                    class="form-control"
+                                                    placeholder="# Atención SAHI"
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label class="control-label" for="txtCama"
-                                            >Cama / Cubículo</label
-                                        >
-                                        <input
-                                            type="text"
-                                            id="txtCama"
-                                            v-model="registro.cama"
-                                            class="form-control"
-                                            placeholder="Cubículo"
-                                        />
+
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label
+                                                    class="control-label font-weight-bold"
+                                                    for="selMedico"
+                                                >
+                                                    Especialista en Oftalmología
+                                                    <span class="text-danger">*</span>
+                                                </label>
+                                                <Select2
+                                                    id="selMedico"
+                                                    ref="selMedico"
+                                                    :value="registro.medico_id"
+                                                    :options="medicoOptions"
+                                                    width="100%"
+                                                    :allow-clear="true"
+                                                    :label-fields="['name']"
+                                                    dropdown-parent-selector="#drawerAdmisionarOftalmologia"
+                                                    placeholder="Seleccione especialista"
+                                                    @input="alSeleccionarMedico($event)"
+                                                    @select="alSeleccionarMedico($event)"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label
+                                                    class="control-label font-weight-bold"
+                                                    for="txtUbicacion"
+                                                >
+                                                    Ubicación / Consultorio
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    id="txtUbicacion"
+                                                    v-model="registro.ubicacion"
+                                                    class="form-control"
+                                                    placeholder="Ej. Consultorio Oftalmología"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label" for="txtCama">
+                                                    Cama / Cubículo
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    id="txtCama"
+                                                    v-model="registro.cama"
+                                                    class="form-control"
+                                                    placeholder="Cubículo o camilla"
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -897,7 +1004,7 @@ function limpiarFormulario() {
         direccion: "",
         tel: "",
         sede_id: sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || null,
-        medico_id: medicos.value[0]?.id || null,
+        medico_id: null,
         atencion_id: null,
         tipo_recaudo_id: tiposRecaudo.value[0]?.id || 1,
         contrato: null,
@@ -1047,6 +1154,15 @@ async function buscarPacientePorDocumento() {
 }
 
 async function guardarRegistro() {
+    if (!registro.value.medico_id || registro.value.medico_id === "0") {
+        toastMessage({
+            heading: "¡Atención!",
+            text: "Debe seleccionar un médico especialista en oftalmología para continuar.",
+            icon: "warning",
+        });
+        return;
+    }
+
     if (!esParticular.value && !esCortesia.value && !registro.value.atencion_id) {
         toastMessage({
             heading: "¡Atención!",
@@ -1099,7 +1215,16 @@ function alSeleccionarTipoDocumento(val) {
 }
 
 function alSeleccionarMedico(val) {
-    registro.value.medico_id = val?.id || val || null;
+    let selectedId = null;
+    if (Array.isArray(val) && val.length > 0) {
+        const v = val[0];
+        selectedId = typeof v === "object" && v && v.id != null ? v.id : v;
+    } else if (val && typeof val === "object" && val.id != null) {
+        selectedId = val.id;
+    } else if (val != null) {
+        selectedId = val;
+    }
+    registro.value.medico_id = selectedId && selectedId !== "0" ? String(selectedId) : null;
 }
 
 function alCambiarTipoRecaudo() {
@@ -1110,7 +1235,7 @@ function alCambiarTipoRecaudo() {
 
 async function listarMedicos() {
     try {
-        const res = await axios.get("/api/user.listarUsuarios/Medico/2");
+        const res = await axios.get("/api/user.listarUsuarios/Medico/3");
         medicos.value = res.data?.data || [];
     } catch {
         medicos.value = [];
