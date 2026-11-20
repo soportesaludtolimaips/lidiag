@@ -304,18 +304,51 @@ Módulo administrativo para la emisión, rotación segura y monitorización de c
 
 ### 19. Centro de Reportes e Inteligencia de Negocio Hospitalaria
 
-**Propósito:** Análisis estadístico y exportación gerencial de la producción médica, oportunidad asistencial y estados de red.
+**Propósito:** Motor integral de Business Intelligence, analítica clínica y conciliación técnico-financiera multisede para dirección médica, operaciones y gerencia general.
 
--   **Arquitectura de Libros Multi-Hoja (`WithMultipleSheets`):** Todos los reportes a Excel se compilan mediante PhpSpreadsheet divididos en:
-    -   *Hoja 1 (Estadísticas y Gráficos Nativos):* Banner corporativo, 5 tarjetas de KPIs ejecutivos, tablas agregadas de distribución y dos gráficos nativos incrustados (Torta y Barras Agrupadas).
-    -   *Hoja 2 (Detalle Granular):* Listado completo registro por registro con bordes, anchos calibrados y formatos de moneda/porcentaje.
--   **Reportes Clave Disponibles:**
-    -   *Producción Detallada:* Modalidades, rendimiento por radiólogo, TAT clínico y tiempos de transcripción (`/reportes-produccion`).
-    -   *Estudios PACS (`/reportes-estudios-pac`):* Auditoría multisede de adquisiciones reales en Dcm4chee cruzadas con pacientes.
-    -   *Consolidado de Toda la Red Hospitalaria:* Ranking de sedes, desglose modal y oportunidad global.
-    -   *Semáforo de Represamiento y Urgencias fuera de SLA:* Estudios >24h sin lectura y urgencias pendientes >30 minutos.
-    -   *Estadísticas de Citas y Canal WhatsApp:* Control de asistencia del día y conversión de solicitudes digitales.
-    -   *Monitor de Almacenamiento y Servidores:* Capacidad de discos locales, NAS y agentes hospitalarios.
+-   **Arquitectura de Libros Multi-Hoja (`WithMultipleSheets` vía PhpSpreadsheet y Maatwebsite Excel):**
+    -   *Hoja 1 (Estadísticas Ejecutivas y Gráficos Nativos):* Encabezado institucional corporativo (#1A2274), tarjetas de KPIs de desempeño (Total de estudios, pacientes únicos, modalidades activas, promedio diario y procedimientos distintos), tablas agregadas de distribución y dos gráficos nativos de Excel incrustados (Torta de cuota por modalidad y Columnas agrupadas del Top 10 de procedimientos).
+    -   *Hoja 2 (Detalle Granular Asistencial):* Trazabilidad registro por registro con tipografía Segoe UI, bordes delgados, auto-ajuste de columnas calibrado y formato numérico/porcentual estricto.
+    -   *Hoja 3 (En reportes de conciliación):* Registros no conciliados o estudios sin asignar para auditoría de facturación.
+-   **Conexión Dinámica Multisede a Servidores PACS (Dcm4chee):**
+    -   Resolución dinámica y en caliente de los parámetros de conexión almacenados en `ConfigSede` (`ip_dcm`, `puerto_dcm`, `bd_dcm`, `usuario_dcm`, `password_dcm`).
+    -   Aislamiento en conexiones temporales dedicadas (`pacs_reporte_{$sedeId}_{uniqid}`) con timeout de protección (`PDO::ATTR_TIMEOUT => 5`) para evitar bloqueos ante sedes desconectadas o fallas de enlace hospitalario, con liberación garantizada mediante `DB::purge()` en bloque `finally`.
+    -   Consultas optimizadas mediante `LEFT JOIN` entre `study` y `patient`, y limpieza automática de la sintaxis DICOM de pacientes (`APELLIDO^NOMBRE^^^^` a formato legible).
+-   **Catálogo Detallado de Reportes Disponibles:**
+    1.  **Producción Detallada (`/reportes-produccion` $\rightarrow$ `/descarga-reportes-produccion`):**
+        -   **Rayos X y Alta Complejidad (TAC, Resonancia, Mamografía):** Exportación exhaustiva con trazabilidad de fechas de asignación, lectura y transcripción, prioridad, profesional que ordenó, médico radiólogo, transcriptor, y campos asistenciales de internación (**Cama** y **Ubicación** del paciente).
+        -   **Ecografías:** Producción ecográfica especializada con orden médica, lectura, cama y ubicación.
+        -   **Oftalmología:** Producción de consultas médicas, interconsultas especializadas y procedimientos CUPS.
+        -   *Regla de Negocio Asistencial:* Filtrado estricto por fecha y hora de lectura médica (`fechor_lectura`), garantizando que solo se listen y cuantifiquen los estudios efectivamente leídos e interpretados por el especialista.
+    2.  **Producción Consolidada (Auditoría Cruzada PACS vs LIDiag - `/descarga-reportes-produccion-consolidada`):**
+        -   Conciliación automatizada que contrasta en tiempo real las adquisiciones tomadas en los servidores PACS Dcm4chee de cada sede contra los estudios asignados y leídos en LIDiag.
+        -   Estructurado en 3 hojas: *1. Estadísticas y Gráficas de Concordancia*, *2. Detalle Consolidado de Estudios*, *3. Estudios PACS Sin Asignar en LIDiag* (detección temprana de fugas de facturación o estudios adquiridos sin orden formal).
+    3.  **Estudios Adquiridos en PACS (`/reportes-estudios-pac` $\rightarrow$ `/descarga-reportes-estudios-pac`):**
+        -   Auditoría directa sobre el motor PACS Dcm4chee de cada sede hospitalaria seleccionada.
+        -   Normalización de rangos temporales (`00:00:00` a `23:59:59`), limpieza de carets DICOM en nombres de pacientes y compilación en dos hojas: *1. Estadísticas y Gráficos por Modalidad (CT, DX, MR, MG, US, etc.) y Top 10 Procedimientos*, *2. Detalle Registro por Registro*.
+    4.  **Tele-Radiología (`/descarga-reportes-teleradiologia`):**
+        -   Control y trazabilidad de estudios derivados a radiólogos externos y sedes deslocalizadas, evaluación de cumplimiento de acuerdos de nivel de servicio (SLA) y tiempos de entrega.
+    5.  **Oportunidad y TAT (Turnaround Time - `/descarga-reportes-tat`):**
+        -   Análisis de los tiempos de ciclo asistencial por fase: Adquisición $\rightarrow$ Asignación $\rightarrow$ Lectura $\rightarrow$ Transcripción $\rightarrow$ Entrega final.
+    6.  **Semáforo de Represamiento y Urgencias fuera de SLA (`/descarga-reportes-represados`):**
+        -   Tablero de control asistencial en tiempo real para detección de estudios represados (>24 horas sin lectura) y urgencias pendientes con más de 30 minutos sin informe médico.
+    7.  **Consolidado General de la Red Hospitalaria (`/descarga-reportes-consolidado-red`):**
+        -   Visión macro-gerencial con ranking comparativo de producción por hospital, carga de trabajo modal y KPIs de oportunidad global de la red.
+    8.  **Ausentismo y Adherencia de Citas (`/descarga-reportes-ausentismo-citas`):**
+        -   Monitoreo de citas programadas, efectivas, canceladas con motivo e inasistencias por servicio y sede.
+    9.  **Estadísticas de Citas y Canal WhatsApp (`/descarga-reportes-citas-whatsapp`):**
+        -   Métricas del canal digital de WhatsApp: volumen de solicitudes, confirmaciones, cancelaciones y tasa de conversión de agendamientos.
+    10. **Telemetría de Agentes Periféricos y Almacenamiento (`/descarga-reportes-agentes`, `/descarga-reportes-almacenamiento`):**
+        -   Diagnóstico del estado operativo de los agentes Edge en cada sede, vigencia y verificación de integridad de backups de `pacsdb`, y monitoreo de espacio libre en discos locales y NAS.
+    11. **Dosimetría Radiológica Institucional (`/descarga-reportes-dosimetria`):**
+        -   Reporte regulatorio multi-hoja (Resolución 482 de 2018) con evaluación de NRD, mapa de calor anatómico en 7 regiones diana e identificadores con hash HMAC-SHA256.
+    12. **Liquidación y Productividad Médica (`/descarga-reportes-liquidacion`, `/descarga-reportes-productividad`):**
+        -   Liquidación económica por médico según contratos y tarifas (`valor_consulta` vs `valor_urgencias`) y consolidado de productividad para corte de nómina/facturación.
+-   **Interfaces de Usuario Especializadas (Vue 3 + Vite):**
+    -   `reporteProduccionComponent.vue`: Centro de mando interactivo con modales especializados para cada tipo de reporte, selector dinámico de sedes, sincronización reactiva mediante bus `mitt` (`sedeSeleccionada`), validaciones de fechas y descargas con retroalimentación visual (`toastMessage`).
+    -   `reporteEstudiosPACComponent.vue`: Pantalla dedicada para auditoría PACS con inicialización automática de fechas al día actual, preselección de sede activa y control de bloqueadores de ventanas emergentes (`window.open`).
+-   **Seguridad y Permisos:**
+    -   Protección estricta de rutas mediante middleware `auth` y permisos Spatie: `reportes.detallados`, `reportes.indicadores`, `dosimetria.dashboard`, `liquidacion.exportar`, `seguridad.backups.index`.
 
 ### 20. Control de Concurrencia Médica (`Estudio Locks`) y Resiliencia en Lectura
 
@@ -781,7 +814,7 @@ El frontend está organizado como **componentes Vue montados en vistas Blade**. 
 - **Seguridad**: `resources/js/components/modulos/seguridad/*`
   - Usuarios, roles y perfil.
 - **Reportes**: `resources/js/components/modulos/reportes/*`
-  - Reportes de producción.
+  - Centro de reportes de producción (`reporteProduccionComponent.vue`) y auditoría de estudios en servidores PACS (`reporteEstudiosPACComponent.vue`).
 - **Tele radiología**: `resources/js/components/modulos/tele-radiologia/*`
   - Envío y transcripción.
 - **Otras plataformas**: `resources/js/components/modulos/otras-plataformas/*`
