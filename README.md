@@ -870,11 +870,14 @@ Por defecto (ver `app/Providers/AppServiceProvider.php`):
 
 El sistema utiliza varios servicios de terceros configurados en el archivo `.env`:
 
--   **Twilio (`TWILIO_*`)**:
+-   **WhatsApp (Meta Cloud API & Twilio)**:
 
-    -   Utilizado para el envío de notificaciones automáticas a pacientes y médicos a través de WhatsApp.
-    -   Casos de uso: Recordatorios de citas, confirmación de asignaciones.
-    -   Configuración: `config/services.php` lee `TWILIO_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_NUMBER`.
+    -   **Meta WhatsApp Cloud API**:
+        -   Utilizado para la operación del **Bot Asistencial 24/7**, recepción de webhooks de mensajes entrantes (`/api/citas/webhook`), mensajes estructurados con botones interactivos (`[Confirmar Cita]`, `[Cancelar Cita]`) y recepción de archivos multimedia (órdenes médicas e historias clínicas en PDF/JPG/PNG).
+        -   Configuración en `.env`: `META_WHATSAPP_TOKEN`, `META_WHATSAPP_PHONE_ID`, `META_WHATSAPP_VERIFY_TOKEN`.
+    -   **Twilio WhatsApp / SMS**:
+        -   Utilizado como canal outbound alternativo para despacho de notificaciones automáticas y alertas SMS.
+        -   Configuración: `config/services.php` lee `TWILIO_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_NUMBER`.
 
 -   **FFmpeg (`php-ffmpeg/php-ffmpeg`)**:
 
@@ -1377,10 +1380,10 @@ php artisan schedule:run
 -   Verifique que las extensiones `sqlsrv` y `pdo_sqlsrv` estén instaladas y habilitadas en su versión de PHP.
 -   Confirme que las credenciales `DB_HOST_SQLSRV` en el `.env` son accesibles desde el servidor donde corre LIDiag.
 
-**2. Las notificaciones de WhatsApp no llegan**
+**2. Las notificaciones o webhooks de WhatsApp no funcionan**
 
--   Revise los logs en `storage/logs/laravel.log` para ver si hay errores de autenticación con Twilio.
--   Asegúrese de que el número `TWILIO_WHATSAPP_NUMBER` esté configurado correctamente con el formato internacional (ej. `whatsapp:+57...`).
+-   **Webhooks de Meta:** Confirme que el túnel de `cloudflared` esté activo en la terminal y que el verify token en la consola de desarrolladores de Meta coincida exactamente con `META_WHATSAPP_VERIFY_TOKEN`. Revise los logs en `storage/logs/laravel.log` buscando `WhatsApp mensaje recibido`.
+-   **Notificaciones Twilio:** Revise los logs en `storage/logs/laravel.log` para ver si hay errores de autenticación con Twilio. Asegúrese de que el número `TWILIO_WHATSAPP_NUMBER` esté configurado correctamente con el formato internacional (ej. `whatsapp:+57...`).
 
 **3. Problemas al generar PDFs**
 
