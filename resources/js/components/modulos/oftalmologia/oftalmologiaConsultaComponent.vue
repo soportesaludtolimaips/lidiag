@@ -107,43 +107,59 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <h4 class="card-title text-themecolor mb-0">
-                                    <i class="fa fa-filter"></i> Filtros de búsqueda
+                                    <i class="fa fa-filter"></i> Filtros para búsqueda de atenciones
+                                    admisionadas
+                                    <span
+                                        v-if="filtrosActivosCount > 0"
+                                        class="badge badge-pill badge-info ml-2"
+                                    >
+                                        {{ filtrosActivosCount }}
+                                        {{
+                                            filtrosActivosCount === 1
+                                                ? "filtro activo"
+                                                : "filtros activos"
+                                        }}
+                                    </span>
                                 </h4>
                                 <button
                                     type="button"
-                                    class="btn btn-sm btn-link text-muted p-0"
+                                    class="btn btn-sm btn-outline-secondary"
                                     @click="toggleFiltros()"
                                     :title="filtrosVisible ? 'Ocultar filtros' : 'Mostrar filtros'"
                                 >
                                     <i
-                                        class="fa"
                                         :class="
-                                            filtrosVisible ? 'fa-chevron-up' : 'fa-chevron-down'
+                                            filtrosVisible
+                                                ? 'fa fa-chevron-up'
+                                                : 'fa fa-chevron-down'
                                         "
                                     ></i>
-                                    {{ filtrosVisible ? "Plegar" : "Desplegar" }}
+                                    {{ filtrosVisible ? "Ocultar filtros" : "Mostrar filtros" }}
                                 </button>
                             </div>
 
-                            <transition name="fade">
+                            <transition name="fade-collapse">
                                 <form
                                     v-show="filtrosVisible"
                                     action="#"
+                                    autocomplete="off"
                                     @submit.prevent="listarAtenciones()"
                                 >
                                     <div class="form-body">
                                         <div class="row p-t-2">
-                                            <div class="col-md-4">
+                                            <div class="col-md-3">
                                                 <div class="form-group">
                                                     <label class="control-label" for="bus_doc_nom">
-                                                        # Atención, # Documento o Paciente
+                                                        # de atención, # de documento ó Nombres de
+                                                        paciente
                                                     </label>
                                                     <input
                                                         type="text"
                                                         id="bus_doc_nom"
+                                                        name="bus_doc_nom"
                                                         v-model="busqueda.busqueda"
                                                         class="form-control"
-                                                        placeholder="Cédula, nombre o # atención..."
+                                                        placeholder="Atención, Nombres de paciente o # de documento"
                                                         autocomplete="off"
                                                         @keyup.enter="listarAtenciones()"
                                                     />
@@ -178,7 +194,7 @@
                                                 </div>
                                             </div>
 
-                                            <div class="col-md-2 col-6">
+                                            <div class="col-md-2">
                                                 <div class="form-group">
                                                     <label class="control-label" for="fec_ini"
                                                         >Fecha Inicio</label
@@ -186,14 +202,16 @@
                                                     <input
                                                         type="date"
                                                         id="fec_ini"
+                                                        name="fec_ini"
                                                         v-model="busqueda.fecha_ini"
                                                         class="form-control"
+                                                        autocomplete="off"
                                                         @keyup.enter="listarAtenciones()"
                                                     />
                                                 </div>
                                             </div>
 
-                                            <div class="col-md-2 col-6">
+                                            <div class="col-md-2">
                                                 <div class="form-group">
                                                     <label class="control-label" for="fec_fin"
                                                         >Fecha Fin</label
@@ -201,26 +219,44 @@
                                                     <input
                                                         type="date"
                                                         id="fec_fin"
+                                                        name="fec_fin"
                                                         v-model="busqueda.fecha_fin"
                                                         class="form-control"
+                                                        autocomplete="off"
                                                         @keyup.enter="listarAtenciones()"
                                                     />
                                                 </div>
                                             </div>
+                                        </div>
 
-                                            <div
-                                                class="col-md-1 d-flex align-items-center justify-content-end pt-2"
+                                        <div class="form-actions mt-3">
+                                            <button
+                                                type="button"
+                                                class="btn btn-success waves-effect waves-light m-r-5"
+                                                @click="listarAtenciones()"
+                                                :disabled="isBuscandoAtenciones"
                                             >
-                                                <button
-                                                    type="button"
-                                                    class="btn btn-inverse btn-block waves-effect waves-light"
-                                                    @click="limpiarFiltros()"
-                                                    :disabled="isBuscandoAtenciones"
-                                                    title="Limpiar filtros"
-                                                >
-                                                    <i class="fa fa-refresh"></i>
-                                                </button>
-                                            </div>
+                                                <i
+                                                    class="fa mr-1"
+                                                    :class="
+                                                        isBuscandoAtenciones
+                                                            ? 'fa-spinner fa-spin'
+                                                            : 'fa-search'
+                                                    "
+                                                ></i>
+                                                {{
+                                                    isBuscandoAtenciones ? "Buscando..." : "Buscar"
+                                                }}
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                class="btn btn-inverse waves-effect waves-light"
+                                                @click="limpiarFiltros()"
+                                                :disabled="isBuscandoAtenciones"
+                                            >
+                                                <i class="fa fa-refresh mr-1"></i> Limpiar
+                                            </button>
                                         </div>
                                     </div>
                                 </form>
@@ -1827,7 +1863,15 @@
 </template>
 
 <script setup>
-import { nextTick, onBeforeUnmount, onMounted, reactive, ref, getCurrentInstance } from "vue";
+import {
+    computed,
+    nextTick,
+    onBeforeUnmount,
+    onMounted,
+    reactive,
+    ref,
+    getCurrentInstance,
+} from "vue";
 import { useRoute } from "vue-router";
 import axios from "axios";
 import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
@@ -1859,10 +1903,20 @@ const filtrosVisible = ref(true);
 
 const busqueda = ref({
     sede_id: sedeActual,
+    bus_nom_num_docu: "",
     busqueda: "",
     estado: "",
     fecha_ini: "",
     fecha_fin: "",
+});
+
+const filtrosActivosCount = computed(() => {
+    let count = 0;
+    if (busqueda.value.busqueda || busqueda.value.bus_nom_num_docu) count++;
+    if (busqueda.value.estado) count++;
+    if (busqueda.value.fecha_ini) count++;
+    if (busqueda.value.fecha_fin) count++;
+    return count;
 });
 
 // Pestañas de Consulta
@@ -2026,6 +2080,7 @@ function formatearHora(fecha) {
 
 function limpiarFiltros() {
     busqueda.value.busqueda = "";
+    busqueda.value.bus_nom_num_docu = "";
     busqueda.value.estado = "";
     busqueda.value.fecha_ini = "";
     busqueda.value.fecha_fin = "";
@@ -2038,9 +2093,11 @@ async function listarAtenciones() {
         const sede = sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede");
         busqueda.value.sede_id = sede;
 
+        const criterio = busqueda.value.busqueda || busqueda.value.bus_nom_num_docu;
+
         const res = await axios.post("/api/oftalmologia/atenciones", {
             sede_id: busqueda.value.sede_id,
-            busqueda: busqueda.value.busqueda,
+            busqueda: criterio,
             estado: busqueda.value.estado,
             fecha_ini: busqueda.value.fecha_ini,
             fecha_fin: busqueda.value.fecha_fin,
