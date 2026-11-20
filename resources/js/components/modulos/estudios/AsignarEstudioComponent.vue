@@ -39,14 +39,11 @@
                 </button>
                 <button
                     type="button"
-                    class="btn btn-warning text-white m-r-5"
+                    class="btn btn-warning text-white"
                     @click="nuevoRegistroDirecto('CORTESIA')"
                     title="Asignar estudio de cortesía directamente sin requerir atención previa"
                 >
                     <i class="fa fa-gift m-r-5"></i> + Cortesía
-                </button>
-                <button type="button" class="btn btn-info" @click="nuevoRegistro()">
-                    <i class="fa fa-plus-circle m-r-5"></i> Nuevo registro
                 </button>
             </div>
         </div>
@@ -2095,23 +2092,6 @@ async function nuevoRegistroDirecto(tipoCodigo = "PARTICULAR") {
             ? "Nuevo registro de estudio (Cortesía)"
             : "Nuevo registro de estudio (Particular)";
 
-    abrirModal();
-}
-
-/**
- * Prepara el panel para crear un estudio nuevo: limpia el formulario, deja el
- * médico configurado en el usuario y abre el panel.
- *
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-09-29
- */
-function nuevoRegistro() {
-    limpiarFormulario();
-    //registro.value.medico_id = "";
-    tituloModal.value = "Nuevo registro de estudio";
     abrirModal();
 }
 

@@ -37,6 +37,37 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-20 — Refactorización UI/UX del Módulo de Consulta Oftalmológica (`oftalmologiaConsultaComponent.vue`):**
+  - **Diagnóstico y Contexto:**
+    * El componente `oftalmologiaConsultaComponent.vue` abría inicialmente un formulario clínico en blanco con textos de "Cargando paciente..." y un estilo visual ajeno al ecosistema LIDIAG.
+    * No existía el flujo de selección previa para que el médico visualice las atenciones admisionadas y seleccione cuál atender.
+  - **Solución Implementada:**
+    * **Flujo de Dos Etapas:**
+      1. *Etapa 1 (Listado de Atenciones Admisionadas):* Presenta una vista tabular limpia (`table-custom-compact`, DataTable, skeleton loader y empty state) con filtros plegables por documento, nombre, estado y rango de fechas. Acción directa "Atender / Ver" en cada fila.
+      2. *Etapa 2 (Espacio de Consulta Oftalmológica):* Al pulsar "Atender" o al navegar con `:id`, carga la historia clínica del paciente con la tarjeta de identificación hospitalaria estándar de LIDIAG, pestañas estilizadas con el patrón `customtab` de AdminWrap (Anamnesis, Examen Físico, CIE-10, Concepto y Plan, Órdenes CUPS/Medicamentos y Anexos), selector de plantillas preconfiguradas, autoguardado de borrador y botón de regreso a la lista.
+  - **Verificaciones:**
+    * ESLint & Prettier: 0 errores y 0 advertencias.
+    * Compilación con Vite (`npm run build`): ejecutada exitosamente en 2.25s generando el asset `oftalmologiaConsultaComponent-DiTbD2e4.js`.
+- [x] **2026-11-20 — Corrección Consulta de Atenciones de Oftalmología en SAHI (`SAHIOftalmologiaService.php`):**
+  - **Diagnóstico del Problema:**
+    * Al buscar la atención `7018623` en el módulo de Oftalmología, el sistema no retornaba ningún registro.
+    * La consulta en `SAHIOftalmologiaService.php` buscaba en `hceConsulta`, donde los pacientes nuevos o interconsultas ambulatorias/hospitalarias aún no tienen historia clínica médica diligenciada en SAHI.
+    * En SAHI, los procedimientos e interconsultas facturados/ordenados se registran en `facFacturaDet` y `facMovimientoDet` (con código CUPS `890476` para "INTERCONSULTA POR ESPECIALISTA EN OFTALMOLOGIA", `890202`, `890302` o `NomProducto LIKE '%OFTALMO%'`).
+  - **Solución Implementada:**
+    * Se alineó la arquitectura de `SAHIOftalmologiaService::listarAtencionesDisponibles` con la del servicio probado de Ecografías (`SAHIEcografiasService.php`).
+    * Se implementó el método `resolverAtencionesIds` para resolver atenciones por número de atención directo, documento del paciente (`admCliente.NumDocumento`), o nombres/apellidos tokenizados, además de rangos de fechas.
+    * Se realiza `union` entre `facFacturaDet` y `facMovimientoDet` con JOINs a `admAtencion`, `admCliente`, `proProducto`, `conContrato`, `conPlan`, `genTercero`, `genTipoDoc`, `admCama` y `genUbicacion`.
+    * Se mapearon los datos retornados para ser compatibles con las expectativas de [`oftalmologiaAdmisionarComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/oftalmologia/oftalmologiaAdmisionarComponent.vue) (`IdAtencion`, `NumDocumento`, `NomProducto`, `CodProducto`, `ValProduc`, `NomTercero`, `DesContrato`, `DesPlan`, `NomUbicacion`, `Cama`).
+  - **Verificaciones:**
+    * Prueba de consulta directa contra SQL Server (`ESP_PRI`): la atención `7018623` (paciente William Camilo González Cogua, servicio `890476`) se lista exitosamente con búsqueda por atención `7018623`, por documento `1010235116` y por nombre `WILLIAM GONZALEZ`.
+    * Laravel Pint (`vendor\bin\pint.bat --test`): passed sin errores de estilo.
+- [x] **2026-11-20 — Depuración de Acciones Redundantes en `AsignarEstudioComponent.vue`:**
+  - **Diagnóstico y Solución:**
+    * En el encabezado de [`AsignarEstudioComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/AsignarEstudioComponent.vue), existía un botón genérico "Nuevo registro" (`nuevoRegistro()`) redundante junto a los botones directos "+ Particular" y "+ Cortesía".
+    * Se eliminó el botón "Nuevo registro" y su método auxiliar asociado, manteniendo exclusivamente los flujos explícitos de "+ Particular" y "+ Cortesía".
+  - **Verificaciones:**
+    * ESLint & Prettier: 0 errores y 0 advertencias.
+    * Compilación con Vite (`npm run build`): ejecutada exitosamente en 2.80s.
 - [x] **2026-11-19 — Corrección en Descarga del Reporte de Estudios PACS (`reporteEstudiosPACComponent.vue` y `ReportesEstudioPAC.php`):**
   - **Diagnóstico del Problema:**
     * Al generar y descargar el reporte de estudios PACS desde [`reporteEstudiosPACComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/reportes/reporteEstudiosPACComponent.vue), el archivo Excel descargaba sin registros (vacío o con 0 filas).

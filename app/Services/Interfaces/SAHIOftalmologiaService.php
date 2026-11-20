@@ -32,9 +32,9 @@ class SAHIOftalmologiaService extends BaseService
     public const SAHI_ESPECIALIDAD_OFTALMOLOGIA = 17;
 
     /**
-     * Códigos CUPS comunes para consultas de Oftalmología.
+     * Códigos CUPS comunes para consultas e interconsultas de Oftalmología.
      */
-    public const SAHI_CUPS_OFTALMOLOGIA = ['890202', '890302'];
+    public const SAHI_CUPS_OFTALMOLOGIA = ['890202', '890302', '890476'];
 
     /**
      * Determina si la sede tiene habilitada la interfaz con SAHI.
@@ -76,6 +76,8 @@ class SAHIOftalmologiaService extends BaseService
 
     /**
      * Consulta atenciones de Oftalmología disponibles en SAHI para la sede indicada.
+     * Consulta tanto facturación (facFacturaDet) como movimientos/cargos (facMovimientoDet)
+     * siguiendo la arquitectura probada del módulo de Ecografías.
      *
      * @param  array<string, mixed>  $filtros
      * @return array<string, mixed>
@@ -90,95 +92,199 @@ class SAHIOftalmologiaService extends BaseService
         try {
             SahiConnectionHelper::configureForSede($sede);
 
-            $fechaIni = ! empty($filtros['fecha_ini']) ? Carbon::parse($filtros['fecha_ini'])->startOfDay()->format('Y-m-d H:i:s') : Carbon::today()->startOfDay()->format('Y-m-d H:i:s');
-            $fechaFin = ! empty($filtros['fecha_fin']) ? Carbon::parse($filtros['fecha_fin'])->endOfDay()->format('Y-m-d H:i:s') : Carbon::today()->endOfDay()->format('Y-m-d H:i:s');
-            $busqueda = ! empty($filtros['busqueda']) ? trim((string) $filtros['busqueda']) : null;
-            $atencionId = ! empty($filtros['atencion_id']) ? (int) $filtros['atencion_id'] : null;
+            $fechaIni = ! empty($filtros['fecha_ini']) ? Carbon::parse($filtros['fecha_ini'])->format('Y-m-d') : null;
+            $fechaFin = ! empty($filtros['fecha_fin']) ? Carbon::parse($filtros['fecha_fin'])->format('Y-m-d') : null;
+            $criterio = ! empty($filtros['busqueda']) ? trim((string) $filtros['busqueda']) : (! empty($filtros['atencion_id']) ? trim((string) $filtros['atencion_id']) : null);
 
-            $params = [];
-            $whereClause = ' WHERE (hc.IdEspecialidad = 17 OR hc.NomProducto LIKE ? OR hc.CodProducto IN (?, ?)) ';
-            $params[] = '%oftalmo%';
-            $params[] = '890202';
-            $params[] = '890302';
-
-            if ($atencionId) {
-                $whereClause .= ' AND a.IdAtencion = ? ';
-                $params[] = $atencionId;
-            } elseif ($busqueda) {
-                $whereClause .= ' AND (c.NumDocumento LIKE ? OR c.NomCliente LIKE ? OR c.ApeCliente LIKE ?) ';
-                $params[] = "%{$busqueda}%";
-                $params[] = "%{$busqueda}%";
-                $params[] = "%{$busqueda}%";
-            } else {
-                $whereClause .= ' AND a.FecIngreso >= CONVERT(datetime, ?, 120) AND a.FecIngreso <= CONVERT(datetime, ?, 120) ';
-                $params[] = $fechaIni;
-                $params[] = $fechaFin;
+            // Si no hay criterio ni fechas, por defecto buscar fecha de hoy
+            if (empty($criterio) && empty($fechaIni) && empty($fechaFin)) {
+                $fechaIni = Carbon::today()->format('Y-m-d');
+                $fechaFin = Carbon::today()->format('Y-m-d');
             }
 
-            $sql = "
-                SELECT top 50 
-                    a.IdAtencion, 
-                    a.FecIngreso, 
-                    a.IdCliente, 
-                    c.NomCliente, 
-                    c.ApeCliente, 
-                    c.NumDocumento, 
-                    c.IdTipoDoc, 
-                    c.IdSexo, 
-                    c.FecNacimiento, 
-                    c.TelCasa, 
-                    c.DirCasa,
-                    hc.IdConsulta, 
-                    hc.IdEspecialidad, 
-                    hc.NomProducto, 
-                    hc.CodProducto, 
-                    hc.DesMotivoCon, 
-                    hc.DesEnfermedadActual
-                FROM hceConsulta hc
-                INNER JOIN admAtencion a ON hc.IdAtencion = a.IdAtencion
-                INNER JOIN admCliente c ON a.IdCliente = c.IdCliente
-                {$whereClause}
-                ORDER BY a.IdAtencion DESC
-            ";
+            $atencionIds = $this->resolverAtencionesIds($criterio, $fechaIni, $fechaFin);
 
-            $rows = DB::connection("sqlsrv")->select($sql, $params);
+            if (empty($atencionIds)) {
+                return $this->success([], 'No se encontraron atenciones con los criterios suministrados.');
+            }
+
+            $oftalmoFilter = static function ($q) {
+                $q->where(function ($sub) {
+                    $sub->whereIn('proProducto.CodLegal', ['890476', '890202', '890302'])
+                        ->orWhereIn('proProducto.CodProducto', ['890476', '890202', '890302'])
+                        ->orWhere('proProducto.NomProducto', 'LIKE', '%OFTALMO%');
+                });
+            };
+
+            $columns1 = [
+                'admAtencion.IdAtencion',
+                DB::raw("CONVERT(char(19), admAtencion.FecIngreso, 120) AS FecIngreso"),
+                'genTipoDoc.IdTipoDoc',
+                'genTipoDoc.CodTipoDoc',
+                'genTipoDoc.NomTipoDoc',
+                'admCliente.NumDocumento',
+                'admCliente.PrimerNombre',
+                'admCliente.SegundoNombre',
+                'admCliente.PrimerApellido',
+                'admCliente.SegundoApellido',
+                DB::raw("CONVERT(char(10), admCliente.FecNacimiento, 120) AS FecNacimiento"),
+                'admCliente.IdSexo',
+                'admCliente.DirCasa',
+                'admCliente.TelCasa',
+                'proProducto.NomProducto',
+                'proProducto.IdProducto',
+                'proProducto.CodProducto',
+                'proProducto.CodLegal',
+                DB::raw("facFacturaDet.ValTotal AS ValProduc"),
+                'facFacturaDet.Cantidad',
+                'conContrato.CodCon',
+                'conContrato.DesContrato',
+                'conPlan.DesPlan',
+                'genTercero.NomTercero',
+                DB::raw("COALESCE(genUbiAct.NomUbicacion, genUbiIng.NomUbicacion, '') AS NomUbicacion"),
+                DB::raw("COALESCE(admCama.CodCama, '') AS Cama"),
+            ];
+
+            $columns2 = [
+                'admAtencion.IdAtencion',
+                DB::raw("CONVERT(char(19), admAtencion.FecIngreso, 120) AS FecIngreso"),
+                'genTipoDoc.IdTipoDoc',
+                'genTipoDoc.CodTipoDoc',
+                'genTipoDoc.NomTipoDoc',
+                'admCliente.NumDocumento',
+                'admCliente.PrimerNombre',
+                'admCliente.SegundoNombre',
+                'admCliente.PrimerApellido',
+                'admCliente.SegundoApellido',
+                DB::raw("CONVERT(char(10), admCliente.FecNacimiento, 120) AS FecNacimiento"),
+                'admCliente.IdSexo',
+                'admCliente.DirCasa',
+                'admCliente.TelCasa',
+                'proProducto.NomProducto',
+                'proProducto.IdProducto',
+                'proProducto.CodProducto',
+                'proProducto.CodLegal',
+                DB::raw("facMovimientoDet.ValVenta AS ValProduc"),
+                'facMovimientoDet.Cantidad',
+                'conContrato.CodCon',
+                'conContrato.DesContrato',
+                'conPlan.DesPlan',
+                'genTercero.NomTercero',
+                DB::raw("COALESCE(genUbiAct.NomUbicacion, genUbiIng.NomUbicacion, '') AS NomUbicacion"),
+                DB::raw("COALESCE(admCama.CodCama, '') AS Cama"),
+            ];
+
+            $consulta1 = DB::connection('sqlsrv')
+                ->table('facFacturaDet')
+                ->select($columns1)
+                ->join('facFactura', 'facFacturaDet.IdFactura', '=', 'facFactura.IdFactura')
+                ->join('proProducto', 'facFacturaDet.IdProducto', '=', 'proProducto.IdProducto')
+                ->join('admAtencion', 'facFactura.IdDestino', '=', 'admAtencion.IdAtencion')
+                ->leftJoin('admCama', 'admAtencion.IdCamaActual', '=', 'admCama.IdCama')
+                ->leftJoin('genUbicacion as genUbiAct', 'admAtencion.IdUbicacionActual', '=', 'genUbiAct.IdUbicacion')
+                ->leftJoin('genUbicacion as genUbiIng', 'admAtencion.IdUbicacionIng', '=', 'genUbiIng.IdUbicacion')
+                ->join('admCliente', 'admAtencion.IdCliente', '=', 'admCliente.IdCliente')
+                ->join('AdmAtencionContrato', 'admAtencion.IdAtencion', '=', 'AdmAtencionContrato.IdAtencion')
+                ->join('conContrato', 'AdmAtencionContrato.IdContrato', '=', 'conContrato.IdContrato')
+                ->join('conPlan', 'AdmAtencionContrato.IdPlan', '=', 'conPlan.IdPlan')
+                ->join('genTercero', 'conContrato.IdTercero', '=', 'genTercero.IdTercero')
+                ->join('genTipoDoc', 'admCliente.IdTipoDoc', '=', 'genTipoDoc.IdTipoDoc')
+                ->whereIn('admAtencion.IdAtencion', $atencionIds)
+                ->where('facFacturaDet.Cantidad', '>', 0)
+                ->where($oftalmoFilter);
+
+            $consulta2 = DB::connection('sqlsrv')
+                ->table('facMovimientoDet')
+                ->select($columns2)
+                ->join('facMovimiento', 'facMovimientoDet.IdMovimiento', '=', 'facMovimiento.IdMovimiento')
+                ->join('proProducto', 'facMovimientoDet.IdProducto', '=', 'proProducto.IdProducto')
+                ->join('admAtencion', 'facMovimiento.IdDestino', '=', 'admAtencion.IdAtencion')
+                ->leftJoin('admCama', 'admAtencion.IdCamaActual', '=', 'admCama.IdCama')
+                ->leftJoin('genUbicacion as genUbiAct', 'admAtencion.IdUbicacionActual', '=', 'genUbiAct.IdUbicacion')
+                ->leftJoin('genUbicacion as genUbiIng', 'admAtencion.IdUbicacionIng', '=', 'genUbiIng.IdUbicacion')
+                ->join('admCliente', 'admAtencion.IdCliente', '=', 'admCliente.IdCliente')
+                ->join('AdmAtencionContrato', 'admAtencion.IdAtencion', '=', 'AdmAtencionContrato.IdAtencion')
+                ->join('conContrato', 'AdmAtencionContrato.IdContrato', '=', 'conContrato.IdContrato')
+                ->join('conPlan', 'AdmAtencionContrato.IdPlan', '=', 'conPlan.IdPlan')
+                ->join('genTercero', 'conContrato.IdTercero', '=', 'genTercero.IdTercero')
+                ->join('genTipoDoc', 'admCliente.IdTipoDoc', '=', 'genTipoDoc.IdTipoDoc')
+                ->whereIn('admAtencion.IdAtencion', $atencionIds)
+                ->where('facMovimientoDet.Cantidad', '>', 0)
+                ->where($oftalmoFilter);
+
+            $rows = $consulta1->union($consulta2)->get();
 
             // Cruzar con atenciones ya registradas en LIDiag de forma defensiva
             $existentes = collect();
-            if (Schema::hasTable("oftalmologia_atenciones")) {
-                $atencionIds = array_map(static fn ($r) => (string) $r->IdAtencion, $rows);
+            if (Schema::hasTable('oftalmologia_atenciones')) {
+                $idsAtenciones = $rows->pluck('IdAtencion')->map(fn ($id) => (string) $id)->all();
                 $existentes = OftalmologiaAtencion::query()
-                    ->where("sede_id", $sedeId)
-                    ->whereIn("atencion_id", $atencionIds)
-                    ->get(["id", "atencion_id", "estado", "estado_sahi"])
-                    ->keyBy("atencion_id");
+                    ->where('sede_id', $sedeId)
+                    ->whereIn('atencion_id', $idsAtenciones)
+                    ->get(['id', 'atencion_id', 'estado', 'estado_sahi'])
+                    ->keyBy('atencion_id');
             }
 
-            $data = array_map(static function ($r) use ($existentes) {
+            $data = $rows->map(static function ($r) use ($existentes) {
                 $local = $existentes->get((string) $r->IdAtencion);
 
+                $nombreCompleto = trim(implode(' ', array_filter([
+                    $r->PrimerNombre,
+                    $r->SegundoNombre,
+                    $r->PrimerApellido,
+                    $r->SegundoApellido,
+                ])));
+
                 return [
+                    'IdAtencion' => (string) $r->IdAtencion,
                     'atencion_id' => (string) $r->IdAtencion,
+                    'FecIngreso' => $r->FecIngreso ? Carbon::parse($r->FecIngreso)->format('Y-m-d H:i:s') : null,
                     'fecha_ingreso' => $r->FecIngreso ? Carbon::parse($r->FecIngreso)->format('Y-m-d H:i:s') : null,
-                    'cliente_id' => $r->IdCliente,
-                    'paciente_nombre' => trim("{$r->NomCliente} {$r->ApeCliente}"),
-                    'documento' => (string) $r->NumDocumento,
+                    'PrimerNombre' => (string) ($r->PrimerNombre ?? ''),
+                    'SegundoNombre' => (string) ($r->SegundoNombre ?? ''),
+                    'PrimerApellido' => (string) ($r->PrimerApellido ?? ''),
+                    'SegundoApellido' => (string) ($r->SegundoApellido ?? ''),
+                    'paciente_nombre' => $nombreCompleto,
+                    'NumDocumento' => (string) $r->NumDocumento,
+                    'num_docu' => (string) $r->NumDocumento,
+                    'IdTipoDoc' => $r->IdTipoDoc,
                     'tipo_doc_id' => $r->IdTipoDoc,
+                    'CodTipoDoc' => (string) ($r->CodTipoDoc ?? ''),
+                    'NomTipoDoc' => (string) ($r->NomTipoDoc ?? ''),
+                    'IdSexo' => $r->IdSexo,
                     'sexo' => ((int) $r->IdSexo === 1) ? 'M' : (((int) $r->IdSexo === 2) ? 'F' : 'O'),
+                    'FecNacimiento' => $r->FecNacimiento ? Carbon::parse($r->FecNacimiento)->format('Y-m-d') : null,
                     'fecha_nacimiento' => $r->FecNacimiento ? Carbon::parse($r->FecNacimiento)->format('Y-m-d') : null,
+                    'TelCasa' => (string) ($r->TelCasa ?? ''),
+                    'TelCelular' => (string) ($r->TelCasa ?? ''),
                     'telefono' => (string) ($r->TelCasa ?? ''),
+                    'DirCasa' => (string) ($r->DirCasa ?? ''),
                     'direccion' => (string) ($r->DirCasa ?? ''),
-                    'consulta_sahi_id' => $r->IdConsulta,
-                    'producto_nombre' => (string) $r->NomProducto,
-                    'cups' => (string) $r->CodProducto,
-                    'motivo_consulta' => (string) ($r->DesMotivoCon ?? ''),
-                    'enfermedad_actual' => (string) ($r->DesEnfermedadActual ?? ''),
+                    'IdProducto' => $r->IdProducto,
+                    'NomProducto' => (string) $r->NomProducto,
+                    'procedimiento' => (string) $r->NomProducto,
+                    'CodProducto' => (string) $r->CodProducto,
+                    'CodLegal' => (string) $r->CodLegal,
+                    'cod_cups' => (string) $r->CodProducto,
+                    'ValProduc' => $r->ValProduc,
+                    'Cantidad' => $r->Cantidad,
+                    'CodCon' => (string) ($r->CodCon ?? ''),
+                    'DesContrato' => (string) ($r->DesContrato ?? ''),
+                    'contrato' => (string) ($r->DesContrato ?? ''),
+                    'DesPlan' => (string) ($r->DesPlan ?? ''),
+                    'plan' => (string) ($r->DesPlan ?? ''),
+                    'NomTercero' => (string) ($r->NomTercero ?? ''),
+                    'eps' => (string) ($r->NomTercero ?? ''),
+                    'NomUbicacion' => (string) ($r->NomUbicacion ?? 'Consulta Externa'),
+                    'ubicacion' => (string) ($r->NomUbicacion ?? 'Consulta Externa'),
+                    'Cama' => (string) ($r->Cama ?? ''),
+                    'cama' => (string) ($r->Cama ?? ''),
                     'ya_admitido' => $local !== null,
                     'atencion_local_id' => $local?->id,
                     'estado_local' => $local?->estado,
                     'estado_sahi' => $local?->estado_sahi,
                 ];
-            }, $rows);
+            })->all();
 
             return $this->success($data, 'Atenciones de oftalmología consultadas correctamente desde SAHI.');
         } catch (\Throwable $e) {
@@ -192,6 +298,129 @@ class SAHIOftalmologiaService extends BaseService
                 'error' => $e->getMessage(),
             ]);
         }
+    }
+
+    /**
+     * Resuelve una lista de IDs de atención en SAHI según criterios de búsqueda para oftalmología.
+     *
+     * @param  int|string|null  $criterio  Número de atención, cédula o nombres de paciente.
+     * @param  string|null  $fechaIni  Fecha de inicio (YYYY-MM-DD).
+     * @param  string|null  $fechaFin  Fecha de fin (YYYY-MM-DD).
+     * @return array<int>
+     */
+    private function resolverAtencionesIds(int|string|null $criterio = null, ?string $fechaIni = null, ?string $fechaFin = null): array
+    {
+        $criterio = trim((string) $criterio);
+
+        if (empty($criterio) && empty($fechaIni) && empty($fechaFin)) {
+            return [];
+        }
+
+        $atencionIds = [];
+
+        if (! empty($criterio)) {
+            if (is_numeric($criterio)) {
+                $directo = DB::connection('sqlsrv')
+                    ->table('admAtencion')
+                    ->where('IdAtencion', (int) $criterio)
+                    ->value('IdAtencion');
+
+                if ($directo) {
+                    $atencionIds[] = (int) $directo;
+                }
+
+                $queryDoc = DB::connection('sqlsrv')
+                    ->table('admAtencion')
+                    ->join('admCliente', 'admCliente.IdCliente', '=', 'admAtencion.IdCliente')
+                    ->where('admCliente.NumDocumento', $criterio);
+
+                if ($fechaIni) {
+                    $queryDoc->whereRaw('admAtencion.FecIngreso >= CONVERT(datetime, ?, 120)', ["{$fechaIni} 00:00:00"]);
+                }
+                if ($fechaFin) {
+                    $queryDoc->whereRaw('admAtencion.FecIngreso <= CONVERT(datetime, ?, 120)', ["{$fechaFin} 23:59:59"]);
+                }
+
+                $porDoc = $queryDoc->orderByDesc('admAtencion.IdAtencion')
+                    ->limit(20)
+                    ->pluck('admAtencion.IdAtencion')
+                    ->all();
+
+                $atencionIds = array_values(array_unique(array_merge($atencionIds, $porDoc)));
+            } else {
+                $tokens = array_filter(explode(' ', $criterio));
+                $queryNombre = DB::connection('sqlsrv')
+                    ->table('admAtencion')
+                    ->join('admCliente', 'admCliente.IdCliente', '=', 'admAtencion.IdCliente')
+                    ->select('admAtencion.IdAtencion');
+
+                foreach ($tokens as $token) {
+                    $queryNombre->where(function ($sub) use ($token) {
+                        $sub->where('admCliente.PrimerNombre', 'LIKE', "%{$token}%")
+                            ->orWhere('admCliente.SegundoNombre', 'LIKE', "%{$token}%")
+                            ->orWhere('admCliente.PrimerApellido', 'LIKE', "%{$token}%")
+                            ->orWhere('admCliente.SegundoApellido', 'LIKE', "%{$token}%");
+                    });
+                }
+
+                if ($fechaIni) {
+                    $queryNombre->whereRaw('admAtencion.FecIngreso >= CONVERT(datetime, ?, 120)', ["{$fechaIni} 00:00:00"]);
+                }
+                if ($fechaFin) {
+                    $queryNombre->whereRaw('admAtencion.FecIngreso <= CONVERT(datetime, ?, 120)', ["{$fechaFin} 23:59:59"]);
+                }
+
+                $atencionIds = $queryNombre->orderByDesc('admAtencion.IdAtencion')
+                    ->limit(20)
+                    ->pluck('admAtencion.IdAtencion')
+                    ->all();
+            }
+        } else {
+            // Cuando la búsqueda es puramente por rango de fechas (sin documento/nombre),
+            // filtramos las atenciones buscando directamente en movimientos y facturas que contengan
+            // productos de oftalmología.
+            $oftalmoFilter = static function ($q) {
+                $q->where(function ($sub) {
+                    $sub->whereIn('proProducto.CodLegal', ['890476', '890202', '890302'])
+                        ->orWhereIn('proProducto.CodProducto', ['890476', '890202', '890302'])
+                        ->orWhere('proProducto.NomProducto', 'LIKE', '%OFTALMO%');
+                });
+            };
+
+            $queryMov = DB::connection('sqlsrv')
+                ->table('facMovimientoDet')
+                ->join('facMovimiento', 'facMovimientoDet.IdMovimiento', '=', 'facMovimiento.IdMovimiento')
+                ->join('proProducto', 'facMovimientoDet.IdProducto', '=', 'proProducto.IdProducto')
+                ->join('admAtencion', 'facMovimiento.IdDestino', '=', 'admAtencion.IdAtencion')
+                ->where('facMovimientoDet.Cantidad', '>', 0)
+                ->where($oftalmoFilter);
+
+            $queryFac = DB::connection('sqlsrv')
+                ->table('facFacturaDet')
+                ->join('facFactura', 'facFacturaDet.IdFactura', '=', 'facFactura.IdFactura')
+                ->join('proProducto', 'facFacturaDet.IdProducto', '=', 'proProducto.IdProducto')
+                ->join('admAtencion', 'facFactura.IdDestino', '=', 'admAtencion.IdAtencion')
+                ->where('facFacturaDet.Cantidad', '>', 0)
+                ->where($oftalmoFilter);
+
+            if ($fechaIni) {
+                $queryMov->whereRaw('admAtencion.FecIngreso >= CONVERT(datetime, ?, 120)', ["{$fechaIni} 00:00:00"]);
+                $queryFac->whereRaw('admAtencion.FecIngreso >= CONVERT(datetime, ?, 120)', ["{$fechaIni} 00:00:00"]);
+            }
+            if ($fechaFin) {
+                $queryMov->whereRaw('admAtencion.FecIngreso <= CONVERT(datetime, ?, 120)', ["{$fechaFin} 23:59:59"]);
+                $queryFac->whereRaw('admAtencion.FecIngreso <= CONVERT(datetime, ?, 120)', ["{$fechaFin} 23:59:59"]);
+            }
+
+            $idsMov = $queryMov->select('admAtencion.IdAtencion')->distinct()->pluck('admAtencion.IdAtencion')->all();
+            $idsFac = $queryFac->select('admAtencion.IdAtencion')->distinct()->pluck('admAtencion.IdAtencion')->all();
+
+            $atencionIds = array_values(array_unique(array_merge($idsMov, $idsFac)));
+            rsort($atencionIds);
+            $atencionIds = array_slice($atencionIds, 0, 50);
+        }
+
+        return $atencionIds;
     }
 
     /**
