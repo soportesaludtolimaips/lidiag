@@ -100,11 +100,26 @@ La aplicación está compuesta por los siguientes módulos especializados:
 
 ### 4. Ecografías
 
-**Propósito:** Gestión especializada para estudios ecográficos.
+**Propósito:** Gestión especializada para estudios ecográficos y ultrasonido diagnóstico.
 
--   Módulo dedicado exclusivamente al flujo de trabajo de ecografías.
--   Permite el registro, lectura y reporte de hallazgos ecográficos con plantillas específicas.
--   Incluye flujo de **consentimientos informados** (plantillas, generación de PDF/ZIP y firma por token).
+-   **Admisión Asistencial Flexible:**
+    -   **Vía SAHI (HIS):** Búsqueda sargable de atenciones por número de atención, documento, nombre o rango de fechas, optimizada mediante prefiltrado por grupos asistenciales autorizados (`[44, 195, 156, 190, 204, 191]`).
+    -   **Admisión Directa (Sin Atención SAHI):** Admisión ágil de pacientes particulares y de cortesía con autocompletado jerárquico de paciente (búsqueda local en LIDiag con fallback a SAHI), asignación de tipo de recaudo y configuración de tarifas.
+-   **Integración Modality Worklist (MWL DICOM):**
+    -   Envío directo de la orden programada hacia los ecógrafos de la sede vía Worklist DICOM, con generación automática de *Accession Number* único y selección de estación AET.
+-   **Lectura e Interpretación Radiológica Ergonomizada:**
+    -   **Autoguardado Periódico:** Guardado automático de borrador en segundo plano cada 60 segundos (`GUARDAR_BORRADOR`), previniendo pérdida de informes extensos por cierres accidentales o fallos de red.
+    -   **Plantillas Dinámicas:** Inserción de textos estructurados y opiniones según el tipo de estudio y el médico especialista.
+    -   **Dictado por Voz Asistido (Whisper):** Integración con micrófono y motor Whisper, con mapeo de términos y reemplazos médicos en tiempo real.
+    -   **Modo Oscuro / Zen:** Visualización de alto contraste adaptada para salas oscuras de ecografía.
+-   **Retorno Bidireccional hacia SAHI:**
+    -   Sincronización automática de lecturas finalizadas hacia el esquema de historia clínica en SAHI (Esquemas 149 y 150) con sondeo reactivo (*polling* de estado).
+-   **Gestión de Consentimientos Informados:**
+    -   Asociación automática de plantillas vigentes según el procedimiento CUPS.
+    -   Firma digital en sala (paciente / acompañante) o mediante enlace temporal tokenizado (expiración a 10 min).
+    -   Firma del médico radiólogo y generación de PDF/ZIP con auditoría forense.
+-   **Tablas Densas y Jerarquía Visual:**
+    -   Diseño compacto con columnas agrupadas (Aseguramiento + Contrato + Plan, Ubicación + Cama), badges semánticos de recaudo (*Particular*, *Cortesía*, *Por Atención*) y controles de exportación (Copy, CSV, Excel, PDF, Print).
 
 ### 5. Interface (Integración SAHI)
 
