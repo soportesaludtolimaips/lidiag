@@ -37,6 +37,95 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-20 — Auditoría y Perfeccionamiento Módulo por Módulo de `docs/READMES/`:**
+  - **Diagnóstico y Contexto:**
+    * Se ejecutó una revisión sistemática e iterativa de cada uno de los 15 módulos del sistema LIDiag para garantizar una cobertura exhaustiva basada en código real (rutas, controladores, servicios, form requests, modelos, migraciones y componentes Vue).
+  - **Resultados de la Auditoría e Iteración Módulo por Módulo:**
+    * Se revisaron y actualizaron en profundidad los 15 manuales técnicos en `docs/READMES/`:
+      1. [`README-Estudios.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Estudios.md): Inclusión de utilidades de medios físicos (`QuemadorCdComponent`, `QuemarMultiplesComponent`, `DescargarZipComponent`), detalle de locks concurrentes y rutas API completas.
+      2. [`README-Ecografias.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Ecografias.md): Modal de firma táctil (`ecografiaFirmaConsentimientoComponent`), throttling de endpoints de lectura y consentimientos, y generación de ZIPs.
+      3. [`README-Oftalmologia.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Oftalmologia.md): Rutas dedicadas `/api/oftalmologia/*`, componentes Vue de admisión y consulta de 6 pestañas, autoguardado a 60s y reglas de bloqueo tras cierre.
+      4. [`README-Agenda-Citas.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Agenda-Citas.md): Flujo de conversación del bot (`verConversacion`), notificaciones no leídas, transiciones completas de estados y cron jobs.
+      5. [`README-Pacientes-Worklist.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Pacientes-Worklist.md): Endpoints de `accession-sugerido`, estaciones disponibles, envío, cancelación y reconciliación de listas de trabajo DICOM.
+      6. [`README-PACS-Visores.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-PACS-Visores.md): Implementación completa de endpoints DICOMweb (QIDO-RS, WADO-RS, WADO-URI) y controlador grabador `DicomBurnerController.php` (`api_burn.php`).
+      7. [`README-Interoperabilidad-TeleRadiologia.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Interoperabilidad-TeleRadiologia.md): Middleware criptográfico `tele.hmac` con tolerancia a 5 min, endpoints de órdenes y atenciones SAHI.
+      8. [`README-Dosimetria.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Dosimetria.md): Endpoints canónicos y alias de retrocompatibilidad (`/dosis/*` y `/dosimetria/*`), heartbeat de agentes de consolas y Dashboard de 114 KB.
+      9. [`README-Contratacion.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Contratacion.md): Importación/exportación de plantillas de Entidad y Médicos Lectores en Excel con vista previa no destructiva (`previewImportar*`) y diff.
+      10. [`README-Liquidacion-Productividad.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Liquidacion-Productividad.md): Endpoints de cálculo en vivo y lectura de corte de mes congelado, cruce financiero SAHI y exportación en Excel.
+      11. [`README-Reportes.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Reportes.md): Dashboard analítico de 197 KB (`reporteProduccionComponent.vue`), conciliación multisede de PACS y 10 clases exportadoras especializadas.
+      12. [`README-Helpdesk.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Helpdesk.md): Reasignación de tickets a técnicos disponibles (`/helpdesk-usuarios-asignables`), cambio de estado, subida de adjuntos multipart y reportes.
+      13. [`README-Seguridad-Auditoria.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Seguridad-Auditoria.md): Ciclo de activación por email con URLs firmadas, reseteo de claves, monitoreo y ejecución de backups DB, y tokens para agentes edge.
+      14. [`README-Configuracion.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Configuracion.md): Catálogo exhaustivo de 17 sub-módulos/maestros cubriendo todos los controladores y componentes Vue.
+      15. [`README-Telegram-Notificaciones.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Telegram-Notificaciones.md): Doble modalidad de escucha (Long-Polling desatendido vía comando daemon y Webhook HTTPS), y resumen diario ejecutivo.
+  - **Sincronización:** Confirmación de que el archivo raíz [`README.md`](file:///c:/laragon/www/lidiag/README.md) se encuentra 100% alineado con el catálogo de manuales técnicos generados.
+
+- [x] **2026-11-20 — Expansión Exhaustiva del Manual de Configuración Global (`docs/READMES/README-Configuracion.md`):**
+  - **Diagnóstico y Contexto:**
+    * El archivo `README-Configuracion.md` omitía sub-módulos y catálogos clave del módulo de Configuración (como la vinculación `servicio_producto`, tipos de recaudo, plantillas WYSIWYG de consentimientos con versionado y preview PDF, el desglose de pestañas del bot de WhatsApp, motivos de rechazo de citas, inventario de módulos y parámetros de Helpdesk).
+  - **Solución Implementada:**
+    * Se auditaron todos los 18 controladores en `app/Http/Controllers/Configuracion/`, los 27 Form Requests, las rutas en `routes/api_configuracion.php` y los 20 componentes Vue en `resources/js/components/modulos/configuracion/`.
+    * Se documentaron exhaustivamente los 17 sub-módulos/catálogos con su tabla de base de datos, propósito, campos clave, endpoints RESTful y componentes Vue correspondientes:
+      1. *Sedes y Servidores PACS Multisede* (`config_sedes` / `configSedeComponent.vue`)
+      2. *Dispositivos de Flujo y Consolas DICOM MWL* (`config_worklist_dispositivos` / `configDispositivosComponent.vue`)
+      3. *Catálogo de Procedimientos CUPS* (`config_productos` / `configProductoComponent.vue`)
+      4. *Diagnósticos Médicos CIE-10* (`config_diagnosticos` / `configDiagnosticoComponent.vue`)
+      5. *Administradoras de Salud / EPS / ARL* (`config_admin_salud` / `configAdminSaludComponent.vue`)
+      6. *Servicios Clínicos y Vinculación CUPS* (`config_servicios` y `servicio_producto` / `configServicioCitaComponent.vue`)
+      7. *Tipos de Recaudo* (`config_tipos_recaudo`: Particular, Cortesía, SAHI)
+      8. *Tipos de Documento de Identificación* (`config_tipos_documentos` / `configTipoDocumentoComponent.vue`)
+      9. *Prioridades Asistenciales* (`config_prioridades` / `configPrioridadComponent.vue`)
+      10. *Plantillas Radiológicas y Tipos* (`config_plantillas` y `config_plantillas_tipos` / `configPlantilla.vue`)
+      11. *Plantillas Clínicas de Oftalmología por Sección* (`config_plantillas_oftalmologia` / `configPlantillasOftalmologiaComponent.vue`)
+      12. *Plantillas de Consentimientos Informados Multimodular WYSIWYG* (`consentimiento_plantillas` con versionado, preview PDF y activación vigente / `plantillasConsentimientoComponent.vue`)
+      13. *Consentimiento Informado General* (`config_consentimiento_informado` / `configConsentimientoInformadoComponent.vue`)
+      14. *Bot Asistencial de WhatsApp* (desglosado en Números por Sede `configWhatsappNumeros.vue`, Saludos/Bot `configWhatsappSaludos.vue` y Recomendaciones por CUPS `configWhatsappProductos.vue`)
+      15. *Motivos de Rechazo de Citas* (`config_cita_rechazo_motivos` / `configCitaRechazoMotivoComponent.vue`)
+      16. *Parámetros de Mesa de Ayuda Helpdesk* (`helpdesk_categorias`, `helpdesk_estados`, `helpdesk_prioridades`)
+      17. *Inventario de Módulos Activos del Sistema* (`config_modulos` / `ConfigModulosController`)
+  - **Verificaciones:**
+    * Verificación del archivo [`README-Configuracion.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Configuracion.md) con 22.3 KB de documentación detallada y precisa basada en código real.
+
+- [x] **2026-11-20 — Estandarización Rigurosa de la Documentación Modular (`docs/READMES/` y `README.md`):**
+  - **Diagnóstico y Contexto:**
+    * Se solicitó homogeneizar y elevar la calidad de los 15 manuales técnicos en `docs/READMES/` aplicando una plantilla arquitectónica uniforme de 7 secciones obligatorias.
+  - **Solución Implementada:**
+    * **Estructura Homologada en los 15 Módulos:**
+      1. *Propósito y Alcance*
+      2. *Estado del Desarrollo* (`Operativo / Estable`, `Parcial`, `En refactorización`) con lo completado frente a lo pendiente.
+      3. *Funcionalidades*
+      4. *Flujos de Trabajo* (con diagramas Mermaid unificados)
+      5. *Componentes Backend y Frontend* (Controllers, Services, Form Requests, Models, Migrations, Routes y Componentes Vue 3)
+      6. *Interoperabilidad y Reglas de Negocio* (SAHI por sede, PACS multisede, DICOM, Whisper, Spatie)
+      7. *Pendientes y Notas Técnicas* (limitaciones reales detectadas en código)
+    * **Sincronización:** Confirmación y verificación cruzada de que todos los archivos enlazados en `README.md` reflejan exactamente la estructura y rutas del código fuente real.
+  - **Verificaciones:**
+    * Inspección de 15 archivos en `docs/READMES/` con 100% de cumplimiento estructural y coherencia con el backend Laravel y frontend Vue 3.
+  - **Diagnóstico y Contexto:**
+    * El archivo `README.md` monolítico resultaba extenso y difícil de consultar para desarrolladores y agentes de IA, mezclando detalles de bajo nivel de 15 áreas clínicas y funcionales distintas.
+  - **Solución Implementada:**
+    * **1. Creación de 15 Guías Técnicas Especializadas en `docs/READMES/`:**
+      1. [`README-Estudios.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Estudios.md): Radiología general y alta complejidad (RX, TAC, RM, MG), transcripción con Whisper STT (:8001), FFmpeg MP3 64k, candados concurrentes (`EstudioLockService`), DomPDF con QR y sincronización SAHI.
+      2. [`README-Ecografias.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Ecografias.md): Ultrasonido, consentimientos informados con firma táctil digitalizada por token público, autoguardado a 60s (`GUARDAR_BORRADOR`) y consultas sargables en SAHI.
+      3. [`README-Oftalmologia.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Oftalmologia.md): Flujo de dos etapas (admisión y consulta), examen ocular binocular OD/OI (Agudeza Visual, PIO, Biomicroscopía), CIE-10, órdenes CUPS/medicamentos, incapacidades y plantillas clínicas.
+      4. [`README-Agenda-Citas.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Agenda-Citas.md): Disponibilidad médica y de salas, solicitudes omnicanal WhatsApp Bot/Portal, tablero Kanban, recomendaciones por examen y cron jobs de recordatorio (24h / 2h).
+      5. [`README-Pacientes-Worklist.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Pacientes-Worklist.md): Admisión centralizada y publicación en Modality Worklist (DICOM C-FIND PS 3.4) para alimentar consolas radiológicas sin digitación manual.
+      6. [`README-PACS-Visores.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-PACS-Visores.md): Conexión multisede dinámica a `dcm4chee` (timeout 5s defensivo), visor web Oviyam y estación diagnóstica OHIF Viewer (MPR/3D).
+      7. [`README-Interoperabilidad-TeleRadiologia.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Interoperabilidad-TeleRadiologia.md): Pasarela con SAHI SQL Server (`ESP_PRI`) y red de Tele-Radiología autenticada mediante firma criptográfica HMAC (`tele.hmac`).
+      8. [`README-Dosimetria.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Dosimetria.md): Extracción edge de telemetría de radiación (`CTDIvol`, `DLP`, `DGM`, `DAP`) para vigilancia de NRD bajo la Resolución 482 de 2018.
+      9. [`README-Contratacion.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Contratacion.md): Gestión de convenios y planes con liquidación bajo manuales SOAT, ISS 2001 o tarifas particulares personalizadas.
+      10. [`README-Liquidacion-Productividad.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Liquidacion-Productividad.md): Liquidación de honorarios médicos, cruce financiero con facturación hospitalaria y analítica de productividad/TAT.
+      11. [`README-Reportes.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Reportes.md): Business Intelligence y exportación multi-hoja en Excel de producción clínica, auditoría de imágenes PACS, ausentismo y almacenamiento.
+      12. [`README-Helpdesk.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Helpdesk.md): Mesa de ayuda para incidentes en equipos radiológicos, redes y estaciones de trabajo con adjuntos y niveles de prioridad.
+      13. [`README-Seguridad-Auditoria.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Seguridad-Auditoria.md): RBAC con Spatie, activación de cuentas por correo con URLs firmadas, bitácora forense inmutable (`audit_logs`) y monitoreo de backups.
+      14. [`README-Configuracion.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Configuracion.md): Catálogos maestros de sedes, CUPS (`config_productos`), CIE-10 (`config_diagnosticos`), plantillas clínicas y WhatsApp bot.
+      15. [`README-Telegram-Notificaciones.md`](file:///c:/laragon/www/lidiag/docs/READMES/README-Telegram-Notificaciones.md): Bot institucional para alertas críticas, polling desatendido, webhooks y resumen diario ejecutivo (Daily Digest).
+    * **2. Reestructuración del `README.md` Raíz:**
+      - Presentación ejecutiva del sistema, guía rápida de despliegue en Laragon (`https://lidiag.test`), stack tecnológico consolidado y diagrama global de arquitectura en Mermaid.
+      - Catálogo centralizado con enlaces directos en Markdown a los 15 manuales modulares de `docs/READMES/`.
+      - Inventario de comandos Artisan y estándares de desarrollo del proyecto.
+  - **Verificaciones:**
+    * Directorio `docs/READMES/` verificado con 15 archivos generados y validados contra código fuente real.
+    * Enlaces y referencias probados contra controladores, rutas y componentes frontend del repositorio.
 - [x] **2026-11-20 — Actualización Exhaustiva de Documentación del Módulo de Bot Asistencial de WhatsApp (`README.md`):**
   - **Solicitud del Usuario:** *"actualiza el readme con la informacion del modulo del bot de whatsapp"*.
   - **Ejecución y Mejoras en `README.md`:**
