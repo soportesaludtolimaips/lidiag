@@ -67,8 +67,9 @@ graph TD
     LIDiag -->|"Publicación MWL / Consulta Imágenes"| PACS["Servidor PACS - Dcm4chee"]
     PACS -->|"Visualización"| Oviyam["Visor Oviyam"]
     PACS <-->|"DICOM C-FIND (MWL) / C-STORE"| Consolas["Consolas Rayos X (Allengers, Agfa, Carestream, etc.)"]
+    AgentesEdge["Agentes Edge Dosimetría (Python 3 + pydicom)<br/>(Espinal, Chaparral, Ibagué, Honda)"] -->|"Lotes HTTPS Sanctum + HMAC SHA-256<br/>(/api/dosimetria/registros)"| LIDiag
     LIDiag -->|"Notificaciones"| Twilio["WhatsApp/SMS"]
-    LIDiag -->|"Reportes"| PDF_Excel["Archivos PDF/Excel"]
+    LIDiag -->|"Reportes y Matriz NRD"| PDF_Excel["Archivos PDF/Excel Multi-Hoja"]
 ```
 
 ---
@@ -161,7 +162,8 @@ La aplicación está compuesta por los siguientes módulos especializados:
 
 -   Administración de parámetros generales del sistema, sedes hospitalarias, aseguradoras (EPS), y catálogos de servicios.
 -   Parametrización de HelpDesk (categorías, prioridades y estados).
--   Configuración de plantillas de lectura, tipos de documentos, consentimientos informados y WhatsApp.
+-   Configuración de plantillas de lectura, tipos de documentos y consentimientos informados.
+-   **WhatsApp Bot (`/config-whatsapp-listar`):** Parametrización centralizada por sede de números telefónicos oficiales, mensajes de bienvenida y recomendaciones clínicas por producto/modalidad *(ver sección 24)*.
 
 ### 10. Seguridad y Auditoría
 
@@ -332,33 +334,88 @@ Módulo administrativo para la emisión, rotación segura y monitorización de c
 
 ### 14. Dosimetría y Control de Radiación (Resolución 482 de 2018 / ISO/IEC 27001)
 
-**Propósito:** Monitoreo automatizado Edge-to-Cloud de dosis de radiación ionizante, evaluación de Niveles de Referencia para Diagnóstico (NRD) y detección predictiva de derivas técnicas de tubos emisores por sede hospitalaria.
+**Propósito:** Monitoreo automatizado Edge-to-Cloud de dosis de radiación ionizante, evaluación continua de Niveles de Referencia para Diagnóstico (NRD), matriz de riesgo corporal diana en 7 regiones anatómicas, detección predictiva de derivas técnicas de tubos emisores y generación de reportes regulatorios institucionales multi-hoja para las sedes de la red hospitalaria.
 
--   **Modelo Edge-to-Cloud:** Agente desatendido en Python 3 (`agente_dosimetria.py`) que se ejecuta localmente en cada sede, consulta `pacsdb` de Dcm4chee y extrae los metadatos dosimétricos directamente desde las cabeceras DICOM sin saturar la red ni exponer puertos entrantes.
--   **Seguridad de Grado Clínico (ISO 27001 / Ley 1581):** Anonimización irreversible del `PatientID` con hash HMAC-SHA256 salado (`dosimetria_salt` único por hospital) antes de transmitir; ninguna Información de Salud Protegida (PHI) viaja por la red ni se almacena en el servidor central, permitiendo calcular la dosis efectiva acumulada por paciente anónimo.
--   **Métricas Multimodales:**
-    -   **Tomografía Computarizada (CT):** Índice de Dosis en TC por Volumen (`CTDIvol` en mGy) y Producto Dosis-Longitud (`DLP` en mGy·cm).
-    -   **Mamografía Digital (MG):** Dosis Glandular Media (`DGM` en mGy) y Entrada en Superficie (`ESD`).
-    -   **Radiografía Digital / Computarizada (DX / CR / XA):** Producto Dosis-Área (`DAP` / `KAP` en Gy·cm² o dGy·cm²).
-    -   **Dosis Efectiva Media ($E$ en mSv):** Cálculo automatizado basado en factores de ponderación tisular según la publicación ICRP 103 ($E = \text{DLP} \times k$).
--   **Resiliencia y Tolerancia a Fallos:** Cola persistente transaccional SQLite local (`logs/cola_dosimetria.db`), transmisión HTTPS autenticada mediante Bearer Token Sanctum (`/api/dosimetria/registros`), reintentos con backoff exponencial y micro-lotes de 50 registros para evitar errores HTTP 429.
--   **Detección Predictiva de Deriva Técnica (*Machine Drift Detection*):**
-    -   Algoritmo heurístico que compara ventanas temporales históricas dentro del período de consulta para alertar oportunamente sobre desgastes físicos del ánodo o descalibraciones del emisor (+20% de incremento).
-    -   **Calibración y Filtro de Suelo de Ruido (*Noise Floor*):** Descarte automático de topogramas, scouts y disparos residuales insignificantes (`CTDIvol < 1.0 mGy`, `DLP < 20 mGy·cm`, etc.) y exigencia de umbrales absolutos mínimos ($\Delta \ge 1.5\text{ mGy}$ en CT, $\Delta \ge 25\text{ mGy}\cdot\text{cm}$ en DLP) y al menos 3 disparos por ventana temporal, erradicando falsos positivos por sesgo de base pequeña.
--   **Dashboard Analítico Institucional (Vue 3 + Chart.js con Estándar AdminWrap):**
-    -   **Header y Acciones Canónicas:** Ruta de navegación con `row page-titles`, botón de exportación a Excel y modal interactivo del Catálogo NRD regulatorio.
-    -   **Info-Boxes Superiores (Estilo `index.html`):** Tarjetas con indicadores `.display-6`, íconos temáticos (`icon-Target-Market`, `icon-Desktop-Monitor`, `icon-Contrast`, `icon-Pulse`), tooltips explicativos y micro-barras de progreso de 3px para Estudios Monitoreados, Equipos Emisores, Cumplimiento NRD y Dosis Efectiva Media ($E$).
-    -   **Monitor de Latidos Edge (*Dead Man's Switch*):** Panel de telemetría en vivo con badges `.label.label-rounded` y tooltips clínicos para supervisar la conectividad continua de los agentes en cada hospital conforme a ISO/IEC 27001 y Res. 3100.
-    -   **Alertas Semánticas de Radioprotección:** Paneles nativos `.alert.alert-danger` y `.alert.alert-warning` ante superaciones de NRD o advertencias de deriva técnica con delta absoluto y porcentual.
-    -   **Matriz de Riesgo y Mapa de Calor Anatómico (7 Regiones Diana):** Tabla interactiva y visual que cruza sedes contra Cráneo, Tórax, Abdomen, Pelvis, Columna, Extremidades y Mama, con cálculo ponderado del `% del NRD` y semáforo ALARA (🟢 Seguro $<80\%$, 🟡 Precaución $80\%-99\%$, 🔴 Superación Crítica $\ge 100\%$, ⚪ Sin Datos).
-    -   **Gráficos Clínicos Comparativos con Tooltips Normativos:** Gráfico de barras de Dosis vs NRD por sede, dona de Cumplimiento Normativo (Seguro, Alerta, Crítico), gráfico de líneas de Tendencia Mensual y gráfico de Radar Anatómico ICRP 103 contrastando los órganos diana contra la franja de corte del 100% NRD.
-    -   **Ranking de Equipos Emisores (Estilo "Projects of the Month"):** Tabla estructurada con `.table.vm.no-th-brd.pro-of-month`, avatares circulares `.round`, estado clínico y dosis media por emisor.
-    -   **Timeline de Auditoría Clínica (Estilo "Today's Schedule"):** Línea de tiempo interactiva con `.steamline` y `.sl-item` para trazabilidad de informes RDSR y eventos.
-    -   **Tabla Maestra de Mediciones:** Historial reciente de muestreo con identificador anonimizado HMAC, parámetros técnicos ($kV_p$, $mA$, $ms$) y estado de verificación.
-    -   **Reporte Excel Institucional Multi-Hoja:** Descarga de libros Excel (`.xlsx`) estructurados en 3 pestañas: *1. Estadísticas y NRD* (KPIs y gráficos nativos de barras/torta), *2. Mapa de Calor - Riesgo NRD* (matriz con formato condicional semántico) y *3. Registros Detallados* con cálculo del `% del NRD` y evaluación individual.
-    -   **Arquitectura de Auto-Recuperación (Self-Healing):** `DosimetriaService::asegurarTelemetriaSedes()` detecta automáticamente sedes con estudios no sincronizados y dispara en caliente los comandos de sincronización garantizando 100% de cobertura histórica.
--   **UI y Rutas:** Pantalla web en `/dosimetria/dashboard`, API en `/api/dosimetria/*` (permisos `dosimetria.*`).
--   **Documentación Especializada:** Manuales dedicados en `storage/app_lidiag/agente_backups_dcm/README_DOSIMETRIA.md` e informe para proveedores en `storage/app_lidiag/agente_backups_dcm/INFORME_TECNICO_DOSIMETRIA_PROVEEDORES.md`.
+#### 1. Marco Regulatorio y Estándares Internacionales
+- **Resolución 482 de 2018 (Ministerio de Salud y Protección Social de Colombia):** Reglamentación del uso de equipos generadores de radiación ionizante, control de calidad, programa de tecnovigilancia y adopción obligatoria de Niveles de Referencia para Diagnóstico (NRD).
+- **Publicación ICRP 103 (Comisión Internacional de Protección Radiológica):** Cálculo automatizado de Dosis Efectiva Media ($E$ en mSv) mediante factores de ponderación tisular por región anatómica ($E = \text{DLP} \times k$).
+- **Publicación ICRP 135 & IAEA GSR Part 3:** Criterios de optimización dosimétrica y establecimiento de niveles de referencia clínicos locales e institucionales.
+- **RadLex Playbook & Taxonomía Anatómica:** Clasificación semántica determinista de las descripciones DICOM en 7 órganos o regiones diana (*Cráneo, Tórax, Abdomen, Pelvis, Columna, Extremidades, Mama*).
+
+#### 2. Topología Descentralizada Edge-to-Cloud y Sedes Conectadas
+El sistema supervisa la telemetría en tiempo real de toda la red asistencial:
+- **Espinal (Hospital San Rafael):** Tomografía Multicorte (CT), Rayos X Digitales (DX) y Mamografía Digital (MG).
+- **Chaparral (Hospital San Juan Bautista):** Tomografía Multicorte (CT), Rayos X Digitales (DX), Digitalizador CR y Mamografía (MG).
+- **Ibagué (Hospital Federico Lleras Acosta):** Tomografía Multicorte (CT) y Rayos X Digitales (DX).
+- **Honda (Hospital San Juan de Dios de Honda):** Cobertura integral con Tomografía (CT), Rayos X (DX), Digitalizador (CR) y Mamografía (MG), consolidando más de 2.460 estudios evaluados.
+
+#### 3. Agente Edge, Extracción DICOM y Anonimización Criptográfica
+- **Agente Desatendido (`agente_dosimetria.py`):** Script en Python 3 puro que se ejecuta localmente en el servidor PACS de cada sede. Consulta `pacsdb` de Dcm4chee y extrae los metadatos dosimétricos directamente desde las cabeceras DICOM sin saturar el ancho de banda WAN ni requerir apertura de puertos entrantes.
+- **Tags DICOM Nativos y Soporte RDSR:** Inspección directa de `(0018,9345)` CTDIvol, `(0018,9346)` CTDIw, `(0018,1152)` mAs, `(0018,0060)` kVp, `(0018,1150)` tiempo de exposición, `(0040,0301)` Dose Area Product (DAP), `(0040,0316)` Organ Dose (DGM en MG), y objetos de reporte estructurado *Radiation Dose Structured Report* (RDSR - SOP Class `1.2.840.10008.5.1.4.1.1.88.67`).
+- **Seguridad y Cero PHI (ISO/IEC 27001 / Ley 1581 de 2012):** Anonimización irreversible del `PatientID` con hash `HMAC-SHA256` salado con secreto criptográfico independiente por sede (`dosimetria_salt`). Ningún dato de identificación personal del paciente viaja por la red ni se aloja en el servidor central, permitiendo realizar seguimiento longitudinal de dosis acumulada sin vulnerar la privacidad médica.
+- **Resiliencia Transaccional:** Cola persistente SQLite local (`logs/cola_dosimetria.db`), micro-lotes de 50 registros por POST, reintentos con backoff exponencial y firma de lote `batch_hash` para total idempotencia en el servidor.
+
+#### 4. Catálogo Multidimensional de Umbrales NRD
+- Estructura multidimensional en tabla `medicion_dosis_umbrales_nrd` con triple clave: `Modalidad + Tipo de Métrica + Región Anatómica`.
+- 20 umbrales normativos reglamentarios pre-cargados que discriminan entre estudios adultos y pediátricos, límites legales NRD y umbrales de alerta preventiva temprana (80% del NRD).
+- Magnitudes físicas evaluadas:
+  - **Tomografía Computarizada (CT):** Índice de Dosis en TC por Volumen (`CTDIvol` en mGy) y Producto Dosis-Longitud (`DLP` en mGy·cm).
+  - **Mamografía Digital (MG):** Dosis Glandular Media (`DGM` en mGy) y Entrada en Superficie (`ESD`).
+  - **Radiografía Digital / Convencional (DX / CR / XA):** Producto Dosis-Área (`DAP` / `KAP` en $\text{Gy}\cdot\text{cm}^2$ o $\text{dGy}\cdot\text{cm}^2$).
+
+#### 5. Matriz de Riesgo y Mapa de Calor Anatómico (7 Regiones Diana)
+- **Matriz Bidimensional Interactiva:** Cruza las sedes hospitalarias activas frente a las 7 zonas corporales normativas (*Cráneo, Tórax, Abdomen, Pelvis, Columna, Extremidades, Mama*).
+- **Normalización Ponderada por Volumen:** El porcentaje respecto al NRD se pondera de acuerdo a la carga real de procedimientos para reflejar fielmente la práctica clínica sin distorsiones por adición cruzada de magnitudes heterogéneas ($%_{\text{NRD}} = \frac{\sum (\%_i \times n_i)}{\sum n_i}$).
+- **Semáforo ALARA Internacional:**
+  - 🟢 **Seguro / Conforme ($< 80\%$ del NRD):** Técnica optimizada dentro del rango de referencia.
+  - 🟡 **Alerta Preventiva ($80\% - 99\%$ del NRD):** Próximo a la cota máxima permitida; requiere verificación técnica.
+  - 🔴 **Supera NRD / Crítico ($\ge 100\%$ del NRD):** Exceso dosimétrico que amerita intervención inmediata del oficial de protección radiológica o servicio biomédico.
+  - ⚪ **Sin Datos ($N/A$):** La sede no practica la modalidad/región (ej. sedes sin mamógrafo activo).
+- **Indicadores de Sede:** Tasa global de conformidad porcentual y nivel consolidado de riesgo institucional (*BAJO - Seguro*, *MEDIO - En Alerta*, *ALTO - Superó NRD*).
+
+#### 6. Arquitectura de Auto-Recuperación (Self-Healing)
+El backend cuenta con mecanismos automáticos de detección y reparación en caliente (`DosimetriaService.php`):
+- `obtenerCatalogoUmbrales()`: Si la base de datos central carece de umbrales activos o de columnas dimensionales, ejecuta en caliente y de manera segura `UmbralesNrdSeeder`.
+- `asegurarTelemetriaMamografias()`: Detecta mamografías clínicas en `estudios` sin métricas en `medicion_dosis_radiacion` y dispara transparentemente `dosimetria:sync-mamografias` con caché de 24 horas.
+- `asegurarTelemetriaSedes()`: Detecta sedes asistenciales con exámenes radiológicos (CT, DX, CR) pendientes de telemetría e invoca automáticamente `dosimetria:sync-estudios --sede={id}`, asegurando que sedes como Honda presenten cobertura analítica del 100% desde el primer acceso.
+
+#### 7. Detección Predictiva de Deriva Técnica (*Machine Drift Detection*)
+- Algoritmo heurístico que divide el período analizado en dos mitades cronológicas y compara la dosis media de cada tubo emisor para alertar oportunamente sobre desgastes físicos del ánodo o descalibraciones ($\ge +20\%$ de incremento sostenido).
+- **Calibración y Filtro de Suelo de Ruido (*Noise Floor*):** Exclusión automática de topogramas, scouts y disparos residuales insignificantes (`CTDIvol < 1.0 mGy`, `DLP < 20 mGy·cm`) junto con la exigencia de variaciones absolutas significativas ($\Delta \ge 1.5\text{ mGy}$ en CT, $\Delta \ge 25\text{ mGy}\cdot\text{cm}$ en DLP) y un mínimo de 3 disparos por ventana temporal, erradicando falsos positivos por sesgo de muestras pequeñas.
+
+#### 8. Dashboard Analítico en Vue 3 (`DashboardDosimetria.vue`)
+- **Estándar Visual AdminWrap:** Barra de navegación `row page-titles`, botón de exportación Excel y modal de consulta del catálogo NRD.
+- **Info-Boxes Superiores (`.display-6`):** 4 tarjetas ejecutivas con micro-barras de progreso de 3px e iconografía temática para Estudios Monitoreados, Equipos Emisores Activos, Tasa de Cumplimiento Global y Dosis Efectiva Media ($E$).
+- **Monitor de Latidos Edge (*Dead Man's Switch*):** Panel de telemetría en vivo con badges `.label.label-rounded` y semáforo de conectividad online/offline de los agentes locales conforme a ISO/IEC 27001 y Res. 3100.
+- **Tooltips Interactivos Enriquecidos:** Celdas del mapa de calor con popovers y tooltips explicativos que presentan dosis media observada, límite normativo legal, porcentaje exacto del NRD y volumen muestreado.
+- **Gráficos Reactivos (Chart.js / vue-chartjs):**
+  1. *Radar Anatómico ICRP 103:* Polígono multi-eje que contrasta la dosis observada en los 7 órganos diana frente a la franja crítica de corte del 100% NRD.
+  2. *Tendencia Mensual de Dosis:* Serie temporal con discriminación por modalidad.
+  3. *Cumplimiento Normativo (Dona):* Distribución porcentual Conforme vs Alerta vs Supera NRD.
+  4. *Dosis Promedio vs Límite NRD:* Gráfico de barras comparativo por sede hospitalaria.
+- **Ranking de Equipos Emisores:** Tabla estructurada con `.pro-of-month`, avatares circulares `.round`, estado clínico y dosis media por equipo.
+- **Timeline de Auditoría Clínica:** Línea de tiempo `.steamline` para trazabilidad de calibraciones, mantenimiento biomédico e informes RDSR.
+
+#### 9. Reporte Institucional Excel Multi-Hoja (`DosimetriaExport.php`)
+Libro de cálculo descargable estructurado en 3 hojas de alta legibilidad ejecutiva:
+1. **Hoja 1 — Estadísticas y NRD (`DosimetriaEstadisticasSheet.php`):** Banner corporativo *Salud Tolima / LIDiag*, 5 tarjetas KPI, tabla consolidada por sede/modalidad/región y **gráficos nativos de PhpSpreadsheet** (gráfico de columnas comparativo y gráfico de torta de distribución por modalidad).
+2. **Hoja 2 — Mapa de Calor - Riesgo NRD (`DosimetriaMatrizRiesgoSheet.php`):** Matriz institucional de Sedes vs. 7 Regiones Corporales Diana con formato condicional semántico de tonos pastel y referencias metodológicas al pie (ICRP 103, ICRP 135, Res. 482 de 2018).
+3. **Hoja 3 — Registros Detallados (`DosimetriaDetalleSheet.php`):** Historial granular de mediciones (estudio DICOM, hash de paciente HMAC-SHA256, equipo emisor, parámetros técnicos $kV_p/mA$, dosis observada, límite legal y semáforo individual).
+- **Protección de Memoria:** Configuración defensiva de memoria (`ini_set('memory_limit', '-1')`) para procesar sin fallos exportaciones masivas superiores a 35.000 registros en streaming ZIP.
+
+#### 10. Endpoints de API, Seguridad y Comandos Artisan
+- **Rutas Web y API:**
+  - `GET /dosimetria/dashboard` y `GET /dosis/dashboard` (Rutas web protegidas por permiso `dosimetria.dashboard`).
+  - `GET /api/dosimetria/dashboard`: Retorna indicadores analíticos, mapa de calor, gráficas y estado de agentes.
+  - `POST /api/dosimetria/registros`: Ingesta masiva transaccional para agentes Edge (autenticación Bearer Token Sanctum con `batch_hash`).
+  - `POST /api/dosimetria/heartbeat`: Registro de pulso de salud del agente local.
+  - `GET /api/dosimetria/exportar` y `/descarga-reportes-dosimetria`: Descarga del reporte Excel multi-hoja.
+- **Comandos de Consola:**
+  - `php artisan dosimetria:sync-mamografias`: Sincronización de mamografías clínicas con magnitud DGM.
+  - `php artisan dosimetria:sync-estudios {--sede=}`: Sincronización integral multivariada (CT, DX, CR) por sede hospitalaria.
+- **Documentación Técnica Adicional:**
+  - Manual del Agente Edge: `storage/app_lidiag/agente_backups_dcm/README_DOSIMETRIA.md`.
+  - Informe Técnico para Proveedores: `storage/app_lidiag/agente_backups_dcm/INFORME_TECNICO_DOSIMETRIA_PROVEEDORES.md`.
 
 ### 15. Tele-Radiología
 
@@ -530,6 +587,57 @@ Módulo administrativo para la emisión, rotación segura y monitorización de c
     -   Servicio: `ConfigWorklistDispositivoService` con manejo transaccional seguro (`DB::beginTransaction()` / `DB::rollBack()`) y auditoría con `AuditLogger`.
     -   Permisos asignados a roles administrativos: `config.dispositivos.index`, `config.dispositivos.create`, `config.dispositivos.edit`, `config.dispositivos.destroy`.
     -   Seeder: `php artisan db:seed --class=PermisionWorklistDispositivosSeeder`.
+
+### 24. Bot Asistencial de WhatsApp y Agendamiento Automatizado (Meta Cloud API & Twilio)
+
+**Propósito:** Canal digital omnicanal de atención continua al paciente (24/7) para la gestión automatizada de citas médicas, recepción y validación de órdenes médicas e historias clínicas, confirmación interactiva con botones de Meta Cloud API, y despacho de recomendaciones clínicas personalizadas por estudio o modalidad.
+
+-   **Arquitectura y Motor de Conversación ([`WhatsAppFlowService.php`](app/Services/WhatsAppFlowService.php)):**
+    -   **Máquina de Estados Finita:** Control transaccional de la sesión del paciente en la tabla `whatsapp_conversations`, sincronizando el número telefónico normalizado en formato internacional E.164, el paso activo del flujo, la sede hospitalaria asignada y el payload de datos contextuales en JSON.
+    -   **Fases del Flujo de Agendamiento:**
+        1.  `inicio`: Detección del paciente, saludo inicial personalizado por sede/servicio o saludo global del hospital.
+        2.  `seleccionar_sede`: Enrutamiento inteligente según el Phone Number ID de Meta que recibió el mensaje o selección interactiva mediante menú numérico.
+        3.  `seleccionar_servicio`: Despliegue de especialidades y servicios asistenciales activos en la sede (Ecografías, Rayos X, TAC, etc.).
+        4.  `subir_orden` y `subir_historia`: Recepción de soportes clínicos con validación de extensiones permitidas (`jpg`, `jpeg`, `png`, `pdf`) y almacenamiento seguro en disco con persistencia de metadatos.
+        5.  `identificacion`: Captura del tipo y número de documento con consulta en caliente en el maestro de pacientes local y cruce con SAHI (HIS).
+        6.  `solicitar_cita`: Creación de la cita en estado `pendiente`, asociación de soportes y disparo automático de notificación en tiempo real a admisiones (`CitaSolicitadaNotification`).
+    -   **Protección contra Abuso y Saturación (Rate Limiting):** Limitador de tasa en memoria caché (`whatsapp_rate_{telefono}`) que restringe a un máximo de 20 mensajes por minuto por usuario, previniendo ataques de denegación de servicio o bucles de mensajería.
+    -   **Bitácora Forense y Trazabilidad de Conversaciones:** Persistencia auditada de cada interacción en `whatsapp_mensajes` (rol `paciente` o `bot`, tipo de medio, texto y estado de entrega) y registro de transiciones en `audit_logs` mediante `AuditLogger`.
+
+-   **Confirmación y Cancelación Interactiva de Citas (Meta Interactive Messages):**
+    -   **Botones Interactivos de WhatsApp:** Despacho de mensajes estructurados con botones de acción rápida: `[Confirmar Cita]` y `[Cancelar Cita]`.
+    -   **Automatización de Recordatorios:**
+        -   *Recordatorio 24h antes (`citas:notificar`):* Tarea programada diaria a las 08:00 AM para recordar las citas del día siguiente y solicitar confirmación.
+        -   *Recordatorio 2h antes (`citas:notificar-2h`):* Sondeo cada 10 minutos para enviar alertas inmediatas de última hora.
+    -   **Interceptación Desatendida en Webhook:** Al presionar un botón, Meta envía el payload (`cita_confirmar_{id}` o `cita_cancelar_{id}`):
+        -   *Confirmación:* Actualiza automáticamente la cita a `confirmada`, fija `recordatorio_24h_enviado = true` y envía un mensaje de confirmación con fecha, hora, sede y preparación requerida.
+        -   *Cancelación:* Solicita el motivo de cancelación, actualiza la cita a `cancelada`, libera el cupo en la agenda médica y alerta al área de programación.
+
+-   **Panel Administrativo Multisede (`/config-whatsapp-listar`):**
+    -   Módulo SPA en Vue 3 ([`configWhatsappComponent.vue`](resources/js/components/modulos/configuracion/configWhatsappComponent.vue)) estructurado en 3 pestañas operativas:
+        1.  **Números de WhatsApp (`configWhatsappNumeros.vue`):** Mapeo de líneas telefónicas oficiales, Phone Number IDs de Meta y nombres de canal por sede hospitalaria (`config_sede_whatsapp_numbers`), permitiendo números dedicados por hospital o líneas corporativas centralizadas.
+        2.  **Saludos del Bot (`configWhatsappSaludos.vue`):** Parametrización de mensajes de bienvenida y respuestas automáticas (`config_whatsapp`), personalizables por sede y servicio médico, con soporte de variables dinámicas (`${nom_paciente}`, `${nom_sede}`, etc.).
+        3.  **Recomendaciones por Producto (`recomendacionProductoComponent.vue`):**
+            -   Gestión de instrucciones clínicas y requisitos de preparación previa (ayuno, suspensión de medicamentos, vejiga llena, retiro de objetos metálicos, vestimenta) asociados directamente al catálogo de productos clínicos.
+            -   **Selector Avanzado Select2:** Selector ergonomizado con búsqueda en tiempo real e insensible a tildes, ordenado alfabéticamente por modalidad y producto (`[Rx] CUPS — Nombre`, `[Ecografías] CUPS — Nombre`, etc.).
+            -   **Control de Estado:** Casilla de verificación booleana (`Activo` / `Inactivo`) para activación inmediata de recomendaciones.
+            -   **Filtrado Contextual:** Restricción automática por sede activa y servicios de cita asignados al usuario en sesión.
+            -   **Despacho Automático:** La recomendación configurada se inyecta y despacha automáticamente al paciente junto con el mensaje de confirmación de su cita.
+
+-   **Analítica, Métricas y Reportes del Canal WhatsApp:**
+    -   **Reporte Excel Multi-Hoja (`ReporteCitasWhatsAppExport`):** Descargable en `/descarga-reportes-citas-whatsapp`, estructurado en:
+        -   *Hoja 1 (Estadísticas y Conversión):* Volumen total de solicitudes recibidas, agendadas, confirmadas y canceladas por sede y servicio asistencial, con cálculo de tasa de conversión y ausentismo.
+        -   *Hoja 2 (Detalle Asistencial):* Trazabilidad completa registro por registro con paciente, teléfono, fecha, estado de cita y motivo de cancelación.
+    -   **Integración con Telegram Bot (`@salud_tolima_bot`):** Consolidación de interacciones y citas procesadas por WhatsApp en el reporte ejecutivo diario matutino.
+
+-   **API, Rutas y Permisos (Spatie):**
+    -   **Rutas Web:** `/config-whatsapp-listar` (layout AdminWrap).
+    -   **Rutas API:**
+        -   `GET|POST|PUT|DELETE /api/config-whatsapp`: CRUD de saludos y configuración general.
+        -   `GET|POST|PUT|DELETE /api/config-sede-whatsapp-numbers`: Mapeo de números telefónicos por sede.
+        -   `GET|POST|PUT|DELETE /api/config-recomendacion-productos`: Catálogo de recomendaciones por estudio.
+        -   `GET|POST /api/citas/webhook`: Endpoint público para validación de desafío (`hub.challenge`) y recepción de eventos de Meta Cloud API.
+    -   **Permisos:** `config.whatsapp.index`, `config.whatsapp.create`, `config.whatsapp.edit`, `config.whatsapp.destroy`.
 
 ---
 
@@ -717,6 +825,24 @@ php artisan telegram:poll --once
 php artisan telegram:daily-digest
 ```
 
+### Notificaciones y Recordatorios de WhatsApp
+
+Automatización del ciclo de recordatorios de citas con botones interactivos y clasificación de productos para recomendaciones clínicas:
+
+```bash
+# Despachar recordatorios matutinos de citas del día siguiente (24h antes) con botones interactivos de confirmación
+php artisan citas:notificar
+
+# Despachar recordatorios de última hora a pacientes con citas en las próximas 2 horas
+php artisan citas:notificar-2h
+
+# Clasificar y vincular automáticamente productos clínicos con sus modalidades asistenciales (Rx, Eco, TAC, etc.)
+php artisan productos:relacionar-modulos
+
+# Forzar la reevaluación y reasignación de todos los productos existentes
+php artisan productos:relacionar-modulos --force
+```
+
 ### Automatización en Windows (Task Scheduler)
 
 El proyecto incluye scripts por lotes para programar tareas desatendidas:
@@ -880,6 +1006,13 @@ El sistema utiliza varios servicios de terceros configurados en el archivo `.env
     -   Documentación y manual de automatización completo en: `storage/app_lidiag/agente_backups_dcm/README.md`.
     -   Paquetes comprimidos listos para distribución en: `storage/app_lidiag/agente_backups_dcm.rar` y `.zip`.
 
+-   **Agente Edge de Dosimetría y Control de Radiación (`storage/app_lidiag/agente_backups_dcm/agente_dosimetria.py`)**:
+    -   **Agente autónomo en Python 3** desplegado en cada sede hospitalaria (Espinal, Chaparral, Ibagué, Honda).
+    -   Consulta periódicamente la base de datos `pacsdb` de Dcm4chee, lee cabeceras de archivos DICOM (`pydicom`) y extrae magnitudes dosimétricas (CTDIvol, DLP, DAP, DGM, parámetros técnicos $kV_p/mA/ms$).
+    -   Aplica anonimización irreversible mediante hash `HMAC-SHA256` con salt secreto independiente por hospital (`dosimetria_salt`), garantizando cero PHI en tránsito y en reposo (cumplimiento ISO/IEC 27001 y Ley 1581 de 2012).
+    -   Encola localmente las lecturas en SQLite transaccional (`logs/cola_dosimetria.db`), transmite micro-lotes de 50 registros vía HTTPS con Bearer Token Sanctum hacia `/api/dosimetria/registros`, emite latidos periódicos a `/api/dosimetria/heartbeat` y reintenta con backoff exponencial ante cortes de conectividad WAN.
+    -   Manual operativo y especificación técnica: `storage/app_lidiag/agente_backups_dcm/README_DOSIMETRIA.md` e `INFORME_TECNICO_DOSIMETRIA_PROVEEDORES.md`.
+
 ---
 
 ## Estructura del Proyecto
@@ -896,21 +1029,31 @@ A continuación, una guía rápida de las ubicaciones clave en el código fuente
     -   Registro centralizado: `bootstrap/app.php` (incluye `api_configuracion`,
         `api_estudios`, `api_ecografias`, `api_seguridad`, `api_interfaces`,
         `api_agendamiento_dashboard`, `api_helpdesk`, `api_contratacion`,
-        `api_liquidacion`).
+        `api_liquidacion`, `api_dosimetria`).
 
 -   **Modelos de Datos**:
 
+    -   `app/Models/Dosimetria`: Control radiológico, telemetría y umbrales NRD (`EquipoEmisor`, `RegistroDosisRadiacion`, `UmbralNrd`).
     -   `app/Models/Ecografias`: Lógica de negocio para el módulo de ecografías.
     -   `app/Models/ImportarEcografias`: Modelos espejo utilizados exclusivamente para la migración de datos legados.
     -   `app/Models/Interface`: Modelos que gestionan la interacción con las tablas del HIS (SAHI).
 
+-   **Servicios y Motores de Negocio**:
+
+    -   `app/Services/Dosimetria`: Motor analítico de dosimetría (`DosimetriaService.php`) con cálculo ponderado del % del NRD, estimación de dosis efectiva ICRP 103, detección predictiva de derivas de tubos emisores, arquitectura de auto-recuperación *Self-Healing* y gobernanza de umbrales.
+
 -   **Controladores**:
 
+    -   `app/Http/Controllers/Api/DosimetriaController`: API de telemetría dosimétrica, ingesta masiva por lotes, latidos de agentes Edge y exportación a Excel.
     -   `app/Http/Controllers/Reportes`: Contiene la lógica para la generación y descarga de reportes en Excel y PDF.
     -   **Documentación completa disponible en:** [`docs/CONTROLLERS.md`](docs/CONTROLLERS.md)
         -   Todos los controladores están documentados con PHPDoc detallado
         -   Incluye 30 controladores organizados en 10 módulos
         -   Más de 95 métodos documentados con parámetros, retornos y descripciones
+
+-   **Reportes y Exportaciones Excel**:
+
+    -   `app/Exports/Dosimetria`: Exportador institucional multi-hoja (`DosimetriaExport.php` orquestando las hojas `DosimetriaEstadisticasSheet`, `DosimetriaMatrizRiesgoSheet` y `DosimetriaDetalleSheet` con gráficos nativos PhpSpreadsheet).
 
 -   **Frontend (Vue.js)**:
     -   `resources/js/components/modulos`: Componentes Vue organizados por módulo funcional (ej. `agendamiento`, `ecografias`).
@@ -955,6 +1098,8 @@ El frontend está organizado como **componentes Vue montados en vistas Blade**. 
   - Disponibilidad/agenda.
 - **Seguridad**: `resources/js/components/modulos/seguridad/*`
   - Usuarios (`usuarioComponent.vue`: ciclo de vida, activación por correo, reseteo manual/temporal, asignación de roles/sedes/servicios/módulos, firmas), roles y permisos (`roleComponente.vue`), perfil (`usuarioPerfil.vue`), auditoría forense (`auditLogComponent.vue`), monitor de backups (`backupMonitorComponent.vue`) y tokens de sedes Edge (`seguridadTokensComponent.vue`).
+- **Dosimetría**: `resources/js/components/modulos/dosimetria/*`
+  - Centro de analítica dosimétrica y radioprotección institucional (`DashboardDosimetria.vue`): mapa de calor en 7 órganos diana, tooltips interactivos dinámicos de lección Bootstrap con demo interactiva, 4 gráficos reactivos (Radar ICRP 103, Tendencias, Dona de Cumplimiento, Dosis vs NRD), ranking de tubos emisores y monitor en tiempo real de latidos Edge (*Dead Man's Switch*).
 - **Reportes**: `resources/js/components/modulos/reportes/*`
   - Centro de reportes de producción (`reporteProduccionComponent.vue`) y auditoría de estudios en servidores PACS (`reporteEstudiosPACComponent.vue`).
 - **Tele radiología**: `resources/js/components/modulos/tele-radiologia/*`

@@ -287,11 +287,19 @@
                             <empty-state-component
                                 v-if="!isBuscandoAtenciones && registros.length === 0"
                                 icon="sl-icon-eye"
-                                title="No hay pacientes pendientes de consulta"
-                                description="No se encontraron atenciones admisionadas con los filtros seleccionados."
-                                action-text="Limpiar filtros"
-                                action-icon="fa fa-refresh"
-                                @action="limpiarFiltros()"
+                                :title="
+                                    haBuscado
+                                        ? 'No hay pacientes pendientes de consulta'
+                                        : 'Ingrese los criterios de búsqueda'
+                                "
+                                :description="
+                                    haBuscado
+                                        ? 'No se encontraron atenciones admisionadas con los filtros seleccionados.'
+                                        : 'Haga clic en el botón Buscar o presione Enter en el filtro para consultar los pacientes admisionados.'
+                                "
+                                :action-text="haBuscado ? 'Limpiar filtros' : 'Buscar pacientes'"
+                                :action-icon="haBuscado ? 'fa fa-refresh' : 'fa fa-search'"
+                                @action="haBuscado ? limpiarFiltros() : listarAtenciones()"
                             />
 
                             <div
@@ -1899,6 +1907,7 @@ const guardando = ref(false);
 const dt = ref(null);
 const registros = ref([]);
 const isBuscandoAtenciones = ref(false);
+const haBuscado = ref(false);
 const filtrosVisible = ref(true);
 
 const busqueda = ref({
@@ -2084,12 +2093,15 @@ function limpiarFiltros() {
     busqueda.value.estado = "";
     busqueda.value.fecha_ini = "";
     busqueda.value.fecha_fin = "";
-    listarAtenciones();
+    haBuscado.value = false;
+    safeDestroyDataTable("#tablaAtencionesConsultaOftalmologia");
+    registros.value = [];
 }
 
 async function listarAtenciones() {
     try {
         isBuscandoAtenciones.value = true;
+        haBuscado.value = true;
         const sede = sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede");
         busqueda.value.sede_id = sede;
 
@@ -2131,8 +2143,6 @@ function irAListado() {
         clearInterval(timerAutoguardado);
         timerAutoguardado = null;
     }
-    // Refrescar listado al regresar
-    listarAtenciones();
 }
 
 async function iniciarAtencionConsulta(item) {
@@ -2584,13 +2594,13 @@ onMounted(async () => {
         iniciarAutoguardado();
     } else {
         vistaActual.value = "listado";
-        await listarAtenciones();
+        // No ejecutar consulta automáticamente al cargar; solo bajo demanda al buscar o enter
     }
 
     if (emitter) {
         emitter.on("sede-cambiada", (sedeId) => {
             busqueda.value.sede_id = sedeId;
-            if (vistaActual.value === "listado") {
+            if (vistaActual.value === "listado" && haBuscado.value) {
                 listarAtenciones();
             }
         });

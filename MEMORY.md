@@ -37,6 +37,24 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-20 — Actualización Exhaustiva de Documentación del Módulo de Dosimetría y Control de Radiación (`README.md`):**
+  - **Solicitud del Usuario:** *"actualiza el readme con la informacion del modulo del dosimetria"*.
+  - **Ejecución y Mejoras en `README.md`:**
+    * **1. Diagrama de Arquitectura Global:** Se integró en el diagrama Mermaid el flujo Edge-to-Cloud de telemetría dosimétrica desde las 4 sedes asistenciales (Espinal, Chaparral, Ibagué, Honda) hacia `LIDiag App` vía micro-lotes HTTPS autenticados con Bearer Tokens Sanctum y firma `HMAC-SHA256`.
+    * **2. Módulo Especializado (Sección 14):** Se amplió exhaustivamente la sección con 10 subsecciones técnicas y clínicas:
+      - *Marco Regulatorio:* Resolución 482 de 2018 (MinSalud), ICRP 103 (Dosis Efectiva Media $E = \text{DLP} \times k$), ICRP 135, IAEA GSR Part 3 y taxonomía RadLex.
+      - *Topología Edge-to-Cloud y Sedes Conectadas:* Detalle de modalidades en Espinal (CT/DX/MG), Chaparral (CT/DX/CR/MG), Ibagué (CT/DX) y Honda (CT/DX/CR/MG con más de 2.460 estudios).
+      - *Extracción DICOM y Anonimización Criptográfica:* Tags DICOM nativos, soporte RDSR, anonimización irreversible `HMAC-SHA256` salada (cero PHI, ISO/IEC 27001 / Ley 1581) y resiliencia con SQLite local transaccional.
+      - *Catálogo Multidimensional de Umbrales NRD:* Triple clave (Modalidad + Métrica + Región), 20 umbrales normativos reglamentarios pre-sembrados y magnitudes físicas evaluadas (CTDIvol, DLP, DGM, DAP/KAP).
+      - *Matriz de Riesgo y Mapa de Calor Anatómico (7 Órganos Diana):* Cráneo, Tórax, Abdomen, Pelvis, Columna, Extremidades y Mama; cálculo ponderado del % del NRD por volumen; semáforo ALARA (🟢 Seguro $<80\%$, 🟡 Precaución $80-99\%$, 🔴 Supera NRD $\ge 100\%$, ⚪ Sin Datos) y nivel de riesgo de sede.
+      - *Arquitectura de Auto-Recuperación (Self-Healing):* `obtenerCatalogoUmbrales()`, `asegurarTelemetriaMamografias()` y `asegurarTelemetriaSedes()` en `DosimetriaService.php` para auto-poblado en caliente.
+      - *Detección Predictiva de Deriva Técnica (*Machine Drift*):* Comparación de ventanas temporales ($\ge +20\%$) y filtro contra piso de ruido (*Noise Floor*) para excluir topogramas/scouts.
+      - *Dashboard en Vue 3 (`DashboardDosimetria.vue`):* Estándar AdminWrap, cards KPI `.display-6` con barras de 3px, monitor de latidos edge (*Dead Man's Switch*), tooltips interactivos dinámicos de lección Bootstrap, 4 gráficos reactivos (Radar Anatómico ICRP 103, Tendencia Temporal, Dona de Cumplimiento, Dosis vs NRD), ranking de equipos y timeline de auditoría.
+      - *Reporte Excel Institucional Multi-Hoja (`DosimetriaExport.php`):* 3 pestañas (*Estadísticas y NRD* con gráficos nativos PhpSpreadsheet, *Mapa de Calor* con formato condicional y *Registros Detallados* optimizados con `memory_limit: -1` para >35.000 registros).
+      - *Endpoints de API, Permisos y Comandos Artisan:* Rutas `/api/dosimetria/*`, `/api/dosis/*`, permisos Spatie (`dosimetria.dashboard`, `dosimetria.registros`), comandos `dosimetria:sync-mamografias` y `dosimetria:sync-estudios`.
+    * **3. Integraciones y Servicios Externos:** Se agregó subsección dedicada para el Agente Edge de Dosimetría en Python 3 (`agente_dosimetria.py`).
+    * **4. Estructura del Proyecto y Frontend:** Se incorporaron los modelos de datos (`app/Models/Dosimetria`), servicio de negocio (`app/Services/Dosimetria`), controlador API (`DosimetriaController.php`), exportador Excel (`app/Exports/Dosimetria`), rutas (`api_dosimetria.php`) y componente frontend (`DashboardDosimetria.vue`).
+  - **Verificaciones:** `README.md` actualizado con enlaces y estructura validada ✅.
 - [x] **2026-11-20 — Actualización de Documentación del Módulo de Seguridad (`README.md` y `docs/CONTROLLERS.md`):**
   - Se expandió la sección `10. Seguridad y Auditoría` en `README.md` con la documentación detallada del ciclo de vida de identidades:
     * Flujo de Creación y Activación por Correo Electrónico (`ActivarCuentaNotification`, token de 60 min, vista `activar.blade.php`, `PasswordRules::nueva()`).
@@ -72,6 +90,21 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Verificaciones:**
     * Prueba de consulta directa contra SQL Server (`ESP_PRI`): la atención `7018623` (paciente William Camilo González Cogua, servicio `890476`) se lista exitosamente con búsqueda por atención `7018623`, por documento `1010235116` y por nombre `WILLIAM GONZALEZ`.
     * Laravel Pint (`vendor\bin\pint.bat --test`): passed sin errores de estilo.
+- [x] **2026-11-20 — Actualización Exhaustiva de Documentación en README.md y CONTROLLERS.md (Módulos de Contratación y Liquidación):**
+  - **Alcance de la Documentación:**
+    * **Módulo 11 (Contratación - [`README.md`](file:///c:/laragon/www/lidiag/README.md), [`CONTROLLERS.md`](file:///c:/laragon/www/lidiag/docs/CONTROLLERS.md)):**
+      - Documentación completa de arquitectura y modelos (`Contrato`, `ContratoProducto`, `ContratoMedico`).
+      - Estandarización de Plantilla 1 (Entidad/Hospital) y Plantilla 2 (Médicos Lectores) con sus metadatos inyectados (`A2-B4` y `A2-B5`), flujos de UI y endpoints de exportación.
+      - Validación estricta anti-discrepancia en importación (inspección de celda `A4` con error HTTP 422).
+      - Motor de previsualización (*Preview*) con diff no destructivo (altas, cambios, retiros con baja lógica `estado = 0` y `fecha_retiro`, prohibición absoluta de `DELETE`).
+      - Auditoría de cobertura institucional contra `config_productos` exigibles.
+      - Drawer lateral de detalle con selector reactivo de médicos vinculados, búsqueda instantánea, manejo adaptativo de estados vacíos y tabla estricta de 5 columnas (`CUPS`, `Producto`, `Val Contratado`, `Consulta`, `Hospitalización/Urg`).
+    * **Módulo 12 (Liquidación y Productividad Médica - [`README.md`](file:///c:/laragon/www/lidiag/README.md)):**
+      - Motor de liquidación asistencial (`LiquidacionService`) con ponderación tarifaria dual según prioridad médica (`valor_urgencias` para Alta/Urgencias vs `valor_consulta` para Consulta Externa).
+      - Matriz visible de exclusiones en 5 categorías asistenciales auditables (`sin_asignado`, `sin_contrato`, `producto_sin_tarifa`, `medico_fuera_detalle`, `anulada`), erradicando descartes silenciosos.
+      - Inmutabilidad y congelamiento atómico de líneas de corte en `liquidacion_lineas`.
+      - Reporte gerencial de productividad médica mensual (`YYYY-MM`).
+      - Exportaciones institucionales multi-sección a Excel (`LiquidacionExport.php` y `ProductividadExport.php`).
 - [x] **2026-11-20 — Depuración de Acciones Redundantes en `AsignarEstudioComponent.vue`:**
   - **Diagnóstico y Solución:**
     * En el encabezado de [`AsignarEstudioComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/AsignarEstudioComponent.vue), existía un botón genérico "Nuevo registro" (`nuevoRegistro()`) redundante junto a los botones directos "+ Particular" y "+ Cortesía".

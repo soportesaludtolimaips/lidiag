@@ -344,11 +344,18 @@ API REST completa del módulo de gestión de contratos médico-institución.
 - **`update`**: Actualiza los datos de un contrato existente.
 - **`destroy`**: Elimina un contrato junto con sus médicos y productos vinculados.
 - **`toggleEstado`**: Cambia el estado activo/inactivo de un contrato.
-- **`syncMedicos`**: Aplica el diff del detalle de médicos-producto del contrato (agrega, actualiza o retira según `retirar_faltantes`).
+- **`listarMedicosProductos`**: Retorna los médicos lectores vinculados al contrato y los productos/tarifas para el drawer de detalle con filtrado reactivo condicional por médico.
+- **`cobertura`**: Informa qué productos exigibles del catálogo institucional no tienen tarifa cargada en el contrato (totales y lista de faltantes).
+- **`exportPlantillaEntidad`**: Descarga la Plantilla 1 de tarifas de entidad/hospital con metadatos en cabecera (A2-B4) y matriz tabular desde fila 6.
+- **`exportPlantillaMedico`**: Descarga la Plantilla 2 de tarifas de médicos lectores con metadatos (A2-B5) y columnas duales (consulta externa y urgencias).
+- **`previewImportarEntidad`**: Previsualiza el diff no destructivo de tarifas de entidad (altas, cambios, retiros con baja lógica) a partir del archivo Excel sin persistir.
+- **`confirmarImportarEntidad`**: Aplica y persiste transaccionalmente el diff aprobado de tarifas de entidad.
+- **`previewImportarMedicos`**: Previsualiza el diff no destructivo de tarifas de médicos lectores con validación estricta de la celda A4 (coincidencia de `medico_id`) para prevenir errores.
+- **`confirmarImportarMedicos`**: Aplica y persiste transaccionalmente el diff aprobado de tarifas del médico lector.
+- **`syncMedicos`**: Aplica el diff manual del detalle de médicos-producto del contrato (agrega, actualiza o retira según `retirar_faltantes`).
 - **`previewMedicos`**: Previsualiza el cambio del detalle de médicos sin aplicarlo — retorna el diff calculado para confirmación del usuario.
-- **`importarMedicos`**: Importa el detalle de médicos-producto desde un archivo Excel (formato con Contrato ID en celda C2). Soporta flujo de confirmación para CUPS faltantes (`crear_faltantes`).
-- **`exportPlantillaDetalle`**: Descarga la plantilla Excel pre-poblada con los CUPS del contrato para diligenciar tarifas por médico.
-- **`cobertura`**: Informa qué productos exigibles del catálogo no tienen tarifa cargada en el contrato (totales y lista de faltantes).
+- **`importarMedicos`**: Importa el detalle de médicos-producto desde un archivo Excel legacy (formato con Contrato ID en celda C2).
+- **`exportPlantillaDetalle`**: Descarga la plantilla Excel legacy pre-poblada con los CUPS del contrato.
 
 ---
 
