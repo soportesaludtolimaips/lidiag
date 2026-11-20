@@ -37,6 +37,21 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-20 — Actualización Exhaustiva de Documentación del Módulo de Bot Asistencial de WhatsApp (`README.md`):**
+  - **Solicitud del Usuario:** *"actualiza el readme con la informacion del modulo del bot de whatsapp"*.
+  - **Ejecución y Mejoras en `README.md`:**
+    * **1. Módulo 24 (`Bot Asistencial de WhatsApp y Agendamiento Automatizado`):**
+      - Motor conversacional ([`WhatsAppFlowService.php`](app/Services/WhatsAppFlowService.php)) con máquina de estados finita (`whatsapp_conversations`), normalización E.164 y 6 fases del flujo asistencial (`inicio`, `seleccionar_sede`, `seleccionar_servicio`, `subir_orden`/`subir_historia` con soporte PDF/PNG/JPG, `identificacion` con cruce SAHI/local y `solicitar_cita` con alerta en tiempo real a admisiones).
+      - Rate limiting contextual en caché (`whatsapp_rate_{telefono}`) limitado a 20 msgs/min y trazabilidad auditada en `whatsapp_mensajes` y `audit_logs` vía `AuditLogger`.
+      - Mensajes interactivos de Meta Cloud API con botones de acción rápida (`[Confirmar Cita]`, `[Cancelar Cita]`), recordatorio preventivo 24h (`citas:notificar`) y sondeo de última hora 2h (`citas:notificar-2h`), con liberación automática de cupos médicos y actualización de estados en base de datos.
+      - Panel administrativo multisede en Vue 3 (`/config-whatsapp-listar` / [`configWhatsappComponent.vue`](resources/js/components/modulos/configuracion/configWhatsappComponent.vue)) estructurado en 3 pestañas: Números de WhatsApp (`config_sede_whatsapp_numbers`), Saludos del Bot (`config_whatsapp` con variables dinámicas) y Recomendaciones por Producto (`recomendacionProductoComponent.vue` con selector ergonómico Select2 clasificado por modalidad/CUPS, control de estado booleano y despacho automático junto a la confirmación de la cita).
+      - Analítica, reportes Excel multi-hoja (`ReporteCitasWhatsAppExport` en `/descarga-reportes-citas-whatsapp`) e integración ejecutiva matutina con el bot de Telegram (`@salud_tolima_bot`).
+      - Especificación de rutas web, endpoints de API (`/api/config-whatsapp`, `/api/config-sede-whatsapp-numbers`, `/api/config-recomendacion-productos`, `/api/citas/webhook`) y matriz de permisos Spatie (`config.whatsapp.*`).
+    * **2. Módulo de Configuración General (Sección 9):** Enlace y descripción del panel `/config-whatsapp-listar` para parametrización multisede.
+    * **3. Comandos Personalizados de Consola (Artisan):** Documentación detallada de `citas:notificar`, `citas:notificar-2h`, `productos:relacionar-modulos` y `--force`.
+    * **4. Servicios Externos y Entorno:** Documentación de arquitectura híbrida (Meta WhatsApp Cloud API como canal primario 24/7 y Twilio como canal outbound alternativo), variables `.env` (`META_WHATSAPP_TOKEN`, `META_WHATSAPP_PHONE_ID`, `META_WHATSAPP_VERIFY_TOKEN`).
+    * **5. Solución de Problemas (Troubleshooting):** Guía de verificación de túnel Cloudflare, coincidencia del verify token y trazabilidad en `storage/logs/laravel.log`.
+
 - [x] **2026-11-20 — Actualización Exhaustiva de Documentación del Módulo de Dosimetría y Control de Radiación (`README.md`):**
   - **Solicitud del Usuario:** *"actualiza el readme con la informacion del modulo del dosimetria"*.
   - **Ejecución y Mejoras en `README.md`:**
