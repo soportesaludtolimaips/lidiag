@@ -433,6 +433,8 @@ Gestión completa de usuarios de la plataforma.
 - **`update`**: Actualiza los datos de un usuario, incluyendo archivos opcionales de firma y avatar. Requiere permiso `seguridad.usuarios.edit`.
 - **`destroy`**: Elimina un usuario del sistema. Requiere permiso `seguridad.usuarios.destroy`.
 - **`estadoUsuario`**: Activa o desactiva un usuario (toggle). Requiere permiso `seguridad.usuarios.edit`.
+- **`restablecerPassword`**: Asigna una contraseña temporal de alta entropía al usuario y fuerza su cambio obligatorio en el próximo inicio de sesión (`forzar_cambio`). Requiere permiso `seguridad.usuarios.edit`.
+- **`enviarResetEmail`**: Dispara el envío de notificación por correo electrónico con enlace seguro y temporal para restablecimiento de contraseña vía `Password::broker()`. Requiere permiso `seguridad.usuarios.edit`.
 - **`actualizarPerfil`**: Permite al usuario autenticado actualizar su propio perfil (nombre, email, contraseña, avatar, firma). Valida que el ID de la ruta coincida con el usuario en sesión.
 - **`listarPermisosUsuario`**: Retorna el mapa completo de permisos asignados a un usuario.
 - **`listarUsuarios`**: Lista usuarios filtrados por rol y módulo (ej. médicos del módulo de estudios). Solo requiere `auth`.
@@ -467,6 +469,11 @@ Controlador para el generador y gestor de tokens de acceso Sanctum unificados pa
 ---
 
 ## Módulo: Autenticación
+
+### `AccountActivationController.php`
+Gestión del flujo de activación de cuentas de usuario nuevas mediante correo electrónico.
+- **`showForm`**: Valida el token temporal y muestra el formulario de bienvenida y definición de contraseña definitiva (`auth.activar`).
+- **`activate`**: Procesa la activación de la cuenta validando la nueva contraseña contra las políticas institucionales (`PasswordRules::nueva()`), fija `estado = 1`, `email_verified_at = now()`, `password_changed_at = now()`, revoca sesiones previas, destruye el token temporal y audita el evento.
 
 ### `LoginController.php`
 Gestión del flujo de autenticación de usuarios.

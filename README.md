@@ -165,17 +165,61 @@ La aplicación está compuesta por los siguientes módulos especializados:
 
 ### 10. Seguridad y Auditoría
 
-**Propósito:** Control de acceso, gobernanza y trazabilidad forense de eventos de usuario.
+**Propósito:** Control de acceso, gobernanza, gestión del ciclo de vida de identidades, políticas de autenticación y trazabilidad forense de eventos de usuario.
 
--   **Roles y Permisos:** Control de acceso granular basado en `spatie/laravel-permission` (guard `web`), con auditoría estricta (`php artisan permissions:audit`).
--   **Módulo Centralizado de Auditoría (`/seguridad-auditoria`):**
-    -   Persistencia en tabla `audit_logs` mediante el helper institucional `AuditLogger`.
-    -   **Eventos de Autenticación:** `inicio_sesion`, `cierre_sesion`, `inicio_sesion_fallido` con captura de IP y User-Agent.
-    -   **Eventos Asistenciales de Estudios:** `asignar_estudio` (paciente, médico, prioridad), `lectura_estudio` (médico especialista), `transcripcion_estudio` (transcriptor clínico) y `anular_estudio`.
-    -   **Eventos de Citas y Agendamiento:** Creación, eliminación, `asignar_cita` (sede y fecha), `confirmar_cita`, `cancelar_cita` (con motivo), `cumplir_cita`, `inasistencia_cita` y `rechazar_cita`.
-    -   **Eventos de Soporte y Seguridad:** `cambio_estado_ticket`, `reasignar_ticket`, creación/edición de roles y sincronización de permisos.
-    -   **Filtros y Búsqueda Fulltext:** Filtrado por tipo de evento, usuario, rango de fechas y búsqueda textual por descripción, modelo, IP y nombre de usuario.
-    -   **Exportación:** Descarga de registros a Excel, CSV, PDF, Portapapeles e Impresión con DataTables.
+#### 👥 Gestión Integral de Usuarios y Ciclo de Vida de Cuentas (`/seguridad.usuarios.listar`)
+
+Panel administrativo para el alta, edición, control de accesos asistenciales y gestión de credenciales del personal médico, asistencial y administrativo.
+
+-   **Flujo 1 — Creación de Usuario con Activación por Correo Electrónico:**
+    -   **Activación Desatendida:** Al registrar un nuevo usuario con el toggle *Activación por Correo Electrónico* activo (modo por defecto), el sistema genera internamente una contraseña temporal aleatoria de alta entropía y establece la cuenta en estado `Inactivo` (`estado = 0`) con verificación pendiente (`email_verified_at = null`), sin requerir contraseña manual al administrador.
+    -   **Notificación Segura:** Se despacha automáticamente [`ActivarCuentaNotification`](app/Notifications/Seguridad/ActivarCuentaNotification.php) al email registrado con un enlace firmado temporal (vigencia de 60 minutos en `password_resets`) que apunta a la ruta web `/activar-cuenta/{token}`.
+    -   **Definición de Contraseña:** El usuario accede a la vista de bienvenida ([`activar.blade.php`](resources/views/auth/activar.blade.php), layout AdminWrap) y define su propia contraseña, validada estrictamente contra las directivas de seguridad (`PasswordRules::nueva()`: mínimo 8 caracteres, mayúsculas, minúsculas, números y símbolos).
+    -   **Activación y Revocación de Sesiones:** Al confirmar, el sistema activa la cuenta (`estado = 1`), fija `email_verified_at = now()` y `password_changed_at = now()`, elimina el token de `password_resets`, revoca sesiones previas del usuario y registra el evento de activación en `AuditLogger`.
+-   **Flujo 2 — Restablecimiento Manual por Correo desde la Tabla de Usuarios:**
+    -   **Acción Directa Inline:** Cada fila del listado incorpora un botón de acción rápida con ícono de sobre (`fa-envelope-o`) y tooltip *"Enviar enlace de restablecimiento de contraseña por correo"*, visible sin requerir submenús.
+    -   **Confirmación y Feedback Reactivo:** Diálogo interactivo de confirmación con SweetAlert2 (`confirmAction`) y animación de carga (`fa-spinner fa-spin` con estado `loadingEmailResetId`) durante el despacho.
+    -   **Endpoint Protegido:** Petición `POST /api/seguridad-usuarios/{id}/enviar-reset-email` protegida por el permiso `seguridad.usuarios.edit`.
+    -   **Emisión de Token:** El backend genera un token mediante `Password::broker()` y despacha [`RestablecerPasswordEmailNotification`](app/Notifications/Seguridad/RestablecerPasswordEmailNotification.php) hacia el correo del usuario, con enlace directo al formulario institucional de reseteo ([`reset.blade.php`](resources/views/auth/passwords/reset.blade.php)).
+-   **Restablecimiento Administrativo Inmediato (Contraseña Temporal en Pantalla):**
+    -   **Generador Criptográfico Seguro:** El botón con ícono de llave (`fa-key`) abre el modal de restablecimiento que genera una contraseña pseudoaleatoria de alta entropía (10+ caracteres, mayúsculas, minúsculas, números y símbolos, excluyendo caracteres ambiguos).
+    -   **Copiado Rápido:** Botón para copiar la contraseña temporal al portapapeles con 1 clic para entrega verbal o telefónica inmediata.
+    -   **Forzado Obligatorio de Cambio:** Bandera `forzar_cambio` que deja `password_changed_at = null`, obligando al usuario a cambiar su contraseña de manera forzada en su primer inicio de sesión mediante el middleware institucional de cambio de clave.
+-   **Semáforos y Badges de Estado en la Tabla:**
+    -   `Activo` (verde `label-success`) o `Inactivo` (rojo `label-danger`).
+    -   `Activación pendiente` (badge gris con `fa-envelope-o`): visible cuando `!email_verified_at`.
+    -   `Cambio pendiente` (badge amarillo con `fa-clock-o`): visible cuando `!password_changed_at` (contraseña temporal no cambiada).
+-   **Gobernanza Multidimensional de Accesos:**
+    -   **Roles:** Asignación múltiple de roles Spatie.
+    -   **Sedes Asistenciales:** Vinculación directa con sedes autorizadas para filtrado de agendas, citas y estudios.
+    -   **Servicios de Cita:** Segmentación de especialidades médicas habilitadas para el profesional.
+    -   **Módulos del Sistema:** Activación/desactivación granular de menús y accesos directos.
+    -   **Firma Médica Digitalizada:** Carga y previsualización de firmas en PNG/JPG almacenadas en el disco `firmas_medicos` con validación de existencia física.
+
+#### 🛡️ Gestión de Roles y Permisos Granulares (`/seguridad.roles.listar`)
+
+-   **Arquitectura Spatie:** Control de acceso basado en roles (RBAC) con `spatie/laravel-permission` bajo el guard `web`.
+-   **Permisos por Módulo:** Segmentación modular estricta de capacidades (`seguridad.*`, `estudios.*`, `ecografias.*`, `citas.*`, `oftalmologia.*`, `reportes.*`, `configuracion.*`, etc.).
+-   **Auditoría y Comandos CLI:**
+    -   `php artisan permissions:audit`: Audita la consistencia entre controladores, rutas y permisos sembrados.
+    -   `php artisan sync:missing-permissions`: Identifica y siembra permisos huérfanos o faltantes sin alterar asignaciones previas.
+    -   `php artisan permissions:cache-reset`: Limpia la caché de permisos de Spatie de forma segura en entornos multi-driver.
+
+#### 👤 Perfil y Seguridad del Usuario (`/seguridad.perfil`)
+
+-   **Autogestión de Datos:** Consulta de datos personales, sedes autorizadas, roles activos y módulos asignados.
+-   **Cambio Autónomo de Contraseña:** Validación de contraseña actual (`current_password`) y exigencia de políticas institucionales (`PasswordRules::nueva()`).
+-   **Firma Digital y Avatar:** Carga autónoma de firma médica manuscrita para su incrustación en informes diagnósticos de tele-radiología, ecografías y oftalmología.
+
+#### 📋 Módulo Centralizado de Auditoría Forense (`/seguridad-auditoria`)
+
+-   **Persistencia en Base de Datos:** Registro en tabla `audit_logs` mediante el helper institucional `AuditLogger`.
+-   **Eventos de Autenticación:** `inicio_sesion`, `cierre_sesion`, `inicio_sesion_fallido` con captura de IP y User-Agent.
+-   **Eventos Asistenciales de Estudios:** `asignar_estudio` (paciente, médico, prioridad), `lectura_estudio` (médico especialista), `transcripcion_estudio` (transcriptor clínico) y `anular_estudio`.
+-   **Eventos de Citas y Agendamiento:** Creación, eliminación, `asignar_cita` (sede y fecha), `confirmar_cita`, `cancelar_cita` (con motivo), `cumplir_cita`, `inasistencia_cita` y `rechazar_cita`.
+-   **Eventos de Soporte y Seguridad:** `cambio_estado_ticket`, `reasignar_ticket`, creación/edición de roles, activación/inactivación de usuarios y sincronización de permisos.
+-   **Filtros y Búsqueda Fulltext:** Filtrado por tipo de evento, usuario, rango de fechas y búsqueda textual por descripción, modelo, IP y nombre de usuario.
+-   **Exportación:** Descarga de registros a Excel, CSV, PDF, Portapapeles e Impresión con DataTables.
 -   **UI y Rutas:** Pantallas web en `/seguridad.usuarios.listar`, `/seguridad.roles.listar`, `/seguridad.perfil`, `/seguridad-auditoria`, `/seguridad-backups`, `/seguridad-tokens`.
 
 #### 🔑 Gestor de Tokens por Sede para Agentes Edge (`/seguridad-tokens`)
@@ -196,23 +240,77 @@ Módulo administrativo para la emisión, rotación segura y monitorización de c
 
 ### 11. Contratación
 
-**Propósito:** Tarifas por sede como fuente para la liquidación de pagos a médicos.
+**Propósito:** Gestión integral de contratos de servicios radiológicos por sede hospitalaria, parametrización de tarifas institucionales (entidades/hospitales) y tarifas de honorarios asistenciales para médicos radiólogos lectores, sirviendo como fuente de verdad económica para la liquidación.
 
--   Contratos por sede con vigencia sin solapamientos y detalle médico-producto (`valor_consulta`, `valor_urgencias`, vigencia por médico).
--   El detalle se sincroniza por diff no destructivo con preview y confirmación (nunca `DELETE`; retiros con `estado` + `fecha_retiro`, con reactivación al re-incluir).
--   Cobertura: informa qué productos exigibles no tienen tarifa en el contrato.
--   Plantilla e importación por Excel (productos y médicos-producto).
--   API: `/api/contratos`, `/cobertura`, `/medicos/preview`, `/medicos` (sync), imports. UI: `/contratos`.
+-   **Arquitectura de Datos y Modelos:**
+    -   `Contrato`: Entidad principal vinculada a la sede hospitalaria (`ConfigSede`), con control estricto de vigencias temporales sin solapamientos (`fecha_inicio` y `fecha_fin`), estado operativo y observaciones.
+    -   `ContratoProducto`: Catálogo institucional de procedimientos (`config_productos`) contratados por sede con su valor pactado institucionalmente (`valor_contrato`).
+    -   `ContratoMedico`: Relación ternaria contrato-producto-médico lector (`users`), con discriminación tarifaria dual (`valor_consulta` vs `valor_urgencias`), fecha de ingreso, fecha de retiro y estado lógico.
+-   **Estandarización de Plantillas Excel (PhpSpreadsheet / Maatwebsite Excel):**
+    -   **Plantilla 1: Tarifas de Entidad / Hospital (Aseguradoras y Hospitales):**
+        -   *Estructura oficial:* Basada en el estándar de facturación institucional (`TARIFAS ST COBRA A HOSP CHAPARRAL.xlsx`).
+        -   *Metadatos en cabecera inyectados:* `A2` (`contrato_id`), `A3` (`sede_id` / Nombre de Sede), `A4` (Fecha Inicio) y `B4` (Fecha Fin).
+        -   *Cuerpo tabular:* A partir de la fila 6, con columnas `CUPS`, `Producto` y `Valor` formateadas con máscara de moneda.
+        -   *Endpoint de descarga:* `GET /api/contratos/{id}/plantilla-entidad`.
+    -   **Plantilla 2: Tarifas de Pago a Médicos Lectores:**
+        -   *Estructura oficial:* Basada en el estándar de honorarios médicos (`TARIFAS DR MARIN.xlsx`).
+        -   *Flujo de UI:* Modal interactivo con selector dinámico de especialistas activos que poseen el rol `Médico`.
+        -   *Metadatos en cabecera inyectados:* `A2` (`contrato_id`), `A3` (`sede_id`), `A4` (`medico_id`), `B4` (Nombre del Médico), `A5` (Fecha Inicio) y `B5` (Fecha Fin).
+        -   *Cuerpo tabular:* A partir de la fila 7, con columnas `CUPS`, `Producto`, `Consulta Externa` (`valor_consulta`) y `Urgencia/Hosp` (`valor_urgencias`).
+        -   *Endpoint de descarga:* `GET /api/contratos/{id}/medicos/{medicoId}/plantilla`.
+-   **Validación Estricta de Importación (Control Anti-Error / Integridad Referencial):**
+    -   Al importar la Plantilla 2, el backend inspecciona obligatoriamente la celda `A4` del archivo Excel y valida que coincida exactamente con el `medico_id` seleccionado en la interfaz. Si existe discrepancia, rechaza la operación inmediatamente con error HTTP `422 Unprocessable Entity`, evitando la sobreescritura accidental o cruzada de tarifas entre radiólogos.
+-   **Motor de Vista Previa (*Preview*) con Diff No Destructivo:**
+    -   Carga analítica en memoria sin persistencia inmediata (`POST /api/contratos/{id}/preview-importar-entidad` y `POST /api/contratos/{id}/preview-importar-medicos`).
+    -   Desglose exhaustivo de impacto:
+        -   *Altas:* Nuevos procedimientos que se incorporan al tarifario.
+        -   *Tarifas Actualizadas:* Procedimientos existentes con variación de valor económico.
+        -   *Retiros / Bajas Lógicas:* Registros que no figuren en la nueva plantilla reciben baja lógica (`estado = 0` y `fecha_retiro = now()`). **Prohibición estricta de `DELETE` físico**, garantizando la inmutabilidad y trazabilidad de lecturas ya facturadas. Si un procedimiento retirado vuelve a incluirse en el futuro, se reactiva automáticamente (`estado = 1`, `fecha_retiro = null`).
+        -   *Sin Cambios:* Registros con tarifas idénticas que se conservan intactos.
+    -   Modal interactivo de vista previa (`#modalPreviewDiff`) con métricas KPI, pestañas de navegación asistencial y botón de confirmación transaccional (`POST /api/contratos/{id}/confirmar-importar-entidad` y `POST /api/contratos/{id}/confirmar-importar-medicos`).
+-   **Auditoría de Cobertura Institucional:**
+    -   Endpoint `GET /api/contratos/{id}/cobertura`: Cruza en tiempo real el catálogo de productos institucionales exigibles contra los procedimientos con tarifa vigente en el contrato, alertando sobre CUPS que carecen de tarifa activa.
+-   **Drawer de Detalle del Contrato (Visualización y Filtrado Reactivo):**
+    -   Panel deslizable lateral `.right-sidebar` con selector dinámico que lista **únicamente los médicos lectores vinculados** a dicho contrato.
+    -   Filtrado reactivo condicional (`GET /api/contratos/{contratoId}/medicos-productos`):
+        -   *Con médico seleccionado:* Muestra los productos y tarifas duales acordadas con ese especialista (`valor_contrato`, `valor_consulta`, `valor_urgencias`).
+        -   *Sin médico / "Todos los productos":* Lista la totalidad de productos contratados institucionalmente con su `valor_contrato` y valores médicos en `—`.
+    -   Manejo adaptativo de estados vacíos (contratos con productos institucionales pero sin médicos lectores asociados aún), informando al usuario y brindando acceso directo al botón de importación.
+    -   Buscador reactivo por CUPS o nombre del producto en tiempo real.
+    -   Estructura estricta de 5 columnas: `CUPS`, `Producto`, `Val Contratado`, `Consulta` y `Hospitalización/Urg`.
+-   **UI, Ergonomía y Atajos:**
+    -   Pantalla web en `/contratos`, formularios con validación semántica y envío por teclado (`Enter`), atajo `Escape` para cierre jerárquico de modales y drawers, y compatibilidad total con el modo oscuro clínico (`dark-theme.css`).
 
-### 12. Liquidación
+### 12. Liquidación y Productividad Médica
 
-**Propósito:** Calcular y reportar cuánto se le debe a cada médico por periodo.
+**Propósito:** Cálculo automatizado, auditoría tarifaria y reportes de liquidación de honorarios para médicos radiólogos lectores según su producción asistencial real por sede y período.
 
--   Cálculo a demanda por sede + rango de fechas, con filtros opcionales de contrato y médico. Prioridad Alta → `valor_urgencias`, resto → `valor_consulta`.
--   Cada lectura congela su línea en `liquidacion_lineas` (valor inmutable para el corte); lo no liquidable queda con su categoría de exclusión visible.
--   Productividad por médico para el corte de mes, con detalle de producción y export a Excel. UI: `/liquidacion`, `/productividad`.
--   Solo el médico asignado puede registrar la lectura (`leerEstudio`: 422 sin asignado, 403 otro médico).
--   API: `/api/liquidacion`, `/api/liquidacion/productividad`, `/api/liquidacion/exportar` (permisos `liquidacion.index`, `liquidacion.exportar`).
+-   **Motor de Liquidación Asistencial (`LiquidacionService`):**
+    -   Valoración de estudios leídos e informados (`estudios_productos.fechor_lectura`) en el rango de fechas seleccionado y pertenecientes a la sede hospitalaria activa.
+    -   Cruce temporal automatizado con el contrato vigente de la sede en la fecha exacta del informe radiológico.
+    -   **Ponderación Tarifaria Dual según Prioridad Médica:**
+        -   *Prioridad Alta (`Urgencias / Hospitalización`):* Se liquida automáticamente bajo la tarifa `valor_urgencias` pactada con el médico lector.
+        -   *Prioridades Media, Baja y Normal (`Consulta Externa / Ambulatoria`):* Se liquida bajo la tarifa `valor_consulta`.
+-   **Matriz de Exclusiones Visibles (Auditoría Forense Cero Ocultamiento):**
+    -   Los estudios que no cumplen las condiciones contractuales **nunca se descartan en silencio**; se clasifican y presentan al auditor en 5 categorías de exclusión con conteos y motivos detallados:
+        1.  `sin_asignado`: Estudio interpretado sin radiólogo formalmente asignado en el sistema.
+        2.  `sin_contrato`: Lectura efectuada en una fecha fuera de la vigencia de cualquier contrato activo en la sede.
+        3.  `producto_sin_tarifa`: Procedimiento CUPS no contratado en la sede hospitalaria.
+        4.  `medico_fuera_detalle`: El médico lector no tiene tarifa pactada para ese CUPS específico en el contrato.
+        5.  `anulada`: Estudio o procedimiento marcado como inactivo o anulado administrativamente.
+    -   Cada ítem excluido detalla: ID de estudio, fecha de lectura, identificación y nombre completo del paciente, médico lector, código CUPS, nombre del producto y causa asistencial exacta.
+-   **Inmutabilidad y Congelamiento de Cortes (`liquidacion_lineas`):**
+    -   Al registrar o cerrar una lectura, el sistema congela de forma atómica su línea en la tabla `liquidacion_lineas` con el valor económico calculado en ese instante.
+    -   Garantiza inmutabilidad histórica: posteriores renegociaciones contractuales o modificaciones de tarifas en contratos **jamás alteran** las liquidaciones de cortes mensuales pasados ya consolidados o facturados.
+-   **Reporte Gerencial de Productividad Médica (`/productividad`):**
+    -   Análisis consolidado mensual (`YYYY-MM`) por médico especialista a partir de los datos congelados.
+    -   Métricas por profesional: volumen de lecturas efectuadas, discriminación por modalidad diagnóstica (Rayos X, Tomografía, Resonancia, Mamografía, Ecografías), montos acumulados en consulta externa vs urgencias y gran total a pagar.
+-   **Exportación Institucional a Excel (Maatwebsite Excel):**
+    -   **`LiquidacionExport.php` (`/api/liquidacion/exportar`):** Hoja de cálculo con encabezados corporativos *Salud Tolima / LIDiag*, resumen ejecutivo por médico lector con subtotales, matriz detallada de estudios liquidados y hoja anexa con el desglose de exclusiones para auditoría y facturación.
+    -   **`ProductividadExport.php` (`/api/liquidacion/productividad/exportar`):** Consolidado mensual para nómina y contabilidad con subtotales por radiólogo y resumen de producción.
+-   **UI, Rendimiento y Accesibilidad:**
+    -   Pantallas web en `/liquidacion` y `/productividad` con integración multi-sede reactiva vía bus de eventos `mitt` (`sedeSeleccionada`), formularios semánticos con `@submit.prevent`, persistencia de sede activa (`ST-sede`), autofoco en modales de exclusión y notificaciones toast no invasivas.
+    -   API protegida por permisos Spatie: `liquidacion.index` y `liquidacion.exportar`.
 
 ### 13. Admisión y Modality Worklist (MWL DICOM)
 
@@ -856,7 +954,7 @@ El frontend está organizado como **componentes Vue montados en vistas Blade**. 
 - **Agenda**: `resources/js/components/modulos/agenda/*`
   - Disponibilidad/agenda.
 - **Seguridad**: `resources/js/components/modulos/seguridad/*`
-  - Usuarios, roles y perfil.
+  - Usuarios (`usuarioComponent.vue`: ciclo de vida, activación por correo, reseteo manual/temporal, asignación de roles/sedes/servicios/módulos, firmas), roles y permisos (`roleComponente.vue`), perfil (`usuarioPerfil.vue`), auditoría forense (`auditLogComponent.vue`), monitor de backups (`backupMonitorComponent.vue`) y tokens de sedes Edge (`seguridadTokensComponent.vue`).
 - **Reportes**: `resources/js/components/modulos/reportes/*`
   - Centro de reportes de producción (`reporteProduccionComponent.vue`) y auditoría de estudios en servidores PACS (`reporteEstudiosPACComponent.vue`).
 - **Tele radiología**: `resources/js/components/modulos/tele-radiologia/*`

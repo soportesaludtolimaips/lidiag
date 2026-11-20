@@ -37,6 +37,17 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-20 — Actualización de Documentación del Módulo de Seguridad (`README.md` y `docs/CONTROLLERS.md`):**
+  - Se expandió la sección `10. Seguridad y Auditoría` en `README.md` con la documentación detallada del ciclo de vida de identidades:
+    * Flujo de Creación y Activación por Correo Electrónico (`ActivarCuentaNotification`, token de 60 min, vista `activar.blade.php`, `PasswordRules::nueva()`).
+    * Flujo de Restablecimiento Manual por Correo desde la tabla de usuarios (`RestablecerPasswordEmailNotification`, modal SweetAlert2, `loadingEmailResetId`).
+    * Restablecimiento Administrativo Inmediato con contraseña temporal de alta entropía y bandera de cambio obligatorio (`forzar_cambio`).
+    * Semáforos y badges de estado (`Activo`, `Inactivo`, `Activación pendiente`, `Cambio pendiente`).
+    * Asignación multidimensional de roles Spatie, sedes asistenciales, servicios de cita, módulos y firmas médicas digitalizadas.
+    * Gestión de roles y permisos granulares, comandos CLI de auditoría (`permissions:audit`, `sync:missing-permissions`, `permissions:cache-reset`) y perfil de usuario.
+  - Se actualizaron los componentes frontend del módulo de seguridad en la sección de frontend de `README.md`.
+  - Se documentaron en `docs/CONTROLLERS.md` los métodos `restablecerPassword` y `enviarResetEmail` en `UserController.php`, y el controlador `AccountActivationController.php` en el módulo de Autenticación.
+
 - [x] **2026-11-20 — Refactorización UI/UX del Módulo de Consulta Oftalmológica (`oftalmologiaConsultaComponent.vue`):**
   - **Diagnóstico y Contexto:**
     * El componente `oftalmologiaConsultaComponent.vue` abría inicialmente un formulario clínico en blanco con textos de "Cargando paciente..." y un estilo visual ajeno al ecosistema LIDIAG.
