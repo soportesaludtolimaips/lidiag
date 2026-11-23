@@ -103,27 +103,31 @@ export async function createAudioRecorderSession({
         if (event && event.data && event.data.size) chunks.push(event.data);
     };
 
-    let autoResumeTimer = null;
     let isRecording = false;
     mediaRecorder.onpause = () => {
-        clearTimeout(autoResumeTimer);
-        autoResumeTimer = setTimeout(() => {
-            if (mediaRecorder && mediaRecorder.state === "paused" && isRecording) {
+        if (isRecording && mediaRecorder && mediaRecorder.state === "paused") {
+            try {
                 mediaRecorder.resume();
-            }
-        }, 500);
+            } catch {}
+        }
     };
 
     const start = () => {
         isRecording = true;
-        mediaRecorder.start();
+        try {
+            mediaRecorder.start(1000);
+        } catch {
+            mediaRecorder.start();
+        }
     };
 
     const pause = () => {
+        isRecording = false;
         if (mediaRecorder.state === "recording") mediaRecorder.pause();
     };
 
     const resume = () => {
+        isRecording = true;
         if (mediaRecorder.state === "paused") mediaRecorder.resume();
     };
 
@@ -132,13 +136,13 @@ export async function createAudioRecorderSession({
     const stop = () =>
         new Promise((resolve) => {
             isRecording = false;
-            clearTimeout(autoResumeTimer);
             if (!mediaRecorder || mediaRecorder.state === "inactive") {
                 resolve({ blob: null, url: null, chunks, revoke: () => {} });
                 return;
             }
             mediaRecorder.onstop = () => {
-                const blob = new Blob(chunks, { type: "audio/webm" });
+                const mime = mediaRecorder.mimeType || "audio/webm";
+                const blob = new Blob(chunks, { type: mime });
                 const url = URL.createObjectURL(blob);
                 lastUrl = url;
                 resolve({
@@ -153,12 +157,15 @@ export async function createAudioRecorderSession({
                     },
                 });
             };
-            mediaRecorder.stop();
+            try {
+                mediaRecorder.stop();
+            } catch {
+                resolve({ blob: null, url: null, chunks, revoke: () => {} });
+            }
         });
 
     const cleanup = () => {
         isRecording = false;
-        clearTimeout(autoResumeTimer);
         try {
             if (stream && stream.getTracks) stream.getTracks().forEach((t) => t.stop());
         } catch {}

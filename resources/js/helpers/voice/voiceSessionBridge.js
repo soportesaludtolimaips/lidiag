@@ -100,7 +100,7 @@ export function createVoiceSessionBridge({
 /**
  * Hook para usar en el componente Vue
  */
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, shallowRef, onMounted, onUnmounted } from "vue";
 
 /**
  * Hook de Vue que conecta el puente de sesion de voz y expone el estado remoto reactivo.
@@ -114,10 +114,10 @@ import { ref, onMounted, onUnmounted } from "vue";
 export function useVoiceSessionBridge() {
     const isRemoteActive = ref(false);
     const remoteTranscript = ref("");
-    let bridge = null;
+    const bridge = shallowRef(null);
 
     onMounted(() => {
-        bridge = createVoiceSessionBridge({
+        bridge.value = createVoiceSessionBridge({
             onTranscript: (text, _isFinal) => {
                 remoteTranscript.value = text;
             },
@@ -128,8 +128,9 @@ export function useVoiceSessionBridge() {
     });
 
     onUnmounted(() => {
-        if (bridge) {
-            bridge.close();
+        if (bridge.value) {
+            bridge.value.close();
+            bridge.value = null;
         }
     });
 

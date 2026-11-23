@@ -140,13 +140,14 @@ export function createSpeechDictation({
      *
      * @date 2026-02-13
      */
-    const scheduleRestart = () => {
+    const scheduleRestart = (customDelayMs = null) => {
         clearRestart();
         if (!recognizing) return;
+        const delay = customDelayMs !== null ? customDelayMs : Math.max(100, backoffMs || 300);
         restartTimer = setTimeout(() => {
             if (!recognizing) return;
             safeStart();
-        }, backoffMs || 500);
+        }, delay);
     };
 
     recognition.onstart = () => {
@@ -179,7 +180,10 @@ export function createSpeechDictation({
     recognition.onend = () => {
         active = false;
         onState({ recognizing, active, lastError });
-        if (recognizing) scheduleRestart();
+        if (recognizing) {
+            const delay = lastError === "aborted" ? 150 : null;
+            scheduleRestart(delay);
+        }
     };
 
     recognition.onerror = (event) => {
@@ -187,7 +191,7 @@ export function createSpeechDictation({
         lastError = err || null;
         onState({ recognizing, active, lastError });
 
-        // permisos
+        // Permisos denegados definitivamente
         if (err === "not-allowed" || err === "service-not-allowed" || err === "permission-denied") {
             recognizing = false;
             clearRestart();
@@ -198,25 +202,30 @@ export function createSpeechDictation({
             return;
         }
 
+        // Si se abortó (por ejemplo, al cambiar de ventana o foco), no cancelar; reanudar rápidamente
+        if (err === "aborted") {
+            if (recognizing) {
+                scheduleRestart(150);
+            }
+            return;
+        }
+
         if (err === "no-speech") {
             noSpeechCount += 1;
+            // Backoff suave para evitar desconexiones bruscas
             backoffMs = Math.min(
                 maxBackoffMs,
-                Math.max(baseBackoffMs, (backoffMs || baseBackoffMs) * 2)
+                Math.max(baseBackoffMs, (backoffMs || baseBackoffMs) * 1.5)
             );
             if (noSpeechCount >= maxNoSpeechRetries) {
-                recognizing = false;
-                clearRestart();
-                try {
-                    recognition.stop();
-                } catch {}
-                onError({ error: err, message: "Silencio repetido" });
-                return;
+                // No detener dictado bruscamente si el médico está leyendo una placa en silencio; reintentar con backoff tope
+                noSpeechCount = 0;
+                backoffMs = maxBackoffMs;
             }
         }
 
         if (err === "no-speech" || err === "network") {
-            // detener: el reinicio queda en onend
+            // El reinicio seguro queda programado en onend
             try {
                 recognition.stop();
             } catch {}
@@ -234,6 +243,7 @@ export function createSpeechDictation({
 
     const pause = () => {
         recognizing = false;
+        active = false;
         clearRestart();
         try {
             recognition.stop();
@@ -242,7 +252,6 @@ export function createSpeechDictation({
     };
 
     const resume = () => {
-        if (recognizing) return;
         recognizing = true;
         clearRestart();
         safeStart();
@@ -251,6 +260,7 @@ export function createSpeechDictation({
 
     const stop = () => {
         recognizing = false;
+        active = false;
         clearRestart();
         try {
             recognition.onend = null;

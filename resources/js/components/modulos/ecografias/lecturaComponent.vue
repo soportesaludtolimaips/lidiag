@@ -36,113 +36,14 @@
                 </button>
                 <i
                     class="fa fa-life-ring model_img img-responsive text-info"
-                    data-toggle="modal"
-                    data-target=".bs-example-modal-lg"
+                    @click="modalAyudaVisible = true"
+                    role="button"
                     title="Comandos de voz"
+                    tabindex="0"
                 ></i>
             </div>
-            <!-- sample modal content -->
-            <div
-                class="modal fade bs-example-modal-lg"
-                tabindex="-1"
-                role="dialog"
-                aria-labelledby="myLargeModalLabel"
-                aria-hidden="true"
-                style="display: none"
-            >
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h4 class="modal-title" id="myLargeModalLabel">Comando de voz</h4>
-                            <button
-                                type="button"
-                                class="close"
-                                data-dismiss="modal"
-                                aria-hidden="true"
-                            >
-                                ×
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <ul>
-                                        <li>iniciar mayúscula sostenida</li>
-                                        <li>iniciar mayúsculas sostenida</li>
-                                        <li>iniciar mayúsculas</li>
-                                        <li>iniciar mayúscula</li>
-                                        <li>mayúsculas sostenida</li>
-                                        <li>mayúscula sostenida</li>
-                                        <li>activar mayúsculas</li>
-                                        <li>activar mayúscula</li>
-                                        <li>habilitar mayúsculas</li>
-                                        <li>habilitar mayúscula</li>
-                                        <li>activare mayúsculas</li>
-                                        <li>activare mayúscula</li>
-                                        <li>desactivar mayúsculas</li>
-                                        <li>desactivar mayúscula</li>
-                                        <li>Deshabilitar mayúsculas</li>
-                                        <li>Deshabilitar mayúscula</li>
-                                        <li>terminar mayúsculas</li>
-                                        <li>terminar mayúscula</li>
-                                        <li>fin mayúsculas</li>
-                                        <li>fin mayúscula</li>
-                                        <li>finaliza mayúsculas</li>
-                                        <li>finaliza mayúscula</li>
-                                        <li>finalizar mayúsculas</li>
-                                        <li>finalizar mayúscula</li>
-                                        <li>punto aparte</li>
-                                        <li>salto de línea</li>
-                                        <li>doble salto de línea</li>
-                                    </ul>
-                                </div>
-                                <div class="col-md-6">
-                                    <ul>
-                                        <li>enter</li>
-                                        <li>doble enter</li>
-                                        <li>línea en blanco</li>
-                                        <li>dar espacio</li>
-                                        <li>un espacio</li>
-                                        <li>dos espacio</li>
-                                        <li>doble espacio</li>
-                                        <li>punto</li>
-                                        <li>coma</li>
-                                        <li>dos puntos</li>
-                                        <li>punto y coma</li>
-                                        <li>abrir paréntesis</li>
-                                        <li>cerrar paréntesis</li>
-                                        <li>abrir corchetes</li>
-                                        <li>cerrar corchetes</li>
-                                        <li>abrir llaves</li>
-                                        <li>cerrar llaves</li>
-                                        <li>abrir comillas</li>
-                                        <li>cerrar comillas</li>
-                                        <li>abrir comillas simples</li>
-                                        <li>cerrar comillas simples</li>
-                                        <li>guion</li>
-                                        <li>guion bajo</li>
-                                        <li>barra diagonal</li>
-                                        <li>barra invertida</li>
-                                        <li>nueva oración</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button
-                                type="button"
-                                class="btn btn-danger waves-effect text-left"
-                                data-dismiss="modal"
-                            >
-                                Close
-                            </button>
-                        </div>
-                    </div>
-                    <!-- /.modal-content -->
-                </div>
-                <!-- /.modal-dialog -->
-            </div>
-            <!-- /.modal -->
+            <!-- Modal de comandos de voz reutilizable -->
+            <VoiceModal v-model="modalAyudaVisible" />
         </div>
         <!-- ============================================================== -->
         <!-- End Bread crumb and right sidebar toggle -->
@@ -985,6 +886,7 @@ function toggleZenMode() {
 
 import usePermissions from "@/helpers/permissions.js";
 import { toastMessage } from "@/helpers/alerts";
+import VoiceModal from "@/components/comunes/VoiceModal.vue";
 import { createVoiceSession } from "@/helpers/voice/voiceSession";
 import medicalReplacements from "@/data/medical_replacements.json";
 import medicalTermsRaw from "@/data/terminos_medicos.txt?raw";
@@ -1045,6 +947,7 @@ const url = ref("");
 const microfono = ref("admin-wrap/assets/images/mic.gif");
 const voiceSession = ref(null);
 const voiceState = ref("inactive");
+const modalAyudaVisible = ref(false);
 const uppercase = ref(false);
 const capitalizeNext = ref(false);
 const medicalReplCompiled = ref(null);
@@ -1490,12 +1393,22 @@ function getUppercaseCommands() {
  */
 function getLineBreakCommands() {
     return {
-        "punto aparte": () => ".\nn",
+        "punto aparte": () => ".\n\n",
+        "punto a parte": () => ".\n\n",
+        "punto y aparte": () => ".\n\n",
+        "nuevo párrafo": () => "\n\n",
+        "nueva sección": () => "\n\n---\n\n",
+        separador: () => "\n\n---\n\n",
         "salto de línea": () => "\n",
-        "doble salto de línea": () => "\nn",
+        "salto de linea": () => "\n",
+        "doble salto de línea": () => "\n\n",
+        "doble salto de linea": () => "\n\n",
         enter: () => "\n",
-        "doble enter": () => "\nn",
-        "línea en blanco": () => "\nn",
+        "doble enter": () => "\n\n",
+        "línea en blanco": () => "\n\n",
+        "linea en blanco": () => "\n\n",
+        "doble línea en blanco": () => "\n\n\n\n",
+        "doble linea en blanco": () => "\n\n\n\n",
     };
 }
 /**
@@ -1513,15 +1426,33 @@ function getPunctuationCommands() {
             capitalizeNext.value = true;
             return ".";
         },
+        "punto y seguido": () => {
+            capitalizeNext.value = true;
+            return ". ";
+        },
+        "punto seguido": () => {
+            capitalizeNext.value = true;
+            return ". ";
+        },
         coma: () => ",",
-        "dos puntos": () => ":",
-        "punto y coma": () => ";",
+        "dos puntos": () => {
+            capitalizeNext.value = true;
+            return ": ";
+        },
+        "dos puntos aparte": () => {
+            capitalizeNext.value = true;
+            return ":\n\n";
+        },
+        "punto y coma": () => "; ",
         "dar espacio": () => " ",
         "un espacio": () => " ",
+        "dos espacios": () => "  ",
         "dos espacio": () => "  ",
         "doble espacio": () => "  ",
         "abrir paréntesis": () => "(",
+        "abrir parentesis": () => "(",
         "cerrar paréntesis": () => ")",
+        "cerrar parentesis": () => ")",
         "abrir corchetes": () => "[",
         "cerrar corchetes": () => "]",
         "abrir llaves": () => "{",
@@ -1531,10 +1462,36 @@ function getPunctuationCommands() {
         "abrir comillas simples": () => "'",
         "cerrar comillas simples": () => "'",
         guion: () => "-",
+        "guion medio": () => "-",
         "guion bajo": () => "_",
         "barra diagonal": () => "/",
+        barra: () => "/",
         "barra invertida": () => "\\",
-        "nueva oración": () => ". ",
+        "nueva oración": () => {
+            capitalizeNext.value = true;
+            return ". ";
+        },
+        "nueva oracion": () => {
+            capitalizeNext.value = true;
+            return ". ";
+        },
+        "por ciento": () => "%",
+        porciento: () => "%",
+        menos: () => "-",
+        más: () => "+",
+        mas: () => "+",
+        igual: () => "=",
+        multiplicar: () => "×",
+        dividir: () => "÷",
+        asterisco: () => "*",
+        numeral: () => "#",
+        hashtag: () => "#",
+        ampersand: () => "&",
+        arroba: () => "@",
+        dólar: () => "$",
+        dolar: () => "$",
+        pesos: () => "$",
+        euro: () => "€",
     };
 }
 /**
@@ -1567,6 +1524,24 @@ function getAllVoiceCommands() {
     return { uppercaseCommands, lineBreakCommands, punctuationCommands };
 }
 /**
+ * Normaliza dígitos dictados ante palabras de comandos (ej. '2 puntos' a 'dos puntos').
+ *
+ * @param {string} texto Texto a normalizar.
+ *
+ * @returns {string}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-11-23
+ */
+function normalizarDigitosComando(texto) {
+    const mapa = { 1: "un", 2: "dos" };
+    return String(texto || "").replace(/\b(\d{1,2})\s+(puntos?|espacios?)\b/gi, (m, n, resto) => {
+        const palabra = mapa[parseInt(n, 10)];
+        return palabra ? `${palabra} ${resto}` : m;
+    });
+}
+/**
  * Procesa el texto dictado aplicando los comandos de voz, mayúsculas sostenidas y capitalización de nuevas oraciones.
  *
  * @param {string} text Texto reconocido por voz a procesar.
@@ -1579,7 +1554,7 @@ function getAllVoiceCommands() {
  */
 function processCommands(text) {
     const { uppercaseCommands, lineBreakCommands, punctuationCommands } = getAllVoiceCommands();
-    let out = String(text ?? "");
+    let out = normalizarDigitosComando(String(text ?? ""));
     out = applyCommandMap(out, uppercaseCommands);
     out = applyCommandMap(out, lineBreakCommands, {
         onEachMatch: () => {
@@ -1589,10 +1564,22 @@ function processCommands(text) {
     out = applyCommandMap(out, punctuationCommands);
     out = uppercase.value ? out.toUpperCase() : out;
     if (capitalizeNext.value) {
-        out = out.replace(/(^|\n)(\s*)([a-záéíóúüñ])/i, (m, start, spaces, first) => {
+        out = out.replace(/\n\n(\s*)([a-záéíóúüñ])/i, (m, spaces, first) => {
             capitalizeNext.value = false;
-            return `${start}${spaces}${first.toUpperCase()}`;
+            return `\n\n${spaces}${first.toUpperCase()}`;
         });
+        if (capitalizeNext.value) {
+            out = out.replace(/(^|\. |\.\n)(\s*)([a-záéíóúüñ])/i, (m, start, spaces, first) => {
+                capitalizeNext.value = false;
+                return `${start}${spaces}${first.toUpperCase()}`;
+            });
+        }
+        if (capitalizeNext.value) {
+            out = out.replace(/(^|\n)(\s*)([a-záéíóúüñ])/i, (m, start, spaces, first) => {
+                capitalizeNext.value = false;
+                return `${start}${spaces}${first.toUpperCase()}`;
+            });
+        }
     }
     return out;
 }
@@ -1628,7 +1615,7 @@ function ensureVoiceSession() {
             if (!text) return;
 
             // Añadir a lectura (mantener comportamiento: espacio si no termina en espacio/salto)
-            const suffix = /[ n]$/.test(text) ? "" : " ";
+            const suffix = /[ \n]$/.test(text) ? "" : " ";
             registro.value.lectura = String(registro.value.lectura || "") + text + suffix;
         },
         onPermissionDenied: () => {
@@ -1642,6 +1629,7 @@ function ensureVoiceSession() {
             });
         },
         onError: (e) => {
+            const err = e && e.error ? String(e.error) : "";
             if (e && e.message === "Silencio repetido") {
                 voiceState.value = "inactive";
                 microfono.value = "admin-wrap/assets/images/mic.gif";
@@ -1651,6 +1639,22 @@ function ensureVoiceSession() {
                     icon: "warning",
                     hideAfter: 6000,
                 });
+            } else if (err.includes("not-allowed")) {
+                voiceState.value = "inactive";
+                microfono.value = "admin-wrap/assets/images/mic.gif";
+                toastMessage({
+                    heading: "Micrófono bloqueado",
+                    text: "Permite el acceso al micrófono en la configuración del navegador.",
+                    icon: "error",
+                    hideAfter: 6000,
+                });
+            } else if (err.includes("aborted")) {
+                if (voiceState.value === "active" && voiceSession.value) {
+                    try {
+                        const dict = voiceSession.value.getDictation?.();
+                        if (dict) dict.resume();
+                    } catch {}
+                }
             }
         },
     });
@@ -1714,6 +1718,52 @@ function stopVoice() {
     }
     voiceState.value = "inactive";
     microfono.value = "admin-wrap/assets/images/mic.gif";
+}
+/**
+ * Reanuda el reconocimiento de voz si la pestaña vuelve a estar visible y el dictado sigue activo.
+ *
+ * Flujo del proceso:
+ * 1. Verifica si el estado del dictado es activo y existe una sesión de voz.
+ * 2. Comprueba si el dictador de voz se encuentra inactivo.
+ * 3. Ejecuta resume() para restaurar la escucha sin intervención del usuario.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-11-23
+ */
+function handleVoiceVisibilityChange() {
+    if (voiceState.value !== "active" || !voiceSession.value) return;
+    try {
+        const dict = voiceSession.value.getDictation?.();
+        if (dict && !dict.getState().active) {
+            dict.resume();
+        }
+    } catch {}
+}
+/**
+ * Reanuda el reconocimiento de voz cuando la ventana del navegador recupera el foco.
+ *
+ * Flujo del proceso:
+ * 1. Verifica si el dictado está marcado como activo en el componente.
+ * 2. Comprueba si la instancia de dictado subyacente se detuvo.
+ * 3. Invoca resume() en la sesión de voz para reanudar el flujo continuo.
+ *
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-11-23
+ */
+function handleVoiceWindowFocus() {
+    if (voiceState.value !== "active" || !voiceSession.value) return;
+    try {
+        const dict = voiceSession.value.getDictation?.();
+        if (dict && !dict.getState().active) {
+            dict.resume();
+        }
+    } catch {}
 }
 /**
  * Inicia el sondeo periódico del estado de envío a SAHI para la ecografía producto actual.
@@ -2676,12 +2726,16 @@ onMounted(() => {
         emitter.emit("solicitarSedeActiva");
     }
     window.addEventListener("keydown", handleKeydown);
+    document.addEventListener("visibilitychange", handleVoiceVisibilityChange);
+    window.addEventListener("focus", handleVoiceWindowFocus);
 
     url.value = window.location.pathname;
 });
 
 onBeforeUnmount(() => {
     window.removeEventListener("keydown", handleKeydown);
+    document.removeEventListener("visibilitychange", handleVoiceVisibilityChange);
+    window.removeEventListener("focus", handleVoiceWindowFocus);
     emitter.off("sedeSeleccionada", onSedeSeleccionada);
     emitter.off("medicoSeleccionado", onMedicoSeleccionado);
     detenerAutoguardado();

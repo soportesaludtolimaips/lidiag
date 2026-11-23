@@ -47,13 +47,33 @@ export function useDictationFlow() {
     let onKeydownHandler = null;
 
     function handleVisibilityChange() {
+        if (!recording.value) return;
+
+        // Reanudar MediaRecorder si el navegador lo pausó en segundo plano
+        if (mediaRecorder.value && mediaRecorder.value.state === "paused") {
+            try {
+                mediaRecorder.value.resume();
+            } catch {}
+        }
+
+        // Reanudar el reconocimiento de voz si sigue marcado como reconociendo pero se detuvo
         if (
-            !document.hidden &&
-            recording.value &&
-            mediaRecorder.value &&
-            mediaRecorder.value.state === "paused"
+            recognizing.value &&
+            (!recognitionActive.value || !dictation.value?.getState().active)
         ) {
-            mediaRecorder.value.resume();
+            try {
+                resumeRecognition();
+            } catch {}
+        }
+    }
+
+    function handleWindowFocus() {
+        if (recording.value && recognizing.value) {
+            if (!recognitionActive.value || !dictation.value?.getState().active) {
+                try {
+                    resumeRecognition();
+                } catch {}
+            }
         }
     }
 
@@ -186,11 +206,15 @@ export function useDictationFlow() {
         },
         separador: () => "\n\n---\n\n",
         "salto de línea": () => "\n",
+        "salto de linea": () => "\n",
         "doble salto de línea": () => "\n\n",
+        "doble salto de linea": () => "\n\n",
         enter: () => "\n",
         "doble enter": () => "\n\n",
         "línea en blanco": () => "\n\n",
+        "linea en blanco": () => "\n\n",
         "doble línea en blanco": () => "\n\n\n\n",
+        "doble linea en blanco": () => "\n\n\n\n",
     };
 
     const punctuationCommands = {
@@ -209,19 +233,22 @@ export function useDictationFlow() {
         coma: () => ",",
         "dos puntos": () => {
             capitalizeNext.value = true;
-            return ":";
+            return ": ";
         },
         "dos puntos aparte": () => {
             capitalizeNext.value = true;
             return ":\n\n";
         },
-        "punto y coma": () => ";",
+        "punto y coma": () => "; ",
         "dar espacio": () => " ",
         "un espacio": () => " ",
+        "dos espacios": () => "  ",
         "dos espacio": () => "  ",
         "doble espacio": () => "  ",
         "abrir paréntesis": () => "(",
+        "abrir parentesis": () => "(",
         "cerrar paréntesis": () => ")",
+        "cerrar parentesis": () => ")",
         "abrir corchetes": () => "[",
         "cerrar corchetes": () => "]",
         "abrir llaves": () => "{",
@@ -231,24 +258,35 @@ export function useDictationFlow() {
         "abrir comillas simples": () => "'",
         "cerrar comillas simples": () => "'",
         guion: () => "-",
+        "guion medio": () => "-",
         "guion bajo": () => "_",
         "barra diagonal": () => "/",
+        barra: () => "/",
         "barra invertida": () => "\\",
         "nueva oración": () => {
             capitalizeNext.value = true;
             return ". ";
         },
+        "nueva oracion": () => {
+            capitalizeNext.value = true;
+            return ". ";
+        },
         "por ciento": () => "%",
+        porciento: () => "%",
         menos: () => "-",
         más: () => "+",
+        mas: () => "+",
         igual: () => "=",
         multiplicar: () => "×",
         dividir: () => "÷",
         asterisco: () => "*",
         numeral: () => "#",
+        hashtag: () => "#",
         ampersand: () => "&",
         arroba: () => "@",
         dólar: () => "$",
+        dolar: () => "$",
+        pesos: () => "$",
         euro: () => "€",
     };
 
@@ -309,20 +347,42 @@ export function useDictationFlow() {
     function processCommands(text) {
         if (typeof uppercase.value === "undefined") uppercase.value = false;
         prepareVoiceCommands();
+
+        // 1. Normalizar números o expresiones comunes previas
+        text = normalizarDigitosComando(text);
+
+        // 2. Aplicar mayúsculas continuas
         text = applyCommandMap(text, uppercaseCommands);
+
+        // 3. Aplicar saltos de línea y formateo
         text = applyCommandMap(text, lineBreakCommands, {
             onEachMatch: () => {
                 capitalizeNext.value = true;
             },
         });
+
+        // 4. Aplicar puntuación y símbolos
         text = applyCommandMap(text, punctuationCommands);
         text = applyCommandMap(text, formatCommands);
+
+        // 5. Aplicar mayúscula sostenida si está activa
         text = uppercase.value ? text.toUpperCase() : text;
+
+        // 6. Capitalizar la siguiente letra si hubo un punto o salto de línea
         if (capitalizeNext.value) {
             text = text.replace(/\n\n(\s*)([a-záéíóúüñ])/i, (m, spaces, first) => {
                 capitalizeNext.value = false;
                 return `\n\n${spaces}${first.toUpperCase()}`;
             });
+            if (capitalizeNext.value) {
+                text = text.replace(
+                    /(^|\. |\.\n)(\s*)([a-záéíóúüñ])/i,
+                    (m, start, spaces, first) => {
+                        capitalizeNext.value = false;
+                        return `${start}${spaces}${first.toUpperCase()}`;
+                    }
+                );
+            }
             if (capitalizeNext.value) {
                 text = text.replace(/(^|\n)(\s*)([a-záéíóúüñ])/i, (m, start, spaces, first) => {
                     capitalizeNext.value = false;
@@ -397,24 +457,47 @@ export function useDictationFlow() {
         speechInterim.value = "";
     }
 
+    let autoFlushTimer = null;
+
     function manejarTextoFinal(raw) {
         const trozo = String(raw || "").trim();
+        if (!trozo) return;
+
+        // Cancelar timer de vaciado automático pendiente
+        if (autoFlushTimer) {
+            clearTimeout(autoFlushTimer);
+            autoFlushTimer = null;
+        }
+
         const palabras = [...palabrasPendientes, ...trozo.split(/\s+/).filter(Boolean)];
         palabrasPendientes = [];
         if (!palabras.length) return;
-        console.debug("[Voice] final raw:", JSON.stringify(palabras.join(" ")));
+
         const retener = contarRetencion(palabras);
         const cabeza = palabras.slice(0, palabras.length - retener);
         palabrasPendientes = palabras.slice(palabras.length - retener);
-        if (!cabeza.length) return;
-        const procesado = processCommands(normalizarDigitosComando(cabeza.join(" ")));
-        console.debug("[Voice] final procesado:", JSON.stringify(procesado));
-        emitirTextoFinal(procesado);
+
+        if (cabeza.length > 0) {
+            const procesado = processCommands(cabeza.join(" "));
+            emitirTextoFinal(procesado);
+        }
+
+        // Si quedan palabras retenidas (ej. "punto" esperando ver si sigue "aparte"), programar auto-vaciado
+        // por si el usuario no dice ninguna palabra más después de 800ms
+        if (palabrasPendientes.length > 0) {
+            autoFlushTimer = setTimeout(() => {
+                vaciarPendientesComando();
+            }, 800);
+        }
     }
 
     function vaciarPendientesComando() {
+        if (autoFlushTimer) {
+            clearTimeout(autoFlushTimer);
+            autoFlushTimer = null;
+        }
         if (!palabrasPendientes.length) return;
-        const texto = processCommands(normalizarDigitosComando(palabrasPendientes.join(" ")));
+        const texto = processCommands(palabrasPendientes.join(" "));
         palabrasPendientes = [];
         emitirTextoFinal(texto);
     }
@@ -676,6 +759,7 @@ export function useDictationFlow() {
             // quedar en el editor antes de desmontar la sesión.
             vaciarPendientesComando();
             document.removeEventListener("visibilitychange", handleVisibilityChange);
+            window.removeEventListener("focus", handleWindowFocus);
             clearRecognitionRestartTimer();
             noSpeechCount.value = 0;
             recognitionBackoffMs.value = 500;
@@ -851,6 +935,7 @@ export function useDictationFlow() {
                     recording.value = true;
                     startingRecording.value = false;
                     document.addEventListener("visibilitychange", handleVisibilityChange);
+                    window.addEventListener("focus", handleWindowFocus);
                 })
                 .catch((error) => {
                     recording.value = false;

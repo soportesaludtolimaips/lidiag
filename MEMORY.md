@@ -37,6 +37,89 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-23 — Ejecución del Plan de Correcciones de Auditoría de Voz (Fase 2):**
+  - **Diagnóstico y Correcciones Ejecutadas:**
+    1. *Resiliencia en Ecografías (`lecturaComponent.vue` - B4-R & B4-R2):* Al usar `createVoiceSession` directamente sin `useDictationFlow`, carecía de listeners ante cambios de visibilidad o foco y manejo del error `aborted`. Se incorporaron los listeners `visibilitychange` y `focus` para reanudar el reconocimiento automáticamente cuando el ecografista regresa al sistema tras consultar visores externos (PACS/Oviyam), y se blindó `onError` para reconectar ante `aborted` y `not-allowed`.
+    2. *Paridad de Comandos y Normalización de Dígitos en `lecturaComponent.vue`:* Se corrigió la errata tipográfica `\nn` en `getLineBreakCommands` sustituyéndola por `\n\n`. Se añadieron todos los comandos de formato, saltos y puntuación sin tilde (como `salto de linea`, `linea en blanco`, `punto y aparte`, `abrir parentesis`, `cerrar parentesis`, `porciento`, `dolar`, `pesos`, etc.), y se implementó `normalizarDigitosComando` para normalizar patrones como `2 puntos` a `dos puntos`.
+    3. *Paridad de Timeslice y Prevención de Carreras en Worker (`audioRecordingWorker.js` - W1 & W2):* Se sincronizó el timeslice a `1000ms` (`mediaRecorder.start(1000)`) eliminando la latencia de 3s en background. Se movió `ctx.postMessage({ type: "stopped" })` al interior del callback `onstop` para evitar que la notificación de parada preceda a la consolidación del Blob. Se eliminaron los `console.log` de depuración y se optimizó la auto-reanudación ante `onpause`.
+    4. *Garantía de Estado en `speechDictation.js` (W3):* Se forzó `active = false` en `stop()` y `pause()`, asegurando que `onState` reporte el estado inactivo inmediato sin depender de `onend` (que se anula al detener). Se corrigió `onend` para mantener el reinicio rápido de 150ms cuando el último error registrado fue `aborted`.
+    5. *Reactividad en `voiceSessionBridge.js` (L3):* Se migró la variable interna `bridge` a `shallowRef(null)` en `useVoiceSessionBridge`, garantizando reactividad en Composition API y limpieza segura al desmontar.
+  - **Verificaciones:**
+    * ESLint y Prettier: 0 errores y 0 advertencias en todos los archivos modificados.
+    * Compilación Vite (`npm run build`): Exitosa (2.17s, 313 módulos transformados sin errores).
+- [x] **2026-11-23 — Corrección de Detección de Médicos en Línea y Estado `.profile-status.online`:**
+  - **Diagnóstico del Problema:**
+    1. Al iniciar sesión con un usuario médico (ej: Dr. Carlos Andrés Cortés, ID 36), el badge de médicos en línea en la vista del transcriptor continuaba en 0.
+    2. Causa Backend: `UserService::getMedicosActivos` filtraba obligatoriamente por `sede_id` con `whereHas('sedes')`. Si el médico no tiene sedes asignadas de forma fija (médicos de tele-radiología o transversales), la consulta lo excluía indebidamente.
+    3. Causa Frontend: En el perfil de usuario de la barra superior (`li.nav-item.dropdown.u-pro`), el avatar carecía del elemento visual `.profile-status.online` que la plantilla AdminWrap (`mini-sidebar`) contempla para usuarios conectados.
+  - **Solución Implementada:**
+    * **Backend (`UserService.php`):**
+      - Se flexibilizó el filtro de sede en `getMedicosActivos`: si se especifica `sede_id`, incluye tanto a los médicos asignados a dicha sede como a los médicos globales/tele-radiología que no tienen sede fija (`orDoesntHave('sedes')`).
+    * **Frontend (`userProfileAndSearchComponent.vue`):**
+      - Se incorporó el punto verde `.profile-status.online` sobre el avatar del usuario autenticado en la barra superior y dentro del desplegable `dw-user-box` (`u-img`).
+      - Se verificó la reactividad con polling e invocación de `cargarMedicosActivos` al abrir el dropdown.
+  - **Verificaciones:**
+    * Pint pasado exitosamente (`passed`).
+    * ESLint verificado con 0 errores.
+    * Compilación Vite (`npm run build`) completada exitosamente.
+- [x] **2026-11-23 — Auditoría y Refactorización del Flujo de Voz a Texto, Comandos y Grabación Continua:**
+  - **Diagnóstico de las Fallas:**
+    1. *Falla de comandos de voz:* En `useDictationFlow.js` el buffer de retención (`contarRetencion`) retenía palabras finales (ej. "punto" esperando "aparte" o "seguido"), pero si el médico pausaba el dictado sin pronunciar otra palabra, las palabras quedaban retenidas indefinidamente en `palabrasPendientes` sin emitirse. Además, faltaban variantes ortográficas comunes sin tilde (ej: `salto de linea`, `linea en blanco`, `parentesis`, `dolar`, `mas`, `porciento`).
+    2. *Pérdida/omisión de palabras y falta de fluidez:* El orden de ejecución normalizaba dígitos después de dividir palabras, `capitalizeNext` no contemplaba capitalización inmediata tras signos de puntuación como `.` o `. `, y el búfer carecía de un auto-vaciado por inactividad.
+    3. *Interrupción de grabación al cambiar de pestaña/ventana:* Los navegadores (Chrome/Edge) suspenden o envían error `aborted` a `SpeechRecognition` al perder foco o cambiar de pestaña. En `speechDictation.js`, cualquier error no contemplado detenía el dictado, y `audioRecorder.js` iniciaba `mediaRecorder.start()` sin timeslice (`timeslice=1000`), acumulando datos solo al detenerse o pausarse en background.
+    4. *Código obsoleto:* Existía un composable de términos médicos `useMedicalDictionary.js` que no debía utilizarse, y `VoiceModal.vue` no estaba conectado de forma estándar en los componentes de lectura.
+  - **Solución Implementada:**
+    * **1. Eliminación de Diccionario Médico:** Se eliminó por completo `resources/js/composables/useMedicalDictionary.js`. Se verificó que no existan importaciones residuales.
+    * **2. Refactorización de Helpers de Voz:**
+      - En [`speechDictation.js`](file:///c:/laragon/www/lidiag/resources/js/helpers/voice/speechDictation.js): Se manejó el error `aborted` sin detener el reconocimiento cuando el dictado sigue activo (`recognizing`), programando reanudación inmediata a 150ms. Se atenuó el backoff ante `no-speech` para no cancelar la sesión mientras el radiólogo inspecciona imágenes DICOM.
+      - En [`audioRecorder.js`](file:///c:/laragon/www/lidiag/resources/js/helpers/voice/audioRecorder.js): Se fijó captura continua por trozos `mediaRecorder.start(1000)` para garantizar flujo de audio incluso si la pestaña pasa a background, auto-reanudación inmediata en `onpause` cuando sigue en grabación y blindaje ante paradas accidentales.
+    * **3. Refactorización de `useDictationFlow.js`:**
+      - Escucha de eventos `visibilitychange` y `focus` de ventana para reanudar el reconocimiento y el grabador de audio si fueron pausados o desconectados por el sistema operativo/navegador al cambiar de pestaña/aplicación (ej. visor PACS/Oviyam).
+      - Incorporación de `autoFlushTimer` (800ms) en `manejarTextoFinal`: si el usuario pronuncia un comando o palabra parcial y se detiene a pensar o dictar más tarde, las palabras pendientes se procesan y emiten automáticamente sin perderse.
+      - Ampliación de vocabulario de comandos con variantes tolerantes a transcripción sin tildes y símbolos habituales (`punto y aparte`, `salto de linea`, `linea en blanco`, `abrir parentesis`, `cerrar parentesis`, `porciento`, `dolar`, `pesos`, `mas`, `dos espacios`).
+    * **4. Estandarización de `VoiceModal.vue` y Conexión en Componentes:**
+      - Refactorización de [`VoiceModal.vue`](file:///c:/laragon/www/lidiag/resources/js/components/comunes/VoiceModal.vue) con soporte `v-model` (`modelValue`), backdrop accesible, scroll interno y diseño AdminWrap.
+      - Conexión institucional en [`leerEstudioComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/leerEstudioComponent.vue) y [`lecturaComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/lecturaComponent.vue), eliminando modales HTML duplicados inline.
+  - **Verificaciones:**
+    * ESLint y Prettier: 0 errores y 0 advertencias.
+    * Compilación Vite (`npm run build`): Completada con éxito (generando bundles `estudios-*.js`, `ecografiasLectura-*.js`, etc.).
+- [x] **2026-11-23 — Indicador en Tiempo Real de Médicos en Línea para Transcriptores (`userProfileAndSearchComponent.vue`):**
+  - **Diagnóstico y Requerimiento:**
+    * Los usuarios con rol `Transcriptor` y `Transcriptor RX` requerían conocer en tiempo real qué especialistas médicos se encuentran logueados/activos en el sistema para agilizar el flujo de transcripción y asignación de estudios.
+    * La interfaz debía integrarse en el header global ([`userProfileAndSearchComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/comunes/userProfileAndSearchComponent.vue)) siguiendo los estándares visuales de AdminWrap (`mini-sidebar`) sin saturar la barra superior.
+  - **Solución Implementada:**
+    * **1. Backend (Servicio, Controlador y Rutas):**
+      - En [`UserService.php`](file:///c:/laragon/www/lidiag/app/Services/Seguridad/UserService.php): se implementó `getMedicosActivos(?int $sedeId = null, int $minutosInactividad = 15)` que consulta la tabla `sessions` agrupando por `user_id` donde la última actividad es $\ge$ al umbral definido, filtrando usuarios activos con rol `Medico` e incluyendo sus sedes asociadas y cálculo de tiempo relativo.
+      - En [`UserController.php`](file:///c:/laragon/www/lidiag/app/Http/Controllers/Seguridad/UserController.php): se expuso el método `medicosActivos(Request $request)` bajo autenticación.
+      - En [`routes/api_seguridad.php`](file:///c:/laragon/www/lidiag/routes/api_seguridad.php): se registró la ruta `GET /api/seguridad/medicos-activos`.
+    * **2. Frontend (`userProfileAndSearchComponent.vue`):**
+      - Integración de `useAuth` para restringir la visibilidad exclusivamente a roles `Transcriptor`, `Transcriptor RX` (y administradores del sistema).
+      - UI basada en AdminWrap: icono `<i class="fa fa-user-md"></i>`, badge reactivo con el total de médicos en línea y animación de pulso `.notify` (`.heartbit` y `.point`).
+      - Dropdown estilizado con `.mailbox` y `.message-center` de 360px: avatar con indicador `.profile-status.online`, sedes asociadas, tiempo relativo y botón de refresco manual.
+      - Interacción directa: al hacer clic sobre un médico, se enfoca y selecciona inmediatamente en storage (`ST-medico`, `ST-nomMedico`) y se emite el evento global `medicoSeleccionado` en `emitter` para sincronizar los módulos de lectura/transcripción.
+      - Polling controlado a 45 segundos con backoff en pestañas inactivas y recarga reactiva al recuperar el foco (`visibilitychange`).
+  - **Verificaciones:**
+    * Laravel Pint verificado (`passed` en UserService, UserController y api_seguridad).
+    * ESLint y Prettier verificados (0 errores en `userProfileAndSearchComponent.vue`).
+    * Compilación Vite (`npm run build`) completada exitosamente sin errores.
+- [x] **2026-11-20 — Adaptación de Plantillas Clínicas de Oftalmología (Espinal) & Estandarización UI:**
+  - **Diagnóstico y Requerimiento:**
+    * Se requería estandarizar el componente de administración [`configPlantillasOftalmologiaComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/configuracion/configPlantillasOftalmologiaComponent.vue) al patrón visual estricto de AdminWrap (`configSedeComponent.vue`), corrigiendo la visualización de registros y botones.
+    * Se analizaron las plantillas clínicas de los especialistas del Espinal (Dr. Durán, Dr. Daza, Dra. Riaño, Dra. Escobar, Dr. Miranda y Dr. Acevedo) contenidas en `Documentos/Oftalmologia/PLANTILLAS MEDICOS ESPINAL.docx`.
+  - **Solución Implementada:**
+    * **1. Backend & Seeders:**
+      - En [`ConfigPlantillaOftalmologiaService.php`](file:///c:/laragon/www/lidiag/app/Services/Configuracion/ConfigPlantillaOftalmologiaService.php): se corrigió la inversión de argumentos en `$this->success($plantillas, ...)` y la relación con el médico.
+      - Se creó el seeder [`ConfigPlantillasOftalmologiaSeeder.php`](file:///c:/laragon/www/lidiag/database/seeders/Configuracion/ConfigPlantillasOftalmologiaSeeder.php) con las plantillas completas estructuradas de Examen Físico (AV, MOE, Pupilas, Biomicroscopía, PIO, Fondo de ojo), Anamnesis y Concepto/Plan.
+      - Se registró el seeder en [`DatabaseSeeder.php`](file:///c:/laragon/www/lidiag/database/seeders/DatabaseSeeder.php) y se ejecutó exitosamente en la base de datos.
+    * **2. Frontend (`configPlantillasOftalmologiaComponent.vue`):**
+      - Adaptación completa a AdminWrap con DataTables nativo (`safeInitDataTable`), drawer lateral `.right-sidebar` (sin modales flotantes), breadcrumbs accesibles y badges consistentes.
+    * **3. Frontend (`oftalmologiaConsultaComponent.vue`):**
+      - Se añadió el botón dropdown **"Cargar Plantilla"** en la barra superior de acciones y en la tarjeta del paciente durante la consulta.
+      - Se amplió `aplicarPlantilla` para interpretar JSON estructurado y autocompletar en un solo clic todos los campos del examen físico (AV sc/cc/ph, MOE, Pupilas, Biomicroscopía OD/OI, PIO OD/OI, Fondo OD/OI) y anamnesis con retroalimentación vía `toastMessage`.
+  - **Verificaciones:**
+    * Laravel Pint verificado (`passed`).
+    * ESLint verificado (0 errores).
+    * Compilación de producción con Vite (`npm run build`) exitosa.
 - [x] **2026-11-20 — Filtro Estricto Multisede en Admisión y Búsqueda de Ecografías (`admisionarComponent.vue`, `ecografiasAdmisionadasComponent.vue`, `SAHIEcografiasService.php` y `EcografiaService.php`):**
   - **Diagnóstico del Problema:**
     * Al buscar atenciones para admisionar ecografías en [`admisionarComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/admisionarComponent.vue), o al buscar ecografías admisionadas en [`ecografiasAdmisionadasComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/ecografiasAdmisionadasComponent.vue), no se distinguía la sede seleccionada, consultando la base de datos SQL Server global (`ESP_PRI`) y trayendo ecografías de todas las sedes.
@@ -5882,6 +5965,28 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     - Se añadió validación obligatoria en `guardarRegistro()` con alerta `toastMessage` de advertencia si no se ha seleccionado especialista.
     - Se robusteció `alSeleccionarMedico()` para procesar selecciones directas o en arreglos emitidas por Select2.
   - **Verificación:** ESLint limpio (0 advertencias/errores) ✅ | `npm run build` exitoso ✅.
+
+- [x] **2026-11-20 — Refactorización Integral UI de Plantillas de Oftalmología al Estándar Nativo AdminWrap (`configSedeComponent.vue`):**
+  - **Estandarización UI Estricta:**
+    * Eliminado el modal flotante Bootstrap (`.modal.fade`) y reemplazado por el cajón lateral derecho nativo de la aplicación (`.right-sidebar` con `.sidebar-backdrop`, `.slimscrollright` y cabecera `.rpanel-title`).
+    * Breadcrumbs estandarizados con `<button type="button" class="btn btn-link p-0" style="vertical-align: baseline; text-decoration: none; color: inherit">`.
+    * Botones de cabecera alineados: Refrescar (`btn btn-outline-secondary m-r-5`) y Nuevo (`btn btn-info btnDesplegarRigthSidebar`).
+    * Tabla DataTables estandarizada: clase `display nowrap table table-hover table-striped table-bordered` con `safeInitDataTable` (`dom: 'Bfrtip'`, `buttons: ['copy', 'csv', 'excel', 'pdf', 'print']`) y destrucción segura `safeDestroyDataTable`.
+    * Integrados componentes estándar `<table-skeleton-loader>` y `<empty-state-component>`.
+    * Formulario de drawer adaptado a inputs estándar AdminWrap (`form-control`, `checkbox checkbox-success`, botones `.btn-success`, `.btn-warning` y `.btn-inverse`).
+    * Regla permanente incorporada en `AGENTS.md` para prohibir modales externos e inventar estilos, obligando a seguir siempre el patrón AdminWrap/Bootstrap 4 del proyecto.
+  - **Verificaciones:** ESLint 0 errores/warnings ✅ | `npm run build` exitoso en 2.15s ✅.
+
+- [x] **2026-11-20 — Corrección de Carga de Plantillas de Oftalmología y Estandarización de Botones/Estilos UI (AdminWrap):**
+  - **Problemas Identificados:**
+    1. En `ConfigPlantillaOftalmologiaService.php`, el método `all()` y `listarPorSeccion()` llamaba a `$this->success('mensaje', $plantillas)` con los parámetros invertidos (`success(mixed $data, string $message, int $status)`). En consecuencia, el payload JSON devolvía `"data": "Plantillas..."` como string y `"message": "[]"`, impidiendo que el frontend Vue leyera la lista de plantillas (`res.data.data` no era un array). Además, la relación `'medico:id,nombre,apellido'` provocaba que no se mapeara la columna `name` del modelo `User`.
+    2. En `configPlantillasOftalmologiaComponent.vue`, los botones de la tabla usaban clases ajenas (`btn-outline-primary btn-xs mr-1`, etc.) en lugar del estándar estricto de las tablas de configuración (como `configSedeComponent.vue`: `btn waves-effect waves-light btn-rounded btn-outline-warning btn-sm m-r-5` para editar y `btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm` para eliminar).
+    3. Los badges de estado y alcance usaban clases `badge badge-*` genéricas en vez de los badges de la plantilla AdminWrap (`label label-success`, `label label-info` y `label label-light-inverse`).
+  - **Solución Implementada:**
+    - Corregido `ConfigPlantillaOftalmologiaService.php` para retornar `$this->success($plantillas, 'Plantillas de oftalmología obtenidas correctamente.')`, y `'medico:id,name'`.
+    - Homologados los botones de acciones de la tabla en `configPlantillasOftalmologiaComponent.vue` al estándar exacto de `configSedeComponent.vue`.
+    - Normalizados los labels de Estado (`label label-success` para Activo, `label label-info` para Inactivo) y de Alcance (`label label-info` para Médico, `label label-light-inverse` para Institucional).
+  - **Verificación:** Laravel Pint passed ✅ | ESLint 0 errores/warnings ✅ | `npm run build` exitoso en 2.37s ✅.
 
 ### Estado de módulos recientes (oct. 2026)
 - **Auditoría de Permisos Spatie** (2026-10-22): ✅ 100% sincronizado (0 faltantes en BD, regex de guard corregida, seeders idempotentes ejecutados).

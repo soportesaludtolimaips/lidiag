@@ -30,117 +30,17 @@
             </div>
             <div class="col-md-7 align-self-center text-right d-none d-md-block">
                 <i
-                    class="fa fa-life-ring model_img img-responsive"
+                    class="fa fa-life-ring model_img img-responsive text-info"
                     @click="abrirModalAyuda()"
                     role="button"
                     aria-label="Ayuda: comandos de voz"
+                    title="Comandos de voz"
                     tabindex="0"
                 ></i>
             </div>
 
-            <!-- sample modal content -->
-            <div
-                v-if="modalAyudaVisible"
-                class="modal fade bs-example-modal-lg show"
-                style="display: block; background: rgba(0, 0, 0, 0.5)"
-                tabindex="-1"
-                role="dialog"
-                aria-labelledby="myLargeModalLabel"
-                aria-hidden="true"
-                @click.self="cerrarModalAyuda()"
-            >
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h4 class="modal-title" id="myLargeModalLabel">Comando de voz</h4>
-                            <button
-                                type="button"
-                                class="close"
-                                @click="cerrarModalAyuda()"
-                                aria-hidden="true"
-                            >
-                                ×
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <h5 class="mb-2">Mayúsculas</h5>
-                                    <ul>
-                                        <li>iniciar mayúscula sostenida</li>
-                                        <li>iniciar mayúsculas sostenida</li>
-                                        <li>iniciar mayúsculas / mayúscula</li>
-                                        <li>activar mayúsculas / mayúscula</li>
-                                        <li>habilitar mayúsculas / mayúscula</li>
-                                        <li>desactivar mayúsculas / mayúscula</li>
-                                        <li>deshabilitar mayúsculas / mayúscula</li>
-                                        <li>terminar mayúsculas / mayúscula</li>
-                                        <li>fin mayúsculas / mayúscula</li>
-                                        <li>finalizar mayúsculas / mayúscula</li>
-                                    </ul>
-                                    <h5 class="mb-2 mt-3">Saltos de línea</h5>
-                                    <ul>
-                                        <li>punto aparte</li>
-                                        <li>nuevo párrafo</li>
-                                        <li>nueva sección</li>
-                                        <li>separador</li>
-                                        <li>salto de línea</li>
-                                        <li>doble salto de línea</li>
-                                        <li>enter / doble enter</li>
-                                        <li>línea en blanco / doble línea en blanco</li>
-                                    </ul>
-                                </div>
-                                <div class="col-md-6">
-                                    <h5 class="mb-2">Puntuación</h5>
-                                    <ul>
-                                        <li>punto / punto y seguido / punto seguido</li>
-                                        <li>coma</li>
-                                        <li>dos puntos</li>
-                                        <li>punto y coma</li>
-                                        <li>nueva oración</li>
-                                        <li>abrir/cerrar paréntesis</li>
-                                        <li>abrir/cerrar corchetes</li>
-                                        <li>abrir/cerrar llaves</li>
-                                        <li>abrir/cerrar comillas</li>
-                                        <li>abrir/cerrar comillas simples</li>
-                                    </ul>
-                                    <h5 class="mb-2 mt-3">Símbolos</h5>
-                                    <ul>
-                                        <li>guion</li>
-                                        <li>guion bajo</li>
-                                        <li>barra diagonal</li>
-                                        <li>barra invertida</li>
-                                        <li>
-                                            dar espacio / un espacio / dos espacio / doble espacio
-                                        </li>
-                                        <li>por ciento (%)</li>
-                                        <li>menos / más / igual</li>
-                                        <li>multiplicar (×) / dividir (÷)</li>
-                                        <li>asterisco / numeral / ampersand / arroba</li>
-                                        <li>dólar / euro</li>
-                                    </ul>
-                                    <h5 class="mb-2 mt-3">Atajos</h5>
-                                    <ul>
-                                        <li><strong>F2</strong> - Iniciar/detener grabación</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button
-                                type="button"
-                                class="btn btn-danger waves-effect text-left"
-                                @click="cerrarModalAyuda()"
-                            >
-                                Close
-                            </button>
-                        </div>
-                    </div>
-                    <!-- /.modal-content -->
-                </div>
-                <!-- /.modal-dialog -->
-            </div>
-            <!-- /.modal -->
+            <!-- Modal de comandos de voz reutilizable -->
+            <VoiceModal v-model="modalAyudaVisible" />
         </div>
         <!-- ============================================================== -->
         <!-- End Bread crumb and right sidebar toggle -->
@@ -1499,6 +1399,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
 import DatosPacienteDisplay from "@/components/comunes/datosPacienteDisplayComponent.vue";
+import VoiceModal from "@/components/comunes/VoiceModal.vue";
 import { normalizarFecha } from "@/helpers/dateUtils.js";
 import {
     safeDestroyDataTable,
@@ -2259,17 +2160,6 @@ async function cerrarSidebar() {
  */
 function abrirModalAyuda() {
     modalAyudaVisible.value = true;
-}
-
-/**
- * Cierra el modal de ayuda de comandos de voz.
- * @returns {void}
- *
- * @author Jhon Javer Lozano Arce
- * @date 2024-04-04
- */
-function cerrarModalAyuda() {
-    modalAyudaVisible.value = false;
 }
 
 /**

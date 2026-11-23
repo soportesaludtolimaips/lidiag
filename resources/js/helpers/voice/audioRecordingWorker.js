@@ -87,33 +87,34 @@ async function iniciarGrabacion() {
 
         // Escuchar eventos de estado del MediaRecorder
         mediaRecorder.onpause = () => {
-            console.log("[Worker] MediaRecorder pausado - intentanto reanudar");
-            // Auto-reanudar después de un delay pequeño
             clearTimeout(resumeTimeoutId);
-            resumeTimeoutId = setTimeout(() => {
-                if (mediaRecorder && mediaRecorder.state === "paused" && isRecording && !isPaused) {
-                    try {
-                        mediaRecorder.resume();
-                        console.log("[Worker] MediaRecorder auto-reanudado");
-                    } catch (e) {
-                        console.log("[Worker] Error auto-reanudando:", e);
-                    }
+            if (mediaRecorder && mediaRecorder.state === "paused" && isRecording && !isPaused) {
+                try {
+                    mediaRecorder.resume();
+                } catch {
+                    resumeTimeoutId = setTimeout(() => {
+                        if (
+                            mediaRecorder &&
+                            mediaRecorder.state === "paused" &&
+                            isRecording &&
+                            !isPaused
+                        ) {
+                            try {
+                                mediaRecorder.resume();
+                            } catch {}
+                        }
+                    }, 200);
                 }
-            }, 500);
+            }
         };
 
         mediaRecorder.onresume = () => {
-            console.log("[Worker] MediaRecorder reanudado");
             clearTimeout(resumeTimeoutId);
         };
 
-        mediaRecorder.onstart = () => {
-            console.log("[Worker] MediaRecorder iniciado");
-        };
+        mediaRecorder.onstart = () => {};
 
-        mediaRecorder.onstop = () => {
-            console.log("[Worker] MediaRecorder detenido");
-        };
+        mediaRecorder.onstop = () => {};
 
         mediaRecorder.ondataavailable = (event) => {
             if (event.data && event.data.size > 0) {
@@ -130,7 +131,7 @@ async function iniciarGrabacion() {
             }
         };
 
-        mediaRecorder.start(3000);
+        mediaRecorder.start(1000);
         isRecording = true;
         isPaused = false;
 
@@ -221,12 +222,11 @@ async function detenerGrabacion() {
             mediaRecorder = null;
             sessionId = null;
 
+            ctx.postMessage({ type: "stopped" });
             resolve(result);
         };
 
         mediaRecorder?.stop();
-
-        ctx.postMessage({ type: "stopped" });
     });
 }
 
