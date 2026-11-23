@@ -709,4 +709,94 @@ class UserService extends BaseService
 
         return null;
     }
+
+    /**
+     * Obtiene el listado de médicos con sesión activa reciente en el sistema.
+     *
+     * Flujo del proceso:
+     * 1. Determina la marca de tiempo límite a partir de la inactividad máxima permitida.
+     * 2. Consulta la tabla de sesiones activa agrupando por usuario.
+     * 3. Filtra usuarios con rol 'Medico', en estado activo y opcionalmente asociados a una sede.
+     * 4. Mapea la información esencial del especialista para visualización de transcriptores.
+     *
+     * @param  int|null  $sedeId  Identificador opcional de sede para filtrar.
+     * @param  int  $minutosInactividad  Tolerancia en minutos de la última actividad (default 15).
+     * @return array Respuesta estructurada con médicos en línea.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-23
+     */
+    public function getMedicosActivos(?int $sedeId = null, int $minutosInactividad = 15): array
+    {
+        try {
+            $tiempoLimite = now()->subMinutes($minutosInactividad)->timestamp;
+
+            $userIdsRecientes = DB::table('sessions')
+                ->whereNotNull('user_id')
+                ->where('last_activity', '>=', $tiempoLimite)
+                ->select('user_id', DB::raw('MAX(last_activity) as ultima_actividad'))
+                ->groupBy('user_id')
+                ->pluck('ultima_actividad', 'user_id');
+
+            if ($userIdsRecientes->isEmpty()) {
+                return $this->success([], 'No hay médicos con sesión activa reciente.');
+            }
+
+            $query = User::select('id', 'name', 'email', 'imagen_perfil', 'estado')
+                ->whereIn('id', $userIdsRecientes->keys())
+                ->where('estado', 1)
+                ->whereHas('roles', fn ($q) => $q->where('name', 'like', '%medico%'))
+                ->with(['sedes:config_sedes.id,config_sedes.nom_sede']);
+
+            if ($sedeId !== null && $sedeId > 0) {
+                $query->where(function ($q) use ($sedeId) {
+                    $q->whereHas('sedes', fn ($s) => $s->where('config_sedes.id', $sedeId))
+                        ->orWhereIn('users.id', function ($sub) use ($sedeId) {
+                            $sub->select('medico_id')
+                                ->from('estudios')
+                                ->where('sede_id', $sedeId)
+                                ->whereNotNull('medico_id');
+                        })
+                        ->orWhereIn('users.id', function ($sub) use ($sedeId) {
+                            $sub->select('quien_registro_id')
+                                ->from('estudios')
+                                ->where('sede_id', $sedeId)
+                                ->whereNotNull('quien_registro_id');
+                        });
+                });
+            }
+
+            $medicos = $query->get()->map(function ($medico) use ($userIdsRecientes) {
+                $lastActivity = (int) ($userIdsRecientes[$medico->id] ?? 0);
+                $diferenciaSegundos = max(0, time() - $lastActivity);
+                $minutos = (int) floor($diferenciaSegundos / 60);
+
+                $tiempoRelativo = $minutos === 0
+                    ? 'Hace unos segundos'
+                    : ($minutos === 1 ? 'Hace 1 min' : "Hace {$minutos} mins");
+
+                return [
+                    'id' => $medico->id,
+                    'name' => $medico->name,
+                    'email' => $medico->email,
+                    'imagen_perfil' => $medico->imagen_perfil,
+                    'ultima_actividad' => $lastActivity,
+                    'tiempo_relativo' => $tiempoRelativo,
+                    'sedes' => $medico->sedes->map(fn ($s) => [
+                        'id' => $s->id,
+                        'nom_sede' => $s->nom_sede,
+                    ]),
+                ];
+            })->sortBy('name')->values();
+
+            return $this->success($medicos->toArray(), 'Médicos activos obtenidos exitosamente.');
+        } catch (\Throwable $th) {
+            Log::error('Error al obtener médicos activos: '.$th->getMessage(), [
+                'exception' => $th,
+            ]);
+
+            return $this->error('Error al obtener los médicos activos: '.$th->getMessage(), 500);
+        }
+    }
 }

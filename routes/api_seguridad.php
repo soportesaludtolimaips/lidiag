@@ -59,6 +59,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/user.listarUsuarios/{tipo_user}/{modulo}', [UserController::class, 'listarUsuarios'])
         ->name('api.user.listarUsuarios');
 
+    Route::get('/seguridad/medicos-activos', [UserController::class, 'medicosActivos'])
+        ->name('api.seguridad.medicos-activos');
+
     // Roles — rutas por método con permisos individuales
     Route::get('/seguridad-roles', [RolController::class, 'index'])
         ->name('api.seguridad.roles.index')

@@ -51,6 +51,10 @@ class EstudioAudioService extends BaseService
             return $acceso;
         }
 
+        if (! $file->isValid() || $file->getSize() < 100) {
+            return $this->validationError(['audio' => ['El archivo de audio debe tener contenido válido.']]);
+        }
+
         $baseName = 'audio_'.Str::ulid()->toBase32();
         $guessedExt = $file->guessExtension() ?: 'dat';
 
@@ -61,7 +65,17 @@ class EstudioAudioService extends BaseService
         $tmpFullPath = $disk->path($tmpRelativePath);
         $mp3FullPath = $disk->path($mp3RelativePath);
 
-        $file->storeAs('tmp', $baseName.'.'.$guessedExt, 'audios');
+        $realPath = $file->getRealPath();
+        if ($realPath && file_exists($realPath)) {
+            $file->storeAs('tmp', $baseName.'.'.$guessedExt, 'audios');
+        } else {
+            $pathname = $file->getPathname();
+            if ($pathname && file_exists($pathname)) {
+                $disk->put($tmpRelativePath, file_get_contents($pathname));
+            } else {
+                return $this->error('No fue posible leer el archivo de audio recibido.', 400);
+            }
+        }
 
         try {
             $ffmpeg = FFMpeg::create([
@@ -297,7 +311,18 @@ class EstudioAudioService extends BaseService
 
         $disk = Storage::disk('audios');
         $tmpRelativePath = 'tmp/'.$baseName.'.'.$extension;
-        $file->storeAs('tmp', basename($tmpRelativePath), 'audios');
+
+        $realPath = $file->getRealPath();
+        if ($realPath && file_exists($realPath)) {
+            $file->storeAs('tmp', basename($tmpRelativePath), 'audios');
+        } else {
+            $pathname = $file->getPathname();
+            if ($pathname && file_exists($pathname)) {
+                $disk->put($tmpRelativePath, file_get_contents($pathname));
+            } else {
+                return $this->error('No fue posible leer el archivo de audio recibido.', 400);
+            }
+        }
 
         $tmpFullPath = $disk->path($tmpRelativePath);
         $mp3FullPath = $disk->path($mp3RelativePath);

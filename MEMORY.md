@@ -37,6 +37,26 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-23 — Corrección del Error 500 en `api/upload-audio` (Permisos de Archivos Temporales y Validación de Blobs):**
+  - **Diagnóstico del Problema:**
+    1. *Error reportado:* Durante la lectura del paciente PRADA ACOSTA JAVIER IVAN (Doc: 1110575592, Estudio: 214517, Producto: 265348), la lectura textual se guardó con éxito en BD (`estudios_productos.lectura`), pero la petición subsecuente a `POST /api/upload-audio` arrojó HTTP 500.
+    2. *Causa Raíz en Apache/Laragon:* En `C:\laragon\etc\apache2\fcgid.conf`, las variables `TEMP` y `TMP` apuntaban a `C:/Windows/Temp`, un directorio donde las cuentas de usuario de Windows no tienen permiso de lectura/traversal. Al recibir la subida en multipart, PHP colocaba el archivo temporal allí, provocando que `realpath($file->getPathname())` retornara `false`. En `FilesystemAdapter::putFileAs`, `fopen(false, 'r')` derivaba en `fopen('', 'r')`, arrojando `ValueError: Path must not be empty`.
+    3. *Causa Frontend/Backend Secundaria:* `leerEstudioComponent.vue` intentaba subir `blobToSend` sin validar un umbral mínimo de bytes (`size > 500`), enviando blobs vacíos en grabaciones canceladas o silenciosas; y el backend carecía de validación de tamaño mínimo y un fallback seguro si `realpath()` fallaba en el SO.
+  - **Solución Implementada:**
+    * **1. Configuración de Entorno (Apache y PHP):**
+      - En `C:\laragon\etc\apache2\fcgid.conf`: se actualizaron `TEMP` y `TMP` a `C:/laragon/tmp`.
+      - En `C:\laragon\bin\php\php-8.4.12-nts-Win32-vs17-x64\php.ini`: se activó explícitamente `upload_tmp_dir = "C:/laragon/tmp"`.
+      - Se reinició el worker `php-cgi.exe` para aplicar el cambio.
+    * **2. Backend (`EstudioAudioService.php`):**
+      - Validación previa de archivo válido y contenido mínimo `$file->getSize() >= 100` antes de procesar con FFmpeg.
+      - Almacenamiento seguro en disco `audios`: si `getRealPath()` retorna `false` por restricciones de canonicalización del sistema de archivos, se utiliza `$file->getPathname()` con `file_get_contents` en lugar de fallar con excepción no controlada.
+    * **3. Frontend (`leerEstudioComponent.vue` y `useDictationFlow.js`):**
+      - Se añadió la condición de tamaño `blobToSend.size > 500` antes de disparar `POST /api/upload-audio`, previniendo envíos inútiles de blobs vacíos.
+  - **Verificaciones:**
+    * Base de datos: se comprobó que el texto de lectura del paciente PRADA ACOSTA JAVIER IVAN quedó intacto y correctamente guardado (`2026-11-23 09:05:18`).
+    * Pint pasado (`passed` en `EstudioAudioService.php`).
+    * ESLint pasado (0 errores en `leerEstudioComponent.vue` y `useDictationFlow.js`).
+    * Compilación Vite (`npm run build`) exitosa (1.75s).
 - [x] **2026-11-23 — Ejecución del Plan de Correcciones de Auditoría de Voz (Fase 2):**
   - **Diagnóstico y Correcciones Ejecutadas:**
     1. *Resiliencia en Ecografías (`lecturaComponent.vue` - B4-R & B4-R2):* Al usar `createVoiceSession` directamente sin `useDictationFlow`, carecía de listeners ante cambios de visibilidad o foco y manejo del error `aborted`. Se incorporaron los listeners `visibilitychange` y `focus` para reanudar el reconocimiento automáticamente cuando el ecografista regresa al sistema tras consultar visores externos (PACS/Oviyam), y se blindó `onError` para reconectar ante `aborted` y `not-allowed`.
@@ -47,7 +67,15 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
   - **Verificaciones:**
     * ESLint y Prettier: 0 errores y 0 advertencias en todos los archivos modificados.
     * Compilación Vite (`npm run build`): Exitosa (2.17s, 313 módulos transformados sin errores).
-- [x] **2026-11-23 — Corrección de Detección de Médicos en Línea y Estado `.profile-status.online`:**
+- [x] **2026-11-23 — Detección de Médicos Activos en Tiempo Real para Transcriptores:**
+  - **Diagnóstico:** Los médicos logueados no aparecían en el badge `Médicos (0)` del transcriptor debido a falta de reactividad al conmutar de sede (no se llamaba `cargarMedicosActivos` al dispararse `onSedeSeleccionada` ni al cambiar `sedeSeleccionada.value`) y a desalineación de cookies de sesión en el navegador tras pruebas locales.
+  - **Implementación y Solución:**
+    1. *Backend (`UserService::getMedicosActivos` + `UserController::medicosActivos` + `api_seguridad.php`):* Consulta sesiones recientes (`last_activity >= time() - 15min`), verifica rol `Medico` y filtra estrictamente por `sede_id` usando la relación en sedes y/o estudios vinculados del médico.
+    2. *Frontend (`userProfileAndSearchComponent.vue`):* Integra watcher reactivo sobre `sedeSeleccionada`, llamada directa en `onSedeSeleccionada()`, polling cada 45s, actualización inmediata al desplegar dropdown o al recuperar el foco (`visibilitychange`), y formato exacto AdminWrap con `.badge` verde/gris y dot `.profile-status.online`.
+  - **Verificaciones:**
+    * Pint: passed en `UserController.php`, `UserService.php` y `routes/api_seguridad.php`.
+    * ESLint: 0 errores en `userProfileAndSearchComponent.vue`.
+    * Build: `npm run build` completado exitosamente (1.61s).
   - **Diagnóstico del Problema:**
     1. Al iniciar sesión con un usuario médico (ej: Dr. Carlos Andrés Cortés, ID 36), el badge de médicos en línea en la vista del transcriptor continuaba en 0.
     2. Causa Backend: `UserService::getMedicosActivos` filtraba obligatoriamente por `sede_id` con `whereHas('sedes')`. Si el médico no tiene sedes asignadas de forma fija (médicos de tele-radiología o transversales), la consulta lo excluía indebidamente.

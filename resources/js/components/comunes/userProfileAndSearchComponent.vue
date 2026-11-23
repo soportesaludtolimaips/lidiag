@@ -1,6 +1,277 @@
 <template>
     <ul class="navbar-nav my-lg-0">
         <!-- ============================================================== -->
+        <!-- Médicos Conectados / En Línea (Exclusivo para Transcriptores) -->
+        <!-- ============================================================== -->
+        <li class="nav-item dropdown d-flex align-items-center" v-if="esTranscriptor">
+            <a
+                class="nav-link dropdown-toggle waves-effect waves-dark d-flex align-items-center"
+                href=""
+                id="medicos_online_dropdown"
+                data-toggle="dropdown"
+                aria-haspopup="true"
+                aria-expanded="false"
+                @click.prevent="onOpenMedicosDropdown()"
+                :title="
+                    totalMedicosLogueados > 0
+                        ? `${totalMedicosLogueados} médico(s) en línea disponible(s)`
+                        : 'Sin médicos en línea'
+                "
+                style="padding-top: 0; padding-bottom: 0"
+            >
+                <span
+                    class="badge m-r-5 p-2 d-flex align-items-center position-relative"
+                    :class="
+                        totalMedicosLogueados > 0
+                            ? 'badge-success text-white'
+                            : 'badge-secondary text-white'
+                    "
+                    style="font-size: 12px; font-weight: 500"
+                >
+                    <i class="fa fa-user-md m-r-5"></i>
+                    <span>Médicos ({{ totalMedicosLogueados }})</span>
+                    <span
+                        v-if="totalMedicosLogueados > 0"
+                        class="point"
+                        style="
+                            width: 8px;
+                            height: 8px;
+                            border-radius: 50%;
+                            background-color: #ffffff;
+                            margin-left: 6px;
+                            display: inline-block;
+                        "
+                    ></span>
+                </span>
+            </a>
+            <div
+                class="dropdown-menu dropdown-menu-right mailbox animated bounceInDown"
+                aria-labelledby="medicos_online_dropdown"
+                style="min-width: 340px; max-width: 380px; padding-bottom: 0"
+            >
+                <ul>
+                    <li>
+                        <div class="drop-title d-flex justify-content-between align-items-center">
+                            <span class="font-weight-bold">
+                                Médicos en Línea
+                                <span
+                                    v-if="totalMedicosLogueados > 0"
+                                    class="badge badge-pill badge-success m-l-5"
+                                    style="font-size: 11px"
+                                >
+                                    {{ totalMedicosLogueados }}
+                                </span>
+                            </span>
+                            <button
+                                type="button"
+                                class="btn btn-xs btn-outline-secondary"
+                                @click.prevent.stop="cargarMedicosActivos(false)"
+                                :disabled="cargandoMedicosLogueados"
+                                title="Refrescar médicos en línea"
+                                style="padding: 2px 8px; font-size: 11px"
+                            >
+                                <i
+                                    class="fa fa-refresh"
+                                    :class="{ 'fa-spin': cargandoMedicosLogueados }"
+                                ></i>
+                            </button>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="message-center" style="max-height: 320px; overflow-y: auto">
+                            <div
+                                v-if="cargandoMedicosLogueados"
+                                class="p-15 text-center text-muted"
+                            >
+                                <i class="fa fa-spinner fa-spin m-r-5"></i> Consultando
+                                especialistas en línea...
+                            </div>
+
+                            <template v-else-if="medicosLogueados.length > 0">
+                                <a
+                                    v-for="med in medicosLogueados"
+                                    :key="med.id"
+                                    href="#"
+                                    @click.prevent="seleccionarMedicoParaTranscribir(med)"
+                                    class="d-flex align-items-center"
+                                    :class="{
+                                        'bg-light font-weight-bold':
+                                            String(med.id) === String(medicoSeleccionado),
+                                    }"
+                                    :title="'Clic para enfocar a ' + med.name"
+                                >
+                                    <div
+                                        class="user-img position-relative"
+                                        style="margin-right: 12px"
+                                    >
+                                        <img
+                                            :src="
+                                                med.imagen_perfil
+                                                    ? `/files/${med.imagen_perfil}`
+                                                    : defaultAvatar
+                                            "
+                                            alt="medico"
+                                            class="img-circle"
+                                            style="width: 40px; height: 40px; object-fit: cover"
+                                            @error="(e) => (e.target.src = defaultAvatar)"
+                                        />
+                                        <span
+                                            class="profile-status online pull-right"
+                                            style="border: 2px solid #fff"
+                                        ></span>
+                                    </div>
+                                    <div class="mail-contnet" style="width: calc(100% - 55px)">
+                                        <div
+                                            class="d-flex justify-content-between align-items-center"
+                                        >
+                                            <h5
+                                                class="m-0"
+                                                style="
+                                                    font-size: 13px;
+                                                    max-width: 180px;
+                                                    white-space: nowrap;
+                                                    overflow: hidden;
+                                                    text-overflow: ellipsis;
+                                                "
+                                            >
+                                                {{ med.name }}
+                                            </h5>
+                                            <span
+                                                v-if="String(med.id) === String(medicoSeleccionado)"
+                                                class="badge badge-success"
+                                                style="font-size: 9px; padding: 2px 6px"
+                                            >
+                                                Activo
+                                            </span>
+                                        </div>
+                                        <span
+                                            class="mail-desc text-muted"
+                                            style="
+                                                font-size: 11px;
+                                                white-space: nowrap;
+                                                overflow: hidden;
+                                                text-overflow: ellipsis;
+                                            "
+                                        >
+                                            {{
+                                                med.sedes && med.sedes.length > 0
+                                                    ? med.sedes.map((s) => s.nom_sede).join(", ")
+                                                    : "Todas las Sedes / Tele-Radiología"
+                                            }}
+                                        </span>
+                                        <span class="time text-success" style="font-size: 10px">
+                                            <i
+                                                class="fa fa-circle text-success m-r-5"
+                                                style="font-size: 8px"
+                                            ></i>
+                                            {{ med.tiempo_relativo }}
+                                        </span>
+                                    </div>
+                                </a>
+                            </template>
+
+                            <div v-else class="p-20 text-center text-muted" style="font-size: 12px">
+                                <i
+                                    class="fa fa-user-times d-block m-b-5"
+                                    style="font-size: 20px"
+                                ></i>
+                                Sin médicos conectados en los últimos 15 min.
+                            </div>
+                        </div>
+                    </li>
+                    <li v-if="medicosLogueados.length > 0" class="p-2 text-center bg-light">
+                        <small class="text-muted" style="font-size: 11px">
+                            <i class="fa fa-info-circle m-r-5"></i> Haz clic en un médico para
+                            seleccionarlo
+                        </small>
+                    </li>
+                </ul>
+            </div>
+        </li>
+
+        <!-- ============================================================== -->
+        <!-- mega menu -->
+        <!-- ============================================================== -->
+        <li class="nav-item dropdown mega-dropdown d-flex align-items-center">
+            <a
+                class="nav-link dropdown-toggle waves-effect waves-dark d-flex align-items-center"
+                href=""
+                data-toggle="dropdown"
+                aria-haspopup="true"
+                aria-expanded="false"
+                style="padding-top: 0; padding-bottom: 0"
+                :title="
+                    'Sede activa: ' +
+                    nomSedeActiva +
+                    (mostrarMedico ? ' | Médico: ' + nomMedicoActivo : '')
+                "
+            >
+                <span
+                    class="badge badge-info m-r-5 p-2 d-flex align-items-center"
+                    style="font-size: 12px; font-weight: 500"
+                >
+                    <i class="fa fa-hospital-o m-r-5"></i>
+                    <span>{{ nomSedeActiva }}</span>
+                </span>
+                <span
+                    v-if="mostrarMedico"
+                    class="badge badge-success m-r-5 p-2 d-flex align-items-center"
+                    style="font-size: 12px; font-weight: 500"
+                >
+                    <i class="fa fa-user-md m-r-5"></i>
+                    <span>{{ nomMedicoActivo }}</span>
+                </span>
+                <i class="icon-Box-Close" style="font-size: 18px"></i>
+            </a>
+            <div class="dropdown-menu animated bounceInDown">
+                <ul class="mega-dropdown-menu row">
+                    <li class="col-lg-3 m-b-30">
+                        <!-- Contact -->
+                        <form>
+                            <div class="form-group">
+                                <h4 class="m-b-20">Sedes</h4>
+                                <select
+                                    class="form-control custom-select"
+                                    @change="estableserSede()"
+                                    style="width: 100%; height: 36px"
+                                    v-model="sedeSeleccionada"
+                                    name="sedes"
+                                >
+                                    <option>Seleccione la sede</option>
+                                    <option
+                                        v-for="ItemSede in sedes"
+                                        :key="ItemSede.id"
+                                        :value="ItemSede.id"
+                                    >
+                                        {{ ItemSede.nom_sede }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="form-group" v-if="mostrarMedico">
+                                <h4 class="m-b-20">Médico</h4>
+                                <select
+                                    class="form-control custom-select"
+                                    @change="estableserMedico()"
+                                    style="width: 100%; height: 36px"
+                                    v-model="medicoSeleccionado"
+                                    name="medicos"
+                                >
+                                    <option value="">Seleccione el médico</option>
+                                    <option
+                                        v-for="ItemMedico in medicos"
+                                        :key="ItemMedico.id"
+                                        :value="ItemMedico.id"
+                                    >
+                                        {{ ItemMedico.name }}
+                                    </option>
+                                </select>
+                            </div>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </li>
+        <!-- ============================================================== -->
         <!-- Centro de Notificaciones Unificado (Citas & Helpdesk) -->
         <!-- ============================================================== -->
         <li class="nav-item dropdown" v-if="notificacionesDisponibles">
@@ -191,90 +462,6 @@
                 </ul>
             </div>
         </li>
-
-        <!-- ============================================================== -->
-        <!-- mega menu -->
-        <!-- ============================================================== -->
-        <li class="nav-item dropdown mega-dropdown d-flex align-items-center">
-            <a
-                class="nav-link dropdown-toggle waves-effect waves-dark d-flex align-items-center"
-                href=""
-                data-toggle="dropdown"
-                aria-haspopup="true"
-                aria-expanded="false"
-                style="padding-top: 0; padding-bottom: 0"
-                :title="
-                    'Sede activa: ' +
-                    nomSedeActiva +
-                    (mostrarMedico ? ' | Médico: ' + nomMedicoActivo : '')
-                "
-            >
-                <span
-                    class="badge badge-info m-r-5 p-2 d-flex align-items-center"
-                    style="font-size: 12px; font-weight: 500"
-                >
-                    <i class="fa fa-hospital-o m-r-5"></i>
-                    <span>{{ nomSedeActiva }}</span>
-                </span>
-                <span
-                    v-if="mostrarMedico"
-                    class="badge badge-success m-r-5 p-2 d-flex align-items-center"
-                    style="font-size: 12px; font-weight: 500"
-                >
-                    <i class="fa fa-user-md m-r-5"></i>
-                    <span>{{ nomMedicoActivo }}</span>
-                </span>
-                <i class="icon-Box-Close" style="font-size: 18px"></i>
-            </a>
-            <div class="dropdown-menu animated bounceInDown">
-                <ul class="mega-dropdown-menu row">
-                    <li class="col-lg-3 m-b-30">
-                        <!-- Contact -->
-                        <form>
-                            <div class="form-group">
-                                <h4 class="m-b-20">Sedes</h4>
-                                <select
-                                    class="form-control custom-select"
-                                    @change="estableserSede()"
-                                    style="width: 100%; height: 36px"
-                                    v-model="sedeSeleccionada"
-                                    name="sedes"
-                                >
-                                    <option>Seleccione la sede</option>
-                                    <option
-                                        v-for="ItemSede in sedes"
-                                        :key="ItemSede.id"
-                                        :value="ItemSede.id"
-                                    >
-                                        {{ ItemSede.nom_sede }}
-                                    </option>
-                                </select>
-                            </div>
-                            <div class="form-group" v-if="mostrarMedico">
-                                <h4 class="m-b-20">Médico</h4>
-                                <select
-                                    class="form-control custom-select"
-                                    @change="estableserMedico()"
-                                    style="width: 100%; height: 36px"
-                                    v-model="medicoSeleccionado"
-                                    name="medicos"
-                                >
-                                    <option value="">Seleccione el médico</option>
-                                    <option
-                                        v-for="ItemMedico in medicos"
-                                        :key="ItemMedico.id"
-                                        :value="ItemMedico.id"
-                                    >
-                                        {{ ItemMedico.name }}
-                                    </option>
-                                </select>
-                            </div>
-                        </form>
-                    </li>
-                </ul>
-            </div>
-        </li>
-
         <!-- ============================================================== -->
         <!-- Modo Oscuro / Claro Global -->
         <!-- ============================================================== -->
@@ -305,13 +492,31 @@
                 aria-haspopup="true"
                 aria-expanded="false"
             >
-                <img
-                    :src="avatarUrl"
-                    alt="user"
-                    class="avatar-nav-img"
-                    style="height: 30px; width: 30px; object-fit: cover; border-radius: 100%"
-                    @error="onAvatarError"
-                />
+                <div class="position-relative d-inline-block" style="line-height: 0">
+                    <img
+                        :src="avatarUrl"
+                        alt="user"
+                        class="avatar-nav-img"
+                        style="height: 30px; width: 30px; object-fit: cover; border-radius: 100%"
+                        @error="onAvatarError"
+                    />
+                    <span
+                        v-if="esUsuarioOnline"
+                        class="profile-status online"
+                        style="
+                            position: absolute;
+                            bottom: 0px;
+                            right: -2px;
+                            width: 9px;
+                            height: 9px;
+                            border-radius: 50%;
+                            background-color: #24d2b5;
+                            border: 2px solid #ffffff;
+                            display: inline-block;
+                        "
+                        title="En línea"
+                    ></span>
+                </div>
                 <span class="hidden-md-down">
                     &nbsp;
                     {{ currentUser.name || usuarioactual?.name || usuario?.name || "Usuario" }}
@@ -322,7 +527,7 @@
                 <ul class="dropdown-user">
                     <li>
                         <div class="dw-user-box">
-                            <div class="u-img">
+                            <div class="u-img position-relative">
                                 <img
                                     :src="avatarUrl"
                                     alt="user"
@@ -334,6 +539,22 @@
                                     "
                                     @error="onAvatarError"
                                 />
+                                <span
+                                    v-if="esUsuarioOnline"
+                                    class="profile-status online"
+                                    style="
+                                        position: absolute;
+                                        bottom: -3px;
+                                        right: -3px;
+                                        width: 14px;
+                                        height: 14px;
+                                        border-radius: 50%;
+                                        background-color: #24d2b5;
+                                        border: 2px solid #ffffff;
+                                        display: inline-block;
+                                    "
+                                    title="En línea"
+                                ></span>
                             </div>
                             <div class="u-text">
                                 <h4>
@@ -384,8 +605,8 @@
 <script setup>
 import { computed, getCurrentInstance, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-
 import axios from "axios";
+import { useAuth } from "@/composables/useAuth";
 
 const props = defineProps({
     usuarioactual: { type: Object, default: null },
@@ -396,6 +617,106 @@ const props = defineProps({
 const route = useRoute();
 const { proxy } = getCurrentInstance();
 const emitter = proxy.emitter;
+const auth = useAuth();
+
+// =========================================================================
+// Control de Médicos en Línea (Rol Transcriptor / Transcriptor RX)
+// =========================================================================
+const esTranscriptor = computed(() => {
+    return auth.hasRole(["Transcriptor", "Transcriptor RX", "Administrador", "Super Admin"]);
+});
+
+const esUsuarioOnline = computed(() => {
+    return Boolean(currentUser.value?.id || props.usuarioactual?.id || props.usuario?.id);
+});
+
+const medicosLogueados = ref([]);
+const cargandoMedicosLogueados = ref(false);
+const medicosPollIntervalId = ref(null);
+
+const totalMedicosLogueados = computed(() => {
+    return (medicosLogueados.value || []).length;
+});
+
+/**
+ * Consulta en el backend los médicos con sesión activa reciente.
+ *
+ * Flujo del proceso:
+ * 1. Verifica si el usuario actual tiene permisos de visualización (transcriptor o admin).
+ * 2. Realiza petición GET a /api/seguridad/medicos-activos.
+ * 3. Actualiza el listado de médicos logueados y su conteo.
+ *
+ * @param {boolean} silencioso Si es true, no activa spinner general para no parpadear UI.
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-23
+ */
+async function cargarMedicosActivos(silencioso = false) {
+    if (!esTranscriptor.value) return;
+
+    if (!silencioso) {
+        cargandoMedicosLogueados.value = true;
+    }
+
+    try {
+        const params = {};
+        if (sedeSeleccionada.value) {
+            params.sede_id = sedeSeleccionada.value;
+        }
+        const { data } = await axios.get("/api/seguridad/medicos-activos", { params });
+        if (data?.success && Array.isArray(data.data)) {
+            medicosLogueados.value = data.data;
+        } else {
+            medicosLogueados.value = [];
+        }
+    } catch (_) {
+        // En caso de fallo o timeout de red se conserva el estado previo
+    } finally {
+        if (!silencioso) {
+            cargandoMedicosLogueados.value = false;
+        }
+    }
+}
+
+/**
+ * Acción al desplegar el dropdown de médicos en línea.
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-23
+ */
+function onOpenMedicosDropdown() {
+    cargarMedicosActivos(false);
+}
+
+/**
+ * Selecciona y enfoca al médico conectado para labores de transcripción.
+ * Sincroniza storages, estado reactivo y emite evento global en mitt.
+ *
+ * @param {Object} medico Datos del médico seleccionado.
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-23
+ */
+function seleccionarMedicoParaTranscribir(medico) {
+    if (!medico?.id) return;
+
+    medicoSeleccionado.value = medico.id;
+    nomMedicoSeleccionado.value = medico.name;
+
+    sessionStorage.setItem("ST-medico", medico.id);
+    localStorage.setItem("ST-medico", medico.id);
+    sessionStorage.setItem("ST-nomMedico", medico.name);
+    localStorage.setItem("ST-nomMedico", medico.name);
+
+    if (emitter) {
+        emitter.emit("medicoSeleccionado", {
+            idMedico: medico.id,
+            nomMedico: medico.name,
+        });
+    }
+
+    if (proxy?.$toast?.success) {
+        proxy.$toast.success(`Médico enfocado: ${medico.name}`);
+    }
+}
 
 const defaultAvatar = "/admin-wrap/assets/images/users/avatar_default.png";
 const avatarError = ref(false);
@@ -1022,6 +1343,22 @@ onMounted(() => {
         }, delay);
     }
     schedulePoll();
+
+    // Polling para médicos en línea (cada 45 segundos para transcriptores)
+    if (esTranscriptor.value) {
+        cargarMedicosActivos(true);
+        const pollMedicosInterval = 45000;
+        function scheduleMedicosPoll() {
+            const delay = document.hidden
+                ? Math.min(pollMedicosInterval * 3, 180000)
+                : pollMedicosInterval;
+            medicosPollIntervalId.value = setTimeout(() => {
+                cargarMedicosActivos(true);
+                scheduleMedicosPoll();
+            }, delay);
+        }
+        scheduleMedicosPoll();
+    }
     document.addEventListener("visibilitychange", onVisibilityChange);
 
     applyGlobalTheme(isDarkMode.value);
@@ -1085,6 +1422,9 @@ function onStorage(e) {
 function onVisibilityChange() {
     if (!document.hidden) {
         cargarTodasNotificaciones(true);
+        if (esTranscriptor.value) {
+            cargarMedicosActivos(true);
+        }
     }
 }
 
@@ -1098,6 +1438,9 @@ function onVisibilityChange() {
 onBeforeUnmount(() => {
     try {
         if (notifIntervalId.value) clearTimeout(notifIntervalId.value);
+    } catch (_) {}
+    try {
+        if (medicosPollIntervalId.value) clearTimeout(medicosPollIntervalId.value);
     } catch (_) {}
     try {
         document.removeEventListener("visibilitychange", onVisibilityChange);

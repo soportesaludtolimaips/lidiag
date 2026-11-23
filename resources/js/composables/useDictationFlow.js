@@ -995,7 +995,7 @@ export function useDictationFlow() {
         if (!audioBlob.value || !(audioBlob.value instanceof Blob)) {
             await stopRecording();
         }
-        if (!audioBlob.value || !(audioBlob.value instanceof Blob)) {
+        if (!audioBlob.value || !(audioBlob.value instanceof Blob) || audioBlob.value.size < 500) {
             return;
         }
         const formData = new FormData();

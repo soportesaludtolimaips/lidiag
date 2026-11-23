@@ -342,4 +342,25 @@ class UserController extends Controller
 
         return response()->json($result, (int) $result["status"]);
     }
+
+    /**
+     * Devuelve los médicos con sesión activa en el sistema.
+     * Consumido por el indicador en tiempo real para transcriptores.
+     *
+     * @param  Request  $request  Petición HTTP con filtros opcionales de sede y minutos.
+     * @return JsonResponse Lista de médicos logueados.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-23
+     */
+    public function medicosActivos(Request $request): JsonResponse
+    {
+        $sedeId = $request->filled('sede_id') ? (int) $request->input('sede_id') : null;
+        $minutos = $request->filled('minutos') ? (int) $request->input('minutos') : 15;
+
+        $result = $this->userService->getMedicosActivos($sedeId, $minutos);
+
+        return response()->json($result, (int) $result['status']);
+    }
 }
