@@ -37,6 +37,25 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-23 — Eliminación del Modo Oscuro Local en `leerEstudioComponent.vue` en favor del Tema Global:**
+  - **Diagnóstico y Solución:**
+    * [`leerEstudioComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/leerEstudioComponent.vue) contaba con botones locales de toggle de modo oscuro en el card header y en el título del drawer lateral, además de un estado reactivo local `isDarkMode` y reglas CSS duplicadas `.right-sidebar.dark-mode`.
+    * Dado que la aplicación cuenta con un interruptor global de modo oscuro unificado en el topbar/header ([`userProfileAndSearchComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/userProfileAndSearchComponent.vue)) respaldado por `resources/css/dark-theme.css` (que cubre integralmente `.right-sidebar`), se retiraron los botones redundantes y el estado local.
+    * Se mantuvieron las adaptaciones del widget flotante de dictado (`.floating-dictation-pill`) vinculadas a la clase global `:global(body.theme-dark)`.
+  - **Verificaciones:**
+    * ESLint & Prettier: 0 errores y 0 advertencias.
+    * Compilación con Vite (`npm run build`): ejecutada exitosamente en 1.82s.
+- [x] **2026-11-23 — Auditoría de Calidad y Refactorización Integral de Voz, Dictado y Grabación (Fase 3):**
+  - **Diagnóstico y Problemas Resueltos:**
+    1. *Eliminación de Diccionario Médico Residual:* En `lecturaComponent.vue` se erradicó la importación y procesamiento de `terminos_medicos.txt` y `medical_replacements.json`, eliminando las funciones `applyMedicalCorrections`, `rebuildMedicalVocabulary`, `levenshteinMax` y `applyMedicalReplacements` que bloqueaban la CPU en cada palabra dictada. Se borraron físicamente dichos archivos.
+    2. *Corrección de Arquitectura de Audio y Supresión de Workers Inválidos:* `audioRecordingWorker.js` intentaba invocar `navigator.mediaDevices.getUserMedia` en un `DedicatedWorkerGlobalScope` (donde `mediaDevices` no existe por estándar W3C), arrojando excepciones en cada inicio antes de caer en un fallback tardío. Se eliminaron `audioRecordingWorker.js` y `audioRecorderWorkerSession.js`, y se unificó `createAudioRecorderSessionSmart` con `createAudioRecorderSession` directo en hilo principal (aprovechando la captura nativa asíncrona en C++ del navegador).
+    3. *Limpieza de Estado y Preview en `speechDictation.js`:* Se reseteó `lastError = null` en `onstart` y `onresult` para evitar que errores transitorios (`aborted` o `no-speech`) queden pegajosos forzando reinicios acelerados en cada corte natural; y se permitió la emisión simultánea de `finalText` e `interimText` para no parpadear ni borrar el texto provisional de la vista.
+    4. *Pausa Manual Respetada y Retorno de Destructor en `useDictationFlow.js`:* Se incorporó la bandera reactiva `isManuallyPaused` para que los eventos `visibilitychange` y `focus` no reanuden el micrófono si el médico lo pausó deliberadamente; y `setupKeyboardShortcut()` ahora retorna `teardownKeyboardShortcut` para una limpieza segura.
+    5. *Conexión de `VoiceModal.vue` en `audio-texto.vue`:* Se importó `VoiceModal.vue`, se integró el botón de ayuda de comandos, se configuró el atajo `F2` y se añadió la validación de tamaño mínimo de blob (`blob.size > 500`).
+    6. *Eliminación de Código Huérfano:* Se eliminó el archivo obsoleto `resources/js/components/modulos/varios/SpeechToText.js`.
+  - **Verificaciones:**
+    * ESLint: 0 errores y 0 advertencias en todos los archivos de voz.
+    * Compilación Vite (`npm run build`): Exitosa (1.81s, 310 módulos transformados sin errores).
 - [x] **2026-11-23 — Corrección del Error 500 en `api/upload-audio` (Permisos de Archivos Temporales y Validación de Blobs):**
   - **Diagnóstico del Problema:**
     1. *Error reportado:* Durante la lectura del paciente PRADA ACOSTA JAVIER IVAN (Doc: 1110575592, Estudio: 214517, Producto: 265348), la lectura textual se guardó con éxito en BD (`estudios_productos.lectura`), pero la petición subsecuente a `POST /api/upload-audio` arrojó HTTP 500.
