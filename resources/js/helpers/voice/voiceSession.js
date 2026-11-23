@@ -3,11 +3,7 @@
  * Combina dictado (SpeechRecognition) + grabación (MediaRecorder) en una sola sesión.
  * Diseñado para ser reutilizable en múltiples componentes sin tocar UI.
  */
-import {
-    createAudioRecorderSession,
-    createAudioRecorderSessionSmart,
-    getVoiceAudioConstraints,
-} from "./audioRecorder";
+import { createAudioRecorderSessionSmart, getVoiceAudioConstraints } from "./audioRecorder";
 import { createSpeechDictation, isSpeechRecognitionSupported } from "./speechDictation";
 
 /**
@@ -30,7 +26,7 @@ export function createVoiceSession({
     audioBitsPerSecond = 64000,
 
     // Dictado
-    lang = "es-ES",
+    lang = "es-CO",
     grammarCommands = [],
     maxNoSpeechRetries = 6,
 
@@ -102,22 +98,7 @@ export function createVoiceSession({
         if (d) d.start();
         const a = await ensureAudio();
         if (a) {
-            try {
-                await a.start();
-            } catch {
-                // Worker interno falló → reintenta con main thread
-                try {
-                    a.cleanup();
-                } catch {}
-                const fallback = await createAudioRecorderSession({
-                    constraints,
-                    mimeType,
-                    audioBitsPerSecond,
-                });
-                fallback.start();
-                audioSession = fallback;
-                return { audioSession: fallback, dictation: d };
-            }
+            await a.start();
         }
         return { audioSession: a, dictation: d };
     };

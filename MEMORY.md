@@ -37,6 +37,27 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-23 — Diagnóstico Integral y Corrección del Flujo de Voz / Dictado Clínico (Caso RNM Rodilla):**
+  - **Diagnóstico y Causas Raíz Identificadas:**
+    1. *Filtrado literal de comandos ("Inicia mayúscula", "Inicial mayúscula"):*
+       - *Causa raíz A:* En `voiceCommands.js`, la lista de comandos de mayúsculas sólo contemplaba el infinitivo "iniciar mayúscula" y carecía de las formas imperativas y variantes fonéticas como "inicia mayúscula", "inicia mayúsculas", "inicial mayúscula", "mayúscula inicial".
+       - *Causa raíz B (Bug Crítico de Estado en RegExp `/g`):* Al evaluar `if (enableRegex.test(text) && disableRegex.test(text)) else if (enableRegex.test(text))`, la presencia de la bandera global `/g` en la instancia `RegExp` avanzaba `lastIndex` tras el primer `.test()`, provocando que el segundo `.test()` fallara sistemáticamente al buscar desde el índice avanzado. Por tanto, `isUppercase` jamás se activaba y el comando nunca era eliminado del texto.
+       - *Solución:* Se corrigió la evaluación de expresiones regulares para ejecutar `.test()` sin bandera `/g` (patrón desacoplado e inmutable), se ampliaron los catálogos en `UPPERCASE_ENABLE_COMMANDS`, y se introdujo `CAPITALIZE_NEXT_COMMANDS` ("inicial mayúscula", "mayúscula inicial") para capitalizar específicamente la siguiente frase/palabra sin mantener mayúsculas sostenidas perpetuas.
+    2. *Filtrado literal de "Falta de línea":*
+       - *Causa raíz:* En español colombiano, el decodificador acústico de Google SpeechRecognition (Web Speech API) confunde con alta frecuencia la sibilante [s] de "salto" con la fricativa [f] ("falta de línea"). `LINE_BREAK_COMMANDS` no contaba con los alias fonéticos acústicos de Google.
+       - *Solución:* Se incorporaron alias acústicos en `LINE_BREAK_COMMANDS` ("falta de línea", "falta de linea", "nueva línea", "nuevo renglón", "cambio de línea") y reglas de pre-normalización para capturar contracciones fonéticas con puntos (`. falta de línea` -> `.\n`).
+    3. *Puntuación pegada sin espacios y deformación de límites entre fragmentos (`Técnica.Falta`, `articular.Hay`, `óseas.Compartimento`):*
+       - *Causa raíz:* Al dictar en pausas continuas, Google emite resultados fragmentados (`isFinal`). En cada límite de bloque, el texto insertado previamente terminaba en punto y el siguiente comenzaba con letra sin espacio inicial. Al invocar `execCommand('insertText')` en el iframe de wysihtml5, los espacios terminales en nodos de texto colapsaban bajo las reglas de renderizado HTML y `htmlToPlain` eliminaba los espacios terminales mediante `.trim()`. Al insertarse el siguiente fragmento, se concatenaba inmediatamente pegado al punto precedente.
+       - *Solución:* En `WysiwygEditor.vue` (`insertText`), se implementó detección contextual del nodo y posición del cursor en el DOM del iframe (y en textarea nativo): si el carácter previo no es espacio ni salto y el nuevo texto no empieza por signo de puntuación o salto, se antepone automáticamente un espacio separador. Asimismo, en `voiceCommands.js` se agregó la regla para forzar espacio si un signo de puntuación va inmediatamente pegado a una letra (`([.,:;!?])([A-Za-zÁÉÍÓÚáéíóúüñ])` -> `$1 $2`) y limpieza de espacios post-salto (`\n[ \t]+` -> `\n`).
+    4. *Pérdida/omisión de bloques posteriores (MENISCOS, LIGAMENTOS, CONCLUSIÓN):*
+       - *Causa raíz:* Cuando el radiólogo realizaba pausas prolongadas (más de 4-5 segundos) para examinar las imágenes, Chromium emitía `no-speech` seguido de `onend`. En la versión previa, `onend` intentaba invocar `recognitionInstance.start()` síncronamente mientras el hilo de audio del navegador aún estaba cerrándose, arrojando `InvalidStateError` silenciosamente en el `catch (_)` y dejando el dictado muerto.
+       - *Solución:* Se implementó `scheduleRecognitionRestart` en `useDictationFlow.js` con debounce de 150ms y reintento con recreación limpia de la instancia si el socket o pista de audio no responde, garantizando escucha continua sin caída en pausas largas.
+    5. *Accesibilidad y Documentación:*
+       - Se sincronizó `VoiceModal.vue` reflejando con exactitud todos los comandos existentes, y se añadió un botón de acceso directo `pill-btn-help` en la cápsula flotante de dictado (`leerEstudioComponent.vue`).
+  - **Verificaciones:**
+    * Pruebas sintéticas con los casos reales exactos en Node: 100% resueltos (`test_voice.mjs`).
+    * ESLint & Prettier: 0 errores y 0 advertencias.
+    * Compilación con Vite (`npm run build`): ejecutada exitosamente en 1.61s.
 - [x] **2026-11-23 — Eliminación del Modo Oscuro Local en `leerEstudioComponent.vue` en favor del Tema Global:**
   - **Diagnóstico y Solución:**
     * [`leerEstudioComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/leerEstudioComponent.vue) contaba con botones locales de toggle de modo oscuro en el card header y en el título del drawer lateral, además de un estado reactivo local `isDarkMode` y reglas CSS duplicadas `.right-sidebar.dark-mode`.
@@ -47,7 +68,14 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * Compilación con Vite (`npm run build`): ejecutada exitosamente en 1.82s.
 - [x] **2026-11-23 — Auditoría de Calidad y Refactorización Integral de Voz, Dictado y Grabación (Fase 3):**
   - **Diagnóstico y Problemas Resueltos:**
-    1. *Eliminación de Diccionario Médico Residual:* En `lecturaComponent.vue` se erradicó la importación y procesamiento de `terminos_medicos.txt` y `medical_replacements.json`, eliminando las funciones `applyMedicalCorrections`, `rebuildMedicalVocabulary`, `levenshteinMax` y `applyMedicalReplacements` que bloqueaban la CPU en cada palabra dictada. Se borraron físicamente dichos archivos.
+    1. *Corrección de Comando "punto a parte" y Preservación de Saltos en Wysiwyg:*
+       - *Causa raíz 1:* En `htmlToPlain` ([`wysiwyg.js`](file:///c:/laragon/www/lidiag/resources/js/helpers/wysiwyg.js)), la función terminaba con `return text.trim();`. Cuando el dictado insertaba `.\n\n` al final de la lectura, el `MutationObserver` del `WysiwygEditor` se disparaba 300ms después para sincronizar y el `.trim()` eliminaba los `\n\n` finales. Al dictar la siguiente palabra ("Documento:"), esta se concatenaba pegada al punto (`hospital.Documento:`). Se corrigió para recortar únicamente espacios horizontales al final (`replace(/[ \t]+$/, "")`), preservando intactos los saltos de línea `\n\n`.
+       - *Causa raíz 2:* Google Chrome a veces transcribe la palabra "punto" directamente como un signo `.` antes de pronunciar "a parte" o "aparte" (`hospital. a parte Documento:`). Se añadieron reglas de pre-normalización en `useDictationFlow.js` y `lecturaComponent.vue` para capturar cualquier combinación de `(punto|.) (y )?a?parte` y convertirla siempre a `.\n\n`.
+       - *Causa raíz 3:* Limpieza de espacios previos a signos de puntuación en `onText` ([`leerEstudioComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/leerEstudioComponent.vue)), de modo que `hospital ` + `.\n\n` elimine el espacio redundante antes del punto (`hospital.\n\n`).
+    2. *Eliminación de SpeechGrammarList y Cambio de Idioma a `es-CO`:*
+       - `speechDictation.js` inyectaba una lista de gramáticas `SpeechGrammarList` con más de 100 comandos. En Chromium, `recognition.grammars` fuerza al decodificador acústico de Google a sesgar y distorsionar el habla continua libre hacia palabras fonéticamente forzadas de la gramática (provocando alucinaciones graves como "tus carnales"). Se removió completamente `SpeechGrammarList` dejando el dictado en lenguaje natural puro.
+       - Se cambió el idioma de reconocimiento de `"es-ES"` (España, fonética peninsular) a `"es-CO"` (Español Colombia) en todos los módulos (`useDictationFlow.js`, `speechDictation.js`, `voiceSession.js`, `lecturaComponent.vue`).
+    2. *Eliminación de Diccionario Médico Residual:* En `lecturaComponent.vue` se erradicó la importación y procesamiento de `terminos_medicos.txt` y `medical_replacements.json`, eliminando las funciones `applyMedicalCorrections`, `rebuildMedicalVocabulary`, `levenshteinMax` y `applyMedicalReplacements` que bloqueaban la CPU en cada palabra dictada. Se borraron físicamente dichos archivos.
     2. *Corrección de Arquitectura de Audio y Supresión de Workers Inválidos:* `audioRecordingWorker.js` intentaba invocar `navigator.mediaDevices.getUserMedia` en un `DedicatedWorkerGlobalScope` (donde `mediaDevices` no existe por estándar W3C), arrojando excepciones en cada inicio antes de caer en un fallback tardío. Se eliminaron `audioRecordingWorker.js` y `audioRecorderWorkerSession.js`, y se unificó `createAudioRecorderSessionSmart` con `createAudioRecorderSession` directo en hilo principal (aprovechando la captura nativa asíncrona en C++ del navegador).
     3. *Limpieza de Estado y Preview en `speechDictation.js`:* Se reseteó `lastError = null` en `onstart` y `onresult` para evitar que errores transitorios (`aborted` o `no-speech`) queden pegajosos forzando reinicios acelerados en cada corte natural; y se permitió la emisión simultánea de `finalText` e `interimText` para no parpadear ni borrar el texto provisional de la vista.
     4. *Pausa Manual Respetada y Retorno de Destructor en `useDictationFlow.js`:* Se incorporó la bandera reactiva `isManuallyPaused` para que los eventos `visibilitychange` y `focus` no reanuden el micrófono si el médico lo pausó deliberadamente; y `setupKeyboardShortcut()` ahora retorna `teardownKeyboardShortcut` para una limpieza segura.
@@ -76,6 +104,93 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * Pint pasado (`passed` en `EstudioAudioService.php`).
     * ESLint pasado (0 errores en `leerEstudioComponent.vue` y `useDictationFlow.js`).
     * Compilación Vite (`npm run build`) exitosa (1.75s).
+- [x] **2026-11-23 — Implementación Mínima y Pura de SpeechRecognition + Inserción Directa en wysihtml5:**
+  - **Diagnóstico y Simplificación Radical:**
+    * El flujo de dictado acumulaba más de 1,170 líneas de lógica con múltiples mapas de comandos, colas de retención de palabras con retardos de 800ms, bucles de regex, descarte de diacríticos y escuchadores de visibilidad que provocaban interferencias acústicas, lentitud y distorsiones del texto (como alucinaciones fonéticas).
+    * Además, la inserción se realizaba concatenando `registro.value.lectura += text`, lo cual disparaba el watcher de `WysiwygEditor.vue` que forzaba `editor.composer.setValue()`, destruyendo la selección del cursor y regenerando el DOM en cada palabra reconocida.
+  - **Solución Implementada:**
+    1. *`useDictationFlow.js` puro y minimal (~200 líneas):*
+       - Se retiraron todos los mapas de comandos, normalizaciones gramaticales, regex agresivos, listas de gramática y colas de retención.
+       - Implementación directa sobre `window.SpeechRecognition || window.webkitSpeechRecognition` nativo con `lang: "es-CO"`, `continuous: true` e `interimResults: true`.
+       - En `onresult`, el texto final `transcript.trim()` se emite directamente con espacio terminal sin filtros ni alteraciones extrañas.
+       - En `onend`, si `recognizing.value` sigue activo, se reconecta automáticamente para mantener el dictado continuo.
+       - Mantiene un `MediaRecorder` ligero para capturar el audio paralelo necesario para `audioBlob` al guardar el estudio.
+    2. *Inserción Directa en `WysiwygEditor.vue` (`insertText`):*
+       - Se implementó y expuso vía `defineExpose` el método `insertText(text)`, que enfoca el compositor (`editor.composer.focus()`) y ejecuta `execCommand("insertText", false, text)` (con fallback a `insertHTML`) en el documento del iframe de wysihtml5.
+       - Esto inserta el texto reconocido en la posición exacta del cursor de forma inmediata, sin provocar re-renderizado total ni saltos de cursor.
+    3. *Conexión en `leerEstudioComponent.vue`:*
+       - El callback `onText` ahora llama prioritariamente a `wysiwygEditorRef.value?.insertText(text)` con fallback a `registro.value.lectura`.
+    4. *Restauración de `wysiwyg.js`:*
+       - Se restauró `BYPASS_WYSIWYG = false` para permitir la serialización y des-serialización normal del editor wysihtml5.
+  - **Verificaciones:**
+    * ESLint y Prettier: 0 errores y 0 advertencias en todos los archivos modificados.
+    * Compilación Vite (`npm run build`): Exitosa en 1.44s con 310 módulos transformados.
+    * 0 referencias a `useMedicalDictionary.js` y 0 IA externa añadida.
+- [x] **2026-11-23 — Auditoría Completa e Integración de Comandos de Voz sobre SpeechRecognition + wysihtml5:**
+  - **Diagnóstico y Auditoría de Comandos Previos:**
+    * Se auditaron todos los comandos de voz en `resources/js/helpers/voice`, `lecturaComponent.vue`, `VoiceModal.vue` y el historial de `useDictationFlow.js`.
+    * Problemas encontrados:
+      1. *Sesgo por gramática:* `SpeechGrammarList` forzaba al decodificador de Google a asociar frases cotidianas con palabras de comando fonéticamente cercanas (produciendo alucinaciones).
+      2. *Latencia por cola de retención:* `contarRetencion` retenía palabras hasta 800ms con un timer para esperar la segunda parte de comandos como "punto aparte".
+      3. *Anomalía fonética de Chromium en español:* Chrome transcribe la palabra "punto" como un signo de puntuación `.` antes de pronunciar "a parte" o "seguido" (`hospital. a parte`), haciendo que coincidencias literales de `\bpunto a parte\b` fallaran.
+      4. *Colapso de saltos en wysihtml5:* `execCommand("insertText")` colapsaba `\n\n` en un solo espacio o salto en el iframe del editor.
+  - **Solución Implementada:**
+    1. *Helper Desacoplado `resources/js/helpers/voice/voiceCommands.js`:*
+       - Catálogo completo de 70+ comandos distribuidos en 5 categorías: Mayúsculas (activación/desactivación), Saltos de línea y párrafos, Puntuación y delimitadores, Símbolos/Operadores y Formato clínico.
+       - Función pura `processVoiceCommands(rawText, options)` que normaliza dígitos previos (`2 puntos` -> `dos puntos`), normaliza anomalías acústicas de Chrome (`(?:\bpunto\b|\.)\s*(?:y\s+)?a\s*parte` -> `.\n\n`), sustituye comandos de forma limpia y directa, elimina espacios redundantes previos a puntuaciones (`hospital , ` -> `hospital, `) y capitaliza oraciones/párrafos nuevos sin retrasos ni temporizadores.
+    2. *Integración en `useDictationFlow.js`:*
+       - En `recognitionInstance.onresult`, cada fragmento final se procesa sincrónicamente con `processVoiceCommands`, actualizando los estados reactivos `uppercase` y `capitalizeNext` y emitiendo el texto resultante directo a `_onText`.
+    3. *Preservación de Saltos en `WysiwygEditor.vue` (`insertText`):*
+       - Si el texto a insertar contiene saltos `\n`, se convierte a `<br>` mediante `plainToHtml` y se ejecuta `editor.composer.commands.exec("insertHTML", htmlContent)` directamente en el compositor de wysihtml5, asegurando que `.\n\n` se renderice como párrafos reales y saltos de línea visibles sin recargar el editor.
+  - **Verificaciones:**
+    * ESLint y Prettier: 0 errores y 0 advertencias (`voiceCommands.js`, `useDictationFlow.js`, `WysiwygEditor.vue`).
+    * Compilación Vite (`npm run build`): Exitosa en 1.47s con 311 módulos transformados.
+    * 0 referencias a `useMedicalDictionary.js` y 0 IA externa añadida.
+- [x] **2026-11-23 — Corrección Definitiva del Comando "Salto de Línea" (Wysihtml5 insertLineBreak + Auto-puntuación):**
+  - **Diagnóstico del Fallo de "Salto de Línea":**
+    * 1. *Colapso de `<br>` en Blink/Chromium:* Al recibir `"\n"`, `WysiwygEditor.vue` ejecutaba `plainToHtml("\n")` (`"<br>"`) vía `insertHTML`. En Chromium, una etiqueta `<br>` al final de un contenedor de bloque tiene 0px de altura (trailing break colapsado) y no mueve el cursor hacia abajo.
+    * 2. *Comando Nativo de Wysihtml5 no invocado:* Wysihtml5 implementa internamente `editor.composer.commands.exec("insertLineBreak")` (idéntico a presionar la tecla `Enter`), gestionando el scroll, el caret y el espacio invisible. Al usar `insertHTML` en lugar de `insertLineBreak`, el salto visual nunca se producía.
+    * 3. *Auto-puntuación de Chromium ("salto de línea."):* Cuando el usuario hace una pausa, el reconocedor nativo de Chrome añade un punto final (`"salto de línea."` o `"salto de linea."`). Al sustituir el comando, quedaba un punto huérfano (`"\n."`).
+    * 4. *Variantes acústicas ("un salto de línea", "salto línea", etc.):* Frases como `"un salto de línea"` dejaban la palabra `"Un"` antes del salto (`"Un\n"`).
+  - **Solución Implementada:**
+    * 1. *Ejecución de `insertLineBreak` en [`WysiwygEditor.vue`](file:///c:/laragon/www/lidiag/resources/js/components/shared/WysiwygEditor.vue):* Se implementó `executeLineBreak()` que invoca `editor.composer.commands.exec("insertLineBreak")` (o `iframeDoc.execCommand("insertLineBreak")`). Cuando el texto contiene saltos (`textToInsert.includes("\n")`), se divide por `\n` y se ejecuta un salto de línea real e interactivo por cada salto, simulando fielmente la pulsación de `Enter`.
+    * 2. *Consumo de Puntuación Adyacente en [`voiceCommands.js`](file:///c:/laragon/www/lidiag/resources/js/helpers/voice/voiceCommands.js):* La regex de comandos de salto ahora incluye `[.,;: ]*` para absorber puntos o comas auto-puntuados por Chrome, y se limpiaron signos huérfanos tras saltos de línea.
+    * 3. *Ampliación de Catálogo en `LINE_BREAK_COMMANDS`:* Se agregaron más de 40 variantes acústicas (`un salto de línea`, `salto línea`, `saltar de línea`, `salta de línea`, `salte de línea`, `salto delinea`, `bajar renglón`, `baja de línea`, `un renglón en blanco`, etc.).
+    * 4. *Preservación en [`wysiwyg.js`](file:///c:/laragon/www/lidiag/resources/js/helpers/wysiwyg.js):* Se ajustó `htmlToPlain` para no purgar saltos de línea iniciales mediante `replace(/^[ \t]+/, "")`.
+  - **Verificaciones:**
+    * ESLint y Prettier: 0 errores y 0 advertencias.
+    * Compilación Vite (`npm run build`): Completada con éxito (1.44s, 311 módulos).
+    * Suite unitaria de pruebas Node: 100% aprobada en 25 casos de prueba de saltos y dictado clínico.
+
+- [x] **2026-11-23 — Unificación Definitiva del Motor de Voz y Corrección de "Sigue Igual":**
+  - **Diagnóstico del "Sigue Igual":**
+    * 1. *Doble implementación no unificada:* El sistema posee dos pantallas principales de dictado: Estudios/RX/TAC ([`leerEstudioComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/leerEstudioComponent.vue)) y Ecografías ([`lecturaComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/lecturaComponent.vue)). `lecturaComponent.vue` tenía su propia lógica heredada con 350 líneas de funciones de comandos (`processCommands`, `getUppercaseCommands`, etc.) que no usaba `processVoiceCommands`, carecía de los nuevos comandos y concatenaba strings directamente destruyendo la posición del cursor e ignorando "inicia mayúscula" y "falta de línea".
+    * 2. *Descarte de saltos de línea aislados en `voiceCommands.js`:* Si el usuario decía únicamente *"salto de línea"* o *"falta de línea"*, el resultado era `"\n"`. La línea 440 comprobaba `if (!text.trim()) return { text: "" }`. Dado que `"\n".trim() === ""`, el salto era eliminado por completo.
+    * 3. *Caché del navegador / HMR:* El servidor dev de Vite (`public/hot`) no recarga instancias de `webkitSpeechRecognition` activas en memoria sin una recarga forzada (`Ctrl + F5`).
+  - **Solución Implementada:**
+    * 1. *Unificación en Ecografías (`lecturaComponent.vue`):* Se eliminó el bloque legado duplicado (329 líneas) y se conectó `onFinalText` directamente a `processVoiceCommands(rawText, { uppercase, capitalizeNext })`, inyectando el texto a través de `wysiwygEditorRef.value.insertText(text)` para preservar el cursor y formato idéntico a Estudios.
+    * 2. *Soporte a Saltos Aislados en `voiceCommands.js`:* Se ajustó la condición de retorno para no descartar cadenas que contengan saltos de línea (`/\n/.test(text)`).
+    * 3. *Espaciado Inteligente en `WysiwygEditor.vue`:* `insertText` inspecciona el carácter inmediatamente previo al cursor dentro del iframe; si no es espacio ni salto y el nuevo texto no inicia con puntuación/espacio, antepone automáticamente un espacio.
+  - **Verificaciones:**
+    * ESLint & Prettier: 0 errores y 0 advertencias en todos los componentes.
+    * Compilación Vite (`npm run build`): Exitosa (1.44s, 311 módulos).
+    * Suite de pruebas Node unitaria para `processVoiceCommands`: 100% aprobada.
+
+- [x] **2026-11-23 — Resolución del Caso Real de Rodilla (Tolerancia Fonética, Reinicio Resiliente y Desacoplamiento de Espaciado):**
+  - **Diagnóstico del Caso Real:**
+    * 1. *Comandos literales ("Inicia mayúscula", "Inicial mayúscula"):* `UPPERCASE_ENABLE_COMMANDS` solo contemplaba la forma infinitiva con terminación en `-r` (`iniciar mayúscula`). Al dictar en presente (`inicia`) o transcribir Chrome fonéticamente como adjetivo (`inicial`), la regex no coincidía y se inyectaba como texto crudo sin activar mayúsculas.
+    * 2. *Comando literal ("Falta de línea"):* Confusión fonética de Google Speech API entre `/s/` y `/f/` ante `/al/` en pronunciación rápida de *"salto de línea"*.
+    * 3. *Puntos pegados sin espacio ("Técnica.Falta", "articular.Hay", "óseas.Compartimento"):* `punto` retornaba `"."` sin espacio posterior; además, `htmlToPlain` en `wysiwyg.js` hacía `line.trim()` y `.replace(/[ \t]+$/, "")`, cercenando el espacio terminal tras cada fragmento emitido; y el watcher en `WysiwygEditor.vue` disparaba `syncEditorValue` y reseteaba la selección del cursor en cada fragmento.
+    * 4. *Omisión de secciones enteras tras "su atributo":* En `useDictationFlow.js`, `recognitionInstance.onend` llamaba a `recognitionInstance.start()` de forma síncrona. En Chromium, llamar a `.start()` en el mismo tick de `onend` arroja `DOMException: recognition has already started`, matando silenciosamente el motor de voz a los 30-40 segundos de dictado e ignorando todo el habla subsiguiente.
+  - **Solución Implementada:**
+    1. *Tolerancia Fonética Ampliada en `voiceCommands.js`:* Se incorporaron conjugaciones y variantes acústicas (`inicia`, `inicie`, `inicial`, `activa`, `active`, `habilita`, `desactiva`, `desactive`, `termina`, `termine`, `falta de línea`, `salto de renglón`, `cambio de línea`).
+    2. *Espaciado Limpio y Separación Forzada de Puntuación:* `punto` ahora retorna `". "` y se añadió la regla `text.replace(/([.,:;!?])([A-Za-zÁÉÍÓÚáéíóúüñ])/g, "$1 $2")` para garantizar que una palabra jamás quede pegada a un signo.
+    3. *Desacoplamiento de Edición en `WysiwygEditor.vue` y `wysiwyg.js`:* Bandera `isDirectlyInserting` para evitar que el watcher de `props.modelValue` invoque `syncEditorValue` mientras se dicta, y preservación del espacio terminal en `htmlToPlain`.
+    4. *Reinicio Resiliente con Debounce en `useDictationFlow.js`:* Función `scheduleRecognitionRestart(150)` con debounce y recreación automática de instancia ante errores `aborted` o `network`, garantizando continuidad indefinida en informes largos.
+  - **Verificaciones:**
+    * ESLint & Prettier: 0 errores y 0 advertencias.
+    * Compilación Vite (`npm run build`): Exitosa en 1.76s con 311 módulos transformados.
+    * 0 referencias a `useMedicalDictionary.js` y 0 IA externa añadida.
 - [x] **2026-11-23 — Ejecución del Plan de Correcciones de Auditoría de Voz (Fase 2):**
   - **Diagnóstico y Correcciones Ejecutadas:**
     1. *Resiliencia en Ecografías (`lecturaComponent.vue` - B4-R & B4-R2):* Al usar `createVoiceSession` directamente sin `useDictationFlow`, carecía de listeners ante cambios de visibilidad o foco y manejo del error `aborted`. Se incorporaron los listeners `visibilitychange` y `focus` para reanudar el reconocimiento automáticamente cuando el ecografista regresa al sistema tras consultar visores externos (PACS/Oviyam), y se blindó `onError` para reconectar ante `aborted` y `not-allowed`.

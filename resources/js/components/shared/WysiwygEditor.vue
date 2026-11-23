@@ -190,7 +190,13 @@
 
 <script setup>
 import { onMounted, onBeforeUnmount, ref, computed, watch, nextTick } from "vue";
-import { cleanPastedHtml, htmlToPlain, plainToHtml, CLINICAL_MACROS } from "@/helpers/wysiwyg.js";
+import {
+    BYPASS_WYSIWYG,
+    cleanPastedHtml,
+    htmlToPlain,
+    plainToHtml,
+    CLINICAL_MACROS,
+} from "@/helpers/wysiwyg.js";
 
 let idCounter = 0;
 
@@ -916,6 +922,9 @@ function initEditor() {
         setupToolbarInteractions($el, inst.editor);
 
         const onEditorReady = () => {
+            if (BYPASS_WYSIWYG && inst?.editor?.composer?.element) {
+                inst.editor.composer.element.style.whiteSpace = "pre-wrap";
+            }
             syncEditorValue(props.modelValue);
             attachObserver(inst.editor);
             applyHeight();
@@ -1348,9 +1357,12 @@ function disconnectObserver() {
  * @author Jhon Javer Lozano Arce
  * @date 2026-08-18
  */
+let isDirectlyInserting = false;
+
 watch(
     () => props.modelValue,
     (newVal) => {
+        if (isDirectlyInserting) return;
         syncEditorValue(newVal);
     }
 );
@@ -1366,12 +1378,157 @@ watch(
 );
 
 /**
- * Expone métodos útiles al componente padre (limpiar borrador, restaurar, descartar).
+ * Inserta texto directamente en la posición actual del cursor dentro del editor wysihtml5
+ * (o en el textarea nativo si wysihtml5 no está activo), sin reiniciar el DOM ni alterar la posición del cursor.
+ *
+ * Flujo del proceso:
+ * 1. Verifica si el texto a insertar es válido y obtiene la referencia del textarea.
+ * 2. Si la instancia de wysihtml5 y su compositor (iframe) están disponibles:
+ *    a. Asegura el foco en el compositor.
+ *    b. Ejecuta el comando nativo 'insertText' en el documento del iframe; si falla, utiliza 'insertHTML'.
+ *    c. En el siguiente ciclo de renderizado, sincroniza el modelo reactivo y guarda borrador automático.
+ * 3. Si se encuentra en modo fallback de textarea nativo, inserta el texto entre selectionStart y selectionEnd.
+ *
+ * @param {string} text - Fragmento de texto reconocido a insertar.
+ * @returns {void}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-23
+ */
+function insertText(text) {
+    if (!text) return;
+    const el = textareaRef.value;
+    if (!el) return;
+
+    isDirectlyInserting = true;
+    let textToInsert = text;
+
+    if (window.$) {
+        const inst = $(el).data("wysihtml5");
+        const editor = inst?.editor;
+        if (editor?.composer && editor.composer.element) {
+            editor.composer.focus();
+            try {
+                const iframeDoc = editor.composer.iframe?.contentDocument || editor.composer.doc;
+
+                // Prevenir palabras pegadas a puntuación o texto previo cuando el nuevo fragmento no inicia con puntuación/salto
+                const isPunctuationOrBreak = /^[\s\n.,:;!?%)]/.test(textToInsert);
+                if (!isPunctuationOrBreak && iframeDoc) {
+                    const sel = iframeDoc.getSelection ? iframeDoc.getSelection() : null;
+                    if (sel && sel.rangeCount > 0) {
+                        const range = sel.getRangeAt(0);
+                        if (range.startContainer && range.startContainer.nodeType === 3) {
+                            const beforeCursor = range.startContainer.textContent.substring(
+                                0,
+                                range.startOffset
+                            );
+                            if (beforeCursor && !/[\s\u00A0]$/.test(beforeCursor)) {
+                                textToInsert = " " + textToInsert;
+                            }
+                        } else if (range.startContainer && range.startContainer.nodeType === 1) {
+                            const prevNode = range.startContainer.childNodes[range.startOffset - 1];
+                            if (prevNode && prevNode.nodeType === 3) {
+                                if (
+                                    prevNode.textContent &&
+                                    !/[\s\u00A0]$/.test(prevNode.textContent)
+                                ) {
+                                    textToInsert = " " + textToInsert;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                const executeLineBreak = () => {
+                    try {
+                        if (editor.composer.commands?.support?.("insertLineBreak")) {
+                            editor.composer.commands.exec("insertLineBreak");
+                            return;
+                        }
+                    } catch {}
+                    try {
+                        if (iframeDoc && typeof iframeDoc.execCommand === "function") {
+                            const ok = iframeDoc.execCommand("insertLineBreak", false, null);
+                            if (ok) return;
+                        }
+                    } catch {}
+                    try {
+                        editor.composer.commands.exec("insertHTML", "<br><br>");
+                    } catch {}
+                };
+
+                if (textToInsert.includes("\n")) {
+                    const segments = textToInsert.split("\n");
+                    for (let i = 0; i < segments.length; i++) {
+                        const seg = segments[i];
+                        if (seg) {
+                            if (iframeDoc && typeof iframeDoc.execCommand === "function") {
+                                const ok = iframeDoc.execCommand("insertText", false, seg);
+                                if (!ok) {
+                                    editor.composer.commands.exec("insertHTML", plainToHtml(seg));
+                                }
+                            } else {
+                                editor.composer.commands.exec("insertHTML", plainToHtml(seg));
+                            }
+                        }
+                        if (i < segments.length - 1) {
+                            executeLineBreak();
+                        }
+                    }
+                } else if (/<[a-z][\s\S]*>/i.test(textToInsert)) {
+                    editor.composer.commands.exec("insertHTML", textToInsert);
+                } else if (iframeDoc && typeof iframeDoc.execCommand === "function") {
+                    const ok = iframeDoc.execCommand("insertText", false, textToInsert);
+                    if (!ok) {
+                        const safeHtml = plainToHtml(textToInsert);
+                        editor.composer.commands.exec("insertHTML", safeHtml);
+                    }
+                } else if (editor.composer.commands?.support?.("insertHTML")) {
+                    editor.composer.commands.exec("insertHTML", plainToHtml(textToInsert));
+                }
+            } catch (err) {
+                console.warn("[WysiwygEditor] insertText execCommand fallback:", err);
+                const currentVal = obtenerValorActual(editor);
+                const newVal = currentVal ? `${currentVal} ${textToInsert}` : textToInsert;
+                syncEditorValue(newVal);
+            }
+
+            nextTick(() => {
+                const current = obtenerValorActual(editor);
+                emit("update:modelValue", current);
+                saveDraft(current);
+                setTimeout(() => {
+                    isDirectlyInserting = false;
+                }, 80);
+            });
+            return;
+        }
+    }
+
+    const start = el.selectionStart ?? el.value.length;
+    const end = el.selectionEnd ?? el.value.length;
+    const before = el.value.substring(0, start);
+    const after = el.value.substring(end);
+    const needsSpace =
+        before.length > 0 && !/[\s\n]$/.test(before) && !/^[\s\n.,:;!?%)]/.test(textToInsert);
+    const finalText = (needsSpace ? " " : "") + textToInsert;
+    el.value = before + finalText + after;
+    el.selectionStart = el.selectionEnd = start + finalText.length;
+    emit("update:modelValue", el.value);
+    saveDraft(el.value);
+    setTimeout(() => {
+        isDirectlyInserting = false;
+    }, 80);
+}
+
+/**
+ * Expone métodos útiles al componente padre (limpiar borrador, restaurar, descartar, insertar texto).
  */
 defineExpose({
     clearDraft,
     restoreDraft,
     discardDraft,
+    insertText,
 });
 
 /**

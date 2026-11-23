@@ -307,14 +307,6 @@
                                 isZenMode ? "Normal" : "Zen"
                             }}</span>
                         </button>
-                        <button
-                            type="button"
-                            class="right-side-toggle"
-                            @click="cerrarSidebar()"
-                            aria-label="Cerrar panel"
-                        >
-                            <i class="ti-close"></i>
-                        </button>
                     </div>
                 </div>
                 <div class="r-panel-body">
@@ -1357,6 +1349,16 @@
                             :class="recording || recognizing ? 'fa fa-stop' : 'fa fa-microphone'"
                         ></i>
                     </button>
+
+                    <button
+                        type="button"
+                        class="btn btn-circle pill-btn-help ml-2"
+                        @click="abrirModalAyuda"
+                        title="Ver comandos de voz disponibles"
+                        aria-label="Ayuda de comandos de voz"
+                    >
+                        <i class="fa fa-question"></i>
+                    </button>
                 </div>
             </transition>
         </div>
@@ -2152,7 +2154,11 @@ onMounted(() => {
 
     setCallbacks({
         onText: (text) => {
-            if (registro.value) registro.value.lectura += text;
+            if (wysiwygEditorRef.value?.insertText) {
+                wysiwygEditorRef.value.insertText(text);
+            } else if (registro.value) {
+                registro.value.lectura = String(registro.value.lectura || "") + text;
+            }
         },
         showToast: (cfg) => toastMessage(cfg),
         onState: () => {},
@@ -2268,14 +2274,17 @@ onBeforeUnmount(() => {
     height: 6px;
     animation-delay: 0.1s;
 }
+
 .wave-bar.bar-2 {
     height: 14px;
     animation-delay: 0.3s;
 }
+
 .wave-bar.bar-3 {
     height: 10px;
     animation-delay: 0.2s;
 }
+
 .wave-bar.bar-4 {
     height: 16px;
     animation-delay: 0.4s;
@@ -2285,6 +2294,7 @@ onBeforeUnmount(() => {
     0% {
         height: 4px;
     }
+
     100% {
         height: 18px;
     }
@@ -2326,6 +2336,38 @@ onBeforeUnmount(() => {
 
 .pill-btn:hover {
     transform: scale(1.08);
+}
+
+.pill-btn-help {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: #64748b;
+    background: transparent;
+    border: 1px solid #cbd5e1;
+    transition: all 0.15s ease;
+}
+
+.pill-btn-help:hover {
+    color: #0284c7;
+    border-color: #0284c7;
+    background: rgba(2, 132, 199, 0.08);
+    transform: scale(1.08);
+}
+
+:global(body.theme-dark) .pill-btn-help {
+    color: #94a3b8;
+    border-color: #475569;
+}
+
+:global(body.theme-dark) .pill-btn-help:hover {
+    color: #38bdf8;
+    border-color: #38bdf8;
+    background: rgba(56, 189, 248, 0.1);
 }
 
 .fade-slide-enter-active,

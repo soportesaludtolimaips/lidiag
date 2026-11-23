@@ -24,23 +24,24 @@
                         <div class="col-md-6">
                             <h5 class="text-info font-weight-bold mb-2">Mayúsculas</h5>
                             <ul class="text-muted small">
-                                <li>iniciar mayúscula sostenida</li>
-                                <li>iniciar mayúsculas sostenida</li>
-                                <li>iniciar mayúsculas / mayúscula</li>
-                                <li>activar mayúsculas / mayúscula</li>
-                                <li>habilitar mayúsculas / mayúscula</li>
-                                <li>desactivar mayúsculas / mayúscula</li>
-                                <li>deshabilitar mayúsculas / mayúscula</li>
-                                <li>terminar mayúsculas / mayúscula</li>
-                                <li>fin mayúsculas / mayúscula</li>
-                                <li>finalizar mayúsculas / mayúscula</li>
+                                <li>iniciar / inicia mayúscula sostenida</li>
+                                <li>iniciar / inicia mayúsculas</li>
+                                <li>activar / activa mayúsculas</li>
+                                <li>mayúscula sostenida / en mayúsculas</li>
+                                <li>inicial mayúscula / mayúscula inicial (capitaliza)</li>
+                                <li>desactivar / desactiva mayúsculas</li>
+                                <li>terminar / finaliza mayúsculas</li>
+                                <li>fin mayúsculas / minúsculas</li>
                             </ul>
-                            <h5 class="text-info font-weight-bold mb-2 mt-3">Saltos de línea</h5>
+                            <h5 class="text-info font-weight-bold mb-2 mt-3">
+                                Saltos de línea y párrafos
+                            </h5>
                             <ul class="text-muted small">
                                 <li>punto aparte / punto y aparte</li>
                                 <li>nuevo párrafo</li>
                                 <li>nueva sección / separador (---)</li>
-                                <li>salto de línea / doble salto de línea</li>
+                                <li>salto de línea / falta de línea / nueva línea</li>
+                                <li>nuevo renglón / cambio de línea</li>
                                 <li>enter / doble enter</li>
                                 <li>línea en blanco / doble línea en blanco</li>
                             </ul>

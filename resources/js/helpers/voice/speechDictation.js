@@ -47,7 +47,7 @@ export function isSpeechRecognitionSupported() {
  * @date 2026-02-13
  */
 export function createSpeechDictation({
-    lang = "es-ES",
+    lang = "es-CO",
     continuous = true,
     interimResults = true,
     maxAlternatives = 1,
@@ -59,7 +59,7 @@ export function createSpeechDictation({
     onPermissionDenied = () => {},
     onError = () => {},
     onState = () => {}, // ({ recognizing, active, lastError })
-    grammarCommands = null, // array<string> (best-effort)
+    _grammarCommands = null,
 } = {}) {
     const Ctor = getSpeechRecognitionCtor();
     if (!Ctor) throw new Error("SpeechRecognition no soportado");
@@ -69,22 +69,6 @@ export function createSpeechDictation({
     recognition.continuous = !!continuous;
     recognition.interimResults = !!interimResults;
     recognition.maxAlternatives = maxAlternatives;
-
-    // Gramática opcional para mejorar comandos (best-effort)
-    try {
-        const SpeechGrammarListCtor = window.SpeechGrammarList || window.webkitSpeechGrammarList;
-        if (SpeechGrammarListCtor && Array.isArray(grammarCommands) && grammarCommands.length) {
-            const list = new SpeechGrammarListCtor();
-            const cmds = grammarCommands.map((c) => String(c || "").trim()).filter(Boolean);
-            if (cmds.length) {
-                const grammar = `#JSGF V1.0; grammar commands; public <command> = ${cmds.join(" | ")};`;
-                list.addFromString(grammar, 1);
-                recognition.grammars = list;
-            }
-        }
-    } catch {
-        // ignore
-    }
 
     let recognizing = false;
     let active = false;
@@ -152,6 +136,7 @@ export function createSpeechDictation({
 
     recognition.onstart = () => {
         active = true;
+        lastError = null;
         onState({ recognizing, active, lastError });
     };
 
@@ -164,15 +149,19 @@ export function createSpeechDictation({
                 result && result[0] && result[0].transcript ? String(result[0].transcript) : "";
             if (result && result.isFinal) {
                 finalText += transcript;
+                console.log("[STT:RAW_FINAL]", transcript);
             } else if (transcript) {
                 interimText += transcript;
+                console.log("[STT:RAW_INTERIM]", transcript);
             }
         }
         if (finalText) {
             noSpeechCount = 0;
             backoffMs = baseBackoffMs;
+            lastError = null;
             onFinalText(finalText);
-        } else if (interimText) {
+        }
+        if (interimText) {
             onInterimText(interimText);
         }
     };

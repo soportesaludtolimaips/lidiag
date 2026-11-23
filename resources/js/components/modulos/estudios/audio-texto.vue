@@ -1,14 +1,24 @@
 <template>
     <div>
-        <button
-            type="button"
-            @click="toggleSpeechRecognition()"
-            :aria-label="recognizing ? 'Detener grabación' : 'Iniciar grabación'"
-            :aria-pressed="String(recognizing)"
-            class="mic-btn"
-        >
-            <img title="Grabadora" :src="microfono" alt="Micrófono" />
-        </button>
+        <div class="d-flex align-items-center mb-2">
+            <button
+                type="button"
+                @click="toggleSpeechRecognition()"
+                :aria-label="recognizing ? 'Detener grabación' : 'Iniciar grabación'"
+                :aria-pressed="String(recognizing)"
+                class="mic-btn mr-2"
+            >
+                <img title="Grabadora" :src="microfono" alt="Micrófono" />
+            </button>
+            <button
+                type="button"
+                class="btn btn-sm btn-outline-info"
+                @click="modalAyudaVisible = true"
+                title="Comandos de voz"
+            >
+                <i class="fa fa-question-circle mr-1"></i>Comandos de voz
+            </button>
+        </div>
         <div class="row">
             <div class="col-7">
                 <div class="form-group">
@@ -34,11 +44,14 @@
             <i v-else class="fa fa-check"></i>
             Guardar
         </button>
+
+        <VoiceModal v-model="modalAyudaVisible" />
     </div>
 </template>
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from "vue";
 
+import VoiceModal from "@/components/comunes/VoiceModal.vue";
 import { useDictationFlow } from "@/composables/useDictationFlow";
 import { toastMessage, getUserSafeError } from "@/helpers/alerts.js";
 import axios from "axios";
@@ -48,6 +61,8 @@ const props = defineProps({
     estudioProductoId: { type: [Number, String], default: null },
 });
 const emit = defineEmits(["audio-saved"]);
+
+const modalAyudaVisible = ref(false);
 
 // Refs reactivos expuestos por el composable de dictado
 const dictationFlow = useDictationFlow();
@@ -99,10 +114,10 @@ async function sendToBackend() {
 
     const blob = audioBlob?.value;
 
-    if (!blob || !(blob instanceof Blob)) {
+    if (!blob || !(blob instanceof Blob) || blob.size < 500) {
         toastMessage({
             heading: "Upss!!!",
-            text: "No hay audio para enviar.",
+            text: "No hay audio válido para enviar (contenido insuficiente).",
             icon: "warning",
         });
         loadingEnviar.value = false;
@@ -162,6 +177,7 @@ onMounted(() => {
             emit("audio-saved");
         },
     });
+    dictationFlow.setupKeyboardShortcut();
 });
 
 onBeforeUnmount(() => {

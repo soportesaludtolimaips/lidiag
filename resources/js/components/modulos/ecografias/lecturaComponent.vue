@@ -520,6 +520,7 @@
                                 </h5>
                                 <div class="form-group">
                                     <WysiwygEditor
+                                        ref="wysiwygEditorRef"
                                         v-model="registro.lectura"
                                         placeholder="Ingrese aquí la lectura del procedimiento"
                                         :rows="17"
@@ -888,8 +889,7 @@ import usePermissions from "@/helpers/permissions.js";
 import { toastMessage } from "@/helpers/alerts";
 import VoiceModal from "@/components/comunes/VoiceModal.vue";
 import { createVoiceSession } from "@/helpers/voice/voiceSession";
-import medicalReplacements from "@/data/medical_replacements.json";
-import medicalTermsRaw from "@/data/terminos_medicos.txt?raw";
+import { processVoiceCommands } from "@/helpers/voice/voiceCommands";
 import { useSede } from "@/composables/useSede.js";
 import { useSahiInterface } from "@/composables/useSahiInterface.js";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
@@ -907,6 +907,7 @@ const { consultarEstado, enviarEcografiaProducto, startPolling, stopPolling } = 
 
 const dt = ref(null);
 const actualizar = ref(false);
+const wysiwygEditorRef = ref(null);
 
 const tituloModal = ref("Nueva admisión");
 const subTituloModal = ref("");
@@ -950,10 +951,6 @@ const voiceState = ref("inactive");
 const modalAyudaVisible = ref(false);
 const uppercase = ref(false);
 const capitalizeNext = ref(false);
-const medicalReplCompiled = ref(null);
-const medicalVocabularyMap = ref({});
-const medicalVocabularyKeys = ref([]);
-const medicalVocabularyIndex = ref({});
 const isGuardandoLectura = ref(false);
 const isBuscandoPendientes = ref(false);
 const isConsultando = ref(false);
@@ -1032,558 +1029,6 @@ const plantillasOptions = computed(() => {
 });
 
 /**
- * Compila las reglas de reemplazo médico desde el archivo JSON y las almacena en `medicalReplCompiled`.
- *
- * @returns {Array} Array de reglas compiladas, cada una como un array con un RegExp y un string de reemplazo.
- * @author Jhon Javer Lozano Arce
- * @date 2024-06-10
- */
-function getMedicalReplacementsCompiled() {
-    if (medicalReplCompiled.value) return medicalReplCompiled.value;
-    const compiled = [];
-    medicalReplacements.forEach((rule) => {
-        if (!Array.isArray(rule) || rule.length < 3) return;
-        const [regexString, flags, replacement] = rule;
-        try {
-            compiled.push([
-                new RegExp(String(regexString), String(flags || "")),
-                String(replacement),
-            ]);
-        } catch {
-            // ignore regla inválida
-        }
-    });
-    medicalReplCompiled.value = compiled;
-    return compiled;
-}
-
-/**
- * Aplica las reglas de reemplazo médico al texto dado.
- *
- * @returns {string} Texto con los reemplazos aplicados.
- * @author Jhon Javer Lozano Arce
- * @date 2024-06-10
- */
-function applyMedicalReplacements(text) {
-    let out = String(text ?? "");
-    const compiled = getMedicalReplacementsCompiled();
-    compiled.forEach(([re, rep]) => {
-        out = out.replace(re, rep);
-    });
-    return out;
-}
-
-/**
- * Elimina los diacríticos (acentos) de un texto dado.
- *
- * @param {string} text - El texto del cual se eliminarán los diacríticos.
- * @returns {string} El texto sin diacríticos.
- * @author Jhon Javer Lozano Arce
- * @date 2024-06-10
- */
-function stripDiacritics(text) {
-    try {
-        return String(text)
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "");
-    } catch {
-        return String(text);
-    }
-}
-/**
- * Escapa los caracteres especiales de una cadena para que pueda usarse de forma segura dentro de una expresión regular.
- *
- * @param {string} text Texto del cual se escaparán los caracteres especiales.
- *
- * @returns {string}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2025-11-18
- */
-function escapeRegExp(text) {
-    return String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-/**
- * Normaliza una palabra eliminando diacríticos, pasándola a minúsculas y removiendo caracteres no alfanuméricos.
- *
- * @param {string} text Texto de la palabra a normalizar.
- *
- * @returns {string}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2025-11-18
- */
-function normalizeWord(text) {
-    return stripDiacritics(String(text))
-        .toLowerCase()
-        .replace(/[^a-z0-9ñ]+/gi, "");
-}
-
-/**
- * Calcula la distancia de Levenshtein entre dos cadenas, con un límite máximo de distancia.
- * Si la distancia excede `maxDist`, la función devuelve `maxDist + 1` para indicar que las cadenas son demasiado diferentes.
- *
- * @param {string} a - La primera cadena.
- * @param {string} b - La segunda cadena.
- * @param {number} [maxDist=2] - La distancia máxima permitida antes de devolver un valor que indica que las cadenas son demasiado diferentes.
- * @returns {number} La distancia de Levenshtein entre las dos cadenas, o `maxDist + 1` si la distancia excede `maxDist`.
- * @author Jhon Javer Lozano Arce
- * @date 2024-06-10
- */
-function levenshteinMax(a, b, maxDist = 2) {
-    if (a === b) return 0;
-    if (!a || !b) return Math.max(a ? a.length : 0, b ? b.length : 0);
-    const la = a.length;
-    const lb = b.length;
-    if (Math.abs(la - lb) > maxDist) return maxDist + 1;
-
-    let prev = new Array(lb + 1);
-    let curr = new Array(lb + 1);
-    for (let j = 0; j <= lb; j++) prev[j] = j;
-
-    for (let i = 1; i <= la; i++) {
-        curr[0] = i;
-        let minInRow = curr[0];
-        const ca = a.charCodeAt(i - 1);
-        for (let j = 1; j <= lb; j++) {
-            const cost = ca === b.charCodeAt(j - 1) ? 0 : 1;
-            const v = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
-            curr[j] = v;
-            if (v < minInRow) minInRow = v;
-        }
-        if (minInRow > maxDist) return maxDist + 1;
-        const tmp = prev;
-        prev = curr;
-        curr = tmp;
-    }
-    return prev[lb];
-}
-
-/**
- * Reconstruye el vocabulario médico a partir de un archivo de términos médicos y lo almacena en `medicalVocabularyMap`, `medicalVocabularyKeys` y `medicalVocabularyIndex`.
- *
- * @returns {void}
- * @author Jhon Javer Lozano Arce
- * @date 2024-06-10
- */
-function rebuildMedicalVocabulary() {
-    const map = {};
-    const addPhrase = (phrase) => {
-        if (!phrase) return;
-        const s = String(phrase).trim();
-        if (!s) return;
-
-        const nFull = normalizeWord(s);
-        if (nFull) map[nFull] = s;
-
-        const tokens = s.split(/[s/,-]+/g).filter(Boolean);
-        tokens.forEach((t) => {
-            const nt = normalizeWord(t);
-            if (nt && nt.length >= 4 && !map[nt]) map[nt] = t;
-        });
-    };
-
-    // Fuente principal: archivo grande de términos
-    medicalTermsRaw.split("\n").forEach(addPhrase);
-
-    medicalVocabularyMap.value = map;
-    const keys = Object.keys(map);
-    medicalVocabularyKeys.value = keys;
-
-    const index = {};
-    keys.forEach((k) => {
-        if (!k) return;
-        const first = k[0];
-        const len = k.length;
-        if (!index[first]) index[first] = {};
-        if (!index[first][len]) index[first][len] = [];
-        index[first][len].push(k);
-    });
-    medicalVocabularyIndex.value = index;
-}
-
-/**
- * Aplica correcciones médicas al texto dado, incluyendo normalizaciones y correcciones basadas en un vocabulario médico indexado.
- *
- * @param {string} text - El texto al que aplicar las correcciones.
- * @returns {string} - El texto corregido.
- * @author Jhon Javer Lozano Arce
- * @date 2024-06-10
- */
-function applyMedicalCorrections(text) {
-    // 1) Normalizaciones (regex)
-    let out = applyMedicalReplacements(text);
-
-    // 2) Corrección por vocabulario (exact + fuzzy indexado)
-    const vocabMap = medicalVocabularyMap.value || {};
-    const vocabIndex = medicalVocabularyIndex.value || {};
-    if (!vocabMap || !Object.keys(vocabMap).length) return out;
-
-    out = String(out).replace(/[\p{L}\p{N}]+/gu, (token) => {
-        if (/^\d+$/u.test(token)) return token;
-        if (token.length < 4) return token;
-        const n = normalizeWord(token);
-        if (!n) return token;
-
-        if (vocabMap[n]) return String(vocabMap[n]);
-
-        const first = n[0];
-        const bucketByLen = vocabIndex[first] || null;
-        if (!bucketByLen) return token;
-
-        let best = null;
-        let bestDist = 3;
-        for (let L = n.length - 2; L <= n.length + 2; L++) {
-            const arr = bucketByLen[L];
-            if (!arr || !arr.length) continue;
-            for (let i = 0; i < arr.length; i++) {
-                const k = arr[i];
-                const d = levenshteinMax(n, k, 2);
-                if (d < bestDist) {
-                    bestDist = d;
-                    best = k;
-                    if (bestDist === 1) break;
-                }
-            }
-            if (bestDist === 1) break;
-        }
-        if (best && bestDist <= 2 && vocabMap[best]) return String(vocabMap[best]);
-        return token;
-    });
-
-    return out;
-}
-/**
- * Reemplaza en el texto los comandos de voz reconocidos por su resultado, invocando una función por cada coincidencia.
- *
- * @param {string} text Texto original sobre el cual se aplican los comandos.
- * @param {Object} commandMap Mapa de comandos con su función o valor de reemplazo.
- * @param {Object} options Opciones con la función onEachMatch que se ejecuta por cada coincidencia.
- *
- * @returns {string}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2025-11-18
- */
-function applyCommandMap(text, commandMap, { onEachMatch } = {}) {
-    if (!commandMap) return text;
-    const keys = Object.keys(commandMap).sort((a, b) => b.length - a.length);
-    keys.forEach((command) => {
-        const escaped = escapeRegExp(command);
-        const re = new RegExp(`(^|[^\\p{L}\\p{N}_])(${escaped})(?=$|[^\\p{L}\\p{N}_])`, "giu");
-        text = text.replace(re, (match, prefix) => {
-            if (typeof onEachMatch === "function") {
-                try {
-                    onEachMatch(command);
-                } catch {
-                    /* noop */
-                }
-            }
-            const fn = commandMap[command];
-            const replacement = typeof fn === "function" ? fn() : String(fn);
-            return `${prefix}${replacement}`;
-        });
-    });
-    return text;
-}
-/**
- * Retorna el mapa de comandos de voz que activan o desactivan el modo de mayúsculas sostenidas.
- *
- * @returns {Object}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2025-11-18
- */
-function getUppercaseCommands() {
-    return {
-        "iniciar mayúscula sostenida": () => {
-            uppercase.value = true;
-            return "";
-        },
-        "iniciar mayúsculas sostenida": () => {
-            uppercase.value = true;
-            return "";
-        },
-        "iniciar mayúsculas": () => {
-            uppercase.value = true;
-            return "";
-        },
-        "iniciar mayúscula": () => {
-            uppercase.value = true;
-            return "";
-        },
-        "mayúsculas sostenida": () => {
-            uppercase.value = true;
-            return "";
-        },
-        "mayúscula sostenida": () => {
-            uppercase.value = true;
-            return "";
-        },
-        "activar mayúsculas": () => {
-            uppercase.value = true;
-            return "";
-        },
-        "activar mayúscula": () => {
-            uppercase.value = true;
-            return "";
-        },
-        "habilitar mayúsculas": () => {
-            uppercase.value = true;
-            return "";
-        },
-        "habilitar mayúscula": () => {
-            uppercase.value = true;
-            return "";
-        },
-        "desactivar mayúsculas": () => {
-            uppercase.value = false;
-            return "";
-        },
-        "desactivar mayúscula": () => {
-            uppercase.value = false;
-            return "";
-        },
-        "terminar mayúsculas": () => {
-            uppercase.value = false;
-            return "";
-        },
-        "terminar mayúscula": () => {
-            uppercase.value = false;
-            return "";
-        },
-        "fin mayúsculas": () => {
-            uppercase.value = false;
-            return "";
-        },
-        "fin mayúscula": () => {
-            uppercase.value = false;
-            return "";
-        },
-        "finaliza mayúsculas": () => {
-            uppercase.value = false;
-            return "";
-        },
-        "finaliza mayúscula": () => {
-            uppercase.value = false;
-            return "";
-        },
-        "finalizar mayúsculas": () => {
-            uppercase.value = false;
-            return "";
-        },
-        "finalizar mayúscula": () => {
-            uppercase.value = false;
-            return "";
-        },
-    };
-}
-/**
- * Retorna el mapa de comandos de voz que insertan saltos de línea en el texto dictado.
- *
- * @returns {Object}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2025-11-18
- */
-function getLineBreakCommands() {
-    return {
-        "punto aparte": () => ".\n\n",
-        "punto a parte": () => ".\n\n",
-        "punto y aparte": () => ".\n\n",
-        "nuevo párrafo": () => "\n\n",
-        "nueva sección": () => "\n\n---\n\n",
-        separador: () => "\n\n---\n\n",
-        "salto de línea": () => "\n",
-        "salto de linea": () => "\n",
-        "doble salto de línea": () => "\n\n",
-        "doble salto de linea": () => "\n\n",
-        enter: () => "\n",
-        "doble enter": () => "\n\n",
-        "línea en blanco": () => "\n\n",
-        "linea en blanco": () => "\n\n",
-        "doble línea en blanco": () => "\n\n\n\n",
-        "doble linea en blanco": () => "\n\n\n\n",
-    };
-}
-/**
- * Retorna el mapa de comandos de voz que insertan puntuación, espacios y símbolos en el texto dictado.
- *
- * @returns {Object}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2025-11-18
- */
-function getPunctuationCommands() {
-    return {
-        punto: () => {
-            capitalizeNext.value = true;
-            return ".";
-        },
-        "punto y seguido": () => {
-            capitalizeNext.value = true;
-            return ". ";
-        },
-        "punto seguido": () => {
-            capitalizeNext.value = true;
-            return ". ";
-        },
-        coma: () => ",",
-        "dos puntos": () => {
-            capitalizeNext.value = true;
-            return ": ";
-        },
-        "dos puntos aparte": () => {
-            capitalizeNext.value = true;
-            return ":\n\n";
-        },
-        "punto y coma": () => "; ",
-        "dar espacio": () => " ",
-        "un espacio": () => " ",
-        "dos espacios": () => "  ",
-        "dos espacio": () => "  ",
-        "doble espacio": () => "  ",
-        "abrir paréntesis": () => "(",
-        "abrir parentesis": () => "(",
-        "cerrar paréntesis": () => ")",
-        "cerrar parentesis": () => ")",
-        "abrir corchetes": () => "[",
-        "cerrar corchetes": () => "]",
-        "abrir llaves": () => "{",
-        "cerrar llaves": () => "}",
-        "abrir comillas": () => '"',
-        "cerrar comillas": () => '"',
-        "abrir comillas simples": () => "'",
-        "cerrar comillas simples": () => "'",
-        guion: () => "-",
-        "guion medio": () => "-",
-        "guion bajo": () => "_",
-        "barra diagonal": () => "/",
-        barra: () => "/",
-        "barra invertida": () => "\\",
-        "nueva oración": () => {
-            capitalizeNext.value = true;
-            return ". ";
-        },
-        "nueva oracion": () => {
-            capitalizeNext.value = true;
-            return ". ";
-        },
-        "por ciento": () => "%",
-        porciento: () => "%",
-        menos: () => "-",
-        más: () => "+",
-        mas: () => "+",
-        igual: () => "=",
-        multiplicar: () => "×",
-        dividir: () => "÷",
-        asterisco: () => "*",
-        numeral: () => "#",
-        hashtag: () => "#",
-        ampersand: () => "&",
-        arroba: () => "@",
-        dólar: () => "$",
-        dolar: () => "$",
-        pesos: () => "$",
-        euro: () => "€",
-    };
-}
-/**
- * Construye y retorna el conjunto completo de comandos de voz (mayúsculas, saltos y puntuación) incluyendo variantes sin tildes.
- *
- * @returns {Object}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2025-11-18
- */
-function getAllVoiceCommands() {
-    // Agrega claves sin tildes para tolerar dictado sin acentos
-    const uppercaseCommands = getUppercaseCommands();
-    const lineBreakCommands = getLineBreakCommands();
-    const punctuationCommands = getPunctuationCommands();
-
-    const addNormalizedKeys = (obj) => {
-        const keys = Object.keys(obj);
-        keys.forEach((k) => {
-            const normalized = stripDiacritics(k).toLowerCase();
-            if (!Object.prototype.hasOwnProperty.call(obj, normalized)) {
-                obj[normalized] = obj[k];
-            }
-        });
-    };
-    addNormalizedKeys(uppercaseCommands);
-    addNormalizedKeys(lineBreakCommands);
-    addNormalizedKeys(punctuationCommands);
-    return { uppercaseCommands, lineBreakCommands, punctuationCommands };
-}
-/**
- * Normaliza dígitos dictados ante palabras de comandos (ej. '2 puntos' a 'dos puntos').
- *
- * @param {string} texto Texto a normalizar.
- *
- * @returns {string}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2026-11-23
- */
-function normalizarDigitosComando(texto) {
-    const mapa = { 1: "un", 2: "dos" };
-    return String(texto || "").replace(/\b(\d{1,2})\s+(puntos?|espacios?)\b/gi, (m, n, resto) => {
-        const palabra = mapa[parseInt(n, 10)];
-        return palabra ? `${palabra} ${resto}` : m;
-    });
-}
-/**
- * Procesa el texto dictado aplicando los comandos de voz, mayúsculas sostenidas y capitalización de nuevas oraciones.
- *
- * @param {string} text Texto reconocido por voz a procesar.
- *
- * @returns {string}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2025-11-18
- */
-function processCommands(text) {
-    const { uppercaseCommands, lineBreakCommands, punctuationCommands } = getAllVoiceCommands();
-    let out = normalizarDigitosComando(String(text ?? ""));
-    out = applyCommandMap(out, uppercaseCommands);
-    out = applyCommandMap(out, lineBreakCommands, {
-        onEachMatch: () => {
-            capitalizeNext.value = true;
-        },
-    });
-    out = applyCommandMap(out, punctuationCommands);
-    out = uppercase.value ? out.toUpperCase() : out;
-    if (capitalizeNext.value) {
-        out = out.replace(/\n\n(\s*)([a-záéíóúüñ])/i, (m, spaces, first) => {
-            capitalizeNext.value = false;
-            return `\n\n${spaces}${first.toUpperCase()}`;
-        });
-        if (capitalizeNext.value) {
-            out = out.replace(/(^|\. |\.\n)(\s*)([a-záéíóúüñ])/i, (m, start, spaces, first) => {
-                capitalizeNext.value = false;
-                return `${start}${spaces}${first.toUpperCase()}`;
-            });
-        }
-        if (capitalizeNext.value) {
-            out = out.replace(/(^|\n)(\s*)([a-záéíóúüñ])/i, (m, start, spaces, first) => {
-                capitalizeNext.value = false;
-                return `${start}${spaces}${first.toUpperCase()}`;
-            });
-        }
-    }
-    return out;
-}
-/**
  * Crea y retorna la sesión de reconocimiento de voz configurada para dictado, gramática de comandos y manejo de errores.
  *
  * @returns {Object}
@@ -1594,29 +1039,36 @@ function processCommands(text) {
  */
 function ensureVoiceSession() {
     if (voiceSession.value) return voiceSession.value;
-    const { uppercaseCommands, lineBreakCommands, punctuationCommands } = getAllVoiceCommands();
-    const grammarCommands = [
-        ...Object.keys(uppercaseCommands),
-        ...Object.keys(lineBreakCommands),
-        ...Object.keys(punctuationCommands),
-    ];
 
     voiceSession.value = createVoiceSession({
         enableAudio: false, // Ecografías: solo dictado (no grabación)
         enableDictation: true,
-        lang: "es-ES",
-        grammarCommands,
+        lang: "es-CO",
         maxNoSpeechRetries: 6,
         onFinalText: (raw) => {
-            let text = String(raw || "").trim();
-            if (!text) return;
-            text = processCommands(text);
-            text = applyMedicalCorrections(text);
+            const rawText = String(raw || "").trim();
+            if (!rawText) return;
+            const {
+                text,
+                uppercase: nextUpper,
+                capitalizeNext: nextCap,
+            } = processVoiceCommands(rawText, {
+                uppercase: uppercase.value,
+                capitalizeNext: capitalizeNext.value,
+            });
+            uppercase.value = nextUpper;
+            capitalizeNext.value = nextCap;
+            console.log("[LecturaEcografia] RAW:", rawText, "=> OUT:", JSON.stringify(text));
             if (!text) return;
 
-            // Añadir a lectura (mantener comportamiento: espacio si no termina en espacio/salto)
-            const suffix = /[ \n]$/.test(text) ? "" : " ";
-            registro.value.lectura = String(registro.value.lectura || "") + text + suffix;
+            if (wysiwygEditorRef.value?.insertText) {
+                wysiwygEditorRef.value.insertText(text);
+            } else {
+                const current = String(registro.value.lectura || "");
+                const needsSpace =
+                    current.length > 0 && !/[\s\n]$/.test(current) && !/^[\s\n.,:;!?%)]/.test(text);
+                registro.value.lectura = current + (needsSpace ? " " : "") + text;
+            }
         },
         onPermissionDenied: () => {
             voiceState.value = "inactive";
@@ -2718,7 +2170,6 @@ onMounted(() => {
     initSede();
     listarTiposPlantillas();
     establecerMedico();
-    rebuildMedicalVocabulary();
 
     emitter.on("sedeSeleccionada", onSedeSeleccionada);
     emitter.on("medicoSeleccionado", onMedicoSeleccionado);

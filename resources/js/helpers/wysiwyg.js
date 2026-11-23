@@ -8,6 +8,16 @@
  */
 
 /**
+ * BANDERA DE PRUEBA Y CONTROL DE AISLAMIENTO:
+ * Cuando es `true`, suprime y omite por completo toda normalización/transformación
+ * de texto en wysiwyg.js (plainToHtml, htmlToPlain, cleanPastedHtml), permitiendo
+ * evaluar el flujo puro de reconocimiento de voz sin interferencias del editor.
+ *
+ * PARA REVERTIR TRAS LA PRUEBA: Cambiar BYPASS_WYSIWYG a false.
+ */
+export const BYPASS_WYSIWYG = false;
+
+/**
  * Determina si un contenido HTML esta efectivamente vacio (sin texto visible).
  *
  * @param {string} html Contenido HTML a evaluar.
@@ -45,6 +55,9 @@ export function isHtmlEffectivelyEmpty(html) {
  * @date 2026-11-03
  */
 export function cleanPastedHtml(html) {
+    if (BYPASS_WYSIWYG) {
+        return html || "";
+    }
     if (!html || typeof html !== "string") return "";
 
     let cleaned = html;
@@ -113,6 +126,9 @@ export function cleanPastedHtml(html) {
  * @date 2026-11-03
  */
 export function plainToHtml(text) {
+    if (BYPASS_WYSIWYG) {
+        return text || "";
+    }
     if (!text) return "";
     return String(text)
         .replace(/\r\n|\r/g, "\n")
@@ -136,6 +152,9 @@ export function plainToHtml(text) {
  * @date 2026-11-03
  */
 export function htmlToPlain(html) {
+    if (BYPASS_WYSIWYG) {
+        return html || "";
+    }
     if (!html) return "";
 
     let text = String(html);
@@ -158,14 +177,16 @@ export function htmlToPlain(html) {
         .replace(/&quot;/gi, '"')
         .replace(/&#39;/gi, "'");
 
-    // Limpiar espacios horizontales en cada línea sin colapsar \n
-    const lines = text.split("\n").map((line) => line.replace(/[ \t]+/g, " ").trim());
+    // Limpiar espacios horizontales duplicados y espacios al inicio de línea sin colapsar \n ni el espacio final
+    const lines = text
+        .split("\n")
+        .map((line) => line.replace(/[ \t]+/g, " ").replace(/^[ \t]+/, ""));
     text = lines.join("\n");
 
     // Colapsar más de 2 saltos seguidos a máximo 2 (\n\n = un renglón en blanco)
     text = text.replace(/\n{3,}/g, "\n\n");
 
-    return text.trim();
+    return text.replace(/^[ \t]+/, "");
 }
 
 /**

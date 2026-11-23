@@ -8,10 +8,8 @@
  *   session.cleanup();
  */
 
-import { createAudioRecorderWorkerSession, isWorkerSupported } from "./audioRecorderWorkerSession";
-
 /**
- * Crea una sesion de grabacion de audio usando un Web Worker si es soportado, con fallback al hilo principal.
+ * Crea una sesion de grabacion de audio en el hilo principal con captura asíncrona del navegador.
  *
  * @param object $opts Opciones de la grabacion (constraints, mimeType, audioBitsPerSecond).
  *
@@ -22,13 +20,6 @@ import { createAudioRecorderWorkerSession, isWorkerSupported } from "./audioReco
  * @date 2026-02-13
  */
 export async function createAudioRecorderSessionSmart(opts = {}) {
-    if (isWorkerSupported()) {
-        try {
-            return await createAudioRecorderWorkerSession(opts);
-        } catch {
-            // fallback a main thread
-        }
-    }
     return createAudioRecorderSession(opts);
 }
 
