@@ -86,8 +86,10 @@ export function cleanPastedHtml(html) {
         ""
     );
 
-    // 7. Normalizar saltos de línea físicos a espacio o nada para no duplicar con los <br> generados
-    cleaned = cleaned.replace(/\r\n|\r|\n/g, "");
+    // 7. Los saltos de línea físicos del HTML (Word parte los párrafos cada ~80 caracteres) equivalen a un espacio:
+    //    quitarlos sin más pega las palabras («cortes» + «axiales» = «cortesaxiales»). Los espacios sobrantes los
+    //    colapsa y recorta htmlToPlain, así que no se duplican con los <br> generados.
+    cleaned = cleaned.replace(/\r\n|\r|\n/g, " ");
 
     // 8. Normalizar espacios de no separación
     cleaned = cleaned.replace(/&nbsp;/gi, " ");

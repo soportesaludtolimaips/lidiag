@@ -224,11 +224,12 @@ async function submit() {
     }
 }
 
-onMounted(() => {
-    fetchInfo();
-    initCanvas();
+onMounted(async () => {
     timer.value = setInterval(() => (nowTs.value = Date.now()), 1000);
     window.addEventListener("resize", resizeCanvas);
+    // El canvas solo existe en el DOM cuando termina la carga: se inicializa (y recibe los eventos de dibujo) DESPUÉS de fetchInfo().
+    await fetchInfo();
+    initCanvas();
 });
 
 onBeforeUnmount(() => {

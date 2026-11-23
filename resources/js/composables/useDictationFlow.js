@@ -396,12 +396,32 @@ export function useDictationFlow() {
         );
     }
 
+    // El editor del informe (htmlToPlain) recorta los espacios y saltos del final de cada línea poco después de
+    // cada cambio. Un trozo que terminaba en espacio o en párrafo nuevo lo perdía antes de que llegara el
+    // siguiente y las palabras quedaban pegadas («cortesaxiales», «.línea»). Por eso el separador no se emite
+    // al final del trozo: se recuerda y se antepone al trozo siguiente, que ya trae texto y lo conserva.
+    let separadorPendiente = " ";
+
     function emitirTextoFinal(texto) {
         const limpio = String(texto || "");
         if (!limpio.length) return;
-        const sufijo = /[ \n]$/.test(limpio) ? "" : " ";
-        if (typeof _onText === "function") _onText(limpio + sufijo);
         speechInterim.value = "";
+        const cola = /\s+$/.exec(limpio)?.[0] ?? "";
+        const cuerpo = cola ? limpio.slice(0, limpio.length - cola.length) : limpio;
+        if (!cuerpo) {
+            // Solo espacios o saltos (la orden «espacio» dicha sola): cambia el separador, no escribe nada.
+            separadorPendiente = cola.includes("\n")
+                ? cola
+                : separadorPendiente.includes("\n")
+                  ? separadorPendiente
+                  : " ";
+            return;
+        }
+        // Los signos van pegados a la palabra anterior; un trozo que ya trae su espacio inicial se respeta.
+        const sinSeparador = /^[\s.,;:!?)»\]]/.test(cuerpo);
+        const frente = sinSeparador ? "" : separadorPendiente;
+        separadorPendiente = cola.includes("\n") ? cola : " ";
+        if (typeof _onText === "function") _onText(frente + cuerpo);
     }
 
     function manejarTextoFinal(raw) {
@@ -751,8 +771,10 @@ export function useDictationFlow() {
     function startRecording() {
         if (startingRecording.value || recording.value) return;
         startingRecording.value = true;
-        // Sesión nueva: sin arrastre de palabras de una sesión anterior.
+        // Sesión nueva: sin arrastre de palabras de una sesión anterior. El primer trozo se separa con un espacio
+        // del texto que ya hubiera en el informe.
         palabrasPendientes = [];
+        separadorPendiente = " ";
         ensureMicApiAvailable().then((ok) => {
             if (!ok) {
                 startingRecording.value = false;
