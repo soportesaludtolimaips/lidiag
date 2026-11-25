@@ -54,6 +54,33 @@
 
                 <!-- Acciones Vista 2: Realización de Consulta -->
                 <template v-else-if="vistaActual === 'consulta'">
+                    <!-- Selector Rápido de Plantillas Clínicas de Especialistas -->
+                    <div class="btn-group mr-2 text-left" v-if="plantillasExamenFisico.length > 0">
+                        <button
+                            type="button"
+                            class="btn btn-info dropdown-toggle waves-effect waves-light"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                            title="Cargar plantilla clínica predeterminada"
+                        >
+                            <i class="fa fa-magic mr-1"></i> Cargar Plantilla
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-right shadow-sm">
+                            <h6 class="dropdown-header text-uppercase font-weight-bold">
+                                Plantillas de Especialistas
+                            </h6>
+                            <a
+                                v-for="p in plantillasExamenFisico"
+                                :key="p.id"
+                                class="dropdown-item cursor-pointer"
+                                href="javascript:void(0)"
+                                @click="aplicarPlantillaCompleta(p)"
+                            >
+                                <i class="fa fa-user-md text-info mr-2"></i>{{ p.titulo }}
+                            </a>
+                        </div>
+                    </div>
                     <button
                         type="button"
                         class="btn btn-inverse waves-effect waves-light mr-2"
@@ -630,6 +657,40 @@
                                         </span>
                                     </div>
                                     <div>
+                                        <div
+                                            class="btn-group btn-group-sm mr-2 text-left"
+                                            v-if="plantillasExamenFisico.length > 0"
+                                        >
+                                            <button
+                                                type="button"
+                                                class="btn btn-info dropdown-toggle waves-effect waves-light"
+                                                data-toggle="dropdown"
+                                                aria-haspopup="true"
+                                                aria-expanded="false"
+                                                title="Cargar plantilla clínica predeterminada"
+                                            >
+                                                <i class="fa fa-magic mr-1"></i> Plantilla
+                                            </button>
+                                            <div
+                                                class="dropdown-menu dropdown-menu-right shadow-sm"
+                                            >
+                                                <h6
+                                                    class="dropdown-header text-uppercase font-weight-bold"
+                                                >
+                                                    Plantillas de Especialistas
+                                                </h6>
+                                                <a
+                                                    v-for="p in plantillasExamenFisico"
+                                                    :key="p.id"
+                                                    class="dropdown-item cursor-pointer"
+                                                    href="javascript:void(0)"
+                                                    @click="aplicarPlantillaCompleta(p)"
+                                                >
+                                                    <i class="fa fa-user-md text-info mr-2"></i
+                                                    >{{ p.titulo }}
+                                                </a>
+                                            </div>
+                                        </div>
                                         <button
                                             type="button"
                                             class="btn btn-sm btn-outline-secondary mr-2"
@@ -2371,6 +2432,62 @@ async function cargarPlantillasConfiguradas() {
 
 function aplicarPlantilla(seccion, contenido) {
     if (!contenido) return;
+
+    // Si el contenido viene en formato JSON estructurado
+    let data = null;
+    if (typeof contenido === "string" && contenido.trim().startsWith("{")) {
+        try {
+            data = JSON.parse(contenido);
+        } catch {
+            data = null;
+        }
+    }
+
+    if (data) {
+        if (seccion === "EXAMEN_FISICO") {
+            if (data.av_sc_od !== undefined) form.av_sc_od = data.av_sc_od;
+            if (data.av_sc_oi !== undefined) form.av_sc_oi = data.av_sc_oi;
+            if (data.av_cc_od !== undefined) form.av_cc_od = data.av_cc_od;
+            if (data.av_cc_oi !== undefined) form.av_cc_oi = data.av_cc_oi;
+            if (data.av_ph_od !== undefined) form.av_ph_od = data.av_ph_od;
+            if (data.av_ph_oi !== undefined) form.av_ph_oi = data.av_ph_oi;
+            if (data.motilidad_ocular !== undefined) form.motilidad_ocular = data.motilidad_ocular;
+            if (data.pupilas !== undefined) form.pupilas = data.pupilas;
+            if (data.biomicroscopia_od !== undefined)
+                form.biomicroscopia_od = data.biomicroscopia_od;
+            if (data.biomicroscopia_oi !== undefined)
+                form.biomicroscopia_oi = data.biomicroscopia_oi;
+            if (data.presion_intraocular_od !== undefined)
+                form.presion_intraocular_od = data.presion_intraocular_od;
+            if (data.presion_intraocular_oi !== undefined)
+                form.presion_intraocular_oi = data.presion_intraocular_oi;
+            if (data.fondo_ojo_od !== undefined) form.fondo_ojo_od = data.fondo_ojo_od;
+            if (data.fondo_ojo_oi !== undefined) form.fondo_ojo_oi = data.fondo_ojo_oi;
+            if (data.examen_fisico_general !== undefined)
+                form.examen_fisico_general = data.examen_fisico_general;
+        } else if (seccion === "ANAMNESIS") {
+            if (data.motivo_consulta !== undefined) form.motivo_consulta = data.motivo_consulta;
+            if (data.enfermedad_actual !== undefined)
+                form.enfermedad_actual = data.enfermedad_actual;
+            if (data.antecedentes_medicos !== undefined)
+                form.antecedentes_medicos = data.antecedentes_medicos;
+            if (data.antecedentes_quirurgicos_oft !== undefined)
+                form.antecedentes_quirurgicos_oft = data.antecedentes_quirurgicos_oft;
+            if (data.antecedentes_alergicos !== undefined)
+                form.antecedentes_alergicos = data.antecedentes_alergicos;
+            if (data.antecedentes_otros !== undefined)
+                form.antecedentes_otros = data.antecedentes_otros;
+            if (data.revision_sistemas !== undefined)
+                form.revision_sistemas = data.revision_sistemas;
+        }
+        toastMessage({
+            title: "Plantilla aplicada",
+            text: "Los campos fueron completados exitosamente.",
+            icon: "success",
+        });
+        return;
+    }
+
     if (seccion === "ANAMNESIS") {
         form.enfermedad_actual = form.enfermedad_actual
             ? `${form.enfermedad_actual}\n${contenido}`
@@ -2382,6 +2499,17 @@ function aplicarPlantilla(seccion, contenido) {
     } else if (seccion === "CONCEPTO_PLAN") {
         form.concepto_plan = form.concepto_plan ? `${form.concepto_plan}\n${contenido}` : contenido;
     }
+
+    toastMessage({
+        title: "Plantilla agregada",
+        text: "El contenido fue incorporado a la sección.",
+        icon: "success",
+    });
+}
+
+function aplicarPlantillaCompleta(plantilla) {
+    if (!plantilla || !plantilla.contenido) return;
+    aplicarPlantilla(plantilla.seccion, plantilla.contenido);
 }
 
 function iniciarAutoguardado() {

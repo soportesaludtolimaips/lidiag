@@ -28,7 +28,7 @@ class ConfigPlantillaOftalmologiaService extends BaseService
     public function all(array $filtros = []): array
     {
         try {
-            $query = ConfigPlantillaOftalmologia::with(['medico:id,nombre,apellido', 'sede:id,nom_sede'])
+            $query = ConfigPlantillaOftalmologia::with(['medico:id,name', 'sede:id,nom_sede'])
                 ->orderBy('seccion')
                 ->orderBy('titulo');
 
@@ -49,7 +49,7 @@ class ConfigPlantillaOftalmologiaService extends BaseService
 
             $plantillas = $query->get();
 
-            return $this->success('Plantillas de oftalmología obtenidas correctamente.', $plantillas);
+            return $this->success($plantillas, 'Plantillas de oftalmología obtenidas correctamente.');
         } catch (Exception $e) {
             Log::error('Error al listar plantillas de oftalmología: '.$e->getMessage());
 
@@ -76,7 +76,7 @@ class ConfigPlantillaOftalmologiaService extends BaseService
                 ->orderBy('titulo')
                 ->get();
 
-            return $this->success('Plantillas filtradas correctamente.', $plantillas);
+            return $this->success($plantillas, 'Plantillas filtradas correctamente.');
         } catch (Exception $e) {
             Log::error('Error al listar plantillas de oftalmología por sección: '.$e->getMessage());
 
@@ -108,7 +108,7 @@ class ConfigPlantillaOftalmologiaService extends BaseService
 
             DB::commit();
 
-            return $this->success('Plantilla de oftalmología creada exitosamente.', $plantilla, 201);
+            return $this->success($plantilla, 'Plantilla de oftalmología creada exitosamente.', 201);
         } catch (Exception $e) {
             DB::rollBack();
             Log::error('Error al crear plantilla de oftalmología: '.$e->getMessage());
@@ -141,7 +141,7 @@ class ConfigPlantillaOftalmologiaService extends BaseService
 
             DB::commit();
 
-            return $this->success('Plantilla de oftalmología actualizada exitosamente.', $plantilla);
+            return $this->success($plantilla, 'Plantilla de oftalmología actualizada exitosamente.');
         } catch (Exception $e) {
             DB::rollBack();
             Log::error('Error al actualizar plantilla de oftalmología: '.$e->getMessage());
@@ -167,7 +167,7 @@ class ConfigPlantillaOftalmologiaService extends BaseService
             $plantilla->delete();
             DB::commit();
 
-            return $this->success('Plantilla eliminada exitosamente.');
+            return $this->success(null, 'Plantilla eliminada exitosamente.');
         } catch (Exception $e) {
             DB::rollBack();
             Log::error('Error al eliminar plantilla de oftalmología: '.$e->getMessage());

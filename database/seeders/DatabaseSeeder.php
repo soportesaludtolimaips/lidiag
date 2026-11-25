@@ -6,6 +6,7 @@ namespace Database\Seeders;
 
 use Database\Seeders\Configuracion\ConfigAdminSaludSeeder;
 use Database\Seeders\Configuracion\ConfigDiagnosticoSeeder;
+use Database\Seeders\Configuracion\ConfigPlantillasOftalmologiaSeeder;
 use Database\Seeders\Configuracion\ConfigPrioridadeSeeder;
 use Database\Seeders\Configuracion\ConfigProductosDedupeSeeder;
 use Database\Seeders\Configuracion\ConfigProductosEcografias1Seeder;
@@ -96,5 +97,8 @@ class DatabaseSeeder extends Seeder
 
         // Dedupe de CUPS repetidos (debe ir después de todos los seeders de productos)
         $this->call(ConfigProductosDedupeSeeder::class);
+
+        // Plantillas Oftalmología
+        $this->call(ConfigPlantillasOftalmologiaSeeder::class);
     }
 }
