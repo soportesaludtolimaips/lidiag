@@ -267,7 +267,7 @@ class TeleRadiologiaService extends BaseService
                 $lecturaTexto = json_encode($lecturaTexto, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
             }
 
-            Log::info('TeleRadiologiaService::recibirLectura - Procesando lectura de estudio:', [
+            /* Log::info('TeleRadiologiaService::recibirLectura - Procesando lectura de estudio:', [
                 'study_iuid' => $d['study_iuid'] ?? null,
                 'cod_cups' => $d['cod_cups'] ?? null,
                 'estudio_id' => $estudio->id,
@@ -277,7 +277,7 @@ class TeleRadiologiaService extends BaseService
                 'lectura_resolvida_length' => strlen((string) $lecturaTexto),
                 'lectura_resolvida_preview' => substr((string) $lecturaTexto, 0, 200),
                 'payload_completo' => $d,
-            ]);
+            ]); */
 
             $updateLectura = [
                 'fechor_lectura' => $d['fechor_lectura'] ?? $d['fecha_lectura'] ?? now(),

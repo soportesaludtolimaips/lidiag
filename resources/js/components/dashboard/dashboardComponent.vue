@@ -968,7 +968,7 @@
     </div>
 </template>
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, getCurrentInstance } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch, getCurrentInstance } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
 import { useAuth } from "../../composables/useAuth";
@@ -985,17 +985,25 @@ const loading = ref(false);
 const error = ref(null);
 const days = ref(30);
 const alerts = ref([]);
-const nomSedeActual = computed(() => {
-    return (
-        sessionStorage.getItem("ST-nomsede") ||
-        localStorage.getItem("ST-nomsede") ||
-        "Todas las sedes"
-    );
-});
+const sedes = ref([]);
 const sedeGuardadaInicial =
     sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || null;
 const sedeSeleccionada = ref(sedeGuardadaInicial ? Number(sedeGuardadaInicial) : null);
-const sedes = ref([]);
+
+const nomSedeActual = computed(() => {
+    if (!sedeSeleccionada.value) {
+        return "Todas las sedes";
+    }
+    const encontrada = (sedes.value || []).find(
+        (s) => Number(s.id) === Number(sedeSeleccionada.value)
+    );
+    return (
+        encontrada?.nom_sede ||
+        sessionStorage.getItem("ST-nomsede") ||
+        localStorage.getItem("ST-nomsede") ||
+        "Sede seleccionada"
+    );
+});
 const filters = ref({
     selected: { sede_id: null, medico_id: null },
     options: { sedes: [], medicos: [] },
@@ -1063,10 +1071,27 @@ const charts = ref({
     porSede: null,
     slaLectura: null,
     slaTranscripcion: null,
+    visitor: null,
 });
 
 const isAdmin = computed(() => {
-    return props.rolesusuario === "Administrador" || auth.hasRole("Administrador");
+    const globalRoles = [
+        "Administrador",
+        "Super Admin",
+        "super-admin",
+        "Administrativo",
+        "Estadistico",
+        "Reportes",
+        "Transcriptor RX",
+        "Ecografias Transriptor",
+        "Transcriptor",
+    ];
+    return (
+        globalRoles.includes(props.rolesusuario) ||
+        auth.hasRole(globalRoles) ||
+        auth.can("reportes.indicadores") ||
+        auth.can("reportes.detallados")
+    );
 });
 const heatmapDays = computed(() => {
     const arr = series.value?.heatmap7d?.[heatmapMetric.value] || [];
@@ -1221,6 +1246,17 @@ function initCharts() {
         },
     });
 
+    // Donut: visitor (Modalidades Top)
+    charts.value.visitor = safeC3Generate("#visitor", {
+        bindto: "#visitor",
+        data: { columns: [], type: "donut" },
+        donut: { label: { show: false }, title: "Modalidades", width: 18 },
+        legend: { show: true },
+        color: {
+            pattern: ["#26c6da", "#745af2", "#ffb22b", "#24d2b5", "#f62d51", "#90a4ae"],
+        },
+    });
+
     // Cumplimiento de tiempos (charts)
     charts.value.slaLectura = safeC3Generate("#sla-lectura", {
         bindto: "#sla-lectura",
@@ -1247,7 +1283,14 @@ function initCharts() {
         color: { pattern: ["#ffb22b"] },
     });
 }
+let activeAbortController = null;
+
 async function fetchDashboard() {
+    if (activeAbortController) {
+        activeAbortController.abort();
+    }
+    activeAbortController = typeof AbortController !== "undefined" ? new AbortController() : null;
+
     loading.value = true;
     error.value = null;
     filters.value.selected.sede_id = sedeSeleccionada.value;
@@ -1267,12 +1310,17 @@ async function fetchDashboard() {
         const res = await http.get("/api/reportes.dashboard", {
             params,
             timeout: 30000,
+            signal: activeAbortController?.signal,
         });
 
-        const data = res?.data || {};
+        const rawData = res?.data;
+        const data = rawData?.data ?? rawData ?? {};
 
-        if (data.filters) {
-            filters.value = data.filters;
+        if (data.filters?.options) {
+            filters.value.options = data.filters.options;
+            if (Array.isArray(data.filters.options.sedes)) {
+                sedes.value = data.filters.options.sedes;
+            }
         }
         alerts.value = Array.isArray(data.alerts) ? data.alerts : [];
         sla.value = data.sla || sla.value;
@@ -1309,20 +1357,45 @@ async function fetchDashboard() {
 
         reindexHeatmap();
         renderCharts();
-    } catch (error) {
+    } catch (err) {
+        if (
+            axios.isCancel(err) ||
+            err?.code === "ERR_CANCELED" ||
+            err?.name === "CanceledError" ||
+            err?.name === "AbortError"
+        ) {
+            // Petición cancelada limpiamente por cambio de sede o nueva solicitud: no mostrar error
+            return;
+        }
+        console.error("Error al cargar dashboard:", err);
         error.value = "No fue posible cargar las estadísticas del dashboard.";
     } finally {
-        loading.value = false;
+        if (!activeAbortController?.signal?.aborted) {
+            loading.value = false;
+        }
     }
 }
 function renderCharts() {
-    // Bar (resumen)
+    // Bar (resumen transcritos vs pendientes)
     if (charts.value.resumen) {
+        const totalTranscritos = embudo.value.transcritos || operacion.value.transcritosHoy || 0;
+        const totalPendientes =
+            operacion.value.pendientesLectura + operacion.value.pendientesTranscripcion;
         charts.value.resumen.load({
             columns: [
-                ["Transcritos", indicadores.value.estudiosLeidos],
-                ["Pendientes", indicadores.value.estudiosPorTranscribir],
+                ["Transcritos", totalTranscritos],
+                ["Pendientes", totalPendientes],
             ],
+        });
+    }
+
+    // Donut visitor (Modalidades Top)
+    if (charts.value.visitor) {
+        const cols = (estudiosMasSolicitados.value || [])
+            .slice(0, 6)
+            .map((x) => [String(x.mods_in_study || "Otros"), Number(x.total || 0)]);
+        charts.value.visitor.load({
+            columns: cols.length ? cols : [["Sin datos", 1]],
         });
     }
 
@@ -1592,6 +1665,10 @@ function onSedeSeleccionada(event) {
     fetchDashboard();
 }
 
+watch(heatmapMetric, () => {
+    reindexHeatmap();
+});
+
 function destroyCharts() {
     try {
         if (charts.value.resumen?.destroy) charts.value.resumen.destroy();
@@ -1602,22 +1679,30 @@ function destroyCharts() {
         if (charts.value.porSede?.destroy) charts.value.porSede.destroy();
         if (charts.value.slaLectura?.destroy) charts.value.slaLectura.destroy();
         if (charts.value.slaTranscripcion?.destroy) charts.value.slaTranscripcion.destroy();
+        if (charts.value.visitor?.destroy) charts.value.visitor.destroy();
     } catch {
         /* noop */
     }
 }
 
+let isMounted = false;
+
 onMounted(async () => {
+    isMounted = true;
     proxy?.emitter?.on("sedeSeleccionada", onSedeSeleccionada);
-    if (!sedeGuardadaInicial) {
-        proxy?.emitter?.emit("solicitarSedeActiva");
-    }
     initCharts();
     await listarSedes();
-    await fetchDashboard();
+    // Si al listar sedes ya se disparó la selección o carga, evitamos duplicar si ya está en progreso
+    if (isMounted) {
+        await fetchDashboard();
+    }
 });
 
 onBeforeUnmount(() => {
+    isMounted = false;
+    if (activeAbortController) {
+        activeAbortController.abort();
+    }
     proxy?.emitter?.off("sedeSeleccionada", onSedeSeleccionada);
     destroyCharts();
 });
