@@ -285,22 +285,21 @@
                                                     Servicio de Cita
                                                     <span class="text-danger">*</span>
                                                 </label>
-                                                <select
-                                                    v-model="registro.servicio_id"
-                                                    name="servicio_id"
-                                                    id="servicio_id"
-                                                    class="form-control custom-select"
-                                                >
-                                                    <option value="">-- Seleccione --</option>
-                                                    <option
-                                                        v-for="(sc, index) in serviciosCitas"
-                                                        :key="index"
-                                                        :value="sc.id"
-                                                    >
-                                                        {{ sc.nombre }} &mdash;
-                                                        {{ sc.sede?.nom_sede || "Sin sede" }}
-                                                    </option>
-                                                </select>
+                                                <Select2
+                                                    ref="select2Servicio"
+                                                    select-id="servicio_id"
+                                                    :value="
+                                                        registro.servicio_id
+                                                            ? String(registro.servicio_id)
+                                                            : '0'
+                                                    "
+                                                    :options="serviciosCitasOptions"
+                                                    width="100%"
+                                                    :label-fields="['nombre', 'sede_nombre']"
+                                                    dropdown-parent-selector="#right-sidebar"
+                                                    placeholder="-- Seleccione --"
+                                                    @select="onServicioSelect"
+                                                />
                                                 <span
                                                     class="text-danger"
                                                     v-if="errores.servicio_id"
@@ -377,11 +376,12 @@
     </div>
 </template>
 <script setup>
-import { getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 
 import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { alertError, alertSuccess, confirmAction } from "@/helpers/alerts";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
+import Select2 from "@/components/shared/Select2.vue";
 import axios from "axios";
 
 const { appContext } = getCurrentInstance();
@@ -412,6 +412,14 @@ const busqueda = ref({
     bus_fecha_fin: "",
 });
 const serviciosCitas = ref([]);
+const select2Servicio = ref(null);
+const serviciosCitasOptions = computed(() =>
+    (serviciosCitas.value || []).map((sc) => ({
+        id: String(sc.id),
+        nombre: sc.nombre || "",
+        sede_nombre: sc.sede?.nom_sede || "Sin sede",
+    }))
+);
 const errores = ref([]);
 const registros = ref([]);
 const loadingBuscar = ref(false);
@@ -520,13 +528,31 @@ async function guardarRegistro() {
         loadingGuardar.value = false;
     }
 }
+function onServicioSelect(value) {
+    let selectedId = "";
+    if (Array.isArray(value) && value.length > 0) {
+        const first = value[0];
+        selectedId = String(
+            typeof first === "object" && first && first.id != null ? first.id : first
+        );
+    } else if (value && typeof value === "object" && value.id != null) {
+        selectedId = String(value.id);
+    } else if (value != null) {
+        selectedId = String(value);
+    }
+
+    registro.value.servicio_id = !selectedId || selectedId === "0" ? "" : selectedId;
+    if (registro.value.servicio_id && errores.value?.servicio_id) {
+        delete errores.value.servicio_id;
+    }
+}
 async function editarRegistro(item) {
     editando.value = true;
     editandoId.value = item.id;
     registro.value = {
         sede_id: item.sede_id,
         quien_registro_id: props.usuarioactual.id,
-        servicio_id: item.servicio_id || "",
+        servicio_id: item.servicio_id ? String(item.servicio_id) : "",
         total_citas: item.total_citas,
         dura_cita: item.dura_cita,
         fecha_hora_ini: item.fecha_hora_ini ? item.fecha_hora_ini.substring(0, 10) : "",
@@ -534,9 +560,10 @@ async function editarRegistro(item) {
     tituloModal.value = "Actualizar disponibilidad de citas";
     errores.value = [];
     showSidebar.value = true;
-    nextTick(() => {
-        document.getElementById("total_citas")?.focus();
-    });
+    await listarServiciosCitas(item.sede_id || sedeActual.value);
+    await nextTick();
+    select2Servicio.value?.rebuild();
+    document.getElementById("total_citas")?.focus();
 }
 async function elimnarRegistro(id) {
     const ok = await confirmAction({
@@ -557,13 +584,20 @@ async function elimnarRegistro(id) {
         loadingEliminarId.value = null;
     }
 }
-async function listarServiciosCitas() {
+async function listarServiciosCitas(sedeOverride = null) {
     try {
+        const sedeId = sedeOverride ?? sedeActual.value;
         const res = await axios.get("/api/config-servicio-citas/mis-servicios", {
-            params: { sede_id: sedeActual.value },
+            params: sedeId ? { sede_id: sedeId } : {},
         });
-        serviciosCitas.value = res.data.data;
+        const data = res?.data?.data ?? res?.data;
+        serviciosCitas.value = Array.isArray(data) ? data : [];
+        if (showSidebar.value) {
+            await nextTick();
+            select2Servicio.value?.rebuild();
+        }
     } catch {
+        serviciosCitas.value = [];
         alertError("Error", "No se pudieron cargar los servicios");
     }
 }
@@ -586,7 +620,7 @@ function btnLimpiar() {
     busqueda.value.bus_fecha_fin = "";
     buscarStudy();
 }
-function mostrarRegistro() {
+async function mostrarRegistro() {
     editando.value = false;
     editandoId.value = null;
     tituloModal.value = "Guardar disponibilidad de citas";
@@ -600,9 +634,10 @@ function mostrarRegistro() {
     };
     errores.value = [];
     showSidebar.value = true;
-    nextTick(() => {
-        document.getElementById("total_citas")?.focus();
-    });
+    await listarServiciosCitas(sedeActual.value);
+    await nextTick();
+    select2Servicio.value?.rebuild();
+    document.getElementById("total_citas")?.focus();
 }
 function cerrarModal() {
     showSidebar.value = false;
@@ -622,6 +657,7 @@ function formatFecha(fecha) {
 function onSedeSeleccionada(data) {
     establecerSede(data);
     safeDestroyDataTable(dt.value || "#tablaAgendaDisponibilidad");
+    listarServiciosCitas();
     buscarStudy();
 }
 
@@ -677,5 +713,13 @@ onBeforeUnmount(() => {
         width: 100% !important;
         right: -100% !important;
     }
+}
+
+:deep(.select2-dropdown) {
+    z-index: 9999 !important;
+}
+
+:deep(.select2-container) {
+    width: 100% !important;
 }
 </style>

@@ -30,6 +30,16 @@ class FileAccessService extends BaseService
         $storage = Storage::disk($disk);
 
         if (! $storage->exists($path)) {
+            if ($disk === 'avatars') {
+                $defaultAvatar = public_path('admin-wrap/assets/images/users/avatar_default.png');
+                if (is_file($defaultAvatar)) {
+                    return [
+                        'contents' => file_get_contents($defaultAvatar),
+                        'mime' => mime_content_type($defaultAvatar) ?: 'image/png',
+                    ];
+                }
+            }
+
             return $this->notFound('Archivo no encontrado');
         }
 

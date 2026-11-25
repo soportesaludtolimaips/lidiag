@@ -85,7 +85,7 @@ class WhatsAppFlowService
             }
             Cache::put($rateKey, $rateCount + 1, now()->addMinute());
 
-            $this->logMensaje($conv, 'paciente', $tipoMensaje, $mensaje ?: null, $mediaPath);
+            $this->logMensaje($conv, 'paciente', $tipoMensaje, $mensaje !== '' ? $mensaje : null, $mediaPath);
 
             // Interceptación de botones interactivos de recordatorio de citas
             if (str_starts_with($mensajeLower, 'cita_confirmar_')) {
@@ -139,6 +139,7 @@ class WhatsAppFlowService
                 'seleccionar_servicio' => $this->procesarSeleccionServicio($conv, $mensaje),
                 'confirmar_resumen' => $this->procesarConfirmarResumen($conv, $mensaje),
                 'pedir_documento' => $this->procesarDocumento($conv, $mensaje),
+                'corregir_telefono' => $this->procesarCorregirTelefono($conv, $mensaje),
                 'confirmar_datos_completos' => $this->procesarConfirmarDatosCompletos($conv, $mensaje),
                 'pedir_nombres' => $this->procesarNombres($conv, $mensaje),
                 'pedir_primer_apellido' => $this->procesarPrimerApellido($conv, $mensaje),
@@ -219,23 +220,40 @@ class WhatsAppFlowService
     }
 
     /**
+     * Determina si el paciente requiere adjuntar fotos de la cédula (solo cuando el documento no existía en el sistema).
+     *
+     * @param  WhatsAppConversation  $conv  Conversación actual
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-25
+     */
+    protected function requiereFotosCedula(WhatsAppConversation $conv): bool
+    {
+        $datos = $conv->datos ?: [];
+
+        return (bool) ($datos['es_paciente_nuevo'] ?? false);
+    }
+
+    /**
      * Obtiene el paso anterior correspondiente al paso actual de la conversación.
      *
+     * @param  WhatsAppConversation  $conv  Conversación actual
      * @param  string  $paso  Paso actual de la conversación
      *
      * @author Jhon Javer Lozano Arce
      *
      * @date 2026-10-13
      */
-    protected function pasoAnterior(string $paso): ?string
+    protected function pasoAnterior(WhatsAppConversation $conv, string $paso): ?string
     {
         return match ($paso) {
             'confirmar_resumen' => 'seleccionar_servicio',
-            'confirmar_solicitud' => 'pedir_autorizacion',
-            'cita_creada' => 'confirmar_solicitud',
+            'pedir_foto_cedula_frente' => 'seleccionar_servicio',
             'pedir_foto_cedula_dorso' => 'pedir_foto_cedula_frente',
-            'pedir_orden' => 'pedir_foto_cedula_dorso',
+            'pedir_orden' => $this->requiereFotosCedula($conv) ? 'pedir_foto_cedula_dorso' : 'seleccionar_servicio',
             'pedir_autorizacion' => 'pedir_orden',
+            'confirmar_solicitud' => 'pedir_autorizacion',
             default => null,
         };
     }
@@ -254,7 +272,10 @@ class WhatsAppFlowService
     protected function manejarNavegacion(WhatsAppConversation $conv, string $comando, string $paso): ?array
     {
         if (in_array($comando, ['atras', 'volver', 'atrás'], true)) {
-            $anterior = $this->pasoAnterior($paso);
+            $anterior = $this->pasoAnterior($conv, $paso);
+            if ($anterior === 'seleccionar_servicio') {
+                return $this->mostrarServicios($conv);
+            }
             if ($anterior) {
                 $conv->update(['paso' => $anterior]);
 
@@ -271,11 +292,28 @@ class WhatsAppFlowService
         }
 
         if ($comando === '0') {
+            $pasosConCeroPropio = [
+                'pedir_segundo_apellido',
+                'pedir_telefono2',
+                'editar_telefono2',
+                'confirmar_resumen',
+                'confirmar_solicitud',
+            ];
+
+            if (in_array($paso, $pasosConCeroPropio, true)) {
+                return null;
+            }
+
             return $this->iniciarConversacion($conv);
         }
 
         if (in_array($comando, ['hola', 'hi', 'inicio'], true)) {
-            return $this->recordatorioArchivo($paso);
+            $pasosArchivo = ['pedir_foto_cedula_frente', 'pedir_foto_cedula_dorso', 'pedir_orden', 'pedir_autorizacion'];
+            if (in_array($paso, $pasosArchivo, true)) {
+                return $this->recordatorioArchivo($paso);
+            }
+
+            return $this->iniciarConversacion($conv);
         }
 
         return null;
@@ -318,21 +356,23 @@ class WhatsAppFlowService
     protected function recordatorioArchivo(string $paso): array
     {
         $documento = match ($paso) {
-            'pedir_autorizacion' => 'autorización médica',
-            'pedir_orden' => 'orden médica',
-            'pedir_foto_cedula_frente' => 'foto frontal de la cédula',
-            'pedir_foto_cedula_dorso' => 'foto posterior de la cédula',
+            'pedir_autorizacion' => 'la autorización médica',
+            'pedir_orden' => 'la orden médica',
+            'pedir_foto_cedula_frente' => 'la foto frontal de la cédula',
+            'pedir_foto_cedula_dorso' => 'la foto posterior de la cédula',
             default => 'el archivo solicitado',
         };
 
         $instrucciones = match ($paso) {
             'pedir_foto_cedula_frente' => "📷 Adjunte la *foto del frente* de su cédula.\n_(Solo se aceptan archivos JPG, JPEG, PNG o PDF)_",
             'pedir_foto_cedula_dorso' => "📷 Adjunte la *foto del reverso* de su cédula.\n_(Solo se aceptan archivos JPG, JPEG, PNG o PDF)_",
+            'pedir_orden' => "📋 Adjunte la imagen o PDF de la *orden médica*.\n_(Solo se aceptan archivos JPG, JPEG, PNG o PDF)_",
+            'pedir_autorizacion' => "📋 Adjunte la imagen o PDF de la *autorización médica*.\n_(Solo se aceptan archivos JPG, JPEG, PNG o PDF)_",
             default => "Adjunte la imagen o PDF.\n_(Solo se aceptan archivos JPG, JPEG, PNG o PDF)_",
         };
 
         $mensaje = "⛔ *No puede saltar este paso.*\n\n"
-                 ."Para continuar, debe adjuntar la {$documento} como archivo.\n"
+                 ."Para continuar, debe adjuntar {$documento} como archivo.\n"
                  ."📋 Solo se aceptan: *JPG, JPEG, PNG o PDF*."
                  .self::SEPARADOR
                  .$instrucciones
@@ -519,7 +559,7 @@ class WhatsAppFlowService
             ->get();
 
         if ($numero < 1 || $numero > $sedes->count()) {
-            return $this->iniciarConversacion($conv);
+            return $this->mostrarSedes($conv);
         }
 
         $sede = $sedes[$numero - 1];
@@ -640,16 +680,22 @@ class WhatsAppFlowService
         $sedeNombre = $sede?->nom_sede ?? '—';
         $conv->update(['paso' => 'confirmar_resumen']);
 
-        $mensaje = "📋 *Resumen de su solicitud*\n"
-                 .self::SEPARADOR
-                 ."🏥 *Sede:* {$sedeNombre}\n"
+        $requiereCedula = $this->requiereFotosCedula($conv);
+
+        $mensaje = "🏥 *Sede:* {$sedeNombre}\n"
                  ."🩺 *Servicio:* {$servicio->nombre}\n"
                  .self::SEPARADOR
-                 ."A continuación necesitaremos que adjunte:\n"
-                 ."1. 📷 Foto del *frente* de su cédula\n"
-                 ."2. 📷 Foto del *reverso* de su cédula\n"
-                 ."3. 📄 *Orden* médica\n"
-                 ."4. 📄 *Autorización* médica\n";
+                 ."A continuación necesitaremos que adjunte:\n";
+
+        if ($requiereCedula) {
+            $mensaje .= "1. 📷 Foto del *frente* de su cédula\n"
+                     ."2. 📷 Foto del *reverso* de su cédula\n"
+                     ."3. 📄 *Orden* médica\n"
+                     ."4. 📄 *Autorización* médica\n";
+        } else {
+            $mensaje .= "1. 📄 *Orden* médica\n"
+                     ."2. 📄 *Autorización* médica\n";
+        }
 
         $nombreServicioLower = mb_strtolower($servicio->nombre);
         if (str_contains($nombreServicioLower, 'ecograf') || str_contains($nombreServicioLower, 'biopsia')) {
@@ -658,11 +704,18 @@ class WhatsAppFlowService
         }
 
         $mensaje .= self::SEPARADOR
-                 ."¿Está listo para continuar?\n\n"
-                 ."• *1* o *Si* — Continuar\n"
-                 ."• *0* o *menu* — Cambiar de servicio";
+                 ."¿Está listo para continuar?";
 
-        return $this->text($mensaje);
+        return [
+            'type' => 'button',
+            'body' => $mensaje,
+            'header' => '📋 Resumen de solicitud',
+            'footer' => 'Seleccione una opción para continuar',
+            'buttons' => [
+                ['id' => '1', 'title' => 'Sí, continuar'],
+                ['id' => '0', 'title' => 'Cambiar servicio'],
+            ],
+        ];
     }
 
     /**
@@ -680,18 +733,31 @@ class WhatsAppFlowService
         $respuesta = trim(mb_strtolower($respuesta));
 
         if (in_array($respuesta, ['1', 'si', 'sí', 'continuar', 'listo'], true)) {
-            $conv->update(['paso' => 'pedir_foto_cedula_frente']);
+            if ($this->requiereFotosCedula($conv)) {
+                $conv->update(['paso' => 'pedir_foto_cedula_frente']);
 
-            return $this->text("📷 *Envíe la foto del frente de su cédula.*\n_(Solo se aceptan archivos JPG, JPEG, PNG o PDF)_");
+                return $this->text("📷 *Envíe la foto del frente de su cédula.*\n_(Solo se aceptan archivos JPG, JPEG, PNG o PDF)_");
+            }
+
+            $conv->update(['paso' => 'pedir_orden']);
+
+            return $this->text("📋 *Envíe la orden médica.*\nAdjunte la imagen o PDF de la orden.\n_(Solo se aceptan archivos JPG, JPEG, PNG o PDF)_");
         }
 
-        if (in_array($respuesta, ['0', 'no', 'cancelar', 'menu'], true)) {
-            $this->resetearConversacion($conv);
-
-            return $this->iniciarConversacion($conv);
+        if (in_array($respuesta, ['0', 'no', 'cancelar', 'menu', 'cambiar'], true)) {
+            return $this->mostrarServicios($conv);
         }
 
-        return $this->text("Opción no válida. Responda *1* para continuar o *0* para cancelar.");
+        return [
+            'type' => 'button',
+            'body' => "Opción no válida. ¿Está listo para continuar con su solicitud?",
+            'header' => '📋 Resumen de solicitud',
+            'footer' => 'Seleccione una opción para continuar',
+            'buttons' => [
+                ['id' => '1', 'title' => 'Sí, continuar'],
+                ['id' => '0', 'title' => 'Cambiar servicio'],
+            ],
+        ];
     }
 
     /**
@@ -717,11 +783,13 @@ class WhatsAppFlowService
         }
 
         $paciente = $this->buscarPaciente($documento, $conv->telefono);
+        $esRegistroIncompleto = $paciente && strcasecmp(trim((string) $paciente->nombres), 'Pendiente') === 0;
 
         $datos = $conv->datos ?: [];
         $datos['num_docu'] = $documento;
 
-        if ($paciente) {
+        if ($paciente && ! $esRegistroIncompleto) {
+            $datos['es_paciente_nuevo'] = false;
             $datos['paciente_id'] = $paciente->id;
             $datos['nombres'] = $paciente->nombres;
             $datos['pri_ape'] = $paciente->pri_ape;
@@ -763,13 +831,16 @@ class WhatsAppFlowService
             ];
         }
 
-        $paciente = Paciente::create([
-            'tipo_documento_id' => 1,
-            'num_docu' => $documento,
-            'nombres' => 'Pendiente',
-            'cel' => $conv->telefono,
-        ]);
+        if (! $paciente) {
+            $paciente = Paciente::create([
+                'tipo_documento_id' => 1,
+                'num_docu' => $documento,
+                'nombres' => 'Pendiente',
+                'cel' => $conv->telefono,
+            ]);
+        }
 
+        $datos['es_paciente_nuevo'] = true;
         $datos['paciente_id'] = $paciente->id;
         $datos['nombres'] = 'Pendiente';
         $datos['pri_ape'] = '';
@@ -926,10 +997,45 @@ class WhatsAppFlowService
         unset($datos['nombres'], $datos['pri_ape'], $datos['seg_ape']);
         $conv->update([
             'datos' => $datos,
+            'paso' => 'corregir_telefono',
+        ]);
+
+        return $this->text("Entendido. Vamos a corregir sus datos paso a paso.\n\n📱 *Escriba su número de teléfono / celular de contacto:*");
+    }
+
+    /**
+     * Procesa la corrección del teléfono del paciente y avanza a solicitar los nombres.
+     *
+     * @param  WhatsAppConversation  $conv  Conversación de WhatsApp actual
+     * @param  string  $telefono  Número de teléfono o celular ingresado
+     * @return array Mensaje de respuesta solicitando los nombres
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-25
+     */
+    protected function procesarCorregirTelefono(WhatsAppConversation $conv, string $telefono): array
+    {
+        $telefono = trim($telefono);
+
+        if (empty($telefono) || strlen($telefono) < 7) {
+            return $this->text("❌ Número inválido. Ingrese un número de teléfono o celular válido (mínimo 7 dígitos).\nEjemplo: *3001234567*");
+        }
+
+        if (! preg_match('/^\d{7,10}$/', $telefono)) {
+            return $this->text("❌ El teléfono solo debe contener números (7 a 10 dígitos).\nEjemplo: *3001234567*");
+        }
+
+        $datos = $conv->datos ?: [];
+        $datos['tel'] = $telefono;
+        $datos['cel'] = $telefono;
+
+        $conv->update([
+            'datos' => $datos,
             'paso' => 'pedir_nombres',
         ]);
 
-        return $this->text("Entendido. Vamos a empezar de nuevo.\n\nPor favor, escriba sus *nombres completos*:");
+        return $this->text("✅ *Teléfono registrado*\n\n👤 *Escriba sus nombres completos:*");
     }
 
     /**
@@ -967,9 +1073,9 @@ class WhatsAppFlowService
 
         $datos = $conv->datos ?: [];
         unset($datos['nombres'], $datos['pri_ape'], $datos['seg_ape'], $datos['direccion'], $datos['tel'], $datos['cel']);
-        $conv->update(['datos' => $datos, 'paso' => 'pedir_nombres']);
+        $conv->update(['datos' => $datos, 'paso' => 'corregir_telefono']);
 
-        return $this->text("Entendido. Ingrese sus *nombres completos*:");
+        return $this->text("Entendido. Vamos a corregir sus datos paso a paso.\n\n📱 *Escriba su número de teléfono / celular de contacto:*");
     }
 
     /**
@@ -1245,11 +1351,15 @@ class WhatsAppFlowService
     {
         $telefono = trim($telefono);
 
+        if ($telefono !== '0' && ! preg_match('/^\d{7,10}$/', $telefono)) {
+            return $this->text("❌ El teléfono solo debe contener números (7 a 10 dígitos). Escriba *0* si no tiene otro teléfono.");
+        }
+
         $datos = $conv->datos ?: [];
         $datos['cel'] = ($telefono === '0') ? '' : $telefono;
         $conv->update(['datos' => $datos]);
 
-        return $this->guardarContactoYContinuar($conv);
+        return $this->guardarContactoYContinuar($conv->fresh());
     }
 
     /**
@@ -1356,15 +1466,15 @@ class WhatsAppFlowService
     {
         $telefono = trim($telefono);
 
-        if ($telefono !== '0' && ! empty($telefono) && ! preg_match('/^\d{7,10}$/', $telefono)) {
-            return $this->text("❌ El teléfono solo debe contener números. Escriba *0* si no tiene otro teléfono.");
+        if ($telefono !== '0' && ! preg_match('/^\d{7,10}$/', $telefono)) {
+            return $this->text("❌ El teléfono solo debe contener números (7 a 10 dígitos). Escriba *0* si no tiene otro teléfono.");
         }
 
         $datos = $conv->datos ?: [];
         $datos['cel'] = ($telefono === '0') ? '' : $telefono;
         $conv->update(['datos' => $datos]);
 
-        return $this->guardarContactoYContinuar($conv);
+        return $this->guardarContactoYContinuar($conv->fresh());
     }
 
     /**
@@ -1559,8 +1669,12 @@ class WhatsAppFlowService
         $mensajeR .= "🏥 *Sede:* {$sedeNombre}\n";
         $mensajeR .= "👤 *Paciente:* {$nombrePaciente}\n";
         $mensajeR .= "🆔 *Documento:* {$datos['num_docu']}\n";
-        $mensajeR .= "📞 *Tel:* {$datos['cel']}\n";
-        $mensajeR .= "📍 *Dirección:* {$datos['direccion']}\n";
+        $telefonoResumen = ($datos['tel'] ?? '') ?: (($datos['cel'] ?? '') ?: $conv->telefono);
+        $mensajeR .= "📞 *Tel:* {$telefonoResumen}\n";
+        $direccionResumen = $datos['direccion'] ?? '';
+        if (! empty($direccionResumen)) {
+            $mensajeR .= "📍 *Dirección:* {$direccionResumen}\n";
+        }
 
         if (! empty($datos['ruta_cedula_frente_media'])) {
             $mensajeR .= "📎 Cédula frente: ✓\n";

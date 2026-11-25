@@ -8,6 +8,38 @@ use App\Services\BaseService;
 class ConfigServicioService extends BaseService
 {
     /**
+     * Obtiene los servicios de citas activos disponibles para el usuario actual, filtrando opcionalmente por sede.
+     *
+     * @param  int|null  $sedeId  Identificador de la sede para filtrar (opcional).
+     *
+     * @returns array Respuesta estándar con la lista de servicios de citas y el estado de la operación.
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-25
+     */
+    public function misServicios(?int $sedeId = null): array
+    {
+        $query = ConfigServicio::with("sede")
+            ->where("estado", true)
+            ->orderBy("nombre");
+
+        if ($sedeId) {
+            $query->where("sede_id", $sedeId);
+        }
+
+        $user = auth()->user();
+        if ($user) {
+            $serviciosUsuario = $user->serviciosCita()->pluck("config_servicios.id")->toArray();
+            if (! empty($serviciosUsuario)) {
+                $query->whereIn("id", $serviciosUsuario);
+            }
+        }
+
+        return $this->success($query->get());
+    }
+
+    /**
      * Obtiene los servicios de citas, filtrando por sede si se indica.
      *
      * @param  int|null  $sedeId  Identificador de la sede para filtrar (opcional).

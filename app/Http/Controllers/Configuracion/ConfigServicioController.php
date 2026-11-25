@@ -29,19 +29,22 @@ class ConfigServicioController extends Controller
     ) {}
 
     /**
-     * Devuelve la lista de servicios de citas del usuario sin envoltorio de estado.
+     * Devuelve la lista de servicios de citas disponibles para el usuario actual, filtrando por sede si se indica.
      *
-     * @returns Illuminate\Http\JsonResponse Respuesta JSON con el arreglo de servicios de citas.
+     * @param  Illuminate\Http\Request  $request  Solicitud con el filtro opcional sede_id.
+     *
+     * @returns Illuminate\Http\JsonResponse Respuesta JSON estándar con la lista de servicios de citas.
      *
      * @author Jhon Javer Lozano Arce
      *
-     * @date 2026-05-26
+     * @date 2026-11-25
      */
-    public function misServicios(): JsonResponse
+    public function misServicios(Request $request): JsonResponse
     {
-        $result = $this->configServicioService->all();
+        $sedeId = $request->integer("sede_id") ?: null;
+        $result = $this->configServicioService->misServicios($sedeId);
 
-        return response()->json($result['data'] ?? []);
+        return response()->json($result, (int) $result["status"]);
     }
 
     /**
