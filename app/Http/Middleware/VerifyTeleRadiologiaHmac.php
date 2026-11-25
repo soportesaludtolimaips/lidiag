@@ -45,7 +45,11 @@ class VerifyTeleRadiologiaHmac
         $method = $request->method();
         $path = '/'.$request->path();
         $body = $request->getContent();
-        $utf8Body = mb_convert_encoding($body ?: '', 'UTF-8', 'ISO-8859-1');
+        // El cliente firma el payload original en UTF-8 directamente.
+        // Solo recodificamos si la cadena no es UTF-8 válida.
+        $utf8Body = mb_check_encoding($body ?: '', 'UTF-8')
+            ? ($body ?: '')
+            : mb_convert_encoding($body ?: '', 'UTF-8', 'ISO-8859-1');
         $bodySha = hash('sha256', $utf8Body);
         $stringToSign = implode("\n", [$method, $path, (string) $ts, $bodySha]);
         $expected = base64_encode(hash_hmac('sha256', $stringToSign, $secret, true));

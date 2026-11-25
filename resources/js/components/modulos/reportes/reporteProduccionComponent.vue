@@ -3112,12 +3112,16 @@ function resetearFormulario() {
 }
 
 function resetearFormularioConsolidada() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
     datosProduccionConsolidada.value = {
         sedeId: 0,
         modalidad: "",
         destino: "",
-        fechaIni: new Date().toISOString().slice(0, 7) + "-01",
-        fechaFin: new Date().toISOString().slice(0, 10),
+        fechaIni: `${year}-${month}-01`,
+        fechaFin: `${year}-${month}-${day}`,
     };
 }
 

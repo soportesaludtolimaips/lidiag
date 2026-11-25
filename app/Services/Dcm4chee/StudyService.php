@@ -116,7 +116,12 @@ class StudyService extends BaseService
                     ->where('study.study_datetime', '<', $fin);
             }
 
-            $query->orderBy('study.study_datetime', 'desc')->limit(500);
+            $query->orderBy('study.study_datetime', 'desc');
+            if (! $tieneFechas && empty($busDocu) && empty($busNomPac) && empty($busAccNumber)) {
+                $query->limit(500);
+            } else {
+                $query->limit(2000);
+            }
 
             $resultados = $query->get();
         } catch (\Throwable $e) {

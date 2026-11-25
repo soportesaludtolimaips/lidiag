@@ -82,10 +82,13 @@ class ReporteTeleRadiologiaExport implements WithMultipleSheets
                 $q->where("estudios.destino_estudio", "Tele Radiologia")
                     ->orWhere("medico.name", "LIKE", "TL %");
             })
-            ->whereBetween("estudios.created_at", [
-                $this->fechaInicio." 00:00:00",
-                $this->fechaFin." 23:59:59",
-            ])
+            ->where(function ($q) {
+                $desde = $this->fechaInicio." 00:00:00";
+                $hasta = $this->fechaFin." 23:59:59";
+                // Considerar tanto fecha de envío como fecha de lectura
+                $q->whereBetween("estudios.created_at", [$desde, $hasta])
+                    ->orWhereBetween("estudios_productos.fechor_lectura", [$desde, $hasta]);
+            })
             ->when($this->sedeId, function ($query) {
                 return $query->where("estudios.sede_id", $this->sedeId);
             })

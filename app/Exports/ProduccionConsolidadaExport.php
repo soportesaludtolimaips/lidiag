@@ -5,6 +5,7 @@ namespace App\Exports;
 use App\Exports\Sheets\ProduccionConsolidadaDetalleSheet;
 use App\Exports\Sheets\ProduccionConsolidadaEstadisticasSheet;
 use App\Exports\Sheets\ProduccionConsolidadaSinAsignarSheet;
+use App\Helpers\DicomModalityHelper;
 use App\Models\Configuracion\ConfigSede;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -105,7 +106,7 @@ class ProduccionConsolidadaExport implements WithMultipleSheets
                     "charset" => "latin1",
                     "collation" => "latin1_swedish_ci",
                     "options" => [
-                        PDO::ATTR_TIMEOUT => 3, // Timeout de 3 segundos para prevenir bloqueos
+                        PDO::ATTR_TIMEOUT => 15, // Timeout de 15 segundos para cubrir servidores PACS lentos
                     ],
                 ],
             ]);
@@ -130,7 +131,7 @@ class ProduccionConsolidadaExport implements WithMultipleSheets
                     ]);
 
                 if ($this->modalidad) {
-                    $query->where("study.mods_in_study", $this->modalidad);
+                    DicomModalityHelper::aplicarFiltroModalidad($query, "study.mods_in_study", $this->modalidad);
                 }
 
                 $rows = $query->orderBy("study.study_datetime", "asc")->get();
@@ -138,6 +139,16 @@ class ProduccionConsolidadaExport implements WithMultipleSheets
                 foreach ($rows as $row) {
                     $row->sede_id = $sede->id;
                     $row->nom_sede = $sede->nom_sede;
+                    if (isset($row->pat_name) && is_string($row->pat_name)) {
+                        $row->pat_name = mb_check_encoding($row->pat_name, 'UTF-8')
+                            ? $row->pat_name
+                            : mb_convert_encoding($row->pat_name, 'UTF-8', 'ISO-8859-1');
+                    }
+                    if (isset($row->study_desc) && is_string($row->study_desc)) {
+                        $row->study_desc = mb_check_encoding($row->study_desc, 'UTF-8')
+                            ? $row->study_desc
+                            : mb_convert_encoding($row->study_desc, 'UTF-8', 'ISO-8859-1');
+                    }
                     $estudiosTomados->push($row);
                 }
             } catch (\Throwable $e) {

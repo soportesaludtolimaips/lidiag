@@ -165,16 +165,35 @@ class TeleRadiologiaService extends BaseService
             $medico = $this->procesarMedicoConFirma($medicoData);
 
             $estudio = Estudio::where('study_iuid', $d['study_iuid'])
-                ->where('destino_estudio', '=', 'Tele Radiologia')
                 ->first();
 
             if (! $estudio) {
                 return $this->notFound('Estudio no encontrado con IUID: '.$d['study_iuid']);
             }
 
+            // Normalizar el estado de destino si viene de flujo TL externo
+            if ($estudio->destino_estudio !== 'Tele Radiologia') {
+                $estudio->destino_estudio = 'Tele Radiologia';
+                $estudio->save();
+            }
+
+            $cupsTarget = trim((string) ($d['cod_cups'] ?? ''));
             $estudioProducto = EstudioProducto::where('estudio_id', $estudio->id)
-                ->where('cod_cups', $d['cod_cups'])
+                ->where(function ($q) use ($cupsTarget) {
+                    if ($cupsTarget !== '') {
+                        $q->where('cod_cups', $cupsTarget)
+                            ->orWhere('cod_cups', 'LIKE', $cupsTarget.'%');
+                    }
+                })
+                ->orderByDesc('activo')
                 ->first();
+
+            // Si aún no se encuentra y el estudio solo tiene 1 producto, asociarlo
+            if (! $estudioProducto) {
+                $estudioProducto = EstudioProducto::where('estudio_id', $estudio->id)
+                    ->orderByDesc('activo')
+                    ->first();
+            }
 
             if (! $estudioProducto) {
                 return $this->notFound('Producto CUPS no encontrado en este estudio.');
@@ -294,14 +313,33 @@ class TeleRadiologiaService extends BaseService
      */
     private function procesarMedicoConFirma(array $medicoData)
     {
-        $medico = User::firstOrNew(['reg_med' => $medicoData['reg_medico']]);
+        $regMed = ! empty($medicoData['reg_medico']) ? trim((string) $medicoData['reg_medico']) : null;
+        $numDocu = ! empty($medicoData['num_docu']) ? trim((string) $medicoData['num_docu']) : null;
+        $emailCandidato = ($numDocu ?: ($regMed ?: 'tl_'.Str::random(8))).'@teleradiologia.com';
+
+        $medico = null;
+        if ($regMed) {
+            $medico = User::where('reg_med', $regMed)->first();
+        }
+        if (! $medico && $numDocu) {
+            $medico = User::where('num_docu', $numDocu)->first();
+        }
+        if (! $medico) {
+            $medico = User::where('email', $emailCandidato)->first();
+        }
+
+        if (! $medico) {
+            $medico = new User;
+            $medico->email = $emailCandidato;
+            $medico->password = bcrypt('password');
+            if ($numDocu) {
+                $medico->num_docu = $numDocu;
+            }
+        }
 
         $medico->name = 'TL '.($medicoData['name'] ?? 'Sin Nombre');
-        $medico->reg_med = $medicoData['reg_medico'] ?? $medico->reg_med;
-
-        if (! $medico->exists) {
-            $medico->email = ($medicoData['num_docu'] ?? 'unknown').'@teleradiologia.com';
-            $medico->password = bcrypt('password');
+        if ($regMed) {
+            $medico->reg_med = $regMed;
         }
 
         $firmaRaw = $medicoData['firma_medico'] ?? null;

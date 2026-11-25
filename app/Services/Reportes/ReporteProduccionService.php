@@ -15,6 +15,7 @@ use App\Exports\ReporteRepresadosOportunidadExport;
 use App\Exports\ReportesEstudioPAC;
 use App\Exports\ReporteTATExport;
 use App\Exports\ReporteTeleRadiologiaExport;
+use App\Helpers\DicomModalityHelper;
 use App\Services\BaseService;
 use App\Services\Seguridad\TokenSedeService;
 use Carbon\Carbon;
@@ -422,16 +423,10 @@ class ReporteProduccionService extends BaseService
             ->get();
 
         $modalidadesRed = $modalidadesRaw->map(function ($m) use ($totalRedProcedimientos) {
-            $etiqueta = match ($m->mod_nombre) {
-                "CR", "DX", "DR" => "Rayos X",
-                "CT" => "Tomografía (TAC)",
-                "MR" => "Resonancia Magnética",
-                "MG" => "Mamografía",
-                "US" => "Ecografía",
-                default => $m->mod_nombre,
-            };
-            $icono = match ($m->mod_nombre) {
-                "CR", "DX", "DR" => "fa fa-file-image-o",
+            $familia = DicomModalityHelper::normalizarFamilia($m->mod_nombre);
+            $etiqueta = DicomModalityHelper::etiquetaFamilia($m->mod_nombre);
+            $icono = match ($familia) {
+                "RX" => "fa fa-file-image-o",
                 "CT" => "fa fa-circle-o-notch",
                 "MR" => "fa fa-magnet",
                 "MG" => "fa fa-female",
@@ -442,6 +437,7 @@ class ReporteProduccionService extends BaseService
 
             return [
                 "mod_codigo" => $m->mod_nombre,
+                "mod_familia" => $familia,
                 "mod_nombre" => $etiqueta,
                 "icono" => $icono,
                 "cantidad" => $m->cantidad,

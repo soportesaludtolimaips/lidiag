@@ -117,7 +117,7 @@ class ReportesEstudioPAC implements WithMultipleSheets
                 "charset" => "latin1",
                 "collation" => "latin1_swedish_ci",
                 "options" => [
-                    \PDO::ATTR_TIMEOUT => 5,
+                    \PDO::ATTR_TIMEOUT => 15,
                 ],
             ],
         ]);
@@ -128,7 +128,7 @@ class ReportesEstudioPAC implements WithMultipleSheets
         $hasta = str_contains($fechaFin, " ") ? $fechaFin : $fechaFin." 23:59:59";
 
         try {
-            return DB::connection($connName)
+            $estudios = DB::connection($connName)
                 ->table("study")
                 ->select(
                     "patient.pat_id",
@@ -141,6 +141,22 @@ class ReportesEstudioPAC implements WithMultipleSheets
                 ->whereBetween("study.study_datetime", [$desde, $hasta])
                 ->orderBy("study.study_datetime", "desc")
                 ->get();
+
+            // Normalizar codificación latin1 a UTF-8 para visualización en Excel
+            return $estudios->map(function ($row) {
+                if (isset($row->pat_name) && is_string($row->pat_name)) {
+                    $row->pat_name = mb_check_encoding($row->pat_name, 'UTF-8')
+                        ? $row->pat_name
+                        : mb_convert_encoding($row->pat_name, 'UTF-8', 'ISO-8859-1');
+                }
+                if (isset($row->study_desc) && is_string($row->study_desc)) {
+                    $row->study_desc = mb_check_encoding($row->study_desc, 'UTF-8')
+                        ? $row->study_desc
+                        : mb_convert_encoding($row->study_desc, 'UTF-8', 'ISO-8859-1');
+                }
+
+                return $row;
+            });
         } catch (\Throwable $e) {
             Log::error(
                 "ReportesEstudioPAC: Error consultando BD PACS remota",
@@ -152,7 +168,8 @@ class ReportesEstudioPAC implements WithMultipleSheets
                 ]
             );
 
-            return collect();
+            // Relanzar excepción para que el controlador informe al usuario en lugar de entregar un Excel vacío engañoso
+            throw new \RuntimeException("No fue posible conectar con el PACS de la sede (Host: {$host}): ".$e->getMessage(), 0, $e);
         } finally {
             DB::purge($connName);
         }

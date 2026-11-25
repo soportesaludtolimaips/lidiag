@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use App\Exports\Sheets\ReporteTATDetalleSheet;
 use App\Exports\Sheets\ReporteTATEstadisticasSheet;
+use App\Helpers\DicomModalityHelper;
 use App\Models\Configuracion\ConfigSede;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -92,7 +93,7 @@ class ReporteTATExport implements WithMultipleSheets
                 return $query->where("estudios.sede_id", $this->sedeId);
             })
             ->when($this->modalidad, function ($query) {
-                return $query->where("estudios.mods_in_study", "LIKE", "%".$this->modalidad."%");
+                return DicomModalityHelper::aplicarFiltroModalidad($query, "estudios.mods_in_study", $this->modalidad);
             })
             ->select([
                 "estudios.id",

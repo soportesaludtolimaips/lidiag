@@ -1078,6 +1078,33 @@ async function guardarRegistro() {
             motivo_examen: orden.value.motivo_examen,
         };
 
+        // 1. Preparar y asegurar primero la persistencia del estudio en LIDiag
+        registro.value.medico_id = null;
+        registro.value.prioridad_id = orden.value.priori.id;
+        registro.value.fec_estudio = orden.value.fec_estudio;
+        registro.value.study_datetime = orden.value.fec_estudio || registro.value.study_datetime;
+        registro.value.destino_estudio = DESTINO_TELE_RADIOLOGIA;
+
+        const formData = new FormData();
+        formData.append("registro", JSON.stringify(registro.value));
+        adjuntosFileInputs.value.forEach((adj, idx) => {
+            if (adj.archivo) {
+                formData.append(`archivo${idx + 1}`, adj.archivo);
+            }
+        });
+
+        // Guardamos o actualizamos en LIDiag para que el registro exista con certeza
+        const resEstudio = await axios.post("/api/estudios", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        if (resEstudio.status != 200 && resEstudio.status != 201) {
+            throw new Error(
+                resEstudio?.data?.message || "No fue posible guardar el estudio en LIDiag."
+            );
+        }
+
+        // 2. Con el estudio ya persistido en LIDiag, despachar la orden a TLIMAGEN
         const resOrdenTele = await axios.post("/api/tele-radiologia-enviar-orden", {
             orden: payloadOrden,
         });
@@ -1088,44 +1115,26 @@ async function guardarRegistro() {
             resOrdenTele?.data?.id ??
             null;
 
-        if (resOrdenTele.status == 201 || resOrdenTele.status == 200) {
-            registro.value.destino_estudio_id =
-                confirmation !== null && !isNaN(Number(confirmation)) ? Number(confirmation) : null;
-            registro.value.medico_id = null;
-            registro.value.prioridad_id = orden.value.priori.id;
-            registro.value.fec_estudio = orden.value.fec_estudio;
-            registro.value.study_datetime =
-                orden.value.fec_estudio || registro.value.study_datetime;
-            registro.value.destino_estudio = DESTINO_TELE_RADIOLOGIA;
-
-            toastMessage({
-                heading: "Completado",
-                text: resOrdenTele?.data?.details || "Orden enviada correctamente.",
-                icon: "success",
-            });
-
-            const formData = new FormData();
-            formData.append("registro", JSON.stringify(registro.value));
-            adjuntosFileInputs.value.forEach((adj, idx) => {
-                if (adj.archivo) {
-                    formData.append(`archivo${idx + 1}`, adj.archivo);
-                }
-            });
-
-            const resEstudio = await axios.post("/api/estudios", formData, {
-                headers: { "Content-Type": "multipart/form-data" },
-            });
-
-            if (resEstudio.status == 200 || resEstudio.status == 201) {
-                toastMessage({
-                    heading: "Completado",
-                    text: resEstudio.data.message || "Estudio guardado correctamente.",
-                    icon: "success",
-                });
-                btnCerrarModal();
-                btnLimpiar();
-            }
+        if (confirmation !== null && !isNaN(Number(confirmation))) {
+            registro.value.destino_estudio_id = Number(confirmation);
+            // Actualizar el confirmation ID silenciosamente en segundo plano
+            axios
+                .put(`/api/estudios/${resEstudio.data?.id || registro.value.id}`, {
+                    destino_estudio_id: Number(confirmation),
+                    destino_estudio: DESTINO_TELE_RADIOLOGIA,
+                })
+                .catch(() => {});
         }
+
+        toastMessage({
+            heading: "Completado",
+            text:
+                resOrdenTele?.data?.details || "Orden enviada y estudio registrado correctamente.",
+            icon: "success",
+        });
+
+        btnCerrarModal();
+        btnLimpiar();
     } catch (error) {
         if (error.response) {
             errores.value = error.response.data;

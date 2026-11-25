@@ -464,6 +464,9 @@ class EstudioService extends BaseService
                 $producto->lectura = $data['lectura'];
                 $producto->transcriptor_id = Auth::id();
                 $producto->fechor_trascrito = Carbon::now()->format('Y-m-d H:i:s');
+                if (empty($producto->fechor_lectura)) {
+                    $producto->fechor_lectura = $producto->fechor_trascrito;
+                }
                 $producto->visto = 1;
                 $producto->save();
 

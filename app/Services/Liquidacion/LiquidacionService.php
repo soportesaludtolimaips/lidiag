@@ -61,8 +61,8 @@ class LiquidacionService extends BaseService
         $lecturas = EstudioProducto::query()
             ->join("estudios as e", "e.id", "=", "estudios_productos.estudio_id")
             ->where("e.sede_id", $sedeId)
-            ->whereDate("estudios_productos.fechor_lectura", ">=", $fechaInicio)
-            ->whereDate("estudios_productos.fechor_lectura", "<=", $fechaFin)
+            ->where("estudios_productos.fechor_lectura", ">=", $fechaInicio." 00:00:00")
+            ->where("estudios_productos.fechor_lectura", "<=", $fechaFin." 23:59:59")
             ->when($medicoId !== null, fn ($q) => $q->where("e.medico_id", $medicoId))
             ->select("estudios_productos.*", "e.medico_id as lector_id", "e.prioridad_id")
             ->with([
