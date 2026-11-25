@@ -109,6 +109,7 @@ class ProduccionConsolidadaDetalleSheet implements FromCollection, ShouldAutoSiz
             "Fecha/Hora Toma PACS",
             "Destino / Flujo",
             "Estado Trazabilidad",
+            "Estado Asignación",
             "Fecha/Hora Asignación LIDiag",
             "Tiempo Toma a Asig (Horas)",
             "Usuario Asignador",
@@ -173,6 +174,7 @@ class ProduccionConsolidadaDetalleSheet implements FromCollection, ShouldAutoSiz
         }
 
         $pacienteNombre = trim(str_replace("^", " ", (string) ($row->pat_name ?? "")));
+        $estadoProducto = $row->estado_producto ?? ($esAsignado ? "ACTIVO" : "SIN ASIGNAR");
 
         return [
             $index,
@@ -184,6 +186,7 @@ class ProduccionConsolidadaDetalleSheet implements FromCollection, ShouldAutoSiz
             $fechaToma ? $fechaToma->format("Y-m-d H:i:s") : "",
             $destinoEstudio,
             $estadoTrazabilidad,
+            $estadoProducto,
             $fechaAsigTxt,
             $horasTomaAsigTxt,
             $asignadorTxt,
@@ -273,27 +276,37 @@ class ProduccionConsolidadaDetalleSheet implements FromCollection, ShouldAutoSiz
                     $sheet->getStyle("A5:A{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
                     $sheet->getStyle("C5:C{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
                     $sheet->getStyle("E5:E{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                    $sheet->getStyle("G5:K{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                    $sheet->getStyle("N5:P{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                    $sheet->getStyle("Q5:Q{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    $sheet->getStyle("G5:L{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    $sheet->getStyle("O5:Q{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    $sheet->getStyle("R5:R{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-                    // Color de cebra y semáforo condicional en Destino (Col H) y Estado Trazabilidad (Col I)
+                    // Color de cebra y semáforo condicional en Destino (Col H), Estado Trazabilidad (Col I) y Estado Asignación (Col J)
                     for ($r = 5; $r <= $lastRow; $r++) {
                         $cellH = (string) $sheet->getCell("H{$r}")->getValue();
                         $cellI = (string) $sheet->getCell("I{$r}")->getValue();
+                        $cellJ = (string) $sheet->getCell("J{$r}")->getValue();
 
                         if ($cellI === "TOMADO SIN ASIGNAR") {
                             // Fondo ámbar suave con texto rojo
-                            $sheet->getStyle("A{$r}:R{$r}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB("FFFFF8E1");
+                            $sheet->getStyle("A{$r}:S{$r}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB("FFFFF8E1");
                             $sheet->getStyle("I{$r}")->getFont()->setBold(true)->getColor()->setARGB("FFC62828");
                             $sheet->getStyle("H{$r}")->getFont()->setBold(true)->getColor()->setARGB("FF757575");
+                        } elseif ($cellJ === "ANULADO" || $cellJ === "PARCIALMENTE ANULADO") {
+                            // Fondo suave y texto rojo para advertir anulación de productos
+                            $bg = ($r % 2 === 0) ? "FFFFEBEE" : "FFFFF5F5";
+                            $sheet->getStyle("A{$r}:S{$r}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($bg);
+                            $sheet->getStyle("J{$r}")->getFont()->setBold(true)->getColor()->setARGB("FFC62828");
+                            if ($cellI === "ASIGNADO Y LEÍDO") {
+                                $sheet->getStyle("I{$r}")->getFont()->setBold(true)->getColor()->setARGB("FFE65100"); // Naranja oscuro (leído pero anulado)
+                            }
                         } elseif ($cellI === "ASIGNADO Y LEÍDO") {
                             $bg = ($r % 2 === 0) ? "FFF0F4FF" : "FFFFFFFF";
-                            $sheet->getStyle("A{$r}:R{$r}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($bg);
+                            $sheet->getStyle("A{$r}:S{$r}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($bg);
                             $sheet->getStyle("I{$r}")->getFont()->setBold(true)->getColor()->setARGB("FF2E7D32");
+                            $sheet->getStyle("J{$r}")->getFont()->setBold(true)->getColor()->setARGB("FF2E7D32");
                         } else { // ASIGNADO PENDIENTE
                             $bg = ($r % 2 === 0) ? "FFF0F4FF" : "FFFFFFFF";
-                            $sheet->getStyle("A{$r}:R{$r}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($bg);
+                            $sheet->getStyle("A{$r}:S{$r}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($bg);
                             $sheet->getStyle("I{$r}")->getFont()->setBold(true)->getColor()->setARGB("FF1565C0");
                         }
 

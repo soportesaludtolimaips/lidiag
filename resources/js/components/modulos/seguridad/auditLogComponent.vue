@@ -31,7 +31,7 @@
                     class="btn btn-info waves-effect waves-light"
                     :disabled="loading"
                     title="Actualizar registros de auditoría"
-                    @click="cargarLogs"
+                    @click="ejecutarBusqueda"
                 >
                     <i class="fa fa-refresh mr-1" :class="{ 'fa-spin': loading }"></i>
                     Refrescar
@@ -50,7 +50,6 @@
                                     id="filtro_evento"
                                     class="form-control"
                                     v-model="filtros.evento"
-                                    @change="cargarLogs"
                                 >
                                     <option value="">Todos los eventos</option>
                                     <option v-for="ev in eventosDisponibles" :key="ev" :value="ev">
@@ -65,7 +64,6 @@
                                     type="date"
                                     class="form-control"
                                     v-model="filtros.desde"
-                                    @change="cargarLogs"
                                 />
                             </div>
                             <div class="col-md-2">
@@ -75,7 +73,6 @@
                                     type="date"
                                     class="form-control"
                                     v-model="filtros.hasta"
-                                    @change="cargarLogs"
                                 />
                             </div>
                             <div class="col-md-3">
@@ -86,16 +83,18 @@
                                     class="form-control"
                                     v-model="filtros.search"
                                     placeholder="Descripción, modelo, IP..."
-                                    @keyup.enter="cargarLogs"
+                                    @keyup.enter="ejecutarBusqueda"
                                 />
                             </div>
                             <div class="col-md-2 d-flex align-items-end">
                                 <button
                                     type="button"
                                     class="btn btn-success waves-effect waves-light mr-2 flex-grow-1"
-                                    @click="cargarLogs"
+                                    :disabled="loading"
+                                    @click="ejecutarBusqueda"
                                 >
-                                    <i class="fa fa-search"></i> Filtrar
+                                    <i v-if="loading" class="fa fa-spinner fa-spin mr-1"></i>
+                                    <i v-else class="fa fa-search mr-1"></i> Buscar
                                 </button>
                                 <button
                                     type="button"
@@ -115,7 +114,16 @@
 
                         <table-skeleton-loader :visible="loading" :rows="8" :columns="8" />
                         <empty-state-component
-                            v-if="!loading && registros.length === 0"
+                            v-if="!loading && !haBuscado"
+                            icon="fa fa-search"
+                            title="Consulta de Auditoría de Eventos"
+                            description="Configure los filtros deseados y presione Buscar para consultar el registro de auditoría."
+                            action-text="Buscar"
+                            action-icon="fa fa-search"
+                            @action="ejecutarBusqueda"
+                        />
+                        <empty-state-component
+                            v-else-if="!loading && haBuscado && registros.length === 0"
                             icon="fa fa-history"
                             title="No hay registros de auditoría"
                             description="No se encontraron eventos registrados con los filtros seleccionados."
@@ -337,6 +345,7 @@ const totalRegistros = ref(0);
 const totalPaginas = ref(0);
 const paginaActual = ref(1);
 const loading = ref(false);
+const haBuscado = ref(false);
 const filtros = ref({
     evento: "",
     desde: "",
@@ -422,13 +431,42 @@ async function cargarLogs() {
         loading.value = false;
     }
 }
+/**
+ * Ejecuta la consulta de registros de auditoría al presionar Buscar o Enter en filtros.
+ *
+ * Flujo del proceso:
+ * 1. Marca la bandera haBuscado en true.
+ * 2. Reinicia la página actual a 1.
+ * 3. Invoca la carga remota de logs paginados.
+ *
+ * @returns {Promise<void>}
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-25
+ */
+async function ejecutarBusqueda() {
+    haBuscado.value = true;
+    paginaActual.value = 1;
+    await cargarLogs();
+}
+
+/**
+ * Restablece los filtros de búsqueda y limpia la tabla de registros.
+ *
+ * @returns {void}
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-25
+ */
 function limpiarFiltros() {
     filtros.value.evento = "";
     filtros.value.desde = "";
     filtros.value.hasta = "";
     filtros.value.search = "";
     paginaActual.value = 1;
-    cargarLogs();
+    haBuscado.value = false;
+    registros.value = [];
+    totalRegistros.value = 0;
+    totalPaginas.value = 0;
+    safeDestroyDataTable(dt.value || "#tablaAuditoria");
 }
 function irPagina(pagina) {
     if (pagina < 1 || pagina > totalPaginas.value) return;
@@ -473,7 +511,6 @@ function colorEvento(evento) {
 
 onMounted(() => {
     cargarEventos();
-    cargarLogs();
 });
 
 onBeforeUnmount(() => {
@@ -483,7 +520,7 @@ onBeforeUnmount(() => {
 useKeyboardShortcuts({
     onSearch: () => {
         if (!loading.value && !mostrarDetalle.value) {
-            cargarLogs();
+            ejecutarBusqueda();
         }
     },
     onEscape: () => {

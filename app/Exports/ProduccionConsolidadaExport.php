@@ -174,10 +174,7 @@ class ProduccionConsolidadaExport implements WithMultipleSheets
                     ->where("estudios.estado", 1)
                     ->leftJoin("users as medico", "medico.id", "=", "estudios.medico_id")
                     ->leftJoin("users as asignador", "asignador.id", "=", "estudios.quien_registro_id")
-                    ->leftJoin("estudios_productos", function ($join) {
-                        $join->on("estudios_productos.estudio_id", "=", "estudios.id")
-                            ->where("estudios_productos.activo", 1);
-                    })
+                    ->leftJoin("estudios_productos", "estudios_productos.estudio_id", "=", "estudios.id")
                     ->select(
                         "estudios.id as estudio_id",
                         "estudios.study_iuid",
@@ -187,7 +184,9 @@ class ProduccionConsolidadaExport implements WithMultipleSheets
                         "medico.name as medico_nombre",
                         "asignador.name as asignador_nombre",
                         DB::raw("MAX(estudios_productos.fechor_lectura) as fechor_lectura"),
-                        DB::raw("MAX(CASE WHEN estudios_productos.fechor_lectura IS NOT NULL OR estudios_productos.lectura IS NOT NULL THEN 1 ELSE 0 END) as con_lectura")
+                        DB::raw("MAX(CASE WHEN estudios_productos.fechor_lectura IS NOT NULL OR (estudios_productos.lectura IS NOT NULL AND TRIM(estudios_productos.lectura) != '') THEN 1 ELSE 0 END) as con_lectura"),
+                        DB::raw("MAX(estudios_productos.activo) as max_activo"),
+                        DB::raw("MIN(estudios_productos.activo) as min_activo")
                     )
                     ->groupBy(
                         "estudios.id",
@@ -215,6 +214,17 @@ class ProduccionConsolidadaExport implements WithMultipleSheets
                     $item->fechor_lectura = $match->fechor_lectura;
                     $item->con_lectura = (int) $match->con_lectura;
 
+                    // Determinar estado de actividad del producto/estudio
+                    if ($match->max_activo === null) {
+                        $item->estado_producto = "SIN PRODUCTOS";
+                    } elseif ($match->max_activo == 1 && $match->min_activo == 1) {
+                        $item->estado_producto = "ACTIVO";
+                    } elseif ($match->max_activo == 0) {
+                        $item->estado_producto = "ANULADO";
+                    } else {
+                        $item->estado_producto = "PARCIALMENTE ANULADO";
+                    }
+
                     $esTele = ($match->destino_estudio === "Tele Radiologia") || str_starts_with((string) $match->medico_nombre, "TL ");
                     $item->destino_estudio = $esTele ? "Tele-Radiología" : "Salud Tolima";
                 } else {
@@ -224,6 +234,7 @@ class ProduccionConsolidadaExport implements WithMultipleSheets
                     $item->asignador_nombre = null;
                     $item->fechor_lectura = null;
                     $item->con_lectura = 0;
+                    $item->estado_producto = "SIN ASIGNAR";
                     $item->destino_estudio = "Sin Asignar";
                 }
             }
