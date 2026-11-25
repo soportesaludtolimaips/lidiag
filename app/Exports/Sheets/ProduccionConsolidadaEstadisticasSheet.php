@@ -104,25 +104,74 @@ class ProduccionConsolidadaEstadisticasSheet implements ShouldAutoSize, WithChar
     }
 
     /**
+     * Reduce la colección detallada (1 fila por producto/relación) a nivel único de estudio PACS
+     * para evitar duplicar KPIs y porcentajes cuando un estudio tiene múltiples asignaciones o productos.
+     *
+     *
+     * @returns Collection
+     */
+    protected function agruparPorEstudioPacs(Collection $items): Collection
+    {
+        return $items
+            ->groupBy(function ($e) {
+                $sedeKey = $e->sede_id ?? "0";
+                $studyKey = ! empty($e->study_iuid) ? $e->study_iuid : ("pk_".($e->study_pk ?? spl_object_id($e)));
+
+                return "{$sedeKey}|{$studyKey}";
+            })
+            ->map(function (Collection $grupo) {
+                $base = $grupo->first();
+                $asignadas = $grupo->filter(fn ($e) => ! empty($e->estudio_id));
+                $esAsignado = $asignadas->isNotEmpty();
+
+                $activas = $asignadas->filter(fn ($e) => ($e->estado_producto ?? "") === "ACTIVO");
+                $priorizadas = $activas->isNotEmpty() ? $activas : $asignadas;
+
+                $destino = "Sin Asignar";
+                if ($esAsignado) {
+                    $tieneTele = $priorizadas->contains(fn ($e) => ($e->destino_estudio ?? "") === "Tele-Radiología");
+                    $destino = $tieneTele ? "Tele-Radiología" : "Salud Tolima";
+                }
+
+                // Solo cuentan como leídos efectivos los estudios que tengan al menos un producto ACTIVO con lectura
+                $leidoActivo = $activas->contains(fn ($e) => ! empty($e->fechor_lectura) || ! empty($e->con_lectura));
+                $filaFechaAsig = $priorizadas->first(fn ($e) => ! empty($e->fecha_asignacion));
+
+                return (object) [
+                    "sede_id" => $base->sede_id ?? null,
+                    "nom_sede" => $base->nom_sede ?? "Sede Desconocida",
+                    "mods_in_study" => $base->mods_in_study ?? "ND",
+                    "study_datetime" => $base->study_datetime ?? null,
+                    "es_asignado" => $esAsignado,
+                    "destino_estudio" => $destino,
+                    "leido_activo" => $leidoActivo,
+                    "fecha_asignacion" => $filaFechaAsig->fecha_asignacion ?? null,
+                ];
+            })
+            ->values();
+    }
+
+    /**
      * Procesa la colección y genera métricas analíticas discriminando Salud Tolima vs Tele-Radiología.
      */
     protected function calcularEstadisticas(): void
     {
-        $this->kpiTotalTomados = $this->estudios->count();
+        $estudiosPacs = $this->agruparPorEstudioPacs($this->estudios);
 
-        $asignados = $this->estudios->filter(fn ($e) => ! empty($e->estudio_id));
+        $this->kpiTotalTomados = $estudiosPacs->count();
+
+        $asignados = $estudiosPacs->filter(fn ($e) => $e->es_asignado);
         $this->kpiTotalAsignados = $asignados->count();
         $this->kpiTotalSinAsignar = $this->kpiTotalTomados - $this->kpiTotalAsignados;
 
-        $this->kpiTotalSaludTolima = $asignados->filter(fn ($e) => ($e->destino_estudio ?? "") === "Salud Tolima")->count();
-        $this->kpiTotalTeleRadiologia = $asignados->filter(fn ($e) => ($e->destino_estudio ?? "") === "Tele-Radiología")->count();
+        $this->kpiTotalSaludTolima = $asignados->filter(fn ($e) => $e->destino_estudio === "Salud Tolima")->count();
+        $this->kpiTotalTeleRadiologia = $asignados->filter(fn ($e) => $e->destino_estudio === "Tele-Radiología")->count();
 
         $this->kpiPorcentajeAsignacion = $this->kpiTotalTomados > 0
             ? ($this->kpiTotalAsignados / $this->kpiTotalTomados)
             : 0.0;
 
-        $leidos = $asignados->filter(fn ($e) => ! empty($e->fechor_lectura) || ! empty($e->con_lectura));
-        $this->kpiTotalLeidos = $leidos->count();
+        $this->kpiTotalLeidos = $asignados->filter(fn ($e) => $e->leido_activo)->count();
 
         // Tiempo promedio entre toma y asignación (en horas)
         $tiempos = [];
@@ -139,18 +188,18 @@ class ProduccionConsolidadaEstadisticasSheet implements ShouldAutoSize, WithChar
         $this->kpiTiempoPromedioHoras = count($tiempos) > 0 ? round(array_sum($tiempos) / count($tiempos), 1) : 0.0;
 
         // Agrupación por Sede
-        $sedesGroup = $this->estudios->groupBy(fn ($e) => $e->nom_sede ?? "Sede Desconocida");
+        $sedesGroup = $estudiosPacs->groupBy(fn ($e) => $e->nom_sede ?? "Sede Desconocida");
         $resSedes = [];
         $i = 1;
         foreach ($sedesGroup as $nomSede => $items) {
             $tom = $items->count();
-            $asigItems = $items->filter(fn ($e) => ! empty($e->estudio_id));
+            $asigItems = $items->filter(fn ($e) => $e->es_asignado);
             $asig = $asigItems->count();
-            $st = $asigItems->filter(fn ($e) => ($e->destino_estudio ?? "") === "Salud Tolima")->count();
-            $tele = $asigItems->filter(fn ($e) => ($e->destino_estudio ?? "") === "Tele-Radiología")->count();
+            $st = $asigItems->filter(fn ($e) => $e->destino_estudio === "Salud Tolima")->count();
+            $tele = $asigItems->filter(fn ($e) => $e->destino_estudio === "Tele-Radiología")->count();
             $sinAsig = $tom - $asig;
             $pct = $tom > 0 ? ($asig / $tom) : 0.0;
-            $lei = $items->filter(fn ($e) => ! empty($e->fechor_lectura) || ! empty($e->con_lectura))->count();
+            $lei = $asigItems->filter(fn ($e) => $e->leido_activo)->count();
 
             $resSedes[] = [
                 "ranking" => $i++,
@@ -171,15 +220,15 @@ class ProduccionConsolidadaEstadisticasSheet implements ShouldAutoSize, WithChar
         $this->resumenSedes = $resSedes;
 
         // Agrupación por Modalidad
-        $modGroup = $this->estudios->groupBy(fn ($e) => trim((string) ($e->mods_in_study ?? "ND")));
+        $modGroup = $estudiosPacs->groupBy(fn ($e) => trim((string) ($e->mods_in_study ?? "ND")));
         $resMod = [];
         $j = 1;
         foreach ($modGroup as $mod => $items) {
             $tom = $items->count();
-            $asigItems = $items->filter(fn ($e) => ! empty($e->estudio_id));
+            $asigItems = $items->filter(fn ($e) => $e->es_asignado);
             $asig = $asigItems->count();
-            $st = $asigItems->filter(fn ($e) => ($e->destino_estudio ?? "") === "Salud Tolima")->count();
-            $tele = $asigItems->filter(fn ($e) => ($e->destino_estudio ?? "") === "Tele-Radiología")->count();
+            $st = $asigItems->filter(fn ($e) => $e->destino_estudio === "Salud Tolima")->count();
+            $tele = $asigItems->filter(fn ($e) => $e->destino_estudio === "Tele-Radiología")->count();
             $sinAsig = $tom - $asig;
             $pct = $tom > 0 ? ($asig / $tom) : 0.0;
 

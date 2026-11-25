@@ -41,6 +41,8 @@ class ProduccionConsolidadaDetalleSheet implements FromCollection, ShouldAutoSiz
 
     protected int $totalFilas = 0;
 
+    protected int $rowIndex = 0;
+
     /**
      * Constructor de la hoja de detalle consolidado.
      *
@@ -110,6 +112,10 @@ class ProduccionConsolidadaDetalleSheet implements FromCollection, ShouldAutoSiz
             "Destino / Flujo",
             "Estado Trazabilidad",
             "Estado Asignación",
+            "Usuario Anulador",
+            "Fecha/Hora Anulación",
+            "Código CUPS",
+            "Procedimiento (LIDiag)",
             "Fecha/Hora Asignación LIDiag",
             "Tiempo Toma a Asig (Horas)",
             "Usuario Asignador",
@@ -131,8 +137,7 @@ class ProduccionConsolidadaDetalleSheet implements FromCollection, ShouldAutoSiz
      */
     public function map($row): array
     {
-        static $index = 0;
-        $index++;
+        $this->rowIndex++;
 
         $fechaToma = ! empty($row->study_datetime) ? Carbon::parse($row->study_datetime) : null;
         $fechaAsig = ! empty($row->fecha_asignacion) ? Carbon::parse($row->fecha_asignacion) : null;
@@ -142,6 +147,8 @@ class ProduccionConsolidadaDetalleSheet implements FromCollection, ShouldAutoSiz
         $horasAsigLect = ($fechaAsig && $fechaLect) ? round(abs($fechaLect->getTimestamp() - $fechaAsig->getTimestamp()) / 3600, 1) : null;
 
         $esAsignado = ! empty($row->estudio_id);
+        $estadoProducto = $row->estado_producto ?? ($esAsignado ? "ACTIVO" : "SIN ASIGNAR");
+        $tieneLectura = $fechaLect || ! empty($row->con_lectura);
 
         if (! $esAsignado) {
             $destinoEstudio = "";
@@ -160,7 +167,19 @@ class ProduccionConsolidadaDetalleSheet implements FromCollection, ShouldAutoSiz
             $asignadorTxt = $row->asignador_nombre ?? "";
             $medicoTxt = $row->medico_nombre ?? "";
 
-            if ($fechaLect || ! empty($row->con_lectura)) {
+            if ($estadoProducto === "ANULADO") {
+                if ($tieneLectura) {
+                    $estadoTrazabilidad = "ANULADO (CON LECTURA)";
+                    $estadoLecturaTxt = "LEÍDO (ANULADO)";
+                    $fechaLectTxt = $fechaLect ? $fechaLect->format("Y-m-d H:i:s") : "";
+                    $horasAsigLectTxt = $horasAsigLect !== null ? $horasAsigLect : "";
+                } else {
+                    $estadoTrazabilidad = "ANULADO";
+                    $estadoLecturaTxt = "ANULADO";
+                    $fechaLectTxt = "";
+                    $horasAsigLectTxt = "";
+                }
+            } elseif ($tieneLectura) {
                 $estadoTrazabilidad = "ASIGNADO Y LEÍDO";
                 $estadoLecturaTxt = "LEÍDO";
                 $fechaLectTxt = $fechaLect ? $fechaLect->format("Y-m-d H:i:s") : "";
@@ -174,10 +193,16 @@ class ProduccionConsolidadaDetalleSheet implements FromCollection, ShouldAutoSiz
         }
 
         $pacienteNombre = trim(str_replace("^", " ", (string) ($row->pat_name ?? "")));
-        $estadoProducto = $row->estado_producto ?? ($esAsignado ? "ACTIVO" : "SIN ASIGNAR");
+        if ($estadoProducto === "ANULADO") {
+            $usuarioAnuladorTxt = ! empty($row->usuario_anulador) ? $row->usuario_anulador : "Sin registro histórico";
+            $fechaAnulacionTxt = ! empty($row->fecha_anulacion) ? Carbon::parse($row->fecha_anulacion)->format("Y-m-d H:i:s") : "";
+        } else {
+            $usuarioAnuladorTxt = "";
+            $fechaAnulacionTxt = "";
+        }
 
         return [
-            $index,
+            $this->rowIndex,
             $row->nom_sede ?? "",
             $row->pat_id ?? "",
             $pacienteNombre ?: "",
@@ -187,6 +212,10 @@ class ProduccionConsolidadaDetalleSheet implements FromCollection, ShouldAutoSiz
             $destinoEstudio,
             $estadoTrazabilidad,
             $estadoProducto,
+            $usuarioAnuladorTxt,
+            $fechaAnulacionTxt,
+            $row->cod_cups ?? "",
+            $row->nom_produc ?? "",
             $fechaAsigTxt,
             $horasTomaAsigTxt,
             $asignadorTxt,
@@ -239,7 +268,7 @@ class ProduccionConsolidadaDetalleSheet implements FromCollection, ShouldAutoSiz
                 $lastRow = max(5, $this->totalFilas + 4);
 
                 // Fila 1: Título institucional
-                $sheet->mergeCells("A1:R1");
+                $sheet->mergeCells("A1:W1");
                 $sheet->setCellValue("A1", "TRAZABILIDAD DE PRODUCCIÓN CONSOLIDADA: ESTUDIOS TOMADOS (PACS) VS ASIGNADOS (LIDIAG)");
                 $sheet->getStyle("A1")->applyFromArray([
                     "font" => ["bold" => true, "size" => 13, "color" => ["argb" => "FFFFFFFF"]],
@@ -249,10 +278,10 @@ class ProduccionConsolidadaDetalleSheet implements FromCollection, ShouldAutoSiz
                 $sheet->getRowDimension(1)->setRowHeight(30);
 
                 // Fila 2: Subtítulo con metadata
-                $sheet->mergeCells("A2:R2");
+                $sheet->mergeCells("A2:W2");
                 $sheet->setCellValue(
                     "A2",
-                    "Rango de Fechas de Toma: {$this->fechaInicio} a {$this->fechaFin}  |  Sede: {$this->sedeNombre}  |  Total Estudios: {$this->totalFilas}  |  Generado: ".now()->format("Y-m-d H:i:s")
+                    "Rango de Fechas de Toma: {$this->fechaInicio} a {$this->fechaFin}  |  Sede: {$this->sedeNombre}  |  Total Registros: {$this->totalFilas}  |  Generado: ".now()->format("Y-m-d H:i:s")
                 );
                 $sheet->getStyle("A2")->applyFromArray([
                     "font" => ["bold" => true, "size" => 10, "color" => ["argb" => "FFFFFFFF"]],
@@ -263,7 +292,7 @@ class ProduccionConsolidadaDetalleSheet implements FromCollection, ShouldAutoSiz
                 $sheet->getRowDimension(4)->setRowHeight(28);
 
                 if ($this->totalFilas > 0) {
-                    $sheet->getStyle("A4:R{$lastRow}")->applyFromArray([
+                    $sheet->getStyle("A4:W{$lastRow}")->applyFromArray([
                         "borders" => [
                             "allBorders" => [
                                 "borderStyle" => Border::BORDER_THIN,
@@ -276,9 +305,10 @@ class ProduccionConsolidadaDetalleSheet implements FromCollection, ShouldAutoSiz
                     $sheet->getStyle("A5:A{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
                     $sheet->getStyle("C5:C{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
                     $sheet->getStyle("E5:E{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                    $sheet->getStyle("G5:L{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                    $sheet->getStyle("O5:Q{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                    $sheet->getStyle("R5:R{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    $sheet->getStyle("G5:J{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    $sheet->getStyle("L5:M{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    $sheet->getStyle("O5:P{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    $sheet->getStyle("S5:V{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
                     // Color de cebra y semáforo condicional en Destino (Col H), Estado Trazabilidad (Col I) y Estado Asignación (Col J)
                     for ($r = 5; $r <= $lastRow; $r++) {
@@ -288,25 +318,28 @@ class ProduccionConsolidadaDetalleSheet implements FromCollection, ShouldAutoSiz
 
                         if ($cellI === "TOMADO SIN ASIGNAR") {
                             // Fondo ámbar suave con texto rojo
-                            $sheet->getStyle("A{$r}:S{$r}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB("FFFFF8E1");
+                            $sheet->getStyle("A{$r}:W{$r}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB("FFFFF8E1");
                             $sheet->getStyle("I{$r}")->getFont()->setBold(true)->getColor()->setARGB("FFC62828");
                             $sheet->getStyle("H{$r}")->getFont()->setBold(true)->getColor()->setARGB("FF757575");
-                        } elseif ($cellJ === "ANULADO" || $cellJ === "PARCIALMENTE ANULADO") {
+                        } elseif ($cellJ === "ANULADO") {
                             // Fondo suave y texto rojo para advertir anulación de productos
                             $bg = ($r % 2 === 0) ? "FFFFEBEE" : "FFFFF5F5";
-                            $sheet->getStyle("A{$r}:S{$r}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($bg);
+                            $sheet->getStyle("A{$r}:W{$r}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($bg);
                             $sheet->getStyle("J{$r}")->getFont()->setBold(true)->getColor()->setARGB("FFC62828");
-                            if ($cellI === "ASIGNADO Y LEÍDO") {
+                            $sheet->getStyle("K{$r}")->getFont()->setBold(true)->getColor()->setARGB("FFB71C1C");
+                            if ($cellI === "ANULADO (CON LECTURA)") {
                                 $sheet->getStyle("I{$r}")->getFont()->setBold(true)->getColor()->setARGB("FFE65100"); // Naranja oscuro (leído pero anulado)
+                            } else {
+                                $sheet->getStyle("I{$r}")->getFont()->setBold(true)->getColor()->setARGB("FFC62828");
                             }
                         } elseif ($cellI === "ASIGNADO Y LEÍDO") {
                             $bg = ($r % 2 === 0) ? "FFF0F4FF" : "FFFFFFFF";
-                            $sheet->getStyle("A{$r}:S{$r}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($bg);
+                            $sheet->getStyle("A{$r}:W{$r}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($bg);
                             $sheet->getStyle("I{$r}")->getFont()->setBold(true)->getColor()->setARGB("FF2E7D32");
                             $sheet->getStyle("J{$r}")->getFont()->setBold(true)->getColor()->setARGB("FF2E7D32");
                         } else { // ASIGNADO PENDIENTE
                             $bg = ($r % 2 === 0) ? "FFF0F4FF" : "FFFFFFFF";
-                            $sheet->getStyle("A{$r}:S{$r}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($bg);
+                            $sheet->getStyle("A{$r}:W{$r}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($bg);
                             $sheet->getStyle("I{$r}")->getFont()->setBold(true)->getColor()->setARGB("FF1565C0");
                         }
 

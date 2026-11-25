@@ -7,6 +7,7 @@ use App\Exports\Sheets\ProduccionConsolidadaEstadisticasSheet;
 use App\Exports\Sheets\ProduccionConsolidadaSinAsignarSheet;
 use App\Helpers\DicomModalityHelper;
 use App\Models\Configuracion\ConfigSede;
+use App\Models\Estudio\EstudioProducto;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -45,6 +46,8 @@ class ProduccionConsolidadaExport implements WithMultipleSheets
     protected Collection $estudiosConsolidados;
 
     protected Collection $estudiosSinAsignar;
+
+    protected bool $esFallbackLocal = false;
 
     /**
      * Constructor del reporte de producción consolidada.
@@ -94,19 +97,34 @@ class ProduccionConsolidadaExport implements WithMultipleSheets
                 continue;
             }
 
+            // Pre-chequeo veloz de socket TCP (1.5 segundos máx) antes de invocar PDO.
+            // Si la VPN está desconectada o la IP es inalcanzable, esto evita que el request HTTP
+            // se quede congelado durante 90+ segundos acumulando timeouts PDO secuenciales.
+            $puerto = (int) ($sede->puerto_dcm ?: 3306);
+            $socketCheck = @fsockopen($sede->ip_dcm, $puerto, $errno, $errstr, 1.5);
+            if (! $socketCheck) {
+                Log::warning(
+                    "ProduccionConsolidadaExport: Servidor PACS no responde en red para la sede {$sede->nom_sede} ({$sede->ip_dcm}:{$puerto}): {$errstr} ({$errno})",
+                    ["sede_id" => $sede->id]
+                );
+
+                continue;
+            }
+            fclose($socketCheck);
+
             $connName = "pacs_temp_".$sede->id;
             config([
                 "database.connections.{$connName}" => [
                     "driver" => "mysql",
                     "host" => $sede->ip_dcm,
-                    "port" => $sede->puerto_dcm ?: 3306,
+                    "port" => $puerto,
                     "database" => $sede->bd_dcm,
                     "username" => $sede->usuario_dcm,
                     "password" => $sede->password_dcm,
                     "charset" => "latin1",
                     "collation" => "latin1_swedish_ci",
                     "options" => [
-                        PDO::ATTR_TIMEOUT => 15, // Timeout de 15 segundos para cubrir servidores PACS lentos
+                        PDO::ATTR_TIMEOUT => 8, // Timeout razonable una vez confirmado el socket
                     ],
                 ],
             ]);
@@ -162,93 +180,214 @@ class ProduccionConsolidadaExport implements WithMultipleSheets
             }
         }
 
-        // 3. Cruzar con estudios asignados y leídos en LIDiag
-        if ($estudiosTomados->isNotEmpty()) {
-            $iuids = $estudiosTomados->pluck("study_iuid")->filter()->unique()->values()->all();
+        // Si no se pudo obtener ningún estudio remoto del PACS (por ejemplo en entorno local de pruebas sin VPN),
+        // realizamos fallback a los estudios registrados localmente en la base de datos de LIDiag.
+        if ($estudiosTomados->isEmpty()) {
+            $this->esFallbackLocal = true;
 
-            $lidiagEstudios = collect();
-            // Consultar en bloques para evitar límites de tamaño SQL en IN (...)
-            foreach (array_chunk($iuids, 1000) as $chunk) {
-                $matchedChunk = DB::table("estudios")
-                    ->whereIn("estudios.study_iuid", $chunk)
-                    ->where("estudios.estado", 1)
-                    ->leftJoin("users as medico", "medico.id", "=", "estudios.medico_id")
-                    ->leftJoin("users as asignador", "asignador.id", "=", "estudios.quien_registro_id")
-                    ->leftJoin("estudios_productos", "estudios_productos.estudio_id", "=", "estudios.id")
-                    ->select(
-                        "estudios.id as estudio_id",
-                        "estudios.study_iuid",
-                        "estudios.destino_estudio",
-                        "estudios.created_at as fecha_asignacion",
-                        "estudios.estado",
-                        "medico.name as medico_nombre",
-                        "asignador.name as asignador_nombre",
-                        DB::raw("MAX(estudios_productos.fechor_lectura) as fechor_lectura"),
-                        DB::raw("MAX(CASE WHEN estudios_productos.fechor_lectura IS NOT NULL OR (estudios_productos.lectura IS NOT NULL AND TRIM(estudios_productos.lectura) != '') THEN 1 ELSE 0 END) as con_lectura"),
-                        DB::raw("MAX(estudios_productos.activo) as max_activo"),
-                        DB::raw("MIN(estudios_productos.activo) as min_activo")
-                    )
-                    ->groupBy(
-                        "estudios.id",
-                        "estudios.study_iuid",
-                        "estudios.destino_estudio",
-                        "estudios.created_at",
-                        "estudios.estado",
-                        "medico.name",
-                        "asignador.name"
-                    )
-                    ->get()
-                    ->keyBy("study_iuid");
+            $localQuery = DB::table("estudios")
+                ->join("pacientes", "estudios.paciente_id", "=", "pacientes.id")
+                ->join("config_sedes", "estudios.sede_id", "=", "config_sedes.id")
+                ->whereBetween("estudios.created_at", [
+                    $this->fechaInicio." 00:00:00",
+                    $this->fechaFin." 23:59:59",
+                ])
+                ->when($this->sedeId, fn ($q) => $q->where("estudios.sede_id", $this->sedeId))
+                ->select([
+                    "estudios.id as study_pk",
+                    "estudios.study_iuid",
+                    "estudios.accession_no",
+                    DB::raw("COALESCE(estudios.fec_estudio, estudios.created_at) as study_datetime"),
+                    "estudios.study_desc",
+                    "estudios.mods_in_study",
+                    "pacientes.num_docu as pat_id",
+                    "pacientes.nombres as pat_name",
+                    "config_sedes.id as sede_id",
+                    "config_sedes.nom_sede",
+                ]);
 
-                $lidiagEstudios = $lidiagEstudios->merge($matchedChunk);
+            if ($this->modalidad) {
+                DicomModalityHelper::aplicarFiltroModalidad($localQuery, "estudios.mods_in_study", $this->modalidad);
             }
 
-            // Enlazar los datos en memoria
-            foreach ($estudiosTomados as $item) {
-                $match = $lidiagEstudios->get($item->study_iuid);
-                if ($match) {
-                    $item->estudio_id = $match->estudio_id;
-                    $item->fecha_asignacion = $match->fecha_asignacion;
-                    $item->medico_nombre = $match->medico_nombre;
-                    $item->asignador_nombre = $match->asignador_nombre;
-                    $item->fechor_lectura = $match->fechor_lectura;
-                    $item->con_lectura = (int) $match->con_lectura;
+            $estudiosTomados = $localQuery->orderBy("study_datetime", "asc")->get();
+        }
 
-                    // Determinar estado de actividad del producto/estudio
-                    if ($match->max_activo === null) {
-                        $item->estado_producto = "SIN PRODUCTOS";
-                    } elseif ($match->max_activo == 1 && $match->min_activo == 1) {
-                        $item->estado_producto = "ACTIVO";
-                    } elseif ($match->max_activo == 0) {
-                        $item->estado_producto = "ANULADO";
-                    } else {
-                        $item->estado_producto = "PARCIALMENTE ANULADO";
+        // 3. Cruzar con todos los estudios y productos relacionados en LIDiag (sin agrupamiento)
+        $filasConsolidadas = collect();
+
+        if ($estudiosTomados->isNotEmpty()) {
+            $lidiagMapa = [];
+
+            if ($this->esFallbackLocal) {
+                $keys = $estudiosTomados->pluck("study_pk")->filter()->unique()->values()->all();
+
+                foreach (array_chunk($keys, 1000) as $chunk) {
+                    $matchedChunk = $this->consultarRegistrosLidiagPorColumna("estudios.id", $chunk);
+                    foreach ($matchedChunk as $row) {
+                        $lidiagMapa[$row->estudio_id][] = $row;
                     }
+                }
+            } else {
+                $keys = $estudiosTomados->pluck("study_iuid")->filter()->unique()->values()->all();
 
-                    $esTele = ($match->destino_estudio === "Tele Radiologia") || str_starts_with((string) $match->medico_nombre, "TL ");
-                    $item->destino_estudio = $esTele ? "Tele-Radiología" : "Salud Tolima";
+                foreach (array_chunk($keys, 1000) as $chunk) {
+                    $matchedChunk = $this->consultarRegistrosLidiagPorColumna("estudios.study_iuid", $chunk);
+                    foreach ($matchedChunk as $row) {
+                        $lidiagMapa[$row->study_iuid][] = $row;
+                    }
+                }
+            }
+
+            // Enlazar cada registro del PACS con cada registro relacionado en LIDiag
+            foreach ($estudiosTomados as $item) {
+                $lookupKey = $this->esFallbackLocal ? $item->study_pk : $item->study_iuid;
+                $matches = ($lookupKey !== null && $lookupKey !== "") ? ($lidiagMapa[$lookupKey] ?? []) : [];
+
+                if (! empty($matches)) {
+                    foreach ($matches as $match) {
+                        $fila = clone $item;
+                        $fila->estudio_id = $match->estudio_id;
+                        $fila->estudio_producto_id = $match->estudio_producto_id;
+                        $fila->cod_cups = $match->cod_cups;
+                        $fila->nom_produc = $match->nom_produc;
+                        $fila->fecha_asignacion = $match->fecha_asignacion;
+                        $fila->medico_nombre = $match->medico_nombre;
+                        $fila->asignador_nombre = $match->asignador_nombre;
+                        $fila->fechor_lectura = $match->fechor_lectura;
+                        $fila->con_lectura = (int) $match->con_lectura;
+                        $fila->producto_activo = $match->producto_activo;
+
+                        if ($match->estudio_producto_id === null) {
+                            $fila->estado_producto = "SIN PRODUCTOS";
+                        } else {
+                            $fila->estado_producto = ((int) $match->producto_activo === 1) ? "ACTIVO" : "ANULADO";
+                        }
+
+                        $esTele = ($match->destino_estudio === "Tele Radiologia") || str_starts_with((string) $match->medico_nombre, "TL ");
+                        $fila->destino_estudio = $esTele ? "Tele-Radiología" : "Salud Tolima";
+
+                        $filasConsolidadas->push($fila);
+                    }
                 } else {
-                    $item->estudio_id = null;
-                    $item->fecha_asignacion = null;
-                    $item->medico_nombre = null;
-                    $item->asignador_nombre = null;
-                    $item->fechor_lectura = null;
-                    $item->con_lectura = 0;
-                    $item->estado_producto = "SIN ASIGNAR";
-                    $item->destino_estudio = "Sin Asignar";
+                    $fila = clone $item;
+                    $fila->estudio_id = null;
+                    $fila->estudio_producto_id = null;
+                    $fila->cod_cups = null;
+                    $fila->nom_produc = null;
+                    $fila->fecha_asignacion = null;
+                    $fila->medico_nombre = null;
+                    $fila->asignador_nombre = null;
+                    $fila->fechor_lectura = null;
+                    $fila->con_lectura = 0;
+                    $fila->producto_activo = null;
+                    $fila->estado_producto = "SIN ASIGNAR";
+                    $fila->destino_estudio = "Sin Asignar";
+
+                    $filasConsolidadas->push($fila);
                 }
             }
 
             // Filtrar por destino si fue seleccionado
             if ($this->destino === "salud_tolima" || $this->destino === "Salud Tolima") {
-                $estudiosTomados = $estudiosTomados->filter(fn ($e) => $e->destino_estudio === "Salud Tolima")->values();
+                $filasConsolidadas = $filasConsolidadas->filter(fn ($e) => $e->destino_estudio === "Salud Tolima")->values();
             } elseif ($this->destino === "tele_radiologia" || $this->destino === "Tele Radiologia") {
-                $estudiosTomados = $estudiosTomados->filter(fn ($e) => $e->destino_estudio === "Tele-Radiología")->values();
+                $filasConsolidadas = $filasConsolidadas->filter(fn ($e) => $e->destino_estudio === "Tele-Radiología")->values();
             }
         }
 
-        $this->estudiosConsolidados = $estudiosTomados;
-        $this->estudiosSinAsignar = $estudiosTomados->filter(fn ($e) => empty($e->estudio_id))->values();
+        $this->enriquecerUsuariosAnulacion($filasConsolidadas);
+
+        $this->estudiosConsolidados = $filasConsolidadas;
+        $this->estudiosSinAsignar = $filasConsolidadas->filter(fn ($e) => empty($e->estudio_id))->values();
+    }
+
+    /**
+     * Enriquecer las filas anuladas con el usuario y fecha/hora de anulación desde audit_logs.
+     *
+     * @param  Collection  $filas  Colección consolidada ya cruzada.
+     */
+    protected function enriquecerUsuariosAnulacion(Collection $filas): void
+    {
+        $idsAnulados = $filas
+            ->filter(fn ($f) => ($f->estado_producto ?? "") === "ANULADO" && ! empty($f->estudio_producto_id))
+            ->pluck("estudio_producto_id")
+            ->unique()
+            ->values()
+            ->all();
+
+        $anulacionesMapa = [];
+
+        if (! empty($idsAnulados)) {
+            foreach (array_chunk($idsAnulados, 1000) as $chunk) {
+                $registros = DB::table("audit_logs")
+                    ->leftJoin("users", "users.id", "=", "audit_logs.user_id")
+                    ->where("audit_logs.evento", "anular_estudio")
+                    ->where("audit_logs.model_type", EstudioProducto::class)
+                    ->whereIn("audit_logs.model_id", $chunk)
+                    ->select(
+                        "audit_logs.id",
+                        "audit_logs.model_id",
+                        "audit_logs.created_at as fecha_anulacion",
+                        "users.name as usuario_anulador"
+                    )
+                    ->orderBy("audit_logs.id", "asc")
+                    ->get();
+
+                foreach ($registros as $reg) {
+                    $anulacionesMapa[(int) $reg->model_id] = $reg;
+                }
+            }
+        }
+
+        foreach ($filas as $fila) {
+            if (($fila->estado_producto ?? "") === "ANULADO" && ! empty($fila->estudio_producto_id)) {
+                $anul = $anulacionesMapa[(int) $fila->estudio_producto_id] ?? null;
+                $fila->usuario_anulador = ($anul && ! empty($anul->usuario_anulador))
+                    ? trim((string) $anul->usuario_anulador)
+                    : null;
+                $fila->fecha_anulacion = $anul->fecha_anulacion ?? null;
+            } else {
+                $fila->usuario_anulador = null;
+                $fila->fecha_anulacion = null;
+            }
+        }
+    }
+
+    /**
+     * Consulta los registros relacionados en LIDiag (estudios + estudios_productos) sin agrupar.
+     *
+     * @param  string  $columna  Columna de cruce ('estudios.study_iuid' o 'estudios.id').
+     * @param  array<int, mixed>  $valores  Lista de valores del bloque actual.
+     *
+     * @returns Collection
+     */
+    protected function consultarRegistrosLidiagPorColumna(string $columna, array $valores): Collection
+    {
+        return DB::table("estudios")
+            ->whereIn($columna, $valores)
+            ->where("estudios.estado", 1)
+            ->leftJoin("users as medico", "medico.id", "=", "estudios.medico_id")
+            ->leftJoin("users as asignador", "asignador.id", "=", "estudios.quien_registro_id")
+            ->leftJoin("estudios_productos", "estudios_productos.estudio_id", "=", "estudios.id")
+            ->select(
+                "estudios.id as estudio_id",
+                "estudios.study_iuid",
+                "estudios.destino_estudio",
+                "estudios.created_at as fecha_asignacion",
+                "estudios.estado",
+                "medico.name as medico_nombre",
+                "asignador.name as asignador_nombre",
+                "estudios_productos.id as estudio_producto_id",
+                "estudios_productos.cod_cups",
+                "estudios_productos.nom_produc",
+                "estudios_productos.fechor_lectura",
+                "estudios_productos.activo as producto_activo",
+                DB::raw("CASE WHEN estudios_productos.fechor_lectura IS NOT NULL OR (estudios_productos.lectura IS NOT NULL AND TRIM(estudios_productos.lectura) != '') THEN 1 ELSE 0 END as con_lectura")
+            )
+            ->orderBy("estudios.id", "asc")
+            ->orderBy("estudios_productos.id", "asc")
+            ->get();
     }
 
     /**
