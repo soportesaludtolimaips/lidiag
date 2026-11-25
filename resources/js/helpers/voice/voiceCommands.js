@@ -20,40 +20,75 @@
  */
 export const UPPERCASE_ENABLE_COMMANDS = [
     "iniciar mayúscula sostenida",
+    "iniciar mayuscula sostenida",
     "iniciar mayúsculas sostenida",
+    "iniciar mayusculas sostenida",
     "inicia mayúscula sostenida",
+    "inicia mayuscula sostenida",
     "inicia mayúsculas sostenida",
+    "inicia mayusculas sostenida",
     "iniciar mayúsculas sostenidas",
+    "iniciar mayusculas sostenidas",
     "inicia mayúsculas sostenidas",
+    "inicia mayusculas sostenidas",
     "iniciar mayúsculas",
+    "iniciar mayusculas",
     "iniciar mayúscula",
+    "iniciar mayuscula",
     "inicia mayúsculas",
+    "inicia mayusculas",
     "inicia mayúscula",
+    "inicia mayuscula",
     "inicie mayúsculas",
+    "inicie mayusculas",
     "inicie mayúscula",
+    "inicie mayuscula",
     "mayúsculas sostenidas",
+    "mayusculas sostenidas",
     "mayúsculas sostenida",
+    "mayusculas sostenida",
     "mayúscula sostenida",
+    "mayuscula sostenida",
     "activar mayúsculas",
+    "activar mayusculas",
     "activar mayúscula",
+    "activar mayuscula",
     "activa mayúsculas",
+    "activa mayusculas",
     "activa mayúscula",
+    "activa mayuscula",
     "active mayúsculas",
+    "active mayusculas",
     "active mayúscula",
+    "active mayuscula",
     "habilitar mayúsculas",
+    "habilitar mayusculas",
     "habilitar mayúscula",
+    "habilitar mayuscula",
     "habilita mayúsculas",
+    "habilita mayusculas",
     "habilita mayúscula",
+    "habilita mayuscula",
     "habilite mayúsculas",
+    "habilite mayusculas",
     "habilite mayúscula",
+    "habilite mayuscula",
     "activare mayúsculas",
+    "activare mayusculas",
     "activare mayúscula",
+    "activare mayuscula",
     "poner mayúsculas",
+    "poner mayusculas",
     "poner mayúscula",
+    "poner mayuscula",
     "todo mayúsculas",
+    "todo mayusculas",
     "todo mayúscula",
+    "todo mayuscula",
     "en mayúsculas",
+    "en mayusculas",
     "en mayúscula",
+    "en mayuscula",
 ];
 
 /**
@@ -61,12 +96,19 @@ export const UPPERCASE_ENABLE_COMMANDS = [
  */
 export const CAPITALIZE_NEXT_COMMANDS = [
     "inicial mayúscula",
+    "inicial mayuscula",
     "inicial mayúsculas",
+    "inicial mayusculas",
     "iniciales mayúsculas",
+    "iniciales mayusculas",
     "mayúscula inicial",
+    "mayuscula inicial",
     "mayúsculas iniciales",
+    "mayusculas iniciales",
     "primera mayúscula",
+    "primera mayuscula",
     "letra mayúscula",
+    "letra mayuscula",
 ];
 
 /**
@@ -74,31 +116,57 @@ export const CAPITALIZE_NEXT_COMMANDS = [
  */
 export const UPPERCASE_DISABLE_COMMANDS = [
     "desactivar mayúsculas",
+    "desactivar mayusculas",
     "desactivar mayúscula",
+    "desactivar mayuscula",
     "desactiva mayúsculas",
+    "desactiva mayusculas",
     "desactiva mayúscula",
+    "desactiva mayuscula",
     "desactive mayúsculas",
+    "desactive mayusculas",
     "desactive mayúscula",
+    "desactive mayuscula",
     "deshabilitar mayúsculas",
+    "deshabilitar mayusculas",
     "deshabilitar mayúscula",
+    "deshabilitar mayuscula",
     "deshabilita mayúsculas",
+    "deshabilita mayusculas",
     "deshabilita mayúscula",
+    "deshabilita mayuscula",
     "deshabilite mayúsculas",
+    "deshabilite mayusculas",
     "deshabilite mayúscula",
+    "deshabilite mayuscula",
     "terminar mayúsculas",
+    "terminar mayusculas",
     "terminar mayúscula",
+    "terminar mayuscula",
     "termina mayúsculas",
+    "termina mayusculas",
     "termina mayúscula",
+    "termina mayuscula",
     "termine mayúsculas",
+    "termine mayusculas",
     "termine mayúscula",
+    "termine mayuscula",
     "fin mayúsculas",
+    "fin mayusculas",
     "fin mayúscula",
+    "fin mayuscula",
     "finaliza mayúsculas",
+    "finaliza mayusculas",
     "finaliza mayúscula",
+    "finaliza mayuscula",
     "finalizar mayúsculas",
+    "finalizar mayusculas",
     "finalizar mayúscula",
+    "finalizar mayuscula",
     "finalize mayúsculas",
+    "finalize mayusculas",
     "finalize mayúscula",
+    "finalize mayuscula",
 ];
 
 /**
@@ -158,6 +226,13 @@ export const LINE_BREAK_COMMANDS = {
     "un salto de linea": "\n",
     "salto de línea": "\n",
     "salto de linea": "\n",
+    "salto de lima": "\n",
+    "salto de adelina": "\n",
+    "salto adelina": "\n",
+    "cartón de línea": "\n",
+    "carton de linea": "\n",
+    "cartones de línea": "\n",
+    "cartones de linea": "\n",
     "salto línea": "\n",
     "salto linea": "\n",
     "saltar de línea": "\n",
@@ -247,12 +322,16 @@ export const LINE_BREAK_COMMANDS = {
 export const PUNCTUATION_COMMANDS = {
     "dos puntos aparte": ":\n\n",
     "dos puntos": ": ",
+    "dos punto": ": ",
+    "2 puntos": ": ",
+    "2 punto": ": ",
     "punto y seguido": ". ",
     "punto seguido": ". ",
     "punto y coma": "; ",
     "nueva oración": ". ",
     "nueva oracion": ". ",
     punto: ". ",
+    puntos: ". ",
     coma: ", ",
     "dar espacio": " ",
     "un espacio": " ",
@@ -289,10 +368,18 @@ export const SYMBOL_COMMANDS = {
     barra: "/",
     "por ciento": "%",
     porciento: "%",
-    menos: "-",
-    más: "+",
-    mas: "+",
-    igual: "=",
+    "signo más": "+",
+    "signo mas": "+",
+    "signo de más": "+",
+    "signo de mas": "+",
+    "operador más": "+",
+    "operador mas": "+",
+    "signo menos": "-",
+    "signo de menos": "-",
+    "operador menos": "-",
+    "signo igual": "=",
+    "signo de igual": "=",
+    "operador igual": "=",
     multiplicar: "×",
     dividir: "÷",
     asterisco: "*",
@@ -333,6 +420,27 @@ export function getAllAvailableCommandKeys() {
         ...Object.keys(SYMBOL_COMMANDS),
         ...Object.keys(FORMAT_COMMANDS),
     ];
+}
+
+/**
+ * Conjunto optimizado en minúsculas de todos los comandos de voz conocidos.
+ * @type {Set<string>}
+ */
+const KNOWN_COMMANDS_SET = new Set(getAllAvailableCommandKeys().map((k) => k.trim().toLowerCase()));
+
+/**
+ * Determina si una frase o fragmento coincide con un comando de voz conocido en el catálogo.
+ *
+ * @param {string} phrase - Frase candidata a evaluar.
+ * @returns {boolean}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-23
+ */
+export function isKnownVoiceCommand(phrase) {
+    if (!phrase || typeof phrase !== "string") return false;
+    const clean = normalizeDigitsBeforeCommands(phrase.trim().toLowerCase());
+    return KNOWN_COMMANDS_SET.has(clean);
 }
 
 /**
@@ -388,34 +496,34 @@ export function processVoiceCommands(rawText, { uppercase = false, capitalizeNex
     // 2. Normalizar pre-puntuaciones fonéticas de Chromium en español
     // (Chrome muchas veces ya convierte "punto" en "." antes de decir "a parte", "salto de línea", "falta de línea" o "seguido")
     text = text.replace(
-        /(?:(?:\bpunto\b|\.)\s*(?:y\s+)?(?:a\s*parte|nuevo\s+p[áa]rrafo)\b|\bpunto\s+aparte\b)/gi,
+        /(?:(?:\bpuntos?\b|\.)\s*(?:y\s+)?(?:a\s*parte|nuevo\s+p[áa]rrafo)\b|\bpuntos?\s+aparte\b)/gi,
         () => {
             shouldCapitalizeNext = true;
             return ".\n\n";
         }
     );
     text = text.replace(
-        /(?:(?:\bpunto\b|\.)\s*(?:y\s+)?(?:salto\s+de\s+l[íi]nea|falta\s+de\s+l[íi]nea|cambio\s+de\s+l[íi]nea|nueva\s+l[íi]nea|nuevo\s+rengl[óo]n)\b)/gi,
+        /(?:(?:\bpuntos?\b|\.)\s*(?:y\s+)?(?:salto\s+de\s+(?:l[íi]nea|lima|adelina)|falta\s+de\s+l[íi]nea|cambio\s+de\s+l[íi]nea|cart[óo]n(?:es)?\s+de\s+l[íi]nea|nueva\s+l[íi]nea|nuevo\s+rengl[óo]n)\b)/gi,
         () => {
             shouldCapitalizeNext = true;
             return ".\n";
         }
     );
     text = text.replace(
-        /(?:(?::|\bdos\s+puntos\b)\s*(?:y\s+)?(?:a\s*parte|nuevo\s+p[áa]rrafo)\b)/gi,
+        /(?:(?::|\bdos\s+puntos?\b)\s*(?:y\s+)?(?:a\s*parte|nuevo\s+p[áa]rrafo)\b)/gi,
         () => {
             shouldCapitalizeNext = true;
             return ":\n\n";
         }
     );
     text = text.replace(
-        /(?:(?::|\bdos\s+puntos\b)\s*(?:y\s+)?(?:salto\s+de\s+l[íi]nea|falta\s+de\s+l[íi]nea|cambio\s+de\s+l[íi]nea|nueva\s+l[íi]nea)\b)/gi,
+        /(?:(?::|\bdos\s+puntos?\b)\s*(?:y\s+)?(?:salto\s+de\s+(?:l[íi]nea|lima|adelina)|falta\s+de\s+l[íi]nea|cambio\s+de\s+l[íi]nea|cart[óo]n(?:es)?\s+de\s+l[íi]nea|nueva\s+l[íi]nea)\b)/gi,
         () => {
             shouldCapitalizeNext = true;
             return ":\n";
         }
     );
-    text = text.replace(/(?:(?:\bpunto\b|\.)\s*(?:y\s+)?seguido\b)/gi, () => {
+    text = text.replace(/(?:(?:\bpuntos?\b|\.)\s*(?:y\s+)?seguido\b)/gi, () => {
         shouldCapitalizeNext = true;
         return ". ";
     });

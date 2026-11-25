@@ -470,6 +470,12 @@
                                                         />
                                                     </button>
                                                     <span
+                                                        v-if="isReconnecting"
+                                                        class="badge badge-warning ml-2"
+                                                        title="Reanudando reconocimiento tras silencio"
+                                                        >REANUDANDO...</span
+                                                    >
+                                                    <span
                                                         v-if="uppercase"
                                                         class="badge badge-success ml-2"
                                                         title="Mayúsculas activada"
@@ -481,9 +487,24 @@
                                                         >Grabando</span
                                                     >
                                                     <span
-                                                        v-if="recognizing && !recording"
+                                                        v-if="isSpeechActive"
+                                                        class="badge badge-primary ml-2 pulse-animation"
+                                                        >Hablando...</span
+                                                    >
+                                                    <span
+                                                        v-else-if="recognizing || isAudioCapturing"
                                                         class="badge badge-warning ml-2"
                                                         >Escuchando</span
+                                                    >
+                                                    <span
+                                                        v-if="speechInterim"
+                                                        class="badge badge-secondary ml-2 font-italic text-truncate"
+                                                        style="
+                                                            max-width: 250px;
+                                                            vertical-align: middle;
+                                                        "
+                                                        :title="speechInterim"
+                                                        >"{{ speechInterim }}"</span
                                                     >
                                                     <span
                                                         class="text-muted ml-2"
@@ -1305,8 +1326,11 @@
                     v-if="sidebarVisible"
                     class="floating-dictation-pill"
                     :class="{
+                        'is-reconnecting': isReconnecting,
                         'is-recording': recording,
-                        'is-listening': recognizing && !recording,
+                        'is-speaking': isSpeechActive,
+                        'is-listening':
+                            (recognizing || isAudioCapturing) && !isSpeechActive && !recording,
                         'is-idle': !recording && !recognizing,
                     }"
                 >
@@ -1324,11 +1348,15 @@
                     <div class="pill-info">
                         <span class="pill-status-text">
                             {{
-                                recording
-                                    ? "Grabando Audio"
-                                    : recognizing
-                                      ? "Escuchando Voz"
-                                      : "Dictado Inactivo"
+                                isReconnecting
+                                    ? "Reanudando..."
+                                    : isSpeechActive
+                                      ? "Hablando..."
+                                      : recording
+                                        ? "Grabando Audio"
+                                        : recognizing || isAudioCapturing
+                                          ? "Escuchando Voz"
+                                          : "Dictado Inactivo"
                             }}
                         </span>
                         <span class="pill-shortcut text-muted">F2</span>
@@ -1359,6 +1387,17 @@
                     >
                         <i class="fa fa-question"></i>
                     </button>
+                </div>
+            </transition>
+
+            <transition name="fade">
+                <div
+                    v-if="sidebarVisible && speechInterim"
+                    class="floating-dictation-interim"
+                    title="Texto parcial en reconocimiento"
+                >
+                    <i class="fa fa-commenting-o mr-1"></i>
+                    <span class="interim-text">{{ speechInterim }}</span>
                 </div>
             </transition>
         </div>
@@ -1398,11 +1437,14 @@ const dictationFlow = useDictationFlow();
 const {
     recording,
     recognizing,
+    isAudioCapturing,
+    isSpeechActive,
+    isReconnecting,
+    speechInterim,
     uppercase,
     microfono,
     toggleSpeechRecognition,
     stopAll,
-    stopRecording,
     clearAudioBuffer,
     setCallbacks,
     setupKeyboardShortcut,
@@ -1716,6 +1758,12 @@ async function guardarRegistro() {
             return;
         }
 
+        // Si el reconocimiento de voz o la grabación continúan activos al guardar,
+        // detenerlos primero para asegurar que el último enunciado dictado se procese y se inserte.
+        if (recognizing.value || recording.value) {
+            await stopAll();
+        }
+
         const textoLimpio = (registro.value.lectura || "")
             .replace(/<[^>]*>/g, "")
             .replace(/&nbsp;/g, " ")
@@ -1727,10 +1775,6 @@ async function guardarRegistro() {
                 icon: "warning",
             });
             return;
-        }
-
-        if (recording.value) {
-            await stopRecording();
         }
 
         const res = await axios.post("/api/estudio-leerEstudio", {
@@ -2007,6 +2051,9 @@ async function mostrarRegistro(data = {}) {
     tituloModal.value = `Lectura de paciente: ${data.nom_pacien} ${data.num_docu ? `(${data.num_docu})` : ""} — Producto: ${data.nom_produc}`;
     id.value = data.id;
     idRow.value = data.estudio_producto_id;
+    const lecturaInicial = (data.lectura || "").trim();
+    registro.value.lectura =
+        lecturaInicial === "Ingrese aquí la lectura del estudio ..." ? "" : data.lectura || "";
     registro.value.estudio_producto_id = data.estudio_producto_id;
     registro.value.fec_estudio = data.fec_estudio;
     registro.value.accession_no = data.accession_no;
@@ -2157,7 +2204,12 @@ onMounted(() => {
             if (wysiwygEditorRef.value?.insertText) {
                 wysiwygEditorRef.value.insertText(text);
             } else if (registro.value) {
-                registro.value.lectura = String(registro.value.lectura || "") + text;
+                const cur = (registro.value.lectura || "").trim();
+                if (cur === "Ingrese aquí la lectura del estudio ..." || cur === "") {
+                    registro.value.lectura = text;
+                } else {
+                    registro.value.lectura = String(registro.value.lectura || "") + text;
+                }
             }
         },
         showToast: (cfg) => toastMessage(cfg),
@@ -2244,15 +2296,46 @@ onBeforeUnmount(() => {
     transition: background-color 0.3s ease;
 }
 
+.floating-dictation-pill.is-reconnecting .status-dot {
+    background-color: #f59e0b;
+    box-shadow: 0 0 10px #f59e0b;
+    animation: pulse 0.6s infinite;
+}
+
 .floating-dictation-pill.is-recording .status-dot {
     background-color: #ef4444;
     box-shadow: 0 0 10px #ef4444;
     animation: pulse 1.2s infinite;
 }
 
+.floating-dictation-pill.is-speaking .status-dot {
+    background-color: #0284c7;
+    box-shadow: 0 0 10px #0284c7;
+    animation: pulse 0.8s infinite;
+}
+
 .floating-dictation-pill.is-listening .status-dot {
     background-color: #f59e0b;
     box-shadow: 0 0 8px #f59e0b;
+}
+
+.floating-dictation-interim {
+    position: fixed;
+    bottom: 84px;
+    right: 40px;
+    z-index: 1200;
+    max-width: 320px;
+    background: rgba(15, 23, 42, 0.92);
+    color: #f8fafc;
+    font-size: 12px;
+    line-height: 1.4;
+    padding: 6px 14px;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(4px);
+    pointer-events: none;
+    white-space: normal;
+    word-break: break-word;
 }
 
 .pill-waveform {

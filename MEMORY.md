@@ -37,6 +37,77 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-25 — Reintentos con Backoff Progresivo en `useDictationFlow.js` (Caso BERMUDEZ VERA EMILY ANTONELLA):**
+  - **Diagnóstico:** En el contraste de la lectura de `BERMUDEZ VERA EMILY ANTONELLA` (`estudio_producto_id = 265482`, `audio_01M89MJA34E75NBSKQPE9DNRE6.mp3`, `214.08 s`), el reconocimiento se cortó alrededor del segundo `172` perdiendo los últimos 42s de dictado mientras `MediaRecorder` siguió grabando hasta el final. El esquema anterior de `scheduleRecognitionRestart` solo reintentaba una vez a los `25 ms` y `100 ms`, abandonando en silencio si Chromium tardaba más o ocurría un microcorte `network`/`aborted`.
+  - **Solución Implementada ([`useDictationFlow.js`](file:///c:/laragon/www/lidiag/resources/js/composables/useDictationFlow.js)):**
+    * Se implementó `RECONNECT_BACKOFF_MS = [25, 100, 250, 500, 1000, 2000]` con un límite de `MAX_RECONNECT_ATTEMPTS = 10` y contador `reconnectAttempt`.
+    * `onaudiostart` resetea `reconnectAttempt = 0` e `isReconnecting = false` al confirmar captura activa.
+    * `onerror` (`aborted` / `network`) incrementa `reconnectAttempt` y escala el retardo progresivamente evitando bucles rápidos tras `onend`.
+    * Si se superan los 10 intentos consecutivos sin recuperar el canal, se detiene limpiamente el estado de dictado y se notifica al médico mediante toast de advertencia para que no continúe dictando sin transcripción activa.
+  - **Verificaciones:**
+    * Prettier & ESLint: 0 errores y 0 advertencias en `useDictationFlow.js`.
+    * Compilación con Vite (`npm run build`): exitosa en `3.98s`.
+- [x] **2026-11-25 — Auditoría Forense y Perfeccionamiento Acústico/Fonético del Reconocimiento de Voz Nativo (Caso LOZANO GOMEZ JOSE EDGAR):**
+  - **Diagnóstico y Hallazgos Forenses:**
+    * Se realizó una auditoría contrastando el texto esperado del médico, el texto guardado en BD (`estudios_productos.id = 265480`) y el audio real almacenado (`audio_01M89H0HD8916QC9JZHEXBBPDJ.mp3`, 317.70s).
+    * *Causa de "foco de +":* `SYMBOL_COMMANDS` contenía bare keywords `"más"` y `"mas"` mapeadas a `"+"`. Al dictar "foco de edema", Chrome confundió acústicamente "edema" por "más", y el motor de comandos lo sustituyó por `+`. Se determinó que adverbios y palabras comunes del español ("más", "menos", "igual") jamás deben ser comandos bare/aislados, sino exigir prefijo ("signo más", "signo de más", "operador más").
+    * *Causa de "Habilitar mayúsculas" no reconocido:* `UPPERCASE_ENABLE_COMMANDS`, `UPPERCASE_DISABLE_COMMANDS` y `CAPITALIZE_NEXT_COMMANDS` contenían únicamente palabras acentuadas (`mayúscula`/`mayúsculas`). Cuando Chrome transcribió sin tilde (`mayuscula`/`mayusculas`), la regex falló y el texto quedó literal.
+    * *Causa de repetición de "puntos":* Al dictar "punto" o "dos puntos" con siseo o reverberación, Chrome devolvió la forma plural "puntos" (5 ocurrencias en el estudio auditado).
+    * *Causa de saltos de línea acústicos fallidos:* Chrome transcribió comandos de salto como "salto de lima", "salto de adelina" y "cartón de línea".
+    * *Causa de caídas tras pausas (Líquido articular y Otros hallazgos):* El debounce de reinicio en `useDictationFlow.js` esperaba 150ms tras `onend` más el tiempo de arranque de Chromium (~1s total ciego). Al reanudar el habla tras 2-3s de silencio, el audio entraba a MediaRecorder pero se perdía en SpeechRecognition.
+    * *Causa de espacios previos a signos:* Inserción de signos como `. `, `, ` cuando el texto previo terminaba en espacio generaba `damen .`, `libres .`, `t2 ,`.
+  - **Soluciones Implementadas:**
+    1. *Blindaje de Comandos de Símbolos y Operadores ([`voiceCommands.js`](file:///c:/laragon/www/lidiag/resources/js/helpers/voice/voiceCommands.js)):*
+       - Se eliminaron bare `"más"`, `"mas"`, `"menos"`, `"igual"`. Ahora requieren obligatoriamente prefijo: `"signo más"`, `"signo de más"`, `"operador más"`, `"signo menos"`, `"signo igual"`, etc.
+       - Se agregaron alias fonéticos de Chrome para saltos de línea: `"salto de lima"`, `"salto de adelina"`, `"salto adelina"`, `"cartón de línea"`, `"carton de linea"`, `"cartones de línea"`, `"cartones de linea"`.
+       - Se agregaron variantes en `PUNCTUATION_COMMANDS`: `"puntos"`, `"dos punto"`, `"2 puntos"`, `"2 punto"`.
+       - Se agregaron todas las variantes sin tilde (`mayuscula`/`mayusculas`) en `UPPERCASE_ENABLE_COMMANDS`, `UPPERCASE_DISABLE_COMMANDS` y `CAPITALIZE_NEXT_COMMANDS`.
+       - En las regex de pre-normalización de `processVoiceCommands`, se ampliaron los patrones para capturar `puntos? (a parte|aparte)`, `salto de (línea|lima|adelina)` y `cartón de línea`.
+    2. *Reconexión Rápida y Resiliente ([`useDictationFlow.js`](file:///c:/laragon/www/lidiag/resources/js/composables/useDictationFlow.js)):*
+       - Reducción del retardo de reinicio de 150ms a **25ms** (reinicio casi inmediato) con fallback a 100ms si el socket de audio anterior está cerrando.
+       - Exposición del estado reactivo `isReconnecting` para dar visibilidad clara de cuándo el motor está reconectando tras un corte de silencio.
+    3. *Supresión de Espacios Huérfanos Previos a Puntuación ([`WysiwygEditor.vue`](file:///c:/laragon/www/lidiag/resources/js/components/shared/WysiwygEditor.vue)):*
+       - En `insertText`, si el texto a insertar comienza con signo de puntuación (`[.,:;!?%]`), se inspecciona el nodo de texto inmediatamente previo al cursor en el iframe (`cleanLeadingSpaceBeforePunctuation`) o en el textarea nativo, eliminando cualquier espacio horizontal residual (`\s` o `\u00A0`) previo al símbolo.
+    4. *Feedback Visual en Tiempo Real ([`leerEstudioComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/leerEstudioComponent.vue)):*
+       - La cápsula flotante y el header ahora indican `Reanudando...` con estado `is-reconnecting` y badge ámbar cuando el micrófono cicla durante pausas de voz.
+  - **Verificaciones:**
+    * Prettier & ESLint: 0 errores y 0 advertencias en los 4 archivos modificados.
+    * Compilación con Vite (`npm run build`): ejecutada limpiamente en 1.34s.
+- [x] **2026-11-23 — Desacoplamiento del Placeholder en `WysiwygEditor.vue` y Prevención de Concatenación con Dictado:**
+  - **Diagnóstico del Problema:**
+    * El texto del placeholder (*"Ingrese aquí la lectura del estudio ..."*) se concatenaba con el habla dictada al iniciar la lectura médica.
+    * *Causa raíz A (Simulación de Placeholder de wysihtml5):* La librería `bootstrap-wysihtml5` simula el placeholder inyectando directamente el string como contenido textual del DOM del iframe (`view.setValue(placeholderText)`) y agregando la clase CSS `.placeholder`.
+    * *Causa raíz B (Inserción directa sin limpiar placeholder):* Cuando `insertText` se ejecutaba desde el dictado por voz, el documento del iframe aún contenía el texto del placeholder. `execCommand("insertText")` insertaba las palabras dictadas al lado del placeholder, consolidando el texto simulado como parte permanente del documento.
+    * *Causa raíz C (Fuga hacia el v-model a través del MutationObserver):* `obtenerValorActual(editor)` no validaba el estado de placeholder (`hasPlaceholderSet()` o clase `.placeholder`), por lo que al inicializarse el editor, el MutationObserver leía el placeholder como si fuera contenido real y emitía `emit('update:modelValue', placeholder)`, contaminando reactivamente `registro.lectura` y guardando borradores con el placeholder en `localStorage`.
+  - **Solución Implementada:**
+    1. *Validación en `obtenerValorActual` ([`WysiwygEditor.vue`](file:///c:/laragon/www/lidiag/resources/js/components/shared/WysiwygEditor.vue)):* Si `editor.hasPlaceholderSet()` o `.placeholder` están activos, o si el contenido HTML/plano es idéntico a `props.placeholder`, retorna estrictamente cadena vacía `""`.
+    2. *Limpieza inmediata en `insertText`:* Antes de ejecutar cualquier inserción de voz, se comprueba si el editor se encuentra en estado de placeholder. De ser así, se dispara `unset_placeholder`, se limpia el compositor con `editor.composer.clear()`, se remueve la clase `.placeholder` y se colapsa la selección al inicio limpio del cuerpo, impidiendo que el primer fragmento dictado anteponga espacios espurios o concatene con el placeholder.
+    3. *Blindaje de `syncEditorValue`, `saveDraft` y `checkDraft`:* Si el valor recibido o guardado coincide con el texto del placeholder, se descarta y trata como vacío, evitando que un borrador contamine el editor con el texto de ayuda.
+    4. *Blindaje en [`leerEstudioComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/leerEstudioComponent.vue):* En `abrirLecturaEstudio` y en el callback `onText`, si la lectura es igual al placeholder se normaliza a `""`.
+  - **Verificaciones:**
+    * ESLint y Prettier: 0 errores y 0 advertencias en `WysiwygEditor.vue` y `leerEstudioComponent.vue`.
+    * Compilación Vite (`npm run build`): Completada con éxito (1.62s, 311 módulos).
+- [x] **2026-11-23 — Optimización de Precisión y Resiliencia en SpeechRecognition Nativo (Fase 2):**
+  - **Diagnóstico y Mejoras Nativas Implementadas:**
+    1. *Ciclo de Vida Acústico Completo:*
+       - Se implementaron los eventos nativos del estándar W3C SpeechRecognition: `onaudiostart`, `onspeechstart`, `onspeechend`, `onaudioend`, `onnomatch`, `onstart`, `onerror` y `onend`.
+       - `microfono` y los indicadores de interfaz ahora se activan en `onaudiostart` únicamente cuando el hardware de audio del navegador abre y captura físicamente el flujo de audio (eliminando la latencia de 300–800ms donde el usuario empezaba a hablar antes de que el micrófono estuviera receptivo).
+       - Los estados reactivos `isAudioCapturing` e `isSpeechActive` permiten diferenciar visualmente entre el micrófono encendido escuchando ruido ambiental vs habla activa en curso ("Hablando...").
+    2. *Múltiples Alternativas y Evaluación de Comandos Prioritarios:*
+       - Configuración nativa de `maxAlternatives = 3` en Chromium (`initSpeechRecognition`).
+       - En `selectBestAlternative(res)`: ante ambigüedad fonética, se examinan las alternativas candidatas reportadas por el motor de Chrome (`SpeechRecognitionAlternative`). Si alguna de las hipótesis coincide con un comando de voz conocido del catálogo institucional (`isKnownVoiceCommand`), se prioriza dicha alternativa, evitando que comandos como "inicia mayúscula", "salto de línea" o "punto y aparte" sean confundidos o transcritos como texto libre.
+       - En caso de no ser comando, se selecciona la hipótesis con mayor nivel de confianza acústica (`confidence`), almacenando el valor reactivo en `confidence`.
+    3. *Deduplicación Estricta de Bloques:*
+       - Se introdujo `lastProcessedFinalIndex` (inicializado en -1 en `onstart`). En `onresult`, cualquier resultado marcado como `isFinal` con índice $i \le lastProcessedFinalIndex$ se ignora, protegiendo contra duplicaciones de texto por redespachos o reinicios del motor en Chromium.
+    4. *Secuencia de Parada Segura (Flush Final de Utterance):*
+       - En `stopSpeechRecognitionSafely()`, al detener voluntariamente el dictado o guardar el estudio, se ejecuta `recognition.stop()` y se espera hasta 350ms a que Chrome procese y despache el último bloque final pendiente (`isFinal`) y el evento `onend` antes de desmantelar la sesión.
+       - En `guardarRegistro()` ([`leerEstudioComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/leerEstudioComponent.vue)), `await stopAll()` se invoca antes de validar y enviar el formulario al backend, asegurando que las últimas frases dictadas ("Conclusión: ...") se inserten limpiamente en el editor wysihtml5 antes de persistir en BD.
+    5. *Feedback Visual en Tiempo Real (`speechInterim`):*
+       - Se integró la visualización de `speechInterim` tanto en el header junto al botón de micrófono como en una píldora flotante estilizada (`.floating-dictation-interim`) sobre el widget de dictado, brindando al radiólogo confirmación inmediata de lo que el navegador está procesando antes de consolidarlo como texto definitivo.
+  - **Verificaciones:**
+    * ESLint y Prettier: 0 errores y 0 advertencias en todos los archivos modificados (`voiceCommands.js`, `useDictationFlow.js`, `leerEstudioComponent.vue`).
+    * Compilación Vite (`npm run build`): Completada con éxito (2.18s, 311 módulos).
+    * Restricciones estrictas respetadas: 0 IA externa añadida, 0 diccionarios médicos creados ni modificados, uso 100% nativo de Web Speech API de Chromium.
 - [x] **2026-11-23 — Diagnóstico Integral y Corrección del Flujo de Voz / Dictado Clínico (Caso RNM Rodilla):**
   - **Diagnóstico y Causas Raíz Identificadas:**
     1. *Filtrado literal de comandos ("Inicia mayúscula", "Inicial mayúscula"):*

@@ -374,14 +374,30 @@ function insertarImagenDesdeModal() {
  * @date 2026-11-17
  */
 function obtenerValorActual(editor) {
+    if (
+        editor?.hasPlaceholderSet?.() ||
+        editor?.composer?.hasPlaceholderSet?.() ||
+        editor?.composer?.element?.classList?.contains("placeholder")
+    ) {
+        return "";
+    }
+
     const rawHtml = editor?.composer?.element
         ? editor.composer.getValue(false)
         : editor?.getValue?.(false) || textareaRef.value?.value || "";
 
+    if (props.placeholder && rawHtml.trim() === props.placeholder.trim()) {
+        return "";
+    }
+
     if (props.asHtml) {
         return rawHtml;
     }
-    return htmlToPlain(rawHtml);
+    const plain = htmlToPlain(rawHtml);
+    if (props.placeholder && plain.trim() === props.placeholder.trim()) {
+        return "";
+    }
+    return plain;
 }
 
 /**
@@ -489,7 +505,11 @@ function onNativeTextareaPaste(e) {
 function syncEditorValue(rawVal) {
     const el = textareaRef.value;
     if (!el) return;
-    const plain = rawVal || "";
+    const isPlaceholderText =
+        Boolean(props.placeholder) &&
+        typeof rawVal === "string" &&
+        rawVal.trim() === props.placeholder.trim();
+    const plain = isPlaceholderText ? "" : rawVal || "";
 
     if (el.value !== plain) {
         el.value = plain;
@@ -542,6 +562,13 @@ function syncEditorValue(rawVal) {
  */
 function saveDraft(content) {
     if (!props.draftKey || !content || !content.trim()) return;
+    if (
+        props.placeholder &&
+        typeof content === "string" &&
+        content.trim() === props.placeholder.trim()
+    ) {
+        return;
+    }
     try {
         localStorage.setItem(
             `lidiag_draft_${props.draftKey}`,
@@ -567,6 +594,15 @@ function checkDraft() {
         if (!stored) return;
 
         const parsed = JSON.parse(stored);
+        if (
+            props.placeholder &&
+            parsed?.text &&
+            typeof parsed.text === "string" &&
+            parsed.text.trim() === props.placeholder.trim()
+        ) {
+            localStorage.removeItem(`lidiag_draft_${props.draftKey}`);
+            return;
+        }
         if (parsed?.text && parsed.text.trim() !== (props.modelValue || "").trim()) {
             pendingDraftText = parsed.text;
             draftTimestamp.value = new Date(parsed.timestamp).toLocaleTimeString([], {
@@ -1411,9 +1447,38 @@ function insertText(text) {
             try {
                 const iframeDoc = editor.composer.iframe?.contentDocument || editor.composer.doc;
 
+                // Si el editor contiene el texto simulado del placeholder, limpiarlo por completo antes de insertar
+                const hasPlaceholder =
+                    Boolean(editor.hasPlaceholderSet?.()) ||
+                    Boolean(editor.composer?.hasPlaceholderSet?.()) ||
+                    Boolean(editor.composer.element.classList?.contains("placeholder")) ||
+                    (Boolean(props.placeholder) &&
+                        (editor.composer.element.textContent || "").trim() ===
+                            props.placeholder.trim());
+
+                if (hasPlaceholder) {
+                    try {
+                        editor.fire("unset_placeholder");
+                    } catch (_) {
+                        /* noop */
+                    }
+                    editor.composer.clear();
+                    editor.composer.element.classList?.remove("placeholder");
+                    if (iframeDoc?.body) {
+                        const sel = iframeDoc.getSelection ? iframeDoc.getSelection() : null;
+                        if (sel) {
+                            sel.removeAllRanges();
+                            const range = iframeDoc.createRange();
+                            range.selectNodeContents(iframeDoc.body);
+                            range.collapse(true);
+                            sel.addRange(range);
+                        }
+                    }
+                }
+
                 // Prevenir palabras pegadas a puntuación o texto previo cuando el nuevo fragmento no inicia con puntuación/salto
                 const isPunctuationOrBreak = /^[\s\n.,:;!?%)]/.test(textToInsert);
-                if (!isPunctuationOrBreak && iframeDoc) {
+                if (!hasPlaceholder && !isPunctuationOrBreak && iframeDoc) {
                     const sel = iframeDoc.getSelection ? iframeDoc.getSelection() : null;
                     if (sel && sel.rangeCount > 0) {
                         const range = sel.getRangeAt(0);
@@ -1456,6 +1521,30 @@ function insertText(text) {
                         editor.composer.commands.exec("insertHTML", "<br><br>");
                     } catch {}
                 };
+
+                const cleanLeadingSpaceBeforePunctuation = () => {
+                    if (!iframeDoc || !/^([.,:;!?%])/.test(textToInsert)) return;
+                    try {
+                        const sel =
+                            iframeDoc.getSelection?.() ||
+                            editor.composer?.selection?.getSelection?.();
+                        if (sel && sel.rangeCount > 0 && sel.isCollapsed) {
+                            const range = sel.getRangeAt(0);
+                            const node = range.startContainer;
+                            const offset = range.startOffset;
+                            if (node && node.nodeType === 3 && offset > 0) {
+                                const charBefore = node.nodeValue.charAt(offset - 1);
+                                if (/[\s\u00A0]/.test(charBefore)) {
+                                    node.deleteData(offset - 1, 1);
+                                }
+                            }
+                        }
+                    } catch (_) {
+                        /* noop */
+                    }
+                };
+
+                cleanLeadingSpaceBeforePunctuation();
 
                 if (textToInsert.includes("\n")) {
                     const segments = textToInsert.split("\n");
@@ -1505,15 +1594,26 @@ function insertText(text) {
         }
     }
 
+    if (
+        props.placeholder &&
+        typeof el.value === "string" &&
+        el.value.trim() === props.placeholder.trim()
+    ) {
+        el.value = "";
+    }
+
     const start = el.selectionStart ?? el.value.length;
     const end = el.selectionEnd ?? el.value.length;
-    const before = el.value.substring(0, start);
+    let before = el.value.substring(0, start);
     const after = el.value.substring(end);
+    if (/^[.,:;!?%]/.test(textToInsert) && /[\s\u00A0]$/.test(before)) {
+        before = before.replace(/[\s\u00A0]+$/, "");
+    }
     const needsSpace =
         before.length > 0 && !/[\s\n]$/.test(before) && !/^[\s\n.,:;!?%)]/.test(textToInsert);
     const finalText = (needsSpace ? " " : "") + textToInsert;
     el.value = before + finalText + after;
-    el.selectionStart = el.selectionEnd = start + finalText.length;
+    el.selectionStart = el.selectionEnd = before.length + finalText.length;
     emit("update:modelValue", el.value);
     saveDraft(el.value);
     setTimeout(() => {
