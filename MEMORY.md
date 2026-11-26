@@ -37,6 +37,16 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-26 — Carga de Dispositivos Worklist desde `config_worklist_dispositivos` en Admisión de Pacientes (`admisionComponent.vue`):**
+  - **Diagnóstico:** En la vista de Admisión de Pacientes (`https://lidiag.test/pacientes/admision`), el modal de envío a Modality Worklist consultaba únicamente `/api/pacientes/worklist-estaciones`, el cual acudía exclusivamente a la tabla remota `ae` del PACS Dcm4chee. Al no tener registrados los AE Titles de los ecógrafos o consolas en el PACS de la sede, el selector de equipos aparecía vacío o requería digitación manual, omitiendo los dispositivos configurados localmente en el módulo de WorkFlow Dispositivos (`config_worklist_dispositivos`).
+  - **Solución Implementada:**
+    * **Frontend ([`admisionComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/pacientes/admisionComponent.vue)):** Se actualizó `cargarEstacionesWorklist()` para consultar `/api/config-worklist-dispositivos` con `{ sede_id: sedeId, modulo_id: 1 }` (Módulo 1 = Rx). Se mapean los dispositivos activos a `{ aet: d.ae_title || d.codigo, nombre: "${d.nombre} (${d.ae_title || d.codigo}) — ${d.ubicacion}", station_name: d.nombre, ip: d.ip_address }`, preseleccionando automáticamente el primer equipo y manteniendo fallback a `/api/pacientes/worklist-estaciones`.
+    * **Backend ([`WorklistService.php`](file:///c:/laragon/www/lidiag/app/Services/Dcm4chee/WorklistService.php)):** Se adaptó `obtenerEstacionesWorklist()` para priorizar la consulta de `ConfigWorklistDispositivo::activos()` filtrados por sede y modalidad antes de intentar la conexión a la base de datos remota del PACS, beneficiando de forma homogénea todas las llamadas de la API.
+  - **Verificaciones:**
+    * `php -l app/Services/Dcm4chee/WorklistService.php` sin errores.
+    * Prueba funcional en backend para Rayos X (modalidad DX, Sede 1) retornando `Rx Sala 1 (RXSala01)` y para Ecografías (modalidad US) retornando `ECOGRAFO01` y `ECOGRAFO02`.
+    * `npx eslint --fix resources/js/components/modulos/pacientes/admisionComponent.vue` con 0 errores.
+    * `npm run build` completado exitosamente en 1.93s.
 - [x] **2026-11-25 — Eliminación de Agrupamiento y Trazabilidad Completa PACS-LIDiag en Producción Consolidada:**
   - **Diagnóstico:** En [`ProduccionConsolidadaExport.php`](file:///c:/laragon/www/lidiag/app/Exports/ProduccionConsolidadaExport.php), el cruce con `estudios` agrupaba por `estudios.id` y aplicaba `->keyBy("study_iuid")`. En pacientes con `study_iuid` compartido entre un estudio activo y uno anulado (p. ej. documento `1105611263`, estudio `#211945` `ACTIVO` vs `#211946` `ANULADO`), la segunda fila sobrescribía a la primera, haciendo aparecer como `ANULADO` en Consolidada un estudio que sí aparecía leído en Producción Detallada (y ocultando múltiples productos por estudio).
   - **Solución Implementada:**

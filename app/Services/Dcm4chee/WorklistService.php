@@ -5,6 +5,7 @@ namespace App\Services\Dcm4chee;
 use App\Helpers\DicomDatasetBuilder;
 use App\Models\Configuracion\ConfigProducto;
 use App\Models\Configuracion\ConfigSede;
+use App\Models\Configuracion\ConfigWorklistDispositivo;
 use App\Models\Ecografias\Ecografia;
 use App\Models\Estudio\Estudio;
 use App\Models\General\Paciente;
@@ -86,6 +87,41 @@ class WorklistService extends BaseService
         $sede = ConfigSede::find($sedeId);
         if (! $sede) {
             return $this->error('Sede no encontrada.', 404);
+        }
+
+        // 1. Consultar dispositivos activos configurados en la tabla local config_worklist_dispositivos
+        $queryDispositivos = ConfigWorklistDispositivo::query()
+            ->where('sede_id', $sedeId)
+            ->activos();
+
+        if (! empty($modality)) {
+            $modalityNorm = strtoupper(trim((string) $modality));
+            if (in_array($modalityNorm, ['US', 'ECO'], true)) {
+                $queryDispositivos->where('modulo_id', 2);
+            } elseif (in_array($modalityNorm, ['DX', 'CR', 'RG', 'XR'], true)) {
+                $queryDispositivos->where('modulo_id', 1);
+            }
+        }
+
+        $dispositivosLocales = $queryDispositivos->orderBy('nombre')->get();
+        if ($dispositivosLocales->isNotEmpty()) {
+            $estaciones = [];
+            foreach ($dispositivosLocales as $d) {
+                $aet = $d->ae_title ?: $d->codigo;
+                $etiqueta = ! empty($d->ubicacion)
+                    ? "{$d->nombre} ({$aet}) — {$d->ubicacion}"
+                    : "{$d->nombre} ({$aet})";
+
+                $estaciones[] = [
+                    'aet' => $aet,
+                    'nombre' => $etiqueta,
+                    'station_name' => $d->nombre,
+                    'hostname' => $d->ip_address,
+                    'es_ecografo' => (int) $d->modulo_id === 2,
+                ];
+            }
+
+            return $this->success($estaciones, 'Estaciones obtenidas de la configuración de dispositivos.');
         }
 
         if (empty($sede->ip_dcm) || empty($sede->bd_dcm)) {

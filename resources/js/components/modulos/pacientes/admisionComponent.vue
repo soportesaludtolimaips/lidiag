@@ -577,7 +577,7 @@
                                         >
                                         <div v-if="loadingEstaciones" class="py-2 text-muted">
                                             <i class="fa fa-spinner fa-spin"></i> Consultando
-                                            equipos en el PACS de la sede...
+                                            equipos configurados en la sede...
                                         </div>
                                         <select
                                             v-else-if="estacionesWorklist.length > 0"
@@ -608,8 +608,8 @@
                                             />
                                             <small class="text-muted">
                                                 <i class="fa fa-info-circle"></i> No se encontraron
-                                                equipos en el PACS de esta sede. Ingrese el AE Title
-                                                manualmente.
+                                                equipos configurados en esta sede. Ingrese el AE
+                                                Title manualmente.
                                             </small>
                                         </div>
                                     </div>
@@ -1345,6 +1345,15 @@ async function abrirModalWorklist(item) {
     await Promise.all([generarAccessionSugerido(), cargarEstacionesWorklist()]);
 }
 
+/**
+ * Consulta los equipos o consolas configurados para Rayos X en la sede activa
+ * desde la tabla config_worklist_dispositivos, con fallback a estaciones del PACS.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-26
+ */
 async function cargarEstacionesWorklist() {
     loadingEstaciones.value = true;
     estacionesWorklist.value = [];
@@ -1355,11 +1364,23 @@ async function cargarEstacionesWorklist() {
         if (!sedeId.value) {
             return;
         }
-        const res = await axios.get("/api/pacientes/worklist-estaciones", {
-            params: { sede_id: sedeId.value },
+
+        // Módulo 1 = Rx (Rayos X)
+        const res = await axios.get("/api/config-worklist-dispositivos", {
+            params: { sede_id: sedeId.value, modulo_id: 1 },
         });
-        if (res.data?.status === 200 && Array.isArray(res.data?.data)) {
-            estacionesWorklist.value = res.data.data;
+
+        const items = res.data?.data || res.data || [];
+        if (Array.isArray(items) && items.length > 0) {
+            estacionesWorklist.value = items
+                .filter((d) => d.estado)
+                .map((d) => ({
+                    aet: d.ae_title || d.codigo,
+                    nombre: `${d.nombre} (${d.ae_title || d.codigo})${d.ubicacion ? " — " + d.ubicacion : ""}`,
+                    station_name: d.nombre,
+                    ip: d.ip_address,
+                }));
+
             if (estacionesWorklist.value.length > 0) {
                 const existe = estacionesWorklist.value.some(
                     (e) => e.aet === worklistForm.value.station_aet
@@ -1371,8 +1392,30 @@ async function cargarEstacionesWorklist() {
                 worklistForm.value.station_aet = "";
             }
         } else {
-            estacionesWorklist.value = [];
-            worklistForm.value.station_aet = "";
+            // Fallback secundario: consultar estaciones del PACS directamente si no hay dispositivos en la tabla local
+            const resPacs = await axios.get("/api/pacientes/worklist-estaciones", {
+                params: { sede_id: sedeId.value, modality: "DX" },
+            });
+            if (resPacs.data?.status === 200 && Array.isArray(resPacs.data?.data)) {
+                estacionesWorklist.value = resPacs.data.data.map((e) => ({
+                    aet: e.aet,
+                    nombre: e.nombre || e.aet,
+                    station_name: e.station_name || e.aet,
+                }));
+                if (estacionesWorklist.value.length > 0) {
+                    const existe = estacionesWorklist.value.some(
+                        (e) => e.aet === worklistForm.value.station_aet
+                    );
+                    if (!existe || !worklistForm.value.station_aet) {
+                        worklistForm.value.station_aet = estacionesWorklist.value[0].aet;
+                    }
+                } else {
+                    worklistForm.value.station_aet = "";
+                }
+            } else {
+                estacionesWorklist.value = [];
+                worklistForm.value.station_aet = "";
+            }
         }
     } catch {
         estacionesWorklist.value = [];
