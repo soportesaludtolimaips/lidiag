@@ -409,9 +409,13 @@
                                             </router-link>
                                             <button
                                                 v-if="
-                                                    item.orden_worklist_activa &&
-                                                    item.orden_worklist_activa.estado ===
-                                                        'PENDIENTE'
+                                                    (item.orden_worklist_activa &&
+                                                        item.orden_worklist_activa.estado ===
+                                                            'PENDIENTE') ||
+                                                    (item.admision_activa &&
+                                                        item.admision_activa.estado ===
+                                                            'PENDIENTE' &&
+                                                        item.admision_activa.worklist_orden_id)
                                                 "
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm"
@@ -1631,12 +1635,22 @@ async function confirmarEnvioWorklist() {
 }
 
 async function cancelarOrdenWorklist(item) {
-    const orden = item.orden_worklist_activa;
+    const orden =
+        item.orden_worklist_activa ||
+        (item.admision_activa?.worklist_orden_id
+            ? {
+                  id: item.admision_activa.worklist_orden_id,
+                  accession_no: item.admision_activa.accession_no,
+                  station_aet: item.admision_activa.station_aet || "",
+              }
+            : null);
     if (!orden) return;
 
+    const acc = orden.accession_no || "asignada";
+    const aet = orden.station_aet ? ` (${orden.station_aet})` : "";
     const confirmado = await confirmAction({
         title: "¿Retirar de Worklist?",
-        text: `¿Desea retirar la orden ${orden.accession_no} de la lista de trabajo del equipo de Rayos X? El tecnólogo ya no verá al paciente en su consola.`,
+        text: `¿Desea retirar la orden ${acc}${aet} de la lista de trabajo DICOM? El tecnólogo ya no verá al paciente en su consola.`,
         icon: "warning",
     });
 
@@ -1645,6 +1659,7 @@ async function cancelarOrdenWorklist(item) {
     try {
         const res = await axios.post("/api/pacientes/cancelar-worklist", {
             orden_id: orden.id,
+            accession_no: orden.accession_no,
         });
 
         toastMessage({
@@ -1657,6 +1672,7 @@ async function cancelarOrdenWorklist(item) {
     } catch (err) {
         const msg = err.response?.data?.message || "Error retirando la orden de la Worklist.";
         alertError("Error", msg);
+        buscar();
     }
 }
 

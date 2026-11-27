@@ -172,12 +172,17 @@ class PacienteController extends Controller
     }
 
     /**
-     * Retira o cancela una orden activa de la Worklist.
+     * Retira o cancela una orden activa de la Worklist tanto en Dcm4chee como en LIDiag.
+     *
+     * @author Jhon Javer Lozano Arce
+     * @date 2026-11-27
      */
     public function cancelarWorklist(WorklistCancelarRequest $request): JsonResponse
     {
         $usuarioId = (int) (auth()->id() ?: 1);
-        $result = $this->worklistService->cancelarOrdenWorklist((int) $request->input('orden_id'), $usuarioId);
+        $identificador = $request->input('orden_id') ?: $request->input('accession_no');
+        $motivo = $request->input('motivo');
+        $result = $this->worklistService->cancelarOrdenWorklist($identificador, $usuarioId, $motivo);
 
         return response()->json($result, (int) $result['status'], [], JSON_INVALID_UTF8_SUBSTITUTE);
     }

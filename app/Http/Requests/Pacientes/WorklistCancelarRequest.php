@@ -21,7 +21,8 @@ class WorklistCancelarRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'orden_id' => 'required|integer|exists:worklist_ordenes,id',
+            'orden_id' => 'required_without:accession_no|nullable|integer|exists:worklist_ordenes,id',
+            'accession_no' => 'required_without:orden_id|nullable|string|max:64',
             'motivo' => 'nullable|string|max:250',
         ];
     }
@@ -29,8 +30,10 @@ class WorklistCancelarRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'orden_id.required' => 'El identificador de la orden es obligatorio.',
-            'orden_id.exists' => 'La orden de Worklist no existe.',
+            'orden_id.required_without' => 'Debe indicar el identificador de la orden o el Accession Number.',
+            'orden_id.exists' => 'La orden de Worklist no existe en el sistema.',
+            'accession_no.required_without' => 'Debe indicar el Accession Number o el ID de la orden.',
+            'motivo.max' => 'El motivo de anulación no debe superar los 250 caracteres.',
         ];
     }
 }

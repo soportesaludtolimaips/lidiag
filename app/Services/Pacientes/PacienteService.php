@@ -140,6 +140,7 @@ class PacienteService extends BaseService
                     if (! isset($admisionesActivas[$adm->paciente_id])) {
                         $admisionesActivas[$adm->paciente_id] = [
                             "id" => $adm->id,
+                            "worklist_orden_id" => $adm->worklist_orden_id,
                             "estado" => $adm->estado,
                             "accession_no" => $adm->accession_no,
                             "study_iuid" => $adm->study_iuid,

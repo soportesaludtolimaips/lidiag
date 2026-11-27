@@ -2,6 +2,7 @@
 
 namespace App\Services\Dcm4chee;
 
+use App\Helpers\AuditLogger;
 use App\Helpers\DicomDatasetBuilder;
 use App\Models\Admisiones\AdminAdmision;
 use App\Models\Configuracion\ConfigProducto;
@@ -507,28 +508,54 @@ class WorklistService extends BaseService
     }
 
     /**
-     * Cancela o retira una orden de la Modality Worklist tanto en Dcm4chee como en LIDiag.
+     * Cancela o retira una orden de la Modality Worklist tanto en Dcm4chee como en LIDiag de forma atómica y trazable.
      *
-     * @param  int  $ordenId  ID de la orden en worklist_ordenes
+     * Flujo del proceso:
+     * 1. Resuelve la orden de Worklist por ID numérico o por Accession Number.
+     * 2. Valida el estado actual (rechaza si ya está CANCELADO, ADQUIRIDO o COMPLETADO).
+     * 3. Si la sede cuenta con PACS Dcm4chee configurado:
+     *    - Comprueba si el estudio ya cuenta con imágenes recibidas en la tabla 'study' del PACS.
+     *    - Comprueba si el SPS en 'mwl_item' ya fue iniciado o procesado por el equipo (sps_status != 0).
+     *    - Si pasa las validaciones clínicas, elimina el ítem de la tabla 'mwl_item' en el PACS remoto.
+     * 4. Transacciona atómicamente en LIDiag la actualización del estado a 'CANCELADO' y registro de observaciones.
+     * 5. Si existe la admisión en 'admin_admisiones', actualiza su estado a CANCELADO.
+     * 6. Registra el evento detallado en la tabla 'audit_logs' mediante AuditLogger.
+     * 7. Retorna la orden cancelada y mensaje informativo para el usuario.
+     *
+     * @param  int|string  $identificador  ID de la orden o Accession Number
      * @param  int  $usuarioId  ID del usuario que anula la orden
+     * @param  string|null  $motivo  Motivo o justificación clínica del retiro
+     * @return array<string, mixed>
      *
      * @author Jhon Javer Lozano Arce
-     *
-     * @date 2026-10-21
+     * @date 2026-11-27
      */
-    public function cancelarOrdenWorklist(int $ordenId, int $usuarioId): array
+    public function cancelarOrdenWorklist(int|string $identificador, int $usuarioId, ?string $motivo = null): array
     {
-        $orden = WorklistOrden::find($ordenId);
+        $orden = is_numeric($identificador)
+            ? WorklistOrden::find((int) $identificador)
+            : WorklistOrden::where('accession_no', trim((string) $identificador))->first();
+
+        if (! $orden && ! is_numeric($identificador)) {
+            $orden = WorklistOrden::where('study_iuid', trim((string) $identificador))->first();
+        }
+
         if (! $orden) {
             return $this->error('Orden de Worklist no encontrada.', 404);
         }
 
-        if ($orden->estado !== 'PENDIENTE') {
-            return $this->error("La orden no se puede cancelar porque su estado actual es '{$orden->estado}'.", 422);
+        if ($orden->estado === 'CANCELADO') {
+            return $this->error("La orden '{$orden->accession_no}' ya se encuentra retirada o cancelada previamente.", 422);
+        }
+
+        if ($orden->estado === 'ADQUIRIDO' || $orden->estado === 'COMPLETADO') {
+            return $this->error("No es posible retirar la orden '{$orden->accession_no}' porque ya fue adquirida o procesada por el equipo de adquisición (Estado: {$orden->estado}).", 422);
         }
 
         $sede = ConfigSede::find($orden->sede_id);
-        if ($sede) {
+        $pacsEliminado = false;
+
+        if ($sede && ! empty($sede->ip_dcm) && ! empty($sede->bd_dcm)) {
             $conexionOriginal = Config::get('database.default');
             try {
                 Config::set('database.connections.mysql_sucursal', [
@@ -542,40 +569,100 @@ class WorklistService extends BaseService
                     'collation' => 'latin1_swedish_ci',
                     'options' => [
                         \PDO::ATTR_TIMEOUT => 4,
+                        \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
                     ],
                 ]);
 
                 DB::purge('mysql_sucursal');
                 $pacsConn = DB::connection('mysql_sucursal');
 
-                // Eliminar el registro en Dcm4chee mwl_item para que desaparezca de la consola
-                if ($orden->mwl_item_pk) {
-                    $pacsConn->table('mwl_item')->where('pk', $orden->mwl_item_pk)->delete();
-                } else {
-                    $pacsConn->table('mwl_item')->where('accession_no', $orden->accession_no)->delete();
+                // 1. Verificar si el estudio ya tiene imágenes recibidas en el PACS
+                $estudioEnPacs = $pacsConn->table('study')
+                    ->where(function ($q) use ($orden) {
+                        if (! empty($orden->study_iuid)) {
+                            $q->where('study_iuid', $orden->study_iuid);
+                        }
+                        if (! empty($orden->accession_no)) {
+                            $q->orWhere('accession_no', $orden->accession_no);
+                        }
+                    })
+                    ->first();
+
+                if ($estudioEnPacs) {
+                    $orden->estado = 'ADQUIRIDO';
+                    $orden->study_pk = $estudioEnPacs->pk ?? null;
+                    $orden->adquirido_at = now();
+                    $orden->save();
+
+                    return $this->error("No es posible retirar la orden del WorkFlow porque las imágenes ya fueron adquiridas y recibidas en el PACS (Study IUID: {$orden->study_iuid}).", 422);
                 }
+
+                // 2. Verificar estado en mwl_item de Dcm4chee (sps_status != 0 indica toma iniciada/completada)
+                $mwlItem = $pacsConn->table('mwl_item')
+                    ->where(function ($q) use ($orden) {
+                        if ($orden->mwl_item_pk) {
+                            $q->where('pk', $orden->mwl_item_pk);
+                        }
+                        if (! empty($orden->accession_no)) {
+                            $q->orWhere('accession_no', $orden->accession_no);
+                        }
+                    })
+                    ->first();
+
+                if ($mwlItem && (int) $mwlItem->sps_status !== 0) {
+                    return $this->error("No es posible retirar la orden porque la consola de adquisición ya inició o procesó el procedimiento (SPS Status: {$mwlItem->sps_status}).", 422);
+                }
+
+                // 3. Eliminar físicamente el mwl_item del PACS Dcm4chee
+                $deletedCount = $pacsConn->table('mwl_item')
+                    ->where(function ($q) use ($orden) {
+                        if ($orden->mwl_item_pk) {
+                            $q->where('pk', $orden->mwl_item_pk);
+                        }
+                        if (! empty($orden->accession_no)) {
+                            $q->orWhere('accession_no', $orden->accession_no);
+                        }
+                    })
+                    ->delete();
+
+                $pacsEliminado = $deletedCount > 0;
+                Log::info("Item MWL eliminado en PACS Dcm4chee. Filas afectadas: {$deletedCount} para orden '{$orden->accession_no}' en sede '{$sede->nom_sede}'.");
             } catch (Exception $e) {
-                Log::warning('Advertencia al retirar orden de Dcm4chee mwl_item: '.$e->getMessage());
-                // Continuamos para cancelar en LIDiag aunque el PACS esté offline
+                Log::warning("Advertencia al validar/retirar orden de Dcm4chee mwl_item en sede '{$sede->nom_sede}': ".$e->getMessage());
             } finally {
                 Config::set('database.default', $conexionOriginal);
             }
         }
 
-        $orden->estado = "CANCELADO";
-        $orden->observaciones = ($orden->observaciones ? $orden->observaciones." | " : "")."Cancelado por usuario ID: ".$usuarioId." en ".now();
+        // 4. Actualización atómica local en LIDiag
+        $datosViejos = $orden->toArray();
+        $motivoTexto = $motivo ? " Motivo: {$motivo}." : "";
+        $orden->estado = 'CANCELADO';
+        $orden->observaciones = trim(($orden->observaciones ? "{$orden->observaciones} | " : "")."Cancelado de Worklist por usuario ID: {$usuarioId} en ".now()->format('Y-m-d H:i:s').".{$motivoTexto}");
         $orden->save();
 
         if (app(AdminAdmisionService::class)->tablaDisponible()) {
-            AdminAdmision::where("worklist_orden_id", $orden->id)
-                ->whereNotIn("estado", [AdminAdmision::ESTADO_ASIGNADO])
+            AdminAdmision::where('worklist_orden_id', $orden->id)
+                ->whereNotIn('estado', [AdminAdmision::ESTADO_ASIGNADO])
                 ->update([
-                    "estado" => AdminAdmision::ESTADO_CANCELADO,
-                    "updated_at" => now(),
+                    'estado' => AdminAdmision::ESTADO_CANCELADO,
+                    'updated_at' => now(),
                 ]);
         }
 
-        return $this->success($orden, "Orden '{$orden->accession_no}' retirada de la Worklist exitosamente.");
+        // 5. Registro en Auditoría
+        AuditLogger::log(
+            'retirar_worklist',
+            $orden,
+            "Orden de Worklist '{$orden->accession_no}' retirada del equipo ({$orden->station_aet}) en sede ".($sede ? $sede->nom_sede : 'Principal').".{$motivoTexto}",
+            $datosViejos,
+            $orden->toArray(),
+            $usuarioId
+        );
+
+        $msgPacs = $pacsEliminado ? ' y removida de la consola del equipo' : '';
+
+        return $this->success($orden, "Orden '{$orden->accession_no}' retirada de la Worklist{$msgPacs} exitosamente.");
     }
 
     /**

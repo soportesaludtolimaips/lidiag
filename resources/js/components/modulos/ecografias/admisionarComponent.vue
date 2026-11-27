@@ -401,6 +401,24 @@
                                                 v-if="item.estado_ecografia === 'ANULADO'"
                                                 >{{ item.estado_ecografia }}</span
                                             >
+                                            <div
+                                                v-if="
+                                                    item.orden_worklist &&
+                                                    item.orden_worklist.estado === 'PENDIENTE'
+                                                "
+                                                class="mt-1"
+                                            >
+                                                <span
+                                                    class="badge badge-primary"
+                                                    :title="`En lista de trabajo (${item.orden_worklist.station_aet || 'Ecógrafo'}) - Acc: ${item.orden_worklist.accession_no}`"
+                                                >
+                                                    <i class="fa fa-television"></i>
+                                                    {{
+                                                        item.orden_worklist.station_aet ||
+                                                        "Worklist"
+                                                    }}
+                                                </span>
+                                            </div>
                                         </td>
 
                                         <!-- 8. SAHI -->
@@ -503,6 +521,20 @@
 
                                         <!-- 9. Acciones -->
                                         <td class="text-center align-middle text-nowrap">
+                                            <button
+                                                v-if="
+                                                    item.orden_worklist &&
+                                                    item.orden_worklist.estado === 'PENDIENTE'
+                                                "
+                                                type="button"
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm mr-1"
+                                                @click="retirarDeWorklist(item)"
+                                                :title="`Retirar de Worklist (${item.orden_worklist.station_aet || 'Ecógrafo'})`"
+                                                :aria-label="`Retirar orden ${item.orden_worklist.accession_no} de la Worklist`"
+                                            >
+                                                <i class="fa fa-times"></i>
+                                            </button>
+
                                             <button
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm mr-1"
@@ -2275,6 +2307,50 @@ async function confirmarEnvioWorklist() {
         });
     } finally {
         loadingWorklist.value = false;
+    }
+}
+
+/**
+ * Retira una orden de ecografía de la Modality Worklist (PACS y consola del ecógrafo).
+ *
+ * @param {Object} item Registro de la atención/ecografía admitida.
+ *
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ * @date 2026-11-27
+ */
+async function retirarDeWorklist(item) {
+    const orden = item.orden_worklist;
+    if (!orden) return;
+
+    const acc = orden.accession_no || "asignada";
+    const aet = orden.station_aet ? ` (${orden.station_aet})` : "";
+    const confirmado = await confirmAction({
+        title: "¿Retirar de Worklist?",
+        text: `¿Desea retirar la orden ${acc}${aet} de la lista de trabajo del ecógrafo? El equipo ya no mostrará al paciente en su consola.`,
+        icon: "warning",
+    });
+
+    if (!confirmado) return;
+
+    try {
+        const res = await axios.post("/api/pacientes/cancelar-worklist", {
+            orden_id: orden.id,
+            accession_no: orden.accession_no,
+        });
+
+        toastMessage({
+            heading: "Orden Retirada",
+            text: res.data?.message || "La orden fue retirada del ecógrafo exitosamente.",
+            icon: "info",
+        });
+
+        listarAtenciones();
+    } catch (err) {
+        const msg = err.response?.data?.message || "Error al retirar la orden de la Worklist.";
+        alertError("Error al retirar", msg);
+        listarAtenciones();
     }
 }
 /**

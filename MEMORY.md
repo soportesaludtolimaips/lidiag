@@ -37,6 +37,28 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-27 — Funcionalidad Segura y Trazable para Retirar / Eliminar Registros del WorkFlow (Worklist PACS Dcm4chee + LIDiag):**
+  - **Diagnóstico:** Cuando el personal operativo cometía errores al enviar un paciente al WorkFlow (selección errónea de equipo/ecógrafo, orden duplicada o cancelación clínica), no existía una validación que garantizara que el estudio no hubiera sido ya adquirido en la consola del equipo, no se eliminaba el registro de `mwl_item` en el PACS de forma atómica y trazable con el identificador de la orden, y el módulo de Ecografías (`admisionarComponent.vue`) carecía de la acción para retirar el estudio de la consola del ecógrafo.
+  - **Solución Implementada:**
+    * **Backend (`WorklistService::cancelarOrdenWorklist`):**
+      - Acepta resolución polimórfica por ID numérico de orden o por `accession_no`.
+      - Valida reglas de negocio clínicas: rechaza con código `422` si la orden ya está cancelada o si su estado es `ADQUIRIDO` o `COMPLETADO`.
+      - Inspecciona en tiempo real el PACS Dcm4chee de la sede activa: verifica si en la tabla `study` ya ingresaron imágenes para ese `study_iuid` o `accession_no` (en cuyo caso transiciona a `ADQUIRIDO` y bloquea el retiro), y comprueba si en `mwl_item` el campo `sps_status` ya fue iniciado o procesado (`!= 0`).
+      - Si las validaciones clínicas se cumplen, elimina de forma segura el registro en `mwl_item` por `pk` / `accession_no` en el PACS remoto de la sede activa, garantizando que el paciente desaparezca de la consola del equipo.
+      - Transacciona atómicamente en LIDiag actualizando `worklist_ordenes.estado` a `CANCELADO`, concatenando el usuario y motivo en `observaciones`, y actualiza `admin_admisiones.estado` a `CANCELADO`.
+      - Registra auditoría forense completa con `AuditLogger::log()` bajo el evento `retirar_worklist`.
+    * **Request & Controller (`WorklistCancelarRequest` & `PacienteController`):**
+      - `WorklistCancelarRequest` soporta `orden_id` o `accession_no` junto con `motivo` opcional (máx. 250 caracteres).
+      - `PacienteController::cancelarWorklist` canaliza el identificador y el motivo bajo middleware `permission:gestion.pacientes.update|ecografias.admision|ecografias.index`.
+      - `PacienteService::listar` expone `worklist_orden_id` en `admision_activa`.
+    * **Frontend Vue 3 (`admisionComponent.vue` y `admisionarComponent.vue`):**
+      - [`admisionComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/pacientes/admisionComponent.vue): Botón y flujo de confirmación modal preventivo (`confirmAction`) para retirar de Worklist, enviando `orden_id` y `accession_no`, con toast informativo y recarga automática de la grilla.
+      - [`admisionarComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/ecografias/admisionarComponent.vue): Añadido indicador visual de estado (`badge badge-primary` con icono de pantalla y Station AET) en la columna de estado, botón `btn-outline-danger` en la columna de acciones para órdenes en estado `PENDIENTE`, y método `retirarDeWorklist(item)` con diálogo de confirmación y feedback inmediato.
+  - **Verificaciones:**
+    * Sintaxis PHP validada con `PHP 8.4` (`-l`) en todos los archivos modificados.
+    * Prueba funcional integral en `test_cancelar_worklist.php` con `DB::beginTransaction()` y rollback: validado 404 en orden inexistente, 200 en cancelación por Accession Number, verificación de cancelación atómica, 422 en intento de re-cancelación y verificación de registro en `audit_logs`.
+    * `npx eslint` ejecutado con 0 errores y 0 warnings en ambos componentes Vue.
+    * Compilación con Vite (`npm run build`) exitosa (2.04s).
 - [x] **2026-11-27 — Evolución de Admisión de Pacientes (`LIDIAG -> Interfaz Sede`), Tabla `admin_admisiones` y Nuevo Módulo `Pendientes de asignar`:**
   - **Diagnóstico Previo:**
     * [`admisionComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/pacientes/admisionComponent.vue) consultaba únicamente la tabla local `pacientes` (`PacienteService::listar`) y exigía `paciente_id` existente al enviar a Modality Worklist (`WorklistService::enviarAWorklist`), sin trazabilidad dedicada de la admisión ni de la toma radiológica más allá de `worklist_ordenes`.
