@@ -200,7 +200,15 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(item, index) in registros" :key="item.id || index">
+                                    <tr
+                                        v-for="(item, index) in registros"
+                                        :key="
+                                            item.id ||
+                                            (item.IdAtencion
+                                                ? `${item.IdAtencion}-${item.IdProducto || index}`
+                                                : index)
+                                        "
+                                    >
                                         <!-- 1. Fecha / Ingreso -->
                                         <td class="align-middle">
                                             <div
@@ -1486,6 +1494,7 @@ const emitter = appContext?.config?.globalProperties?.emitter;
 import usePermissions from "@/helpers/permissions.js";
 import { formatoMoneda } from "@/helpers/funciones.js";
 import { alertError, alertSuccess, confirmAction, toastMessage } from "@/helpers/alerts.js";
+import { safeDestroyDataTable, safeInitDataTable } from "@/helpers/datatables.js";
 import { useSede } from "@/composables/useSede.js";
 import { useSahiInterface } from "@/composables/useSahiInterface.js";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
@@ -1757,44 +1766,19 @@ function formatearHora(fecha) {
     }
 }
 /**
- * Destruye de forma segura la instancia de DataTable si existe.
- *
- * @param {string} selector Selector jQuery de la tabla a destruir.
- *
- * @returns {any}
- *
- * @author Jhon Javer Lozano Arce
- *
- * @date 2024-04-04
- */
-function safeDestroyDataTable(selector = "#tablaAdmisiones") {
-    if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
-        return;
-    const $t = window.$(selector);
-    if (!$t.length) return;
-    if (window.$.fn.DataTable.isDataTable($t)) {
-        $t.DataTable().clear().destroy();
-    }
-}
-/**
  * Inicializa de forma segura la instancia de DataTable con botones de exportación.
  *
- * @param {string} selector Selector jQuery de la tabla a inicializar.
+ * @param {string|HTMLElement} selector Selector jQuery de la tabla a inicializar.
  *
- * @returns {any}
+ * @returns {void}
  *
  * @author Jhon Javer Lozano Arce
  *
  * @date 2024-04-04
  */
-function safeInitDataTable(selector = "#tablaAdmisiones") {
-    if (typeof window === "undefined" || !window.$ || !window.$.fn || !window.$.fn.DataTable)
-        return;
+function safeInitDataTableCustom(selector = "#tablaAdmisiones") {
     nextTick(() => {
-        const $t = window.$(selector);
-        if (!$t.length) return;
-        if (window.$.fn.DataTable.isDataTable($t)) return;
-        $t.DataTable({
+        safeInitDataTable(selector, {
             dom: "Bfrtip",
             buttons: ["copy", "csv", "excel", "pdf", "print"],
             language: {
@@ -1843,7 +1827,7 @@ async function listarAtenciones() {
                 });
             }
 
-            safeInitDataTable(dt.value || "#tablaAdmisiones");
+            safeInitDataTableCustom(dt.value || "#tablaAdmisiones");
         }
     } catch (error) {
         erroresBusqueda.value = error?.response?.data?.errors || {};

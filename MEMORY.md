@@ -128,6 +128,15 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * Laravel Pint: verificado con batch bat sin errores.
     * ESLint y Prettier: 0 errores y 0 warnings.
     * Vite Build: compilación exitosa en 1.48s.
+- [x] **2026-11-27 — Sincronización y Renderizado de DataTables en Admisionar Ecografías (`admisionarComponent.vue`):**
+  - **Diagnóstico:** Al consultar atenciones de SAHI (ej. `7039917` y `7040702`), la petición HTTP retornaba exitosa con status 200 y el array completo de datos en DevTools Network (2.5 kB). Sin embargo, la tabla jQuery DataTables mostraba "No se encontraron registros" (0 a 0 de 0 filas) debido a que `safeDestroyDataTable()` ejecutaba `$t.DataTable().clear().destroy()`, borrando las filas `<tr>` del DOM de Vue 3, y la inicialización de DataTables se invocaba sin el helper estándar y sin esperar a que Vue pintara los registros en el DOM (`nextTick`). Además, el `:key` del `v-for` no tenía unicidad para registros SAHI sin persistir (`item.id` es `null`).
+  - **Solución Implementada:**
+    * Se importaron `safeDestroyDataTable` y `safeInitDataTable` desde el helper canónico [`@/helpers/datatables.js`](file:///c:/laragon/www/lidiag/resources/js/helpers/datatables.js), eliminando el `.clear()` destructivo sobre tablas Vue.
+    * Se encapsuló la inicialización en `safeInitDataTableCustom()` dentro de `nextTick()`, sincronizando la construcción de DataTables con el DOM hidratado de Vue 3.
+    * Se mejoró la clave del `v-for` usando `:key="item.id || (item.IdAtencion ? `${item.IdAtencion}-${item.IdProducto || index}` : index)"`.
+  - **Verificaciones:**
+    * ESLint y Prettier: 0 errores y 0 warnings.
+    * Vite Build: `npm run build` completado exitosamente en `1.76s`.
 - [x] **2026-11-25 — Estado de Asignación y Detección de Anulados en Reporte de Producción Consolidada:**
   - **Diagnóstico:** En la Sede 4 (Ibagué), de 38 registros de estudios tomados en noviembre, 25 productos leídos con informe "leído" fueron anulados masivamente el 09-11-2026 a las 13:08 (`activo = 0`). El reporte consolidado anterior solo hacía join con `activo = 1`, ocultando si el estudio había sido anulado en la sede o si estaba activo.
   - **Solución Implementada:**
