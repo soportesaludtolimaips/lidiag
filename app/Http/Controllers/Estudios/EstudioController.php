@@ -13,6 +13,7 @@ use App\Http\Requests\Estudios\ListarEstudiosAsignadosRequest;
 use App\Http\Requests\Estudios\ListarPendientesMedicoRequest;
 use App\Http\Requests\Estudios\ListarPendientesTranscribirRequest;
 use App\Http\Requests\Estudios\NotificarEmailEstudioRequest;
+use App\Http\Requests\Estudios\RevertirAnulacionEstudioRequest;
 use App\Http\Requests\Estudios\StoreEstudioRequest;
 use App\Services\Estudios\EstudioQueryService;
 use App\Services\Estudios\EstudioService;
@@ -267,6 +268,23 @@ class EstudioController extends Controller
     public function anularAsignacion(AnularAsignacionEstudioRequest $request): JsonResponse
     {
         $result = $this->estudioService->anularAsignacion($request->integer('id'));
+
+        return response()->json($result, $result['status']);
+    }
+
+    /**
+     * Revierte la anulación de la asignación de un producto de estudio.
+     *
+     * @param  RevertirAnulacionEstudioRequest  $request  Solicitud validada con ID de producto
+     * @return JsonResponse Confirmación de reversión de anulación
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-27
+     */
+    public function revertirAnulacionAsignacion(RevertirAnulacionEstudioRequest $request): JsonResponse
+    {
+        $result = $this->estudioService->revertirAnulacionAsignacion($request->integer('id'));
 
         return response()->json($result, $result['status']);
     }

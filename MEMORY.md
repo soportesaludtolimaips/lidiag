@@ -37,6 +37,20 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
 ---
 
 ## 4. Próximos Pasos Técnicos e Historial Inmediato
+- [x] **2026-11-27 — Visibilidad de Estudios de Tele-Radiología en Búsquedas de Estudios Asignados (`EstudioQueryService.php`, `estudioAsignadosComponent.vue`):**
+  - **Diagnóstico y Causa Raíz:**
+    * El usuario reportó que el paciente `1105687051` (estudio `215238`, `RADIOGRAFIA DE COLUMNA TORACICA`) enviado a Tele-Radiología hoy a las 10:12 AM no aparecía en `tele-radiologia-transcribir` ni al buscarlo por número de documento en `estudios.asignados.listar`.
+    * **Causa 1 (Tele-Radiología Transcribir):** En `teleRadiologiaTranscibirComponent.vue`, el listado filtra obligatoriamente `estudioParaTranscribir: "si"` (`whereNotNull('estudios_productos.fechor_lectura')`). El estudio está activo y en espera de lectura por parte de Tele-Radiología; por ende, aún no tiene fecha de lectura y no debe aparecer en la bandeja de transcripción de informes leídos, sino en la bandeja de envío `estudios.tele-radiologia`.
+    * **Causa 2 (Estudios Asignados Listar):** En `EstudioQueryService::listarEstudiosAsignados()`, la consulta realizaba un `->join('users as medi', 'estudios.medico_id', '=', 'medi.id')` (`INNER JOIN`). Cuando un estudio es enviado a Tele-Radiología, `estudios.medico_id` es `NULL` (no tiene médico lector interno asignado), lo que causaba que el `INNER JOIN` descartara y ocultara automáticamente todos los estudios de Tele-Radiología de la tabla de estudios asignados.
+  - **Solución Implementada:**
+    * En [`EstudioQueryService.php`](file:///c:/laragon/www/lidiag/app/Services/Estudios/EstudioQueryService.php#L258), se cambió el join a `->leftJoin('users as medi', 'estudios.medico_id', '=', 'medi.id')` (idéntico al usado en `listarPendientesTranscribir`).
+    * En [`estudioAsignadosComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/estudioAsignadosComponent.vue#L319), se agregó renderizado visual que destaca el badge `Tele Radiologia` en la columna de médico cuando el estudio tiene destino a tele-radiología.
+  - **Verificaciones:**
+    * Laravel Pint (`vendor\bin\pint.bat --test`) verificado al 100% ✅.
+    * ESLint verificado con 0 errores ✅.
+    * Compilación Vite (`npm run build`) exitosa en 1.96s ✅.
+    * Verificación directa en base de datos: el estudio `215238` (y sus estudios hermanos de hoy `215236`, `215237`) aparecen inmediatamente al filtrar por documento `1105687051` ✅.
+
 - [x] **2026-11-27 — Funcionalidad Segura y Trazable para Retirar / Eliminar Registros del WorkFlow (Worklist PACS Dcm4chee + LIDiag):**
   - **Diagnóstico:** Cuando el personal operativo cometía errores al enviar un paciente al WorkFlow (selección errónea de equipo/ecógrafo, orden duplicada o cancelación clínica), no existía una validación que garantizara que el estudio no hubiera sido ya adquirido en la consola del equipo, no se eliminaba el registro de `mwl_item` en el PACS de forma atómica y trazable con el identificador de la orden, y el módulo de Ecografías (`admisionarComponent.vue`) carecía de la acción para retirar el estudio de la consola del ecógrafo.
   - **Solución Implementada:**
@@ -101,6 +115,25 @@ Este archivo registra el estado actual del desarrollo, las decisiones técnicas 
     * Se integró un estado visual inicial con `<empty-state-component>` orientando al usuario a configurar sus filtros y presionar Buscar, diferenciado del estado de "sin resultados encontrados".
     * En `limpiarFiltros()`, se restablecen los filtros y se vacía la tabla sin disparar consultas automáticas.
   - **Verificaciones:** `npx eslint` con 0 errores y compilación con Vite (`npm run build`) completada exitosamente en 1.73s.
+- [x] **2026-11-27 — Implementación de Reversión de Anulación con Auditoría en Estudios Asignados:**
+  - **Diagnóstico y Requerimiento:** Al anular un producto de estudio (`activo = 0`), quedaba excluido del listado de asignados y no existía mecanismo en la interfaz ni en el backend para reactivarlo ni auditar quién revierte la anulación.
+  - **Solución Implementada:**
+    * **Backend:**
+      - Creado `App\Http\Requests\Estudios\RevertirAnulacionEstudioRequest` validando ID de producto existente.
+      - En `EstudioService::revertirAnulacionAsignacion()`, se bloquea el registro con `lockForUpdate()`, se reactiva el producto (`activo = 1`), se garantiza el estado del estudio padre (`estado = 1`), se reactiva `LiquidacionLinea` y se registra en `audit_logs` con `evento = revertir_anulacion_estudio`, usuario autenticado, IP y user-agent.
+      - Expuesto `POST /api/estudio-revertir-anulacion` en `routes/api_estudios.php` y `EstudioController::revertirAnulacionAsignacion()`.
+      - En `EstudioQueryService::applyAsignadosFilters()` y `ListarEstudiosAsignadosRequest`, se agregó soporte para el filtro `estado_activo` (`activos`, `anulados`, `todos`).
+    * **Frontend ([`estudioAsignadosComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/modulos/estudios/estudioAsignadosComponent.vue)):**
+      - Se añadió selector de filtro de `Estado` (`Solo activos`, `Solo anulados`, `Todos`).
+      - Si el producto está anulado (`item.activo === 0`), se muestra el botón verde `Revertir anulación` (`fa-undo`) con confirmación modal `confirmAction` y feedback toast.
+  - **Verificaciones:** `vendor\bin\pint.bat --test` passed, `npx eslint` 0 errores, `npm run build` exitoso (1.99s), prueba funcional en BD con rollback de auditoría validada.
+- [x] **2026-11-27 — Reactivación de Estudio Tele-Radiología Paciente 1105687051:**
+  - **Diagnóstico:** El estudio de radiografía de columna torácica `#215234` (producto `#266184`) había recibido lectura externa desde Tele-Radiología (`fechor_lectura = 2026-11-27 10:24:57`, médico ID 109 TL Sandra Patricia Malagón Basto). No obstante, fue anulado a las 10:42:03 (`activo = 0`) por el operador al notar reasignaciones duplicadas (`#215236`, `#215237`, `#215238`). Como consecuencia, desapareció tanto de `/tele-radiologia-transcribir` (que filtra `activo = 1`) como de `/estudios.asignados.listar` (que filtra `activo = 1` y realiza `INNER JOIN` con `users as medi`).
+  - **Solución Implementada:**
+    * Reactivado en BD el producto original leído `#266184` del estudio `#215234` (`activo = 1`, `estado = 1`).
+    * Marcados como inactivos (`activo = 0`) los estudios duplicados no leídos (`#266186`, `#266187`, `#266188`).
+    * Registrado evento en `audit_logs` con `evento = reactivar_estudio`.
+  - **Verificaciones:** Confirmado que el registro se lista de inmediato con lectura lista para transcribir y en estudios asignados.
 - [x] **2026-11-25 — Fallback HTTP 200 para Avatares Inexistentes en `FileAccessService`:**
   - **Diagnóstico:** Usuarios cuya columna `imagen_perfil` apunta a un archivo que no existe físicamente en `storage/app/avatars/` (p. ej. `z8NzrEPsJDnmYmRVu8GrEEl5PEnmjSilAmA5Hs6Kr5Ev01urZY.jpg`) disparaban `GET /files/avatars/...` en el topbar ([`userProfileAndSearchComponent.vue`](file:///c:/laragon/www/lidiag/resources/js/components/comunes/userProfileAndSearchComponent.vue)) recibiendo `404 Not Found` desde [`FileAccessService::serve()`](file:///c:/laragon/www/lidiag/app/Services/FileAccessService.php#L20-L65).
   - **Solución Implementada ([`FileAccessService.php`](file:///c:/laragon/www/lidiag/app/Services/FileAccessService.php#L32-L44)):** Cuando `! $storage->exists($path)` y `$disk === 'avatars'`, se sirve `public/admin-wrap/assets/images/users/avatar_default.png` como respaldo HTTP `200`, preservando el `404` para todos los demás discos y el bloqueo `400` de path traversal.

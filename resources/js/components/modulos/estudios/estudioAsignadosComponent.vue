@@ -120,7 +120,23 @@
                                                 </select>
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-2">
+                                            <div class="form-group">
+                                                <label for="estado_activo">Estado</label>
+                                                <select
+                                                    v-model="busqueda.estado_activo"
+                                                    name="estado_activo"
+                                                    id="estado_activo"
+                                                    class="form-control custom-select"
+                                                    @change="listarEstudiosAsignados()"
+                                                >
+                                                    <option value="activos">Solo activos</option>
+                                                    <option value="anulados">Solo anulados</option>
+                                                    <option value="todos">Todos</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
                                             <div class="form-group">
                                                 <label class="control-label" for="bus_nom_num_docu"
                                                     >Nombres o # documento</label
@@ -523,6 +539,7 @@
                                             </button>
                                             <button
                                                 type="button"
+                                                v-if="item.activo === 1"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-danger btn-sm m-r-5"
                                                 :disabled="
                                                     loadingAnularId === item.estudio_producto_id
@@ -544,6 +561,32 @@
                                                     class="fa fa-spinner fa-spin"
                                                 ></i>
                                                 <i v-else class="fa fa-eraser"></i>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                v-else
+                                                class="btn waves-effect waves-light btn-rounded btn-outline-success btn-sm m-r-5"
+                                                :disabled="
+                                                    loadingRevertirId === item.estudio_producto_id
+                                                "
+                                                @click="
+                                                    revertirAnulacion(
+                                                        item.estudio_producto_id,
+                                                        item.nom_pacien,
+                                                        item.nom_produc
+                                                    )
+                                                "
+                                                title="Revertir anulación"
+                                                aria-label="Revertir anulación"
+                                            >
+                                                <i
+                                                    v-if="
+                                                        loadingRevertirId ===
+                                                        item.estudio_producto_id
+                                                    "
+                                                    class="fa fa-spinner fa-spin"
+                                                ></i>
+                                                <i v-else class="fa fa-undo"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -1090,6 +1133,7 @@ const defaultBusqueda = {
     estudioParaTranscibir: "si",
     quien_asigno_id: "",
     medico_id: "",
+    estado_activo: "activos",
     sede_id: sessionStorage.getItem("ST-sede") || localStorage.getItem("ST-sede") || "",
     bus_nom_num_docu: "",
     bus_fech_ini: "",
@@ -1141,6 +1185,7 @@ const errores = ref({});
 const idRow = ref(null);
 const loadingBuscar = ref(false);
 const loadingAnularId = ref(null);
+const loadingRevertirId = ref(null);
 const loadingSahiId = ref(null);
 const loadingAbrirRegistroId = ref(null);
 const loadingGuardar = ref(false);
@@ -1437,6 +1482,70 @@ async function anularAsignacion(idProductoEstudio, paciente, producto) {
         });
     } finally {
         loadingAnularId.value = null;
+    }
+}
+
+/**
+ * Revertir la anulación de la asignación de un producto de estudio.
+ *
+ * @param {number} idProductoEstudio - ID del producto estudio a revertir.
+ * @param {string} paciente - Nombre del paciente.
+ * @param {string} producto - Nombre del producto.
+ * @returns {Promise<void>}
+ *
+ * @author Jhon Javer Lozano Arce
+ *
+ * @date 2026-11-27
+ */
+async function revertirAnulacion(idProductoEstudio, paciente, producto) {
+    const ok = await confirmAction({
+        title: `¿Deseas revertir la anulación del estudio de ${paciente} con el producto ${producto}?`,
+        text: "El producto volverá a estar activo y disponible para su lectura y transcripción.",
+        icon: "question",
+    });
+    if (!ok) return;
+    if (loadingRevertirId.value) return;
+
+    loadingRevertirId.value = idProductoEstudio;
+    try {
+        const res = await axios.post("/api/estudio-revertir-anulacion", {
+            id: idProductoEstudio,
+        });
+        if (res.status === 200) {
+            const idx = registros.value.findIndex(
+                (x) => x.estudio_producto_id == idProductoEstudio
+            );
+            if (idx >= 0) {
+                if (busqueda.value.estado_activo === "anulados") {
+                    destroyDataTable();
+                    registros.value.splice(idx, 1);
+                    nextTick(() => {
+                        initDataTable();
+                    });
+                } else {
+                    registros.value[idx].activo = 1;
+                }
+            }
+            toastMessage({
+                heading: "Revertido!",
+                text: "La anulación se revirtió correctamente y el registro de auditoría fue guardado.",
+                icon: "success",
+            });
+        } else {
+            toastMessage({
+                heading: "Ups!",
+                text: "No fue posible revertir la anulación del producto.",
+                icon: "error",
+            });
+        }
+    } catch (_err) {
+        toastMessage({
+            heading: "Error",
+            text: "No fue posible revertir la anulación del producto.",
+            icon: "error",
+        });
+    } finally {
+        loadingRevertirId.value = null;
     }
 }
 

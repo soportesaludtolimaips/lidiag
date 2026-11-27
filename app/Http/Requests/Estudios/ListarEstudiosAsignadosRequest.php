@@ -36,6 +36,7 @@ class ListarEstudiosAsignadosRequest extends FormRequest
             'bus_nom_num_docu' => 'nullable|string|max:255',
             'quien_asigno_id' => 'nullable|integer|exists:users,id',
             'medico_id' => 'nullable|integer|exists:users,id',
+            'estado_activo' => 'nullable|string|in:activos,anulados,todos',
         ];
     }
 

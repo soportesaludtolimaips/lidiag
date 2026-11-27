@@ -420,8 +420,14 @@ class EstudioQueryService extends BaseService
     private function applyAsignadosFilters(Builder $query, array $filters): Builder
     {
         $sedeId = $filters['sede_id'] ?? null;
+        $estadoActivo = $filters['estado_activo'] ?? 'activos';
 
-        $query->where('estudios_productos.activo', 1);
+        if ($estadoActivo === 'activos') {
+            $query->where('estudios_productos.activo', 1);
+        } elseif ($estadoActivo === 'anulados') {
+            $query->where('estudios_productos.activo', 0);
+        }
+        // Si es 'todos', no se filtra por activo, permitiendo ver activos y anulados
 
         if ($sedeId) {
             $query->where('estudios.sede_id', $sedeId);

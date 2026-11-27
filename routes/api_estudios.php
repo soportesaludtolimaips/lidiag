@@ -102,6 +102,9 @@ Route::middleware(['auth', 'permission:estudio.index|estudio.asignar|estudio.lee
     Route::post('/estudio-anular-asignacion', [EstudioController::class, 'anularAsignacion'])
         ->name('api.estudio.anularAsignacion');
 
+    Route::post('/estudio-revertir-anulacion', [EstudioController::class, 'revertirAnulacionAsignacion'])
+        ->name('api.estudio.revertirAnulacion');
+
     Route::post('/estudio-listarPendientesMedico', [EstudioController::class, 'listarPendientesMedico'])
         ->name('api.estudio.listarPendientesMedico');
 

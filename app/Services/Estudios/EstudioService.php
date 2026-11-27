@@ -857,6 +857,64 @@ class EstudioService extends BaseService
     }
 
     /**
+     * Revierte la anulación de una asignación de producto de estudio.
+     *
+     * Flujo del proceso:
+     * 1. Bloquea el registro de estudios_productos con lockForUpdate dentro de una transacción.
+     * 2. Valida que el producto se encuentre efectivamente anulado (activo == 0).
+     * 3. Reactiva el producto (activo = 1) y garantiza que el estudio padre esté activo (estado = 1).
+     * 4. Registra en audit_logs la reversión con el usuario autenticado, IP y agente.
+     * 5. Reactiva las líneas de liquidación asociadas (estado = 1).
+     * 6. Retorna confirmación estructurada.
+     *
+     * @param  int  $id  ID del producto de estudio a revertir
+     * @return array<string, mixed> Respuesta de confirmación de la reversión
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-27
+     */
+    public function revertirAnulacionAsignacion(int $id): array
+    {
+        try {
+            return DB::transaction(function () use ($id) {
+                $producto = EstudioProducto::lockForUpdate()->findOrFail($id);
+
+                if ($producto->activo == 1) {
+                    return $this->error('Este producto ya se encuentra activo.', 409);
+                }
+
+                $producto->activo = 1;
+                $producto->save();
+
+                // Garantizar que el estudio padre también esté activo
+                if ($producto->estudio_id) {
+                    Estudio::where('id', $producto->estudio_id)->where('estado', 0)->update(['estado' => 1]);
+                }
+
+                $usuarioActual = Auth::user();
+                $nombreUsuario = $usuarioActual?->name ?? ('ID: '.Auth::id());
+
+                AuditLogger::log(
+                    'revertir_anulacion_estudio',
+                    $producto,
+                    "Anulación revertida para producto de estudio #{$producto->id} por usuario: {$nombreUsuario}",
+                    ['activo' => 0],
+                    ['activo' => 1]
+                );
+
+                LiquidacionLinea::where('estudio_producto_id', $producto->id)->update(['estado' => 1]);
+
+                return $this->updated(null, 'La anulación del producto se revirtió correctamente.');
+            });
+        } catch (\Throwable $e) {
+            Log::error('Error al revertir anulación de asignación: '.$e->getMessage());
+
+            return $this->error('No fue posible revertir la anulación del producto.', 500);
+        }
+    }
+
+    /**
      * Obtiene la ruta de un archivo PDF de lectura para descarga
      *
      * @param  string  $filename  Nombre del archivo PDF
