@@ -49,6 +49,11 @@
                                 </a>
                                 <ul aria-expanded="{{ request()->routeIs('estudios.*') ? 'true' : 'false' }}" class="collapse {{ request()->routeIs('estudios.*') ? 'in' : '' }}">
                                     @can('estudio.asignar')
+                                        <li class="{{ request()->routeIs('estudios.pendientes.*') ? 'active' : '' }}">
+                                            <a class="{{ request()->routeIs('estudios.pendientes.*') ? 'active' : '' }}" href="{{ route('estudios.pendientes.listar') }}">
+                                                <i class="fa fa-clock-o text-info"></i> Pendientes de asignar
+                                            </a>
+                                        </li>
                                         <li class="{{ request()->routeIs('estudios.asignar.*') ? 'active' : '' }}">
                                             <a class="{{ request()->routeIs('estudios.asignar.*') ? 'active' : '' }}" href="{{ route('estudios.asignar.listar') }}">
                                                 <i class="fa fa-upload text-info"></i> Asignar Estudios

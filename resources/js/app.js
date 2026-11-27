@@ -148,6 +148,12 @@ app.component(
  * Estudios (Asíncrono)
  */
 app.component(
+    "PendientesAsignarComponent",
+    defineAsyncComponent(
+        () => import("./components/modulos/estudios/pendientesAsignarComponent.vue")
+    )
+);
+app.component(
     "AsignarEstudioComponent",
     defineAsyncComponent(() => import("./components/modulos/estudios/AsignarEstudioComponent.vue"))
 );

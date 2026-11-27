@@ -66,6 +66,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 'api_liquidacion.php',
                 'api_telegram.php',
                 'api_pacientes.php',
+                'api_admisiones.php',
                 'api_dosimetria.php',
                 'api_oftalmologia.php',
             ];

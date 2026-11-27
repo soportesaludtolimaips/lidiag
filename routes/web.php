@@ -120,6 +120,9 @@ Route::get('/dosimetria/dashboard', fn () => view('layouts.app'))
 /**
  * Estudios radiologicos
  */
+Route::get('/estudios.pendientes.listar', fn () => view('layouts.app'))
+    ->name('estudios.pendientes.listar')
+    ->middleware(['auth', 'permission:estudio.asignar']);
 Route::get('/estudios.asignar.listar', fn () => view('layouts.app'))
     ->name('estudios.asignar.listar')
     ->middleware(['auth', 'permission:estudio.asignar']);

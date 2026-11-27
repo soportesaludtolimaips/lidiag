@@ -174,7 +174,10 @@
                             v-if="!loadingBuscar && registros.length === 0"
                             icon="fa fa-folder-open-o"
                             title="No hay pacientes para mostrar"
-                            description="No se encontraron pacientes con los filtros seleccionados o use los filtros para buscar."
+                            :description="
+                                mensajeBusquedaVacia ||
+                                'No se encontraron pacientes con los filtros seleccionados o use los filtros para buscar.'
+                            "
                             action-text="Limpiar filtros"
                             action-icon="fa fa-refresh"
                             @action="btnLimpiar()"
@@ -198,12 +201,17 @@
                                         <th style="width: 25%">Paciente</th>
                                         <th style="width: 10%">Sexo / Edad</th>
                                         <th style="width: 15%">Contacto</th>
-                                        <th style="width: 20%">Estado Worklist</th>
+                                        <th style="width: 20%">Estado Admisión / Worklist</th>
                                         <th style="width: 13%"></th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="item in registros" :key="item.id">
+                                    <tr
+                                        v-for="item in registros"
+                                        :key="
+                                            item.id || item.row_key || `interfaz-${item.num_docu}`
+                                        "
+                                    >
                                         <td class="text-center">
                                             <span class="badge badge-secondary">
                                                 {{ item.tipo_documento?.codigo || "DOC" }}
@@ -218,7 +226,17 @@
                                                 {{ item.num_docu }}
                                             </div>
                                         </td>
-                                        <td>{{ item.nombre_completo || item.nombres }}</td>
+                                        <td>
+                                            {{ item.nombre_completo || item.nombres }}
+                                            <span
+                                                v-if="item.es_paciente_interfaz"
+                                                class="label label-info ml-1"
+                                                title="Obtenido desde la interfaz hospitalaria; se registrará en LIDIAG al admitir"
+                                            >
+                                                <i class="fa fa-plug"></i> Interfaz
+                                                {{ item.interface_software || "SAHI" }}
+                                            </span>
+                                        </td>
                                         <td>
                                             {{ item.sexo }} ({{
                                                 calcularEdadPaciente(item.fec_naci)
@@ -226,58 +244,88 @@
                                         </td>
                                         <td>{{ item.cel || item.tel || "—" }}</td>
                                         <td>
-                                            <div v-if="item.orden_worklist_activa">
+                                            <div
+                                                v-if="
+                                                    item.admision_activa ||
+                                                    item.orden_worklist_activa
+                                                "
+                                            >
                                                 <span
                                                     v-if="
-                                                        item.orden_worklist_activa.estado ===
-                                                        'ADQUIRIDO'
+                                                        item.admision_activa?.estado ===
+                                                            'PENDIENTE LECTURA' ||
+                                                        item.orden_worklist_activa?.estado ===
+                                                            'ADQUIRIDO'
                                                     "
-                                                    class="badge badge-info m-r-5"
-                                                    title="Imágenes recibidas en el PACS - Listo para Asignar"
+                                                    class="label label-info m-r-5"
+                                                    title="Imágenes recibidas en el PACS - Pendiente de asignar a lectura"
                                                 >
-                                                    <i class="fa fa-check-circle"></i> Imágenes en
-                                                    PACS
+                                                    <i class="fa fa-check-circle"></i> PENDIENTE
+                                                    LECTURA
                                                 </span>
                                                 <span
                                                     v-else-if="
-                                                        item.orden_worklist_activa.estado ===
-                                                        'COMPLETADO'
+                                                        item.admision_activa?.estado ===
+                                                        'TOMANDO ESTUDIO'
                                                     "
-                                                    class="badge badge-success m-r-5"
-                                                    title="Estudio asignado formalmente en el sistema"
+                                                    class="label label-primary m-r-5"
+                                                    title="El tecnólogo se encuentra realizando la toma radiológica"
+                                                >
+                                                    <i class="fa fa-bolt"></i> Tomando estudio
+                                                </span>
+                                                <span
+                                                    v-else-if="
+                                                        item.admision_activa?.estado ===
+                                                            'ASIGNADO' ||
+                                                        item.orden_worklist_activa?.estado ===
+                                                            'COMPLETADO'
+                                                    "
+                                                    class="label label-success m-r-5"
+                                                    title="Estudio asignado formalmente a lectura médica"
                                                 >
                                                     <i class="fa fa-user-md"></i> Asignado a Lectura
                                                 </span>
                                                 <span
                                                     v-else
-                                                    class="badge badge-warning text-dark m-r-5"
-                                                    title="En espera de adquisición en la sala de Rayos X"
+                                                    class="label label-warning m-r-5"
+                                                    title="Paciente admisionado en espera de adquisición en sala de Rayos X"
                                                 >
-                                                    <i class="fa fa-clock-o"></i> En espera de Rayos
-                                                    X
+                                                    <i class="fa fa-clock-o"></i> Admisionado
                                                 </span>
                                                 <small class="text-muted d-block">
                                                     Acc:
-                                                    {{ item.orden_worklist_activa.accession_no }}
+                                                    {{
+                                                        item.admision_activa?.accession_no ||
+                                                        item.orden_worklist_activa?.accession_no
+                                                    }}
                                                     <span
                                                         v-if="
-                                                            item.orden_worklist_activa.adquirido_at
+                                                            item.admision_activa?.fecha_toma ||
+                                                            item.orden_worklist_activa?.adquirido_at
                                                         "
                                                     >
                                                         | Toma:
                                                         {{
-                                                            item.orden_worklist_activa.adquirido_at
+                                                            item.admision_activa?.fecha_toma ||
+                                                            item.orden_worklist_activa?.adquirido_at
                                                         }}
                                                     </span>
                                                     <span v-else>
                                                         ({{
-                                                            item.orden_worklist_activa.created_at
+                                                            item.admision_activa?.fecha_admision ||
+                                                            item.orden_worklist_activa?.created_at
                                                         }})
                                                     </span>
                                                 </small>
                                             </div>
+                                            <span
+                                                v-else-if="item.es_paciente_interfaz"
+                                                class="label label-info"
+                                            >
+                                                Disponible en Interfaz
+                                            </span>
                                             <span v-else class="badge badge-light text-muted"
-                                                >Sin orden activa</span
+                                                >Sin admisión hoy</span
                                             >
                                         </td>
                                         <td class="text-nowrap">
@@ -285,8 +333,8 @@
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-success btn-sm m-r-5"
                                                 @click="abrirModalWorklist(item)"
-                                                title="enviar para procedimiento"
-                                                aria-label="enviar para procedimiento"
+                                                title="Admisionar y enviar a Worklist"
+                                                aria-label="Admisionar y enviar a Worklist"
                                             >
                                                 <i class="fa fa-list-alt"></i>
                                             </button>
@@ -300,7 +348,8 @@
                                                 "
                                                 :disabled="
                                                     !sedeInterface ||
-                                                    loadingInterfacePacienteId === item.id
+                                                    loadingInterfacePacienteId ===
+                                                        (item.id || item.num_docu)
                                                 "
                                                 :title="
                                                     sedeInterface
@@ -318,7 +367,10 @@
                                                 @click="abrirModalInterface(item)"
                                             >
                                                 <i
-                                                    v-if="loadingInterfacePacienteId === item.id"
+                                                    v-if="
+                                                        loadingInterfacePacienteId ===
+                                                        (item.id || item.num_docu)
+                                                    "
                                                     class="fa fa-spinner fa-spin"
                                                 ></i>
                                                 <i v-else class="fa fa-database"></i>
@@ -327,21 +379,31 @@
                                                 type="button"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-primary btn-sm m-r-5"
                                                 @click="mostrarRegistro(item)"
-                                                title="Editar datos del paciente"
-                                                aria-label="Editar datos del paciente"
+                                                :title="
+                                                    item.es_paciente_interfaz
+                                                        ? 'Revisar / guardar datos del paciente en LIDIAG'
+                                                        : 'Editar datos del paciente'
+                                                "
+                                                :aria-label="
+                                                    item.es_paciente_interfaz
+                                                        ? 'Revisar datos del paciente'
+                                                        : 'Editar datos del paciente'
+                                                "
                                             >
                                                 <i class="fa fa-pencil"></i>
                                             </button>
                                             <router-link
                                                 v-if="
-                                                    item.orden_worklist_activa &&
-                                                    item.orden_worklist_activa.estado ===
-                                                        'ADQUIRIDO'
+                                                    item.admision_activa?.estado ===
+                                                        'PENDIENTE LECTURA' ||
+                                                    (item.orden_worklist_activa &&
+                                                        item.orden_worklist_activa.estado ===
+                                                            'ADQUIRIDO')
                                                 "
-                                                to="/estudios.asignar.listar"
+                                                to="/estudios.pendientes.listar"
                                                 class="btn waves-effect waves-light btn-rounded btn-outline-info btn-sm m-r-5"
-                                                title="Ir a Asignar Estudio (Imágenes listas en PACS)"
-                                                aria-label="Ir a Asignar Estudio"
+                                                title="Ir a Pendientes de asignar (PENDIENTE LECTURA)"
+                                                aria-label="Ir a Pendientes de asignar"
                                             >
                                                 <i class="fa fa-arrow-circle-right"></i>
                                             </router-link>
@@ -1010,6 +1072,7 @@ const sedeNombre = ref(
 const loadingBuscar = ref(false);
 const isReconciliandoPacs = ref(false);
 const registros = ref([]);
+const mensajeBusquedaVacia = ref("");
 const tiposDocumento = ref([]);
 const productosRayosX = ref([]);
 
@@ -1054,11 +1117,20 @@ const estacionesWorklist = ref([]);
 
 const worklistForm = ref({
     paciente_id: null,
+    paciente_interfaz: null,
     sede_id: null,
     producto_id: null,
     accession_no: "",
     modality: "DX",
     station_aet: "",
+    atencion: "",
+    eps: "",
+    contrato: "",
+    plan: "",
+    servicio: "",
+    ubicacion: "",
+    cama: "",
+    medico_ordena: "",
 });
 
 // Control de Modal de Consulta de Interface (SAHI / HIS)
@@ -1177,6 +1249,31 @@ async function buscar() {
 
         destroyDataTable();
         registros.value = Array.isArray(data) ? data : [];
+        const serverMsg = res.data?.message || "";
+        mensajeBusquedaVacia.value =
+            registros.value.length === 0 && serverMsg && serverMsg !== "Operación exitosa"
+                ? serverMsg
+                : "";
+
+        if (registros.value.length === 1 && registros.value[0]?.es_paciente_interfaz && serverMsg) {
+            toastMessage({
+                heading: `Interfaz ${registros.value[0].interface_software || "SAHI"}`,
+                text: serverMsg,
+                icon: "info",
+                hideAfter: 4500,
+            });
+        } else if (
+            registros.value.length === 0 &&
+            busqueda.value.bus_documento &&
+            mensajeBusquedaVacia.value
+        ) {
+            toastMessage({
+                heading: "Búsqueda de Paciente",
+                text: mensajeBusquedaVacia.value,
+                icon: "warning",
+                hideAfter: 4500,
+            });
+        }
         loadingBuscar.value = false;
 
         nextTick(() => {
@@ -1213,6 +1310,7 @@ function btnLimpiar() {
         bus_fech_ini: "",
         bus_fecha_fin: "",
     };
+    mensajeBusquedaVacia.value = "";
     registros.value = [];
     destroyDataTable();
     cerrarModal();
@@ -1260,15 +1358,21 @@ function nuevoRegistro() {
 }
 
 function mostrarRegistro(item) {
-    isEditing.value = true;
-    pacienteEditId.value = item.id;
-    tituloModal.value = `Editar Paciente: ${item.nombres || item.nombre_completo || ""} ${item.num_docu ? `(${item.num_docu})` : ""}`;
+    const esLocal = Boolean(item.id);
+    isEditing.value = esLocal;
+    pacienteEditId.value = esLocal ? item.id : null;
+    tituloModal.value = esLocal
+        ? `Editar Paciente: ${item.nombres || item.nombre_completo || ""} ${item.num_docu ? `(${item.num_docu})` : ""}`
+        : `Registrar Paciente de Interfaz: ${item.nombre_completo || item.nombres || ""}`;
     errores.value = {};
 
     registro.value = {
-        tipo_documento_id: item.tipo_documento_id,
+        tipo_documento_id: item.tipo_documento_id || tiposDocumento.value[0]?.id || null,
         num_docu: item.num_docu,
-        nombres: item.nombres,
+        nombres: item.nombre_completo || item.nombres,
+        seg_nom: item.seg_nom || "",
+        pri_ape: item.pri_ape || "",
+        seg_ape: item.seg_ape || "",
         sexo: item.sexo || "M",
         fec_naci: item.fec_naci ? item.fec_naci.slice(0, 10) : "",
         tel: item.tel || "",
@@ -1333,12 +1437,36 @@ async function abrirModalWorklist(item) {
     pacienteSeleccionado.value = item;
 
     worklistForm.value = {
-        paciente_id: item.id,
+        paciente_id: item.id || null,
+        paciente_interfaz: item.id
+            ? null
+            : {
+                  tipo_documento_id: item.tipo_documento_id || tiposDocumento.value[0]?.id || null,
+                  num_docu: item.num_docu,
+                  nombres: item.nombres || item.nombre_completo || "",
+                  seg_nom: item.seg_nom || null,
+                  pri_ape: item.pri_ape || null,
+                  seg_ape: item.seg_ape || null,
+                  sexo: item.sexo || "M",
+                  fec_naci: item.fec_naci ? String(item.fec_naci).slice(0, 10) : null,
+                  direccion: item.direccion || null,
+                  tel: item.tel || null,
+                  cel: item.cel || null,
+                  email: item.email || null,
+              },
         sede_id: sedeId.value,
         producto_id: productosRayosX.value[0]?.id || null,
         accession_no: "",
         modality: "DX",
         station_aet: "",
+        atencion: "",
+        eps: "",
+        contrato: "",
+        plan: "",
+        servicio: "",
+        ubicacion: "",
+        cama: "",
+        medico_ordena: "",
     };
 
     modalWorklistVisible.value = true;
@@ -1453,12 +1581,23 @@ async function confirmarEnvioWorklist() {
 
     try {
         const payload = {
-            paciente_id: worklistForm.value.paciente_id,
+            paciente_id: worklistForm.value.paciente_id || null,
+            paciente_interfaz: worklistForm.value.paciente_id
+                ? null
+                : worklistForm.value.paciente_interfaz,
             sede_id: sedeId.value,
             producto_id: worklistForm.value.producto_id,
             accession_no: worklistForm.value.accession_no,
             modality: worklistForm.value.modality,
             station_aet: worklistForm.value.station_aet,
+            atencion: worklistForm.value.atencion || null,
+            eps: worklistForm.value.eps || null,
+            contrato: worklistForm.value.contrato || null,
+            plan: worklistForm.value.plan || null,
+            servicio: worklistForm.value.servicio || null,
+            ubicacion: worklistForm.value.ubicacion || null,
+            cama: worklistForm.value.cama || null,
+            medico_ordena: worklistForm.value.medico_ordena || null,
         };
 
         const res = await axios.post("/api/pacientes/enviar-worklist", payload);
@@ -1574,7 +1713,7 @@ async function abrirModalInterface(item) {
     interfaceAtencionSeleccionada.value = null;
     interfaceProductos.value = [];
     modalInterfaceVisible.value = true;
-    loadingInterfacePacienteId.value = item.id;
+    loadingInterfacePacienteId.value = item.id || item.num_docu;
     loadingInterfaceAtenciones.value = true;
 
     try {
@@ -1639,9 +1778,19 @@ function cerrarModalInterface() {
 
 async function seleccionarParaWorklist(prod) {
     const paciente = pacienteInterface.value;
+    const atencionActiva = interfaceAtencionSeleccionada.value || prod.IdAtencion || "";
     cerrarModalInterface();
 
     await abrirModalWorklist(paciente);
+
+    worklistForm.value.atencion = atencionActiva ? String(atencionActiva) : "";
+    worklistForm.value.eps = prod.NomTercero || "";
+    worklistForm.value.contrato = prod.DesContrato || "";
+    worklistForm.value.plan = prod.DesPlan || "";
+    worklistForm.value.servicio = prod.NomUbicacion || "";
+    worklistForm.value.ubicacion = prod.NomUbicacion || "";
+    worklistForm.value.cama = prod.Cama || "";
+    worklistForm.value.medico_ordena = prod.quien_ordeno || "";
 
     const cupCode = String(prod.CodProducto || prod.cod_cups || "").trim();
     if (cupCode) {

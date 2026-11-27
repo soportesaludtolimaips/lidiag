@@ -124,6 +124,14 @@
                         >
                             <li
                                 v-if="can('estudio.asignar')"
+                                :class="{ active: isRouteActive('/estudios.pendientes.listar') }"
+                            >
+                                <router-link to="/estudios.pendientes.listar" active-class="active">
+                                    <i class="fa fa-clock-o text-info"></i> Pendientes de asignar
+                                </router-link>
+                            </li>
+                            <li
+                                v-if="can('estudio.asignar')"
                                 :class="{ active: isRouteActive('/estudios.asignar.listar') }"
                             >
                                 <router-link to="/estudios.asignar.listar" active-class="active">

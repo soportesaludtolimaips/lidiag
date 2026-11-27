@@ -4,6 +4,7 @@ namespace App\Services\Estudios;
 
 use App\Helpers\AuditLogger;
 use App\Helpers\SahiConnectionHelper;
+use App\Models\Admisiones\AdminAdmision;
 use App\Models\Configuracion\ConfigProducto;
 use App\Models\Configuracion\ConfigSede;
 use App\Models\Estudio\Estudio;
@@ -148,12 +149,16 @@ class EstudioService extends BaseService
                     'observaciones' => ! empty($registro['observaciones']) ? $registro['observaciones'] : null,
                     'motivo_examen' => ! empty($registro['motivo_examen']) ? $registro['motivo_examen'] : null,
                     'atencion' => ! empty($registro['atencion_id']) ? $registro['atencion_id'] : null,
-                    'servicio' => $interfaceData['servicio'] ?? null,
-                    'ubicacion' => $interfaceData['ubicacion'] ?? ($interfaceData['servicio'] ?? null),
-                    'cama' => $interfaceData['cama'] ?? null,
-                    'eps' => $interfaceData['eps'] ?? null,
-                    'contrato' => $interfaceData['contrato'] ?? null,
-                    'plan' => $interfaceData['plan'] ?? null,
+                    'servicio' => ! empty($interfaceData['servicio']) ? $interfaceData['servicio'] : (! empty($registro['servicio']) ? $registro['servicio'] : null),
+                    'ubicacion' => ! empty($interfaceData['ubicacion'])
+                        ? $interfaceData['ubicacion']
+                        : (! empty($interfaceData['servicio'])
+                            ? $interfaceData['servicio']
+                            : (! empty($registro['ubicacion']) ? $registro['ubicacion'] : (! empty($registro['servicio']) ? $registro['servicio'] : null))),
+                    'cama' => ! empty($interfaceData['cama']) ? $interfaceData['cama'] : (! empty($registro['cama']) ? $registro['cama'] : null),
+                    'eps' => ! empty($interfaceData['eps']) ? $interfaceData['eps'] : (! empty($registro['eps']) ? $registro['eps'] : null),
+                    'contrato' => ! empty($interfaceData['contrato']) ? $interfaceData['contrato'] : (! empty($registro['contrato']) ? $registro['contrato'] : null),
+                    'plan' => ! empty($interfaceData['plan']) ? $interfaceData['plan'] : (! empty($registro['plan']) ? $registro['plan'] : null),
                     'destino_estudio' => ! empty($registro['destino_estudio']) ? $registro['destino_estudio'] : null,
                     'destino_estudio_id' => $destinoEstudioId,
                     'estado' => 1,
@@ -1365,35 +1370,77 @@ class EstudioService extends BaseService
      */
     private function autoReconciliarWorklistOrden(Estudio $estudio, array $registro): void
     {
-        $accessionNo = trim($registro['accession_no'] ?? '');
-        $studyIuid = trim($registro['study_iuid'] ?? '');
+        $accessionNo = trim((string) ($registro["accession_no"] ?? ""));
+        $studyIuid = trim((string) ($registro["study_iuid"] ?? ""));
+        $admisionId = ! empty($registro["admision_id"]) ? (int) $registro["admision_id"] : 0;
 
-        if (empty($accessionNo) && empty($studyIuid)) {
+        if ($accessionNo === "" && $studyIuid === "" && $admisionId <= 0) {
             return;
         }
 
         try {
-            WorklistOrden::query()
-                ->where('sede_id', $estudio->sede_id)
-                ->whereIn('estado', ['PENDIENTE', 'ADQUIRIDO'])
-                ->where(function ($q) use ($accessionNo, $studyIuid) {
-                    if (! empty($accessionNo)) {
-                        $q->where('accession_no', $accessionNo);
+            if ($accessionNo !== "" || $studyIuid !== "") {
+                WorklistOrden::query()
+                    ->where("sede_id", $estudio->sede_id)
+                    ->whereIn("estado", ["PENDIENTE", "ADQUIRIDO"])
+                    ->where(function ($q) use ($accessionNo, $studyIuid) {
+                        if ($accessionNo !== "") {
+                            $q->where("accession_no", $accessionNo);
+                        }
+                        if ($studyIuid !== "") {
+                            $q->orWhere("study_iuid", $studyIuid);
+                        }
+                    })
+                    ->update([
+                        "estado" => "COMPLETADO",
+                        "estudio_id" => $estudio->id,
+                        "study_pk" => ! empty($registro["study_pk"]) ? (int) $registro["study_pk"] : null,
+                        "updated_at" => now(),
+                    ]);
+            }
+
+            if (Schema::hasTable("admin_admisiones")) {
+                $admisionQuery = AdminAdmision::query()
+                    ->where("sede_id", $estudio->sede_id)
+                    ->whereNull("estudio_id")
+                    ->where("estado", "!=", AdminAdmision::ESTADO_CANCELADO);
+
+                $admisionQuery->where(function ($q) use ($admisionId, $accessionNo, $studyIuid) {
+                    if ($admisionId > 0) {
+                        $q->where("id", $admisionId);
                     }
-                    if (! empty($studyIuid)) {
-                        $q->orWhere('study_iuid', $studyIuid);
+                    if ($accessionNo !== "") {
+                        $q->orWhere("accession_no", $accessionNo);
                     }
-                })
-                ->update([
-                    'estado' => 'COMPLETADO',
-                    'estudio_id' => $estudio->id,
-                    'study_pk' => ! empty($registro['study_pk']) ? (int) $registro['study_pk'] : null,
-                    'updated_at' => now(),
-                ]);
+                    if ($studyIuid !== "") {
+                        $q->orWhere("study_iuid", $studyIuid);
+                    }
+                });
+
+                $updateAdmision = [
+                    "estudio_id" => $estudio->id,
+                    "estado" => AdminAdmision::ESTADO_ASIGNADO,
+                    "fecha_asignacion" => now(),
+                    "usuario_asignacion_id" => Auth::id() ?: $estudio->quien_registro_id,
+                    "updated_at" => now(),
+                ];
+
+                if (! empty($estudio->study_iuid)) {
+                    $updateAdmision["study_iuid"] = $estudio->study_iuid;
+                }
+                if (! empty($estudio->study_id)) {
+                    $updateAdmision["study_id"] = $estudio->study_id;
+                }
+                if (! empty($estudio->study_pk)) {
+                    $updateAdmision["study_pk"] = (int) $estudio->study_pk;
+                }
+
+                $admisionQuery->update($updateAdmision);
+            }
         } catch (\Throwable $e) {
-            Log::warning('No fue posible auto-reconciliar WorklistOrden al crear estudio: '.$e->getMessage(), [
-                'estudio_id' => $estudio->id,
-                'accession_no' => $accessionNo,
+            Log::warning("No fue posible auto-reconciliar WorklistOrden / AdminAdmision al crear estudio: ".$e->getMessage(), [
+                "estudio_id" => $estudio->id,
+                "accession_no" => $accessionNo,
             ]);
         }
     }

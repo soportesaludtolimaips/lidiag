@@ -33,6 +33,13 @@ export const routes = [
 
     // Gestión Clínica — Estudios Radiológicos
     {
+        path: "/estudios.pendientes.listar",
+        alias: ["/estudios/pendientes-asignar"],
+        name: "estudios.pendientes.asignar",
+        component: () => import("../components/modulos/estudios/pendientesAsignarComponent.vue"),
+        meta: { title: "Pendientes de Asignar", permission: "estudio.asignar", auth: true },
+    },
+    {
         path: "/estudios.asignar.listar",
         name: "estudios.asignar",
         component: () => import("../components/modulos/estudios/AsignarEstudioComponent.vue"),

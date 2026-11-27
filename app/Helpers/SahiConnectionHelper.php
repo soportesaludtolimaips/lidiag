@@ -24,7 +24,7 @@ class SahiConnectionHelper
      */
     public static function configureForSede(?ConfigSede $sede): void
     {
-        if (! $sede || $sede->interface_software !== 'SAHI') {
+        if (! $sede || strtoupper(trim((string) $sede->interface_software)) !== "SAHI") {
             return;
         }
 

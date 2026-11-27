@@ -2,12 +2,14 @@
 
 namespace App\Models\General;
 
+use App\Models\Admisiones\AdminAdmision;
 use App\Models\Configuracion\ConfigTipoDocumento;
 use App\Models\Ecografias\Ecografia;
 use App\Models\Estudio\Estudio;
 use App\Models\Worklist\WorklistOrden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Paciente extends Model
 {
@@ -69,5 +71,19 @@ class Paciente extends Model
     public function worklistOrdenes()
     {
         return $this->hasMany(WorklistOrden::class, 'paciente_id');
+    }
+
+    /**
+     * Registros de admisiones clínicas del paciente.
+     *
+     * @return HasMany
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-27
+     */
+    public function admisiones()
+    {
+        return $this->hasMany(AdminAdmision::class, 'paciente_id');
     }
 }

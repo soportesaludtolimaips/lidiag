@@ -522,11 +522,21 @@ Controlador raíz de la SPA.
 
 ---
 
-## Módulo: Pacientes y Modality Worklist (MWL)
+## Módulo: Pacientes, Admisiones y Modality Worklist (MWL)
+
+### `AdminAdmisionController.php`
+Controlador delgado (Thin Controller) para la trazabilidad de admisiones clínicas (`admin_admisiones`), sincronización de estados con el workflow radiológico/PACS (`ADMISIONADO` $\rightarrow$ `TOMANDO ESTUDIO` $\rightarrow$ `PENDIENTE LECTURA` $\rightarrow$ `ASIGNADO`) y el módulo **Pendientes de asignar**.
+- **`listar`**: Consulta registros de `admin_admisiones` filtrados por sede, estado, modalidad, documento/nombre/accession/UID y rango de fechas.
+- **`pendientesAsignar`**: Lista las admisiones en estado `PENDIENTE LECTURA` sin estudio asignado aún para la sede activa (con reconciliación opcional contra PACS). Requiere permiso `estudio.asignar`.
+- **`store`**: Registra una admisión enviando al paciente (local o importado de interfaz) a la Modality Worklist DICOM y persistiendo `admin_admisiones`.
+- **`show`**: Retorna el detalle completo de una admisión con relaciones demográficas y trazabilidad DICOM (`study_iuid`, `study_id`, `study_pk`).
+- **`actualizarEstado`**: Actualiza manualmente el estado y metadatos DICOM de una admisión registrando auditoría.
+- **`asignarLectura`**: Envía a lectura médica un estudio pendiente replicando el flujo de `EstudioController::store`, vinculando `estudio_id`, `worklist_orden_id`, `study_iuid` y `study_id`.
+- **`cancelar`**: Anula una admisión activa y retira su orden de la consola de Rayos X si seguía pendiente.
 
 ### `PacienteController.php`
 Controlador delgado (Thin Controller) para la administración del catálogo de pacientes y la emisión/cancelación de órdenes a la Modality Worklist DICOM de Dcm4chee.
-- **`listar`**: Consulta pacientes filtrados por documento, nombre o rango de fechas, adjuntando el estado de órdenes activas de Worklist del día para la sede seleccionada.
+- **`listar`**: Consulta pacientes en LIDIAG y, si no existen al buscar por documento, realiza fallback transparente a la interfaz hospitalaria de la sede (ej. SAHI) sin duplicar registros hasta su admisión.
 - **`store`**: Registra un nuevo paciente validando unicidad de documento y formato.
 - **`show`**: Retorna la ficha demográfica del paciente.
 - **`update`**: Actualiza los datos del paciente asegurando que el documento no colisione con otro registro.

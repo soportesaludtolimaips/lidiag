@@ -3,6 +3,7 @@
 namespace App\Services\Dcm4chee;
 
 use App\Helpers\DicomDatasetBuilder;
+use App\Models\Admisiones\AdminAdmision;
 use App\Models\Configuracion\ConfigProducto;
 use App\Models\Configuracion\ConfigSede;
 use App\Models\Configuracion\ConfigWorklistDispositivo;
@@ -10,6 +11,7 @@ use App\Models\Ecografias\Ecografia;
 use App\Models\Estudio\Estudio;
 use App\Models\General\Paciente;
 use App\Models\Worklist\WorklistOrden;
+use App\Services\Admisiones\AdminAdmisionService;
 use App\Services\BaseService;
 use Carbon\Carbon;
 use Exception;
@@ -231,23 +233,53 @@ class WorklistService extends BaseService
      */
     public function enviarAWorklist(array $data, int $usuarioId): array
     {
-        $sedeId = (int) $data['sede_id'];
-        $pacienteId = (int) $data['paciente_id'];
-        $productoId = (int) $data['producto_id'];
+        $sedeId = (int) $data["sede_id"];
+        $pacienteId = ! empty($data["paciente_id"]) ? (int) $data["paciente_id"] : 0;
+        $productoId = (int) $data["producto_id"];
 
         $sede = ConfigSede::find($sedeId);
         if (! $sede) {
-            return $this->error('Sede no encontrada.', 404);
+            return $this->error("Sede no encontrada.", 404);
         }
 
-        $paciente = Paciente::find($pacienteId);
-        if (! $paciente) {
-            return $this->error('Paciente no encontrado.', 404);
+        $datosPacienteInterfaz = null;
+        if ($pacienteId > 0) {
+            $paciente = Paciente::find($pacienteId);
+            if (! $paciente) {
+                return $this->error("Paciente no encontrado.", 404);
+            }
+        } elseif (! empty($data["paciente_interfaz"]) && is_array($data["paciente_interfaz"])) {
+            $datosPacienteInterfaz = $data["paciente_interfaz"];
+            $docInterfaz = trim((string) ($datosPacienteInterfaz["num_docu"] ?? ""));
+            if ($docInterfaz === "") {
+                return $this->error("El número de documento del paciente es obligatorio.", 422);
+            }
+
+            // Reutilizar paciente existente si ya fue creado previamente por otro usuario sin duplicar
+            $paciente = Paciente::where("num_docu", $docInterfaz)->first();
+            if (! $paciente) {
+                $paciente = new Paciente([
+                    "tipo_documento_id" => $datosPacienteInterfaz["tipo_documento_id"] ?? null,
+                    "num_docu" => $docInterfaz,
+                    "nombres" => strtoupper(trim((string) ($datosPacienteInterfaz["nombres"] ?? ""))),
+                    "seg_nom" => ! empty($datosPacienteInterfaz["seg_nom"]) ? strtoupper(trim((string) $datosPacienteInterfaz["seg_nom"])) : null,
+                    "pri_ape" => ! empty($datosPacienteInterfaz["pri_ape"]) ? strtoupper(trim((string) $datosPacienteInterfaz["pri_ape"])) : null,
+                    "seg_ape" => ! empty($datosPacienteInterfaz["seg_ape"]) ? strtoupper(trim((string) $datosPacienteInterfaz["seg_ape"])) : null,
+                    "direccion" => $datosPacienteInterfaz["direccion"] ?? null,
+                    "email" => $datosPacienteInterfaz["email"] ?? null,
+                    "sexo" => strtoupper(trim((string) ($datosPacienteInterfaz["sexo"] ?? "M"))),
+                    "fec_naci" => $datosPacienteInterfaz["fec_naci"] ?? null,
+                    "tel" => $datosPacienteInterfaz["tel"] ?? null,
+                    "cel" => $datosPacienteInterfaz["cel"] ?? null,
+                ]);
+            }
+        } else {
+            return $this->error("Debe especificar un paciente válido para admitir.", 422);
         }
 
         $producto = ConfigProducto::find($productoId);
         if (! $producto) {
-            return $this->error('Procedimiento o producto no encontrado.', 404);
+            return $this->error("Procedimiento o producto no encontrado.", 404);
         }
 
         $modality = strtoupper(trim($data['modality'] ?? 'DX'));
@@ -414,28 +446,64 @@ class WorklistService extends BaseService
             Config::set('database.default', $conexionOriginal);
         }
 
-        // 4. Registrar la orden en LIDiag
-        $orden = WorklistOrden::create([
-            'paciente_id' => $pacienteId,
-            'sede_id' => $sedeId,
-            'producto_id' => $productoId,
-            'accession_no' => $accessionNo,
-            'study_iuid' => $studyIuid,
-            'modality' => $modality,
-            'station_aet' => $stationAet,
-            'mwl_item_pk' => $mwlItemPk,
-            'ecografia_id' => ! empty($data['ecografia_id']) ? (int) $data['ecografia_id'] : null,
-            'ecografia_producto_id' => ! empty($data['ecografia_producto_id']) ? (int) $data['ecografia_producto_id'] : null,
-            'estado' => 'PENDIENTE',
-            'usuario_id' => $usuarioId,
-            'observaciones' => $data['observaciones'] ?? null,
-        ]);
+        // 4. Persistir paciente (si provenía de interfaz), orden de Worklist y registro en admin_admisiones de forma atómica
+        $orden = DB::transaction(function () use (
+            &$paciente,
+            $sedeId,
+            $productoId,
+            $accessionNo,
+            $studyIuid,
+            $modality,
+            $stationAet,
+            $mwlItemPk,
+            $data,
+            $usuarioId
+        ) {
+            if (! $paciente->exists) {
+                $existente = Paciente::where("num_docu", $paciente->num_docu)->lockForUpdate()->first();
+                if ($existente) {
+                    $paciente = $existente;
+                } else {
+                    $paciente->save();
+                }
+            }
 
-        $orden->load(['paciente', 'producto', 'sede']);
+            $nuevaOrden = WorklistOrden::create([
+                "paciente_id" => $paciente->id,
+                "sede_id" => $sedeId,
+                "producto_id" => $productoId,
+                "accession_no" => $accessionNo,
+                "study_iuid" => $studyIuid,
+                "modality" => $modality,
+                "station_aet" => $stationAet,
+                "mwl_item_pk" => $mwlItemPk,
+                "ecografia_id" => ! empty($data["ecografia_id"]) ? (int) $data["ecografia_id"] : null,
+                "ecografia_producto_id" => ! empty($data["ecografia_producto_id"]) ? (int) $data["ecografia_producto_id"] : null,
+                "estado" => "PENDIENTE",
+                "usuario_id" => $usuarioId,
+                "observaciones" => $data["observaciones"] ?? null,
+            ]);
 
-        $tipoModalidad = ($modality === 'US') ? 'Ecografía' : 'Rayos X';
+            $nuevaOrden->load(["paciente", "producto", "sede"]);
 
-        return $this->success($orden, "Paciente enviado a la Worklist ({$tipoModalidad}) exitosamente con Accession No. '{$accessionNo}'.", 201);
+            // Registrar admisión clínica sólo para flujo radiológico (no ecografías independientes)
+            if (empty($data["ecografia_id"])) {
+                app(AdminAdmisionService::class)->registrarDesdeWorklist(
+                    $paciente,
+                    $nuevaOrden,
+                    $data,
+                    $usuarioId
+                );
+            }
+
+            return $nuevaOrden;
+        });
+
+        $orden->load("admision");
+
+        $tipoModalidad = ($modality === "US") ? "Ecografía" : "Rayos X";
+
+        return $this->success($orden, "Paciente admitido y enviado a la Worklist ({$tipoModalidad}) exitosamente con Accession No. '{$accessionNo}'.", 201);
     }
 
     /**
@@ -494,9 +562,18 @@ class WorklistService extends BaseService
             }
         }
 
-        $orden->estado = 'CANCELADO';
-        $orden->observaciones = ($orden->observaciones ? $orden->observaciones.' | ' : '').'Cancelado por usuario ID: '.$usuarioId.' en '.now();
+        $orden->estado = "CANCELADO";
+        $orden->observaciones = ($orden->observaciones ? $orden->observaciones." | " : "")."Cancelado por usuario ID: ".$usuarioId." en ".now();
         $orden->save();
+
+        if (app(AdminAdmisionService::class)->tablaDisponible()) {
+            AdminAdmision::where("worklist_orden_id", $orden->id)
+                ->whereNotIn("estado", [AdminAdmision::ESTADO_ASIGNADO])
+                ->update([
+                    "estado" => AdminAdmision::ESTADO_CANCELADO,
+                    "updated_at" => now(),
+                ]);
+        }
 
         return $this->success($orden, "Orden '{$orden->accession_no}' retirada de la Worklist exitosamente.");
     }
@@ -588,32 +665,32 @@ class WorklistService extends BaseService
                     $resumen['total_evaluadas']++;
 
                     // 1. Verificar si ya fue asignado en LIDiag (Estudios RX o Ecografías leídas)
-                    $estudioLidiag = Estudio::where('sede_id', $sede->id)
+                    $estudioLidiag = Estudio::where("sede_id", $sede->id)
                         ->where(function ($q) use ($orden) {
                             if (! empty($orden->accession_no)) {
-                                $q->where('accession_no', $orden->accession_no);
+                                $q->where("accession_no", $orden->accession_no);
                             }
                             if (! empty($orden->study_iuid)) {
-                                $q->orWhere('study_iuid', $orden->study_iuid);
+                                $q->orWhere("study_iuid", $orden->study_iuid);
                             }
                         })
-                        ->first(['id', 'study_pk', 'created_at']);
+                        ->first(["id", "study_pk", "study_iuid", "study_id", "quien_registro_id", "created_at"]);
 
                     if (! $estudioLidiag && $orden->ecografia_id) {
-                        $ecoLidiag = Ecografia::where('id', $orden->ecografia_id)
-                            ->where('estado', 'LEIDO')
-                            ->first(['id', 'estado']);
+                        $ecoLidiag = Ecografia::where("id", $orden->ecografia_id)
+                            ->where("estado", "LEIDO")
+                            ->first(["id", "estado"]);
 
-                        if ($ecoLidiag && $orden->estado !== 'COMPLETADO') {
-                            $orden->estado = 'COMPLETADO';
+                        if ($ecoLidiag && $orden->estado !== "COMPLETADO") {
+                            $orden->estado = "COMPLETADO";
                             $orden->save();
-                            $resumen['completadas']++;
-                            $resumen['detalles'][] = [
-                                'orden_id' => $orden->id,
-                                'accession_no' => $orden->accession_no,
-                                'sede' => $sede->nom_sede,
-                                'nuevo_estado' => 'COMPLETADO',
-                                'motivo' => "Ecografía #{$ecoLidiag->id} ya informada/leída en LIDiag.",
+                            $resumen["completadas"]++;
+                            $resumen["detalles"][] = [
+                                "orden_id" => $orden->id,
+                                "accession_no" => $orden->accession_no,
+                                "sede" => $sede->nom_sede,
+                                "nuevo_estado" => "COMPLETADO",
+                                "motivo" => "Ecografía #{$ecoLidiag->id} ya informada/leída en LIDiag.",
                             ];
 
                             continue;
@@ -621,75 +698,149 @@ class WorklistService extends BaseService
                     }
 
                     if ($estudioLidiag) {
-                        if ($orden->estado !== 'COMPLETADO') {
-                            $orden->estado = 'COMPLETADO';
+                        if ($orden->estado !== "COMPLETADO") {
+                            $orden->estado = "COMPLETADO";
                             $orden->estudio_id = $estudioLidiag->id;
                             if ($estudioLidiag->study_pk) {
                                 $orden->study_pk = (int) $estudioLidiag->study_pk;
                             }
                             $orden->save();
-                            $resumen['completadas']++;
-                            $resumen['detalles'][] = [
-                                'orden_id' => $orden->id,
-                                'accession_no' => $orden->accession_no,
-                                'sede' => $sede->nom_sede,
-                                'nuevo_estado' => 'COMPLETADO',
-                                'motivo' => "Estudio #{$estudioLidiag->id} ya asignado en LIDiag.",
+                            $resumen["completadas"]++;
+                            $resumen["detalles"][] = [
+                                "orden_id" => $orden->id,
+                                "accession_no" => $orden->accession_no,
+                                "sede" => $sede->nom_sede,
+                                "nuevo_estado" => "COMPLETADO",
+                                "motivo" => "Estudio #{$estudioLidiag->id} ya asignado en LIDiag.",
                             ];
+                        }
+
+                        if (! $orden->ecografia_id) {
+                            app(AdminAdmisionService::class)->sincronizarDesdeReconciliacion(
+                                $orden,
+                                AdminAdmision::ESTADO_ASIGNADO,
+                                null,
+                                $estudioLidiag
+                            );
                         }
 
                         continue;
                     }
 
-                    // 2. Si sigue pendiente, buscar en tabla study de Dcm4chee
-                    if ($orden->estado === 'PENDIENTE') {
-                        $estudioPacs = null;
-                        try {
-                            $estudioPacs = $pacsConn->table('study')
-                                ->where(function ($q) use ($orden) {
-                                    if (! empty($orden->accession_no)) {
-                                        $q->where('accession_no', $orden->accession_no);
-                                    }
-                                    if (! empty($orden->study_iuid)) {
-                                        $q->orWhere('study_iuid', $orden->study_iuid);
-                                    }
-                                })
-                                ->first(['pk', 'study_iuid', 'accession_no', 'study_datetime', 'num_instances']);
-                        } catch (\Throwable $e) {
-                            Log::warning("Error consultando tabla study en PACS sede {$sede->id}: {$e->getMessage()}");
-                        }
+                    // 2. Consultar estado del estudio en tabla study de Dcm4chee (para PENDIENTE y también enriquecer ADQUIRIDO)
+                    $estudioPacs = null;
+                    try {
+                        $estudioPacs = $pacsConn->table("study")
+                            ->where(function ($q) use ($orden) {
+                                if (! empty($orden->accession_no)) {
+                                    $q->where("accession_no", $orden->accession_no);
+                                }
+                                if (! empty($orden->study_iuid)) {
+                                    $q->orWhere("study_iuid", $orden->study_iuid);
+                                }
+                            })
+                            ->first([
+                                "pk",
+                                "study_iuid",
+                                "study_id",
+                                "accession_no",
+                                "study_datetime",
+                                "study_desc",
+                                "mods_in_study",
+                                "num_instances",
+                            ]);
+                    } catch (\Throwable $e) {
+                        Log::warning("Error consultando tabla study en PACS sede {$sede->id}: {$e->getMessage()}");
+                    }
 
-                        if ($estudioPacs) {
-                            $orden->estado = 'ADQUIRIDO';
+                    if ($estudioPacs) {
+                        $numInstancias = isset($estudioPacs->num_instances) ? (int) $estudioPacs->num_instances : 1;
+
+                        if ($numInstancias > 0) {
+                            $eraPendiente = ($orden->estado === "PENDIENTE");
+                            $orden->estado = "ADQUIRIDO";
                             $orden->study_pk = (int) $estudioPacs->pk;
-                            $orden->adquirido_at = $estudioPacs->study_datetime ?: now();
+                            if (! empty($estudioPacs->study_iuid)) {
+                                $orden->study_iuid = trim((string) $estudioPacs->study_iuid);
+                            }
+                            if (! $orden->adquirido_at) {
+                                $orden->adquirido_at = $estudioPacs->study_datetime ?: now();
+                            }
                             $orden->save();
 
-                            // Actualizar status en mwl_item de Dcm4chee para limpiar la consola de la sala
-                            try {
-                                if ($orden->mwl_item_pk) {
-                                    $pacsConn->table('mwl_item')->where('pk', $orden->mwl_item_pk)->update([
-                                        'sps_status' => 1, // 1 = COMPLETED
-                                        'updated_time' => now(),
-                                    ]);
-                                } else {
-                                    $pacsConn->table('mwl_item')->where('accession_no', $orden->accession_no)->update([
-                                        'sps_status' => 1,
-                                        'updated_time' => now(),
-                                    ]);
-                                }
-                            } catch (\Throwable $e) {
-                                Log::warning("No se pudo actualizar sps_status en mwl_item Dcm4chee: {$e->getMessage()}");
+                            if (! $orden->ecografia_id) {
+                                app(AdminAdmisionService::class)->sincronizarDesdeReconciliacion(
+                                    $orden,
+                                    AdminAdmision::ESTADO_PENDIENTE_LECTURA,
+                                    $estudioPacs
+                                );
                             }
 
-                            $resumen['adquiridas']++;
-                            $resumen['detalles'][] = [
-                                'orden_id' => $orden->id,
-                                'accession_no' => $orden->accession_no,
-                                'sede' => $sede->nom_sede,
-                                'nuevo_estado' => 'ADQUIRIDO',
-                                'motivo' => "Imágenes detectadas en PACS ({$estudioPacs->num_instances} instancias)",
-                            ];
+                            if ($eraPendiente) {
+                                // Actualizar status en mwl_item de Dcm4chee para limpiar la consola de la sala
+                                try {
+                                    if ($orden->mwl_item_pk) {
+                                        $pacsConn->table("mwl_item")->where("pk", $orden->mwl_item_pk)->update([
+                                            "sps_status" => 1, // 1 = COMPLETED
+                                            "updated_time" => now(),
+                                        ]);
+                                    } else {
+                                        $pacsConn->table("mwl_item")->where("accession_no", $orden->accession_no)->update([
+                                            "sps_status" => 1,
+                                            "updated_time" => now(),
+                                        ]);
+                                    }
+                                } catch (\Throwable $e) {
+                                    Log::warning("No se pudo actualizar sps_status en mwl_item Dcm4chee: {$e->getMessage()}");
+                                }
+
+                                $resumen["adquiridas"]++;
+                                $resumen["detalles"][] = [
+                                    "orden_id" => $orden->id,
+                                    "accession_no" => $orden->accession_no,
+                                    "sede" => $sede->nom_sede,
+                                    "nuevo_estado" => "ADQUIRIDO",
+                                    "motivo" => "Imágenes detectadas en PACS ({$estudioPacs->num_instances} instancias) -> PENDIENTE LECTURA",
+                                ];
+                            }
+                        } elseif (! $orden->ecografia_id) {
+                            app(AdminAdmisionService::class)->sincronizarDesdeReconciliacion(
+                                $orden,
+                                AdminAdmision::ESTADO_TOMANDO_ESTUDIO,
+                                $estudioPacs
+                            );
+                        }
+                    } elseif ($orden->estado === "PENDIENTE" && ! $orden->ecografia_id) {
+                        // Verificar si el tecnólogo ya inició la toma en consola (MPPS IN PROGRESS o MWL sps_status > 0)
+                        $enTomaConsola = false;
+                        try {
+                            $mwlQuery = $pacsConn->table("mwl_item");
+                            if ($orden->mwl_item_pk) {
+                                $mwlQuery->where("pk", $orden->mwl_item_pk);
+                            } else {
+                                $mwlQuery->where("accession_no", $orden->accession_no);
+                            }
+                            $spsStatus = $mwlQuery->value("sps_status");
+                            if ($spsStatus !== null && (int) $spsStatus > 0) {
+                                $enTomaConsola = true;
+                            } elseif (! empty($orden->accession_no)) {
+                                $mppsIniciado = $pacsConn->table("mpps")
+                                    ->where("accession_no", $orden->accession_no)
+                                    ->where("mpps_status", 0)
+                                    ->exists();
+                                if ($mppsIniciado) {
+                                    $enTomaConsola = true;
+                                }
+                            }
+                        } catch (\Throwable) {
+                            $enTomaConsola = false;
+                        }
+
+                        if ($enTomaConsola) {
+                            app(AdminAdmisionService::class)->sincronizarDesdeReconciliacion(
+                                $orden,
+                                AdminAdmision::ESTADO_TOMANDO_ESTUDIO
+                            );
                         }
                     }
                 }

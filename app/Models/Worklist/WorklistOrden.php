@@ -2,6 +2,7 @@
 
 namespace App\Models\Worklist;
 
+use App\Models\Admisiones\AdminAdmision;
 use App\Models\Configuracion\ConfigProducto;
 use App\Models\Configuracion\ConfigSede;
 use App\Models\Ecografias\Ecografia;
@@ -12,6 +13,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * Modelo para registro y trazabilidad de órdenes enviadas a la Modality Worklist DICOM.
@@ -140,5 +142,18 @@ class WorklistOrden extends Model
     public function usuario(): BelongsTo
     {
         return $this->belongsTo(User::class, 'usuario_id');
+    }
+
+    /**
+     * Registro de admisión clínica asociado a esta orden de Worklist.
+     *
+     *
+     * @author Jhon Javer Lozano Arce
+     *
+     * @date 2026-11-27
+     */
+    public function admision(): HasOne
+    {
+        return $this->hasOne(AdminAdmision::class, 'worklist_orden_id');
     }
 }
